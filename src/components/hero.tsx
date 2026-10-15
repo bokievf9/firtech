@@ -15,7 +15,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
       />
       <div className="relative mx-auto grid min-h-[100dvh] max-w-7xl items-center gap-12 px-4 pt-28 pb-16 md:px-8 lg:grid-cols-12 lg:gap-8 lg:pt-24">
         <HeroIntro className="lg:col-span-7">
-          <h1 className="max-w-[16ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl lg:text-[4.1rem]">
+          <h1 className="max-w-[16ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl lg:max-w-none lg:text-[clamp(3rem,3.9vw,3.5rem)]">
             {dict.hero.title}
           </h1>
           <p className="mt-6 max-w-[46ch] text-lg leading-relaxed text-muted md:text-xl">

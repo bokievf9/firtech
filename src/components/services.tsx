@@ -30,9 +30,16 @@ export function Services({ locale, dict }: { locale: Locale; dict: Dict }) {
       <div className="mt-14 grid gap-4 lg:grid-cols-12">
         <Reveal className="lg:col-span-7">
           <Card locale={locale} dict={dict} slug="websites" className="dot-grid">
-            <div className="flex items-end gap-3 pt-6">
-              <Browser size={56} weight="thin" className="text-accent" />
-              <span className="pb-1 text-sm text-faint">{s.items.websites.tags.join(' / ')}</span>
+            <div className="flex flex-wrap items-end justify-between gap-6 pt-6">
+              <div>
+                <p className="font-mono text-5xl tracking-tight md:text-6xl">
+                  {dict.estimator.catalog.websites.variants.landing.term}
+                </p>
+                <p className="mt-2 text-sm text-faint">
+                  {dict.estimator.catalog.websites.variants.landing.name}
+                </p>
+              </div>
+              <Browser size={64} weight="thin" className="text-accent" />
             </div>
           </Card>
         </Reveal>
