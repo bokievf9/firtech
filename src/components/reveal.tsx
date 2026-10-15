@@ -1,7 +1,8 @@
 'use client'
 
-import { motion, useReducedMotion } from 'motion/react'
+import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 // Fades a block up as it enters the viewport, once. Used to pace the page section by section.
 export function Reveal({

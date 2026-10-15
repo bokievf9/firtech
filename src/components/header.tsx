@@ -9,6 +9,7 @@ import type { Dict } from '@/content'
 import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { Logo } from './logo'
+import { ScrollProgress } from './scroll-progress'
 
 export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
   const pathname = usePathname()
@@ -34,6 +35,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
 
   const links = [
     { href: homeAnchor(locale, 'services'), label: dict.nav.services },
+    { href: homeAnchor(locale, 'examples'), label: dict.nav.examples },
     { href: homeAnchor(locale, 'pricing'), label: dict.nav.pricing },
     { href: homeAnchor(locale, 'process'), label: dict.nav.process },
     { href: homeAnchor(locale, 'faq'), label: dict.nav.faq },
@@ -48,6 +50,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
           : 'border-b border-transparent',
       )}
     >
+      <ScrollProgress />
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-[72px] md:px-8">
         <Link href={`/${locale}`} aria-label="Fir Tech" onClick={() => setOpen(false)}>
           <Logo />
@@ -73,7 +76,10 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
           >
             {other}
           </Link>
-          <Link href={homeAnchor(locale, 'contact')} className={cn(buttonStyles.small, 'hidden sm:inline-flex')}>
+          <Link
+            href={homeAnchor(locale, 'contact')}
+            className={cn(buttonStyles.small, 'hidden sm:inline-flex')}
+          >
             {dict.nav.cta}
           </Link>
           <button

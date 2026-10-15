@@ -1,9 +1,11 @@
 'use client'
 
 import { Plus } from '@phosphor-icons/react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useId, useState } from 'react'
 import { cn } from '@/lib/cn'
+import { RiseText } from './rise-text'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 export function Faq({
   title,
@@ -19,8 +21,14 @@ export function Faq({
   const base = useId()
 
   return (
-    <section id={id} className="mx-auto grid max-w-7xl gap-10 px-4 py-24 md:px-8 md:py-32 lg:grid-cols-12">
-      <h2 className="text-4xl font-semibold tracking-[-0.03em] md:text-5xl lg:col-span-4">{title}</h2>
+    <section
+      id={id}
+      className="mx-auto grid max-w-7xl gap-10 px-4 py-24 md:px-8 md:py-36 lg:grid-cols-12"
+    >
+      <RiseText
+        text={title}
+        className="text-4xl font-semibold tracking-[-0.035em] md:text-6xl lg:col-span-4"
+      />
       <div className="lg:col-span-8">
         {items.map((item, i) => {
           const isOpen = open === i

@@ -1,3 +1,4 @@
+import { Compare } from '@/components/compare'
 import { ContactSection } from '@/components/contact-section'
 import { Faq } from '@/components/faq'
 import { Hero } from '@/components/hero'
@@ -6,6 +7,8 @@ import { Pains } from '@/components/pains'
 import { PricingSection } from '@/components/pricing-section'
 import { Process } from '@/components/process'
 import { Services } from '@/components/services'
+import { Showcase } from '@/components/showcase'
+import { StackMarquee } from '@/components/stack-marquee'
 import { Trust } from '@/components/trust'
 import { getDict } from '@/content'
 import { isLocale } from '@/lib/i18n'
@@ -46,11 +49,14 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
       <JsonLd data={organization} />
       <JsonLd data={faqJsonLd(dict.faq.items)} />
       <Hero locale={locale} dict={dict} />
+      <StackMarquee dict={dict} />
       <Services locale={locale} dict={dict} />
       <Pains dict={dict} />
+      <Showcase locale={locale} dict={dict} />
+      <Compare dict={dict} />
+      <Trust dict={dict} />
       <PricingSection dict={dict} />
       <Process dict={dict} />
-      <Trust dict={dict} />
       <Faq id="faq" title={dict.faq.title} items={dict.faq.items} />
       <ContactSection dict={dict} locale={locale} />
     </>

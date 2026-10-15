@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { notFound } from 'next/navigation'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
+import { MobileCta } from '@/components/mobile-cta'
+import { MotionProvider } from '@/components/motion-provider'
 import { getDict } from '@/content'
 import { isLocale, locales } from '@/lib/i18n'
 import { siteUrl } from '@/lib/site'
@@ -48,9 +50,16 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   return (
     <html lang={locale} className={`${onest.variable} ${jetbrains.variable}`}>
       <body className="grain min-h-[100dvh]">
-        <Header locale={locale} dict={dict} />
-        <main>{children}</main>
-        <Footer locale={locale} dict={dict} />
+        <MotionProvider>
+          <Header locale={locale} dict={dict} />
+          <main>{children}</main>
+          <Footer locale={locale} dict={dict} />
+          <MobileCta
+            locale={locale}
+            label={dict.nav.cta}
+            telegramLabel={dict.contact.telegramCta}
+          />
+        </MotionProvider>
       </body>
     </html>
   )

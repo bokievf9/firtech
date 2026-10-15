@@ -1,9 +1,10 @@
 'use client'
 
 import { Check } from '@phosphor-icons/react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import type { Dict } from '@/content'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 // A tiny booking bot the visitor can actually use: pick a slot, get a confirmation.
 export function BotChatDemo({ t }: { t: Dict['services']['chat'] }) {

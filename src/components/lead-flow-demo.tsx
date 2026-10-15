@@ -1,10 +1,11 @@
 'use client'
 
 import { Check, PaperPlaneTilt, TelegramLogo, UserCircle } from '@phosphor-icons/react'
-import { AnimatePresence, motion, useInView, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion, useInView } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 // A working miniature of what we sell: an enquiry sent from a website lands in Telegram and in
 // the CRM. Phases: 0 typing, 1 sent, 2 Telegram alert, 3 CRM updated; then it loops.
@@ -123,7 +124,9 @@ export function LeadFlowDemo({ t }: { t: Dict['hero']['demo'] }) {
           </div>
         </div>
       </div>
-      <figcaption className="mt-4 max-w-sm text-[13px] leading-relaxed text-faint">{t.caption}</figcaption>
+      <figcaption className="mt-4 max-w-sm text-[13px] leading-relaxed text-faint">
+        {t.caption}
+      </figcaption>
     </figure>
   )
 }
