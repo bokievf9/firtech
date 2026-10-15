@@ -9,6 +9,7 @@ const en: Dict = {
   },
   nav: {
     services: 'Services',
+    examples: 'Examples',
     pricing: 'Pricing',
     process: 'Process',
     faq: 'FAQ',
@@ -19,6 +20,9 @@ const en: Dict = {
   },
   hero: {
     title: 'Websites, bots and apps for your business',
+    lead: 'We launch',
+    words: ['websites', 'Telegram bots', 'apps', 'automation'],
+    tail: 'for your business',
     sub: 'Websites from $150, Telegram bots from $100. Price and deadline are fixed before we start, and you pay in stages.',
     secondary: 'Estimate the cost',
     demo: {
@@ -49,7 +53,8 @@ const en: Dict = {
     items: {
       websites: {
         name: 'Websites',
-        short: 'Landing pages, company websites and online stores. Fast, easy to use on a phone, with an enquiry form.',
+        short:
+          'Landing pages, company websites and online stores. Fast, easy to use on a phone, with an enquiry form.',
         tags: ['Landing page', 'Company site', 'Store'],
       },
       bots: {
@@ -64,7 +69,8 @@ const en: Dict = {
       },
       automation: {
         name: 'Automation and AI',
-        short: 'We connect your website, Telegram, CRM and spreadsheets so routine work runs itself.',
+        short:
+          'We connect your website, Telegram, CRM and spreadsheets so routine work runs itself.',
         tags: ['CRM', 'Integrations', 'AI assistant'],
       },
     },
@@ -72,14 +78,18 @@ const en: Dict = {
       user: "I'd like a haircut on Saturday",
       bot: 'Free slots: 11:00, 14:30 and 17:00. Which works for you?',
       pick: '14:30',
-      done: "Booked. See you on Saturday at 14:30",
+      done: 'Booked. See you on Saturday at 14:30',
     },
+  },
+  stack: {
+    label: 'We work with the services and technologies your business already runs on',
   },
   pains: {
     title: 'Sound familiar?',
-    sub: 'These are the problems we solve most often.',
+    sub: 'Flip the switch to see what changes after launch.',
     before: 'Now',
-    after: 'After',
+    after: 'With Fir Tech',
+    toggle: 'Show what it looks like after launch',
     items: [
       {
         pain: 'Leads get lost in private messages',
@@ -104,6 +114,104 @@ const en: Dict = {
       {
         pain: 'You want your own app, but the budget is scary',
         fix: 'We start with a minimal version and grow it with your business.',
+      },
+    ],
+  },
+  showcase: {
+    title: 'What it could look like for you',
+    sub: 'The four solutions we are asked to build most often. These are concepts, but the prices and timelines are real.',
+    concept: 'Concept',
+    task: 'Problem',
+    result: 'What the business gets',
+    from: 'from',
+    cta: 'I want this',
+    items: {
+      cafe: {
+        business: 'Coffee shop',
+        title: 'Landing page with Telegram orders',
+        task: 'Guests ask for the menu in DMs, and orders get lost.',
+        result:
+          'Guests order from their phone, and the barista gets the order in Telegram right away.',
+        term: '5-7 days',
+      },
+      salon: {
+        business: 'Beauty salon',
+        title: 'Booking bot with reminders',
+        task: 'The front desk spends all day answering "any slots on Saturday?".',
+        result:
+          'Clients pick a stylist and a time themselves, and the bot reminds them a day and an hour before.',
+        term: '1-2 weeks',
+      },
+      delivery: {
+        business: 'Food delivery',
+        title: 'Telegram Mini App with payments',
+        task: 'Orders by phone, mixed-up addresses and change.',
+        result: 'Catalog, cart and payment right inside Telegram, with nothing to download.',
+        term: '3-4 weeks',
+      },
+      sales: {
+        business: 'Sales team',
+        title: 'CRM and AI assistant',
+        task: 'Leads from the website, Instagram and Telegram live in different places.',
+        result:
+          'Every lead in one pipeline, AI answers routine questions, and managers see every client.',
+        term: '2-3 weeks',
+      },
+    },
+    demo: {
+      menu: 'Menu',
+      order: 'Order',
+      cart: 'In cart',
+      latte: 'Latte',
+      cappuccino: 'Cappuccino',
+      croissant: 'Croissant',
+      orderAlert: 'New order: latte and croissant, for 9:30',
+      master: 'Stylist',
+      masterName: 'Nigina',
+      booked: 'Booked for Saturday, 14:30',
+      reminder: 'Reminder: your haircut is tomorrow at 14:30',
+      plov: 'Plov',
+      samsa: 'Samsa',
+      lagman: 'Lagman',
+      pay: 'Pay',
+      paid: 'Paid, the courier is on the way',
+      colNew: 'New',
+      colWork: 'In progress',
+      colDone: 'Paid',
+      leadA: 'Website lead',
+      leadB: 'Instagram',
+      leadC: 'Telegram',
+      days: ['Thu', 'Fri', 'Sat', 'Sun'],
+      tea: 'Tea',
+      aiReply: 'AI: free delivery in town from $20',
+    },
+  },
+  compare: {
+    title: 'Why not a freelancer or a big agency',
+    sub: 'We took the best of each option and removed what usually makes projects fail.',
+    criteria: 'What matters',
+    columns: ['Freelancer', 'Big agency', 'Fir Tech'],
+    rows: [
+      { label: 'Price', values: ['Low', 'High', 'Low and written in the quote'] },
+      {
+        label: 'Deadlines',
+        values: ['May slip', 'Long approvals', 'Fixed in the quote, progress every week'],
+      },
+      {
+        label: 'Payment',
+        values: ['Often all upfront', 'Large prepayment', 'In stages, after you accept each one'],
+      },
+      {
+        label: 'If the developer disappears',
+        values: [
+          'The project stalls',
+          'They assign someone else',
+          'Code and access are yours from day one',
+        ],
+      },
+      {
+        label: 'After launch',
+        values: ['Depends on the deal', 'Paid only', 'A month of free fixes'],
       },
     ],
   },
@@ -197,6 +305,12 @@ const en: Dict = {
   trust: {
     title: 'Why working with us is low-risk',
     sub: "We're a young studio and know trust has to be earned. So the rules are simple and written into the quote.",
+    stats: [
+      { value: 0, prefix: '$', suffix: '', label: 'extra charges beyond the quote' },
+      { value: 100, prefix: '', suffix: '%', label: 'of the code, domain and access are yours' },
+      { value: 30, prefix: '', suffix: ' min', label: "free call, even if you don't hire us" },
+      { value: 1, prefix: '', suffix: ' month', label: 'of free fixes after launch' },
+    ],
     items: [
       {
         title: 'The price does not grow',
@@ -266,21 +380,31 @@ const en: Dict = {
     estimateLabel: 'Calculator estimate',
     submit: 'Send request',
     sending: 'Sending...',
-    consent: 'By sending this form you agree that we use these details only to reply to your request.',
+    consent:
+      'By sending this form you agree that we use these details only to reply to your request.',
     successTitle: 'Request received',
-    successText: "We'll get back to you within one working day. If it's urgent, message us on Telegram.",
+    successText:
+      "We'll get back to you within one working day. If it's urgent, message us on Telegram.",
     again: 'Send another one',
     error: "Couldn't send the form. Try again or message us on Telegram.",
     errors: {
       name: 'Tell us what to call you',
       contact: 'Leave a Telegram username or phone so we can reply',
     },
+    nextTitle: 'What happens after you send it',
+    next: [
+      'We reply in Telegram or call you within one business day',
+      'A 30-minute call to go through your task',
+      'You get a quote with the price and timeline. The decision is yours',
+    ],
     telegramTitle: 'Prefer to message right away?',
     telegramText: "Write to us on Telegram and we'll reply there.",
     telegramCta: 'Message on Telegram',
   },
   footer: {
     tagline: 'Development studio. Websites, Telegram bots, apps and automation for business.',
+    ctaTitle: 'Got a task? Let’s talk it through in 30 minutes',
+    top: 'Back to top',
     services: 'Services',
     company: 'Studio',
     rights: 'All rights reserved.',

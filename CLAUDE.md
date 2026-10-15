@@ -20,6 +20,15 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   change them only on the owner's word (current set: low entry, decided 2026-10-16, not yet
   confirmed per format).
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
+- Home page order: hero, logo marquee, services, pains (before/after switch), showcase (concepts,
+  pinned horizontal pan on lg), compare, trust (the one lime colour block), pricing, process, FAQ,
+  contact. Showcase prices come from `estimate()`, so they always match the calculator. Showcase
+  items are concepts and must stay labelled as such; never present them as client work, and no
+  invented reviews or statistics anywhere (trust numbers are rules from the quote).
+- Motion: Motion (`motion/react`) in client leaf components, motion values for pointer effects.
+  Use `useReducedMotion` from `@/lib/use-reduced-motion` (hydration-safe), not Motion's own;
+  `MotionProvider` (MotionConfig `reducedMotion="user"`) wraps the layout. Logos come from
+  `simple-icons` (pinned exact version).
 
 ## Leads
 - Env (in `.env.local`, see `.env.example`): `TELEGRAM_BOT_TOKEN` (bot from @BotFather),

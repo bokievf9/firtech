@@ -91,3 +91,90 @@
   background-position: right 1rem center;
   background-size: 12px 8px;
 }
+
+/* Endless logo strip. The track holds the list twice, so -50% lands exactly on the start. */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 48s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+
+/*
+  Spotlight surfaces: a soft accent light follows the pointer (--mx/--my are set by
+  SpotlightCard). The light sits on the border and faintly inside, never as an outer glow.
+*/
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    420px circle at var(--mx, 50%) var(--my, -40%),
+    rgb(181 235 106 / 0.55),
+    transparent 45%
+  );
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: var(--spot, 0);
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.spotlight::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    560px circle at var(--mx, 50%) var(--my, -40%),
+    rgb(181 235 106 / 0.06),
+    transparent 50%
+  );
+  opacity: var(--spot, 0);
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+/* Data packet running along a connection line (automation card, hero beam). */
+@keyframes travel {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+
+/* Outlined giant wordmark in the footer. */
+.text-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(232 240 230 / 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}

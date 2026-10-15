@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowRight, CheckCircle, X } from '@phosphor-icons/react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useId, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
@@ -9,6 +9,7 @@ import { buttonStyles, cn } from '@/lib/cn'
 import { ESTIMATE_EVENT, type EstimateDetail } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 type Errors = Partial<Record<'name' | 'contact', string>>
@@ -92,7 +93,11 @@ export function ContactForm({
             <CheckCircle size={44} weight="light" className="text-accent" />
             <h3 className="mt-6 text-3xl font-semibold tracking-tight">{t.successTitle}</h3>
             <p className="mt-3 max-w-[40ch] leading-relaxed text-muted">{t.successText}</p>
-            <button type="button" onClick={() => setStatus('idle')} className={cn(buttonStyles.secondary, 'mt-8')}>
+            <button
+              type="button"
+              onClick={() => setStatus('idle')}
+              className={cn(buttonStyles.secondary, 'mt-8')}
+            >
               {t.again}
             </button>
           </motion.div>
@@ -119,7 +124,12 @@ export function ContactForm({
                   className={inputClass}
                 />
               </Field>
-              <Field id={fieldId('contact')} label={t.contactField} help={t.contactHelp} error={errors.contact}>
+              <Field
+                id={fieldId('contact')}
+                label={t.contactField}
+                help={t.contactHelp}
+                error={errors.contact}
+              >
                 <input
                   id={fieldId('contact')}
                   name="contact"
@@ -203,14 +213,21 @@ export function ContactForm({
             </div>
 
             {status === 'error' && (
-              <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+              <p
+                role="alert"
+                className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
+              >
                 {t.error}
               </p>
             )}
 
             <div className="flex flex-col gap-4 pt-1 md:flex-row md:items-center md:justify-between">
               <p className="max-w-[44ch] text-[13px] leading-relaxed text-faint">{t.consent}</p>
-              <button type="submit" disabled={status === 'sending'} className={cn(buttonStyles.primary, 'md:min-w-[200px]')}>
+              <button
+                type="submit"
+                disabled={status === 'sending'}
+                className={cn(buttonStyles.primary, 'md:min-w-[200px]')}
+              >
                 {status === 'sending' ? t.sending : t.submit}
                 {status !== 'sending' && <ArrowRight size={16} />}
               </button>

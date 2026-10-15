@@ -34,3 +34,15 @@ test('formatLead escapes HTML from visitors', () => {
   assert.match(text, /&lt;b&gt;x&lt;\/b&gt;/)
   assert.match(text, /@a&amp;b/)
 })
+
+test('dictionaries: compare table and stats line up in both languages', async () => {
+  const { default: ru } = await import('../src/content/ru.ts')
+  const { default: en } = await import('../src/content/en.ts')
+  for (const dict of [ru, en]) {
+    for (const row of dict.compare.rows) assert.equal(row.values.length, dict.compare.columns.length)
+    assert.equal(dict.hero.words.length, 4)
+    assert.equal(dict.trust.stats.length, 4)
+  }
+  assert.deepEqual(Object.keys(ru.showcase.items), Object.keys(en.showcase.items))
+  assert.equal(ru.compare.rows.length, en.compare.rows.length)
+})

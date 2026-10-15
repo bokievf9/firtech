@@ -1,15 +1,22 @@
 'use client'
 
 import { Check, Plus } from '@phosphor-icons/react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import type { Dict } from '@/content'
 import { sendEstimate } from '@/lib/estimate-event'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimate, formatUsd } from '@/lib/pricing'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
-export function Estimator({ dict, initialService = 'websites' }: { dict: Dict; initialService?: ServiceSlug }) {
+export function Estimator({
+  dict,
+  initialService = 'websites',
+}: {
+  dict: Dict
+  initialService?: ServiceSlug
+}) {
   const t = dict.estimator
   const reduce = useReducedMotion()
   const [service, setService] = useState<ServiceSlug>(initialService)

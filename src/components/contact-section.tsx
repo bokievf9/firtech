@@ -5,6 +5,7 @@ import type { Locale } from '@/lib/i18n'
 import { telegramHandle, telegramUrl, type ServiceSlug } from '@/lib/site'
 import { ContactForm } from './contact-form'
 import { Reveal } from './reveal'
+import { RiseText } from './rise-text'
 
 export function ContactSection({
   dict,
@@ -17,26 +18,47 @@ export function ContactSection({
 }) {
   const t = dict.contact
   return (
-    <section id="contact" className="mx-auto grid max-w-7xl gap-12 px-4 py-24 md:px-8 md:py-32 lg:grid-cols-12">
-      <Reveal className="lg:col-span-4">
-        <h2 className="text-4xl font-semibold tracking-[-0.03em] md:text-5xl">{t.title}</h2>
-        <p className="mt-5 max-w-[36ch] text-lg leading-relaxed text-muted">{t.sub}</p>
-        {telegramUrl && (
-          <div className="mt-10 rounded-card border border-line p-6">
-            <p className="font-medium">{t.telegramTitle}</p>
-            <p className="mt-1.5 text-sm text-muted">{t.telegramText}</p>
-            <a
-              href={telegramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(buttonStyles.secondary, 'mt-5 w-full sm:w-auto')}
-            >
-              <TelegramLogo size={18} weight="fill" className="text-[#5cc4f5]" />
-              {telegramHandle}
-            </a>
+    <section
+      id="contact"
+      className="mx-auto grid max-w-7xl gap-12 px-4 py-24 md:px-8 md:py-36 lg:grid-cols-12"
+    >
+      <div className="lg:col-span-4">
+        <RiseText
+          text={t.title}
+          className="text-4xl font-semibold tracking-[-0.035em] md:text-6xl"
+        />
+        <Reveal delay={0.15}>
+          <p className="mt-5 max-w-[36ch] text-lg leading-relaxed text-muted">{t.sub}</p>
+          <div className="mt-10">
+            <p className="text-sm text-faint">{t.nextTitle}</p>
+            <ol className="relative mt-5 grid gap-5 before:absolute before:top-3 before:bottom-3 before:left-[13px] before:w-px before:bg-line">
+              {t.next.map((step, i) => (
+                <li key={step} className="relative flex gap-4">
+                  <span className="relative flex size-7 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-bg font-mono text-xs text-accent">
+                    {i + 1}
+                  </span>
+                  <span className="pt-0.5 leading-snug">{step}</span>
+                </li>
+              ))}
+            </ol>
           </div>
-        )}
-      </Reveal>
+          {telegramUrl && (
+            <div className="mt-10 rounded-card border border-line p-6">
+              <p className="font-medium">{t.telegramTitle}</p>
+              <p className="mt-1.5 text-sm text-muted">{t.telegramText}</p>
+              <a
+                href={telegramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(buttonStyles.secondary, 'mt-5 w-full sm:w-auto')}
+              >
+                <TelegramLogo size={18} weight="fill" className="text-[#5cc4f5]" />
+                {telegramHandle}
+              </a>
+            </div>
+          )}
+        </Reveal>
+      </div>
       <Reveal className="lg:col-span-8" delay={0.08}>
         <ContactForm dict={dict} locale={locale} defaultService={defaultService} />
       </Reveal>
