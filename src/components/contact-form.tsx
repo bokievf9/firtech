@@ -64,7 +64,12 @@ export function ContactForm({
       const response = await fetch('/api/lead', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...data, estimate, locale, page: pathname }),
+        body: JSON.stringify({
+          ...data,
+          estimate,
+          locale,
+          page: pathname + window.location.search,
+        }),
       })
       if (!response.ok) throw new Error(String(response.status))
       form.reset()
@@ -164,6 +169,7 @@ export function ContactForm({
                       </option>
                     ))}
                   </optgroup>
+                  <option value="bundle">{dict.builder.leadService}</option>
                   <option value="unknown">{t.serviceUnknown}</option>
                 </select>
               </Field>

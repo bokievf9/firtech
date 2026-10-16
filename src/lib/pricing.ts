@@ -47,6 +47,9 @@ export const extraPrice: Record<
   internal: { from: catalog.apps.variants.internal ?? null, page: 'apps' },
 }
 
+// Owner decision (2026-10-16): 10% off the one-time total when a build has two or more parts.
+export const bundleDiscount = 0.1
+
 // The estimate is a range: the base sum is the floor, complex details add up to 40% on top.
 export function estimate(service: ServiceSlug, variant: string, addons: string[]) {
   const prices = catalog[service]

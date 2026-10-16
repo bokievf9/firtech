@@ -3,7 +3,7 @@ import { locales } from '@/lib/i18n'
 import { serviceSlugs, siteUrl } from '@/lib/site'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = ['', ...serviceSlugs.map((slug) => `/services/${slug}`)]
+  const paths = ['', '/builder', ...serviceSlugs.map((slug) => `/services/${slug}`)]
   return paths.flatMap((path) =>
     locales.map((locale) => ({
       url: `${siteUrl}/${locale}${path}`,

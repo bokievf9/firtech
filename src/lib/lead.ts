@@ -5,13 +5,13 @@ export const leadSchema = z.object({
   name: z.string().trim().min(1).max(80),
   contact: z.string().trim().min(3).max(120),
   service: z
-    .union([z.enum(serviceSlugs), z.enum(extraSlugs), z.literal('unknown')])
+    .union([z.enum(serviceSlugs), z.enum(extraSlugs), z.literal('bundle'), z.literal('unknown')])
     .default('unknown'),
   budget: z.string().trim().max(40).optional().default(''),
   message: z.string().trim().max(2000).optional().default(''),
-  estimate: z.string().trim().max(300).optional().default(''),
+  estimate: z.string().trim().max(1500).optional().default(''),
   locale: z.enum(['ru', 'en']).default('ru'),
-  page: z.string().trim().max(200).optional().default(''),
+  page: z.string().trim().max(600).optional().default(''),
   // Honeypot: hidden from people, bots fill it in.
   website: z.string().max(200).optional().default(''),
 })
@@ -31,6 +31,7 @@ const serviceNames: Record<Lead['service'], string> = {
   design: 'Дизайн и фирменный стиль',
   rescue: 'Доработка чужого проекта',
   internal: 'Внутренняя система',
+  bundle: 'Комплекс из конструктора',
   unknown: 'Не знает, нужна консультация',
 }
 
@@ -45,7 +46,7 @@ export function formatLead(lead: Lead) {
     ['Связь', lead.contact],
     ['Услуга', serviceNames[lead.service]],
     ['Бюджет', lead.budget],
-    ['Калькулятор', lead.estimate],
+    [lead.service === 'bundle' ? 'Сборка' : 'Калькулятор', lead.estimate],
     ['Задача', lead.message],
     ['Язык', lead.locale.toUpperCase()],
     ['Страница', lead.page],

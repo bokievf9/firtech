@@ -57,7 +57,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
       <Showcase locale={locale} dict={dict} />
       <Compare dict={dict} />
       <Trust dict={dict} />
-      <PricingSection dict={dict} />
+      <PricingSection dict={dict} locale={locale} />
       <Process dict={dict} />
       <Faq id="faq" title={dict.faq.title} items={dict.faq.items} />
       <ContactSection dict={dict} locale={locale} />

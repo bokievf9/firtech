@@ -25,7 +25,7 @@ export const extraSlugs = [
 export type ExtraSlug = (typeof extraSlugs)[number]
 
 // Anything a lead can be about: a main service or an extra.
-export type LeadService = ServiceSlug | ExtraSlug
+export type LeadService = ServiceSlug | ExtraSlug | 'bundle'
 
 export function isServiceSlug(value: string): value is ServiceSlug {
   return (serviceSlugs as readonly string[]).includes(value)

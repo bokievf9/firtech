@@ -27,6 +27,14 @@ test('lead schema: requires name and contact, defaults the rest', () => {
   assert.equal(leadSchema.safeParse({ name: '', contact: '@x' }).success, false)
   assert.equal(leadSchema.safeParse({ name: 'A', contact: 'x' }).success, false)
   assert.equal(leadSchema.safeParse({ name: 'A', contact: '@abc', service: 'hack' }).success, false)
+  const bundle = leadSchema.parse({
+    name: 'A',
+    contact: '@abc',
+    service: 'bundle',
+    estimate: 'x'.repeat(900),
+  })
+  assert.match(formatLead(bundle), /Комплекс из конструктора/)
+  assert.match(formatLead(bundle), /<b>Сборка:<\/b>/)
 })
 
 test('formatLead escapes HTML from visitors', () => {
@@ -39,10 +47,40 @@ test('dictionaries: compare table and stats line up in both languages', async ()
   const { default: ru } = await import('../src/content/ru.ts')
   const { default: en } = await import('../src/content/en.ts')
   for (const dict of [ru, en]) {
-    for (const row of dict.compare.rows) assert.equal(row.values.length, dict.compare.columns.length)
+    for (const row of dict.compare.rows)
+      assert.equal(row.values.length, dict.compare.columns.length)
     assert.equal(dict.hero.words.length, 4)
     assert.equal(dict.trust.stats.length, 4)
   }
   assert.deepEqual(Object.keys(ru.showcase.items), Object.keys(en.showcase.items))
   assert.equal(ru.compare.rows.length, en.compare.rows.length)
+})
+
+test('builder quote: parts add up, 10% off from two parts, support is monthly', async () => {
+  const { quote } = await import('../src/lib/builder.ts')
+  const single = quote({ parts: { websites: { variant: 'landing', addons: [] } }, extras: [] })
+  assert.deepEqual(single.total, { min: 150, max: 210 })
+  assert.equal(single.discount, null)
+
+  const combo = quote({
+    parts: { websites: { variant: 'landing', addons: [] }, bots: { variant: 'faq', addons: [] } },
+    extras: ['support'],
+  })
+  assert.deepEqual(combo.subtotal, { min: 250, max: 350 })
+  assert.deepEqual(combo.discount, { min: 30, max: 40 })
+  assert.deepEqual(combo.total, { min: 220, max: 310 })
+  assert.equal(combo.monthly, 30)
+  assert.equal(quote({ parts: {}, extras: ['support'] }).discount, null)
+})
+
+test('builder link: round trip, unknown pieces dropped', async () => {
+  const { decodeBuild, encodeBuild, presets } = await import('../src/lib/builder.ts')
+  for (const build of Object.values(presets))
+    assert.deepEqual(decodeBuild(encodeBuild(build)), build)
+  assert.deepEqual(decodeBuild('websites.shop.payments-hack~evil.x~bots.nope~x.seo-gold'), {
+    parts: { websites: { variant: 'shop', addons: ['payments'] } },
+    extras: ['seo'],
+  })
+  assert.equal(decodeBuild(''), null)
+  assert.equal(decodeBuild('nothing'), null)
 })

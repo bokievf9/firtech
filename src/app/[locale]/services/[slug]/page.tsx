@@ -154,7 +154,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
         </Reveal>
       </section>
 
-      <PricingSection dict={dict} initialService={slug} />
+      <PricingSection dict={dict} locale={locale} initialService={slug} />
       <Faq title={t.faq} items={page.faq} />
       <ContactSection dict={dict} locale={locale} defaultService={slug} />
 

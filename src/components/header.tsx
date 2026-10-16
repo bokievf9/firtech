@@ -37,6 +37,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
     { href: homeAnchor(locale, 'services'), label: dict.nav.services },
     { href: homeAnchor(locale, 'examples'), label: dict.nav.examples },
     { href: homeAnchor(locale, 'pricing'), label: dict.nav.pricing },
+    { href: `/${locale}/builder`, label: dict.nav.builder },
     { href: homeAnchor(locale, 'process'), label: dict.nav.process },
     { href: homeAnchor(locale, 'faq'), label: dict.nav.faq },
   ]
