@@ -81,6 +81,56 @@ const en: Dict = {
       done: 'Booked. See you on Saturday at 14:30',
     },
   },
+  extras: {
+    title: 'We also do',
+    sub: 'Smaller jobs, and the things that help an existing website or bot bring in more leads and money.',
+    group: 'Other services',
+    onCall: 'Priced after a call',
+    discuss: 'Discuss',
+    more: 'Details',
+    items: {
+      ai: {
+        name: 'AI assistant for customers',
+        short:
+          'Answers customers on Telegram, Instagram and WhatsApp around the clock, takes requests and hands them to a manager. Speaks Russian, Tajik and English.',
+      },
+      support: {
+        name: 'Support subscription',
+        short:
+          'Hosting, backups, updates and small edits every month. Your website or bot just works, and you never hunt for someone to fix it.',
+      },
+      payments: {
+        name: 'Online payments',
+        short:
+          'We add payments to your website and bot: local payment systems and bank cards, and Stripe for customers abroad.',
+      },
+      seo: {
+        name: 'Maps, SEO and analytics',
+        short:
+          'We put your business on Google Maps and Yandex Maps and set up search and analytics, so you can see where customers come from.',
+      },
+      crm: {
+        name: 'CRM setup',
+        short:
+          'We set up amoCRM or Bitrix24 around your sales, move your customer base over and train your team.',
+      },
+      design: {
+        name: 'Design and brand identity',
+        short:
+          'Logo, colours, fonts and layouts, so your business looks the same on the website, in social media and on the sign.',
+      },
+      rescue: {
+        name: 'Fixing other teams’ projects',
+        short:
+          'Website broken and the previous developer gone? We will dig into the code, fix it and finish the job.',
+      },
+      internal: {
+        name: 'Internal systems',
+        short:
+          'Stock, order tracking, a staff portal. Everything in one place instead of a dozen spreadsheets and chats.',
+      },
+    },
+  },
   stack: {
     label: 'We work with the services and technologies your business already runs on',
   },

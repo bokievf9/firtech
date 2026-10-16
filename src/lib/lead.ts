@@ -1,10 +1,12 @@
 import { z } from 'zod'
-import { serviceSlugs } from './site'
+import { extraSlugs, serviceSlugs } from './site'
 
 export const leadSchema = z.object({
   name: z.string().trim().min(1).max(80),
   contact: z.string().trim().min(3).max(120),
-  service: z.union([z.enum(serviceSlugs), z.literal('unknown')]).default('unknown'),
+  service: z
+    .union([z.enum(serviceSlugs), z.enum(extraSlugs), z.literal('unknown')])
+    .default('unknown'),
   budget: z.string().trim().max(40).optional().default(''),
   message: z.string().trim().max(2000).optional().default(''),
   estimate: z.string().trim().max(300).optional().default(''),
@@ -21,6 +23,14 @@ const serviceNames: Record<Lead['service'], string> = {
   bots: 'Telegram-бот',
   apps: 'Приложение',
   automation: 'Автоматизация / ИИ',
+  ai: 'ИИ-ассистент',
+  support: 'Поддержка по подписке',
+  payments: 'Онлайн-оплата',
+  seo: 'Карты, SEO и аналитика',
+  crm: 'CRM под ключ',
+  design: 'Дизайн и фирменный стиль',
+  rescue: 'Доработка чужого проекта',
+  internal: 'Внутренняя система',
   unknown: 'Не знает, нужна консультация',
 }
 
