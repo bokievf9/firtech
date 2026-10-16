@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="55%" r="60%">
+      <stop offset="0" stop-color="#1d3a2a"/><stop offset="1" stop-color="#0a0d0b"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="640" fill="url(#glow)"/>
+  <!-- One glyph that reads as both F and T: T's bar and stem, plus F's middle bar. -->
+  <g fill="#b5eb6a">
+    <rect x="160" y="170" width="320" height="66" rx="33"/>
+    <rect x="287" y="170" width="66" height="310" rx="33"/>
+    <rect x="287" y="292" width="160" height="60" rx="30"/>
+  </g>
+</svg>
