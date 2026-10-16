@@ -41,7 +41,7 @@ export default async function BuilderPage({ params }: PageProps<'/[locale]/build
         </HeroIntro>
       </section>
       <section className="mx-auto max-w-7xl px-4 md:px-8">
-        <Builder dict={dict} />
+        <Builder dict={dict} locale={locale} />
       </section>
       <ContactSection dict={dict} locale={locale} />
     </>

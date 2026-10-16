@@ -83,6 +83,16 @@ export function Showcase({ locale, dict }: { locale: Locale; dict: Dict }) {
           <p className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted [@media(min-width:1024px)_and_(max-height:860px)]:mt-3 [@media(min-width:1024px)_and_(max-height:860px)]:text-base">
             {s.sub}
           </p>
+          <Link
+            href={`/${locale}/solutions`}
+            className="group mt-4 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-fg [@media(min-width:1024px)_and_(max-height:860px)]:mt-2"
+          >
+            {dict.solutions.all}
+            <ArrowRight
+              size={14}
+              className="text-accent transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </Link>
         </div>
 
         <motion.div
