@@ -8,7 +8,8 @@ rm -rf "$OUT" && mkdir -p "$OUT/.next" "$OUT/public"
 cp -R .next/standalone/. "$OUT/"
 cp -R .next/static "$OUT/.next/static"
 # Merge, not copy: standalone may already hold a traced public/ (would nest as public/public).
-cp -R public/. "$OUT/public/"
+# public/ is empty today (git does not keep empty folders), so it may be missing.
+if [ -d public ]; then cp -R public/. "$OUT/public/"; fi
 test ! -e "$OUT/public/public" || { echo "public/ was not assembled correctly"; exit 1; }
 cp ecosystem.config.cjs scripts/deploy/activate.sh "$OUT/"
 # Ops helper run on the server after deploy (sets the Telegram webhook); dependency-free.
