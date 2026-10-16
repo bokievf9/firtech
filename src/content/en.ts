@@ -86,6 +86,7 @@ const en: Dict = {
     sub: 'Smaller jobs, and the things that help an existing website or bot bring in more leads and money.',
     group: 'Other services',
     onCall: 'Priced after a call',
+    perMonth: '/mo',
     discuss: 'Discuss',
     more: 'Details',
     items: {
