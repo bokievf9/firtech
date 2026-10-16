@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
+  <defs>
+    <radialGradient id="g" cx="35%" cy="25%" r="85%">
+      <stop offset="0" stop-color="#c9f58c"/><stop offset="1" stop-color="#a3dc55"/>
+    </radialGradient>
+  </defs>
+  <rect width="640" height="640" fill="url(#g)"/>
+  <!-- F assembled from blocks, like the site builder: stem, two bars, one block still "loading". -->
+  <g fill="#0d1408">
+    <rect x="196" y="160" width="84" height="320" rx="26"/>
+    <rect x="298" y="160" width="160" height="84" rx="26"/>
+    <rect x="298" y="278" width="112" height="84" rx="26"/>
+  </g>
+  <rect x="298" y="396" width="84" height="84" rx="26" fill="#0d1408" opacity="0.22"/>
+</svg>
