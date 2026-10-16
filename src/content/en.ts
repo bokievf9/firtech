@@ -187,31 +187,42 @@ const en: Dict = {
     },
   },
   compare: {
-    title: 'Why not a freelancer or a big agency',
-    sub: 'We took the best of each option and removed what usually makes projects fail.',
+    title: 'Freelancer, agency or Fir Tech',
+    sub: 'Each option has its strengths. We kept what usually matters most to a small business: a clear price, deadlines and control over the project.',
     criteria: 'What matters',
     columns: ['Freelancer', 'Big agency', 'Fir Tech'],
     rows: [
-      { label: 'Price', values: ['Low', 'High', 'Low and written in the quote'] },
+      {
+        label: 'Price',
+        values: ['Usually affordable', 'Above average', 'Affordable and written in the quote'],
+      },
       {
         label: 'Deadlines',
-        values: ['May slip', 'Long approvals', 'Fixed in the quote, progress every week'],
+        values: [
+          'Depend on their workload',
+          'More approval steps',
+          'Fixed in the quote, progress every week',
+        ],
       },
       {
         label: 'Payment',
-        values: ['Often all upfront', 'Large prepayment', 'In stages, after you accept each one'],
+        values: [
+          'Whatever you agree',
+          'Usually with prepayment',
+          'In stages, after you accept each one',
+        ],
       },
       {
-        label: 'If the developer disappears',
+        label: 'Who is responsible',
         values: [
-          'The project stalls',
-          'They assign someone else',
-          'Code and access are yours from day one',
+          'One person',
+          'A team and a manager',
+          'A team, and the code and access are yours from day one',
         ],
       },
       {
         label: 'After launch',
-        values: ['Depends on the deal', 'Paid only', 'A month of free fixes'],
+        values: ['By agreement', 'Usually a separate contract', 'A month of free fixes'],
       },
     ],
   },
