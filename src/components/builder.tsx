@@ -9,6 +9,7 @@ import {
   Coffee,
   DeviceMobile,
   DotsThreeOutline,
+  FilePdf,
   FlowArrow,
   Globe,
   Link as LinkIcon,
@@ -19,6 +20,7 @@ import {
   type Icon,
 } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
+import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import {
@@ -72,6 +74,7 @@ export function Builder({ dict }: { dict: Dict }) {
   const [atForm, setAtForm] = useState(false)
   const loaded = useRef(false)
   const top = useRef<HTMLDivElement>(null)
+  const pathname = usePathname()
 
   // A shared link (?b=...) opens straight on the summary. Read after mount: the page is static, so
   // the server never sees the query string.
@@ -458,11 +461,11 @@ export function Builder({ dict }: { dict: Dict }) {
                         {q.monthly !== null && <li>{t.monthlyNote}</li>}
                         <li>{t.note}</li>
                       </ul>
-                      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                      <div className="mt-8 grid gap-3 sm:grid-cols-2">
                         <button
                           type="button"
                           onClick={handOff}
-                          className={cn(buttonStyles.primary, 'sm:flex-1')}
+                          className={cn(buttonStyles.primary, 'sm:col-span-2')}
                         >
                           {t.send}
                           <ArrowRight size={16} />
@@ -471,6 +474,15 @@ export function Builder({ dict }: { dict: Dict }) {
                           {copied ? <Check size={16} /> : <LinkIcon size={16} />}
                           <span aria-live="polite">{copied ? t.copied : t.copy}</span>
                         </button>
+                        <a
+                          href={`${pathname}/estimate?b=${encodeBuild(build)}`}
+                          target="_blank"
+                          rel="noopener"
+                          className={buttonStyles.secondary}
+                        >
+                          <FilePdf size={16} />
+                          {t.download}
+                        </a>
                       </div>
                     </>
                   ) : (
