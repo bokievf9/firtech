@@ -113,6 +113,11 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
               </Link>
             </li>
             <li>
+              <Link href={`/${locale}/blog`} className="transition-colors hover:text-fg">
+                {dict.blog.eyebrow}
+              </Link>
+            </li>
+            <li>
               <Link
                 href={homeAnchor(locale, 'contact')}
                 className="transition-colors hover:text-fg"

@@ -753,6 +753,26 @@ const en: Dict = {
       },
     ],
   },
+  blog: {
+    metaTitle: 'Fir Tech blog: websites, bots and automation in plain words',
+    metaDescription:
+      'Practical articles for small business owners: what a website costs, website or Telegram bot, how to stop losing leads.',
+    eyebrow: 'Blog',
+    title: 'Websites, bots and leads in plain words',
+    sub: 'Practical advice for small business owners: what to order, what it costs and how not to overpay.',
+    empty: 'Articles are coming soon',
+    emptyText:
+      'We are preparing the first pieces. Meanwhile you can put your project together in the builder or ask us directly.',
+    draft: 'Draft',
+    draftNote: 'Drafts are visible in local development only. Production hides them until published: true.',
+    minutes: 'min read',
+    read: 'Read',
+    back: 'All articles',
+    more: 'More articles',
+    ctaTitle: 'Put your project together in the builder',
+    ctaText: 'Pick a website, a bot or automation and see the price and timeline right away.',
+    ctaButton: 'Open the builder',
+  },
   faq: {
     title: 'Questions',
     items: [
