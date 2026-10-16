@@ -36,6 +36,7 @@ import {
   type BuildExtra,
 } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
+import { track } from '@/lib/analytics'
 import { sendEstimate } from '@/lib/estimate-event'
 import { bundleDiscount, catalog, extraPrice, formatUsd, startingPrice } from '@/lib/pricing'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
@@ -111,6 +112,7 @@ export function Builder({ dict }: { dict: Dict }) {
 
   function go(next: number) {
     setStep(next)
+    track('builder_step', { step: next + 1 })
     const el = top.current
     if (el && el.getBoundingClientRect().top < 0) {
       el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
@@ -185,10 +187,9 @@ export function Builder({ dict }: { dict: Dict }) {
     if (q.monthly)
       lines.push(`${dict.extras.items.support.name}: ${formatUsd(q.monthly)}${t.perMonth}`)
     const single = q.lines.length === 1 && !q.monthly ? q.lines[0]?.id : undefined
-    sendEstimate({
-      service: single && isService(single) ? single : 'bundle',
-      summary: lines.join('\n'),
-    })
+    const service = single && isService(single) ? single : 'bundle'
+    sendEstimate({ service, summary: lines.join('\n') })
+    track('builder_sent', { service })
     document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
   }
 
@@ -196,6 +197,7 @@ export function Builder({ dict }: { dict: Dict }) {
     try {
       await navigator.clipboard.writeText(window.location.href)
       setCopied(true)
+      track('builder_link_copied')
       setTimeout(() => setCopied(false), 2200)
     } catch {
       // Clipboard can be blocked (http, permissions); the link is still in the address bar.

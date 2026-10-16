@@ -5,11 +5,13 @@ import { AnimatePresence, motion } from 'motion/react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useId, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
+import { track } from '@/lib/analytics'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ESTIMATE_EVENT, type EstimateDetail } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
 import { extraSlugs, serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { ConsentText } from './consent-text'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 type Errors = Partial<Record<'name' | 'contact', string>>
@@ -75,6 +77,7 @@ export function ContactForm({
       form.reset()
       setEstimate('')
       setStatus('sent')
+      track('lead_sent', { service: data.service || 'unknown' })
     } catch {
       setStatus('error')
     }
@@ -235,7 +238,9 @@ export function ContactForm({
             )}
 
             <div className="flex flex-col gap-4 pt-1 md:flex-row md:items-center md:justify-between">
-              <p className="max-w-[44ch] text-[13px] leading-relaxed text-faint">{t.consent}</p>
+              <p className="max-w-[44ch] text-[13px] leading-relaxed text-faint">
+                <ConsentText text={t.consent} href={`/${locale}/privacy`} />
+              </p>
               <button
                 type="submit"
                 disabled={status === 'sending'}

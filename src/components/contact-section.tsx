@@ -48,6 +48,7 @@ export function ContactSection({
               <p className="mt-1.5 text-sm text-muted">{t.telegramText}</p>
               <a
                 href={telegramUrl}
+                data-place="contact"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(buttonStyles.secondary, 'mt-5 w-full sm:w-auto')}

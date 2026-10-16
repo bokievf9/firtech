@@ -541,7 +541,7 @@ const en: Dict = {
     submit: 'Send request',
     sending: 'Sending...',
     consent:
-      'By sending this form you agree that we use these details only to reply to your request.',
+      'By sending this form you agree that we use these details only to reply to your request, as described in the [privacy policy].',
     successTitle: 'Request received',
     successText:
       "We'll get back to you within one working day. If it's urgent, message us on Telegram.",
@@ -560,6 +560,92 @@ const en: Dict = {
     telegramTitle: 'Prefer to message right away?',
     telegramText: "Write to us on Telegram and we'll reply there.",
     telegramCta: 'Message on Telegram',
+  },
+  privacy: {
+    metaTitle: 'Privacy policy | Fir Tech',
+    metaDescription:
+      'What data the Fir Tech contact form collects, why, where it is kept and how to ask us to delete it.',
+    eyebrow: 'Document',
+    title: 'Privacy policy',
+    updated: 'Version of 16 October 2026',
+    intro:
+      'In short and in plain words: what data you leave on this site, what we do with it and how to ask us to delete it. The data is handled by the Fir Tech studio.',
+    sections: [
+      {
+        id: 'collect',
+        title: 'What data we receive',
+        text: ['When you send a request, we receive what you entered in the form:'],
+        list: [
+          'your name',
+          'Telegram or phone',
+          'budget',
+          'the task description',
+          'the estimate from the calculator or the builder, if you added it',
+          'a convenient time for a call, if you chose one',
+          'the page the request was sent from and the site language',
+        ],
+      },
+      {
+        id: 'purpose',
+        title: 'Why',
+        text: [
+          'Only to reply to your request and prepare a quote with a price and a timeline. We do not send newsletters based on this data or add you to any advertising lists.',
+        ],
+        list: [],
+      },
+      {
+        id: 'storage',
+        title: 'Where it is kept',
+        text: [
+          'The request arrives in our Telegram bot and is saved to a file on our server, so it is not lost if Telegram is briefly unavailable.',
+        ],
+        list: [],
+      },
+      {
+        id: 'retention',
+        title: 'How long it is kept',
+        text: [
+          'Up to 1 year after our last contact with you, then it is deleted. Earlier, if you ask us to.',
+        ],
+        list: [],
+      },
+      {
+        id: 'sharing',
+        title: 'Who we share it with',
+        text: [
+          'We do not sell your data or share it with third parties. The only exception is the technical services the site cannot work without: Telegram (requests arrive through it) and the hosting the site runs on.',
+        ],
+        list: [],
+      },
+      {
+        id: 'analytics',
+        title: 'Analytics',
+        text: [
+          'We use Yandex Metrica to see which pages help and which do not. Metrica sets cookies and collects anonymised visit data: pages opened, transitions, clicks and scrolling, device and browser type, approximate region. This data does not tell us who you are.',
+          'You can turn this off in your browser settings (block cookies or turn on tracking protection) or with the Yandex add-on that blocks Metrica on all sites.',
+        ],
+        list: [],
+      },
+      {
+        id: 'rights',
+        title: 'Your rights',
+        text: [
+          'At any time you can ask what data we have about you, ask us to correct it or delete it. We will reply and do it.',
+        ],
+        list: [],
+      },
+      {
+        id: 'changes',
+        title: 'Changes',
+        text: ['If this policy changes, the new version will appear on this page with a new date.'],
+        list: [],
+      },
+    ],
+    optOut: 'Add-on that blocks Yandex Metrica',
+    contactTelegram: 'To make a request, message us on Telegram:',
+    contactForm: 'To make a request, write to us through the form on the site:',
+    contactFormLink: 'Go to the form',
+    footerLink: 'Privacy policy',
   },
   footer: {
     tagline: 'Development studio. Websites, Telegram bots, apps and automation for business.',
