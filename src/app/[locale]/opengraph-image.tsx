@@ -1,3 +1,5 @@
+import { readFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 
 export const alt = 'Fir Tech: websites, Telegram bots, apps and automation'
@@ -5,7 +7,9 @@ export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
 // Latin-only text: the built-in OG font has no Cyrillic, and the card reads the same in both languages.
-export default function OpengraphImage() {
+export default async function OpengraphImage() {
+  // The brand wordmark font (OFL); the card is rendered at build time.
+  const brand = await readFile(join(process.cwd(), 'assets/fonts/Unbounded-Bold.ttf'))
   return new ImageResponse(
     (
       <div
@@ -20,14 +24,10 @@ export default function OpengraphImage() {
           color: '#edf2ea',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-          <svg width="64" height="64" viewBox="0 0 32 32">
-            <rect width="32" height="32" rx="9" fill="#b5eb6a" />
-            <path d="M16 6.5 21 12h-10z" fill="#0d1408" />
-            <path d="M16 10.5 23 18H9z" fill="#0d1408" />
-            <path d="M16 14.5 25 24.5H7z" fill="#0d1408" />
-          </svg>
-          <span style={{ fontSize: 40, fontWeight: 600 }}>Fir Tech</span>
+        <div style={{ display: 'flex', fontFamily: 'Unbounded', fontSize: 54, letterSpacing: -2.5 }}>
+          <span>fir</span>
+          <span style={{ color: '#b5eb6a' }}>.</span>
+          <span>tech</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <span style={{ fontSize: 76, fontWeight: 600, letterSpacing: -2, lineHeight: 1.05 }}>
@@ -37,6 +37,6 @@ export default function OpengraphImage() {
         </div>
       </div>
     ),
-    size,
+    { ...size, fonts: [{ name: 'Unbounded', data: brand, weight: 700, style: 'normal' }] },
   )
 }

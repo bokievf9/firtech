@@ -162,9 +162,9 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
       <Reveal className="pointer-events-none select-none" delay={0.1}>
         <p
           aria-hidden="true"
-          className="text-outline -mb-[0.2em] text-center text-[22vw] leading-none font-semibold tracking-[-0.06em] whitespace-nowrap"
+          className="text-outline font-brand -mb-[0.16em] text-center text-[17vw] leading-none font-bold tracking-[-0.05em] whitespace-nowrap"
         >
-          Fir Tech
+          fir<span className="mr-[0.035em] ml-[0.02em] text-accent [-webkit-text-stroke:0]">.</span>tech
         </p>
       </Reveal>
     </footer>

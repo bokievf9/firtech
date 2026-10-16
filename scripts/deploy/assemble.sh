@@ -12,6 +12,8 @@ cp -R .next/static "$OUT/.next/static"
 if [ -d public ]; then cp -R public/. "$OUT/public/"; fi
 test ! -e "$OUT/public/public" || { echo "public/ was not assembled correctly"; exit 1; }
 cp ecosystem.config.cjs scripts/deploy/activate.sh "$OUT/"
+# Fonts read from disk at render time (OG image).
+cp -R assets "$OUT/assets"
 # Ops helper run on the server after deploy (sets the Telegram webhook); dependency-free.
 mkdir -p "$OUT/scripts" && cp scripts/telegram-webhook.mjs "$OUT/scripts/"
 git rev-parse HEAD > "$OUT/REVISION" 2>/dev/null || true
