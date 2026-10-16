@@ -32,6 +32,27 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never
   summed. The build lives in `?b=` so it can be shared; the lead arrives as service `bundle` with
   the full list and the link.
+  The summary also links to `/[locale]/builder/estimate?b=...` (noindex, decoded on the client,
+  rows from `estimateDoc` in `src/lib/estimate-doc.ts`): an A4 estimate saved as PDF via the print
+  dialog. Site chrome carries `.print-hidden`; print rules are at the end of `globals.css`.
+- Service pages (`services/[slug]`): hero with the service's live miniature, included, formats
+  (`ServiceVariants`; "Estimate" picks the format in the calculator via `pickInCalculator`), steps
+  (`Process` with `serviceDetails.<slug>.steps`), concepts (`ServiceConcepts`, labelled as
+  concepts), pricing, FAQ, contact, other services.
+- Solutions (`/[locale]/solutions`, `/[locale]/solutions/[kind]`, kinds in `src/lib/solutions.ts` =
+  builder `businessKinds` without `other`): niche pages for search built on `presets[kind]`
+  (price from `quote()`, CTA opens the builder with that preset, mockup `BuilderPreview` labelled
+  as a concept). Changing a preset changes its page.
+- Blog (`/[locale]/blog`): articles are typed data in `src/content/blog/` (one file each, ru + en).
+  Only `published: true` reaches production and the sitemap; drafts show in `next dev` with a
+  "Черновик" badge. Publish = set `published: true` and the date. Article prices come from
+  `src/content/blog/prices.ts`; tests fail on hardcoded prices or long dashes.
+- Privacy (`/[locale]/privacy`, texts in `privacy`): a template pending a lawyer's review, linked
+  from the form consent (`[brackets]` mark the link) and the footer. Update it with a new date
+  whenever form fields, storage or analytics change.
+- Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
+  set. Goals via `track()` in `src/lib/analytics.ts` (the `Goal` union is the list to mirror in
+  Metrika); `t.me` links are counted by one listener, give new ones a `data-place`.
 - Motion: Motion (`motion/react`) in client leaf components, motion values for pointer effects.
   Use `useReducedMotion` from `@/lib/use-reduced-motion` (hydration-safe), not Motion's own;
   `MotionProvider` (MotionConfig `reducedMotion="user"`) wraps the layout. Logos come from
@@ -44,6 +65,17 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (public username for the "write in Telegram" link; empty hides it), `NEXT_PUBLIC_SITE_URL`.
 - Without the bot env, dev mode logs the lead to the console and production returns 503.
 - Honeypot field `website` and an in-memory limit of 5 requests per IP per 10 minutes.
+
+- Leads are saved first to `$DATA_DIR/leads.json` (`src/lib/store.ts`; fine because there is one
+  PM2 process), then sent to Telegram, so an outage loses nothing and unsent leads go out later.
+  `DATA_DIR` must be outside the release folder on the VPS, and backed up.
+- Bot (`src/lib/lead-bot.ts`, webhook `/api/telegram` checked with `TELEGRAM_WEBHOOK_SECRET`):
+  status buttons under each lead, `/leads`, booking confirm/reschedule, and `/start lead_<id>_<hmac>`
+  links a client to their lead (button after the form, needs `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME`).
+  Only `TELEGRAM_CHAT_ID` may press buttons. `scripts/telegram-webhook.mjs set` after deploy;
+  `scripts/telegram-poll.mjs` forwards updates to localhost for testing (delete the webhook first).
+- Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri
+  10:00-18:00, 30 min), free slots at `/api/slots`, picked in the form, double booking blocked.
 
 ## Commands
 - `npm run dev` (http://localhost:3001), `npm run typecheck`, `npm run lint`, `npm test`,

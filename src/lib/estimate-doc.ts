@@ -1,6 +1,6 @@
 import type { Dict } from '@/content'
 import { encodeBuild, quote, type Build } from './builder'
-import { formatUsd } from './pricing'
+import { bundleDiscount, formatUsd } from './pricing'
 import { serviceSlugs, siteUrl, type ServiceSlug } from './site'
 
 // The printable estimate (`/[locale]/builder/estimate?b=...`): the same quote as the builder's
@@ -57,7 +57,7 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
     parts,
     extras,
     subtotal: formatRange(q.subtotal),
-    discount: q.discount ? `-${formatRange(q.discount)}` : null,
+    discount: q.discount ? `-${Math.round(bundleDiscount * 100)}%` : null,
     total: formatRange(q.total),
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,

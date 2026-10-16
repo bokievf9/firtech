@@ -182,7 +182,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
       <section className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32">
         <RiseText text={t.variants} className={sectionTitle} />
         <ServiceVariants
-          serviceName={dict.services.items[slug].name}
+          service={slug}
           items={Object.entries(variants).map(([id, v]) => ({
             id,
             name: v.name,

@@ -25,7 +25,7 @@ test('estimateDoc: rows, totals and link match the builder quote', () => {
   )
   assert.equal(doc.total, formatRange(q.total))
   assert.equal(doc.subtotal, formatRange(q.subtotal))
-  assert.equal(doc.discount, `-${formatRange(q.discount)}`)
+  assert.equal(doc.discount, "-10%")
   assert.equal(doc.monthly, `$${q.monthly}${ru.builder.perMonth}`)
   assert.equal(doc.link, `${siteUrl}/ru/builder?b=${encodeBuild(build)}`)
 })

@@ -3,10 +3,10 @@
 import { Check, Plus } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
-import { sendEstimate } from '@/lib/estimate-event'
+import { PICK_EVENT, sendEstimate, type PickDetail } from '@/lib/estimate-event'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimate, formatUsd } from '@/lib/pricing'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
@@ -32,6 +32,17 @@ export function Estimator({
   const { min, max } = estimate(service, variant, addons)
   const range = `${formatUsd(min)} - ${formatUsd(max)}`
   const term = variants[variant]?.term ?? ''
+
+  useEffect(() => {
+    function onPick(event: Event) {
+      const { service: next, variant: nextVariant } = (event as CustomEvent<PickDetail>).detail
+      setService(next)
+      setVariant(nextVariant)
+      setAddons([])
+    }
+    window.addEventListener(PICK_EVENT, onPick)
+    return () => window.removeEventListener(PICK_EVENT, onPick)
+  }, [])
 
   function pickService(next: ServiceSlug) {
     setService(next)

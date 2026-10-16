@@ -1,7 +1,9 @@
 'use client'
 
 import { Calculator, Clock } from '@phosphor-icons/react'
+import { pickInCalculator } from '@/lib/estimate-event'
 import { formatUsd } from '@/lib/pricing'
+import type { ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { Reveal } from './reveal'
 import { SpotlightCard } from './spotlight-card'
@@ -9,50 +11,30 @@ import { SpotlightCard } from './spotlight-card'
 type Variant = { id: string; name: string; term: string; price: number }
 
 // Formats of one service as spotlight cards. "Estimate" opens the calculator below with that
-// format picked: it presses the calculator's own buttons (found by their visible names), so the
-// estimator keeps all its state logic. If they are not found, it just scrolls to the calculator.
+// format picked (through a window event the calculator listens to).
 export function ServiceVariants({
-  serviceName,
+  service,
   items,
   labels,
 }: {
-  serviceName: string
+  service: ServiceSlug
   items: Variant[]
   labels: { term: string; from: string; calc: string; calcLabel: string }
 }) {
   const reduce = useReducedMotion()
 
-  function openCalculator(name: string) {
-    const root = document.getElementById('pricing')
-    if (!root) return
-    const byText = (selector: string, text: string) =>
-      Array.from(root.querySelectorAll<HTMLButtonElement>(selector)).find(
-        (el) => el.textContent?.trim() === text,
-      )
-    const pickVariant = () => {
-      const radio = Array.from(root.querySelectorAll<HTMLButtonElement>('[role="radio"]')).find(
-        (el) => el.querySelector('span')?.textContent?.trim() === name,
-      )
-      if (radio && radio.getAttribute('aria-checked') !== 'true') radio.click()
-    }
-    // The visitor may have switched the calculator to another service: switch it back first.
-    const pill = byText('button[aria-pressed]', serviceName)
-    if (pill && pill.getAttribute('aria-pressed') !== 'true') {
-      pill.click()
-      requestAnimationFrame(pickVariant)
-    } else {
-      pickVariant()
-    }
-    root.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+  function openCalculator(variant: string) {
+    pickInCalculator({ service, variant })
+    document
+      .getElementById('pricing')
+      ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
   }
 
   return (
     <div className="mt-12 grid gap-4 lg:grid-cols-3">
       {items.map((v, i) => (
         <Reveal key={v.id} delay={i * 0.08} className="h-full">
-          <SpotlightCard
-            className="group flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong md:p-7"
-          >
+          <SpotlightCard className="group flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong md:p-7">
             <div className="flex items-center justify-between gap-3 text-sm">
               <span className="font-mono text-faint">{String(i + 1).padStart(2, '0')}</span>
               <span className="flex items-center gap-1.5 text-muted">
@@ -71,7 +53,7 @@ export function ServiceVariants({
             <span className="min-h-6 flex-1 md:min-h-8" aria-hidden="true" />
             <button
               type="button"
-              onClick={() => openCalculator(v.name)}
+              onClick={() => openCalculator(v.id)}
               aria-label={`${labels.calcLabel} ${v.name}`}
               className="inline-flex w-fit items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm font-medium transition-[border-color,background-color,color] duration-300 group-hover:border-accent/60 hover:bg-accent hover:text-accent-ink active:scale-[0.98]"
             >
