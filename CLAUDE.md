@@ -94,6 +94,10 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - Server layout (user `deploy`): `/var/www/firtech/{current,releases,incoming,shared}`;
   `shared/.env.production` (server secrets, chmod 600) and `shared/data` (lead store, survives
   deploys). One-time setup as root: `scripts/deploy/server-setup.sh`, then Certbot.
+- Live since 2026-10-16 (first release deployed by hand from a clean checkout, same scripts). Until
+  the GitHub repo exists, deploy the same way: build a clean `git archive` with the public vars,
+  `assemble.sh`, upload to `incoming/`, run `activate.sh` as `deploy` (key `~/.ssh/id_ed25519_firtech`,
+  deploy user only; root access was removed after setup). Telegram webhook is set.
 - GitHub: environment `production` secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`,
   `VPS_KNOWN_HOSTS`; repository variables `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_TELEGRAM_USERNAME`,
   `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME`, optional `NEXT_PUBLIC_YM_ID`.
