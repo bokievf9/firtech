@@ -4,6 +4,7 @@ import type { Dict } from '@/content'
 import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { serviceSlugs, telegramHandle, telegramUrl } from '@/lib/site'
+import { solutionKinds } from '@/lib/solutions'
 import { Logo } from './logo'
 import { Magnetic } from './magnetic'
 import { Reveal } from './reveal'
@@ -51,13 +52,13 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
       </div>
       <div className="mx-auto max-w-7xl border-t border-line" />
       <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 md:grid-cols-12 md:px-8">
-        <div className="md:col-span-5">
+        <div className="md:col-span-12 lg:col-span-4">
           <Logo />
           <p className="mt-5 max-w-[38ch] text-sm leading-relaxed text-muted">
             {dict.footer.tagline}
           </p>
         </div>
-        <nav className="md:col-span-3" aria-label={dict.footer.services}>
+        <nav className="md:col-span-4 lg:col-span-3" aria-label={dict.footer.services}>
           <p className="text-sm font-medium">{dict.footer.services}</p>
           <ul className="mt-4 grid gap-2.5 text-sm text-muted">
             {serviceSlugs.map((slug) => (
@@ -72,7 +73,26 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
             ))}
           </ul>
         </nav>
-        <nav className="md:col-span-4" aria-label={dict.footer.company}>
+        <nav className="md:col-span-4 lg:col-span-3" aria-label={dict.solutions.nav}>
+          <p className="text-sm font-medium">
+            <Link href={`/${locale}/solutions`} className="transition-colors hover:text-accent">
+              {dict.solutions.nav}
+            </Link>
+          </p>
+          <ul className="mt-4 grid gap-2.5 text-sm text-muted">
+            {solutionKinds.map((kind) => (
+              <li key={kind}>
+                <Link
+                  href={`/${locale}/solutions/${kind}`}
+                  className="transition-colors hover:text-fg"
+                >
+                  {dict.builder.kinds[kind]}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <nav className="md:col-span-4 lg:col-span-2" aria-label={dict.footer.company}>
           <p className="text-sm font-medium">{dict.footer.company}</p>
           <ul className="mt-4 grid gap-2.5 text-sm text-muted">
             <li>

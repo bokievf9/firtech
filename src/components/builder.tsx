@@ -19,6 +19,7 @@ import {
   type Icon,
 } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
+import Link from 'next/link'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import {
@@ -35,6 +36,7 @@ import {
 } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { sendEstimate } from '@/lib/estimate-event'
+import type { Locale } from '@/lib/i18n'
 import { bundleDiscount, catalog, extraPrice, formatUsd, startingPrice } from '@/lib/pricing'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
@@ -62,7 +64,7 @@ type Variants = Record<string, { name: string; term: string }>
 
 const range = (r: { min: number; max: number }) => `${formatUsd(r.min)} - ${formatUsd(r.max)}`
 
-export function Builder({ dict }: { dict: Dict }) {
+export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const t = dict.builder
   const reduce = useReducedMotion()
   const [step, setStep] = useState(0)
@@ -270,6 +272,13 @@ export function Builder({ dict }: { dict: Dict }) {
                       )
                     })}
                   </div>
+                  <Link
+                    href={`/${locale}/solutions`}
+                    className="mt-5 inline-flex items-center gap-1.5 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
+                  >
+                    {dict.solutions.builderLink}
+                    <ArrowRight size={14} className="shrink-0 text-accent" />
+                  </Link>
                 </Step>
               )}
 

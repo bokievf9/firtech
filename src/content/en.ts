@@ -208,6 +208,269 @@ const en: Dict = {
   stack: {
     label: 'We work with the services and technologies your business already runs on',
   },
+  solutions: {
+    metaTitle: 'Solutions for small business: cafes, salons, shops, delivery and services',
+    metaDescription:
+      'Ready starting sets for your kind of business: website, Telegram bot, online booking, online store, Mini App and CRM. Contents, price and timing on one page.',
+    eyebrow: 'Solutions',
+    title: 'Solutions for your business',
+    sub: 'Starting sets for the businesses that come to us most often. Each one shows the problems it solves, what is included, what it costs and how it could look.',
+    nav: 'Solutions',
+    all: 'All solutions',
+    more: 'Learn more',
+    from: 'from',
+    startSet: 'Starting set',
+    otherTitle: 'Your business is not listed?',
+    otherText:
+      'Put a project together from any parts in the builder, or describe the task and we will suggest the set.',
+    otherCta: 'Open the builder',
+    builderLink: 'Ready solutions for cafes, salons, shops, delivery and services',
+    cta: 'Build this project',
+    discuss: 'Discuss',
+    problemsTitle: 'What usually gets in the way, and how we solve it',
+    problemLabel: 'Now',
+    fixLabel: 'How we solve it',
+    setTitle: 'What the starting set includes',
+    setSub:
+      'This is a starting point. In the builder you can remove what you do not need or add more, and the price updates right away.',
+    term: 'Timing',
+    previewLabel: 'How it could look',
+    concept: 'Concept',
+    previewNote:
+      'This is a concept for illustration, not client work. The design is made for your business.',
+    faqTitle: 'FAQ',
+    othersTitle: 'Other solutions',
+    items: {
+      cafe: {
+        metaTitle: 'Website and Telegram bot for a cafe or restaurant',
+        metaDescription:
+          'A website with the menu, table bookings and orders in a Telegram bot, payment in the bot and a place on the maps. Price and timing of the starting set for a cafe or restaurant.',
+        title: 'Website and Telegram bot for a cafe or restaurant',
+        sub: 'The menu and contacts on the website, table bookings and orders in a Telegram bot, and you are easy to find on the maps. Guests handle it themselves, and the staff sees every request.',
+        card: 'Menu, table bookings and orders in one bot, plus a website and a place on the maps.',
+        problems: [
+          {
+            pain: 'Bookings come by phone, and at rush hour nobody can pick up',
+            fix: 'Guests book a table in the bot themselves: date, time, number of guests. The request goes straight to the manager.',
+          },
+          {
+            pain: 'The menu and prices on Instagram are out of date, guests keep asking the same things',
+            fix: 'An up to date menu, opening hours and address on the website and in the bot. No more answering the same questions.',
+          },
+          {
+            pain: 'Takeaway orders get lost in chats',
+            fix: 'Orders are placed and paid in the bot, and every order has a clear status.',
+          },
+          {
+            pain: 'New guests cannot find you on the maps',
+            fix: 'We add your place to Google Maps and Yandex Maps with photos, opening hours and a link to the website.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Can we change the menu and prices ourselves?',
+            a: 'Yes. The bot menu is edited in a simple spreadsheet or admin panel, no developer needed. The website can get an editing panel too.',
+          },
+          {
+            q: 'How does a guest pay in the bot?',
+            a: 'We connect card payments and the local payment systems your bank supports. We will confirm which ones on a call.',
+          },
+          {
+            q: 'Does a guest need to install anything?',
+            a: 'No. The bot opens in Telegram, which the guest already has, and the website opens in any browser.',
+          },
+          {
+            q: 'Where do bookings and orders arrive?',
+            a: 'In Telegram, to the manager or a staff group, with the name, phone number and order details.',
+          },
+          {
+            q: 'Can we start with the website only?',
+            a: 'Yes. Remove the bot in the builder and the price updates. The bot can be added later when you need it.',
+          },
+        ],
+      },
+      salon: {
+        metaTitle: 'Online booking and Telegram bot for a beauty salon',
+        metaDescription:
+          'Online booking in a Telegram bot with reminders and broadcasts, and a website with services and prices. Price and timing of the starting set for a beauty salon or barbershop.',
+        title: 'Online booking and a bot for a beauty salon',
+        sub: 'Clients book a stylist in the bot at any time, get a reminder and do not forget the visit. The website shows services and prices, and its requests arrive in Telegram.',
+        card: 'Booking in a bot, reminders, broadcasts and a website with services.',
+        problems: [
+          {
+            pain: 'Bookings live in a notebook and the receptionist is on the phone all day',
+            fix: 'Clients pick the service, the stylist and a free slot in the bot. Two bookings never land on the same time.',
+          },
+          {
+            pain: 'Clients forget their appointment and do not show up',
+            fix: 'The bot reminds them ahead of the visit and lets them reschedule in a couple of taps.',
+          },
+          {
+            pain: 'Regular clients disappear for months',
+            fix: 'Broadcasts to your client base: offers, free slots, greetings.',
+          },
+          {
+            pain: 'Prices have to be explained in every chat',
+            fix: 'A website with services, prices and stylists, and its requests go straight to Telegram.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Will stylists see their own bookings?',
+            a: 'Yes. Each stylist can get their bookings in Telegram, and the manager sees the whole picture.',
+          },
+          {
+            q: 'Can we move our client base from a notebook or spreadsheet?',
+            a: 'Yes, we import from Excel or Google Sheets. If the base is in a notebook, we will help you put it into a sheet.',
+          },
+          {
+            q: 'Will the broadcasts feel like spam?',
+            a: 'They only go to people who already use the bot, and anyone can unsubscribe. You choose how often and what to send.',
+          },
+          {
+            q: 'Does it fit a barbershop or a nail studio?',
+            a: 'Yes. The set fits anyone who works by appointment: salons, barbershops, studios, massage, independent specialists.',
+          },
+        ],
+      },
+      shop: {
+        metaTitle: 'Turnkey online store: catalog, cart and payments',
+        metaDescription:
+          'An online store with a catalog, cart, online payments and an editing panel, a place on the maps and support. Price and timing of the starting set.',
+        title: 'Turnkey online store',
+        sub: 'A catalog, a cart and online payments, and you change products and prices yourself in the panel. The store shows up in search and on the maps, and we keep it running.',
+        card: 'Catalog, cart, online payments and a panel where you edit products yourself.',
+        problems: [
+          {
+            pain: 'Sales only happen in direct messages, every order by hand',
+            fix: 'Buyers pick a product, add it to the cart and pay. You get a finished order.',
+          },
+          {
+            pain: 'Changing a price or adding a product needs a developer',
+            fix: 'An editing panel: you change products, prices, photos and stock yourself.',
+          },
+          {
+            pain: 'Nobody finds the store in search',
+            fix: 'We set up search, maps and analytics, so you can see where buyers come from.',
+          },
+          {
+            pain: 'The site was built and abandoned, now it breaks',
+            fix: 'Support by subscription: hosting, backups, updates and small edits every month.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Which payment methods can be connected?',
+            a: 'Bank cards and local payment systems, and Stripe for buyers abroad. The list depends on your bank, we will confirm it on a call.',
+          },
+          {
+            q: 'How many products can we add?',
+            a: 'As many as your catalog needs. If there are a lot, we import them from a spreadsheet.',
+          },
+          {
+            q: 'Can the store be connected to Telegram?',
+            a: 'Yes. Requests and orders in Telegram are an option in the builder, and a shop bot can come later.',
+          },
+          {
+            q: 'Is the support subscription required?',
+            a: 'No. It is a separate monthly service, you can remove it in the builder and add it later.',
+          },
+          {
+            q: 'Who owns the store?',
+            a: 'You do. The code, domain and access are yours from day one, you are not tied to us.',
+          },
+        ],
+      },
+      delivery: {
+        metaTitle: 'Telegram Mini App for food and goods delivery',
+        metaDescription:
+          'A Telegram Mini App for delivery: catalog, cart, payments and an admin panel, orders go straight to your system and alerts arrive in Telegram. Price and timing.',
+        title: 'Telegram Mini App for delivery',
+        sub: 'An app right inside Telegram: catalog, cart and payment with nothing to install. Orders land in the admin panel and your system, and the team gets an alert right away.',
+        card: 'Catalog, cart and payment inside Telegram, orders straight to the team.',
+        problems: [
+          {
+            pain: 'Orders come through chats, addresses and items get mixed up',
+            fix: 'Clients build the order in the Mini App: items, address, time. The operator gets it all in one message.',
+          },
+          {
+            pain: 'A store app is expensive, and clients do not want to install anything',
+            fix: 'A Mini App opens in Telegram with no install and looks like an app.',
+          },
+          {
+            pain: 'Orders have to be copied into the books by hand',
+            fix: 'We connect the Mini App to your spreadsheet or accounting system, and orders get there by themselves.',
+          },
+          {
+            pain: 'The courier and the kitchen hear about an order late',
+            fix: 'An alert about each new order goes to the right people in Telegram right away.',
+          },
+        ],
+        faq: [
+          {
+            q: 'How is a Mini App different from a regular bot?',
+            a: 'A regular bot works through buttons and messages. A Mini App opens a full screen inside Telegram with a catalog, cart and payment.',
+          },
+          {
+            q: 'Do we need to publish it in the App Store and Google Play?',
+            a: 'No. A Mini App lives inside Telegram, no store publishing needed.',
+          },
+          {
+            q: 'Which systems can orders be connected to?',
+            a: 'Google Sheets, a CRM or your accounting system if it has an API. We will work out what fits you on a call.',
+          },
+          {
+            q: 'Who changes products and prices?',
+            a: 'You do, in the admin panel: products, prices, availability and order statuses.',
+          },
+        ],
+      },
+      services: {
+        metaTitle: 'Website and CRM for a service company or B2B',
+        metaDescription:
+          'A company website with requests to Telegram and a CRM setup with staff training. Price and timing of the starting set for a service company or B2B.',
+        title: 'Website and CRM for a service company',
+        sub: 'A website that explains how you help and collects requests. Every request lands in the CRM, and the team knows whom to call back and when.',
+        card: 'A company website with requests and a CRM where no client gets lost.',
+        problems: [
+          {
+            pain: 'Requests come by email, messengers and calls, some get lost',
+            fix: 'Website requests go straight to Telegram and the CRM, each with an owner.',
+          },
+          {
+            pain: 'Nobody knows which stage each client is at',
+            fix: 'A pipeline in the CRM: new, in progress, done. You can see who needs a call back.',
+          },
+          {
+            pain: 'The website is outdated and does not explain what you do',
+            fix: 'A company website with your services, how you work and a clear request form.',
+          },
+          {
+            pain: 'You bought a CRM, but the team does not use it',
+            fix: 'We set the CRM up around your process and train the team to work in it.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Which CRM do you set up?',
+            a: 'Most often amoCRM or Bitrix24. If you already have a CRM, we work with it.',
+          },
+          {
+            q: 'Is the CRM subscription included in the price?',
+            a: 'No. The price covers setup and training, the CRM subscription itself you pay to the CRM directly.',
+          },
+          {
+            q: 'Can you move our current client base?',
+            a: 'Yes, we import it from spreadsheets or another CRM.',
+          },
+          {
+            q: 'Can the website be in two languages?',
+            a: 'If you need it. A second language is an option in the builder, and the price updates right away.',
+          },
+        ],
+      },
+    },
+  },
   pains: {
     title: 'Sound familiar?',
     sub: 'Flip the switch to see what changes after launch.',
