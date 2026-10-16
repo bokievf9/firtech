@@ -8,7 +8,7 @@ import { YandexMetrika } from '@/components/yandex-metrika'
 import { getDict } from '@/content'
 import { isLocale, locales } from '@/lib/i18n'
 import { siteUrl } from '@/lib/site'
-import { jetbrains, onest } from '../fonts'
+import { jetbrains, onest, unbounded } from '../fonts'
 import '../globals.css'
 
 export function generateStaticParams() {
@@ -49,7 +49,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   const dict = getDict(locale)
 
   return (
-    <html lang={locale} className={`${onest.variable} ${jetbrains.variable}`}>
+    <html lang={locale} className={`${onest.variable} ${jetbrains.variable} ${unbounded.variable}`}>
       <body className="grain min-h-[100dvh]">
         <MotionProvider>
           <Header locale={locale} dict={dict} />

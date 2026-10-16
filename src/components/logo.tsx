@@ -1,22 +1,25 @@
 import { cn } from '@/lib/cn'
 
-// Brand mark: three stacked tiers of a fir tree, drawn as simple geometry.
+// Brand: "fir" (from the founder's name) with a lime dot, set in Unbounded. The dot alone is the
+// small mark, e.g. next to "Fir Tech" in the compare table.
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" className={cn('size-7', className)}>
-      <rect width="32" height="32" rx="9" fill="var(--color-accent)" />
-      <path d="M16 6.5 21 12h-10z" fill="var(--color-accent-ink)" />
-      <path d="M16 10.5 23 18H9z" fill="var(--color-accent-ink)" />
-      <path d="M16 14.5 25 24.5H7z" fill="var(--color-accent-ink)" />
-    </svg>
+    <span
+      aria-hidden="true"
+      className={cn('inline-block size-2.5 shrink-0 rounded-full bg-accent', className)}
+    />
   )
 }
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <LogoMark />
-      <span className="text-[17px] font-semibold tracking-tight">Fir Tech</span>
+    <span
+      className={cn('font-brand text-[20px] leading-none font-bold tracking-[-0.05em]', className)}
+    >
+      <span className="sr-only">Fir Tech</span>
+      <span aria-hidden="true">
+        fir<span className="mr-[0.035em] ml-[0.02em] text-accent">.</span>tech
+      </span>
     </span>
   )
 }

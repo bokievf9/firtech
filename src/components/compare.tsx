@@ -45,7 +45,7 @@ export function Compare({ dict }: { dict: Dict }) {
                   )}
                 >
                   <span className="flex items-center gap-2.5">
-                    {i === ours && <LogoMark className="size-6" />}
+                    {i === ours && <LogoMark />}
                     {col}
                   </span>
                 </th>

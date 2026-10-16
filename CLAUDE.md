@@ -8,6 +8,9 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4, Motion (`motion/react`),
   Phosphor icons (`@phosphor-icons/react`, `/ssr` in server components), zod.
 - Fonts: Onest (Cyrillic-first) and JetBrains Mono via `next/font` (`src/app/fonts.ts`).
+- Brand: wordmark `fir.tech` ("fir" is from the founder's name, not the tree) in Unbounded 700
+  with a lime dot (`src/components/logo.tsx`, font in `fonts.ts` and `assets/fonts` for the OG
+  image). Avatars and files in `brand/` (`1-fir.png` is the chosen avatar).
 - One dark theme, one accent ("fir lime"). Design tokens and shape rules are at the top of
   `src/app/globals.css`; keep to them.
 
@@ -95,8 +98,8 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `shared/.env.production` (server secrets, chmod 600) and `shared/data` (lead store, survives
   deploys). One-time setup as root: `scripts/deploy/server-setup.sh`, then Certbot.
 - Live since 2026-10-16 (first release deployed by hand from a clean checkout, same scripts). Until
-  the GitHub repo exists, deploy the same way: build a clean `git archive` with the public vars,
-  `assemble.sh`, upload to `incoming/`, run `activate.sh` as `deploy` (key `~/.ssh/id_ed25519_firtech`,
+  the GitHub repo exists, deploy with `scripts/deploy/manual.sh` (clean `git archive` build with the public vars,
+  `assemble.sh`, upload to `incoming/`, `activate.sh` as `deploy`) (key `~/.ssh/id_ed25519_firtech`,
   deploy user only; root access was removed after setup). Telegram webhook is set.
 - GitHub: environment `production` secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`,
   `VPS_KNOWN_HOSTS`; repository variables `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_TELEGRAM_USERNAME`,
