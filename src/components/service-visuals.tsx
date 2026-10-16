@@ -25,10 +25,13 @@ export function SiteAssembly({ term, label }: { term: string; label: string }) {
   const inView = useInView(ref, { once: true, amount: 0.4 })
   const reduce = useReducedMotion()
   const show = reduce || inView
+  // Named states, not `animate={undefined}`: the server renders the hidden state (reduced motion
+  // is only known after hydration), and Motion must still be told to leave it once it is known.
   const block = (i: number) => ({
-    initial: reduce ? false : { opacity: 0, y: 14, scale: 0.98 },
-    animate: show ? { opacity: 1, y: 0, scale: 1 } : undefined,
-    transition: { duration: 0.6, delay: 0.15 + i * 0.12, ease },
+    initial: reduce ? false : 'hidden',
+    animate: show ? 'shown' : 'hidden',
+    variants: { hidden: { opacity: 0, y: 14, scale: 0.98 }, shown: { opacity: 1, y: 0, scale: 1 } },
+    transition: { duration: reduce ? 0 : 0.6, delay: reduce ? 0 : 0.15 + i * 0.12, ease },
   })
 
   return (
@@ -88,9 +91,17 @@ export function PhoneFan() {
       {phones.map((p, i) => (
         <motion.div
           key={i}
-          initial={reduce ? false : { rotate: 0, x: 0, y: 30, opacity: 0 }}
-          animate={open ? { rotate: p.rotate, x: p.x, y: p.y, opacity: 1 } : undefined}
-          transition={{ type: 'spring', stiffness: 120, damping: 16, delay: 0.1 + i * 0.08 }}
+          initial={reduce ? false : 'closed'}
+          animate={open ? 'open' : 'closed'}
+          variants={{
+            closed: { rotate: 0, x: 0, y: 30, opacity: 0 },
+            open: { rotate: p.rotate, x: p.x, y: p.y, opacity: 1 },
+          }}
+          transition={
+            reduce
+              ? { duration: 0 }
+              : { type: 'spring', stiffness: 120, damping: 16, delay: 0.1 + i * 0.08 }
+          }
           className={cn(
             'flex h-28 w-16 flex-col gap-1.5 rounded-[16px] border bg-bg/60 p-2',
             i === 1 ? 'z-10 border-accent/50' : 'border-line-strong',

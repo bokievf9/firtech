@@ -553,6 +553,13 @@ const en: Dict = {
     others: 'Other services',
     term: 'Timeline',
     estimate: 'Get a closer estimate',
+    calc: 'Estimate',
+    calcLabel: 'Estimate in the calculator:',
+    steps: 'How the work goes',
+    concepts: 'What it could look like',
+    conceptsSub:
+      'A concept for illustration, not client work. The price comes from our calculator, and the timeline is real.',
+    conceptCta: 'I want this too',
   },
   serviceDetails: {
     websites: {
@@ -568,6 +575,24 @@ const en: Dict = {
         'SEO basics: titles, descriptions, sitemap',
         'Domain and SSL certificate setup',
         'Analytics that show where clients come from',
+      ],
+      steps: [
+        {
+          title: 'Structure',
+          text: 'We talk through who your customers are and what they should do on the site, then put together the structure and copy.',
+        },
+        {
+          title: 'Design',
+          text: 'We show the first screen and the overall style, revise it until you like it, then design the rest.',
+        },
+        {
+          title: 'Build',
+          text: 'We build the site, check it on phones and connect the form so enquiries arrive in your Telegram.',
+        },
+        {
+          title: 'Launch',
+          text: 'We connect the domain, SSL and analytics, hand over every access and show you how to make edits.',
+        },
       ],
       fits: [
         'Cafes, salons and clinics',
@@ -604,6 +629,24 @@ const en: Dict = {
         'Server hosting and launch',
         'A short guide to how the bot works',
       ],
+      steps: [
+        {
+          title: 'Script',
+          text: 'We write out what the customer types and what the bot answers: buttons, menus, where requests go.',
+        },
+        {
+          title: 'Build',
+          text: 'We build the bot and connect it to a spreadsheet or CRM so customers and orders are saved.',
+        },
+        {
+          title: 'Review',
+          text: 'You try the bot in your own Telegram before launch, and we adjust texts and buttons to your notes.',
+        },
+        {
+          title: 'Launch',
+          text: 'We host the bot, switch on notifications and give you a short guide to how it works.',
+        },
+      ],
       fits: [
         'Salon and clinic bookings',
         'Food orders and delivery',
@@ -639,6 +682,24 @@ const en: Dict = {
         'Publishing to the App Store and Google Play',
         'A month of free fixes after launch',
       ],
+      steps: [
+        {
+          title: 'Discovery',
+          text: 'We pin down the main job of the app and what goes into the first version, then sketch the screens.',
+        },
+        {
+          title: 'Design',
+          text: 'We design the interface from the prototype and agree it with you before development starts.',
+        },
+        {
+          title: 'Development',
+          text: 'We build the app and its backend in stages. You see each stage and pay after you accept it.',
+        },
+        {
+          title: 'Launch',
+          text: 'We test on real devices, publish, and fix bugs for free for a month.',
+        },
+      ],
       fits: [
         'Services with customer accounts',
         'Loyalty programmes',
@@ -673,6 +734,24 @@ const en: Dict = {
         'Reports that build themselves',
         'AI assistant for clients and staff',
         'Team training',
+      ],
+      steps: [
+        {
+          title: 'Audit',
+          text: 'We look at what your team does by hand every day and where enquiries and time get lost.',
+        },
+        {
+          title: 'Plan',
+          text: 'We map which services to connect and what will happen on its own, and agree it before any work.',
+        },
+        {
+          title: 'Setup',
+          text: 'We connect the services and test the flow on sample enquiries before switching it on for customers.',
+        },
+        {
+          title: 'Training',
+          text: 'We show your team how to use it and stay in touch if something goes wrong.',
+        },
       ],
       fits: [
         'Sales teams',
