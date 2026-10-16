@@ -1,6 +1,10 @@
 import 'server-only'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isFreeSlot } from '@/lib/booking'
 import { formatLead, leadSchema } from '@/lib/lead'
+import { flushPending, notifyOwner } from '@/lib/lead-bot'
+import { bookedSlots, createLead, SlotTakenError, type StoredLead } from '@/lib/store'
+import { leadToken, sendMessage, telegramEnv } from '@/lib/telegram'
 
 // Simple per-IP limit: enough against a script hammering the form, without a database.
 const WINDOW_MS = 10 * 60 * 1000
@@ -17,7 +21,10 @@ function limited(ip: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get('x-real-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'local'
+  const ip =
+    request.headers.get('x-real-ip') ??
+    request.headers.get('x-forwarded-for')?.split(',')[0] ??
+    'local'
   if (limited(ip.trim())) {
     return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
   }
@@ -30,33 +37,64 @@ export async function POST(request: NextRequest) {
   // Bots that filled the honeypot get a normal answer, and nothing is sent.
   if (lead.website) return NextResponse.json({ ok: true })
 
-  const token = process.env.TELEGRAM_BOT_TOKEN
-  const chatId = process.env.TELEGRAM_CHAT_ID
-  if (!token || !chatId) {
-    if (process.env.NODE_ENV !== 'production') {
-      console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))
-      return NextResponse.json({ ok: true })
-    }
+  const { token, ownerChatId } = telegramEnv()
+  const telegramReady = Boolean(token && ownerChatId)
+  if (!telegramReady && process.env.NODE_ENV === 'production') {
     console.error('[lead] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing')
     return NextResponse.json({ ok: false, error: 'not_configured' }, { status: 503 })
   }
 
-  const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: formatLead(lead),
-      parse_mode: 'HTML',
-      disable_web_page_preview: true,
-    }),
-    signal: AbortSignal.timeout(8000),
-  }).catch(() => null)
-
-  if (!response?.ok) {
-    // Kept in the server log (PM2) so a lead is not lost while Telegram is unreachable.
-    console.error('[lead] Telegram sendMessage failed', response?.status, '\n' + formatLead(lead))
-    return NextResponse.json({ ok: false, error: 'delivery_failed' }, { status: 502 })
+  // A chosen call time must still be one of the free slots; stale or forged values are refused so
+  // the form can ask for another time.
+  const slot = lead.slot || undefined
+  if (slot) {
+    const taken = await bookedSlots().catch(() => null)
+    if (taken && !isFreeSlot(slot, new Date(), taken)) {
+      return NextResponse.json({ ok: false, error: 'slot_taken' }, { status: 409 })
+    }
   }
-  return NextResponse.json({ ok: true })
+
+  // Saved first, so the lead survives a Telegram outage.
+  let stored: StoredLead | null = null
+  try {
+    stored = await createLead(lead, slot)
+  } catch (error) {
+    if (error instanceof SlotTakenError) {
+      return NextResponse.json({ ok: false, error: 'slot_taken' }, { status: 409 })
+    }
+    console.error('[lead] could not save the lead', error, '\n' + formatLead(lead))
+  }
+
+  if (!telegramReady) {
+    console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))
+  } else {
+    try {
+      if (stored) {
+        await notifyOwner(stored)
+        // Not awaited: older leads stuck during an outage shouldn't slow down this visitor.
+        void flushPending(stored.id).catch(() => {})
+      } else {
+        // No buttons: there is nothing on the site to update.
+        await sendMessage(
+          ownerChatId,
+          formatLead(lead) +
+            '\n\n<i>Заявка не сохранилась на сайте (ошибка хранилища), статусы для неё недоступны.</i>',
+        )
+      }
+    } catch (error) {
+      // Kept in the server log (PM2) too; a stored lead is resent when Telegram answers again.
+      console.error('[lead] Telegram sendMessage failed', error, '\n' + formatLead(lead))
+      if (!stored) {
+        return NextResponse.json({ ok: false, error: 'delivery_failed' }, { status: 502 })
+      }
+    }
+  }
+
+  if (!stored) return NextResponse.json({ ok: true })
+  return NextResponse.json({
+    ok: true,
+    id: stored.id,
+    token: leadToken(stored.id),
+    slot: stored.booking?.slot ?? null,
+  })
 }

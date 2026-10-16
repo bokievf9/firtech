@@ -12,13 +12,20 @@ export const leadSchema = z.object({
   estimate: z.string().trim().max(1500).optional().default(''),
   locale: z.enum(['ru', 'en']).default('ru'),
   page: z.string().trim().max(600).optional().default(''),
+  // Chosen call slot (UTC ISO string from /api/slots); the route checks it is still free.
+  slot: z.string().trim().max(40).optional().default(''),
   // Honeypot: hidden from people, bots fill it in.
   website: z.string().max(200).optional().default(''),
 })
 
 export type Lead = z.infer<typeof leadSchema>
+// What the owner message shows; a stored lead has these too.
+export type LeadFields = Pick<
+  Lead,
+  'name' | 'contact' | 'service' | 'budget' | 'estimate' | 'message' | 'locale' | 'page'
+>
 
-const serviceNames: Record<Lead['service'], string> = {
+export const serviceNames: Record<Lead['service'], string> = {
   websites: 'Сайт',
   bots: 'Telegram-бот',
   apps: 'Приложение',
@@ -35,12 +42,12 @@ const serviceNames: Record<Lead['service'], string> = {
   unknown: 'Не знает, нужна консультация',
 }
 
-function escapeHtml(value: string) {
+export function escapeHtml(value: string) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
 // Telegram message for the owner (always in Russian; the lead's own language is noted).
-export function formatLead(lead: Lead) {
+export function formatLead(lead: LeadFields, title = 'Новая заявка с сайта Fir Tech') {
   const rows: [string, string][] = [
     ['Имя', lead.name],
     ['Связь', lead.contact],
@@ -55,5 +62,5 @@ export function formatLead(lead: Lead) {
     .filter(([, value]) => value)
     .map(([label, value]) => `<b>${label}:</b> ${escapeHtml(value)}`)
     .join('\n')
-  return `<b>Новая заявка с сайта Fir Tech</b>\n\n${body}`
+  return `<b>${title}</b>\n\n${body}`
 }

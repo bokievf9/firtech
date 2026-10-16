@@ -1,11 +1,13 @@
 'use client'
 
-import { ArrowRight, CheckCircle, X } from '@phosphor-icons/react'
+import { ArrowRight, CheckCircle, TelegramLogo, X } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { usePathname } from 'next/navigation'
 import { useEffect, useId, useState, type FormEvent } from 'react'
+import { SlotPicker } from '@/components/slot-picker'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
+import { formatSlot } from '@/lib/booking'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ESTIMATE_EVENT, type EstimateDetail } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
@@ -15,6 +17,11 @@ import { ConsentText } from './consent-text'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
 type Errors = Partial<Record<'name' | 'contact', string>>
+
+// Bot that sends the client updates on their lead; empty hides the "follow in Telegram" button.
+const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '').replace(/^@/, '')
+
+type Sent = { id?: number; token?: string; slot?: string | null }
 
 const inputClass =
   'w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-[15px] text-fg placeholder:text-faint transition-colors focus:border-accent focus:outline-none aria-[invalid=true]:border-danger'
@@ -36,6 +43,10 @@ export function ContactForm({
   const [errors, setErrors] = useState<Errors>({})
   const [service, setService] = useState<string>(defaultService ?? 'unknown')
   const [estimate, setEstimate] = useState('')
+  const [slot, setSlot] = useState('')
+  const [slotTaken, setSlotTaken] = useState(false)
+  const [takenSlots, setTakenSlots] = useState<string[]>([])
+  const [sent, setSent] = useState<Sent>({})
 
   useEffect(() => {
     function onEstimate(event: Event) {
@@ -62,6 +73,7 @@ export function ContactForm({
     }
 
     setStatus('sending')
+    setSlotTaken(false)
     try {
       const response = await fetch('/api/lead', {
         method: 'POST',
@@ -71,11 +83,22 @@ export function ContactForm({
           estimate,
           locale,
           page: pathname + window.location.search,
+          slot,
         }),
       })
+      if (response.status === 409) {
+        // Someone booked the same time a moment earlier: ask for another one, keep the rest.
+        setTakenSlots((list) => [...list, slot])
+        setSlot('')
+        setSlotTaken(true)
+        setStatus('idle')
+        return
+      }
       if (!response.ok) throw new Error(String(response.status))
+      setSent((await response.json().catch(() => ({}))) as Sent)
       form.reset()
       setEstimate('')
+      setSlot('')
       setStatus('sent')
       track('lead_sent', { service: data.service || 'unknown' })
     } catch {
@@ -84,6 +107,10 @@ export function ContactForm({
   }
 
   const fieldId = (name: string) => `${uid}-${name}`
+  const followUrl =
+    botUsername && sent.id && sent.token
+      ? `https://t.me/${botUsername}?start=lead_${sent.id}_${sent.token}`
+      : null
 
   return (
     <div className="relative">
@@ -101,13 +128,37 @@ export function ContactForm({
             <CheckCircle size={44} weight="light" className="text-accent" />
             <h3 className="mt-6 text-3xl font-semibold tracking-tight">{t.successTitle}</h3>
             <p className="mt-3 max-w-[40ch] leading-relaxed text-muted">{t.successText}</p>
-            <button
-              type="button"
-              onClick={() => setStatus('idle')}
-              className={cn(buttonStyles.secondary, 'mt-8')}
-            >
-              {t.again}
-            </button>
+            {sent.slot && (
+              <p className="mt-3 max-w-[40ch] leading-relaxed text-fg">
+                {dict.booking.successBooked.replace('{time}', formatSlot(sent.slot, locale))}
+              </p>
+            )}
+            <div className="mt-8 flex flex-wrap gap-3">
+              {followUrl && (
+                <a
+                  href={followUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-describedby={`${uid}-bot-hint`}
+                  className={buttonStyles.primary}
+                >
+                  <TelegramLogo size={18} weight="fill" />
+                  {dict.booking.telegramCta}
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setStatus('idle')}
+                className={buttonStyles.secondary}
+              >
+                {t.again}
+              </button>
+            </div>
+            {followUrl && (
+              <p id={`${uid}-bot-hint`} className="mt-4 max-w-[44ch] text-[13px] text-faint">
+                {dict.booking.telegramHint}
+              </p>
+            )}
           </motion.div>
         ) : (
           <motion.form
@@ -220,6 +271,22 @@ export function ContactForm({
                 className={cn(inputClass, 'resize-y')}
               />
             </Field>
+
+            <SlotPicker
+              t={dict.booking}
+              locale={locale}
+              value={slot}
+              onChange={(next) => {
+                setSlot(next)
+                if (next) setSlotTaken(false)
+              }}
+              taken={takenSlots}
+            />
+            {slotTaken && (
+              <p role="alert" className="-mt-2 text-[13px] text-danger">
+                {dict.booking.taken}
+              </p>
+            )}
 
             <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
               <label>
