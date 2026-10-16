@@ -4,6 +4,7 @@ import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { MobileCta } from '@/components/mobile-cta'
 import { MotionProvider } from '@/components/motion-provider'
+import { YandexMetrika } from '@/components/yandex-metrika'
 import { getDict } from '@/content'
 import { isLocale, locales } from '@/lib/i18n'
 import { siteUrl } from '@/lib/site'
@@ -60,6 +61,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
             telegramLabel={dict.contact.telegramCta}
           />
         </MotionProvider>
+        <YandexMetrika />
       </body>
     </html>
   )

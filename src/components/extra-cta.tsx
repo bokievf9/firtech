@@ -1,6 +1,7 @@
 'use client'
 
 import { ArrowRight } from '@phosphor-icons/react'
+import { track } from '@/lib/analytics'
 import { sendEstimate } from '@/lib/estimate-event'
 import type { LeadService } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
@@ -14,6 +15,7 @@ export function ExtraCta({ service, label }: { service: LeadService; label: stri
       type="button"
       onClick={() => {
         sendEstimate({ service })
+        track('extra_discuss', { service })
         document
           .getElementById('contact')
           ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })

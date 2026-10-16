@@ -63,6 +63,7 @@ export function MobileCta({
           {telegramUrl && (
             <a
               href={telegramUrl}
+              data-place="mobile-cta"
               target="_blank"
               rel="noopener noreferrer"
               aria-label={telegramLabel}

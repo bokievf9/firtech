@@ -24,6 +24,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
           {telegramUrl ? (
             <a
               href={telegramUrl}
+              data-place="footer-cta"
               target="_blank"
               rel="noopener noreferrer"
               className={cn(buttonStyles.primary, 'group px-8 py-4 text-base')}
@@ -103,6 +104,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
               <li>
                 <a
                   href={telegramUrl}
+                  data-place="footer"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="transition-colors hover:text-fg"
@@ -118,7 +120,10 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
         <p>
           © {new Date().getFullYear()} Fir Tech. {dict.footer.rights}
         </p>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <Link href={`/${locale}/privacy`} className="transition-colors hover:text-fg">
+            {dict.privacy.footerLink}
+          </Link>
           <Link href={`/${other}`} hrefLang={other} className="transition-colors hover:text-fg">
             {dict.footer.language}
           </Link>

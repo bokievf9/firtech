@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
 import { useState } from 'react'
 import type { Dict } from '@/content'
+import { track } from '@/lib/analytics'
 import { sendEstimate } from '@/lib/estimate-event'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimate, formatUsd } from '@/lib/pricing'
@@ -45,6 +46,7 @@ export function Estimator({
   function handOff() {
     const parts = [variants[variant]?.name, ...addons.map((id) => addonNames[id])].filter(Boolean)
     sendEstimate({ service, summary: `${parts.join(' + ')}: ${range}, ${term}` })
+    track('estimate_handoff', { service })
     document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
   }
 
