@@ -30,16 +30,20 @@ export const catalog: Record<ServiceSlug, Catalog> = {
   },
 }
 
-// Extras that are a part of a main service take its existing price and link to its page. `null`
-// means "priced after a call": these prices are the owner's to set, never fill them in on a guess.
-export const extraPrice: Record<ExtraSlug, { from: number | null; page?: ServiceSlug }> = {
+// Extras that are a part of a main service take its existing price and link to its page. The rest
+// are the owner's prices (2026-10-16). `null` would show "priced after a call"; `monthly` adds
+// "per month".
+export const extraPrice: Record<
+  ExtraSlug,
+  { from: number | null; page?: ServiceSlug; monthly?: boolean }
+> = {
   ai: { from: catalog.automation.variants.assistant ?? null, page: 'automation' },
-  support: { from: null },
+  support: { from: 30, monthly: true },
   payments: { from: catalog.bots.addons.payments ?? null, page: 'bots' },
-  seo: { from: null },
+  seo: { from: 80 },
   crm: { from: catalog.automation.variants.crm ?? null, page: 'automation' },
-  design: { from: null },
-  rescue: { from: null },
+  design: { from: 150 },
+  rescue: { from: 100 },
   internal: { from: catalog.apps.variants.internal ?? null, page: 'apps' },
 }
 

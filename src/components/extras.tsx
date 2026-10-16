@@ -70,6 +70,7 @@ export function Extras({ locale, dict }: { locale: Locale; dict: Dict }) {
                         <>
                           {dict.services.from}{' '}
                           <span className="text-lg text-accent">{formatUsd(price.from)}</span>
+                          {price.monthly && e.perMonth}
                         </>
                       )}
                     </p>
