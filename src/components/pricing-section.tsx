@@ -6,9 +6,11 @@ import { RiseText } from './rise-text'
 
 export function PricingSection({
   dict,
+  locale,
   initialService,
 }: {
   dict: Dict
+  locale: string
   initialService?: ServiceSlug
 }) {
   const t = dict.estimator
@@ -25,7 +27,7 @@ export function PricingSection({
         <p className="mt-5 text-lg text-muted">{t.sub}</p>
       </Reveal>
       <Reveal className="mt-12">
-        <Estimator dict={dict} initialService={initialService} />
+        <Estimator dict={dict} locale={locale} initialService={initialService} />
       </Reveal>
     </section>
   )

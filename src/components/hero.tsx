@@ -34,7 +34,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
                     />
                   </Link>
                 </Magnetic>
-                <Link href={homeAnchor(locale, 'pricing')} className={buttonStyles.secondary}>
+                <Link href={`/${locale}/builder`} className={buttonStyles.secondary}>
                   {h.secondary}
                 </Link>
               </div>

@@ -27,6 +27,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   contact. Showcase prices come from `estimate()`, so they always match the calculator. Showcase
   items are concepts and must stay labelled as such; never present them as client work, and no
   invented reviews or statistics anywhere (trust numbers are rules from the quote).
+- Builder (`/[locale]/builder`, logic in `src/lib/builder.ts`, tested): the visitor combines
+  services, options and extras into one quote. Prices come from `pricing.ts`; `bundleDiscount`
+  (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never
+  summed. The build lives in `?b=` so it can be shared; the lead arrives as service `bundle` with
+  the full list and the link.
 - Motion: Motion (`motion/react`) in client leaf components, motion values for pointer effects.
   Use `useReducedMotion` from `@/lib/use-reduced-motion` (hydration-safe), not Motion's own;
   `MotionProvider` (MotionConfig `reducedMotion="user"`) wraps the layout. Logos come from

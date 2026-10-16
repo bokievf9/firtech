@@ -2,6 +2,7 @@
 
 import { Check, Plus } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
+import Link from 'next/link'
 import { useState } from 'react'
 import type { Dict } from '@/content'
 import { sendEstimate } from '@/lib/estimate-event'
@@ -12,9 +13,11 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 export function Estimator({
   dict,
+  locale,
   initialService = 'websites',
 }: {
   dict: Dict
+  locale: string
   initialService?: ServiceSlug
 }) {
   const t = dict.estimator
@@ -117,6 +120,12 @@ export function Estimator({
           <p className="mt-6 text-sm text-muted">{t.term}</p>
           <p className="mt-1 text-xl font-medium">{term}</p>
           <p className="mt-8 max-w-[40ch] text-[13px] leading-relaxed text-faint">{t.note}</p>
+          <Link
+            href={`/${locale}/builder`}
+            className="mt-5 inline-flex max-w-[40ch] items-center gap-1.5 text-sm font-medium text-fg underline decoration-accent/50 underline-offset-4 transition-colors hover:text-accent"
+          >
+            {dict.builder.entry}
+          </Link>
         </div>
         <button type="button" onClick={handOff} className={cn(buttonStyles.primary, 'w-full')}>
           {t.cta}

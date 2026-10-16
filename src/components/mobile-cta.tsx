@@ -3,6 +3,7 @@
 import { ArrowRight, TelegramLogo } from '@phosphor-icons/react'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
 import { telegramUrl } from '@/lib/site'
@@ -18,6 +19,7 @@ export function MobileCta({
   label: string
   telegramLabel: string
 }) {
+  const pathname = usePathname()
   const { scrollY } = useScroll()
   const [pastHero, setPastHero] = useState(false)
   const [atForm, setAtForm] = useState(false)
@@ -37,7 +39,8 @@ export function MobileCta({
     return () => io.disconnect()
   }, [])
 
-  const show = pastHero && !atForm
+  // The builder has its own bottom bar with the running total.
+  const show = pastHero && !atForm && !pathname.endsWith('/builder')
 
   return (
     <AnimatePresence>
