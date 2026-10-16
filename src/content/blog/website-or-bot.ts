@@ -3,7 +3,7 @@ import type { Article } from './types'
 
 export const websiteOrBot: Article = {
   slug: 'website-or-telegram-bot',
-  published: false,
+  published: true,
   date: '2026-10-16',
   ru: {
     title: 'Сайт или Telegram-бот: что выбрать бизнесу',
