@@ -1,0 +1,93 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# The token only reads the repository; nothing here writes to GitHub.
+permissions:
+  contents: read
+
+# Never run two deploys at once on the same server.
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx next typegen
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  # Builds in CI (the VPS never compiles), ships a standalone release, switches
+  # /var/www/firtech/current atomically and rolls back if /api/health fails.
+  # Secrets of the `production` environment (restricted to main):
+  #   VPS_HOST, VPS_USER (deploy), VPS_SSH_KEY, VPS_KNOWN_HOSTS. Passed to scripts only through env.
+  # Repository variables (public values, inlined into the client bundle at build time):
+  #   NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_TELEGRAM_USERNAME, NEXT_PUBLIC_TELEGRAM_BOT_USERNAME,
+  #   optional NEXT_PUBLIC_YM_ID.
+  # Server-only secrets live in /var/www/firtech/shared/.env.production on the VPS.
+  deploy:
+    needs: check
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment: production
+    env:
+      NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+      NEXT_PUBLIC_TELEGRAM_USERNAME: ${{ vars.NEXT_PUBLIC_TELEGRAM_USERNAME }}
+      NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ${{ vars.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME }}
+      NEXT_PUBLIC_YM_ID: ${{ vars.NEXT_PUBLIC_YM_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Build
+        env:
+          NEXT_DEPLOYMENT_ID: ${{ github.sha }}
+        run: npm run build
+      - name: Assemble release
+        run: |
+          RELEASE="$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}"
+          echo "RELEASE=$RELEASE" >> "$GITHUB_ENV"
+          scripts/deploy/assemble.sh "release/$RELEASE"
+          tar -czf release.tgz -C release "$RELEASE"
+      - name: Configure SSH
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          (umask 077 && printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key)
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      - name: Upload and activate
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          TARGET="$VPS_USER@$VPS_HOST"
+          OPTS=(-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes)
+          ssh "${OPTS[@]}" "$TARGET" "install -d -m 700 /var/www/firtech/incoming"
+          scp "${OPTS[@]}" release.tgz "$TARGET:/var/www/firtech/incoming/$RELEASE.tgz"
+          ssh "${OPTS[@]}" "$TARGET" "set -e
+            mkdir -p /var/www/firtech/releases
+            tar -xzf /var/www/firtech/incoming/$RELEASE.tgz -C /var/www/firtech/releases
+            rm -f /var/www/firtech/incoming/$RELEASE.tgz
+            /var/www/firtech/releases/$RELEASE/activate.sh $RELEASE"
+      - name: Remove the SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+      - name: Public health check
+        run: curl -fsS --retry 5 --retry-delay 3 --retry-all-errors https://firtech.pro/api/health
