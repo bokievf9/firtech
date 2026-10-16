@@ -38,7 +38,12 @@ if (action === 'set') {
     drop_pending_updates: false,
   })
   // The command menu the owner and clients see in the bot.
-  await call('setMyCommands', { commands: [{ command: 'leads', description: 'Последние заявки' }] })
+  await call('setMyCommands', {
+    commands: [
+      { command: 'leads', description: 'Последние заявки' },
+      { command: 'admin', description: 'Панель заявок' },
+    ],
+  })
   console.log(`Webhook set to ${site}/api/telegram`)
 } else if (action === 'delete') {
   await call('deleteWebhook')

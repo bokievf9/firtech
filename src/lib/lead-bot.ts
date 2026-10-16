@@ -3,6 +3,7 @@ import { getDict } from '@/content'
 import { formatSlot } from './booking'
 import { pickLocale, type Locale } from './i18n'
 import { escapeHtml, formatLead, serviceNames } from './lead'
+import { siteUrl } from './site'
 import {
   getLead,
   listLeads,
@@ -23,7 +24,7 @@ import {
 // Everything the bot says and does with leads. Owner-facing text is Russian, like formatLead;
 // client-facing text comes from the dictionaries in the lead's language.
 
-const statusNames: Record<LeadStatus, string> = {
+export const statusNames: Record<LeadStatus, string> = {
   new: 'Новая',
   taken: 'Взял в работу',
   called: 'Созвонились',
@@ -36,6 +37,9 @@ const statusButtons: [Exclude<LeadStatus, 'new'>, string][] = [
   ['won', 'Сделка'],
   ['lost', 'Отказ'],
 ]
+// Private owner panel (src/app/admin); the bot's /admin command links to it.
+export const adminUrl = `${siteUrl}/admin`
+
 const bookingStates = {
   pending: 'ждёт подтверждения',
   confirmed: 'подтверждён',
@@ -194,6 +198,10 @@ export async function handleUpdate(update: Update) {
         ? `<b>Последние заявки</b>\n\n${leads.map(leadLine).join('\n')}`
         : 'Заявок пока нет.',
     )
+    return
+  }
+  if (isOwner(message.chat.id) && /^\/admin(@\w+)?$/.test(text)) {
+    await sendMessage(message.chat.id, `Панель заявок: ${adminUrl}`)
   }
 }
 
@@ -206,15 +214,35 @@ async function handleButton(data: string, messageId?: number): Promise<string> {
   if (kind === 'st') {
     const status = statusButtons.find(([s]) => s === action)?.[0]
     if (!status) return 'Неизвестный статус'
-    const lead = await updateLead(id, (l) => {
-      l.status = status
-    })
-    if (!lead) return `Заявка №${id} не найдена`
-    await refreshOwnerMessage(lead, messageId)
-    return `Статус: ${statusNames[status]}`
+    return (await setLeadStatus(id, status, messageId)).reply
   }
-
   if (action !== 'ok' && action !== 'move') return 'Неизвестная кнопка'
+  return (await bookingAction(id, action, messageId)).reply
+}
+
+export type LeadChange = { lead: StoredLead | null; reply: string }
+
+// Status change shared by the bot buttons and the admin panel: the store first, then the owner's
+// Telegram message, so both always show the same status.
+export async function setLeadStatus(
+  id: number,
+  status: LeadStatus,
+  messageId?: number,
+): Promise<LeadChange> {
+  const lead = await updateLead(id, (l) => {
+    l.status = status
+  })
+  if (!lead) return { lead, reply: `Заявка №${id} не найдена` }
+  await refreshOwnerMessage(lead, messageId)
+  return { lead, reply: `Статус: ${statusNames[status]}` }
+}
+
+// Booking confirm ("ok") or reschedule ("move"), same effect from the bot and the admin panel.
+export async function bookingAction(
+  id: number,
+  action: 'ok' | 'move',
+  messageId?: number,
+): Promise<LeadChange> {
   let changed = false
   const lead = await updateLead(id, (l) => {
     if (!l.booking || l.booking.state === 'released') return
@@ -229,20 +257,28 @@ async function handleButton(data: string, messageId?: number): Promise<string> {
       changed = true
     }
   })
-  if (!lead) return `Заявка №${id} не найдена`
-  if (!changed) return 'Уже обработано'
+  if (!lead) return { lead, reply: `Заявка №${id} не найдена` }
+  if (!changed) return { lead, reply: 'Уже обработано' }
   await refreshOwnerMessage(lead, messageId)
   try {
     await tellClient(lead, action === 'ok' ? 'confirmed' : 'moved')
   } catch (error) {
     console.error('[bot] could not notify the client', error)
-    return 'Готово, но клиенту написать не удалось'
+    return { lead, reply: 'Готово, но клиенту написать не удалось' }
   }
   if (!lead.clientChatId)
-    return action === 'ok'
-      ? 'Подтверждено. Клиент не в боте, сообщите ему сами'
-      : 'Время освобождено. Клиент не в боте, сообщите ему сами'
-  return action === 'ok' ? 'Подтверждено, клиент уведомлён' : 'Время освобождено, клиент уведомлён'
+    return {
+      lead,
+      reply:
+        action === 'ok'
+          ? 'Подтверждено. Клиент не в боте, сообщите ему сами'
+          : 'Время освобождено. Клиент не в боте, сообщите ему сами',
+    }
+  return {
+    lead,
+    reply:
+      action === 'ok' ? 'Подтверждено, клиент уведомлён' : 'Время освобождено, клиент уведомлён',
+  }
 }
 
 async function handleStart(chatId: number, payload: string, languageCode?: string) {

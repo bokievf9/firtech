@@ -28,6 +28,8 @@ export type StoredLead = Omit<Lead, 'website' | 'slot'> & {
   // False until the owner message went through; used to resend leads saved while Telegram was down.
   notified: boolean
   note?: string
+  // Owner's private notes from the admin panel; never sent anywhere. Older leads simply lack it.
+  notes?: string
 }
 
 type Db = { nextId: number; leads: StoredLead[] }
@@ -38,7 +40,7 @@ export class SlotTakenError extends Error {
   }
 }
 
-function dataDir() {
+export function dataDir() {
   // Runtime folder, not part of the build: the ignore comment keeps Turbopack from tracing it.
   return path.resolve(/*turbopackIgnore: true*/ process.env.DATA_DIR || './data')
 }
@@ -119,6 +121,11 @@ export async function getLead(id: number) {
 // Newest first.
 export async function listLeads(limit = 10) {
   return (await load()).leads.slice(-limit).reverse()
+}
+
+// Every lead, oldest first (the admin panel filters and sorts on its own).
+export async function allLeads() {
+  return (await load()).leads
 }
 
 export async function bookedSlots() {
