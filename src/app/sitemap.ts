@@ -1,9 +1,19 @@
 import type { MetadataRoute } from 'next'
+import { articles } from '@/content/blog'
 import { locales } from '@/lib/i18n'
 import { serviceSlugs, siteUrl } from '@/lib/site'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const paths = ['', '/builder', ...serviceSlugs.map((slug) => `/services/${slug}`)]
+  // Published articles only: drafts never reach the sitemap, even when built in dev.
+  const posts = articles.filter((article) => article.published)
+  const paths = [
+    '',
+    '/builder',
+    ...serviceSlugs.map((slug) => `/services/${slug}`),
+    // The list joins once there is something to read.
+    ...(posts.length ? ['/blog'] : []),
+    ...posts.map((article) => `/blog/${article.slug}`),
+  ]
   return paths.flatMap((path) =>
     locales.map((locale) => ({
       url: `${siteUrl}/${locale}${path}`,
