@@ -178,3 +178,33 @@
     animation: none;
   }
 }
+
+/*
+  Print: only the page content (the estimate sheet). Site chrome carries .print-hidden, the dark
+  theme and grain give way to black on white, and A4 margins come from @page.
+*/
+@page {
+  size: A4;
+  margin: 14mm 15mm;
+}
+
+@media print {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .grain::after,
+  .print-hidden {
+    display: none !important;
+  }
+
+  .estimate-paper {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

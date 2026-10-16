@@ -50,7 +50,7 @@ export function MobileCta({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 96, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-          className="fixed inset-x-3 bottom-3 z-40 flex gap-2 rounded-full border border-line-strong bg-bg/85 p-1.5 backdrop-blur-xl sm:hidden"
+          className="print-hidden fixed inset-x-3 bottom-3 z-40 flex gap-2 rounded-full border border-line-strong bg-bg/85 p-1.5 backdrop-blur-xl sm:hidden"
           style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         >
           <Link

@@ -45,7 +45,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
   return (
     <header
       className={cn(
-        'fixed inset-x-0 top-0 z-40 transition-[background-color,border-color] duration-300',
+        'print-hidden fixed inset-x-0 top-0 z-40 transition-[background-color,border-color] duration-300',
         scrolled || open
           ? 'border-b border-line bg-bg/80 backdrop-blur-xl'
           : 'border-b border-transparent',

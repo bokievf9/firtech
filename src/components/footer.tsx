@@ -12,7 +12,7 @@ import { RiseText } from './rise-text'
 export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
   const other: Locale = locale === 'ru' ? 'en' : 'ru'
   return (
-    <footer className="relative overflow-hidden border-t border-line">
+    <footer className="print-hidden relative overflow-hidden border-t border-line">
       <div className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-4 pt-24 pb-20 md:flex-row md:items-end md:justify-between md:px-8 md:pt-32">
         <RiseText
           as="p"
