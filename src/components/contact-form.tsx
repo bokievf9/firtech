@@ -8,7 +8,7 @@ import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ESTIMATE_EVENT, type EstimateDetail } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
-import { serviceSlugs, type ServiceSlug } from '@/lib/site'
+import { extraSlugs, serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
@@ -39,7 +39,7 @@ export function ContactForm({
     function onEstimate(event: Event) {
       const detail = (event as CustomEvent<EstimateDetail>).detail
       setService(detail.service)
-      setEstimate(detail.summary)
+      if (detail.summary !== undefined) setEstimate(detail.summary)
       setStatus('idle')
     }
     window.addEventListener(ESTIMATE_EVENT, onEstimate)
@@ -157,6 +157,13 @@ export function ContactForm({
                       {dict.services.items[slug].name}
                     </option>
                   ))}
+                  <optgroup label={dict.extras.group}>
+                    {extraSlugs.map((slug) => (
+                      <option key={slug} value={slug}>
+                        {dict.extras.items[slug].name}
+                      </option>
+                    ))}
+                  </optgroup>
                   <option value="unknown">{t.serviceUnknown}</option>
                 </select>
               </Field>

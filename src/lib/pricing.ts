@@ -1,4 +1,4 @@
-import type { ServiceSlug } from './site'
+import type { ExtraSlug, ServiceSlug } from './site'
 
 // Starting prices in USD (owner decision, 2026-10-16: low entry). Names and terms live in the
 // dictionaries (src/content), keyed by the same ids, so prices are defined once for both languages.
@@ -28,6 +28,19 @@ export const catalog: Record<ServiceSlug, Catalog> = {
     variants: { integration: 300, crm: 600, assistant: 800 },
     addons: { sheets: 100, alerts: 60, training: 100, support: 200 },
   },
+}
+
+// Extras that are a part of a main service take its existing price and link to its page. `null`
+// means "priced after a call": these prices are the owner's to set, never fill them in on a guess.
+export const extraPrice: Record<ExtraSlug, { from: number | null; page?: ServiceSlug }> = {
+  ai: { from: catalog.automation.variants.assistant ?? null, page: 'automation' },
+  support: { from: null },
+  payments: { from: catalog.bots.addons.payments ?? null, page: 'bots' },
+  seo: { from: null },
+  crm: { from: catalog.automation.variants.crm ?? null, page: 'automation' },
+  design: { from: null },
+  rescue: { from: null },
+  internal: { from: catalog.apps.variants.internal ?? null, page: 'apps' },
 }
 
 // The estimate is a range: the base sum is the floor, complex details add up to 40% on top.

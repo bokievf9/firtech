@@ -20,7 +20,9 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   change them only on the owner's word (current set: low entry, decided 2026-10-16, not yet
   confirmed per format).
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
-- Home page order: hero, logo marquee, services, pains (before/after switch), showcase (concepts,
+- Home page order: hero, logo marquee, services, extras ("we also do": smaller services from
+  `extraSlugs`, no own pages; `extraPrice` reuses a main service's price or shows "priced after a
+  call" until the owner sets one), pains (before/after switch), showcase (concepts,
   pinned horizontal pan on lg), compare, trust (the one lime colour block), pricing, process, FAQ,
   contact. Showcase prices come from `estimate()`, so they always match the calculator. Showcase
   items are concepts and must stay labelled as such; never present them as client work, and no
