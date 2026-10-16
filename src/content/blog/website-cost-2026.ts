@@ -8,7 +8,7 @@ const enTerm = en.estimator.catalog.websites.variants
 
 export const websiteCost2026: Article = {
   slug: 'website-cost-2026',
-  published: false,
+  published: true,
   date: '2026-10-16',
   ru: {
     title: 'Сколько стоит сайт для малого бизнеса в 2026 году',

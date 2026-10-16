@@ -51,7 +51,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   from the form consent (`[brackets]` mark the link) and the footer. Update it with a new date
   whenever form fields, storage or analytics change.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
-  set. Goals via `track()` in `src/lib/analytics.ts` (the `Goal` union is the list to mirror in
+  set (owner, 2026-10-16: not used for now; the privacy page hides its analytics section without it). Goals via `track()` in `src/lib/analytics.ts` (the `Goal` union is the list to mirror in
   Metrika); `t.me` links are counted by one listener, give new ones a `data-place`.
 - Motion: Motion (`motion/react`) in client leaf components, motion values for pointer effects.
   Use `useReducedMotion` from `@/lib/use-reduced-motion` (hydration-safe), not Motion's own;

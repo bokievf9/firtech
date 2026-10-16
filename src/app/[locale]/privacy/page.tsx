@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDict } from '@/content'
+import { ymId } from '@/lib/analytics'
 import { homeAnchor } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { telegramHandle, telegramUrl } from '@/lib/site'
@@ -40,6 +41,8 @@ export default async function PrivacyPage({ params }: PageProps<'/[locale]/priva
   const { locale } = await params
   if (!isLocale(locale)) notFound()
   const t = getDict(locale).privacy
+  // The analytics section only describes Metrika when it is actually switched on.
+  const sections = t.sections.filter((section) => section.id !== 'analytics' || ymId() !== null)
 
   return (
     <article className="mx-auto max-w-3xl px-4 pt-32 pb-24 md:px-8 md:pt-40 md:pb-36">
@@ -54,7 +57,7 @@ export default async function PrivacyPage({ params }: PageProps<'/[locale]/priva
       </header>
 
       <div className="mt-14 grid gap-12 border-t border-line pt-12">
-        {t.sections.map((section, i) => (
+        {sections.map((section, i) => (
           <section key={section.id} aria-labelledby={`privacy-${section.id}`}>
             <h2
               id={`privacy-${section.id}`}

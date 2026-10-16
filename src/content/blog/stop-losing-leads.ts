@@ -3,7 +3,7 @@ import type { Article } from './types'
 
 export const stopLosingLeads: Article = {
   slug: 'stop-losing-leads',
-  published: false,
+  published: true,
   date: '2026-10-16',
   ru: {
     title: 'Как перестать терять заявки: 5 простых шагов',
