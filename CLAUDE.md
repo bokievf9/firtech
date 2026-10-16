@@ -81,9 +81,19 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - `npm run dev` (http://localhost:3001), `npm run typecheck`, `npm run lint`, `npm test`,
   `npm run build`.
 
-## Infrastructure (planned, not deployed yet)
-- Domain `firtech.pro` is not bought yet.
-- Hosting: the Vibely DigitalOcean VPS (see `../vibely/CLAUDE.md`), a separate PM2 process on port
-  3001 and its own nginx server block with Certbot; same release model as Vibely
-  (`output: 'standalone'`, built in CI, never on the VPS). Can move to its own server later.
-- No git remote yet.
+## Infrastructure
+- Domain `firtech.pro`: bought 2026-10-16 at Cloudflare (registrar and DNS). Records: `A @` and
+  `A www` -> `68.183.177.183`, DNS only (grey cloud), so Certbot can issue the certificate.
+- Hosting: the Vibely DigitalOcean VPS (`68.183.177.183`, see `../vibely/CLAUDE.md`), a separate
+  PM2 process `firtech` (one fork process, `ecosystem.config.cjs`) on 127.0.0.1:3001 and its own
+  nginx site (`infra/nginx/firtech.conf` + snippet, Certbot SSL). Never edit Vibely's nginx files.
+- Release model as Vibely: push to `main` -> GitHub Actions (`.github/workflows/deploy.yml`):
+  checks, build in CI (`output: 'standalone'`), `scripts/deploy/assemble.sh`, upload to
+  `/var/www/firtech/releases/<id>`, `activate.sh` boots it on 3098 first, switches `current`,
+  restarts PM2, health-checks `/api/health` and rolls back on failure. The VPS never builds.
+- Server layout (user `deploy`): `/var/www/firtech/{current,releases,incoming,shared}`;
+  `shared/.env.production` (server secrets, chmod 600) and `shared/data` (lead store, survives
+  deploys). One-time setup as root: `scripts/deploy/server-setup.sh`, then Certbot.
+- GitHub: environment `production` secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`,
+  `VPS_KNOWN_HOSTS`; repository variables `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_TELEGRAM_USERNAME`,
+  `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME`, optional `NEXT_PUBLIC_YM_ID`.
