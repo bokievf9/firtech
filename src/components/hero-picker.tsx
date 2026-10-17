@@ -118,7 +118,7 @@ export function HeroPicker({ locale, dict }: { locale: Locale; dict: Dict }) {
         </span>
       </div>
 
-      <div className="mt-4 flex items-end justify-between gap-3">
+      <div className="mt-4 flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           <p className="flex items-center gap-2 text-xs whitespace-nowrap text-muted">
             {t.total}
