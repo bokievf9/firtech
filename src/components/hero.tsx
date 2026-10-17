@@ -32,6 +32,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
                 <Magnetic>
                   <Link
                     href={`/${locale}/builder`}
+                    data-cta="hero_builder"
                     className={`${buttonStyles.primary} group w-full sm:w-auto`}
                   >
                     {h.primary}
@@ -59,7 +60,11 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
                     {h.telegram}
                   </a>
                 ) : (
-                  <Link href={homeAnchor(locale, 'contact')} className={buttonStyles.secondary}>
+                  <Link
+                    href={homeAnchor(locale, 'contact')}
+                    data-cta="hero_contact"
+                    className={buttonStyles.secondary}
+                  >
                     {dict.nav.cta}
                   </Link>
                 )}

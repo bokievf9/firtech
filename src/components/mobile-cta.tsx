@@ -55,6 +55,7 @@ export function MobileCta({
         >
           <Link
             href={homeAnchor(locale, 'contact')}
+            data-cta="mobile_bar"
             className={cn(buttonStyles.primary, 'flex-1 py-3')}
           >
             {label}

@@ -302,7 +302,7 @@ export function DetailsStep({
                   aria-invalid={invalid || undefined}
                   onChange={(e) => setExample(i, e.target.value)}
                   className={cn(
-                    'w-full rounded-xl border bg-surface px-4 py-3.5 font-mono text-base text-fg md:text-sm placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+                    'ym-disable-keys w-full rounded-xl border bg-surface px-4 py-3.5 font-mono text-base text-fg md:text-sm placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
                     invalid ? 'border-danger/70' : 'border-line-strong',
                   )}
                 />
@@ -347,7 +347,7 @@ export function DetailsStep({
           placeholder={t.wishPlaceholder}
           aria-label={t.wishTitle}
           onChange={(e) => setBuild((b) => withDetails(b, { wish: e.target.value }))}
-          className="w-full resize-y rounded-xl border border-line-strong bg-surface px-4 py-3.5 text-base leading-relaxed text-fg md:text-[15px] placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="ym-disable-keys w-full resize-y rounded-xl border border-line-strong bg-surface px-4 py-3.5 text-base leading-relaxed text-fg md:text-[15px] placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         />
       </Group>
     </div>

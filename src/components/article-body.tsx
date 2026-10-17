@@ -102,6 +102,7 @@ export function ArticleBody({
                 </p>
                 <Link
                   href={`/${locale}/builder`}
+                  data-cta="article_builder"
                   className={cn(buttonStyles.primary, 'group mt-6 w-full sm:w-auto')}
                 >
                   {t.ctaButton}

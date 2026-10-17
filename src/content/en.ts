@@ -1048,7 +1048,7 @@ const en: Dict = {
       'What data the Fir Tech contact form collects, why, where it is kept and how to ask us to delete it.',
     eyebrow: 'Document',
     title: 'Privacy policy',
-    updated: 'Version of 16 October 2026',
+    updated: 'Version of 18 October 2026',
     intro:
       'In short and in plain words: what data you leave on this site, what we do with it and how to ask us to delete it. The data is handled by the Fir Tech studio.',
     sections: [
@@ -1102,7 +1102,7 @@ const en: Dict = {
         id: 'analytics',
         title: 'Analytics',
         text: [
-          'We use Yandex Metrica to see which pages help and which do not. Metrica sets cookies and collects anonymised visit data: pages opened, transitions, clicks and scrolling, device and browser type, approximate region. This data does not tell us who you are.',
+          'We use Yandex Metrica to see which pages help and which do not. Metrica sets cookies and collects anonymised visit data: pages opened, transitions, clicks and scrolling, device and browser type, approximate region. Metrica also records actions on the page (Webvisor), but not what you type into form fields. This data does not tell us who you are.',
           'You can turn this off in your browser settings (block cookies or turn on tracking protection) or with the Yandex add-on that blocks Metrica on all sites.',
         ],
         list: [],

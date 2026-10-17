@@ -79,6 +79,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
           </Link>
           <Link
             href={homeAnchor(locale, 'contact')}
+            data-cta="header"
             className={cn(buttonStyles.small, 'hidden sm:inline-flex')}
           >
             {dict.nav.cta}
@@ -121,6 +122,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
             </ul>
             <Link
               href={homeAnchor(locale, 'contact')}
+              data-cta="menu"
               onClick={() => setOpen(false)}
               className={cn(buttonStyles.primary, 'mt-8 w-full')}
             >

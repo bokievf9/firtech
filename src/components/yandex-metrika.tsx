@@ -21,16 +21,20 @@ export function YandexMetrika() {
     last.current = url
   }, [pathname])
 
-  // Telegram links live in server components too; one listener counts them all. The link's
-  // data-place says where it was (footer, contact, mobile-cta).
+  // Telegram links and the main buttons live in server components too; one listener counts them
+  // all. A Telegram link's data-place says where it was (footer, contact, mobile-cta); a button's
+  // data-cta names it.
   useEffect(() => {
     if (!id) return
     function onClick(event: MouseEvent) {
       const target = event.target
-      const link = target instanceof Element ? target.closest('a[href^="https://t.me/"]') : null
+      if (!(target instanceof Element)) return
+      const link = target.closest('a[href^="https://t.me/"]')
       if (link instanceof HTMLAnchorElement) {
         track('telegram_click', { place: link.dataset.place ?? 'other' })
       }
+      const cta = target.closest<HTMLElement>('[data-cta]')
+      if (cta?.dataset.cta) track('cta_click', { place: cta.dataset.cta })
     }
     document.addEventListener('click', onClick, { capture: true })
     return () => document.removeEventListener('click', onClick, { capture: true })

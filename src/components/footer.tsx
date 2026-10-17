@@ -40,6 +40,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
           ) : (
             <Link
               href={homeAnchor(locale, 'contact')}
+              data-cta="footer"
               className={cn(buttonStyles.primary, 'group px-8 py-4 text-base')}
             >
               {dict.nav.cta}
