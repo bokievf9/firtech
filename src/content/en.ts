@@ -811,7 +811,7 @@ const en: Dict = {
         values: [
           'One person',
           'A team and a manager',
-          'A team, and the code and access are yours from day one',
+          'We do, by the quote, and the code and access are yours from day one',
         ],
       },
       {
@@ -960,7 +960,7 @@ const en: Dict = {
     items: [
       {
         q: 'Why are your prices lower than other studios?',
-        a: 'No office and no account managers in the middle: you talk to the developers directly. Where it does not hurt quality, we use proven ready-made components. Complex projects cost more, and you know the price before we start.',
+        a: 'No office and no account managers in the middle: you talk to us directly. Where it does not hurt quality, we use proven ready-made components. Complex projects cost more, and you know the price before we start.',
       },
       {
         q: 'How long does it take?',
