@@ -15,6 +15,7 @@ import { isLocale } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { siteUrl } from '@/lib/site'
 import { solutionKinds } from '@/lib/solutions'
+import { shareBase } from '@/lib/share'
 
 export async function generateMetadata({
   params,
@@ -29,7 +30,13 @@ export async function generateMetadata({
       canonical: `/${locale}/solutions`,
       languages: { ru: '/ru/solutions', en: '/en/solutions' },
     },
-    openGraph: { title: t.metaTitle, description: t.metaDescription, url: `/${locale}/solutions` },
+    twitter: shareBase(locale).twitter,
+    openGraph: {
+      ...shareBase(locale).openGraph,
+      title: t.metaTitle,
+      description: t.metaDescription,
+      url: `/${locale}/solutions`,
+    },
   }
 }
 

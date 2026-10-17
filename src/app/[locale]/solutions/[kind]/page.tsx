@@ -1,4 +1,10 @@
-import { ArrowLeft, ArrowRight, ArrowUpRight, CheckCircle, XCircle } from '@phosphor-icons/react/ssr'
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  CheckCircle,
+  XCircle,
+} from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
@@ -18,6 +24,7 @@ import { isLocale, locales } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { siteUrl } from '@/lib/site'
 import { isSolutionKind, solutionBuilderHref, solutionKinds } from '@/lib/solutions'
+import { shareBase } from '@/lib/share'
 
 export const dynamicParams = false
 
@@ -39,7 +46,13 @@ export async function generateMetadata({
       canonical: `/${locale}${path}`,
       languages: { ru: `/ru${path}`, en: `/en${path}` },
     },
-    openGraph: { title: page.metaTitle, description: page.metaDescription, url: `/${locale}${path}` },
+    twitter: shareBase(locale).twitter,
+    openGraph: {
+      ...shareBase(locale).openGraph,
+      title: page.metaTitle,
+      description: page.metaDescription,
+      url: `/${locale}${path}`,
+    },
   }
 }
 

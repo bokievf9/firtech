@@ -10,6 +10,7 @@ import { getDict } from '@/content'
 import { formatArticleDate, readingTime, visibleArticles } from '@/content/blog'
 import { buttonStyles, homeAnchor } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
+import { shareBase } from '@/lib/share'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/blog'>): Promise<Metadata> {
   const { locale } = await params
@@ -22,7 +23,13 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/blog'>):
       canonical: `/${locale}/blog`,
       languages: { ru: '/ru/blog', en: '/en/blog' },
     },
-    openGraph: { title: t.metaTitle, description: t.metaDescription, url: `/${locale}/blog` },
+    twitter: shareBase(locale).twitter,
+    openGraph: {
+      ...shareBase(locale).openGraph,
+      title: t.metaTitle,
+      description: t.metaDescription,
+      url: `/${locale}/blog`,
+    },
   }
 }
 
@@ -76,7 +83,9 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-xs text-faint">
                         {!article.published && <DraftBadge label={t.draft} />}
                         <span className="whitespace-nowrap">
-                          <time dateTime={article.date}>{formatArticleDate(article.date, locale)}</time>
+                          <time dateTime={article.date}>
+                            {formatArticleDate(article.date, locale)}
+                          </time>
                           <span aria-hidden="true"> · </span>
                           {readingTime(content)} {t.minutes}
                         </span>
