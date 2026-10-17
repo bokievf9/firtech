@@ -1,3 +1,4 @@
+import { notFoundText } from './not-found'
 import type { Dict } from './ru'
 
 const en: Dict = {
@@ -1366,10 +1367,7 @@ const en: Dict = {
       ],
     },
   },
-  notFound: {
-    title: 'Page not found',
-    text: 'The link may be out of date. Head back to the home page.',
-  },
+  notFound: notFoundText.en,
 }
 
 export default en
