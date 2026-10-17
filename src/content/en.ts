@@ -190,6 +190,16 @@ const en: Dict = {
     empty: 'Pick what to build and the mockup will start coming together',
     entry: 'Need several services at once? Put your project together in the builder',
     download: 'Download estimate (PDF)',
+    pdf: {
+      title: 'Estimate as PDF',
+      text: 'Leave your name and a contact and the estimate opens right away. You can save it and show it to a partner. If you have questions about it, we will answer, and the decision stays yours.',
+      submit: 'Get the estimate',
+      ready: 'Your estimate is ready',
+      open: 'Open the estimate',
+      free: 'The builder and the build link work without any contacts.',
+      // Goes into the owner's Telegram message, which is always in Russian.
+      leadNote: 'Запросил смету в PDF из конструктора',
+    },
     stepLabel: 'Step',
     of: 'of',
     intro: 'Seven short steps. The price and the mockup update as you go.',
@@ -942,7 +952,7 @@ const en: Dict = {
     back: 'All articles',
     more: 'More articles',
     ctaTitle: 'Put your project together in the builder',
-    ctaText: 'Pick a website, a bot or automation and see the price and timeline right away.',
+    ctaText: 'Pick a website, a bot or automation and see the price and timeline right away. You can get the estimate as a PDF.',
     ctaButton: 'Open the builder',
   },
   faq: {

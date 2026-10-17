@@ -11,6 +11,8 @@ export type GoalParams = {
   estimate_handoff: [params: { service: string }]
   builder_step: [params: { step: number }]
   builder_sent: [params: { service: string }]
+  // Contact left to open the PDF estimate.
+  estimate_pdf: [params: { service: string }]
   builder_link_copied: []
   extra_discuss: [params: { service: string }]
 }

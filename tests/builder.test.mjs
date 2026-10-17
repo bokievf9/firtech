@@ -125,3 +125,11 @@ test('builder copy: same shape and no long dashes in both languages', () => {
   assert.equal(en.builder.steps.length, 7)
   for (const dict of [ru, en]) assert.doesNotMatch(JSON.stringify(dict.builder), /[–—]/)
 })
+
+test('leadServiceOf: one main service is itself, anything more is a bundle', async () => {
+  const { leadServiceOf, emptyBuild } = await import('../src/lib/builder.ts')
+  const one = { ...emptyBuild, parts: { bots: { variant: 'faq', addons: [] } } }
+  assert.equal(leadServiceOf(one), 'bots')
+  const two = { ...one, parts: { ...one.parts, websites: { variant: 'landing', addons: [] } } }
+  assert.equal(leadServiceOf(two), 'bundle')
+})

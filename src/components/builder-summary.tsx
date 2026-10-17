@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, Check, FilePdf, Link as LinkIcon, PencilSimple } from '@phosphor-icons/react'
+import { ArrowRight, Check, Link as LinkIcon, PencilSimple } from '@phosphor-icons/react'
 import type { Dict } from '@/content'
 import { quote, type Build } from '@/lib/builder'
 import { accentOf, resolveStyle } from '@/lib/builder-style'
@@ -8,6 +8,7 @@ import { buttonStyles, cn } from '@/lib/cn'
 import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
 import { bundleDiscount } from '@/lib/pricing'
 import { BuilderPreview } from './builder-preview'
+import { EstimateGate } from './estimate-gate'
 import { Panel } from './builder-ui'
 
 // The last screen: the quote, the brief and the mockup side by side, then the actions.
@@ -146,15 +147,7 @@ export function SummaryStep({
                 {copied ? <Check size={16} /> : <LinkIcon size={16} />}
                 <span aria-live="polite">{copied ? t.copied : t.copy}</span>
               </button>
-              <a
-                href={estimateHref}
-                target="_blank"
-                rel="noopener"
-                className={cn(buttonStyles.secondary, 'whitespace-normal text-center')}
-              >
-                <FilePdf size={16} className="shrink-0" />
-                {t.download}
-              </a>
+              <EstimateGate dict={dict} locale={locale} build={build} estimateHref={estimateHref} />
             </div>
           </div>
         </Panel>

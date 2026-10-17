@@ -9,6 +9,7 @@ import {
   decodeBuild,
   emptyBuild,
   encodeBuild,
+  leadServiceOf,
   presets,
   quote,
   type Build,
@@ -20,7 +21,7 @@ import { formatRange, leadSummary } from '@/lib/estimate-doc'
 import { sendEstimate } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
 import { catalog, formatUsd } from '@/lib/pricing'
-import { serviceSlugs, type ServiceSlug } from '@/lib/site'
+import type { ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { DetailsStep, StyleStep } from './builder-brief'
 import { BottomNav, NextButton, PreviewSheet, StepBar } from './builder-nav'
@@ -185,9 +186,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   }
 
   function handOff() {
-    const q = quote(build)
-    const single = q.lines.length === 1 && !q.monthly ? q.lines[0]?.id : undefined
-    const service = single && isService(single) ? single : 'bundle'
+    const service = leadServiceOf(build)
     sendEstimate({ service, summary: leadSummary(build, dict, locale) })
     track('builder_sent', { service })
     document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
@@ -366,8 +365,4 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
       </PreviewSheet>
     </div>
   )
-}
-
-function isService(id: string): id is ServiceSlug {
-  return (serviceSlugs as readonly string[]).includes(id)
 }

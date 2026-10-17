@@ -318,7 +318,9 @@ export function withLangs(build: Build, langs: DetailLang[]): Build {
     const has = site.addons.includes('language')
     const want = langs.length >= 2
     if (has !== want) {
-      const addons = want ? [...site.addons, 'language'] : site.addons.filter((a) => a !== 'language')
+      const addons = want
+        ? [...site.addons, 'language']
+        : site.addons.filter((a) => a !== 'language')
       next.parts = { ...build.parts, websites: { ...site, addons } }
     }
   }
@@ -341,4 +343,14 @@ export function withDetails(build: Build, patch: Partial<BuildDetails>): Build {
 
 export function withStyle(build: Build, patch: Partial<BuildStyle>): Build {
   return { ...build, style: { ...build.style, ...patch } }
+}
+
+// The lead's service for a build: the service itself when the build is one main service with no
+// monthly part, otherwise "bundle".
+export function leadServiceOf(build: Build): ServiceSlug | 'bundle' {
+  const q = quote(build)
+  const single = q.lines.length === 1 && !q.monthly ? q.lines[0]?.id : undefined
+  return single && (serviceSlugs as readonly string[]).includes(single)
+    ? (single as ServiceSlug)
+    : 'bundle'
 }
