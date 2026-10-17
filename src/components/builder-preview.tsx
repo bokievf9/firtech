@@ -14,7 +14,8 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import type { Dict } from '@/content'
-import type { Build } from '@/lib/builder'
+import type { Build, BuildStyle } from '@/lib/builder'
+import { styleVars } from '@/lib/builder-style'
 import { cn } from '@/lib/cn'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
@@ -22,8 +23,17 @@ const ease = [0.16, 1, 0.3, 1] as const
 
 // A mockup that assembles itself as the visitor picks parts and options: a browser for the website,
 // phones for the bot and the app, a strip for automation, chips for extras. Purely decorative; the
-// summary next to it carries the same information as text.
-export function BuilderPreview({ build, dict }: { build: Build; dict: Dict }) {
+// summary next to it carries the same information as text. The style step restyles it through CSS
+// variables scoped to this box (colours, radii, type), so the rest of the page keeps the site look.
+export function BuilderPreview({
+  build,
+  dict,
+  className,
+}: {
+  build: Build
+  dict: Dict
+  className?: string
+}) {
   const p = dict.builder.preview
   const site = build.parts.websites
   const bot = build.parts.bots
@@ -34,7 +44,11 @@ export function BuilderPreview({ build, dict }: { build: Build; dict: Dict }) {
   return (
     <div
       aria-hidden="true"
-      className="dot-grid relative min-h-[420px] overflow-hidden rounded-card border border-line bg-surface-2 p-4 md:p-5"
+      style={styleVars(build.style)}
+      className={cn(
+        'pv-root relative min-h-[420px] overflow-hidden rounded-card border border-line bg-surface-2 p-4 transition-[background-color,border-color] duration-500 md:p-5',
+        className,
+      )}
     >
       <AnimatePresence mode="popLayout" initial={false}>
         {empty && (
@@ -61,7 +75,7 @@ export function BuilderPreview({ build, dict }: { build: Build; dict: Dict }) {
               </div>
               <div className="grid gap-3 p-3.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold">{p.brand}</span>
+                  <span className="pv-head text-[11px]">{p.brand}</span>
                   <span className="flex gap-1.5">
                     <Bar className="w-6" />
                     <Bar className="w-6" />
@@ -69,9 +83,11 @@ export function BuilderPreview({ build, dict }: { build: Build; dict: Dict }) {
                   </span>
                 </div>
                 <div className="grid gap-1.5">
-                  <Bar className="h-2.5 w-3/4 bg-fg/70" />
+                  <span className="pv-head max-w-[22ch] text-[17px] leading-[1.1]">
+                    {p.headline}
+                  </span>
                   <Bar className="w-1/2" />
-                  <span className="mt-1.5 w-fit rounded-full bg-accent px-2.5 py-1 text-[10px] font-medium text-accent-ink">
+                  <span className="mt-1.5 w-fit rounded-[var(--pv-button)] bg-accent px-2.5 py-1 text-[10px] font-medium text-accent-ink">
                     {p.cta}
                   </span>
                 </div>
@@ -143,7 +159,7 @@ export function BuilderPreview({ build, dict }: { build: Build; dict: Dict }) {
                       <span className="grid size-5 place-items-center rounded-full bg-accent text-[9px] font-bold text-accent-ink">
                         F
                       </span>
-                      <span className="text-[10px] font-medium">{p.bot}</span>
+                      <span className="pv-head text-[10px]">{p.bot}</span>
                       <Flag show={bot.addons.includes('ai')} className="ml-auto">
                         <Badge>
                           <Sparkle size={9} weight="fill" />
@@ -187,7 +203,7 @@ export function BuilderPreview({ build, dict }: { build: Build; dict: Dict }) {
                         )}
                         {bot.variant === 'miniapp' && (
                           <Item key="miniapp" className="grid gap-1.5">
-                            <span className="text-[10px] font-medium">{p.botMenu}</span>
+                            <span className="pv-head text-[10px]">{p.botMenu}</span>
                             <span className="grid grid-cols-2 gap-1">
                               {[0, 1, 2, 3].map((i) => (
                                 <span
@@ -223,7 +239,7 @@ export function BuilderPreview({ build, dict }: { build: Build; dict: Dict }) {
                       </span>
                     </Flag>
                     <div className="flex items-center justify-between border-b border-line pb-2">
-                      <span className="text-[10px] font-medium">{p.app}</span>
+                      <span className="pv-head text-[10px]">{p.app}</span>
                       <Flag show={app.addons.includes('accounts')}>
                         <UserCircle size={14} className="text-accent" />
                       </Flag>
@@ -416,7 +432,7 @@ function Flag({
 
 function Phone({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-[250px] w-[148px] flex-col rounded-[22px] border border-line-strong bg-bg p-2.5 pt-3">
+    <div className="flex h-[250px] w-[148px] flex-col rounded-[var(--pv-phone)] border border-line-strong bg-bg p-2.5 pt-3">
       <span className="mx-auto mb-2 h-1 w-8 rounded-full bg-fg/15" />
       {children}
     </div>
@@ -442,7 +458,7 @@ function Bubble({ children, mine }: { children: ReactNode; mine?: boolean }) {
 
 function Badge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-[9px] whitespace-nowrap text-accent">
+    <span className="inline-flex items-center gap-1 rounded-[var(--pv-button)] border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-[9px] whitespace-nowrap text-accent">
       {children}
     </span>
   )
@@ -459,7 +475,7 @@ function Pay({ label }: { label: string }) {
 
 function Chip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-line-strong bg-bg px-2 py-1 text-[10px] whitespace-nowrap">
+    <span className="inline-flex items-center gap-1 rounded-[var(--pv-button)] border border-line-strong bg-bg px-2 py-1 text-[10px] whitespace-nowrap">
       {children}
     </span>
   )
@@ -493,6 +509,53 @@ function Flow() {
         />
       )}
       <ArrowRight size={8} className="absolute -top-1 -right-1 text-faint" />
+    </span>
+  )
+}
+
+// A small page in one style, for the style cards: the same variables as the mockup.
+export function StyleSample({
+  style,
+  title,
+  cta,
+  className,
+}: {
+  style: BuildStyle
+  title: string
+  cta: string
+  className?: string
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      style={styleVars(style)}
+      className={cn(
+        'pv-root block overflow-hidden rounded-xl border border-line bg-surface-2 p-2.5 transition-colors duration-300',
+        className,
+      )}
+    >
+      <span className="block overflow-hidden rounded-lg border border-line-strong bg-bg p-2.5">
+        <span className="flex items-center justify-between">
+          <span className="pv-head min-w-0 truncate text-[9px]">{title}</span>
+          <span className="flex shrink-0 gap-1">
+            <Bar className="w-3" />
+            <Bar className="w-3" />
+          </span>
+        </span>
+        <span className="pv-head mt-2.5 block text-[22px] leading-none">Aa</span>
+        <Bar className="mt-2 w-3/4" />
+        <span className="mt-2.5 flex items-center gap-1.5">
+          <span className="rounded-[var(--pv-button)] bg-accent px-2 py-0.5 text-[8px] font-medium text-accent-ink">
+            {cta}
+          </span>
+          <span className="h-3.5 flex-1 rounded-md border border-line" />
+        </span>
+        <span className="mt-2 grid grid-cols-3 gap-1">
+          <span className="h-5 rounded-md bg-pine" />
+          <span className="h-5 rounded-md border border-line" />
+          <span className="h-5 rounded-md border border-line" />
+        </span>
+      </span>
     </span>
   )
 }

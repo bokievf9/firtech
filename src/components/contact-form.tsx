@@ -82,7 +82,9 @@ export function ContactForm({
           ...data,
           estimate,
           locale,
-          page: pathname + window.location.search,
+          // The lead schema keeps 600 characters; a builder link with long notes is cut, its
+          // texts already travel in full in the estimate summary.
+          page: (pathname + window.location.search).slice(0, 600),
           slot,
         }),
       })

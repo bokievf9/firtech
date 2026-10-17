@@ -1,102 +1,109 @@
 'use client'
 
-import {
-  ArrowLeft,
-  ArrowRight,
-  Briefcase,
-  ChatCircleDots,
-  Check,
-  Coffee,
-  DeviceMobile,
-  DotsThreeOutline,
-  FilePdf,
-  FlowArrow,
-  Globe,
-  Link as LinkIcon,
-  Moped,
-  Plus,
-  Scissors,
-  Storefront,
-  type Icon,
-} from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
+import { track } from '@/lib/analytics'
 import {
-  buildExtras,
-  businessKinds,
   decodeBuild,
   emptyBuild,
   encodeBuild,
   presets,
   quote,
   type Build,
-  type BusinessKind,
   type BuildExtra,
+  type BusinessKind,
 } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
-import { track } from '@/lib/analytics'
+import { formatRange, leadSummary } from '@/lib/estimate-doc'
 import { sendEstimate } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
-import { bundleDiscount, catalog, extraPrice, formatUsd, startingPrice } from '@/lib/pricing'
+import { catalog, formatUsd } from '@/lib/pricing'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { DetailsStep, StyleStep } from './builder-brief'
+import { BottomNav, NextButton, PreviewSheet, StepBar } from './builder-nav'
 import { BuilderPreview } from './builder-preview'
+import { FeaturesStep, GoalsStep, KindStep, PartsStep } from './builder-steps'
+import { SummaryStep } from './builder-summary'
+import { Screen } from './builder-ui'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
-const kindIcons: Record<BusinessKind, Icon> = {
-  cafe: Coffee,
-  salon: Scissors,
-  shop: Storefront,
-  delivery: Moped,
-  services: Briefcase,
-  other: DotsThreeOutline,
-}
+// Screens: 0 business, 1 goal, 2 parts, 3 features, 4 style, 5 details, 6 summary.
+const PARTS = 2
+const STYLE = 4
+const SUMMARY = 6
+// Screens where the live mockup sits next to the content.
+const withPreview = new Set([2, 3, 4])
 
-const serviceIcons: Record<ServiceSlug, Icon> = {
-  websites: Globe,
-  bots: ChatCircleDots,
-  apps: DeviceMobile,
-  automation: FlowArrow,
-}
-
-type Variants = Record<string, { name: string; term: string }>
-
-const range = (r: { min: number; max: number }) => `${formatUsd(r.min)} - ${formatUsd(r.max)}`
-
+// Each step is its own screen. The step lives in the URL (`?b=...&s=3`, 1-based) and in history,
+// so refresh and the browser Back button work while the page itself stays static.
 export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const t = dict.builder
+  const total = t.steps.length
   const reduce = useReducedMotion()
+  const pathname = usePathname()
   const [step, setStep] = useState(0)
+  const [dir, setDir] = useState(1)
   const [kind, setKind] = useState<BusinessKind | null>(null)
-  const [build, setBuild] = useState<Build>(emptyBuild)
+  const [build, setBuildState] = useState<Build>(emptyBuild)
   const [copied, setCopied] = useState(false)
   const [atForm, setAtForm] = useState(false)
-  const loaded = useRef(false)
-  const top = useRef<HTMLDivElement>(null)
-  const pathname = usePathname()
+  const [sheet, setSheet] = useState(false)
+  const [ready, setReady] = useState(false)
+  const heading = useRef<HTMLHeadingElement>(null)
+  const moved = useRef(false)
 
-  // A shared link (?b=...) opens straight on the summary. Read after mount: the page is static, so
-  // the server never sees the query string.
-  useEffect(() => {
-    const shared = decodeBuild(new URLSearchParams(window.location.search).get('b'))
-    loaded.current = true
-    if (!shared) return
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from the URL
-    setBuild(shared)
-    setStep(3)
-  }, [])
+  const hasParts = Object.keys(build.parts).length > 0
+  const reachable = useCallback((i: number) => i <= PARTS || hasParts, [hasParts])
 
-  // Keep the link in sync with the build, without a navigation.
+  const urlFor = useCallback(
+    (b: Build, s: number) => {
+      const code = encodeBuild(b)
+      const query = [code && `b=${code}`, s > 0 && `s=${s + 1}`].filter(Boolean).join('&')
+      return query ? `${pathname}?${query}` : pathname
+    },
+    [pathname],
+  )
+
+  // Read after mount: the page is static, so the server never sees the query string. A shared
+  // link without a step opens on the summary.
   useEffect(() => {
-    if (!loaded.current) return
-    const code = encodeBuild(build)
-    const url = code ? `${window.location.pathname}?b=${code}` : window.location.pathname
-    window.history.replaceState(window.history.state, '', url)
-  }, [build])
+    const params = new URLSearchParams(window.location.search)
+    const shared = decodeBuild(params.get('b'))
+    const asked = Number(params.get('s')) - 1
+    const parts = shared ? Object.keys(shared.parts).length > 0 : false
+    let next = Number.isInteger(asked) && asked >= 0 && asked < total ? asked : shared ? SUMMARY : 0
+    if (next > PARTS && !parts) next = shared ? PARTS : 0
+    /* eslint-disable react-hooks/set-state-in-effect -- one-time sync from the URL */
+    if (shared) setBuildState(shared)
+    setStep(next)
+    setReady(true)
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [total])
+
+  // Keep the address in sync with the build and step, without a navigation.
+  useEffect(() => {
+    if (!ready) return
+    window.history.replaceState(window.history.state, '', urlFor(build, step))
+  }, [build, step, urlFor, ready])
+
+  // Browser Back and Forward walk the steps.
+  useEffect(() => {
+    function onPop() {
+      const s = Number(new URLSearchParams(window.location.search).get('s')) - 1
+      const next = Number.isInteger(s) && s >= 0 && s < total ? s : 0
+      setStep((prev) => {
+        setDir(next >= prev ? 1 : -1)
+        return next
+      })
+      moved.current = true
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [total])
 
   useEffect(() => {
     const target = document.getElementById('contact')
@@ -108,27 +115,43 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     return () => io.disconnect()
   }, [])
 
-  const q = quote(build)
-  const hasParts = Object.keys(build.parts).length > 0
-  const canGo = step === 0 ? kind !== null || hasParts : hasParts
+  // A new screen starts at the top, with focus on its title for keyboard and screen readers.
+  useEffect(() => {
+    if (!moved.current) return
+    moved.current = false
+    window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
+    const id = window.setTimeout(() => heading.current?.focus({ preventScroll: true }), reduce ? 0 : 380)
+    return () => window.clearTimeout(id)
+  }, [step, reduce])
 
-  function go(next: number) {
-    setStep(next)
-    track('builder_step', { step: next + 1 })
-    const el = top.current
-    if (el && el.getBoundingClientRect().top < 0) {
-      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-    }
-  }
+  const setBuild = useCallback((update: (b: Build) => Build) => setBuildState(update), [])
+  const closeSheet = useCallback(() => setSheet(false), [])
+
+  const go = useCallback(
+    (next: number) => {
+      if (next === step || next < 0 || next >= total) return
+      setDir(next > step ? 1 : -1)
+      setStep(next)
+      setSheet(false)
+      moved.current = true
+      window.history.pushState(window.history.state, '', urlFor(build, next))
+      track('builder_step', { step: next + 1 })
+    },
+    [build, step, total, urlFor],
+  )
+
+  const canGo = step === 0 ? kind !== null || hasParts : step >= PARTS ? hasParts : true
+  const last = step === SUMMARY
 
   function pickKind(next: BusinessKind) {
     setKind(next)
-    setBuild(structuredClone(presets[next]))
+    // The preset replaces the parts; goals, style and details already given stay.
+    setBuildState((b) => ({ ...b, ...structuredClone(presets[next]) }))
     go(1)
   }
 
   function toggleService(slug: ServiceSlug) {
-    setBuild((b) => {
+    setBuildState((b) => {
       const parts = { ...b.parts }
       if (parts[slug]) delete parts[slug]
       else parts[slug] = { variant: Object.keys(catalog[slug].variants)[0] ?? '', addons: [] }
@@ -137,14 +160,14 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   }
 
   function setVariant(slug: ServiceSlug, variant: string) {
-    setBuild((b) => {
+    setBuildState((b) => {
       const part = b.parts[slug]
       return part ? { ...b, parts: { ...b.parts, [slug]: { ...part, variant } } } : b
     })
   }
 
   function toggleAddon(slug: ServiceSlug, id: string) {
-    setBuild((b) => {
+    setBuildState((b) => {
       const part = b.parts[slug]
       if (!part) return b
       const addons = part.addons.includes(id)
@@ -155,42 +178,17 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   }
 
   function toggleExtra(id: BuildExtra) {
-    setBuild((b) => ({
+    setBuildState((b) => ({
       ...b,
       extras: b.extras.includes(id) ? b.extras.filter((e) => e !== id) : [...b.extras, id],
     }))
   }
 
-  function partLabel(slug: ServiceSlug) {
-    const part = build.parts[slug]
-    if (!part) return ''
-    const c = dict.estimator.catalog[slug]
-    const variant = (c.variants as Variants)[part.variant]
-    const addons = part.addons.map((id) => (c.addons as Record<string, string>)[id])
-    return [variant?.name, ...addons].filter(Boolean).join(' + ')
-  }
-
-  function partTerm(slug: ServiceSlug) {
-    const part = build.parts[slug]
-    if (!part) return ''
-    return (dict.estimator.catalog[slug].variants as Variants)[part.variant]?.term ?? ''
-  }
-
   function handOff() {
-    const lines = q.lines.map((line) => {
-      if (isService(line.id)) {
-        const name = dict.services.items[line.id].name
-        return `${name}: ${partLabel(line.id)} (${range(line)}, ${partTerm(line.id)})`
-      }
-      return `${dict.extras.items[line.id].name} (${range(line)})`
-    })
-    if (q.discount) lines.push(`${t.discount}: ${range(q.subtotal)} -> ${range(q.total)}`)
-    lines.push(`${t.total}: ${range(q.total)}`)
-    if (q.monthly)
-      lines.push(`${dict.extras.items.support.name}: ${formatUsd(q.monthly)}${t.perMonth}`)
+    const q = quote(build)
     const single = q.lines.length === 1 && !q.monthly ? q.lines[0]?.id : undefined
     const service = single && isService(single) ? single : 'bundle'
-    sendEstimate({ service, summary: lines.join('\n') })
+    sendEstimate({ service, summary: leadSummary(build, dict, locale) })
     track('builder_sent', { service })
     document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
   }
@@ -206,510 +204,170 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     }
   }
 
-  const last = step === t.steps.length - 1
+  // Enter moves on, except where Enter already means something (buttons, links, text areas).
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Enter' || e.shiftKey || e.altKey || e.metaKey || e.ctrlKey || e.isComposing)
+        return
+      if (sheet || last || !canGo) return
+      const el = e.target as HTMLElement | null
+      if (el?.closest('button, a, textarea, select, [role="dialog"]')) return
+      if (el && el !== document.body && !el.closest('[data-builder]')) return
+      e.preventDefault()
+      go(step + 1)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [canGo, go, last, sheet, step])
+
+  const q = quote(build)
+  const preview = withPreview.has(step)
+  const titles = [
+    { title: t.kindTitle, sub: `${t.sub} ${t.intro}` },
+    { title: t.goalsTitle, sub: t.goalsSub },
+    { title: t.partsTitle, sub: t.partsSub },
+    { title: t.featuresTitle, sub: t.featuresSub },
+    { title: t.styleTitle, sub: t.styleSub },
+    { title: t.detailsTitle, sub: t.detailsSub },
+    { title: t.summaryTitle, sub: t.summarySub },
+  ] as const
+  const screen = titles[step] ?? titles[0]
 
   return (
-    <div ref={top} className="scroll-mt-24 grid gap-6 pb-24 lg:grid-cols-12 lg:pb-0">
-      <div className="min-w-0 rounded-card border border-line bg-surface lg:col-span-7">
-        <ol className="flex border-b border-line">
-          {t.steps.map((label, i) => {
-            const reachable = i === 0 || hasParts
-            return (
-              <li key={label} className="flex-1">
-                <button
-                  type="button"
-                  disabled={!reachable}
-                  onClick={() => go(i)}
-                  aria-current={i === step ? 'step' : undefined}
-                  className={cn(
-                    'relative flex w-full flex-col items-start gap-1 px-3 py-4 text-left transition-colors md:px-6',
-                    i === step ? 'text-fg' : 'text-faint hover:text-muted',
-                    !reachable && 'cursor-not-allowed hover:text-faint',
-                  )}
-                >
-                  <span className="font-mono text-[11px]">0{i + 1}</span>
-                  <span className="hidden text-sm font-medium sm:block">{label}</span>
-                  {i === step && (
-                    <motion.span
-                      layoutId="builder-step"
-                      className="absolute inset-x-0 -bottom-px h-0.5 bg-accent"
-                      transition={{ duration: 0.4, ease }}
-                    />
-                  )}
-                </button>
-              </li>
-            )
-          })}
-        </ol>
+    <div data-builder className="relative">
+      <StepBar
+        eyebrow={t.eyebrow}
+        title={t.title}
+        steps={t.steps}
+        step={step}
+        reachable={reachable}
+        onGo={go}
+      />
 
-        <div className="p-5 md:p-8">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={step}
-              initial={reduce ? false : { opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={reduce ? undefined : { opacity: 0, x: -16 }}
-              transition={{ duration: 0.3, ease }}
-            >
-              {step === 0 && (
-                <Step title={t.kindTitle} sub={t.kindSub}>
-                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-                    {businessKinds.map((id) => {
-                      const Glyph = kindIcons[id]
-                      return (
-                        <button
-                          key={id}
-                          type="button"
-                          aria-pressed={kind === id}
-                          onClick={() => pickKind(id)}
-                          className={cn(
-                            'flex flex-col items-start gap-4 rounded-xl border p-4 text-left transition-colors duration-200 active:scale-[0.98]',
-                            kind === id
-                              ? 'border-accent bg-accent/[0.07]'
-                              : 'border-line hover:border-line-strong',
-                          )}
-                        >
-                          <Glyph size={24} className="text-accent" />
-                          <span className="text-[15px] font-medium leading-tight">
-                            {t.kinds[id]}
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <Link
-                    href={`/${locale}/solutions`}
-                    className="mt-5 inline-flex items-center gap-1.5 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
-                  >
-                    {dict.solutions.builderLink}
-                    <ArrowRight size={14} className="shrink-0 text-accent" />
-                  </Link>
-                </Step>
-              )}
-
-              {step === 1 && (
-                <Step title={t.partsTitle} sub={t.partsSub}>
-                  <div className="grid gap-2">
-                    {serviceSlugs.map((slug) => {
-                      const part = build.parts[slug]
-                      const Glyph = serviceIcons[slug]
-                      const variants = dict.estimator.catalog[slug].variants as Variants
-                      return (
-                        <div
-                          key={slug}
-                          className={cn(
-                            'rounded-xl border transition-colors duration-200',
-                            part ? 'border-accent/60 bg-accent/[0.04]' : 'border-line',
-                          )}
-                        >
-                          <button
-                            type="button"
-                            role="checkbox"
-                            aria-checked={Boolean(part)}
-                            onClick={() => toggleService(slug)}
-                            className="flex w-full items-center gap-4 p-4 text-left"
-                          >
-                            <Glyph size={22} className={part ? 'text-accent' : 'text-muted'} />
-                            <span className="flex-1 font-medium">
-                              {dict.services.items[slug].name}
-                            </span>
-                            <span className="font-mono text-sm text-muted">
-                              {dict.services.from} {formatUsd(startingPrice[slug])}
-                            </span>
-                            <Tick on={Boolean(part)} />
-                          </button>
-                          <AnimatePresence initial={false}>
-                            {part && (
-                              <motion.div
-                                initial={reduce ? false : { height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={reduce ? undefined : { height: 0, opacity: 0 }}
-                                transition={{ duration: 0.3, ease }}
-                                className="overflow-hidden"
-                              >
-                                <div
-                                  className="grid gap-2 px-4 pb-4 sm:grid-cols-3"
-                                  role="radiogroup"
-                                  aria-label={dict.estimator.variant}
-                                >
-                                  {Object.entries(variants).map(([id, v]) => (
-                                    <button
-                                      key={id}
-                                      type="button"
-                                      role="radio"
-                                      aria-checked={part.variant === id}
-                                      onClick={() => setVariant(slug, id)}
-                                      className={cn(
-                                        'rounded-lg border px-3 py-2.5 text-left transition-colors duration-200',
-                                        part.variant === id
-                                          ? 'border-accent bg-accent/[0.08]'
-                                          : 'border-line hover:border-line-strong',
-                                      )}
-                                    >
-                                      <span className="block text-sm font-medium">{v.name}</span>
-                                      <span className="mt-0.5 flex justify-between gap-2 text-xs text-faint">
-                                        {v.term}
-                                        <span className="font-mono">
-                                          {formatUsd(catalog[slug].variants[id] ?? 0)}
-                                        </span>
-                                      </span>
-                                    </button>
-                                  ))}
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      )
-                    })}
-                  </div>
-                  {!hasParts && <p className="mt-4 text-sm text-danger">{t.pickOne}</p>}
-                </Step>
-              )}
-
-              {step === 2 && (
-                <Step title={t.featuresTitle} sub={t.featuresSub}>
-                  <div className="grid gap-7">
-                    {serviceSlugs.map((slug) => {
-                      const part = build.parts[slug]
-                      if (!part) return null
-                      const names = dict.estimator.catalog[slug].addons as Record<string, string>
-                      return (
-                        <fieldset key={slug}>
-                          <legend className="mb-3 text-sm text-muted">
-                            {dict.services.items[slug].name}
-                          </legend>
-                          <div className="flex flex-wrap gap-2">
-                            {Object.entries(names).map(([id, name]) => (
-                              <Pill
-                                key={id}
-                                on={part.addons.includes(id)}
-                                onClick={() => toggleAddon(slug, id)}
-                                price={`+${formatUsd(catalog[slug].addons[id] ?? 0)}`}
-                              >
-                                {name}
-                              </Pill>
-                            ))}
-                          </div>
-                        </fieldset>
-                      )
-                    })}
-                    <fieldset>
-                      <legend className="mb-3 text-sm text-muted">{t.extrasTitle}</legend>
-                      <div className="flex flex-wrap gap-2">
-                        {buildExtras.map((id) => {
-                          const price = extraPrice[id]
-                          return (
-                            <Pill
-                              key={id}
-                              on={build.extras.includes(id)}
-                              onClick={() => toggleExtra(id)}
-                              price={
-                                price.from === null
-                                  ? undefined
-                                  : `+${formatUsd(price.from)}${price.monthly ? t.perMonth : ''}`
-                              }
-                            >
-                              {dict.extras.items[id].name}
-                            </Pill>
-                          )
-                        })}
-                      </div>
-                    </fieldset>
-                  </div>
-                </Step>
-              )}
-
-              {step === 3 && (
-                <Step title={t.summaryTitle}>
-                  {hasParts ? (
-                    <>
-                      <ul className="divide-y divide-line border-y border-line">
-                        {q.lines.map((line) => (
-                          <li key={line.id} className="flex items-start justify-between gap-4 py-4">
-                            <span>
-                              <span className="block font-medium">
-                                {isService(line.id)
-                                  ? dict.services.items[line.id].name
-                                  : dict.extras.items[line.id].name}
-                              </span>
-                              {isService(line.id) && (
-                                <span className="mt-1 block text-sm text-muted">
-                                  {partLabel(line.id)}
-                                  <span className="text-faint"> · {partTerm(line.id)}</span>
-                                </span>
-                              )}
-                            </span>
-                            <span className="shrink-0 font-mono text-sm">{range(line)}</span>
-                          </li>
-                        ))}
-                        {q.monthly !== null && (
-                          <li className="flex items-start justify-between gap-4 py-4">
-                            <span className="font-medium">{dict.extras.items.support.name}</span>
-                            <span className="shrink-0 font-mono text-sm">
-                              {formatUsd(q.monthly)}
-                              {t.perMonth}
-                            </span>
-                          </li>
-                        )}
-                      </ul>
-                      <dl className="mt-5 grid gap-2 text-sm">
-                        {q.discount && (
-                          <>
-                            <Row label={t.subtotal} value={range(q.subtotal)} muted />
-                            <Row
-                              label={t.discount}
-                              value={`-${Math.round(bundleDiscount * 100)}%`}
-                              className="text-accent"
-                            />
-                          </>
-                        )}
-                        <Row label={t.total} value={range(q.total)} strong />
-                      </dl>
-                      <ul className="mt-6 grid gap-2 text-[13px] leading-relaxed text-faint">
-                        <li>{t.termsNote}</li>
-                        <li>{t.payNote}</li>
-                        {q.monthly !== null && <li>{t.monthlyNote}</li>}
-                        <li>{t.note}</li>
-                      </ul>
-                      <div className="mt-8 grid gap-3 sm:grid-cols-2">
-                        <button
-                          type="button"
-                          onClick={handOff}
-                          className={cn(buttonStyles.primary, 'sm:col-span-2')}
-                        >
-                          {t.send}
-                          <ArrowRight size={16} />
-                        </button>
-                        <button type="button" onClick={copyLink} className={buttonStyles.secondary}>
-                          {copied ? <Check size={16} /> : <LinkIcon size={16} />}
-                          <span aria-live="polite">{copied ? t.copied : t.copy}</span>
-                        </button>
-                        <a
-                          href={`${pathname}/estimate?b=${encodeBuild(build)}`}
-                          target="_blank"
-                          rel="noopener"
-                          className={buttonStyles.secondary}
-                        >
-                          <FilePdf size={16} />
-                          {t.download}
-                        </a>
-                      </div>
-                    </>
-                  ) : (
-                    <p className="text-muted">{t.pickOne}</p>
-                  )}
-                </Step>
-              )}
-            </motion.div>
-          </AnimatePresence>
-
-          <div className="mt-8 hidden items-center justify-between lg:flex">
-            {step > 0 ? (
-              <button
-                type="button"
-                onClick={() => go(step - 1)}
-                className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-fg"
-              >
-                <ArrowLeft size={14} />
-                {t.back}
-              </button>
-            ) : (
-              <span />
-            )}
-            {!last && (
-              <button
-                type="button"
-                disabled={!canGo}
-                onClick={() => go(step + 1)}
-                className={cn(
-                  buttonStyles.primary,
-                  'disabled:pointer-events-none disabled:opacity-40',
-                )}
-              >
-                {t.next}
-                <ArrowRight size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="min-w-0 lg:col-span-5">
-        <div className="grid gap-4 lg:sticky lg:top-24">
-          <p className="text-sm text-muted">{t.previewLabel}</p>
-          <BuilderPreview build={build} dict={dict} />
-          <div className="hidden flex-wrap items-end justify-between gap-x-4 gap-y-2 rounded-card border border-line bg-surface px-6 py-5 lg:flex">
-            <div>
-              <p className="text-sm text-muted">{t.total}</p>
-              <Total value={hasParts ? range(q.total) : '-'} />
-            </div>
-            <div className="text-right text-sm">
-              {q.discount && <p className="whitespace-nowrap text-accent">{t.discount}</p>}
-              {q.monthly !== null && (
-                <p className="font-mono text-muted">
-                  + {formatUsd(q.monthly)}
-                  {t.perMonth}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Phones: running total and the next step, always at hand. */}
-      <AnimatePresence>
-        {!atForm && (
+      <div className="mx-auto min-h-[calc(100dvh-10rem)] max-w-7xl overflow-x-clip px-4 pt-10 pb-36 md:px-8 md:pt-14 md:pb-40">
+        <AnimatePresence mode="wait" initial={false} custom={dir}>
           <motion.div
-            initial={{ y: 96, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 96, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-            className="fixed inset-x-3 bottom-3 z-40 flex items-center gap-2 rounded-full border border-line-strong bg-bg/85 p-1.5 pl-3 backdrop-blur-xl lg:hidden"
-            style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
-          >
-            {step > 0 && (
-              <button
-                type="button"
-                onClick={() => go(step - 1)}
-                aria-label={t.back}
-                className="grid size-10 shrink-0 place-items-center rounded-full border border-line-strong"
-              >
-                <ArrowLeft size={16} />
-              </button>
+            key={step}
+            custom={dir}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, x: 56 * dir }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, x: -40 * dir }}
+            transition={{ duration: reduce ? 0.12 : 0.38, ease }}
+            className={cn(
+              preview && 'grid gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] xl:gap-16',
             )}
-            <span className="min-w-0 flex-1 truncate px-1 font-mono text-sm text-accent">
-              {hasParts ? range(q.total) : ''}
-            </span>
-            {last ? (
-              hasParts && (
-                <button
-                  type="button"
-                  onClick={handOff}
-                  className={cn(buttonStyles.primary, 'py-3')}
-                >
-                  {t.send}
-                </button>
-              )
-            ) : (
-              <button
-                type="button"
-                disabled={!canGo}
-                onClick={() => go(step + 1)}
-                className={cn(buttonStyles.primary, 'py-3 disabled:opacity-40')}
+          >
+            <div className="min-w-0">
+              <Screen
+                ref={heading}
+                index={step}
+                total={total}
+                label={t.stepLabel}
+                title={screen.title}
+                sub={screen.sub}
               >
-                {t.next}
-                <ArrowRight size={16} />
-              </button>
+                {step === 0 && (
+                  <KindStep dict={dict} locale={locale} kind={kind} onPick={pickKind} />
+                )}
+                {step === 1 && <GoalsStep dict={dict} build={build} setBuild={setBuild} />}
+                {step === PARTS && (
+                  <PartsStep
+                    dict={dict}
+                    build={build}
+                    onToggle={toggleService}
+                    onVariant={setVariant}
+                  />
+                )}
+                {step === 3 && (
+                  <FeaturesStep
+                    dict={dict}
+                    build={build}
+                    onAddon={toggleAddon}
+                    onExtra={toggleExtra}
+                  />
+                )}
+                {step === STYLE && <StyleStep dict={dict} build={build} setBuild={setBuild} />}
+                {step === 5 && <DetailsStep dict={dict} build={build} setBuild={setBuild} />}
+                {step === SUMMARY &&
+                  (hasParts ? (
+                    <SummaryStep
+                      dict={dict}
+                      locale={locale}
+                      build={build}
+                      estimateHref={`${pathname}/estimate?b=${encodeBuild(build)}`}
+                      copied={copied}
+                      onSend={handOff}
+                      onCopy={copyLink}
+                      onEdit={go}
+                    />
+                  ) : (
+                    <div className="grid justify-items-start gap-5">
+                      <p className="text-muted">{t.pickOne}</p>
+                      <button type="button" onClick={() => go(PARTS)} className={buttonStyles.primary}>
+                        {t.partsTitle}
+                      </button>
+                    </div>
+                  ))}
+              </Screen>
+            </div>
+
+            {preview && (
+              <aside className="hidden min-w-0 lg:block">
+                <div className="sticky top-44 grid gap-3">
+                  <p className="text-sm text-muted">{t.previewLabel}</p>
+                  <BuilderPreview build={build} dict={dict} className="min-h-[520px]" />
+                </div>
+              </aside>
             )}
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>
+      </div>
+
+      <BottomNav
+        show={!atForm}
+        backLabel={t.back}
+        onBack={step > 0 ? () => go(step - 1) : undefined}
+        previewLabel={preview ? t.showPreview : undefined}
+        onPreview={preview ? () => setSheet(true) : undefined}
+        center={
+          <div className="min-w-0">
+            <p className="hidden text-[11px] text-faint sm:block">
+              {t.stepLabel} {step + 1} {t.of} {total}
+              {!last && canGo && <span className="hidden lg:inline"> · {t.enterHint}</span>}
+            </p>
+            <p className="truncate font-mono text-sm text-accent md:text-base" aria-live="polite">
+              {hasParts ? formatRange(q.total) : ''}
+              {hasParts && q.monthly !== null && (
+                <span className="hidden text-muted sm:inline">
+                  {' '}
+                  + {formatUsd(q.monthly)}
+                  {t.perMonth}
+                </span>
+              )}
+            </p>
+          </div>
+        }
+        primary={
+          last ? (
+            hasParts && <NextButton label={t.send} onClick={handOff} />
+          ) : (
+            <NextButton label={t.next} disabled={!canGo} onClick={() => go(step + 1)} />
+          )
+        }
+      />
+
+      <PreviewSheet
+        open={sheet}
+        title={t.previewLabel}
+        closeLabel={t.close}
+        onClose={closeSheet}
+      >
+        <BuilderPreview build={build} dict={dict} />
+      </PreviewSheet>
     </div>
   )
 }
 
 function isService(id: string): id is ServiceSlug {
   return (serviceSlugs as readonly string[]).includes(id)
-}
-
-function Step({ title, sub, children }: { title: string; sub?: string; children: ReactNode }) {
-  return (
-    <div>
-      <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">{title}</h2>
-      {sub && <p className="mt-2 max-w-[52ch] text-muted">{sub}</p>}
-      <div className="mt-7">{children}</div>
-    </div>
-  )
-}
-
-function Tick({ on }: { on: boolean }) {
-  return (
-    <span
-      className={cn(
-        'grid size-6 shrink-0 place-items-center rounded-full border transition-colors duration-200',
-        on ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-transparent',
-      )}
-    >
-      <Check size={12} weight="bold" />
-    </span>
-  )
-}
-
-function Pill({
-  on,
-  onClick,
-  price,
-  children,
-}: {
-  on: boolean
-  onClick: () => void
-  price?: string
-  children: ReactNode
-}) {
-  return (
-    <button
-      type="button"
-      aria-pressed={on}
-      onClick={onClick}
-      className={cn(
-        'inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors duration-200 active:scale-[0.98]',
-        on
-          ? 'border-accent bg-accent text-accent-ink'
-          : 'border-line-strong text-fg hover:border-fg/40',
-      )}
-    >
-      {on ? <Check size={14} weight="bold" /> : <Plus size={14} />}
-      {children}
-      {price && (
-        <span className={cn('font-mono text-xs', on ? 'text-accent-ink/70' : 'text-faint')}>
-          {price}
-        </span>
-      )}
-    </button>
-  )
-}
-
-function Row({
-  label,
-  value,
-  muted,
-  strong,
-  className,
-}: {
-  label: string
-  value: string
-  muted?: boolean
-  strong?: boolean
-  className?: string
-}) {
-  return (
-    <div
-      className={cn('flex items-baseline justify-between gap-4', muted && 'text-muted', className)}
-    >
-      <dt>{label}</dt>
-      <dd className={cn('font-mono', strong && 'text-2xl text-accent')}>{value}</dd>
-    </div>
-  )
-}
-
-function Total({ value }: { value: string }) {
-  const reduce = useReducedMotion()
-  return (
-    <div className="mt-1 h-10 overflow-hidden">
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.p
-          key={value}
-          initial={reduce ? false : { y: 24, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={reduce ? undefined : { y: -24, opacity: 0 }}
-          transition={{ duration: 0.4, ease }}
-          className="font-mono text-[clamp(1.4rem,2.3vw,1.9rem)] leading-[1.3] tracking-tight whitespace-nowrap text-accent"
-          aria-live="polite"
-        >
-          {value}
-        </motion.p>
-      </AnimatePresence>
-    </div>
-  )
 }
