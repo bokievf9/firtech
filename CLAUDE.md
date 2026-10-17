@@ -35,6 +35,12 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never
   summed. The build lives in `?b=` so it can be shared; the lead arrives as service `bundle` with
   the full list and the link.
+  Seven full-screen steps (business, goal, parts, features, style, details, summary); the step is in
+  `?s=` (1-based) with history entries. The brief (goals, channels, style, details) rides in `?b=`
+  as extra chunks (`g.` `c.` `s.` `d.`, base64url `u.`/`w.` for links and the wish); old links
+  decode as before. Style only restyles the mockup via CSS variables (`src/lib/builder-style.ts`);
+  nothing in the brief changes the price, except website languages: two or more turn on the
+  existing `language` option. `leadSummary` (`estimate-doc.ts`) builds the lead text (max 1500).
   The summary also links to `/[locale]/builder/estimate?b=...` (noindex, decoded on the client,
   rows from `estimateDoc` in `src/lib/estimate-doc.ts`): an A4 estimate saved as PDF via the print
   dialog. Site chrome carries `.print-hidden`; print rules are at the end of `globals.css`.
@@ -77,6 +83,13 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   links a client to their lead (button after the form, needs `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME`).
   Only `TELEGRAM_CHAT_ID` may press buttons. `scripts/telegram-webhook.mjs set` after deploy;
   `scripts/telegram-poll.mjs` forwards updates to localhost for testing (delete the webhook first).
+- Owner panel `/admin` (`src/app/admin`, API `src/app/api/admin`, copy `src/content/admin.ts`,
+  logic `src/lib/admin-*.ts`): login by a one-time code the bot sends to `TELEGRAM_CHAT_ID` (5 min,
+  5 tries, 1 per minute, 10 per hour); 30-day sessions in `$DATA_DIR/admin.json` (hashes only,
+  revocable; back it up with `leads.json`). Pages and `/api/admin/*` check the session on the
+  server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
+  `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
+  site. Bot `/admin` sends the link. Overview, leads with drawer, calendar, CSV export.
 - Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri
   10:00-18:00, 30 min), free slots at `/api/slots`, picked in the form, double booking blocked.
 
