@@ -7,7 +7,13 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { decodeBuild, encodeBuild, type Build } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
-import { estimateDoc, formatDocDate, type EstimateRow } from '@/lib/estimate-doc'
+import { accentOf } from '@/lib/builder-style'
+import {
+  estimateDoc,
+  formatDocDate,
+  type BriefRow,
+  type EstimateRow,
+} from '@/lib/estimate-doc'
 import { siteUrl, telegramHandle, telegramUrl } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { Logo } from './logo'
@@ -143,6 +149,28 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
           {doc.monthly && <Sum label={t.support} value={`+ ${doc.monthly}`} muted />}
         </dl>
 
+        {(doc.brief.goals.length > 0 ||
+          doc.brief.style.length > 0 ||
+          doc.brief.details.length > 0) && (
+          <div className="mt-9 grid gap-x-10 gap-y-7 sm:grid-cols-2 print:grid-cols-2">
+            {doc.brief.goals.length > 0 && (
+              <BriefBlock title={dict.builder.goalsLabel} rows={doc.brief.goals} />
+            )}
+            {doc.brief.style.length > 0 && (
+              <BriefBlock
+                title={dict.builder.styleLabel}
+                rows={doc.brief.style}
+                swatch={accentOf({ ...state.build.style, theme: 'light' })}
+              />
+            )}
+            {doc.brief.details.length > 0 && (
+              <div className="sm:col-span-2 print:col-span-2">
+                <BriefBlock title={dict.builder.detailsLabel} rows={doc.brief.details} />
+              </div>
+            )}
+          </div>
+        )}
+
         <section className="mt-9 break-inside-avoid">
           <Heading>{t.notesTitle}</Heading>
           <ul className="mt-3 grid gap-1.5 text-[13px] leading-relaxed text-[#3d443b]">
@@ -241,5 +269,38 @@ function Contact({ label, href, children }: { label: string; href: string; child
         </a>
       </dd>
     </div>
+  )
+}
+
+function BriefBlock({
+  title,
+  rows,
+  swatch,
+}: {
+  title: string
+  rows: BriefRow[]
+  swatch?: string
+}) {
+  return (
+    <section className="break-inside-avoid">
+      <div className="flex items-center gap-2">
+        {swatch && (
+          <span
+            aria-hidden="true"
+            className="size-3 rounded-full border border-[#14170f]/20"
+            style={{ background: swatch }}
+          />
+        )}
+        <Heading>{title}</Heading>
+      </div>
+      <dl className="mt-3 grid gap-1.5 text-[13px] leading-relaxed">
+        {rows.map((row) => (
+          <div key={row.id} className="grid grid-cols-[8.5rem_1fr] gap-3">
+            <dt className="text-[#5b6459]">{row.label}</dt>
+            <dd className="min-w-0 break-words text-[#14170f]">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   )
 }
