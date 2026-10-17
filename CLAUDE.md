@@ -114,6 +114,10 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   the GitHub repo exists, deploy with `scripts/deploy/manual.sh` (clean `git archive` build with the public vars,
   `assemble.sh`, upload to `incoming/`, `activate.sh` as `deploy`) (key `~/.ssh/id_ed25519_firtech`,
   deploy user only; root access was removed after setup). Telegram webhook is set.
+- Cron (user `deploy`, UTC): `*/5` `scripts/ops/watch.mjs` (public + local health, SSL expiry;
+  Telegram on down/up changes only; cannot report a dead server, an external monitor would) and
+  daily 03:15 `scripts/ops/backup.mjs` (14 dated copies in `shared/backups`, `leads.json` to the
+  owner's Telegram when it changed). Log: `shared/ops.log`.
 - GitHub: environment `production` secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`,
   `VPS_KNOWN_HOSTS`; repository variables `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_TELEGRAM_USERNAME`,
   `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME`, optional `NEXT_PUBLIC_YM_ID`.
