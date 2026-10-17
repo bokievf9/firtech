@@ -301,7 +301,7 @@ function DrawerBody({
             rows={4}
             onChange={(e) => setNotes(e.target.value)}
             placeholder={t.notesPlaceholder}
-            className="w-full resize-y rounded-xl border border-line-strong bg-bg px-3.5 py-3 text-sm text-fg outline-none focus:border-accent"
+            className="w-full resize-y rounded-xl border border-line-strong bg-bg px-3.5 py-3 text-base text-fg outline-none md:text-sm focus:border-accent"
           />
           <button
             type="button"

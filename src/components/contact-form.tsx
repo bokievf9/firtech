@@ -23,8 +23,9 @@ const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '').replac
 
 type Sent = { id?: number; token?: string; slot?: string | null }
 
+// 16px on phones: iOS Safari zooms into any field with smaller text when it gets focus.
 const inputClass =
-  'w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-[15px] text-fg placeholder:text-faint transition-colors focus:border-accent focus:outline-none aria-[invalid=true]:border-danger'
+  'w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg md:text-[15px] placeholder:text-faint transition-colors focus:border-accent focus:outline-none aria-[invalid=true]:border-danger'
 
 export function ContactForm({
   dict,
