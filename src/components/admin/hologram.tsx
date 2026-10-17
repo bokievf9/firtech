@@ -21,7 +21,7 @@ const tuning: Record<JarvisState, Tuning> = {
 
 const LIME = [181, 235, 106] as const
 const WHITE = [236, 255, 214] as const
-const POINTS = 1100
+const POINTS = 1500
 
 // Evenly spread points on a unit sphere (Fibonacci lattice), with latitude and longitude kept for
 // the surface waves.
@@ -198,7 +198,7 @@ export function Hologram({
             const depth = 0.5 - p.z / (R * ring.r * 2)
             const gap = Math.abs(((a - head + Math.PI * 3) % (Math.PI * 2)) - Math.PI)
             const lit = Math.max(0, 1 - gap / 0.6)
-            ctx.strokeStyle = rgba(now.white + lit * 0.5, (0.08 + depth * 0.16) * now.glow + lit * 0.6)
+            ctx.strokeStyle = rgba(now.white + lit * 0.5, (0.14 + depth * 0.26) * now.glow + lit * 0.6)
             ctx.lineWidth = 1 + lit * 1.5
             ctx.beginPath()
             ctx.moveTo(prev.x, prev.y)
@@ -217,8 +217,8 @@ export function Hologram({
         const r = R * (1 + d)
         const p = project(pt.x * r, pt.y * r, pt.z * r)
         const front = 0.5 - p.z / (R * 2.4)
-        const size = (0.7 + front * 1.4) * p.s
-        ctx.fillStyle = rgba(now.white + front * 0.25, Math.min(1, (0.12 + front * 0.75) * (0.6 + now.glow * 0.5)))
+        const size = (0.8 + front * 1.6) * p.s
+        ctx.fillStyle = rgba(now.white + front * 0.25, Math.min(1, (0.16 + front * 0.84) * (0.7 + now.glow * 0.5)))
         ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size)
       }
 

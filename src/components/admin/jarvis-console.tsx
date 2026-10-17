@@ -402,7 +402,7 @@ export function JarvisConsole({
       <div className="order-1 grid content-start gap-4 lg:order-2 lg:col-span-6">
         <section className="hud-stage relative overflow-hidden rounded-card border border-line bg-[radial-gradient(ellipse_at_50%_40%,rgb(181_235_106/0.07),transparent_65%)]">
           <Hologram state={state} level={level} className="block aspect-[5/4] w-full sm:aspect-[4/3]" />
-          <div className="pointer-events-none absolute inset-0 p-4 sm:p-5">
+          <div className="pointer-events-none absolute inset-0 p-7 sm:p-8">
             <span className="hud-corner left-3 top-3" />
             <span className="hud-corner right-3 top-3 rotate-90" />
             <span className="hud-corner bottom-3 right-3 rotate-180" />
@@ -419,7 +419,7 @@ export function JarvisConsole({
                 Душанбе
               </span>
             </div>
-            <div className="absolute inset-x-0 bottom-5 flex flex-col items-center gap-2 px-6 text-center">
+            <div className="absolute inset-x-0 bottom-6 flex flex-col items-center gap-2 px-6 text-center">
               <span
                 role="status"
                 className="rounded-full border border-accent/30 bg-bg/70 px-3 py-1 font-mono text-[11px] tracking-[0.2em] text-accent uppercase backdrop-blur"
@@ -567,7 +567,7 @@ export function JarvisConsole({
             <span>{t.tasks}</span>
             <span className="text-accent">{`${decide} · ${t.taskStatus.decide}`}</span>
           </div>
-          <ul className="mt-3 max-h-[26rem] divide-y divide-line overflow-y-auto pr-1">
+          <ul className="mt-3 max-h-[26rem] divide-y divide-line overflow-y-auto pr-1 pb-6 [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]">
             {[...tasks]
               .sort((a, b) => statusOrder[a.status] - statusOrder[b.status] || a.priority - b.priority)
               .map((task) => (
