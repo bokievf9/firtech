@@ -79,7 +79,7 @@ export function HeroPicker({ locale, dict }: { locale: Locale; dict: Dict }) {
                 on ? 'border-accent bg-accent/[0.08]' : 'border-line hover:border-line-strong',
               )}
             >
-              <Glyph size={20} className={on ? 'text-accent' : 'text-muted'} />
+              <Glyph size={20} aria-hidden="true" className={on ? 'text-accent' : 'text-muted'} />
               <span className="min-w-0 flex-1">
                 <span className="block text-[13px] leading-tight font-medium sm:text-sm">
                   {dict.services.items[slug].name}
@@ -96,7 +96,7 @@ export function HeroPicker({ locale, dict }: { locale: Locale; dict: Dict }) {
                     : 'border-line-strong text-transparent',
                 )}
               >
-                <Check size={11} weight="bold" />
+                <Check size={11} weight="bold" aria-hidden="true" />
               </span>
             </button>
           )
@@ -151,6 +151,7 @@ export function HeroPicker({ locale, dict }: { locale: Locale; dict: Dict }) {
           {t.build}
           <ArrowRight
             size={14}
+            aria-hidden="true"
             className="transition-transform duration-300 group-hover:translate-x-0.5"
           />
         </Link>

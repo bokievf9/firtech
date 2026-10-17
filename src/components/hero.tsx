@@ -37,6 +37,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
                     {h.primary}
                     <ArrowRight
                       size={16}
+                      aria-hidden="true"
                       className="transition-transform duration-300 group-hover:translate-x-1"
                     />
                   </Link>
@@ -49,7 +50,12 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
                     data-place="hero"
                     className={buttonStyles.secondary}
                   >
-                    <TelegramLogo size={18} weight="fill" className="text-[#5cc4f5]" />
+                    <TelegramLogo
+                      size={18}
+                      weight="fill"
+                      aria-hidden="true"
+                      className="text-[#5cc4f5]"
+                    />
                     {h.telegram}
                   </a>
                 ) : (
@@ -63,7 +69,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
                   const Glyph = trustIcons[i] ?? Receipt
                   return (
                     <li key={item} className="flex items-center gap-2">
-                      <Glyph size={17} className="text-accent" />
+                      <Glyph size={17} aria-hidden="true" className="text-accent" />
                       {item}
                     </li>
                   )
@@ -81,7 +87,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
             )}
           >
             {h.scroll}
-            <ArrowDown size={14} className="animate-bounce" />
+            <ArrowDown size={14} aria-hidden="true" className="motion-safe:animate-bounce" />
           </a>
         }
       />
