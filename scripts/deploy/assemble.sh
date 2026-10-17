@@ -15,7 +15,7 @@ cp ecosystem.config.cjs scripts/deploy/activate.sh "$OUT/"
 # Fonts read from disk at render time (OG image).
 cp -R assets "$OUT/assets"
 # Ops helper run on the server after deploy (sets the Telegram webhook); dependency-free.
-mkdir -p "$OUT/scripts" && cp scripts/telegram-webhook.mjs "$OUT/scripts/"
+mkdir -p "$OUT/scripts" && cp scripts/telegram-webhook.mjs "$OUT/scripts/" && cp -R scripts/ops "$OUT/scripts/ops"
 git rev-parse HEAD > "$OUT/REVISION" 2>/dev/null || true
 # Env files and local lead data never ship inside a release.
 find "$OUT" -maxdepth 1 -name '.env*' -delete
