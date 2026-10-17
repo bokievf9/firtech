@@ -1,10 +1,8 @@
-'use client'
-
-import { motion } from 'motion/react'
 import { Children, type ReactNode } from 'react'
-import { useReducedMotion } from '@/lib/use-reduced-motion'
 
-// Staggers the hero's headline, text and buttons in on first paint.
+// Staggers the hero's headline, text and buttons in on first paint. Plain CSS (`.hero-rise` in
+// globals.css), so the text is visible in the HTML and only slides up: the largest text on the
+// first screen paints without waiting for JavaScript (LCP), and works with JavaScript off.
 export function HeroIntro({
   children,
   className,
@@ -14,17 +12,12 @@ export function HeroIntro({
   className?: string
   delay?: number
 }) {
-  const reduce = useReducedMotion()
   return (
     <div className={className}>
       {Children.map(children, (child, i) => (
-        <motion.div
-          initial={reduce ? false : { opacity: 0, y: 28 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: delay + i * 0.09, ease: [0.16, 1, 0.3, 1] }}
-        >
+        <div className="hero-rise" style={{ animationDelay: `${delay + i * 0.09}s` }}>
           {child}
-        </motion.div>
+        </div>
       ))}
     </div>
   )

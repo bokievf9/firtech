@@ -64,6 +64,7 @@ export function HeroStage({
         <div className="min-w-0 lg:col-span-7">{copy}</div>
         <div className="min-w-0 lg:col-span-5 [perspective:1400px]">
           <motion.div
+            data-reveal
             style={
               reduce || !tilt ? undefined : { rotateX, rotateY, transformStyle: 'preserve-3d' }
             }

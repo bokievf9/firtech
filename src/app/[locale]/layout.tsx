@@ -51,6 +51,10 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   return (
     <html lang={locale} className={`${onest.variable} ${jetbrains.variable} ${unbounded.variable}`}>
       <body className="grain min-h-[100dvh]">
+        {/* Without JavaScript Motion never reveals the blocks it renders hidden. */}
+        <noscript>
+          <style>{'[data-reveal]{opacity:1!important;transform:none!important}'}</style>
+        </noscript>
         <MotionProvider>
           <Header locale={locale} dict={dict} />
           <main>{children}</main>
