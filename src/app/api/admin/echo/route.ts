@@ -4,12 +4,14 @@ import { goals, projects, tasks } from '@/content/control'
 import { computeStats } from '@/lib/admin-data'
 import { guard, readCookie } from '@/lib/admin-guard'
 import { briefing, chatRequest, leadSummary } from '@/lib/echo'
+import { addSpend, costUsd, dailyCapUsd, spentToday } from '@/lib/echo-spend'
 import { projectHealth } from '@/lib/project-health'
 import { allLeads } from '@/lib/store'
 
 // The owner's voice assistant on /admin/echo. Streams Claude's reply as plain text. The briefing
 // carries project health, tasks, goals and lead counts only (no lead names, contacts or texts).
-// Needs ANTHROPIC_API_KEY on the server; without it the page shows how to turn it on.
+// Needs ANTHROPIC_API_KEY on the server; without it the page shows how to turn it on. Spending is
+// capped per day (src/lib/echo-spend.ts, ECHO_DAILY_USD).
 
 export const dynamic = 'force-dynamic'
 
@@ -36,6 +38,7 @@ export async function POST(request: Request) {
   if (denied) return denied
   if (!process.env.ANTHROPIC_API_KEY) return fail(503, 'not_configured')
   if (limited(readCookie(request) ?? 'none')) return fail(429, 'rate_limited')
+  if ((await spentToday()) >= dailyCapUsd()) return fail(429, 'daily_cap')
 
   const parsed = chatRequest.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return fail(400, 'bad_request')
@@ -60,8 +63,9 @@ export async function POST(request: Request) {
         const stream = client.beta.messages.stream(
           {
             model: 'claude-opus-5-5',
-            max_tokens: 4000,
-            // Spoken replies: low effort keeps the first word quick.
+            // Spoken replies are a few sentences; thinking counts toward this too.
+            max_tokens: 2000,
+            // Low effort keeps the first word quick.
             output_config: { effort: 'low' },
             betas: ['server-side-fallback-2026-07-01'],
             fallbacks: 'default',
@@ -76,6 +80,9 @@ export async function POST(request: Request) {
           }
         }
         const final = await stream.finalMessage()
+        await addSpend(costUsd(final.usage)).catch((error) =>
+          console.error('[echo] could not record spend', error),
+        )
         if (final.stop_reason === 'refusal') send(FAIL + 'refused')
       } catch (error) {
         if (request.signal.aborted) return controller.close()

@@ -105,13 +105,19 @@ export function Hologram({
     }
 
     const draw = (time: number) => {
+      // At rest the sphere turns slowly: 30 frames a second look the same and cost half the CPU.
+      if (stateRef.current === 'idle' && time - last < 1000 / 31) {
+        frame = requestAnimationFrame(draw)
+        return
+      }
       const dt = Math.min(0.05, (time - last) / 1000)
       last = time
       const calm = reduceRef.current
       const target = tuning[stateRef.current]
       // Exponential ease toward the state's tuning: about a third of a second to settle.
       const k = 1 - Math.exp(-dt * 6)
-      for (const key of Object.keys(now) as (keyof Tuning)[]) now[key] += (target[key] - now[key]) * k
+      for (const key of Object.keys(now) as (keyof Tuning)[])
+        now[key] += (target[key] - now[key]) * k
       voice += (Math.min(1, level.current) - voice) * (1 - Math.exp(-dt * 18))
       tilt = {
         x: tilt.x + (tiltTarget.x - tilt.x) * k,
@@ -154,7 +160,15 @@ export function Hologram({
         ctx.strokeStyle = rgba(now.white, (0.5 - i * 0.12) * (1 - pulse * 0.8))
         ctx.lineWidth = 1
         ctx.beginPath()
-        ctx.ellipse(cx, baseY, R * (0.32 + i * 0.16 + pulse * 0.12), R * (0.06 + i * 0.03 + pulse * 0.02), 0, 0, Math.PI * 2)
+        ctx.ellipse(
+          cx,
+          baseY,
+          R * (0.32 + i * 0.16 + pulse * 0.12),
+          R * (0.06 + i * 0.03 + pulse * 0.02),
+          0,
+          0,
+          Math.PI * 2,
+        )
         ctx.stroke()
       }
 
@@ -198,7 +212,10 @@ export function Hologram({
             const depth = 0.5 - p.z / (R * ring.r * 2)
             const gap = Math.abs(((a - head + Math.PI * 3) % (Math.PI * 2)) - Math.PI)
             const lit = Math.max(0, 1 - gap / 0.6)
-            ctx.strokeStyle = rgba(now.white + lit * 0.5, (0.14 + depth * 0.26) * now.glow + lit * 0.6)
+            ctx.strokeStyle = rgba(
+              now.white + lit * 0.5,
+              (0.14 + depth * 0.26) * now.glow + lit * 0.6,
+            )
             ctx.lineWidth = 1 + lit * 1.5
             ctx.beginPath()
             ctx.moveTo(prev.x, prev.y)
@@ -218,7 +235,10 @@ export function Hologram({
         const p = project(pt.x * r, pt.y * r, pt.z * r)
         const front = 0.5 - p.z / (R * 2.4)
         const size = (0.8 + front * 1.6) * p.s
-        ctx.fillStyle = rgba(now.white + front * 0.25, Math.min(1, (0.16 + front * 0.84) * (0.7 + now.glow * 0.5)))
+        ctx.fillStyle = rgba(
+          now.white + front * 0.25,
+          Math.min(1, (0.16 + front * 0.84) * (0.7 + now.glow * 0.5)),
+        )
         ctx.fillRect(p.x - size / 2, p.y - size / 2, size, size)
       }
 
@@ -252,14 +272,22 @@ export function Hologram({
       last = performance.now()
       frame = requestAnimationFrame(draw)
     }
-    // No drawing while the tab is hidden.
-    const onVisibility = () => (document.hidden ? cancelAnimationFrame(frame) : start())
+    // No drawing while the tab is hidden or the canvas is scrolled out of view.
+    let inView = true
+    const sync = () => (document.hidden || !inView ? cancelAnimationFrame(frame) : start())
+    const onVisibility = () => sync()
     document.addEventListener('visibilitychange', onVisibility)
+    const viewObserver = new IntersectionObserver(([entry]) => {
+      inView = entry?.isIntersecting ?? true
+      sync()
+    })
+    viewObserver.observe(canvas)
     start()
 
     return () => {
       cancelAnimationFrame(frame)
       observer.disconnect()
+      viewObserver.disconnect()
       canvas.removeEventListener('pointermove', onMove)
       canvas.removeEventListener('pointerleave', onLeave)
       document.removeEventListener('visibilitychange', onVisibility)
