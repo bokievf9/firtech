@@ -46,6 +46,13 @@ export function escapeHtml(value: string) {
   return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
+// Telegram refuses messages over 4096 characters, and a refused lead would block the resend queue.
+// The longest fields are cut so a lead at every schema maximum still fits with the status lines;
+// the full text stays in the store and in /admin.
+export function clip(value: string, max: number) {
+  return value.length > max ? `${value.slice(0, max)}… (полностью в /admin)` : value
+}
+
 // Telegram message for the owner (always in Russian; the lead's own language is noted).
 export function formatLead(lead: LeadFields, title = 'Новая заявка с сайта Fir Tech') {
   const rows: [string, string][] = [
@@ -54,9 +61,9 @@ export function formatLead(lead: LeadFields, title = 'Новая заявка с
     ['Услуга', serviceNames[lead.service]],
     ['Бюджет', lead.budget],
     [lead.service === 'bundle' ? 'Сборка' : 'Калькулятор', lead.estimate],
-    ['Задача', lead.message],
+    ['Задача', clip(lead.message, 1000)],
     ['Язык', lead.locale.toUpperCase()],
-    ['Страница', lead.page],
+    ['Страница', clip(lead.page, 300)],
   ]
   const body = rows
     .filter(([, value]) => value)

@@ -2,7 +2,7 @@ import 'server-only'
 import { getDict } from '@/content'
 import { formatSlot } from './booking'
 import { pickLocale, type Locale } from './i18n'
-import { escapeHtml, formatLead, serviceNames } from './lead'
+import { clip, escapeHtml, formatLead, serviceNames } from './lead'
 import { siteUrl } from './site'
 import {
   getLead,
@@ -58,7 +58,7 @@ export function formatOwnerMessage(lead: StoredLead, extra?: string) {
   }
   lines.push(`<b>Статус:</b> ${statusNames[lead.status]}`)
   if (lead.clientChatId) lines.push('<b>Клиент в боте:</b> да, получает уведомления')
-  if (lead.note) lines.push(`<i>${escapeHtml(lead.note)}</i>`)
+  if (lead.note) lines.push(`<i>${escapeHtml(clip(lead.note, 300))}</i>`)
   if (extra) lines.push(`<i>${escapeHtml(extra)}</i>`)
   return lines.join('\n')
 }
@@ -137,7 +137,8 @@ export async function flushPending(exceptId?: number) {
         `Отправлено с задержкой: Telegram был недоступен, заявка сохранена на сайте ${lead.createdAt.slice(0, 16).replace('T', ' ')} UTC.`,
       )
     } catch {
-      return
+      // One refused lead must not hold back the ones after it.
+      continue
     }
   }
 }

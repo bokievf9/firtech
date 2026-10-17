@@ -6,6 +6,7 @@ import { ymId } from '@/lib/analytics'
 import { homeAnchor } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { telegramHandle, telegramUrl } from '@/lib/site'
+import { shareBase } from '@/lib/share'
 
 // Privacy policy. This is a plain-language template written for the studio, not legal advice: the
 // owner should have it checked by a lawyer before launch (and again when the form, storage or
@@ -30,7 +31,13 @@ export async function generateMetadata({
       canonical: `/${locale}/privacy`,
       languages: { ru: '/ru/privacy', en: '/en/privacy' },
     },
-    openGraph: { title: t.metaTitle, description: t.metaDescription, url: `/${locale}/privacy` },
+    twitter: shareBase(locale).twitter,
+    openGraph: {
+      ...shareBase(locale).openGraph,
+      title: t.metaTitle,
+      description: t.metaDescription,
+      url: `/${locale}/privacy`,
+    },
   }
 }
 

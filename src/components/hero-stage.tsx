@@ -60,10 +60,11 @@ export function HeroStage({
         transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      <div className="relative mx-auto grid min-h-[100dvh] max-w-7xl items-center gap-14 px-4 pt-28 pb-20 md:px-8 lg:grid-cols-12 lg:gap-8 lg:pt-24">
-        <div className="lg:col-span-7">{copy}</div>
-        <div className="lg:col-span-5 [perspective:1400px]">
+      <div className="relative mx-auto grid min-h-[100dvh] max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-14 px-4 pt-28 pb-20 md:px-8 lg:grid-cols-12 lg:gap-8 lg:pt-24">
+        <div className="min-w-0 lg:col-span-7">{copy}</div>
+        <div className="min-w-0 lg:col-span-5 [perspective:1400px]">
           <motion.div
+            data-reveal
             style={
               reduce || !tilt ? undefined : { rotateX, rotateY, transformStyle: 'preserve-3d' }
             }

@@ -174,8 +174,34 @@
   -webkit-text-stroke: 1px rgb(232 240 230 / 0.14);
 }
 
+/*
+  Hero entrance in CSS, not Motion: it starts on first paint, before hydration. Only transform
+  moves, so the text is painted (and counted for LCP) at once.
+*/
+@keyframes hero-rise {
+  from {
+    transform: translateY(28px);
+  }
+}
+
+@keyframes hero-line {
+  from {
+    transform: translateY(110%);
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-line {
+  animation: hero-line 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
+  .marquee-track,
+  .hero-rise,
+  .hero-line {
     animation: none;
   }
 }

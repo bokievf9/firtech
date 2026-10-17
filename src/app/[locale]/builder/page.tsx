@@ -4,6 +4,7 @@ import { Builder } from '@/components/builder'
 import { ContactSection } from '@/components/contact-section'
 import { getDict } from '@/content'
 import { isLocale } from '@/lib/i18n'
+import { shareBase } from '@/lib/share'
 
 export async function generateMetadata({
   params,
@@ -18,7 +19,13 @@ export async function generateMetadata({
       canonical: `/${locale}/builder`,
       languages: { ru: '/ru/builder', en: '/en/builder' },
     },
-    openGraph: { title: t.metaTitle, description: t.metaDescription, url: `/${locale}/builder` },
+    twitter: shareBase(locale).twitter,
+    openGraph: {
+      ...shareBase(locale).openGraph,
+      title: t.metaTitle,
+      description: t.metaDescription,
+      url: `/${locale}/builder`,
+    },
   }
 }
 

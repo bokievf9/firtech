@@ -68,10 +68,14 @@ const exportRoute = await import('../src/app/api/admin/export/route.ts')
 const webhook = await import('../src/app/api/telegram/route.ts')
 
 const ORIGIN = 'http://localhost'
-function request(url, { method = 'POST', body, cookie, origin = ORIGIN } = {}) {
+function request(url, { method = 'POST', body, cookie, browser, origin = ORIGIN, ip } = {}) {
   const headers = { host: 'localhost', 'content-type': 'application/json' }
   if (origin) headers.origin = origin
-  if (cookie) headers.cookie = `${auth.SESSION_COOKIE}=${cookie}`
+  if (ip) headers['x-real-ip'] = ip
+  const cookies = []
+  if (cookie) cookies.push(`${auth.SESSION_COOKIE}=${cookie}`)
+  if (browser) cookies.push(`${auth.LOGIN_COOKIE}=${browser}`)
+  if (cookies.length) headers.cookie = cookies.join('; ')
   return new Request(`${ORIGIN}${url}`, {
     method,
     headers,
@@ -83,10 +87,14 @@ const sentCode = () =>
     .at(-1)
     .body.text.match(/(\d{6})/)[1]
 
+// The login cookie the code route set in this browser.
+const browserOf = (response) =>
+  response.headers.get('set-cookie').match(new RegExp(`${auth.LOGIN_COOKIE}=([^;]+)`))[1]
+
 async function login() {
-  await codeRoute.POST(request('/api/admin/code'))
+  const browser = browserOf(await codeRoute.POST(request('/api/admin/code')))
   const response = await loginRoute.POST(
-    request('/api/admin/login', { body: { code: sentCode() } }),
+    request('/api/admin/login', { body: { code: sentCode() }, browser }),
   )
   assert.equal(response.status, 200)
   const cookie = response.headers.get('set-cookie')
@@ -100,6 +108,8 @@ test('code: sent to the owner chat only, works once, opens a session', async () 
   const response = await codeRoute.POST(request('/api/admin/code'))
   assert.equal(response.status, 200)
   assert.deepEqual(await response.json(), { ok: true })
+  assert.match(response.headers.get('set-cookie'), /HttpOnly/i)
+  const browser = browserOf(response)
   const [message] = sent('sendMessage')
   assert.equal(message.body.chat_id, String(OWNER))
   assert.match(
@@ -112,11 +122,28 @@ test('code: sent to the owner chat only, works once, opens a session', async () 
   assert.equal(file.includes(sentCode()), false)
 
   const wrong = sentCode() === '000000' ? '111111' : '000000'
-  assert.deepEqual(await auth.verifyCode(wrong), { ok: false, error: 'wrong', attemptsLeft: 4 })
-  const ok = await auth.verifyCode(sentCode())
+  const now = Date.now()
+  assert.deepEqual(await auth.verifyCode(wrong, now, browser), {
+    ok: false,
+    error: 'wrong',
+    attemptsLeft: 4,
+  })
+  // The right code from another browser does not work.
+  assert.deepEqual(await auth.verifyCode(sentCode()), { ok: false, error: 'no_code' })
+  const ok = await auth.verifyCode(sentCode(), now, browser)
   assert.equal(ok.ok, true)
   assert.equal(await auth.isValidSession(ok.token), true)
-  assert.deepEqual(await auth.verifyCode(sentCode()), { ok: false, error: 'no_code' })
+  assert.deepEqual(await auth.verifyCode(sentCode(), now, browser), { ok: false, error: 'no_code' })
+})
+
+test('code: a stranger can neither replace nor burn the owner code', async () => {
+  const owner = await auth.issueCode(Date.now(), { browser: 'owner', ip: '10.0.0.1' })
+  // Someone else asks for codes and types wrong ones from their own browser and IP.
+  const stranger = await auth.issueCode(Date.now(), { browser: 'stranger', ip: '10.0.0.2' })
+  assert.equal(stranger.ok, true)
+  const wrong = owner.code === '000000' ? '111111' : '000000'
+  for (let i = 0; i < 6; i++) await auth.verifyCode(wrong, Date.now(), 'stranger')
+  assert.equal((await auth.verifyCode(owner.code, Date.now(), 'owner')).ok, true)
 })
 
 test('code: five wrong attempts burn it, the right code no longer works', async () => {
@@ -144,20 +171,24 @@ test('code: expires after 5 minutes', async () => {
   assert.equal((await auth.verifyCode(fresh.code, t0 + 61_000 + auth.CODE_TTL_MS - 1)).ok, true)
 })
 
-test('code: one per minute, ten per hour', async () => {
+test('code: per IP one per minute and five per hour, twenty per hour for all', async () => {
   const t0 = Date.now() - 3 * 60 * 60_000
-  assert.equal((await auth.issueCode(t0)).ok, true)
-  assert.deepEqual(await auth.issueCode(t0 + 30_000), {
+  const a = { ip: '10.0.0.1' }
+  assert.equal((await auth.issueCode(t0, a)).ok, true)
+  assert.deepEqual(await auth.issueCode(t0 + 30_000, a), {
     ok: false,
     error: 'too_soon',
     retryAfter: 30,
   })
-  for (let i = 1; i < 10; i++) assert.equal((await auth.issueCode(t0 + i * 61_000)).ok, true)
-  const blocked = await auth.issueCode(t0 + 10 * 61_000)
+  // Another IP is not held back by the first one.
+  assert.equal((await auth.issueCode(t0 + 30_000, { ip: '10.0.0.2' })).ok, true)
+  for (let i = 1; i < 5; i++) assert.equal((await auth.issueCode(t0 + i * 61_000, a)).ok, true)
+  const blocked = await auth.issueCode(t0 + 5 * 61_000, a)
   assert.equal(blocked.ok, false)
   assert.equal(blocked.error, 'too_many')
-  assert.equal(blocked.retryAfter, 3600 - 610)
-  assert.equal((await auth.issueCode(t0 + 60 * 60_000 + 1)).ok, true)
+  assert.equal(blocked.retryAfter, 3600 - 305)
+  assert.equal((await auth.issueCode(t0 + 5 * 61_000, { ip: '10.0.0.3' })).ok, true)
+  assert.equal((await auth.issueCode(t0 + 60 * 60_000 + 1, a)).ok, true)
 
   // The route answers 429 and the Telegram message is not sent again.
   calls = []
@@ -166,6 +197,12 @@ test('code: one per minute, ten per hour', async () => {
   const again = await codeRoute.POST(request('/api/admin/code'))
   assert.equal(again.status, 429)
   assert.equal(sent('sendMessage').length, 1)
+
+  // Twenty an hour across all IPs (later than every code issued above).
+  const t1 = Date.now() + 3 * 60 * 60_000
+  for (let i = 0; i < 20; i++)
+    assert.equal((await auth.issueCode(t1, { ip: `10.1.0.${i}` })).ok, true)
+  assert.equal((await auth.issueCode(t1, { ip: '10.2.0.1' })).error, 'too_many')
 })
 
 test('code: Telegram down means no usable code', async () => {
@@ -177,9 +214,12 @@ test('code: Telegram down means no usable code', async () => {
 })
 
 test('login: cookie is httpOnly, strict, 30 days', async () => {
-  await codeRoute.POST(request('/api/admin/code'))
+  const browser = browserOf(await codeRoute.POST(request('/api/admin/code')))
+  // Without the login cookie of the browser that asked, the code is refused.
+  const refused = await loginRoute.POST(request('/api/admin/login', { body: { code: sentCode() } }))
+  assert.equal(refused.status, 400)
   const response = await loginRoute.POST(
-    request('/api/admin/login', { body: { code: sentCode() } }),
+    request('/api/admin/login', { body: { code: sentCode() }, browser }),
   )
   const cookie = response.headers.get('set-cookie')
   assert.match(cookie, /HttpOnly/i)

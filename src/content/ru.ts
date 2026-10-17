@@ -1,3 +1,5 @@
+import { notFoundText } from './not-found'
+
 const ru = {
   langName: 'Русский',
   meta: {
@@ -1358,10 +1360,7 @@ const ru = {
       ],
     },
   },
-  notFound: {
-    title: 'Такой страницы нет',
-    text: 'Возможно, ссылка устарела. Вернитесь на главную.',
-  },
+  notFound: notFoundText.ru,
 }
 
 export default ru

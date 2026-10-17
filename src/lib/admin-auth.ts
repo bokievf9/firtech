@@ -12,23 +12,39 @@ import { sendMessage, telegramEnv } from './telegram'
 export const CODE_TTL_MS = 5 * 60_000
 export const CODE_MAX_ATTEMPTS = 5
 export const CODE_MIN_GAP_MS = 60_000
-export const CODE_MAX_PER_HOUR = 10
+export const CODE_MAX_PER_HOUR = 5
+export const CODES_MAX_PER_HOUR_ALL = 20
 export const SESSION_TTL_MS = 30 * 24 * 60 * 60_000
 export const SESSION_COOKIE = 'firtech_admin'
+// Random value set in the browser that asked for a code; the code works only together with it.
+export const LOGIN_COOKIE = 'firtech_admin_login'
 
-type PendingCode = { salt: string; hash: string; expiresAt: number; attempts: number }
+// A code belongs to the browser that requested it (`browser` is the hash of its login cookie), so
+// a stranger can neither replace the owner's code nor burn it with wrong tries. Limits count per
+// IP (hashed), with a ceiling for everyone so Telegram is never flooded.
+type PendingCode = {
+  salt: string
+  hash: string
+  expiresAt: number
+  attempts: number
+  browser: string
+}
+type Issued = { at: number; ip: string }
 type Session = { id: string; createdAt: number; expiresAt: number }
-type AdminDb = { code: PendingCode | null; issued: number[]; sessions: Session[] }
+type AdminDb = { codes: PendingCode[]; issued: Issued[]; sessions: Session[] }
+type Who = { browser?: string; ip?: string }
 
 const fileName = () => path.join(dataDir(), 'admin.json')
 
 async function load(): Promise<AdminDb> {
   try {
     const db = JSON.parse(await readFile(fileName(), 'utf8')) as Partial<AdminDb>
-    return { code: db.code ?? null, issued: db.issued ?? [], sessions: db.sessions ?? [] }
+    // Files from before codes were bound to a browser kept `code` and plain timestamps.
+    const issued = (db.issued ?? []).map((i) => (typeof i === 'number' ? { at: i, ip: '' } : i))
+    return { codes: db.codes ?? [], issued, sessions: db.sessions ?? [] }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT')
-      return { code: null, issued: [], sessions: [] }
+      return { codes: [], issued: [], sessions: [] }
     throw error
   }
 }
@@ -67,30 +83,42 @@ function sameHex(a: string, b: string) {
 export type IssueResult =
   { ok: true; code: string } | { ok: false; error: 'too_soon' | 'too_many'; retryAfter: number }
 
-// New code, replacing any earlier one. At most one per minute and ten per hour.
-export function issueCode(now = Date.now()): Promise<IssueResult> {
+const hourAgo = (now: number) => now - 60 * 60_000
+const retryAfter = (until: number, now: number) => Math.ceil((until - now) / 1000)
+
+// New code for this browser, replacing its earlier one. Per IP at most one a minute and five an
+// hour; twenty an hour for everyone together.
+export function issueCode(now = Date.now(), who: Who = {}): Promise<IssueResult> {
+  const browser = sha256(who.browser ?? '')
+  const ip = sha256(who.ip ?? '')
   return serialize((db) => {
-    db.issued = db.issued.filter((t) => now - t < 60 * 60_000)
-    const last = db.issued.at(-1)
-    if (last !== undefined && now - last < CODE_MIN_GAP_MS) {
+    db.issued = db.issued.filter((i) => i.at > hourAgo(now))
+    db.codes = db.codes.filter((c) => c.expiresAt > now)
+    const mine = db.issued.filter((i) => i.ip === ip)
+    const last = mine.at(-1)
+    if (last && now - last.at < CODE_MIN_GAP_MS) {
       return {
         ok: false,
         error: 'too_soon',
-        retryAfter: Math.ceil((last + CODE_MIN_GAP_MS - now) / 1000),
+        retryAfter: retryAfter(last.at + CODE_MIN_GAP_MS, now),
       }
     }
-    if (db.issued.length >= CODE_MAX_PER_HOUR) {
-      const oldest = db.issued[0] ?? now
-      return {
-        ok: false,
-        error: 'too_many',
-        retryAfter: Math.ceil((oldest + 60 * 60_000 - now) / 1000),
-      }
+    const window = mine.length >= CODE_MAX_PER_HOUR ? mine : db.issued
+    if (mine.length >= CODE_MAX_PER_HOUR || db.issued.length >= CODES_MAX_PER_HOUR_ALL) {
+      const oldest = window[0]?.at ?? now
+      return { ok: false, error: 'too_many', retryAfter: retryAfter(oldest + 60 * 60_000, now) }
     }
     const code = String(randomInt(0, 1_000_000)).padStart(6, '0')
     const salt = randomBytes(16).toString('hex')
-    db.code = { salt, hash: codeHash(salt, code), expiresAt: now + CODE_TTL_MS, attempts: 0 }
-    db.issued.push(now)
+    db.codes = db.codes.filter((c) => c.browser !== browser)
+    db.codes.push({
+      salt,
+      hash: codeHash(salt, code),
+      expiresAt: now + CODE_TTL_MS,
+      attempts: 0,
+      browser,
+    })
+    db.issued.push({ at: now, ip })
     return { ok: true, code }
   })
 }
@@ -104,10 +132,10 @@ export type RequestResult =
   | { ok: false; error: 'not_configured' | 'send_failed' }
 
 // Issues a code and sends it to the owner's chat only. The code never goes back to the browser.
-export async function requestLoginCode(now = Date.now()): Promise<RequestResult> {
+export async function requestLoginCode(now = Date.now(), who: Who = {}): Promise<RequestResult> {
   const { token, ownerChatId } = telegramEnv()
   if (!token || !ownerChatId) return { ok: false, error: 'not_configured' }
-  const issued = await issueCode(now)
+  const issued = await issueCode(now, who)
   if (!issued.ok) return issued
   try {
     await sendMessage(ownerChatId, codeMessage(issued.code))
@@ -115,8 +143,9 @@ export async function requestLoginCode(now = Date.now()): Promise<RequestResult>
   } catch (error) {
     console.error('[admin] could not send the login code', error)
     // A code nobody received is useless; the rate limit still counts it.
+    const browser = sha256(who.browser ?? '')
     await serialize((db) => {
-      db.code = null
+      db.codes = db.codes.filter((c) => c.browser !== browser)
     })
     return { ok: false, error: 'send_failed' }
   }
@@ -127,17 +156,22 @@ export type VerifyResult =
   | { ok: false; error: 'no_code' | 'expired' | 'locked' }
   | { ok: false; error: 'wrong'; attemptsLeft: number }
 
-// Checks a typed code. Five wrong tries burn the code; success burns it too and opens a session.
-export function verifyCode(input: string, now = Date.now()): Promise<VerifyResult> {
+// Checks a typed code from the browser that asked for it. Five wrong tries burn the code; success
+// burns it too and opens a session.
+export function verifyCode(input: string, now = Date.now(), browserId = ''): Promise<VerifyResult> {
+  const browser = sha256(browserId)
   return serialize((db): VerifyResult => {
-    const pending = db.code
+    const pending = db.codes.find((c) => c.browser === browser)
+    const drop = () => {
+      db.codes = db.codes.filter((c) => c !== pending)
+    }
     if (!pending) return { ok: false, error: 'no_code' }
     if (now > pending.expiresAt) {
-      db.code = null
+      drop()
       return { ok: false, error: 'expired' }
     }
     if (pending.attempts >= CODE_MAX_ATTEMPTS) {
-      db.code = null
+      drop()
       return { ok: false, error: 'locked' }
     }
     const clean = input.replace(/\s/g, '')
@@ -145,12 +179,12 @@ export function verifyCode(input: string, now = Date.now()): Promise<VerifyResul
       pending.attempts += 1
       const attemptsLeft = CODE_MAX_ATTEMPTS - pending.attempts
       if (attemptsLeft <= 0) {
-        db.code = null
+        drop()
         return { ok: false, error: 'locked' }
       }
       return { ok: false, error: 'wrong', attemptsLeft }
     }
-    db.code = null
+    drop()
     const token = randomBytes(32).toString('base64url')
     const expiresAt = now + SESSION_TTL_MS
     db.sessions = db.sessions.filter((s) => s.expiresAt > now)

@@ -32,6 +32,7 @@ import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
 import { isLocale, locales } from '@/lib/i18n'
 import { catalog, formatUsd, startingPrice } from '@/lib/pricing'
 import { isServiceSlug, serviceSlugs, siteUrl, type ServiceSlug } from '@/lib/site'
+import { shareBase } from '@/lib/share'
 
 export const dynamicParams = false
 
@@ -52,7 +53,13 @@ export async function generateMetadata({
       canonical: `/${locale}/services/${slug}`,
       languages: { ru: `/ru/services/${slug}`, en: `/en/services/${slug}` },
     },
-    openGraph: { title: page.metaTitle, description: page.metaDescription, url: `/${locale}/services/${slug}` },
+    twitter: shareBase(locale).twitter,
+    openGraph: {
+      ...shareBase(locale).openGraph,
+      title: page.metaTitle,
+      description: page.metaDescription,
+      url: `/${locale}/services/${slug}`,
+    },
   }
 }
 
@@ -66,7 +73,10 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
   const dict = getDict(locale)
   const page = dict.serviceDetails[slug]
   const t = dict.servicePage
-  const variants = dict.estimator.catalog[slug].variants as Record<string, { name: string; term: string }>
+  const variants = dict.estimator.catalog[slug].variants as Record<
+    string,
+    { name: string; term: string }
+  >
   const prices = catalog[slug].variants
 
   const service = {
@@ -212,7 +222,10 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
       <ContactSection dict={dict} locale={locale} defaultService={slug} />
 
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8 md:pb-32" aria-label={t.others}>
-        <RiseText text={t.others} className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl" />
+        <RiseText
+          text={t.others}
+          className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl"
+        />
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {serviceSlugs
             .filter((other) => other !== slug)

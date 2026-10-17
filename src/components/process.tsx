@@ -44,6 +44,7 @@ export function Process({ dict }: { dict: Dict }) {
             return (
               <motion.li
                 key={step.title}
+                data-reveal
                 className="relative pl-16 md:pl-0"
                 initial={reduce ? false : { opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}

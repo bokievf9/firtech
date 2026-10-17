@@ -11,6 +11,7 @@ import { getDict } from '@/content'
 import { formatArticleDate, getArticle, readingTime, visibleArticles } from '@/content/blog'
 import { isLocale, locales } from '@/lib/i18n'
 import { siteUrl } from '@/lib/site'
+import { shareBase } from '@/lib/share'
 
 export const dynamicParams = false
 
@@ -36,7 +37,9 @@ export async function generateMetadata({
       canonical: `/${locale}${path}`,
       languages: { ru: `/ru${path}`, en: `/en${path}` },
     },
+    twitter: shareBase(locale).twitter,
     openGraph: {
+      ...shareBase(locale).openGraph,
       type: 'article',
       title: content.title,
       description: content.description,
@@ -118,10 +121,7 @@ export default async function ArticlePage({ params }: PageProps<'/[locale]/blog/
       </article>
 
       {others.length > 0 && (
-        <nav
-          className="mx-auto mt-24 max-w-[46rem] px-4 md:px-8"
-          aria-label={t.more}
-        >
+        <nav className="mx-auto mt-24 max-w-[46rem] px-4 md:px-8" aria-label={t.more}>
           <h2 className="text-xl font-semibold tracking-tight">{t.more}</h2>
           <div className="mt-5 grid gap-3">
             {others.map((other) => (
