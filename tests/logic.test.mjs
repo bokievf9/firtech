@@ -49,7 +49,8 @@ test('dictionaries: compare table and stats line up in both languages', async ()
   for (const dict of [ru, en]) {
     for (const row of dict.compare.rows)
       assert.equal(row.values.length, dict.compare.columns.length)
-    assert.equal(dict.hero.words.length, 4)
+    assert.equal(dict.hero.lines.length, 3)
+    assert.equal(dict.hero.trust.length, 3)
     assert.equal(dict.trust.stats.length, 4)
   }
   assert.deepEqual(Object.keys(ru.showcase.items), Object.keys(en.showcase.items))

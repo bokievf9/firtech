@@ -14,10 +14,10 @@ export const jetbrains = JetBrains_Mono({
   display: 'swap',
 })
 
-// Brand wordmark only ("fir.tech"): Fir from the founder's name, set in Unbounded with a lime dot.
+// Brand face: the "fir.tech" wordmark (Fir from the founder's name, lime dot) and the hero headline.
 export const unbounded = Unbounded({
   variable: '--font-unbounded',
-  subsets: ['latin'],
+  subsets: ['latin', 'cyrillic'],
   weight: '700',
   display: 'swap',
 })

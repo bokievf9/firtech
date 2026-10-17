@@ -20,12 +20,23 @@ const en: Dict = {
     home: 'Home',
   },
   hero: {
-    title: 'Websites, bots and apps for your business',
-    lead: 'We launch',
-    words: ['websites', 'Telegram bots', 'apps', 'automation'],
-    tail: 'for your business',
+    title: 'Websites and bots that bring in leads, not just look pretty',
+    // The h1 in three lines; the middle one is the accent.
+    lines: ['Websites and bots', 'that bring in leads,', 'not just look pretty'],
     sub: 'Websites from $150, Telegram bots from $100. Price and deadline are fixed before we start, and you pay in stages.',
-    secondary: 'Build your project',
+    primary: 'Estimate the cost',
+    telegram: 'Message on Telegram',
+    trust: ['Price fixed in the quote', 'Pay in stages', 'Code and access are yours'],
+    scroll: 'Scroll',
+    picker: {
+      title: 'What does your business need?',
+      hint: 'Pick one or several',
+      total: 'Price guide',
+      bundle: '-10% for a bundle',
+      empty: 'Pick at least one and we will show the price and timeline',
+      build: 'Build it in full',
+      concept: 'Example mockup',
+    },
     demo: {
       caption: 'Lead automation in action: your website, Telegram and CRM working together.',
       site: 'Website',

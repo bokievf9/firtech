@@ -7,7 +7,18 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 // Hero backdrop and 3D stage. The whole hero listens to the pointer: a soft light follows it
 // across the dot grid, and the demo on the right tilts a few degrees toward it. Motion values
 // only, nothing re-renders while the mouse moves; touch and reduced motion get a still scene.
-export function HeroStage({ copy, demo }: { copy: ReactNode; demo: ReactNode }) {
+// `tilt={false}` keeps an interactive demo flat: controls that move under the cursor are hard to hit.
+export function HeroStage({
+  copy,
+  demo,
+  tilt = true,
+  footer,
+}: {
+  copy: ReactNode
+  demo: ReactNode
+  tilt?: boolean
+  footer?: ReactNode
+}) {
   const reduce = useReducedMotion()
   const px = useMotionValue(0.7)
   const py = useMotionValue(0.3)
@@ -53,7 +64,9 @@ export function HeroStage({ copy, demo }: { copy: ReactNode; demo: ReactNode }) 
         <div className="lg:col-span-7">{copy}</div>
         <div className="lg:col-span-5 [perspective:1400px]">
           <motion.div
-            style={reduce ? undefined : { rotateX, rotateY, transformStyle: 'preserve-3d' }}
+            style={
+              reduce || !tilt ? undefined : { rotateX, rotateY, transformStyle: 'preserve-3d' }
+            }
             initial={reduce ? false : { opacity: 0, y: 40, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 1.1, delay: 0.35, ease: [0.16, 1, 0.3, 1] }}
@@ -62,6 +75,7 @@ export function HeroStage({ copy, demo }: { copy: ReactNode; demo: ReactNode }) 
           </motion.div>
         </div>
       </div>
+      {footer}
     </div>
   )
 }
