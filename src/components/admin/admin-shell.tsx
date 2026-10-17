@@ -12,6 +12,7 @@ const links = [
   { href: '/admin', label: admin.nav.overview },
   { href: '/admin/leads', label: admin.nav.leads },
   { href: '/admin/calendar', label: admin.nav.calendar },
+  { href: '/admin/jarvis', label: admin.nav.jarvis },
 ] as const
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
