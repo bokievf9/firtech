@@ -20,7 +20,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
         tilt={false}
         copy={
           <>
-            <h1 className="font-brand text-[clamp(2rem,3.6vw,3.55rem)] leading-[1.08] font-bold tracking-[-0.045em] text-balance">
+            <h1 className="font-brand text-[clamp(1.85rem,3.05vw,3rem)] leading-[1.1] font-bold tracking-[-0.045em] text-balance">
               <span className="sr-only">{h.title}</span>
               <HeroLines lines={h.lines} accent={1} />
             </h1>
