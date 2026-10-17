@@ -100,7 +100,7 @@ export const websiteCost2026: Article = {
       { type: 'h2', text: 'Оплата по этапам' },
       {
         type: 'p',
-        text: 'Платить всю сумму вперёд незнакомому исполнителю рискованно, и мы это понимаем. Поэтому работа делится на этапы. Первый платёж после подписания сметы, следующий после того, как вы посмотрели и приняли этап. Каждую неделю мы показываем, что уже сделано, так что вы платите за то, что видите.',
+        text: 'Платить всю сумму вперёд незнакомому исполнителю рискованно, и мы это понимаем. Поэтому работа делится на этапы, и вы платите за каждый этап отдельно. Какие этапы и что входит в каждый, записано в смете. Каждую неделю мы показываем, что уже сделано, так что вы платите за то, что видите.',
       },
       {
         type: 'callout',
@@ -235,7 +235,7 @@ export const websiteCost2026: Article = {
       { type: 'h2', text: 'Paying in stages' },
       {
         type: 'p',
-        text: 'Paying the full amount upfront to a developer you do not know yet is risky, and we understand that. So the work is split into stages. The first payment comes after you sign the quote, the next one after you have reviewed and accepted a stage. We show progress every week, so you pay for what you can see.',
+        text: 'Paying the full amount upfront to a developer you do not know yet is risky, and we understand that. So the work is split into stages, and you pay for each stage separately. The quote lists the stages and what each one includes. We show progress every week, so you pay for what you can see.',
       },
       {
         type: 'callout',

@@ -180,7 +180,7 @@ const en: Dict = {
     monthlyNote: 'Support is paid separately, every month.',
     termsNote:
       'Timelines are per part. We will give the exact overall timeline in the quote: some work can run in parallel.',
-    payNote: 'You pay in stages, after accepting each one.',
+    payNote: 'You pay in stages, for each stage separately.',
     note: 'This is a rough estimate. We fix the exact price in the quote after a short call.',
     send: 'Send my build',
     copy: 'Copy link',
@@ -793,7 +793,7 @@ const en: Dict = {
         values: [
           'Whatever you agree',
           'Usually with prepayment',
-          'In stages, after you accept each one',
+          'In stages, each paid separately',
         ],
       },
       {
@@ -889,7 +889,7 @@ const en: Dict = {
       },
       {
         title: 'Build',
-        text: 'You see progress every week and pay in parts, after each stage you accept.',
+        text: 'You see progress every week and pay in stages, for each one separately.',
       },
       {
         title: 'Launch',
@@ -917,7 +917,7 @@ const en: Dict = {
       },
       {
         title: 'Pay for what you see',
-        text: 'The work is split into stages. The next payment comes only after you accept the previous stage.',
+        text: 'The work is split into stages, and you pay for each one separately. We start the next stage once you have accepted the previous one.',
       },
       {
         title: 'Plain language',
@@ -962,7 +962,7 @@ const en: Dict = {
       },
       {
         q: 'How do payments work?',
-        a: 'In stages. The first payment after you sign the quote, the next one after you accept a stage. We agree on the payment method together.',
+        a: 'In stages: the work is split into stages and you pay for each one separately. The quote lists the stages and what each includes. We agree on the payment method together.',
       },
       {
         q: 'Do you work with clients abroad?',
@@ -1285,7 +1285,7 @@ const en: Dict = {
         },
         {
           title: 'Development',
-          text: 'We build the app and its backend in stages. You see each stage and pay after you accept it.',
+          text: 'We build the app and its backend in stages. You see each stage, and payment goes in stages too.',
         },
         {
           title: 'Launch',
