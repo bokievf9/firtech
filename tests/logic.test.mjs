@@ -85,3 +85,21 @@ test('builder link: round trip, unknown pieces dropped', async () => {
   assert.equal(decodeBuild(''), null)
   assert.equal(decodeBuild('nothing'), null)
 })
+
+test('formatLead: a lead at every field maximum fits a Telegram message', () => {
+  const lead = leadSchema.parse({
+    name: 'Н'.repeat(80),
+    contact: '@'.repeat(120),
+    service: 'bundle',
+    budget: '$'.repeat(40),
+    message: '<&>'.repeat(700).slice(0, 2000),
+    estimate: 'с'.repeat(1500),
+    page: 'https://firtech.pro/ru/builder?b='.padEnd(600, 'x'),
+  })
+  const text = formatLead(lead, 'Заявка №99999 с сайта Fir Tech')
+  // Telegram counts characters after parsing the HTML entities.
+  const plain = text.replace(/<[^>]+>/g, '').replace(/&lt;|&gt;|&amp;/g, '.')
+  // Status, booking, note and the "sent late" line add up to about 600 more.
+  assert.ok(plain.length < 3400, `too long: ${plain.length}`)
+  assert.match(text, /полностью в \/admin/)
+})
