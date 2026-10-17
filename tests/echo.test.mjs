@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import * as control from '../src/content/control.ts'
-import * as jarvis from '../src/lib/jarvis.ts'
+import * as echo from '../src/lib/echo.ts'
 import { computeStats } from '../src/lib/admin-data.ts'
 
 const now = Date.parse('2026-10-18T08:00:00Z')
@@ -25,11 +25,11 @@ const leads = [
 ]
 
 test('briefing carries lead counts but never names or contacts', () => {
-  const summary = jarvis.leadSummary(computeStats(leads, now))
+  const summary = echo.leadSummary(computeStats(leads, now))
   assert.equal(summary.total, 2)
   assert.equal(summary.stale, 1)
   assert.equal(summary.conversion, 50)
-  const text = jarvis.briefing({
+  const text = echo.briefing({
     now: new Date(now),
     projects: control.projects,
     health: [
@@ -49,23 +49,23 @@ test('briefing carries lead counts but never names or contacts', () => {
 
 test('focus tags are hidden from the text and parsed into panels', () => {
   const raw = 'Две заявки ждут ответа, сэр. [[focus:leads]] [[focus:nope]]'
-  assert.equal(jarvis.visibleText(raw), 'Две заявки ждут ответа, сэр.')
-  assert.deepEqual(jarvis.focusOf(raw), ['leads'])
+  assert.equal(echo.visibleText(raw), 'Две заявки ждут ответа, сэр.')
+  assert.deepEqual(echo.focusOf(raw), ['leads'])
   // A tag still arriving in the stream is not shown half-written.
-  assert.equal(jarvis.visibleText('Готово, сэр. [[foc'), 'Готово, сэр.')
+  assert.equal(echo.visibleText('Готово, сэр. [[foc'), 'Готово, сэр.')
 })
 
 test('chat request must end on the user and stay small', () => {
   const ok = { messages: [{ role: 'user', content: 'Доложи обстановку' }] }
-  assert.ok(jarvis.chatRequest.safeParse(ok).success)
+  assert.ok(echo.chatRequest.safeParse(ok).success)
   assert.ok(
-    !jarvis.chatRequest.safeParse({ messages: [{ role: 'assistant', content: 'x' }] }).success,
+    !echo.chatRequest.safeParse({ messages: [{ role: 'assistant', content: 'x' }] }).success,
   )
   assert.ok(
-    !jarvis.chatRequest.safeParse({ messages: [{ role: 'user', content: 'x'.repeat(2001) }] })
+    !echo.chatRequest.safeParse({ messages: [{ role: 'user', content: 'x'.repeat(2001) }] })
       .success,
   )
-  assert.ok(!jarvis.chatRequest.safeParse({ messages: [{ role: 'system', content: 'x' }] }).success)
+  assert.ok(!echo.chatRequest.safeParse({ messages: [{ role: 'system', content: 'x' }] }).success)
 })
 
 test('control data is consistent', () => {

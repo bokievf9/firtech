@@ -10,7 +10,7 @@ export const admin = {
     overview: 'Обзор',
     leads: 'Заявки',
     calendar: 'Календарь',
-    jarvis: 'Джарвис',
+    echo: 'Echo',
     export: 'Скачать CSV',
     logout: 'Выйти',
     logoutAll: 'Выйти на всех устройствах',
@@ -124,8 +124,8 @@ export const admin = {
     confirmed: 'подтверждён',
     legend: 'Нажмите на занятый слот, чтобы открыть заявку.',
   },
-  jarvis: {
-    title: 'Джарвис',
+  echo: {
+    title: 'Echo',
     states: {
       idle: 'Ожидание',
       listening: 'Слушаю',
@@ -133,7 +133,7 @@ export const admin = {
       speaking: 'Говорю',
     },
     greeting: 'Добрый день, сэр. Нажмите на микрофон или напишите, и я доложу обстановку.',
-    placeholder: 'Спросите Джарвиса',
+    placeholder: 'Спросите Echo',
     send: 'Отправить',
     stop: 'Остановить',
     talk: 'Говорить',
@@ -141,7 +141,7 @@ export const admin = {
     voiceOn: 'Озвучивать ответы',
     dialog: 'Режим диалога: слушать снова после ответа',
     you: 'Вы',
-    me: 'Джарвис',
+    me: 'Echo',
     suggestions: [
       'Доложи обстановку',
       'Что мне решить сегодня?',

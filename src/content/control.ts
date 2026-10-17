@@ -1,4 +1,4 @@
-// Owner's projects, tasks and goals for /admin/jarvis. Edited by hand (or by Claude on the owner's
+// Owner's projects, tasks and goals for /admin/echo. Edited by hand (or by Claude on the owner's
 // word); the page and the assistant read only this file plus live checks. Russian only, no em or en
 // dashes. Progress numbers are the owner's estimates, not measurements.
 

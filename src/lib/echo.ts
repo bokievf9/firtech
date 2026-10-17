@@ -2,11 +2,11 @@ import { z } from 'zod'
 import type { Goal, Project, Task } from '@/content/control'
 import type { Stats } from './admin-data'
 
-// Pure helpers behind /admin/jarvis: the request shape, the briefing Claude reads and the panel
+// Pure helpers behind /admin/echo: the request shape, the briefing Claude reads and the panel
 // tags it may answer with. No I/O here, so they are tested directly and the client can use them.
 
-export const jarvisState = ['idle', 'listening', 'thinking', 'speaking'] as const
-export type JarvisState = (typeof jarvisState)[number]
+export const echoState = ['idle', 'listening', 'thinking', 'speaking'] as const
+export type EchoState = (typeof echoState)[number]
 
 // Panels the assistant may point at with a [[focus:<id>]] tag at the end of a reply.
 export const focusTargets = ['vibely', 'firtech', 'tasks', 'goals', 'leads'] as const
@@ -78,7 +78,7 @@ export function briefing(input: {
   )
   const goalLines = input.goals.map((g) => `- ${g.title}: ${g.progress}% (оценка). Дальше: ${g.next}`)
   const l = input.leads
-  return `Ты Джарвис, голосовой ассистент владельца студии Fir Tech, в духе J.A.R.V.I.S.: спокойный, точный, с лёгкой иронией. Обращайся «сэр».
+  return `Ты Echo, голосовой ассистент владельца студии Fir Tech: спокойный, точный, с лёгкой иронией. Обращайся «сэр». Своё имя в ответах пиши по-русски «Эхо», так оно правильно звучит голосом.
 Отвечай по-русски, коротко: одно-три предложения. Без markdown, списков и эмодзи: ответ озвучивается голосом. Числа пиши цифрами.
 Опирайся только на сводку ниже. Если данных нет, так и скажи и предложи, где посмотреть. Не выдумывай цифры.
 Если ответ про конкретную панель, добавь в самом конце одну метку: ${focusTargets.map((t) => `[[focus:${t}]]`).join(' ')}. Метку не объясняй.

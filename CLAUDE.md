@@ -90,14 +90,14 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
   site. Bot `/admin` sends the link. Overview, leads with drawer, calendar, CSV export.
-- Jarvis (`/admin/jarvis`, nav "Джарвис"): the owner's control room. Projects, tasks, goals and
+- Echo (`/admin/echo`, nav "Echo"): the owner's control room. Projects, tasks, goals and
   milestones are typed data in `src/content/control.ts` (edit there on the owner's word; progress
   numbers are the owner's estimates). Live: project health (`src/lib/project-health.ts`, each
   `healthUrl` checked from the server, cached 30 s) and lead counts. Hologram on canvas
   (`components/admin/hologram.tsx`, reacts to idle/listening/thinking/speaking and the voice level),
   voice in by the browser's speech recognition (Chrome), voice out by speech synthesis.
-  `/api/admin/jarvis` streams Claude's reply (`@anthropic-ai/sdk`, `claude-opus-5-5`, low effort,
-  `fallbacks: "default"`), 40 replies per 10 min per session. The briefing (`src/lib/jarvis.ts`)
+  `/api/admin/echo` streams Claude's reply (`@anthropic-ai/sdk`, `claude-opus-5-5`, low effort,
+  `fallbacks: "default"`), 40 replies per 10 min per session. The briefing (`src/lib/echo.ts`)
   sends lead counts only, never names, contacts or texts (tested). Needs `ANTHROPIC_API_KEY` in
   `shared/.env.production`; without it the page works and the chat explains how to turn it on.
 - Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri

@@ -1,18 +1,18 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { JarvisState } from '@/lib/jarvis'
+import type { EchoState } from '@/lib/echo'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 // The assistant's hologram: a point-cloud sphere over a projector, drawn on a canvas. State shows
 // in its motion (calm spin, ripples while thinking, a surface that follows the voice), so the
-// owner can tell at a glance whether Jarvis is listening, thinking or talking.
+// owner can tell at a glance whether Echo is listening, thinking or talking.
 // `level` is a 0..1 voice level the console writes (microphone or speech), read every frame.
 
 type Tuning = { spin: number; amp: number; ripple: number; glow: number; white: number }
 
 // Where each state settles; the frame loop eases toward it, so changes blend instead of jumping.
-const tuning: Record<JarvisState, Tuning> = {
+const tuning: Record<EchoState, Tuning> = {
   idle: { spin: 0.18, amp: 0.025, ripple: 0, glow: 0.45, white: 0 },
   listening: { spin: 0.12, amp: 0.02, ripple: 0, glow: 0.7, white: 0.45 },
   thinking: { spin: 1.1, amp: 0.03, ripple: 1, glow: 0.8, white: 0.1 },
@@ -40,7 +40,7 @@ export function Hologram({
   level,
   className,
 }: {
-  state: JarvisState
+  state: EchoState
   level: { current: number }
   className?: string
 }) {

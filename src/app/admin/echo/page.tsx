@@ -1,10 +1,10 @@
 import { AdminShell } from '@/components/admin/admin-shell'
-import { JarvisConsole } from '@/components/admin/jarvis-console'
+import { EchoConsole } from '@/components/admin/echo-console'
 import { admin } from '@/content/admin'
 import { goals, projects, tasks } from '@/content/control'
 import { computeStats } from '@/lib/admin-data'
 import { requireAdmin } from '@/lib/admin-page'
-import { leadSummary } from '@/lib/jarvis'
+import { leadSummary } from '@/lib/echo'
 import { projectHealth } from '@/lib/project-health'
 import { allLeads } from '@/lib/store'
 
@@ -12,14 +12,14 @@ export const dynamic = 'force-dynamic'
 
 // Owner's control room: projects with live health, tasks, goals, lead counts and the voice
 // assistant. Projects, tasks and goals come from src/content/control.ts.
-export default async function JarvisPage() {
+export default async function EchoPage() {
   const now = await requireAdmin()
   const [leads, health] = await Promise.all([allLeads(), projectHealth()])
   const stats = computeStats(leads, now)
   return (
     <AdminShell>
-      <h1 className="sr-only">{admin.jarvis.title}</h1>
-      <JarvisConsole
+      <h1 className="sr-only">{admin.echo.title}</h1>
+      <EchoConsole
         projects={projects}
         health={health}
         tasks={tasks}

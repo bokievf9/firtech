@@ -20,11 +20,11 @@ import {
   type ChatMessage,
   type FocusTarget,
   type Health,
-  type JarvisState,
+  type EchoState,
   type LeadSummary,
-} from '@/lib/jarvis'
+} from '@/lib/echo'
 
-const t = admin.jarvis
+const t = admin.echo
 
 // The browser's speech recognition is still prefixed in Chrome and missing from the DOM types.
 type Recognition = {
@@ -85,7 +85,7 @@ function usePref(key: string, fallback: boolean) {
   return [value, set] as const
 }
 
-export function JarvisConsole({
+export function EchoConsole({
   projects,
   health,
   tasks,
@@ -100,12 +100,12 @@ export function JarvisConsole({
   leads: LeadSummary
   series: number[]
 }) {
-  const [state, setState] = useState<JarvisState>('idle')
+  const [state, setState] = useState<EchoState>('idle')
   const [lines, setLines] = useState<Line[]>([{ role: 'assistant', text: t.greeting }])
   const [draft, setDraft] = useState('')
   const [interim, setInterim] = useState('')
-  const [voiceOn, setVoiceOn] = usePref('jarvis-voice', true)
-  const [dialog, setDialog] = usePref('jarvis-dialog', false)
+  const [voiceOn, setVoiceOn] = usePref('echo-voice', true)
+  const [dialog, setDialog] = usePref('echo-dialog', false)
   const [focused, setFocused] = useState<FocusTarget[]>([])
   const [clock, setClock] = useState('')
 
@@ -221,7 +221,7 @@ export function JarvisConsole({
       let answer = ''
       let failure: string | null = null
       try {
-        const res = await fetch('/api/admin/jarvis', {
+        const res = await fetch('/api/admin/echo', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ messages: history.current }),
@@ -409,7 +409,7 @@ export function JarvisConsole({
             <span className="hud-corner bottom-3 left-3 -rotate-90" />
             <div className="flex items-start justify-between font-mono text-[10.5px] tracking-[0.18em] text-faint uppercase">
               <span>
-                <span className="text-accent">J.A.R.V.I.S.</span>
+                <span className="text-accent">ECHO</span>
                 <br />
                 fir.tech / admin
               </span>
@@ -500,7 +500,7 @@ export function JarvisConsole({
               }}
             >
               <input
-                id="jarvis-input"
+                id="echo-input"
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder={t.placeholder}
@@ -533,7 +533,7 @@ export function JarvisConsole({
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
             <label className="flex cursor-pointer items-center gap-2">
               <input
-                id="jarvis-voice"
+                id="echo-voice"
                 type="checkbox"
                 checked={voiceOn}
                 onChange={(e) => {
@@ -547,7 +547,7 @@ export function JarvisConsole({
             </label>
             <label className="flex cursor-pointer items-center gap-2">
               <input
-                id="jarvis-dialog"
+                id="echo-dialog"
                 type="checkbox"
                 checked={dialog}
                 onChange={(e) => {

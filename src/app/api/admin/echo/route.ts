@@ -3,11 +3,11 @@ import Anthropic from '@anthropic-ai/sdk'
 import { goals, projects, tasks } from '@/content/control'
 import { computeStats } from '@/lib/admin-data'
 import { guard, readCookie } from '@/lib/admin-guard'
-import { briefing, chatRequest, leadSummary } from '@/lib/jarvis'
+import { briefing, chatRequest, leadSummary } from '@/lib/echo'
 import { projectHealth } from '@/lib/project-health'
 import { allLeads } from '@/lib/store'
 
-// The owner's voice assistant on /admin/jarvis. Streams Claude's reply as plain text. The briefing
+// The owner's voice assistant on /admin/echo. Streams Claude's reply as plain text. The briefing
 // carries project health, tasks, goals and lead counts only (no lead names, contacts or texts).
 // Needs ANTHROPIC_API_KEY on the server; without it the page shows how to turn it on.
 
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
             : error instanceof Anthropic.AuthenticationError
               ? 'bad_key'
               : 'upstream_error'
-        console.error('[jarvis]', code, error instanceof Error ? error.message : error)
+        console.error('[echo]', code, error instanceof Error ? error.message : error)
         send(FAIL + code)
       }
       controller.close()

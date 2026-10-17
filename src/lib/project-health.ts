@@ -1,6 +1,6 @@
 import 'server-only'
 import { projects } from '@/content/control'
-import type { Health } from './jarvis'
+import type { Health } from './echo'
 
 // Live check of every project's /api/health from the server, at most once per 30 seconds.
 let cache: { at: number; value: Health[] } | null = null

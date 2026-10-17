@@ -250,7 +250,7 @@
 }
 
 /*
-  Jarvis HUD (/admin/jarvis): bracket corners, scanlines over the hologram stage, a listening ping
+  Echo HUD (/admin/echo): bracket corners, scanlines over the hologram stage, a listening ping
   and the "thinking" dots. Movement stops under reduced motion; the states stay visible in colour.
 */
 .hud-stage::after {
