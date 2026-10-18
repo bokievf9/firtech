@@ -96,9 +96,23 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `healthUrl` checked from the server, cached 30 s) and lead counts. Hologram on canvas
   (`components/admin/hologram.tsx`, reacts to idle/listening/thinking/speaking and the voice level),
   voice in by the browser's speech recognition (Chrome), voice out by speech synthesis.
-  `/api/admin/echo` streams Claude's reply (`@anthropic-ai/sdk`, `claude-opus-5-5`, low effort,
-  `fallbacks: "default"`), 40 replies per 10 min per session. The briefing (`src/lib/echo.ts`)
-  sends lead counts only, never names, contacts or texts (tested). Needs `ANTHROPIC_API_KEY` in
+  `/api/admin/echo` (loop in `src/lib/echo-chat.ts`) streams Claude's reply (`@anthropic-ai/sdk`,
+  default `claude-sonnet-5-5` $2/$10 per MTok, low effort; `claude-opus-5-5` $4/$20 only on the
+  owner's toggle or words like "подумай серьёзно" / "на Opus"; `fallbacks: "default"`, tool_choice
+  stays auto because forced tool use is a 400 on these models). Tools (`src/lib/echo-tools.ts`,
+  zod-validated, stores injected): add_task, update_task, list_tasks, delete_task, lead_counts,
+  blocked_on_owner, instagram_today; up to 5 model calls per message, each executed action is
+  streamed as a `[[act:...]]` marker that the console shows as a chip and never speaks.
+  delete_task is two-step and enforced by the server (`Confirmations`): the first call only records
+  a pending deletion; it runs only when the owner's NEXT message is an explicit yes and the same id
+  is requested again, the model cannot confirm itself. Spend: `echo-spend.ts` prices per model and
+  every call of a loop; daily cap `ECHO_DAILY_USD` (default $3), 40 model calls per 10 min per
+  session (loop calls count). Voice in: push to talk (hold the mic or Space, release sends; tap
+  toggles) with the browser's speech recognition (Chrome/Edge), text field elsewhere. Voice out:
+  `speak()` in `src/lib/echo-voice.ts` uses `/api/admin/echo/tts` when `ECHO_TTS_URL` points to
+  Piper's HTTP server on loopback (404 otherwise, then speechSynthesis); numbers and advice in
+  `docs/echo-voice.md`. The briefing (`src/lib/echo.ts`) and every tool result carry lead counts
+  only, never names, contacts or texts (tested). Needs `ANTHROPIC_API_KEY` in
   `shared/.env.production`; without it the page works and the chat explains how to turn it on.
 - Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri
   10:00-18:00, 30 min), free slots at `/api/slots`, picked in the form, double booking blocked.
