@@ -57,7 +57,7 @@ export async function listIgDays(): Promise<IgDay[]> {
   return (await file.load()).days
 }
 
-export function setIgDay(input: IgDay): Promise<IgDay> {
+export async function setIgDay(input: IgDay): Promise<IgDay> {
   const day = igDaySchema.parse(input)
   return file.serialize(async () => {
     const db = await file.load()

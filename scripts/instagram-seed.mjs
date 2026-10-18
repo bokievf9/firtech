@@ -55,5 +55,8 @@ items.push({
 })
 
 items.sort((a, b) => (a.date + a.time + a.id).localeCompare(b.date + b.time + b.id))
-writeFileSync(new URL('../src/content/ig-schedule.json', import.meta.url), JSON.stringify(items, null, 2) + '\n')
+writeFileSync(
+  new URL('../src/content/ig-schedule.json', import.meta.url),
+  JSON.stringify(items, null, 2) + '\n',
+)
 console.log(`${items.length} items, ${items[0].date}..${items.at(-1).date}`)

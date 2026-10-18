@@ -133,7 +133,12 @@ export type ImportEntry = {
   done: boolean
   doneAt: string | null // ISO, from the "(date)" of a checked line
 }
-export type ImportResult = { added: number; closed: number; kept: number; ids: Record<string, string> }
+export type ImportResult = {
+  added: number
+  closed: number
+  kept: number
+  ids: Record<string, string>
+}
 
 // Idempotent import in one write: a task already in the store (by `known` id for its key, else by
 // key of its title) is never overwritten, except that a line checked in the file closes it.
