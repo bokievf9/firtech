@@ -119,9 +119,10 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `docs/echo-voice.md`. The briefing (`src/lib/echo.ts`) and every tool result carry lead counts
   only, never names, contacts or texts (tested). Needs `ANTHROPIC_API_KEY` in
   `shared/.env.production`; without it the page works and the chat explains how to turn it on.
-  The key has been set on the server since 2026-10-19 (file chmod 600, owner-created). It lives
-  only there: never in the repo, a chat or a log, and it is not printed to check it (compare
-  hashes if needed). Daily spend cap `ECHO_DAILY_USD` (default $3).
+  The key lives only in that file on the server (chmod 600): the owner created it on 2026-10-19,
+  rotated it the same day and sets it themselves in a terminal. Never put it in the repo, a chat
+  or a log, and never print it to check it (compare hashes if needed). Daily spend cap
+  `ECHO_DAILY_USD` (default $3).
 - Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri
   10:00-18:00, 30 min), free slots at `/api/slots`, picked in the form, double booking blocked.
 
