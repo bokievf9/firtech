@@ -8,15 +8,15 @@ import { cn } from '@/lib/cn'
 
 const t = admin.pulse
 
-// Squeezes the full Echo console into one column: no side panels, a lower orb, so the orb and the
-// input fit the middle of the one-screen layout. Only wrapper classes; the console is not changed.
+// The console runs in its compact mode (no side panels). These wrapper classes also keep the orb,
+// the message log and the input inside the one-screen middle column on a short display: a lower
+// orb, a shorter log and no helper line, so the input never drops below the fold.
 const fit = [
-  '[&>div>div]:!grid-cols-1',
-  '[&>div>div>div:first-child]:hidden',
-  '[&>div>div>div:last-child]:hidden',
-  '[&>div>div>div:nth-child(2)]:!col-span-1',
   '[&_.hud-stage>canvas]:!aspect-auto',
-  '[&_.hud-stage>canvas]:!h-[clamp(7rem,19dvh,15rem)]',
+  '[&_.hud-stage>canvas]:!h-[clamp(6.5rem,17dvh,14rem)]',
+  'lg:[&_[aria-live=polite]]:!max-h-[clamp(4.5rem,15dvh,16rem)]',
+  'lg:[&_[aria-live=polite]]:!min-h-0',
+  'lg:[&_#echo-talk-hint]:hidden',
 ].join(' ')
 
 const desktopQuery = '(min-width: 1024px)'
@@ -88,7 +88,7 @@ export function EchoDock(props: ComponentProps<typeof EchoConsole>) {
           )}
         >
           <div className="max-lg:px-3 max-lg:pb-4">
-            <EchoConsole {...props} />
+            <EchoConsole {...props} compact />
           </div>
         </div>
       </div>
