@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Panel } from '@/components/admin/admin-shell'
+import { TrafficPanel } from '@/components/admin/pulse/traffic-panel'
 import { Sparkline } from '@/components/admin/sparkline'
 import { admin, fillAdmin } from '@/content/admin'
 import { formatSlot } from '@/lib/admin-data'
@@ -124,6 +125,8 @@ export function NumbersPanel({
         <span className="text-xs text-faint">{admin.overview.sparkHint}</span>
         <Sparkline values={series} label={admin.overview.sparkHint} />
       </div>
+
+      <TrafficPanel />
     </Panel>
   )
 }
