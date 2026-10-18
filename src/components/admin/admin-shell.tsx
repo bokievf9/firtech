@@ -15,7 +15,8 @@ const links = [
   { href: '/admin/echo', label: admin.nav.echo },
 ] as const
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+// `fit` makes the page exactly one screen tall on desktop (the Pulse home); panels scroll inside.
+export function AdminShell({ children, fit }: { children: React.ReactNode; fit?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const [busy, setBusy] = useState(false)
@@ -33,7 +34,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] max-w-[1440px] flex-col px-4 pb-10 sm:px-6 lg:px-8">
+    <div
+      className={cn(
+        'mx-auto flex min-h-[100dvh] max-w-[1440px] flex-col px-4 pb-10 sm:px-6 lg:px-8',
+        fit && 'lg:h-[100dvh] lg:min-h-0 lg:pb-4',
+      )}
+    >
       <header className="sticky top-0 z-30 -mx-4 flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <Link href="/admin" className="flex items-center gap-2.5">
           <Logo className="text-[17px]" />
@@ -99,7 +105,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </details>
         </div>
       </header>
-      <main className="flex-1 pt-6">{children}</main>
+      <main className={cn('flex-1 pt-6', fit && 'lg:min-h-0 lg:pt-3')}>{children}</main>
     </div>
   )
 }
