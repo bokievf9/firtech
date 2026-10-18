@@ -6,9 +6,22 @@ import { dataDir } from './store'
 // Every reply's tokens are priced and added to $DATA_DIR/echo-spend.json (one total per UTC day);
 // once the day's total reaches the cap, Echo answers "daily_cap" until midnight UTC.
 
-// USD per million tokens, priced at the dearest model a reply can come from: Opus 5.5 is $4 / $20,
-// a server-side fallback (Opus 5 or 4.8) is $5 / $25. Cache writes cost 1.25x input.
-const PRICE = { input: 5, output: 25, cacheRead: 0.5, cacheWrite: 6.25 }
+// USD per million tokens. Sonnet 5.5 is $2 / $10 and Opus 5.5 is $4 / $20. A server-side fallback
+// (Opus 5 or 4.8, or the dearer model of the two) is priced at $5 / $25, the dearest a reply can
+// cost. Cache reads cost 0.1x input, cache writes 1.25x input.
+const rates = (input: number, output: number) => ({
+  input,
+  output,
+  cacheRead: input / 10,
+  cacheWrite: input * 1.25,
+})
+export const PRICES = {
+  sonnet: rates(2, 10),
+  opus: rates(4, 20),
+  fallback: rates(5, 25),
+}
+export type PriceKey = keyof typeof PRICES
+export type EchoModelKey = 'sonnet' | 'opus'
 
 // Owner can change it with ECHO_DAILY_USD in shared/.env.production. About a hundred spoken
 // replies fit in the default.
@@ -27,19 +40,25 @@ type Tokens = {
 }
 export type EchoUsage = Tokens & { iterations?: Tokens[] | null }
 
-const priced = (u: Tokens) =>
-  ((u.input_tokens ?? 0) * PRICE.input +
-    (u.output_tokens ?? 0) * PRICE.output +
-    (u.cache_read_input_tokens ?? 0) * PRICE.cacheRead +
-    (u.cache_creation_input_tokens ?? 0) * PRICE.cacheWrite) /
+const priced = (u: Tokens, p: (typeof PRICES)[PriceKey]) =>
+  ((u.input_tokens ?? 0) * p.input +
+    (u.output_tokens ?? 0) * p.output +
+    (u.cache_read_input_tokens ?? 0) * p.cacheRead +
+    (u.cache_creation_input_tokens ?? 0) * p.cacheWrite) /
   1_000_000
 
-// With a fallback, `iterations` lists every attempt and the top-level usage covers only the last.
-export function costUsd(usage: EchoUsage) {
-  return usage.iterations?.length
-    ? usage.iterations.reduce((sum, u) => sum + priced(u), 0)
-    : priced(usage)
+// One API call. Without a model it is priced at the dearest rate. With a fallback, `iterations`
+// lists every attempt and the top-level usage covers only the last; if there was more than one
+// attempt another model may have answered, so all of them are priced at the fallback rate.
+export function costUsd(usage: EchoUsage, model?: EchoModelKey) {
+  const attempts = usage.iterations?.length ? usage.iterations : [usage]
+  const rate = PRICES[model && attempts.length <= 1 ? model : 'fallback']
+  return attempts.reduce((sum, u) => sum + priced(u, rate), 0)
 }
+
+// A tool loop is several API calls; every one of them is paid.
+export const loopCostUsd = (usages: EchoUsage[], model?: EchoModelKey) =>
+  usages.reduce((sum, u) => sum + costUsd(u, model), 0)
 
 type Ledger = { day: string; usd: number }
 const fileName = () => path.join(dataDir(), 'echo-spend.json')
