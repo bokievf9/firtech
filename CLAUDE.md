@@ -105,6 +105,9 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `fallbacks: "default"`), 40 replies per 10 min per session. The briefing (`src/lib/echo.ts`)
   sends lead counts only, never names, contacts or texts (tested). Needs `ANTHROPIC_API_KEY` in
   `shared/.env.production`; without it the page works and the chat explains how to turn it on.
+  The key has been set on the server since 2026-10-19 (file chmod 600, owner-created). It lives
+  only there: never in the repo, a chat or a log, and it is not printed to check it (compare
+  hashes if needed). Daily spend cap `ECHO_DAILY_USD` (default $3).
 - Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri
   10:00-18:00, 30 min), free slots at `/api/slots`, picked in the form, double booking blocked.
 
@@ -125,14 +128,22 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - Server layout (user `deploy`): `/var/www/firtech/{current,releases,incoming,shared}`;
   `shared/.env.production` (server secrets, chmod 600) and `shared/data` (lead store, survives
   deploys). One-time setup as root: `scripts/deploy/server-setup.sh`, then Certbot.
-- Live since 2026-10-16 (first release deployed by hand from a clean checkout, same scripts). Until
-  the GitHub repo exists, deploy with `scripts/deploy/manual.sh` (clean `git archive` build with the public vars,
-  `assemble.sh`, upload to `incoming/`, `activate.sh` as `deploy`) (key `~/.ssh/id_ed25519_firtech`,
-  deploy user only; root access was removed after setup). Telegram webhook is set.
+- Live since 2026-10-16 (first release deployed by hand from a clean checkout, same scripts).
+  `scripts/deploy/manual.sh` stays as the fallback (clean `git archive` build with the public vars,
+  checks first, `assemble.sh`, upload to `incoming/`, `activate.sh` as `deploy`; main only, or
+  `DEPLOY_BRANCH=<branch>`) (key `~/.ssh/id_ed25519_firtech`, deploy user only; root access was
+  removed after setup). Telegram webhook is set.
 - Cron (user `deploy`, UTC): `*/5` `scripts/ops/watch.mjs` (public + local health, SSL expiry;
   Telegram on down/up changes only; cannot report a dead server, an external monitor would) and
   daily 03:15 `scripts/ops/backup.mjs` (14 dated copies in `shared/backups`, `leads.json` to the
   owner's Telegram when it changed). Log: `shared/ops.log`.
-- GitHub: environment `production` secrets `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`,
-  `VPS_KNOWN_HOSTS`; repository variables `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_TELEGRAM_USERNAME`,
-  `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME`, optional `NEXT_PUBLIC_YM_ID`.
+- GitHub (since 2026-10-19): private repo `bokievf9/firtech`, remote `origin`, over HTTPS (the SSH
+  config maps github.com to Vibely's deploy key, so SSH would use the wrong key). **Pushing to
+  `main` deploys** through CI (checks, build, upload, health check, rollback), so never push `main`
+  without the owner's OK for a deploy. Feature branches are pushed only when useful; do not push
+  branches with large media (`instagram-launch` carries about 50 MB of videos) unless the owner
+  asks. Environment `production` (only `main` may deploy) has secrets `VPS_HOST`, `VPS_USER`,
+  `VPS_SSH_KEY` (a dedicated key "github-actions-firtech", authorised for `deploy` on the server;
+  the private half exists only in GitHub), `VPS_KNOWN_HOSTS` (fingerprint verified); repository
+  variables `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_TELEGRAM_USERNAME`,
+  `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME`, `NEXT_PUBLIC_YM_ID`.
