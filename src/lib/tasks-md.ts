@@ -38,6 +38,12 @@ export type MdBlock = {
 }
 
 const DATE_TAIL = /\s*\((\d{4}-\d{2}-\d{2})\)\s*$/
+// A caption such as (2026-02-30) must not stop the whole import: an impossible date is just no date.
+const realDate = (value: string | undefined | null) => {
+  if (!value) return null
+  const d = new Date(`${value}T00:00:00Z`)
+  return !Number.isNaN(d.getTime()) && d.toISOString().startsWith(value) ? value : null
+}
 
 export function parseTasksMd(text: string): MdBlock[] {
   const lines = text.split('\n')
@@ -64,7 +70,7 @@ export function parseTasksMd(text: string): MdBlock[] {
           status: /^(Ждут решения|Нужен вход)/.test(line) ? 'blocked' : 'todo',
           priority: /^Идеи на потом/.test(line) ? 'low' : 'normal',
           project: /^Instagram/.test(line) ? 'instagram' : null,
-          due: line.match(/\((\d{4}-\d{2}-\d{2})\)/)?.[1] ?? null,
+          due: realDate(line.match(/\((\d{4}-\d{2}-\d{2})\)/)?.[1]),
         }
       }
       continue
@@ -80,7 +86,7 @@ export function parseTasksMd(text: string): MdBlock[] {
     let doneDate: string | null = null
     if (done) {
       const last = parts[parts.length - 1] ?? ''
-      doneDate = last.match(DATE_TAIL)?.[1] ?? null
+      doneDate = realDate(last.match(DATE_TAIL)?.[1])
       parts[parts.length - 1] = last.replace(DATE_TAIL, '')
     }
     const title = squash(parts[0] ?? '').slice(0, 200)
@@ -125,8 +131,8 @@ export function formatBlock(
   doneDate?: string | null,
 ) {
   const done = task.status === 'done'
-  const lines = [`- [${done ? 'x' : ' '}] ${task.title}`]
-  if (task.notes) lines.push(...wrap(task.notes).map((l) => `      ${l}`))
+  const lines = [`- [${done ? 'x' : ' '}] ${squash(task.title)}`]
+  if (task.notes) lines.push(...wrap(squash(task.notes)).map((l) => `      ${l}`))
   if (done) lines[lines.length - 1] += ` (${doneDate ?? doneDateOf(task.doneAt)})`
   return lines
 }

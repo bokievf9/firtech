@@ -11,6 +11,7 @@ const MAX_BODY = 20_000
 
 // The parsed JSON body, or undefined when it is missing, too large or not JSON.
 export async function readJson(request: Request): Promise<unknown> {
+  if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY) return undefined
   const text = await request.text().catch(() => '')
   if (!text || text.length > MAX_BODY) return undefined
   try {

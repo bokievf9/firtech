@@ -105,7 +105,7 @@ export function briefing(input: {
     .slice(0, 40)
     .map(
       (t) =>
-        `- ${t.id} [${t.status}, приоритет ${t.priority}${t.due ? `, срок ${t.due}` : ''}, ${t.project}]: ${t.title}`,
+        `- ${t.id} [${t.status}, приоритет ${t.priority}${t.due ? `, срок ${t.due}` : ''}, ${t.project}]: ${t.title.replace(/\s+/g, ' ')}`,
     )
   const igLines = (input.instagram ?? []).map(
     (i) =>

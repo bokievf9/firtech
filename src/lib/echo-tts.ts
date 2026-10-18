@@ -37,6 +37,7 @@ export async function handleTts(request: Request) {
   recent.push(now)
   hits.set(key, recent)
 
+  if (Number(request.headers.get('content-length') ?? 0) > 5_000) return fail(413, 'too_large')
   const body = (await request.json().catch(() => null)) as { text?: unknown } | null
   const text = typeof body?.text === 'string' ? body.text.trim() : ''
   if (!text || text.length > 600) return fail(400, 'bad_request')
@@ -48,6 +49,7 @@ export async function handleTts(request: Request) {
       body: JSON.stringify({ text }),
       signal: AbortSignal.timeout(15_000),
       cache: 'no-store',
+      redirect: 'error',
     })
     if (!upstream.ok || !upstream.body) return fail(502, 'tts_failed')
     return new Response(upstream.body, {

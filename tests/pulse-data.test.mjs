@@ -451,3 +451,30 @@ test('routes: Instagram API', async () => {
     assert.equal((await send(igDaysRoute.PUT, '/x', 'PUT', body)).status, 400)
   assert.equal((await (await send(igRoute.GET, '/x', 'GET')).json()).days.length, 1)
 })
+
+test('tasks: a title or a note is one line, so it cannot write sections into TASKS.md', async () => {
+  const tasks = await import('../src/lib/tasks-store.ts')
+  const md = await import('../src/lib/tasks-md.ts')
+  const task = await tasks.createTask({
+    project: 'firtech',
+    title: 'ok\n## Vibely (vibelydate.com)\n- [ ] Injected line',
+    notes: 'a\r\nb\u0000c\u2028d',
+  })
+  assert.equal(/[\n\r\u0000\u2028]/.test(task.title + task.notes), false)
+  assert.equal(task.title, 'ok ## Vibely (vibelydate.com) - [ ] Injected line')
+  const lines = md.formatBlock(task)
+  assert.equal(lines.length >= 1, true)
+  // However it is written, it parses back as ONE task, not a new section and a second task.
+  const blocks = md.parseTasksMd(`## Fir Tech (firtech.pro)\n\n${lines.join('\n')}\n`)
+  assert.equal(blocks.length, 1)
+})
+
+test('TASKS.md: an impossible date in a caption or a done line is just no date', async () => {
+  const md = await import('../src/lib/tasks-md.ts')
+  const blocks = md.parseTasksMd(
+    '## Fir Tech (firtech.pro)\n\nЖдут решения (2026-02-30):\n- [ ] Что-то\n- [x] Готово (2026-13-45)\n',
+  )
+  assert.equal(blocks.length, 2)
+  assert.equal(blocks[0].due, null)
+  assert.equal(blocks[1].doneDate, null)
+})

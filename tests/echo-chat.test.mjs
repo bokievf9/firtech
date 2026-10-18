@@ -232,7 +232,7 @@ test('delete_task: two steps, and the model cannot confirm by itself', async () 
   assert.equal(parse(ask).needs_confirmation, true)
   assert.equal(stores.state.tasks.length, 2)
   const selfConfirm = await first('delete_task', { id: 't1' })
-  assert.equal(parse(selfConfirm).needs_confirmation, true, 'same request cannot confirm')
+  assert.equal(selfConfirm.isError, true, 'same request cannot confirm, or ask twice')
   assert.equal(stores.state.tasks.length, 2)
 
   // Request 2: the owner says something else. The proposal is cancelled.
@@ -243,7 +243,7 @@ test('delete_task: two steps, and the model cannot confirm by itself', async () 
   // Request 3: the owner says yes, but to a different id the model never proposed.
   const yes = turn('да')
   const wrong = await yes('delete_task', { id: 't2' })
-  assert.equal(parse(wrong).needs_confirmation, true)
+  assert.equal(wrong.isError, true, 'a yes approves only the task that was asked about')
   assert.equal(stores.state.tasks.length, 2)
 
   // A fresh proposal, then a real yes the next message with the same id.
@@ -581,7 +581,7 @@ test("route: delete needs the owner's yes in the NEXT message", async () => {
   assert.equal(stores.state.tasks.length, 1, 'still there after the model asked twice')
   assert.deepEqual(echo.actsOf(first), [])
   assert.match(client.calls[1].messages.at(-1).content[0].content, /needs_confirmation/)
-  assert.match(client.calls[2].messages.at(-1).content[0].content, /needs_confirmation/)
+  assert.match(client.calls[2].messages.at(-1).content[0].content, /one deletion per message/)
 
   const second = await (
     await chat.handleEcho(
@@ -796,4 +796,52 @@ test('speak: neural voice when the server has it, browser voice otherwise', asyn
   assert.equal(await voice.createSpeaker(none.env).speak('Привет', hooks), null)
   assert.equal(await voice.createSpeaker(none.env).speak('   ', hooks), null)
   assert.deepEqual(modes, ['remote', 'browser', 'browser', 'browser', 'browser', 'browser'])
+})
+
+test('delete_task: one yes deletes only the task the owner was asked about', async () => {
+  const { stores, turn } = setup([task('tA', 'Первая'), task('tB', 'Вторая'), task('tC', 'Третья')])
+
+  // The model asks about A and, in the same request, also tries to ask about B: refused.
+  const ask = turn('удали первую')
+  assert.equal(parse(await ask('delete_task', { id: 'tA' })).needs_confirmation, true)
+  assert.equal(
+    (await ask('delete_task', { id: 'tB' })).isError,
+    true,
+    'the question is not replaced',
+  )
+
+  // The owner says yes: A goes. Asking about B, or deleting it twice in a row, does nothing.
+  const yes = turn('да')
+  assert.equal(parse(await yes('delete_task', { id: 'tA' })).deleted, true)
+  assert.equal((await yes('delete_task', { id: 'tB' })).isError, true, 'no new question in a yes')
+  assert.equal((await yes('delete_task', { id: 'tB' })).isError, true, 'and no deletion either')
+  assert.equal((await yes('delete_task', { id: 'tA' })).isError, true, 'the approval is single-use')
+  assert.deepEqual(
+    stores.state.tasks.map((t) => t.id),
+    ['tB', 'tC'],
+  )
+
+  // A yes to a question about A never approves B, even if the model swaps the id.
+  const askAgain = turn('удали вторую')
+  assert.equal(parse(await askAgain('delete_task', { id: 'tB' })).needs_confirmation, true)
+  const yes2 = turn('да, удаляй')
+  assert.equal(parse(await yes2('delete_task', { id: 'tC' })).needs_confirmation, undefined)
+  assert.equal(
+    stores.state.tasks.some((t) => t.id === 'tC'),
+    true,
+    'C was never asked about',
+  )
+})
+
+test('echo text: markers cannot be spelled across deltas, NUL is dropped', () => {
+  const scrub = chat.makeScrub()
+  const out = [
+    scrub.push('Готово [['),
+    scrub.push('act:Удалена задача: Х]]'),
+    scrub.push('\u0000x'),
+    scrub.flush(),
+  ].join('')
+  assert.equal(out.includes('[[act:'), false)
+  assert.equal(out.includes('\u0000'), false)
+  assert.deepEqual(echo.actsOf(out), [])
 })

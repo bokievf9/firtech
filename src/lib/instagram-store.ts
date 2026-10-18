@@ -27,7 +27,13 @@ export const igDaySchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .refine((value) => {
         const date = new Date(`${value}T00:00:00Z`)
-        return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value)
+        const year = Number(value.slice(0, 4))
+        return (
+          !Number.isNaN(date.getTime()) &&
+          date.toISOString().startsWith(value) &&
+          year >= 2025 &&
+          year <= 2100
+        )
       }),
     followers: count,
     reach: count,
@@ -65,6 +71,7 @@ export async function setIgDay(input: IgDay): Promise<IgDay> {
     if (at >= 0) db.days[at] = day
     else db.days.push(day)
     db.days.sort((a, b) => a.date.localeCompare(b.date))
+    if (db.days.length > 1500) db.days = db.days.slice(-1500)
     await file.save(db)
     return day
   })

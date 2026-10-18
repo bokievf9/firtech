@@ -25,13 +25,21 @@ const due = z
   })
   .nullable()
 
+// One line only: line breaks and control characters in a title or note would write new sections and
+// tasks into TASKS.md (read by every Claude session) and break the Echo briefing.
+const oneLine = (text: string) =>
+  text
+    .replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
 const fields = {
   project: z.enum(projects),
-  title: z.string().trim().min(1).max(200),
+  title: z.string().transform(oneLine).pipe(z.string().min(1).max(200)),
   status: z.enum(statuses),
   priority: z.enum(priorities),
   due,
-  notes: z.string().trim().max(2000),
+  notes: z.string().transform(oneLine).pipe(z.string().max(2000)),
 }
 
 // Strict: unknown fields are rejected, so a typo never silently does nothing.
@@ -88,9 +96,15 @@ function build(input: NewTask, now: string, ids: Set<string>): Task {
   }
 }
 
+// A ceiling so a runaway loop (or a hostile import) cannot grow the file without end.
+const MAX_TASKS = 2000
+
 export function createTask(input: NewTask): Promise<Task> {
   return file.serialize(async () => {
     const db = await file.load()
+    if (db.tasks.length >= MAX_TASKS) {
+      throw new z.ZodError([{ code: 'custom', path: [], message: 'too many tasks' }])
+    }
     const task = build(input, new Date().toISOString(), new Set(db.tasks.map((t) => t.id)))
     db.tasks.push(task)
     await file.save(db)

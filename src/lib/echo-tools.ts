@@ -49,11 +49,21 @@ export function isExplicitYes(text: string) {
 }
 
 type Pending = { id: string; title: string; seq: number; at: number }
+export type Request = {
+  seq: number
+  confirmed: boolean
+  approvedId: string | null
+  used: boolean
+  proposed: boolean
+  now: number
+}
 const PENDING_TTL_MS = 5 * 60_000
 
 // Pending deletions per session. A request calls begin() with the owner's message first:
-// the deletion proceeds only if a deletion was proposed in an EARLIER request of this session and
-// this request's user message is an explicit yes. The model's own tool calls never set that flag.
+// a deletion proceeds only if it was proposed in an EARLIER request of this session and this
+// request's user message is an explicit yes. begin() turns that yes into ONE approved id for this
+// request and clears the pending state, so one yes deletes at most the one task the owner was
+// asked about, and the model's own tool calls can never create an approval.
 export class Confirmations {
   private pending = new Map<string, Pending>()
   private seq = new Map<string, number>()
@@ -64,21 +74,33 @@ export class Confirmations {
     const p = this.pending.get(session)
     const fresh = !!p && p.seq < seq && now - p.at < PENDING_TTL_MS
     const confirmed = fresh && isExplicitYes(userText)
-    // Anything but a yes right after the question cancels the pending deletion.
-    if (p && !confirmed) this.pending.delete(session)
-    return { seq, confirmed, now }
+    // Whatever the answer was, the question is used up: a yes approves exactly p.id, anything
+    // else cancels it.
+    if (p) this.pending.delete(session)
+    return {
+      seq,
+      confirmed,
+      approvedId: confirmed && p ? p.id : null,
+      used: false,
+      proposed: false,
+      now,
+    }
   }
 
-  propose(session: string, id: string, title: string, seq: number, now: number) {
-    this.pending.set(session, { id, title, seq, at: now })
+  // At most one question per request, and none in a request that already carried an approval,
+  // so the owner always sees which task a later "yes" refers to.
+  propose(session: string, id: string, title: string, request: Request) {
+    if (request.proposed || request.used || request.approvedId) return false
+    request.proposed = true
+    this.pending.set(session, { id, title, seq: request.seq, at: request.now })
+    return true
   }
 
-  // Consumes the pending deletion when this request is the owner's yes for exactly this id.
-  take(session: string, id: string, confirmed: boolean) {
-    const p = this.pending.get(session)
-    if (!confirmed || !p || p.id !== id) return null
-    this.pending.delete(session)
-    return p
+  // True once, for exactly the task the owner said yes to in this request.
+  take(id: string, request: Request) {
+    if (!request.approvedId || request.used || request.approvedId !== id) return false
+    request.used = true
+    return true
   }
 
   peek(session: string) {
@@ -259,7 +281,7 @@ export type ToolContext = {
   stores: EchoStores
   confirmations: Confirmations
   session: string
-  request: { seq: number; confirmed: boolean; now: number }
+  request: Request
 }
 
 async function resolve(ctx: ToolContext, input: { id?: string; match?: string }) {
@@ -343,15 +365,10 @@ export async function runTool(
         const found = await resolve(ctx, v)
         if (found.error) return found.error
         const { task } = found
-        const taken = ctx.confirmations.take(ctx.session, task.id, ctx.request.confirmed)
-        if (!taken) {
-          ctx.confirmations.propose(
-            ctx.session,
-            task.id,
-            task.title,
-            ctx.request.seq,
-            ctx.request.now,
-          )
+        if (!ctx.confirmations.take(task.id, ctx.request)) {
+          if (!ctx.confirmations.propose(ctx.session, task.id, task.title, ctx.request)) {
+            return err('one deletion per message: ask the owner and wait for the next message')
+          }
           return out({
             needs_confirmation: true,
             id: task.id,

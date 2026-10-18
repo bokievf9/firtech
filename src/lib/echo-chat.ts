@@ -75,18 +75,44 @@ export const echoLimits = {
 const fail = (status: number, error: string) =>
   Response.json({ ok: false, error }, { status, headers: { 'cache-control': 'no-store' } })
 
-// The model must not be able to forge an action chip with its own text.
-const scrub = (text: string) => text.replaceAll('[[act:', '[act:')
+// The model must not be able to forge an action chip or an error marker with its own text. Deltas
+// can cut "[[" in two, so a trailing "[" is held back until the next delta; "[[" never passes and
+// the NUL that starts error markers is dropped.
+export function makeScrub() {
+  let carry = ''
+  return {
+    push(text: string) {
+      let t = carry + text
+      carry = ''
+      const open = t.match(/\[+$/)
+      if (open) {
+        carry = open[0]
+        t = t.slice(0, -carry.length)
+      }
+      return t.replaceAll('\u0000', '').replaceAll('[[', '[ [')
+    },
+    flush() {
+      const rest = carry
+      carry = ''
+      return rest.replaceAll('[[', '[ [')
+    },
+  }
+}
+
+// Bodies bigger than the schema allows (24 messages of 2,000 characters) are refused before reading.
+const MAX_BODY = 100_000
 
 export async function handleEcho(request: Request) {
   if (!process.env.ANTHROPIC_API_KEY) return fail(503, 'not_configured')
   const session = readCookie(request) ?? 'none'
   if (echoLimits.full(session)) return fail(429, 'rate_limited')
+  // Counted right away, so parallel requests cannot all pass the check before any of them is noted.
+  echoLimits.hit(session)
   if ((await spentToday()) >= dailyCapUsd()) return fail(429, 'daily_cap')
+  if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY) return fail(413, 'too_large')
 
   const parsed = chatRequest.safeParse(await request.json().catch(() => null))
   if (!parsed.success) return fail(400, 'bad_request')
-  echoLimits.hit(session)
 
   const lastUser = parsed.data.messages.at(-1)?.content ?? ''
   const modelKey = pickModel(parsed.data.model, lastUser)
@@ -128,10 +154,21 @@ export async function handleEcho(request: Request) {
     async start(controller) {
       const send = (text: string) => controller.enqueue(encoder.encode(text))
       const messages: unknown[] = [...parsed.data.messages]
+      const scrub = makeScrub()
+      // The call in flight: if the client leaves mid-stream, what it already used is still counted.
+      const live: {
+        stream: { currentMessage?: { usage?: Parameters<typeof costUsd>[0] } } | null
+      } = {
+        stream: null,
+      }
       try {
         for (let step = 0; step < MAX_STEPS; step++) {
           if (step > 0) {
             echoLimits.hit(session)
+            if (echoLimits.full(session)) {
+              send(FAIL + 'rate_limited')
+              break
+            }
             if ((await spentToday()) >= dailyCapUsd()) {
               send(FAIL + 'daily_cap')
               break
@@ -153,16 +190,20 @@ export async function handleEcho(request: Request) {
             },
             { signal: request.signal },
           )
+          live.stream = stream as unknown as typeof live.stream
           for await (const event of stream) {
             if (
               event.type === 'content_block_delta' &&
               event.delta?.type === 'text_delta' &&
               event.delta.text
             ) {
-              send(scrub(event.delta.text))
+              send(scrub.push(event.delta.text))
             }
           }
           const final = await stream.finalMessage()
+          const rest = scrub.flush()
+          if (rest) send(rest)
+          live.stream = null
           // Every call of the loop is paid and counted, even when a later one fails.
           await addSpend(costUsd(final.usage, modelKey)).catch((error) =>
             console.error('[echo] could not record spend', error),
@@ -193,6 +234,8 @@ export async function handleEcho(request: Request) {
           messages.push({ role: 'user', content: results })
         }
       } catch (error) {
+        const used = live.stream?.currentMessage?.usage
+        if (used) await addSpend(costUsd(used, modelKey)).catch(() => {})
         if (request.signal.aborted) return controller.close()
         const code =
           error instanceof Anthropic.RateLimitError
