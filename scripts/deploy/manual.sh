@@ -16,6 +16,8 @@ HOST=deploy@68.183.177.183
 SSH=(ssh -i "$HOME/.ssh/id_ed25519_firtech" -o IdentitiesOnly=yes -o BatchMode=yes)
 SCP=(scp -q -i "$HOME/.ssh/id_ed25519_firtech" -o IdentitiesOnly=yes -o BatchMode=yes)
 TG=$(grep -E '^NEXT_PUBLIC_TELEGRAM_USERNAME=' .env.local | cut -d= -f2- || true)
+# Yandex Metrika counter id (public, digits). Empty builds the site without the tag.
+YM=$(grep -E '^NEXT_PUBLIC_YM_ID=' .env.local | cut -d= -f2- || true)
 SHA=$(git rev-parse --short=7 HEAD)
 RELEASE="$(date -u +%Y%m%d%H%M%S)-$SHA"
 WORK=$(mktemp -d)
@@ -31,7 +33,7 @@ git rev-parse HEAD > "$WORK/REVISION.src"
   npx next typegen >/dev/null && npm run typecheck >/dev/null && npm run lint >/dev/null &&
     npm test >/dev/null || { echo "Checks failed: run typecheck, lint and tests locally"; exit 1; }
   NEXT_PUBLIC_SITE_URL=https://firtech.pro NEXT_PUBLIC_TELEGRAM_USERNAME="$TG" \
-    NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=firtech_bot NEXT_DEPLOYMENT_ID="$SHA" npm run build >/dev/null
+    NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=firtech_bot NEXT_PUBLIC_YM_ID="$YM" NEXT_DEPLOYMENT_ID="$SHA" npm run build >/dev/null
   scripts/deploy/assemble.sh "release/$RELEASE"
   cp REVISION.src "release/$RELEASE/REVISION"
   # The VPS is linux x64: add sharp's Linux binaries next to the macOS ones, at the versions the

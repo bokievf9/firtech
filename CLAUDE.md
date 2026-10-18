@@ -60,8 +60,13 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   from the form consent (`[brackets]` mark the link) and the footer. Update it with a new date
   whenever form fields, storage or analytics change.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
-  set (owner, 2026-10-16: not used for now; the privacy page hides its analytics section without it). Goals via `track()` in `src/lib/analytics.ts` (the `Goal` union is the list to mirror in
-  Metrika); `t.me` links are counted by one listener, give new ones a `data-place`.
+  set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
+  113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass
+  it at build time). Tag options: Webvisor, click map, link tracking, accurate bounce, `ssr`;
+  inputs carry `ym-disable-keys` so typed text is never recorded. Goals via `track()` in
+  `src/lib/analytics.ts` (the `Goal` union is the list to mirror in Metrika as "JavaScript event"
+  goals, identifier = goal name); `t.me` links are counted by one listener (give new ones a
+  `data-place`) and main buttons by `data-cta`.
 - Motion: Motion (`motion/react`) in client leaf components, motion values for pointer effects.
   Use `useReducedMotion` from `@/lib/use-reduced-motion` (hydration-safe), not Motion's own;
   `MotionProvider` (MotionConfig `reducedMotion="user"`) wraps the layout. Logos come from
