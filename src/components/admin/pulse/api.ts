@@ -32,4 +32,4 @@ export async function api<T>(
 }
 
 export const taskScope = admin.pulse.tasks.errors
-export const igScope = admin.pulse.ig.errors
+export const igScope = admin.pulse.tasks.errors

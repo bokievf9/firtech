@@ -47,7 +47,7 @@ export type PulseSnapshot = {
   sites: SiteStatus[]
   tasks: Task[]
   leads: { today: number; week: number; month: number; funnel: Record<string, number>; upcoming: number; stale: number }
-  instagram: { next: IgItem[]; days: IgDay[] }
+  instagram: { week: IgItem[]; days: IgDay[] } // week = this Monday to Sunday (Dushanbe), published ones too
 }
 
 // HTTP API (all under /api/admin, session cookie + same-origin POST rules of src/lib/admin-guard.ts).

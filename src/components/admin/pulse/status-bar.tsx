@@ -3,17 +3,11 @@
 import { useEffect, useState } from 'react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import type { SiteStatus } from '@/lib/pulse-types'
+import { usePulse } from './pulse-provider'
 
 const t = admin.pulse
 
 const zone = 'Asia/Dushanbe'
-const dateFormat = new Intl.DateTimeFormat('ru-RU', {
-  timeZone: zone,
-  weekday: 'short',
-  day: 'numeric',
-  month: 'long',
-})
 const timeFormat = new Intl.DateTimeFormat('ru-RU', {
   timeZone: zone,
   hour: '2-digit',
@@ -21,10 +15,11 @@ const timeFormat = new Intl.DateTimeFormat('ru-RU', {
   hour12: false,
 })
 
-// Live status of both sites and today's date and time in Dushanbe. The first render uses the
-// server's clock reading, so the HTML matches; the clock then ticks on the client.
-export function StatusBar({ sites, nowIso }: { sites: SiteStatus[]; nowIso: string }) {
-  const [now, setNow] = useState(() => Date.parse(nowIso))
+// Live status of both sites and the time in Dushanbe. The first render uses the server's clock
+// reading, so the HTML matches; the clock then ticks on the client.
+export function StatusBar({ className }: { className?: string }) {
+  const { data } = usePulse()
+  const [now, setNow] = useState(() => Date.parse(data.snapshot.now))
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 15_000)
     return () => clearInterval(id)
@@ -33,11 +28,11 @@ export function StatusBar({ sites, nowIso }: { sites: SiteStatus[]; nowIso: stri
   return (
     <section
       aria-label={t.sites}
-      className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-card border border-line bg-surface px-4 py-2.5"
+      className={cn('flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm', className)}
     >
       <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
-        {sites.map((site) => (
-          <li key={site.id} className="flex items-center gap-2 text-sm">
+        {data.snapshot.sites.map((site) => (
+          <li key={site.id} className="flex items-center gap-2">
             <span
               aria-hidden="true"
               className={cn(
@@ -57,8 +52,7 @@ export function StatusBar({ sites, nowIso }: { sites: SiteStatus[]; nowIso: stri
           </li>
         ))}
       </ul>
-      <p className="flex items-baseline gap-3 text-sm text-muted">
-        <span suppressHydrationWarning>{dateFormat.format(date)}</span>
+      <p className="flex items-baseline gap-2 text-muted">
         <time
           dateTime={date.toISOString()}
           suppressHydrationWarning
@@ -66,9 +60,7 @@ export function StatusBar({ sites, nowIso }: { sites: SiteStatus[]; nowIso: stri
         >
           {timeFormat.format(date)}
         </time>
-        <span className="hidden font-mono text-[10.5px] tracking-[0.16em] text-faint uppercase sm:inline">
-          {t.timeLabel}
-        </span>
+        <span>{t.timeLabel}</span>
       </p>
     </section>
   )

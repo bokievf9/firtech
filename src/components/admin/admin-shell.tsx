@@ -1,9 +1,10 @@
 'use client'
 
-import { DownloadSimple, SignOut } from '@phosphor-icons/react'
+import { DownloadSimple, DotsThree } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { Logo } from '@/components/logo'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -15,8 +16,39 @@ const links = [
   { href: '/admin/echo', label: admin.nav.echo },
 ] as const
 
-// `fit` makes the page exactly one screen tall on desktop (the Pulse home); panels scroll inside.
-export function AdminShell({ children, fit }: { children: React.ReactNode; fit?: boolean }) {
+// Switch between the two layouts of the Pulse (/admin?v=a or ?v=b, B by default). Plain links that
+// keep the other query parameters, so it works without JavaScript.
+function ViewSwitch() {
+  const params = useSearchParams()
+  const current = params.get('v') === 'a' ? 'a' : 'b'
+  const href = (view: 'a' | 'b') => {
+    const next = new URLSearchParams(params.toString())
+    next.set('v', view)
+    return `/admin?${next.toString()}`
+  }
+  return (
+    <nav
+      aria-label={admin.pulse.views.label}
+      className="flex rounded-full border border-line p-0.5 text-sm"
+    >
+      {(['a', 'b'] as const).map((view) => (
+        <Link
+          key={view}
+          href={href(view)}
+          aria-current={current === view ? 'page' : undefined}
+          className={cn(
+            'inline-flex h-10 items-center rounded-full px-3.5 whitespace-nowrap transition-colors',
+            current === view ? 'bg-fg text-bg' : 'text-muted hover:text-fg',
+          )}
+        >
+          {admin.pulse.views[view]}
+        </Link>
+      ))}
+    </nav>
+  )
+}
+
+export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const [busy, setBusy] = useState(false)
@@ -35,15 +67,12 @@ export function AdminShell({ children, fit }: { children: React.ReactNode; fit?:
 
   return (
     <div
-      className={cn(
-        'mx-auto flex min-h-[100dvh] max-w-[1440px] flex-col px-4 pb-10 sm:px-6 lg:px-8',
-        fit && 'lg:h-[100dvh] lg:min-h-0 lg:pb-4',
-      )}
+      className="mx-auto flex min-h-[100dvh] max-w-[1440px] flex-col px-4 pb-10 sm:px-6 lg:px-8"
     >
       <header className="sticky top-0 z-30 -mx-4 flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <Link href="/admin" className="flex items-center gap-2.5">
           <Logo className="text-[17px]" />
-          <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[10px] tracking-wide text-faint uppercase">
+          <span className="hidden rounded-full border border-line px-2.5 py-0.5 text-xs text-muted sm:inline">
             admin
           </span>
         </Link>
@@ -57,7 +86,7 @@ export function AdminShell({ children, fit }: { children: React.ReactNode; fit?:
                 href={link.href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'shrink-0 rounded-full px-4 py-2 text-sm transition-colors',
+                  'inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm transition-colors',
                   active ? 'bg-surface-2 text-fg' : 'text-muted hover:text-fg',
                 )}
               >
@@ -67,29 +96,34 @@ export function AdminShell({ children, fit }: { children: React.ReactNode; fit?:
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          {/* A file download from a route handler, not a page, so a plain link. */}
-          <a
-            href="/api/admin/export"
-            download
-            className="inline-flex items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm text-fg transition-colors hover:border-accent hover:text-accent"
-          >
-            <DownloadSimple size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">{admin.nav.export}</span>
-            <span className="sm:hidden">CSV</span>
-          </a>
+          {pathname === '/admin' ? (
+            <Suspense fallback={null}>
+              <ViewSwitch />
+            </Suspense>
+          ) : null}
+          <ThemeToggle />
           <details className="relative">
             <summary
-              aria-label={admin.nav.logout}
-              className="flex cursor-pointer list-none items-center rounded-full border border-line px-3 py-2 text-muted transition-colors hover:text-fg [&::-webkit-details-marker]:hidden"
+              aria-label={admin.pulse.menu}
+              className="grid size-11 cursor-pointer list-none place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg [&::-webkit-details-marker]:hidden"
             >
-              <SignOut size={16} aria-hidden="true" />
+              <DotsThree size={20} weight="bold" aria-hidden="true" />
             </summary>
-            <div className="absolute right-0 z-40 mt-2 w-64 rounded-card border border-line-strong bg-surface-2 p-2 shadow-2xl">
+            <div className="absolute right-0 z-40 mt-2 w-72 rounded-card border border-line-strong bg-surface-2 p-2 shadow-2xl">
+              {/* A file download from a route handler, not a page, so a plain link. */}
+              <a
+                href="/api/admin/export"
+                download
+                className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm hover:bg-surface"
+              >
+                <DownloadSimple size={16} aria-hidden="true" />
+                {admin.nav.export}
+              </a>
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => logout(false)}
-                className="w-full rounded-xl px-3 py-2.5 text-left text-sm hover:bg-surface"
+                className="min-h-11 w-full rounded-xl px-3 text-left text-sm hover:bg-surface"
               >
                 {admin.nav.logout}
               </button>
@@ -97,7 +131,7 @@ export function AdminShell({ children, fit }: { children: React.ReactNode; fit?:
                 type="button"
                 disabled={busy}
                 onClick={() => logout(true)}
-                className="w-full rounded-xl px-3 py-2.5 text-left text-sm text-danger hover:bg-surface"
+                className="min-h-11 w-full rounded-xl px-3 text-left text-sm text-danger hover:bg-surface"
               >
                 {admin.nav.logoutAll}
               </button>
@@ -105,7 +139,7 @@ export function AdminShell({ children, fit }: { children: React.ReactNode; fit?:
           </details>
         </div>
       </header>
-      <main className={cn('flex-1 pt-6', fit && 'lg:min-h-0 lg:pt-3')}>{children}</main>
+      <main className="flex-1 pt-6">{children}</main>
     </div>
   )
 }

@@ -6,7 +6,7 @@ import { listIgDays, listIgItems } from './instagram-store'
 import { projectHealth } from './project-health'
 import { demoIgDays, demoIgItems, demoLeads, demoTasks, pulseDemoEnabled } from './pulse-demo'
 import type { IgDay, IgItem, PulseSnapshot, SiteStatus, Task } from './pulse-types'
-import { nextIgItems } from './pulse-view'
+import { weekItems } from './pulse-today'
 import { allLeads } from './store'
 import { listTasks } from './tasks-store'
 
@@ -19,8 +19,8 @@ export type PulseData = {
   // Lead counts in the shape the Echo console already takes.
   echoLeads: LeadSummary
   series: number[]
-  // The first booked call ahead, for the numbers column.
-  nextCall: { name: string; slot: string } | null
+  // Booked calls for the next 7 days, earliest first.
+  calls: { id: number; name: string; slot: string; state: 'pending' | 'confirmed' }[]
   today: string
   errors: { tasks: boolean; instagram: boolean; leads: boolean }
   demo: boolean
@@ -63,7 +63,6 @@ export async function getPulseData(now: number): Promise<PulseData> {
     }
   })
   const summary = leadSummary(stats)
-  const call = stats.upcoming[0]
 
   return {
     snapshot: {
@@ -78,12 +77,12 @@ export async function getPulseData(now: number): Promise<PulseData> {
         upcoming: stats.upcoming.length,
         stale: stats.stale.length,
       },
-      instagram: { next: nextIgItems(itemsRead.value, 6), days: daysRead.value },
+      instagram: { week: weekItems(itemsRead.value, dayKey(now)), days: daysRead.value },
     },
     goals: goals.map((g) => ({ project: g.project, progress: g.progress })),
     echoLeads: summary,
     series: stats.series,
-    nextCall: call ? { name: call.name, slot: call.slot } : null,
+    calls: stats.upcoming,
     today: dayKey(now),
     errors: {
       tasks: tasksRead.failed,

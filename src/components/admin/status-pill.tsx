@@ -5,7 +5,7 @@ import type { LeadStatus } from '@/lib/store'
 const tone: Record<LeadStatus, string> = {
   new: 'border-fg/25 text-fg',
   taken: 'border-line-strong text-muted',
-  called: 'border-accent/40 text-accent',
+  called: 'border-accent/40 text-accent-text',
   won: 'border-accent bg-accent text-accent-ink',
   lost: 'border-danger/40 text-danger',
 }

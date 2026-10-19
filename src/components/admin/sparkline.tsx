@@ -18,18 +18,18 @@ export function Sparkline({ values, label }: { values: number[]; label: string }
     >
       <polygon
         points={`0,${height} ${line} ${width},${height}`}
-        fill="var(--color-accent)"
+        fill="var(--color-accent-text)"
         opacity="0.1"
       />
       <polyline
         points={line}
         fill="none"
-        stroke="var(--color-accent)"
+        stroke="var(--color-accent-text)"
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      <circle cx={last[0]} cy={last[1]} r="2.5" fill="var(--color-accent)" />
+      <circle cx={last[0]} cy={last[1]} r="2.5" fill="var(--color-accent-text)" />
     </svg>
   )
 }

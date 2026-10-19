@@ -112,3 +112,33 @@ export function barPercent(count: number, max: number): number {
   if (count <= 0 || max <= 0) return 0
   return Math.max(4, Math.round((count / max) * 100))
 }
+
+// Russian plural form for a count: forms = [one, few, many] ("решение", "решения", "решений").
+export function plural(n: number, forms: readonly [string, string, string]): string {
+  const abs = Math.abs(n) % 100
+  const last = abs % 10
+  if (abs > 10 && abs < 20) return forms[2]
+  if (last === 1) return forms[0]
+  if (last >= 2 && last <= 4) return forms[1]
+  return forms[2]
+}
+
+// The lead funnel as steps of one path: everything that came, then the ones taken to work, the ones
+// that reached a call, the deals. A later status counts for the earlier steps too. Refusals are
+// kept apart (we do not know how far they got), "new" are the ones nobody has picked up yet.
+export function funnelSteps(funnel: Readonly<Record<string, number>>) {
+  const n = (key: string) => funnel[key] ?? 0
+  const lost = n('lost')
+  const fresh = n('new')
+  const came = fresh + n('taken') + n('called') + n('won') + lost
+  const taken = n('taken') + n('called') + n('won')
+  const called = n('called') + n('won')
+  const won = n('won')
+  return {
+    steps: { came, taken, called, won },
+    lost,
+    fresh,
+    // Share of all leads that became a deal, whole percent.
+    conversion: came > 0 ? Math.round((won / came) * 100) : 0,
+  }
+}

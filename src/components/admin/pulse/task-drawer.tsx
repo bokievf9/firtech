@@ -1,6 +1,6 @@
 'use client'
 
-import { CaretDown, Plus, Trash, X } from '@phosphor-icons/react'
+import { Check, Sparkle, Sun, Trash, X } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { admin, fillAdmin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -11,87 +11,39 @@ import {
   type TaskPriority,
   type TaskStatus,
 } from '@/lib/pulse-types'
-import { dueState, openCount, projectTasks, shortDate, sortTasks } from '@/lib/pulse-view'
-import { StatusButton } from './status-button'
-import type { TasksApi } from './use-tasks'
+import { stamp, tomorrowOf } from '@/lib/pulse-today'
+import { usePulse } from './pulse-provider'
+import { StatusSegments } from './status-segments'
 
 const t = admin.pulse.tasks
 const names = admin.pulse.projectNames
 
 const field =
-  'w-full rounded-xl border border-line bg-bg/60 px-3 text-sm outline-none placeholder:text-faint focus:border-accent/60'
+  'h-11 w-full rounded-xl border border-line bg-bg/60 px-3 text-[15px] text-fg outline-none placeholder:text-faint focus:border-accent/60'
+const label = 'grid gap-1.5 text-sm text-muted'
+const pill =
+  'inline-flex h-11 items-center justify-center gap-2 rounded-full border border-line-strong px-5 text-sm text-fg transition-colors hover:border-accent-text disabled:opacity-50'
 
-function DueChip({ due, today }: { due: string | null; today: string }) {
-  const state = dueState(due, today)
-  if (!due) return null
-  return (
-    <span
-      className={cn(
-        'shrink-0 font-mono text-[11px] tabular-nums',
-        state === 'overdue' ? 'text-danger' : state === 'today' ? 'text-accent' : 'text-faint',
-      )}
-    >
-      {state === 'overdue'
-        ? `${shortDate(due)} ${t.dueOverdue}`
-        : state === 'today'
-          ? t.dueToday
-          : shortDate(due)}
-    </span>
-  )
-}
-
-function TaskRow({ task, api, today }: { task: Task; api: TasksApi; today: string }) {
-  const [open, setOpen] = useState(false)
-  const busy = api.pending.has(task.id)
-  const panelId = `task-${task.id}`
-  return (
-    <li className={cn('py-2.5', task.status === 'blocked' && 'bg-accent/[0.03]')}>
-      <TaskSummary
-        task={task}
-        api={api}
-        today={today}
-        open={open}
-        panelId={panelId}
-        busy={busy}
-        onToggle={() => setOpen((v) => !v)}
-      />
-      {/* Keyed by the saved text, so the fields follow the server copy after a save or a rollback. */}
-      {open ? (
-        <TaskEditor
-          key={`${task.title}\n${task.notes}`}
-          task={task}
-          api={api}
-          panelId={panelId}
-          busy={busy}
-        />
-      ) : null}
-    </li>
-  )
-}
-
-function TaskEditor({
-  task,
-  api,
-  panelId,
-  busy,
-}: {
-  task: Task
-  api: TasksApi
-  panelId: string
-  busy: boolean
-}) {
+// Full editor of one task: the title, status as segments, date, priority, project, a note, and the
+// quick actions (done, to tomorrow, ask Echo). The task comes from the live list, so a change made
+// here shows on the page behind at once.
+function TaskEditor({ task }: { task: Task }) {
+  const { tasks, change, closeTask, echo, data } = usePulse()
+  const busy = tasks.pending.has(task.id)
   const [title, setTitle] = useState(task.title)
   const [notes, setNotes] = useState(task.notes)
+  const [sure, setSure] = useState(false)
+  const done = task.status === 'done'
 
   function saveTitle() {
     const next = title.trim()
     if (!next) return setTitle(task.title)
-    if (next !== task.title) void api.update(task.id, { title: next })
+    if (next !== task.title) void tasks.update(task.id, { title: next })
   }
 
   return (
-    <div id={panelId} className="mt-3 grid gap-3 pl-0 sm:pl-[6.25rem]">
-      <label className="grid gap-1 text-xs text-faint">
+    <div className="grid content-start gap-4">
+      <label className={label}>
         {t.titleLabel}
         <input
           value={title}
@@ -101,30 +53,34 @@ function TaskEditor({
           onKeyDown={(e) => {
             if (e.key === 'Enter') e.currentTarget.blur()
           }}
-          className={cn(field, 'h-10 text-fg')}
+          className={field}
         />
       </label>
+
+      <StatusSegments
+        value={task.status}
+        disabled={busy}
+        onChange={(status: TaskStatus) => void tasks.update(task.id, { status })}
+      />
+
       <div className="grid grid-cols-2 gap-3">
-        <label className="grid gap-1 text-xs text-faint">
-          {t.statusLabel}
-          <select
-            value={task.status}
-            onChange={(e) => void api.update(task.id, { status: e.target.value as TaskStatus })}
-            className={cn(field, 'h-10 text-fg')}
-          >
-            {(Object.keys(t.status) as TaskStatus[]).map((s) => (
-              <option key={s} value={s}>
-                {t.status[s]}
-              </option>
-            ))}
-          </select>
+        <label className={label}>
+          {t.due}
+          <input
+            type="date"
+            value={task.due ?? ''}
+            onChange={(e) => void tasks.update(task.id, { due: e.target.value || null })}
+            className={cn(field, 'font-mono')}
+          />
         </label>
-        <label className="grid gap-1 text-xs text-faint">
+        <label className={label}>
           {t.priority}
           <select
             value={task.priority}
-            onChange={(e) => void api.update(task.id, { priority: e.target.value as TaskPriority })}
-            className={cn(field, 'h-10 text-fg')}
+            onChange={(e) =>
+              void tasks.update(task.id, { priority: e.target.value as TaskPriority })
+            }
+            className={field}
           >
             {(Object.keys(t.priorities) as TaskPriority[]).map((p) => (
               <option key={p} value={p}>
@@ -133,234 +89,161 @@ function TaskEditor({
             ))}
           </select>
         </label>
-        <label className="grid gap-1 text-xs text-faint">
-          {t.due}
-          <input
-            type="date"
-            value={task.due ?? ''}
-            onChange={(e) => void api.update(task.id, { due: e.target.value || null })}
-            className={cn(field, 'h-10 text-fg')}
-          />
-        </label>
-        <label className="grid gap-1 text-xs text-faint">
-          {t.forProject}
-          <select
-            value={task.project}
-            onChange={(e) => void api.update(task.id, { project: e.target.value as ProjectId })}
-            className={cn(field, 'h-10 text-fg')}
-          >
-            {projectIds.map((id) => (
-              <option key={id} value={id}>
-                {names[id]}
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
-      <label className="grid gap-1 text-xs text-faint">
+
+      <label className={label}>
+        {t.project}
+        <select
+          value={task.project}
+          onChange={(e) => void tasks.update(task.id, { project: e.target.value as ProjectId })}
+          className={field}
+        >
+          {projectIds.map((id) => (
+            <option key={id} value={id}>
+              {names[id]}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className={label}>
         {t.notes}
         <textarea
           value={notes}
           maxLength={2000}
-          rows={3}
+          rows={4}
           placeholder={t.notesPlaceholder}
           onChange={(e) => setNotes(e.target.value)}
-          onBlur={() => notes !== task.notes && void api.update(task.id, { notes })}
-          className={cn(field, 'resize-y py-2 text-fg')}
+          onBlur={() => notes !== task.notes && void tasks.update(task.id, { notes })}
+          className="w-full resize-y rounded-xl border border-line bg-bg/60 px-3 py-2.5 text-[15px] text-fg outline-none placeholder:text-faint focus:border-accent/60"
         />
       </label>
-      <div className="flex items-center justify-between gap-3">
-        <span className="font-mono text-[10.5px] tracking-wide text-faint uppercase">
-          {t.source[task.source]}
-        </span>
+
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
           disabled={busy}
           onClick={() => {
-            if (window.confirm(fillAdmin(t.removeConfirm, { title: task.title })))
-              void api.remove(task.id)
+            change(
+              task,
+              { status: done ? 'todo' : 'done' },
+              fillAdmin(done ? t.reopenToast : t.doneToast, { title: task.title }),
+            )
+            closeTask()
           }}
-          className="inline-flex h-9 items-center gap-2 rounded-full border border-line px-4 text-sm text-danger transition-colors hover:border-danger/60 disabled:opacity-50"
+          className="inline-flex h-11 items-center gap-2 rounded-full bg-accent px-6 text-sm font-medium text-accent-ink transition-transform duration-150 active:scale-[0.97] disabled:opacity-50"
         >
-          <Trash size={16} aria-hidden="true" />
-          {t.remove}
+          <Check size={16} weight="bold" aria-hidden="true" />
+          {done ? t.markOpen : t.markDone}
         </button>
+        <button
+          type="button"
+          disabled={busy || done}
+          onClick={() => {
+            change(
+              task,
+              { due: tomorrowOf(data.today) },
+              fillAdmin(t.postponeToast, { title: task.title }),
+            )
+            closeTask()
+          }}
+          className={pill}
+        >
+          <Sun size={16} aria-hidden="true" />
+          {t.postpone}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            closeTask()
+            echo.ask(fillAdmin(t.echoQuestion, { title: task.title, project: names[task.project] }))
+          }}
+          className={pill}
+        >
+          <Sparkle size={16} aria-hidden="true" />
+          {t.askEcho}
+        </button>
+      </div>
+
+      <div className="grid gap-3 border-t border-line pt-4 text-sm text-muted">
+        <p>
+          {fillAdmin(t.createdAt, { source: t.source[task.source], date: stamp(task.createdAt) })}
+          <br />
+          {fillAdmin(t.changedAt, { date: stamp(task.updatedAt) })}
+        </p>
+        {sure ? (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                closeTask()
+                void tasks.remove(task.id)
+              }}
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-danger/60 px-5 text-sm text-danger transition-colors hover:bg-danger/10 disabled:opacity-50"
+            >
+              <Trash size={16} aria-hidden="true" />
+              {t.removeSure}
+            </button>
+            <button type="button" onClick={() => setSure(false)} className={pill}>
+              {t.removeCancel}
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setSure(true)}
+            className="inline-flex h-11 w-fit items-center gap-2 rounded-full border border-line px-5 text-sm text-danger transition-colors hover:border-danger/60"
+          >
+            <Trash size={16} aria-hidden="true" />
+            {t.remove}
+          </button>
+        )}
       </div>
     </div>
   )
 }
 
-function TaskSummary({
-  task,
-  api,
-  today,
-  open,
-  panelId,
-  busy,
-  onToggle,
-}: {
-  task: Task
-  api: TasksApi
-  today: string
-  open: boolean
-  panelId: string
-  busy: boolean
-  onToggle: () => void
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <StatusButton
-        task={task}
-        busy={busy}
-        onChange={(status) => void api.update(task.id, { status })}
-      />
-      <span
-        className={cn(
-          'min-w-0 flex-1 truncate text-sm',
-          task.status === 'done' && 'text-faint line-through',
-        )}
-        title={task.title}
-      >
-        {task.title}
-      </span>
-      <DueChip due={task.due} today={today} />
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        aria-label={fillAdmin(t.editFor, { title: task.title })}
-        onClick={onToggle}
-        className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:text-fg"
-      >
-        <CaretDown
-          size={16}
-          aria-hidden="true"
-          className={cn(
-            'transition-transform duration-150 motion-reduce:transition-none',
-            open && 'rotate-180',
-          )}
-        />
-      </button>
-    </div>
-  )
-}
-
-// Full task editor for one project at a time, in a modal sheet (native dialog: focus is trapped
-// and Escape closes it).
-export function TaskDrawer({
-  project,
-  onProject,
-  onClose,
-  api,
-  today,
-}: {
-  project: ProjectId | null
-  onProject: (id: ProjectId) => void
-  onClose: () => void
-  api: TasksApi
-  today: string
-}) {
+// One task in a modal sheet from the right (native dialog: focus is trapped and Escape closes it).
+export function TaskDrawer() {
+  const { tasks, selected, closeTask } = usePulse()
   const dialog = useRef<HTMLDialogElement>(null)
-  const [draft, setDraft] = useState('')
+  const task = tasks.tasks.find((x) => x.id === selected) ?? null
+  const isOpen = task !== null
 
   useEffect(() => {
     const el = dialog.current
     if (!el) return
-    if (project && !el.open) el.showModal()
-    if (!project && el.open) el.close()
-  }, [project])
-
-  const list = project ? sortTasks(projectTasks(api.tasks, project)) : []
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    const title = draft.trim()
-    if (!title || !project || api.adding) return
-    if (await api.add(project, title)) setDraft('')
-  }
+    if (isOpen && !el.open) el.showModal()
+    if (!isOpen && el.open) el.close()
+  }, [isOpen])
 
   return (
     <dialog
       ref={dialog}
       aria-labelledby="task-drawer-title"
-      onClose={onClose}
+      onClose={closeTask}
       onClick={(e) => {
-        if (e.target === dialog.current) onClose()
+        if (e.target === dialog.current) closeTask()
       }}
-      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-none flex-col border-l border-line-strong bg-surface p-0 text-fg backdrop:bg-black/60 open:flex sm:w-[34rem]"
+      className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-none flex-col border-l border-line-strong bg-surface p-0 text-fg backdrop:bg-black/60 open:flex sm:w-[30rem]"
     >
-      <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+      <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
         <h2 id="task-drawer-title" className="font-brand text-lg font-bold tracking-tight">
-          {t.title}
+          {task ? names[task.project] : t.title}
         </h2>
         <button
           type="button"
-          onClick={onClose}
+          onClick={closeTask}
           aria-label={t.close}
-          className="grid size-10 place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg"
+          className="grid size-11 place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg"
         >
           <X size={18} aria-hidden="true" />
         </button>
       </header>
-      <div
-        role="group"
-        aria-label={t.forProject}
-        className="flex gap-1.5 overflow-x-auto px-5 py-3"
-      >
-        {projectIds.map((id) => (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={id === project}
-            onClick={() => onProject(id)}
-            className={cn(
-              'shrink-0 rounded-full border px-4 py-1.5 text-sm transition-colors',
-              id === project
-                ? 'border-accent/60 bg-accent/10 text-accent'
-                : 'border-line text-muted hover:text-fg',
-            )}
-          >
-            {names[id]}
-            <span className="ml-2 font-mono text-xs tabular-nums">{openCount(api.tasks, id)}</span>
-          </button>
-        ))}
-      </div>
-      <form onSubmit={submit} className="flex gap-2 px-5 pb-3">
-        <input
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          maxLength={200}
-          placeholder={t.addPlaceholder}
-          aria-label={t.addLabel}
-          autoComplete="off"
-          className={cn(field, 'h-11 min-w-0 flex-1')}
-        />
-        <button
-          type="submit"
-          disabled={!draft.trim() || api.adding}
-          className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-accent px-5 text-sm font-medium text-accent-ink transition-transform duration-150 active:scale-[0.97] disabled:opacity-40"
-        >
-          <Plus size={16} weight="bold" aria-hidden="true" />
-          {api.adding ? t.adding : t.addSubmit}
-        </button>
-      </form>
-      <p
-        role="alert"
-        aria-live="assertive"
-        className={cn('px-5 text-sm text-danger', api.error ? 'pb-2' : 'sr-only')}
-      >
-        {api.error}
-      </p>
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6">
-        {list.length ? (
-          <ul className="divide-y divide-line">
-            {list.map((task) => (
-              <TaskRow key={task.id} task={task} api={api} today={today} />
-            ))}
-          </ul>
-        ) : (
-          <p className="py-6 text-sm text-faint">{t.empty}</p>
-        )}
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+        {/* Keyed by what is saved, so the fields follow the server copy after a save or a rollback. */}
+        {task ? <TaskEditor key={`${task.id}\n${task.title}\n${task.notes}`} task={task} /> : null}
       </div>
     </dialog>
   )

@@ -112,7 +112,9 @@ export function EchoConsole({
   goals,
   leads,
   series,
-  compact = false,
+  chat = false,
+  question = null,
+  onActs,
 }: {
   projects: Project[]
   health: Health[]
@@ -120,9 +122,13 @@ export function EchoConsole({
   goals: Goal[]
   leads: LeadSummary
   series: number[]
-  // Narrow layout for the home page's center column or a mobile sheet: only the hologram and the
-  // chat, without the project, task and goal panels.
-  compact?: boolean
+  // Chat only, for the Pulse panel: no hologram and none of the project, task and goal panels. The
+  // full console with the hologram lives on /admin/echo.
+  chat?: boolean
+  // A question to ask as soon as it arrives (a new `id` asks again), for example from a task.
+  question?: { id: number; text: string } | null
+  // Called after an answer in which Echo changed something (added or edited a task).
+  onActs?: () => void
 }) {
   const [state, setState] = useState<EchoState>('idle')
   const [lines, setLines] = useState<Line[]>([{ role: 'assistant', text: t.greeting }])
@@ -309,6 +315,7 @@ export function EchoConsole({
         const spoken = stripActs(answer) || `Выполнено: ${actsOf(answer).join('; ')}`
         history.current.push({ role: 'assistant', content: spoken })
         setFocused(focusOf(answer))
+        if (actsOf(answer).length) onActs?.()
       } else {
         setLines((l) => l.slice(0, -1))
         history.current.pop()
@@ -320,8 +327,20 @@ export function EchoConsole({
       if (said && !failure && !ctl.signal.aborted) speak(said)
       else setState('idle')
     },
-    [state, speak],
+    [state, speak, onActs],
   )
+
+  // A question handed in from outside (a task's "ask Echo") is asked once per id.
+  const askRef = useRef(ask)
+  const asked = useRef<number | null>(null)
+  useEffect(() => {
+    askRef.current = ask
+  }, [ask])
+  useEffect(() => {
+    if (!question || asked.current === question.id) return
+    asked.current = question.id
+    void askRef.current(question.text)
+  }, [question])
 
   const stopListening = useCallback(() => {
     recognition.current?.stop()
@@ -426,8 +445,8 @@ export function EchoConsole({
     )
 
   return (
-    <div className={cn('grid gap-4', !compact && 'lg:grid-cols-12')}>
-      {compact ? null : (
+    <div className={cn('grid gap-4', chat ? 'h-full min-h-0 grid-rows-[minmax(0,1fr)]' : 'lg:grid-cols-12')}>
+      {chat ? null : (
         <div className="order-2 grid content-start gap-4 lg:order-1 lg:col-span-3">
           {projects.map((p, i) => {
             const h = health.find((x) => x.id === p.id)
@@ -438,7 +457,7 @@ export function EchoConsole({
                   <span
                     className={cn(
                       'flex items-center gap-1.5',
-                      h?.ok ? 'text-accent' : 'text-danger',
+                      h?.ok ? 'text-accent-text' : 'text-danger',
                     )}
                   >
                     <span
@@ -465,7 +484,7 @@ export function EchoConsole({
           <section className={panel('leads')}>
             <div className="flex items-baseline justify-between font-mono text-[10.5px] tracking-[0.16em] text-faint uppercase">
               <span>{t.leads}</span>
-              <span className="text-accent">{leads.conversion}%</span>
+              <span className="text-accent-text">{leads.conversion}%</span>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {[
@@ -494,13 +513,17 @@ export function EchoConsole({
       )}
 
       <div
-        className={cn('grid content-start gap-4', !compact && 'order-1 lg:order-2 lg:col-span-6')}
+        className={cn(
+          'grid gap-4',
+          chat ? 'h-full min-h-0 grid-rows-[minmax(0,1fr)]' : 'order-1 content-start lg:order-2 lg:col-span-6',
+        )}
       >
+        {chat ? null : (
         <section className="hud-stage relative overflow-hidden rounded-card border border-line bg-[radial-gradient(ellipse_at_50%_40%,rgb(181_235_106/0.07),transparent_65%)]">
           <Hologram
             state={state}
             level={level}
-            className={cn('block aspect-[5/4] w-full', !compact && 'sm:aspect-[4/3]')}
+            className={cn('block aspect-[5/4] w-full', !chat && 'sm:aspect-[4/3]')}
           />
           <div className="pointer-events-none absolute inset-0 p-7 sm:p-8">
             <span className="hud-corner left-3 top-3" />
@@ -509,13 +532,13 @@ export function EchoConsole({
             <span className="hud-corner bottom-3 left-3 -rotate-90" />
             <div className="flex items-start justify-between font-mono text-[10.5px] tracking-[0.18em] text-faint uppercase">
               <span>
-                <span className="text-accent">ECHO</span>
+                <span className="text-accent-text">ECHO</span>
                 <br />
                 fir.tech / admin
                 <br />
                 <span
                   aria-label={t.modelNote}
-                  className={cn(model === 'opus' ? 'text-accent' : 'text-muted')}
+                  className={cn(model === 'opus' ? 'text-accent-text' : 'text-muted')}
                 >
                   {model === 'opus' ? t.modelOpus : t.modelSonnet}
                 </span>
@@ -529,7 +552,7 @@ export function EchoConsole({
             <div className="absolute inset-x-0 bottom-6 flex flex-col items-center gap-2 px-6 text-center">
               <span
                 role="status"
-                className="rounded-full border border-accent/30 bg-bg/70 px-3 py-1 font-mono text-[11px] tracking-[0.2em] text-accent uppercase backdrop-blur"
+                className="rounded-full border border-accent/30 bg-bg/70 px-3 py-1 font-mono text-[11px] tracking-[0.2em] text-accent-text uppercase backdrop-blur"
               >
                 {t.states[state]}
               </span>
@@ -537,12 +560,21 @@ export function EchoConsole({
             </div>
           </div>
         </section>
+        )}
 
-        <section className="rounded-card border border-line bg-surface/80 p-4 sm:p-5">
+        <section
+          className={cn(
+            'rounded-card border border-line bg-surface/80 p-4 sm:p-5',
+            chat && 'flex h-full min-h-0 flex-col',
+          )}
+        >
           <div
             ref={logRef}
             aria-live="polite"
-            className="grid max-h-72 min-h-28 content-start gap-3 overflow-y-auto pr-1"
+            className={cn(
+              'grid content-start gap-3 overflow-y-auto pr-1',
+              chat ? 'min-h-0 flex-1' : 'max-h-72 min-h-28',
+            )}
           >
             {lines.map((line, i) => (
               <div
@@ -556,8 +588,9 @@ export function EchoConsole({
                 {line.role !== 'system' ? (
                   <span
                     className={cn(
-                      'mb-0.5 block font-mono text-[10px] tracking-[0.18em] uppercase',
-                      line.role === 'assistant' ? 'text-accent' : 'text-faint',
+                      'mb-0.5 block',
+                      chat ? 'text-sm' : 'font-mono text-[10px] tracking-[0.18em] uppercase',
+                      line.role === 'assistant' ? 'text-accent-text' : 'text-faint',
                     )}
                   >
                     {line.role === 'assistant' ? t.me : t.you}
@@ -568,7 +601,7 @@ export function EchoConsole({
                     {line.acts.map((act, k) => (
                       <li
                         key={k}
-                        className="rounded-full border border-accent/40 bg-accent/10 px-2.5 py-0.5 font-mono text-[11px] text-accent"
+                        className="rounded-full border border-accent/40 bg-accent/10 px-2.5 py-0.5 font-mono text-[11px] text-accent-text"
                       >
                         {act}
                       </li>
@@ -590,7 +623,10 @@ export function EchoConsole({
                 type="button"
                 disabled={busy}
                 onClick={() => ask(s)}
-                className="rounded-full border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent/50 hover:text-fg disabled:opacity-40"
+                className={cn(
+                  'rounded-full border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:border-accent/50 hover:text-fg disabled:opacity-40',
+                  chat && 'min-h-11 px-4',
+                )}
               >
                 {s}
               </button>
@@ -627,7 +663,7 @@ export function EchoConsole({
                 'relative grid size-12 shrink-0 touch-none place-items-center rounded-full border transition-[background-color,border-color,color,transform] duration-150 select-none active:scale-[0.96] disabled:opacity-40',
                 state === 'listening'
                   ? 'border-accent bg-accent text-accent-ink'
-                  : 'border-line-strong text-accent hover:border-accent',
+                  : 'border-line-strong text-accent-text hover:border-accent',
                 !canListen && 'opacity-50',
               )}
             >
@@ -724,12 +760,12 @@ export function EchoConsole({
         </section>
       </div>
 
-      {compact ? null : (
+      {chat ? null : (
         <div className="order-3 grid content-start gap-4 lg:col-span-3">
           <section className={panel('tasks')}>
             <div className="flex items-baseline justify-between font-mono text-[10.5px] tracking-[0.16em] text-faint uppercase">
               <span>{t.tasks}</span>
-              <span className="text-accent">{`${decide} · ${t.taskStatus.decide}`}</span>
+              <span className="text-accent-text">{`${decide} · ${t.taskStatus.decide}`}</span>
             </div>
             <ul className="mt-3 max-h-[26rem] divide-y divide-line overflow-y-auto pr-1 pb-6 [mask-image:linear-gradient(to_bottom,black_calc(100%-2.5rem),transparent)]">
               {[...tasks]
@@ -765,7 +801,7 @@ export function EchoConsole({
                 <li key={g.title}>
                   <div className="flex items-baseline justify-between gap-3 text-sm">
                     <span>{g.title}</span>
-                    <span className="font-mono text-accent tabular-nums">{g.progress}%</span>
+                    <span className="font-mono text-accent-text tabular-nums">{g.progress}%</span>
                   </div>
                   <div className="mt-2 h-1 overflow-hidden rounded-full bg-surface-2">
                     <div

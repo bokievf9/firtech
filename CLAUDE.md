@@ -11,7 +11,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - Brand: wordmark `fir.tech` ("fir" is from the founder's name, not the tree) in Unbounded 700
   with a lime dot (`src/components/logo.tsx`, font in `fonts.ts` and `assets/fonts` for the OG
   image). Avatars and files in `brand/` (`1-fir.png` is the chosen avatar).
-- One dark theme, one accent ("fir lime"). Design tokens and shape rules are at the top of
+- Public site: one dark theme. The owner panel (/admin) also has a light theme (`data-theme="light"` on <html>, tokens at the top of `globals.css`, switch in the admin header, choice in localStorage). One accent ("fir lime"). Design tokens and shape rules are at the top of
   `src/app/globals.css`; keep to them.
 
 ## Structure

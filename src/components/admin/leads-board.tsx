@@ -158,7 +158,7 @@ export function LeadsBoard({
                       <button
                         type="button"
                         onClick={() => select(lead.id)}
-                        className="hover:text-accent"
+                        className="hover:text-accent-text"
                         aria-label={fillAdmin(admin.drawer.title, { id: lead.id })}
                       >
                         {lead.id}

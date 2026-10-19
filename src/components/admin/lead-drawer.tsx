@@ -42,7 +42,7 @@ async function send(id: number, body: Action) {
 }
 
 const quick =
-  'inline-flex items-center gap-2 rounded-full border border-line-strong px-3.5 py-2 text-sm text-fg transition-colors hover:border-accent hover:text-accent'
+  'inline-flex items-center gap-2 rounded-full border border-line-strong px-3.5 py-2 text-sm text-fg transition-colors hover:border-accent hover:text-accent-text'
 
 export function LeadDrawer({
   lead,
@@ -223,7 +223,7 @@ function DrawerBody({
             className={cn(
               'text-sm empty:hidden',
               message && 'mt-2',
-              message?.bad ? 'text-danger' : 'text-accent',
+              message?.bad ? 'text-danger' : 'text-accent-text',
             )}
           >
             {message?.text}
