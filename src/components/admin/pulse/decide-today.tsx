@@ -106,14 +106,14 @@ export function DecideToday() {
           ))}
         </ul>
       ) : null}
-      <div className="flex flex-wrap items-center gap-x-6">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {rest.length ? (
           <button
             type="button"
             aria-expanded={expanded}
             aria-controls="decide-more"
             onClick={() => setExpanded((v) => !v)}
-            className="inline-flex h-11 items-center text-sm text-accent-text hover:underline"
+            className="inline-flex h-11 items-center rounded-full border border-line-strong px-5 text-sm text-fg transition-colors hover:border-accent-text"
           >
             {expanded ? t.less : fillAdmin(t.more, { n: rest.length })}
           </button>
@@ -121,7 +121,7 @@ export function DecideToday() {
         <a
           href="#pulse-details"
           onClick={() => setTab('tasks')}
-          className="inline-flex h-11 items-center text-sm text-accent-text hover:underline"
+          className="inline-flex h-11 items-center px-2 text-sm text-accent-text hover:underline"
         >
           {t.all}
         </a>

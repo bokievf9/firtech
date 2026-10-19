@@ -13,7 +13,7 @@ const typing = (target: EventTarget | null) =>
   (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
 
 // "Ask Echo or add a task": a compact line instead of the hologram. A click or the "/" key opens the
-// chat panel. `inline` sits in the page header on a desktop (a round button on a phone);
+// chat panel. `inline` sits in the page header on a desktop (a pill button in the row on a phone);
 // `dock` is a bar fixed to the bottom of the screen like in a messenger.
 export function EchoBar({
   variant,
@@ -72,11 +72,11 @@ export function EchoBar({
     return (
       <div
         className={cn(
-          'pointer-events-none fixed inset-x-0 bottom-0 z-40 px-4 pt-6 pb-[max(1rem,env(safe-area-inset-bottom))] [background:linear-gradient(to_top,var(--color-bg)_55%,transparent)]',
+          'fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]',
           className,
         )}
       >
-        <div className="pointer-events-auto mx-auto max-w-3xl">{line}</div>
+        <div className="mx-auto max-w-3xl">{line}</div>
       </div>
     )
   }
@@ -87,7 +87,7 @@ export function EchoBar({
         type="button"
         onClick={show}
         aria-label={t.open}
-        className="fixed right-4 bottom-20 z-40 inline-flex h-14 items-center gap-2 rounded-full bg-accent px-5 font-medium text-accent-ink shadow-[0_8px_30px_rgb(0_0_0/0.3)] transition-transform duration-150 active:scale-[0.97] lg:hidden"
+        className="inline-flex h-11 shrink-0 items-center gap-2 rounded-full bg-accent px-4 font-medium text-accent-ink transition-transform duration-150 active:scale-[0.97] lg:hidden"
       >
         <Sparkle size={20} weight="fill" aria-hidden="true" />
         {t.title}

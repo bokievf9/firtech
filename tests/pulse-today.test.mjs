@@ -231,3 +231,35 @@ test('funnel steps: later statuses count for earlier steps, conversion is deals 
   assert.deepEqual(funnelSteps({}).steps, { came: 0, taken: 0, called: 0, won: 0 })
   assert.equal(funnelSteps({}).conversion, 0)
 })
+
+test('todayCounts: decisions (blocked) and deadlines are counted apart, one source for both views', () => {
+  const today = '2026-10-19'
+  const list = [
+    task('blocked', null, { project: 'vibely' }),
+    task('blocked', '2026-10-18', { project: 'vibely' }),
+    task('todo', today),
+    task('doing', '2026-10-15'),
+    task('blocked', '2026-10-25'), // waiting but later: not for today
+    task('todo', '2026-10-25'),
+    task('done', today),
+  ]
+  const c = t.todayCounts(list, today)
+  assert.equal(c.decisions, 2)
+  assert.equal(c.deadlines, 2)
+  assert.deepEqual(c.decisionProjects, [{ project: 'vibely', count: 2 }])
+  const a = t.attention(list, [], 0, today)
+  assert.equal(a.decisions, c.decisions)
+  assert.equal(a.deadlines, c.deadlines)
+  assert.equal(a.today, c.decisions + c.deadlines)
+  assert.deepEqual(t.todayCounts([], today), { decisions: 0, deadlines: 0, decisionProjects: [] })
+})
+
+test('timeline: tasks already shown in "decide today" are skipped', () => {
+  const a = task('todo', '2026-10-19')
+  const b = task('todo', '2026-10-19')
+  const tl = t.dayTimeline({ items: [], calls: [], tasks: [a, b], now: NOW, skip: new Set([a.id]) })
+  assert.deepEqual(
+    tl.entries.map((e) => e.key),
+    [`task-${b.id}`],
+  )
+})

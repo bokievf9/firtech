@@ -12,6 +12,7 @@ import {
   type TaskStatus,
 } from '@/lib/pulse-types'
 import { stamp, tomorrowOf } from '@/lib/pulse-today'
+import { dueState, shortDate } from '@/lib/pulse-view'
 import { usePulse } from './pulse-provider'
 import { StatusSegments } from './status-segments'
 
@@ -206,7 +207,7 @@ function TaskEditor({ task }: { task: Task }) {
 
 // One task in a modal sheet from the right (native dialog: focus is trapped and Escape closes it).
 export function TaskDrawer() {
-  const { tasks, selected, closeTask } = usePulse()
+  const { tasks, selected, closeTask, data } = usePulse()
   const dialog = useRef<HTMLDialogElement>(null)
   const task = tasks.tasks.find((x) => x.id === selected) ?? null
   const isOpen = task !== null
@@ -228,10 +229,25 @@ export function TaskDrawer() {
       }}
       className="fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-full max-w-none flex-col border-l border-line-strong bg-surface p-0 text-fg backdrop:bg-black/60 open:flex sm:w-[30rem]"
     >
-      <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-3">
-        <h2 id="task-drawer-title" className="font-brand text-lg font-bold tracking-tight">
-          {task ? names[task.project] : t.title}
-        </h2>
+      <header className="flex items-start justify-between gap-3 border-b border-line px-5 py-3">
+        <div className="min-w-0">
+          {task ? (
+            <p className="mb-1 inline-block rounded-full border border-line-strong px-2.5 py-0.5 text-xs text-muted">
+              {names[task.project]}
+            </p>
+          ) : null}
+          <h2
+            id="task-drawer-title"
+            className="line-clamp-2 font-brand text-lg leading-snug font-bold tracking-tight break-words"
+          >
+            {task ? task.title : t.title}
+          </h2>
+          {task && task.status !== 'done' && dueState(task.due, data.today) === 'overdue' ? (
+            <p className="mt-0.5 text-sm text-danger">
+              {fillAdmin(t.overdueSince, { date: shortDate(task.due ?? '') })}
+            </p>
+          ) : null}
+        </div>
         <button
           type="button"
           onClick={closeTask}

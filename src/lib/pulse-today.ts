@@ -84,10 +84,35 @@ export function decisionsToday(tasks: readonly Task[], today: string): Decision[
   )
 }
 
+// The one count both views show: of today's list, the tasks waiting for the owner (decisions) and
+// the other ones that only have a date to meet (deadlines), plus the projects of the decisions
+// (most first). Blocked tasks and dates are counted apart, never mixed.
+export type TodayCounts = {
+  decisions: number
+  deadlines: number
+  decisionProjects: { project: Task['project']; count: number }[]
+}
+
+export function todayCounts(tasks: readonly Task[], today: string): TodayCounts {
+  const list = decisionsToday(tasks, today)
+  const waiting = list.filter((d) => d.task.status === 'blocked')
+  const projects = new Map<Task['project'], number>()
+  for (const { task } of waiting) projects.set(task.project, (projects.get(task.project) ?? 0) + 1)
+  return {
+    decisions: waiting.length,
+    deadlines: list.length - waiting.length,
+    decisionProjects: [...projects]
+      .map(([project, count]) => ({ project, count }))
+      .sort((a, b) => b.count - a.count || a.project.localeCompare(b.project)),
+  }
+}
+
 export type Attention = {
-  // Tasks waiting for the owner, with the projects they belong to (most first).
+  // Tasks waiting for the owner today, with the projects they belong to (most first).
   decisions: number
   decisionProjects: { project: Task['project']; count: number }[]
+  // Open tasks with a date to meet today (or overdue) that are not waiting for the owner.
+  deadlines: number
   overdue: number
   firstOverdue: Task | null
   stale: number
@@ -104,19 +129,16 @@ export function attention(
   today: string,
 ): Attention {
   const open = tasks.filter((t) => t.status !== 'done')
-  const blocked = open.filter((t) => t.status === 'blocked')
-  const projects = new Map<Task['project'], number>()
-  for (const t of blocked) projects.set(t.project, (projects.get(t.project) ?? 0) + 1)
+  const counts = todayCounts(tasks, today)
   const overdue = open
     .filter((t) => dueState(t.due, today) === 'overdue')
     .sort(
       (a, b) => (a.due ?? '').localeCompare(b.due ?? '') || a.createdAt.localeCompare(b.createdAt),
     )
   return {
-    decisions: blocked.length,
-    decisionProjects: [...projects]
-      .map(([project, count]) => ({ project, count }))
-      .sort((a, b) => b.count - a.count || a.project.localeCompare(b.project)),
+    decisions: counts.decisions,
+    decisionProjects: counts.decisionProjects,
+    deadlines: counts.deadlines,
     overdue: overdue.length,
     firstOverdue: overdue[0] ?? null,
     stale,
@@ -149,6 +171,8 @@ export function dayTimeline(input: {
   calls: readonly Call[]
   tasks: readonly Task[]
   now: number
+  // Task ids that are already shown elsewhere ("Decide today") and are left out here.
+  skip?: ReadonlySet<string>
 }): Timeline {
   const today = dushanbeKey(input.now)
   const minutesNow = dushanbeMinutes(input.now)
@@ -171,7 +195,7 @@ export function dayTimeline(input: {
   timed.sort((a, b) => a.time.localeCompare(b.time) || a.key.localeCompare(b.key))
 
   const allDay: TimelineEntry[] = input.tasks
-    .filter((t) => t.status !== 'done' && t.due === today)
+    .filter((t) => t.status !== 'done' && t.due === today && !input.skip?.has(t.id))
     .sort(
       (a, b) =>
         priorityRank[a.priority] - priorityRank[b.priority] ||

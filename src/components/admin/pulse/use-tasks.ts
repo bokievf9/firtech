@@ -11,7 +11,7 @@ const message = (error: unknown, fallback: string) =>
 
 // Live task list for the Pulse. Changes show at once and roll back with a message (`onError`) when
 // the server refuses; `pending` holds the ids that are waiting for an answer.
-export function useTasks(initial: Task[], onError: (message: string) => void) {
+export function useTasks(initial: Task[], onError: (message: string, retry?: () => void) => void) {
   const [tasks, setTasks] = useState(initial)
   const [pending, setPending] = useState<ReadonlySet<string>>(new Set())
   const [adding, setAdding] = useState(false)
@@ -20,6 +20,13 @@ export function useTasks(initial: Task[], onError: (message: string) => void) {
   useEffect(() => {
     latest.current = tasks
   }, [tasks])
+
+  // The newest versions of the actions, so a "Retry" made earlier runs the current code.
+  const actions = useRef<{
+    update: (id: string, patch: TaskPatch) => Promise<void>
+    add: (project: ProjectId, title: string) => Promise<boolean>
+    remove: (id: string) => Promise<void>
+  } | null>(null)
 
   const mark = useCallback((id: string, on: boolean) => {
     setPending((prev) => {
@@ -46,7 +53,7 @@ export function useTasks(initial: Task[], onError: (message: string) => void) {
         setTasks((list) => list.map((t) => (t.id === id ? task : t)))
       } catch (error) {
         setTasks((list) => list.map((t) => (t.id === id ? before : t)))
-        onError(message(error, e.save))
+        onError(message(error, e.save), () => void actions.current?.update(id, patch))
       } finally {
         mark(id, false)
       }
@@ -68,7 +75,7 @@ export function useTasks(initial: Task[], onError: (message: string) => void) {
         setTasks((list) => [...list, task])
         return true
       } catch (error) {
-        onError(message(error, e.add))
+        onError(message(error, e.add), () => void actions.current?.add(project, title))
         return false
       } finally {
         setAdding(false)
@@ -94,7 +101,7 @@ export function useTasks(initial: Task[], onError: (message: string) => void) {
         )
       } catch (error) {
         setTasks((l) => [...l.slice(0, index), before, ...l.slice(index)])
-        onError(message(error, e.remove))
+        onError(message(error, e.remove), () => void actions.current?.remove(id))
       } finally {
         mark(id, false)
       }
@@ -113,6 +120,10 @@ export function useTasks(initial: Task[], onError: (message: string) => void) {
       onError(e.load)
     }
   }, [onError])
+
+  useEffect(() => {
+    actions.current = { update, add, remove }
+  }, [update, add, remove])
 
   return { tasks, pending, adding, update, add, remove, reload }
 }

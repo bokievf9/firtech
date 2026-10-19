@@ -20,7 +20,7 @@ function Trend({ name, values }: { name: string; values: number[] }) {
     <div className="flex items-center justify-between gap-3">
       <div className="min-w-0">
         <p className="flex items-baseline gap-2">
-          <span className="font-mono text-3xl leading-none tabular-nums">{last ?? '-'}</span>
+          <span className="font-mono text-2xl leading-none tabular-nums">{last ?? '-'}</span>
           {delta !== null ? (
             <span
               className={cn(
@@ -32,7 +32,7 @@ function Trend({ name, values }: { name: string; values: number[] }) {
             </span>
           ) : null}
         </p>
-        <p className="mt-1 text-sm text-muted">{name}</p>
+        <p className="mt-0.5 text-sm text-muted">{name}</p>
       </div>
       {values.length > 1 ? (
         <Sparkline values={values} label={fillAdmin(t.trendLabel, { name })} />
@@ -71,7 +71,7 @@ function DayNumbers() {
 
   return (
     <details className="group rounded-xl border border-line">
-      <summary className="flex h-11 cursor-pointer list-none items-center px-4 text-sm text-accent-text [&::-webkit-details-marker]:hidden">
+      <summary className="flex h-11 cursor-pointer lg:h-9 list-none items-center px-4 text-sm text-accent-text [&::-webkit-details-marker]:hidden">
         {t.numbersOpen}
       </summary>
       <form onSubmit={submit} aria-label={t.numbers} className="grid gap-3 px-4 pb-4">
@@ -135,12 +135,12 @@ export function IgWeek() {
             {t.loadError}
           </p>
         ) : null}
-        <div className="grid content-start gap-4 @xl:grid-cols-3 @5xl:grid-cols-1">
+        <div className="grid content-start gap-3 @xl:grid-cols-3 @5xl:grid-cols-1">
           <Trend name={t.subscribers} values={trendSeries(ig.days, 'followers')} />
           <Trend name={t.reachYesterday} values={trendSeries(ig.days, 'reach')} />
           <DayNumbers />
         </div>
-        <ol className="grid min-w-0 gap-2 @xl:grid-cols-2 @3xl:grid-cols-4 @5xl:grid-cols-7">
+        <ol className="grid min-w-0 content-start gap-2 @xl:grid-cols-2 @3xl:grid-cols-4 @5xl:grid-cols-7">
           {days.map((day, i) => {
             const items = itemsOfDay(ig.items, day)
             const isToday = day === data.today
@@ -152,7 +152,7 @@ export function IgWeek() {
                   isToday ? 'border-accent-text/60' : 'border-line',
                 )}
               >
-                <p className="mb-2 flex items-baseline justify-between gap-2 text-sm text-muted">
+                <p className="mb-1.5 flex items-baseline justify-between gap-2 text-sm text-muted">
                   <span>
                     {WEEKDAYS[i]} {Number(day.slice(8))}
                   </span>
@@ -164,30 +164,30 @@ export function IgWeek() {
                       <li key={item.id}>
                         <label
                           className={cn(
-                            'flex min-h-11 cursor-pointer items-start gap-2.5 rounded-lg bg-surface-2 px-2.5 py-2',
+                            'grid min-h-11 cursor-pointer content-center gap-0.5 rounded-lg bg-surface-2 px-2.5 py-1.5',
                             item.published && 'text-faint',
                           )}
                         >
-                          <input
-                            type="checkbox"
-                            checked={item.published}
-                            disabled={ig.busy.has(item.id)}
-                            onChange={(e) => void ig.mark(item, e.target.checked)}
-                            aria-label={fillAdmin(t.markLabel, { title: item.title })}
-                            className="mt-0.5 size-5 shrink-0 accent-[var(--color-accent-text)]"
-                          />
-                          <span className="min-w-0">
-                            <span className="block font-mono text-xs whitespace-nowrap text-muted tabular-nums">
+                          <span className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={item.published}
+                              disabled={ig.busy.has(item.id)}
+                              onChange={(e) => void ig.mark(item, e.target.checked)}
+                              aria-label={fillAdmin(t.markLabel, { title: item.title })}
+                              className="size-4 shrink-0 accent-[var(--color-accent-text)]"
+                            />
+                            <span className="font-mono text-xs whitespace-nowrap text-muted tabular-nums">
                               {item.time} {t.kinds[item.kind]}
                             </span>
-                            <span
-                              className={cn(
-                                'text-sm leading-snug break-words',
-                                item.published && 'line-through',
-                              )}
-                            >
-                              {item.title}
-                            </span>
+                          </span>
+                          <span
+                            className={cn(
+                              'text-sm leading-snug break-words',
+                              item.published && 'line-through',
+                            )}
+                          >
+                            {item.title}
                           </span>
                         </label>
                       </li>

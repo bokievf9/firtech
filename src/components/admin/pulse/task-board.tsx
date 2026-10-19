@@ -21,18 +21,42 @@ function AddTask({ filter }: { filter: Filter }) {
   const { tasks } = usePulse()
   const [draft, setDraft] = useState('')
   const [chosen, setChosen] = useState<ProjectId>('firtech')
+  const [open, setOpen] = useState(false)
   const project = filter === 'all' ? chosen : filter
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     const title = draft.trim()
     if (!title || tasks.adding) return
-    if (await tasks.add(project, title)) setDraft('')
+    if (await tasks.add(project, title)) {
+      setDraft('')
+      setOpen(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="inline-flex h-11 w-fit items-center gap-1.5 rounded-full border border-line-strong px-4 lg:h-9 text-sm text-fg transition-colors hover:border-accent-text"
+      >
+        <Plus size={16} weight="bold" aria-hidden="true" />
+        {t.addOpen}
+      </button>
+    )
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-wrap gap-2">
+    <form
+      onSubmit={submit}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && !draft.trim()) setOpen(false)
+      }}
+      className="flex flex-wrap gap-2"
+    >
       <input
+        autoFocus
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         maxLength={200}
@@ -58,7 +82,7 @@ function AddTask({ filter }: { filter: Filter }) {
       <button
         type="submit"
         disabled={!draft.trim() || tasks.adding}
-        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-accent px-4 text-sm font-medium text-accent-ink transition-transform duration-150 active:scale-[0.97] disabled:opacity-40"
+        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-accent px-4 text-sm font-medium text-accent-ink transition-transform duration-150 active:scale-[0.97] disabled:bg-surface-2 disabled:text-faint"
       >
         <Plus size={16} weight="bold" aria-hidden="true" />
         {tasks.adding ? t.adding : t.addSubmit}
@@ -71,10 +95,12 @@ function Group({
   title,
   list,
   showProject,
+  showStatus = true,
 }: {
   title: string
   list: Task[]
   showProject: boolean
+  showStatus?: boolean
 }) {
   if (!list.length) return null
   return (
@@ -85,7 +111,7 @@ function Group({
       </h3>
       <ul>
         {list.map((task) => (
-          <TaskRow key={task.id} task={task} showProject={showProject} />
+          <TaskRow key={task.id} task={task} showProject={showProject} showStatus={showStatus} />
         ))}
       </ul>
     </section>
@@ -117,7 +143,7 @@ export function TaskBoard({
   const later = rest.filter((x) => !dueNow.includes(x) && !doing.includes(x))
 
   return (
-    <div className={cn('grid min-w-0 content-start gap-4', className)}>
+    <div className={cn('grid min-w-0 content-start gap-3 lg:gap-2.5', className)}>
       {data.errors.tasks ? (
         <p
           role="alert"
@@ -138,7 +164,7 @@ export function TaskBoard({
         <div
           role="group"
           aria-label={admin.pulse.projects}
-          className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
+          className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1 max-lg:pr-10 max-lg:[mask-image:linear-gradient(to_right,black_calc(100%-2.5rem),transparent)] lg:flex-wrap lg:overflow-visible lg:pb-0"
         >
           {(['all', ...projectIds] as Filter[]).map((id) => (
             <button
@@ -147,7 +173,7 @@ export function TaskBoard({
               aria-pressed={filter === id}
               onClick={() => setFilter(id)}
               className={cn(
-                'inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-sm whitespace-nowrap transition-colors',
+                'inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-3.5 lg:h-8 lg:px-3 lg:text-[13px] text-sm whitespace-nowrap transition-colors',
                 filter === id
                   ? 'border-fg bg-fg text-bg'
                   : 'border-line text-muted hover:border-line-strong hover:text-fg',
@@ -168,7 +194,7 @@ export function TaskBoard({
         <p className="py-2 text-sm text-muted">{t.noOpen}</p>
       ) : group === 'status' ? (
         <>
-          <Group title={t.group.blocked} list={blocked} showProject />
+          <Group title={t.group.blocked} list={blocked} showProject showStatus={false} />
           <Group title={t.group.today} list={dueNow} showProject />
           <Group title={t.group.doing} list={doing} showProject />
           <Group title={t.group.later} list={later} showProject />

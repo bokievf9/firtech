@@ -105,6 +105,50 @@ function usePref(key: string, fallback: boolean) {
   return [value, set] as const
 }
 
+// A row with a switch: the whole row (at least 44 px high) is the tap target.
+function ToggleRow({
+  id,
+  checked,
+  onChange,
+  label,
+  note,
+  icon,
+}: {
+  id: string
+  checked: boolean
+  onChange: (on: boolean) => void
+  label: string
+  note?: string
+  icon?: React.ReactNode
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-3 py-1.5 text-fg"
+    >
+      <span className="flex min-w-0 items-center gap-2">
+        {icon ? <span className="text-muted">{icon}</span> : null}
+        <span className="min-w-0">
+          <span className="block leading-snug">{label}</span>
+          {note ? <span className="block text-xs leading-snug text-muted">{note}</span> : null}
+        </span>
+      </span>
+      <input
+        id={id}
+        type="checkbox"
+        role="switch"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="peer sr-only"
+      />
+      <span
+        aria-hidden="true"
+        className="relative h-6 w-11 shrink-0 rounded-full bg-line-strong transition-colors duration-150 after:absolute after:top-0.5 after:left-0.5 after:size-5 after:rounded-full after:bg-fg after:transition-transform after:duration-150 peer-checked:bg-accent peer-checked:after:translate-x-5 peer-checked:after:bg-accent-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-text motion-reduce:transition-none motion-reduce:after:transition-none"
+      />
+    </label>
+  )
+}
+
 export function EchoConsole({
   projects,
   health,
@@ -704,7 +748,7 @@ export function EchoConsole({
                   type="submit"
                   aria-label={t.send}
                   disabled={!draft.trim()}
-                  className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-transform duration-150 active:scale-[0.96] disabled:opacity-40"
+                  className="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-transform duration-150 active:scale-[0.96] disabled:bg-surface-2 disabled:text-faint"
                 >
                   <PaperPlaneRight size={18} weight="fill" />
                 </button>
@@ -715,47 +759,37 @@ export function EchoConsole({
           <p id="echo-talk-hint" className="mt-3 text-xs text-faint">
             {canListen ? t.talkHint : t.noSpeechHint}
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                id="echo-voice"
-                type="checkbox"
-                checked={voiceOn}
-                onChange={(e) => {
-                  setVoiceOn(e.target.checked)
-                  if (!e.target.checked) speechSynthesis?.cancel()
-                }}
-                className="accent-[var(--color-accent)]"
-              />
-              {voiceOn ? (
-                <SpeakerHigh size={16} aria-hidden="true" />
-              ) : (
-                <SpeakerSlash size={16} aria-hidden="true" />
-              )}
-              {t.voiceOn}
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                id="echo-dialog"
-                type="checkbox"
-                checked={dialog}
-                onChange={(e) => {
-                  setDialog(e.target.checked)
-                }}
-                className="accent-[var(--color-accent)]"
-              />
-              {t.dialog}
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                id="echo-opus"
-                type="checkbox"
-                checked={opus}
-                onChange={(e) => setOpus(e.target.checked)}
-                className="accent-[var(--color-accent)]"
-              />
-              {t.opusToggle}
-            </label>
+          <div className="mt-2 divide-y divide-line rounded-xl border border-line text-sm">
+            <ToggleRow
+              id="echo-voice"
+              checked={voiceOn}
+              onChange={(on) => {
+                setVoiceOn(on)
+                if (!on) speechSynthesis?.cancel()
+              }}
+              icon={
+                voiceOn ? (
+                  <SpeakerHigh size={16} aria-hidden="true" />
+                ) : (
+                  <SpeakerSlash size={16} aria-hidden="true" />
+                )
+              }
+              label={t.voiceOn}
+            />
+            <ToggleRow
+              id="echo-dialog"
+              checked={dialog}
+              onChange={setDialog}
+              label={t.dialog}
+              note={t.dialogNote}
+            />
+            <ToggleRow
+              id="echo-opus"
+              checked={opus}
+              onChange={setOpus}
+              label={t.opusToggle}
+              note={t.opusNote}
+            />
           </div>
         </section>
       </div>

@@ -18,7 +18,7 @@ function useCounts(): Record<SectionId, string> {
   return {
     tasks: String(tasks.tasks.filter(isOpen).length),
     leads: String(data.snapshot.leads.week),
-    numbers: visits === null ? '-' : nf.format(visits),
+    numbers: visits === null ? '' : nf.format(visits),
     ig: String(ig.items.filter((i) => !i.published).length),
   }
 }
@@ -71,7 +71,7 @@ export function TabBar({ tabs, variant }: { tabs: TabSpec[]; variant: 'top' | 'b
                   active ? 'text-accent-text' : 'text-fg',
                 )}
               >
-                {counts[spec.id]}
+                {counts[spec.id] || '\u00a0'}
               </span>
             ) : null}
             {spec.label}

@@ -4,7 +4,7 @@ import { Check } from '@phosphor-icons/react'
 import { Fragment } from 'react'
 import { admin, fillAdmin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { dayTimeline, dushanbeClock, type TimelineEntry } from '@/lib/pulse-today'
+import { dayTimeline, decisionsToday, dushanbeClock, type TimelineEntry } from '@/lib/pulse-today'
 import { usePulse } from './pulse-provider'
 
 const t = admin.pulse.day
@@ -94,6 +94,8 @@ export function DayTimeline() {
     calls: data.calls,
     tasks: tasks.tasks,
     now,
+    // Tasks of today are already in "Decide today"; they are not repeated here.
+    skip: new Set(decisionsToday(tasks.tasks, data.today).map((d) => d.task.id)),
   })
   const marker = (
     <li

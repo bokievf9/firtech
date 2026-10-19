@@ -21,7 +21,7 @@ export function LeadsFunnel() {
   const { steps, lost, fresh, conversion } = funnelSteps(leads.funnel)
   const next = data.calls[0]
   return (
-    <div className="grid min-w-0 content-start gap-5">
+    <div className="grid min-w-0 content-start gap-4 lg:gap-3">
       {data.errors.leads ? (
         <p role="alert" className="text-sm text-danger">
           {t.loadError}
@@ -34,15 +34,15 @@ export function LeadsFunnel() {
           [leads.month, t.month],
         ].map(([value, label]) => (
           <div key={label}>
-            <dd className="font-mono text-4xl leading-none tracking-tight tabular-nums">{value}</dd>
+            <dd className="font-mono text-3xl leading-none tracking-tight tabular-nums">{value}</dd>
             <dt className="mt-1.5 text-sm text-muted">{label}</dt>
           </div>
         ))}
       </dl>
 
       <div>
-        <h3 className="mb-3 text-sm text-muted">{t.funnel}</h3>
-        <ul className="grid gap-2.5">
+        <h3 className="mb-2 text-sm text-muted">{t.funnel}</h3>
+        <ul className="grid gap-2">
           {stepKeys.map((key, i) => (
             <li
               key={key}
@@ -73,7 +73,7 @@ export function LeadsFunnel() {
       <div className="grid gap-2">
         <Link
           href="/admin/calendar"
-          className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-line px-4 py-2.5 transition-colors hover:border-accent-text/60"
+          className="flex min-h-12 items-center justify-between gap-3 rounded-xl border border-line px-4 py-2 transition-colors hover:border-accent-text/60"
         >
           <span className="min-w-0">
             <span className="block text-[15px]">{t.calls}</span>
@@ -91,7 +91,7 @@ export function LeadsFunnel() {
         <Link
           href="/admin/leads"
           className={cn(
-            'flex min-h-14 items-center justify-between gap-3 rounded-xl border px-4 py-2.5 transition-colors',
+            'flex min-h-12 items-center justify-between gap-3 rounded-xl border px-4 py-2 transition-colors',
             leads.stale
               ? 'border-danger/50 bg-danger/[0.06] hover:border-danger'
               : 'border-line hover:border-accent-text/60',

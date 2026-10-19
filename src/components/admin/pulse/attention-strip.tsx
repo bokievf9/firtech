@@ -44,11 +44,11 @@ function Card({
       href={href}
       onClick={section ? () => setTab(section) : undefined}
       className={cn(
-        'flex min-h-16 min-w-[15rem] snap-start items-center gap-4 rounded-card border px-4 py-3 transition-colors hover:border-accent-text/70 lg:min-w-0',
+        'flex min-h-14 min-w-[15rem] snap-start items-center gap-3.5 rounded-card border px-4 py-2 lg:min-h-[3.75rem] transition-colors hover:border-accent-text/70 lg:min-w-0',
         tone[active],
       )}
     >
-      <span className={cn('font-mono text-3xl leading-none tabular-nums', numberTone[active])}>
+      <span className={cn('font-mono text-2xl leading-none tabular-nums', numberTone[active])}>
         {n}
       </span>
       <span className="min-w-0">
@@ -67,7 +67,7 @@ export function AttentionStrip() {
   return (
     <section
       aria-labelledby="attention-title"
-      className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center lg:gap-4"
+      className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center lg:gap-3"
     >
       <div className="lg:w-28 lg:shrink-0">
         <h2 id="attention-title" className="font-brand text-base font-bold tracking-tight">

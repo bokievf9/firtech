@@ -11,7 +11,15 @@ const t = admin.pulse.tasks
 
 // One open task: a round tick that marks it done (with undo) and the full title that opens the
 // task. Both targets are at least 44 px high; the title wraps instead of being cut.
-export function TaskRow({ task, showProject = true }: { task: Task; showProject?: boolean }) {
+export function TaskRow({
+  task,
+  showProject = true,
+  showStatus = true,
+}: {
+  task: Task
+  showProject?: boolean
+  showStatus?: boolean
+}) {
   const { tasks, change, openTask, data } = usePulse()
   const today = data.today
   const done = task.status === 'done'
@@ -25,7 +33,7 @@ export function TaskRow({ task, showProject = true }: { task: Task; showProject?
         : shortDate(task.due)
   const sub = [
     showProject ? admin.pulse.projectNames[task.project] : null,
-    task.status === 'blocked' ? t.status.blocked.toLowerCase() : null,
+    showStatus && task.status === 'blocked' ? t.status.blocked.toLowerCase() : null,
     task.status === 'doing' ? t.status.doing.toLowerCase() : null,
   ].filter(Boolean)
   return (
@@ -61,7 +69,7 @@ export function TaskRow({ task, showProject = true }: { task: Task; showProject?
         type="button"
         onClick={() => openTask(task.id)}
         aria-label={fillAdmin(t.open, { title: task.title })}
-        className="flex min-h-11 min-w-0 flex-1 items-start justify-between gap-3 rounded-xl py-2 pr-1 text-left transition-colors hover:text-accent-text"
+        className="flex min-h-11 min-w-0 flex-1 items-start justify-between gap-3 rounded-xl py-2 pr-1 text-left lg:py-1.5 transition-colors hover:text-accent-text"
       >
         <span className="min-w-0">
           <span

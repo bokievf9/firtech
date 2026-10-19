@@ -48,7 +48,7 @@ type Context = {
   closeTask: () => void
   // Apply a change to a task and offer to take it back for a few seconds.
   change: (task: Task, patch: TaskPatch, message: string) => void
-  fail: (message: string) => void
+  fail: (message: string, retry?: () => void) => void
   tab: SectionId
   setTab: (tab: SectionId) => void
   echo: EchoState
@@ -85,8 +85,13 @@ export function PulseProvider({
   const [echoMounted, setEchoMounted] = useState(false)
   const [question, setQuestion] = useState<{ id: number; text: string } | null>(null)
 
-  const fail = useCallback((text: string) => {
-    setToast({ id: ++counter.current, text, tone: 'error' })
+  const fail = useCallback((text: string, retry?: () => void) => {
+    setToast({
+      id: ++counter.current,
+      text,
+      tone: 'error',
+      action: retry ? { label: t.retry, run: retry } : undefined,
+    })
   }, [])
   const closeToast = useCallback(() => setToast(null), [])
 

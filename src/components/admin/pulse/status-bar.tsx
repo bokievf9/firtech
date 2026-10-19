@@ -28,23 +28,26 @@ export function StatusBar({ className }: { className?: string }) {
   return (
     <section
       aria-label={t.sites}
-      className={cn('flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm', className)}
+      className={cn(
+        'flex min-w-0 items-center justify-between gap-x-5 gap-y-1.5 text-sm sm:justify-start',
+        className,
+      )}
     >
-      <ul className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
+      <ul className="flex items-center gap-x-4 gap-y-1.5 sm:gap-x-5">
         {data.snapshot.sites.map((site) => (
           <li key={site.id} className="flex items-center gap-2">
             <span
               aria-hidden="true"
               className={cn(
-                'size-2 rounded-full',
-                site.ok ? 'bg-accent shadow-[0_0_8px_var(--color-accent)]' : 'bg-danger',
+                'size-2.5 rounded-full',
+                site.ok ? 'bg-accent-text shadow-[0_0_8px_var(--color-accent-text)]' : 'bg-danger',
               )}
             />
             <span className="font-medium">{site.name}</span>
             <span
               className={cn(
                 'font-mono text-xs tabular-nums',
-                site.ok ? 'text-muted' : 'text-danger',
+                site.ok ? 'text-muted max-sm:hidden' : 'text-danger',
               )}
             >
               {site.ok && site.ms !== null ? `${site.ms} ${t.ms}` : t.offline}
@@ -60,7 +63,7 @@ export function StatusBar({ className }: { className?: string }) {
         >
           {timeFormat.format(date)}
         </time>
-        <span>{t.timeLabel}</span>
+        <span className="max-sm:hidden">{t.timeLabel}</span>
       </p>
     </section>
   )

@@ -36,7 +36,7 @@ export function StatusSegments({
             />
             <span
               className={cn(
-                'flex h-11 cursor-pointer items-center justify-center rounded-full px-1 text-center text-sm leading-tight text-muted transition-colors duration-150 select-none',
+                'flex h-11 cursor-pointer items-center justify-center rounded-full px-2 text-center text-[13px] leading-tight sm:text-sm text-muted transition-colors duration-150 select-none',
                 'peer-checked:bg-fg peer-checked:font-medium peer-checked:text-bg',
                 'peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-text',
                 'peer-disabled:cursor-default peer-disabled:opacity-60',

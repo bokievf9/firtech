@@ -15,7 +15,8 @@ export type ToastMessage = {
 
 const SHOW_MS = { info: 7000, error: 9000 }
 
-// A short message floating above the layout so nothing shifts: an error, or a done action with an
+// A short message floating above the layout (and above the Echo bar and the tab bar, so it never
+// covers the buttons of a card) so nothing shifts: an error, or a done action with an
 // undo button. The container is always in the page (a live region); the message clears itself.
 export function Toast({ message, onClose }: { message: ToastMessage | null; onClose: () => void }) {
   const id = message?.id
@@ -29,7 +30,7 @@ export function Toast({ message, onClose }: { message: ToastMessage | null; onCl
     <div
       role={tone === 'error' ? 'alert' : 'status'}
       aria-live={tone === 'error' ? 'assertive' : 'polite'}
-      className="pointer-events-none fixed inset-x-4 bottom-24 z-[70] flex justify-center lg:bottom-6 lg:left-8 lg:justify-start"
+      className="pointer-events-none fixed inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[70] flex justify-center"
     >
       {message ? (
         <p

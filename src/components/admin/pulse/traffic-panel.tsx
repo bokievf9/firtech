@@ -83,7 +83,12 @@ function Vibely({ vibely }: { vibely: { state: SourceState; data: VibelyStats | 
 function Site({ metrika }: { metrika: { state: SourceState; data: MetrikaStats | null } }) {
   const m = metrika.data
   if (!m)
-    return <p className="text-sm text-muted">{note(metrika.state, t.metrikaOff, t.metrikaDown)}</p>
+    return (
+      <div className="grid gap-1 text-sm text-muted">
+        <p>{note(metrika.state, t.metrikaOff, t.metrikaDown)}</p>
+        {metrika.state === 'not_configured' ? <p>{t.metrikaHow}</p> : null}
+      </div>
+    )
   return (
     <div className="grid gap-4">
       <dl className="grid grid-cols-3 gap-3">
@@ -166,7 +171,9 @@ export function TrafficPanel({ layout }: { layout: 'tabs' | 'stacked' }) {
               <Vibely vibely={s.stats.vibely} />
             </section>
           ) : null}
-          <p className="text-sm text-muted">{t.hint}</p>
+          {(showSite && s.stats.metrika.data) || (showVibely && s.stats.vibely.data) ? (
+            <p className="text-sm text-muted">{t.hint}</p>
+          ) : null}
         </>
       ) : null}
     </div>
