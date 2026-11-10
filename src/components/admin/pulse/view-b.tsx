@@ -1,3 +1,5 @@
+'use client'
+
 import { admin } from '@/content/admin'
 import { DayTimeline } from './day-timeline'
 import { DecideToday } from './decide-today'
@@ -7,6 +9,7 @@ import { IgWeek } from './ig-week'
 import { LeadsFunnel } from './leads-funnel'
 import { PulseTiles } from './pulse-tiles'
 import { Section, TabBar } from './section-tabs'
+import { usePulse } from './pulse-provider'
 import { StatusBar } from './status-bar'
 import { TaskBoard } from './task-board'
 import { TodayHeading } from './today-heading'
@@ -19,6 +22,7 @@ const t = admin.pulse
 // screen and a sheet from the bottom. This file only arranges shared components (delete it together
 // with its branch in app/admin/page.tsx to drop the view).
 export function ViewB() {
+  const { echoEnabled } = usePulse()
   return (
     <div className="mx-auto grid w-full max-w-3xl grid-cols-[minmax(0,1fr)] gap-8 pt-2 pb-[calc(6.5rem+env(safe-area-inset-bottom))] xl:max-w-[71rem] xl:grid-cols-[minmax(0,48rem)_minmax(16rem,20rem)] xl:justify-center xl:gap-x-12">
       <div className="grid gap-3 xl:col-start-1">
@@ -58,8 +62,8 @@ export function ViewB() {
           <IgWeek />
         </Section>
       </section>
-      <EchoBar variant="dock" />
-      <EchoPanel placement="bottom" />
+      {echoEnabled && <EchoBar variant="dock" />}
+      {echoEnabled && <EchoPanel placement="bottom" />}
     </div>
   )
 }

@@ -1,3 +1,5 @@
+'use client'
+
 import { Panel } from '@/components/admin/admin-shell'
 import { admin } from '@/content/admin'
 import { AttentionStrip } from './attention-strip'
@@ -7,6 +9,7 @@ import { IgWeek } from './ig-week'
 import { LeadsFunnel } from './leads-funnel'
 import { ScrollArea } from './scroll-area'
 import { Section, TabBar } from './section-tabs'
+import { usePulse } from './pulse-provider'
 import { StatusBar } from './status-bar'
 import { TaskBoard } from './task-board'
 import { TrafficPanel } from './traffic-panel'
@@ -21,11 +24,14 @@ const t = admin.pulse
 const panel = 'lg:flex lg:h-full lg:min-h-0 lg:flex-col lg:p-4 lg:[&>div:first-child]:mb-2.5'
 
 export function ViewA() {
+  const { echoEnabled } = usePulse()
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3 pb-[calc(6rem+env(safe-area-inset-bottom))] lg:h-[max(44rem,calc(100dvh-8.5rem))] lg:grid-rows-[auto_auto_minmax(0,1fr)_auto] lg:gap-2.5 lg:pb-0">
       <h1 className="sr-only">{t.title}</h1>
       <div className="flex items-center gap-x-3 lg:gap-x-6">
-        <EchoBar variant="inline" className="min-w-0 flex-1 lg:order-1 [&>button]:h-10" />
+        {echoEnabled && (
+          <EchoBar variant="inline" className="min-w-0 flex-1 lg:order-1 [&>button]:h-10" />
+        )}
         <StatusBar className="min-w-0 flex-1 lg:order-2 lg:flex-none" />
       </div>
       <AttentionStrip />
@@ -71,7 +77,7 @@ export function ViewA() {
           { id: 'ig', label: t.tabs.ig },
         ]}
       />
-      <EchoPanel placement="side" />
+      {echoEnabled && <EchoPanel placement="side" />}
     </div>
   )
 }

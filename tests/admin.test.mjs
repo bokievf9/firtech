@@ -642,6 +642,8 @@ test('echo route: off without a key, stops at the daily cap', async () => {
     )
   const saved = { key: process.env.ANTHROPIC_API_KEY, cap: process.env.ECHO_DAILY_USD }
   try {
+    assert.equal((await ask()).status, 404, 'Echo is off unless ECHO_ENABLED=1')
+    process.env.ECHO_ENABLED = '1'
     delete process.env.ANTHROPIC_API_KEY
     const off = await ask()
     assert.equal(off.status, 503)
@@ -654,6 +656,7 @@ test('echo route: off without a key, stops at the daily cap', async () => {
     assert.equal(capped.status, 429)
     assert.equal((await capped.json()).error, 'daily_cap')
   } finally {
+    delete process.env.ECHO_ENABLED
     if (saved.key === undefined) delete process.env.ANTHROPIC_API_KEY
     else process.env.ANTHROPIC_API_KEY = saved.key
     if (saved.cap === undefined) delete process.env.ECHO_DAILY_USD

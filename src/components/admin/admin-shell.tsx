@@ -13,7 +13,6 @@ const links = [
   { href: '/admin', label: admin.nav.overview },
   { href: '/admin/leads', label: admin.nav.leads },
   { href: '/admin/calendar', label: admin.nav.calendar },
-  { href: '/admin/echo', label: admin.nav.echo },
 ] as const
 
 // Switch between the two layouts of the Pulse (/admin?v=a or ?v=b, B by default). Plain links that

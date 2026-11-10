@@ -47,7 +47,7 @@ const leads = [
     name: SECRETS[0],
     contact: SECRETS[1],
     message: SECRETS[3],
-    createdAt: '2026-10-16T08:00:00Z',
+    createdAt: new Date(Date.now() - 2 * 86_400_000).toISOString(),
     status: 'new',
     service: 'websites',
   },

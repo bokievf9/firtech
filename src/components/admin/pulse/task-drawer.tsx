@@ -29,7 +29,7 @@ const pill =
 // quick actions (done, to tomorrow, ask Echo). The task comes from the live list, so a change made
 // here shows on the page behind at once.
 function TaskEditor({ task }: { task: Task }) {
-  const { tasks, change, closeTask, echo, data } = usePulse()
+  const { tasks, change, closeTask, echo, echoEnabled, data } = usePulse()
   const busy = tasks.pending.has(task.id)
   const [title, setTitle] = useState(task.title)
   const [notes, setNotes] = useState(task.notes)
@@ -153,17 +153,19 @@ function TaskEditor({ task }: { task: Task }) {
           <Sun size={16} aria-hidden="true" />
           {t.postpone}
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            closeTask()
-            echo.ask(fillAdmin(t.echoQuestion, { title: task.title, project: names[task.project] }))
-          }}
-          className={pill}
-        >
-          <Sparkle size={16} aria-hidden="true" />
-          {t.askEcho}
-        </button>
+        {echoEnabled && (
+          <button
+            type="button"
+            onClick={() => {
+              closeTask()
+              echo.ask(fillAdmin(t.echoQuestion, { title: task.title, project: names[task.project] }))
+            }}
+            className={pill}
+          >
+            <Sparkle size={16} aria-hidden="true" />
+            {t.askEcho}
+          </button>
+        )}
       </div>
 
       <div className="grid gap-3 border-t border-line pt-4 text-sm text-muted">

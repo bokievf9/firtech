@@ -1,3 +1,4 @@
+import { echoEnabled } from '@/lib/echo-flag'
 import { guard } from '@/lib/admin-guard'
 import { handleEcho } from '@/lib/echo-chat'
 
@@ -10,6 +11,7 @@ import { handleEcho } from '@/lib/echo-chat'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
+  if (!echoEnabled()) return new Response(null, { status: 404 })
   const denied = await guard(request)
   if (denied) return denied
   return handleEcho(request)

@@ -40,6 +40,7 @@ type EchoState = {
 type Context = {
   data: PulseViewData
   echoProps: ComponentProps<typeof EchoConsole>
+  echoEnabled: boolean
   tasks: TasksApi
   ig: InstagramApi
   stats: ReturnType<typeof useStats>
@@ -68,11 +69,13 @@ export function usePulse(): Context {
 export function PulseProvider({
   data,
   echoProps,
+  echoEnabled,
   initialTab,
   children,
 }: {
   data: PulseViewData
   echoProps: ComponentProps<typeof EchoConsole>
+  echoEnabled: boolean
   initialTab: SectionId
   children: React.ReactNode
 }) {
@@ -149,6 +152,7 @@ export function PulseProvider({
     () => ({
       data,
       echoProps,
+      echoEnabled,
       tasks,
       ig,
       stats,
@@ -161,7 +165,7 @@ export function PulseProvider({
       setTab,
       echo,
     }),
-    [data, echoProps, tasks, ig, stats, selected, change, fail, tab, echo],
+    [data, echoProps, echoEnabled, tasks, ig, stats, selected, change, fail, tab, echo],
   )
 
   return (

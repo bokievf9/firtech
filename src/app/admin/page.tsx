@@ -4,6 +4,7 @@ import { ViewA } from '@/components/admin/pulse/view-a'
 import { ViewB } from '@/components/admin/pulse/view-b'
 import { goals, projects, tasks } from '@/content/control'
 import { requireAdmin } from '@/lib/admin-page'
+import { echoEnabled } from '@/lib/echo-flag'
 import { getPulseData } from '@/lib/pulse-data'
 
 export const dynamic = 'force-dynamic'
@@ -21,6 +22,7 @@ export default async function AdminPulsePage({ searchParams }: PageProps<'/admin
       <PulseProvider
         data={data}
         initialTab="tasks"
+        echoEnabled={echoEnabled()}
         echoProps={{
           projects,
           health: data.snapshot.sites.map((s) => ({ id: s.id, ok: s.ok, ms: s.ms })),

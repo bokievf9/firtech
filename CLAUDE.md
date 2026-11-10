@@ -95,7 +95,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
   site. Bot `/admin` sends the link. Overview, leads with drawer, calendar, CSV export.
-- Echo (`/admin/echo`, nav "Echo"): the owner's control room. Projects, tasks, goals and
+- Echo is OFF since 2026-11-10 (owner: not needed yet): everything below works only with
+  `ECHO_ENABLED=1` (`src/lib/echo-flag.ts`); otherwise the Pulse bar, panel and "ask Echo" button are
+  hidden, `/admin/echo` and `/api/admin/echo*` answer 404 and the nav link is gone (re-add it in
+  `admin-shell.tsx` when turning it back on). Code is kept.
+- Echo (`/admin/echo`): the owner's control room. Projects, tasks, goals and
   milestones are typed data in `src/content/control.ts` (edit there on the owner's word; progress
   numbers are the owner's estimates). Live: project health (`src/lib/project-health.ts`, each
   `healthUrl` checked from the server, cached 30 s) and lead counts. Hologram on canvas

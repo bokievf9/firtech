@@ -1,3 +1,4 @@
+import { echoEnabled } from '@/lib/echo-flag'
 import { guard } from '@/lib/admin-guard'
 import { handleTts } from '@/lib/echo-tts'
 
@@ -6,6 +7,7 @@ import { handleTts } from '@/lib/echo-tts'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: Request) {
+  if (!echoEnabled()) return new Response(null, { status: 404 })
   const denied = await guard(request)
   if (denied) return denied
   return handleTts(request)
