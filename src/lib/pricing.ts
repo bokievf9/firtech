@@ -3,7 +3,7 @@ import type { ExtraSlug, ServiceSlug } from './site'
 // Starting prices in USD (owner decision, 2026-10-16: low entry). Names and terms live in the
 // dictionaries (src/content), keyed by the same ids, so prices are defined once for both languages.
 export const startingPrice: Record<ServiceSlug, number> = {
-  websites: 150,
+  websites: 200, // 150 before 2026-11-18; $200 is proposed in the showcase brief, owner to approve
   bots: 100,
   apps: 1000,
   automation: 300,
@@ -13,7 +13,7 @@ type Catalog = { variants: Record<string, number>; addons: Record<string, number
 
 export const catalog: Record<ServiceSlug, Catalog> = {
   websites: {
-    variants: { landing: 150, company: 400, shop: 900 },
+    variants: { landing: 200, company: 400, shop: 900 },
     addons: { language: 80, telegram: 40, payments: 150, cms: 200 },
   },
   bots: {

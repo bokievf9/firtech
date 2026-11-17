@@ -5,7 +5,12 @@ import type { LeadService, ServiceSlug } from './site'
 export const ESTIMATE_EVENT = 'firtech:estimate'
 
 // `summary` is the calculator's result; without it the form keeps whatever estimate it already has.
-export type EstimateDetail = { service: LeadService; summary?: string }
+export type EstimateDetail = {
+  service: LeadService | 'unknown'
+  summary?: string
+  // Showcase card the visitor came from (see directions.ts); goes to the lead as `source`.
+  source?: string
+}
 
 export function sendEstimate(detail: EstimateDetail) {
   window.dispatchEvent(new CustomEvent<EstimateDetail>(ESTIMATE_EVENT, { detail }))

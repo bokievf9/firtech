@@ -14,6 +14,14 @@ export const leadSchema = z.object({
   page: z.string().trim().max(600).optional().default(''),
   // Chosen call slot (UTC ISO string from /api/slots); the route checks it is still free.
   slot: z.string().trim().max(40).optional().default(''),
+  // The showcase card the lead came from (a direction id, see directions.ts); empty for the rest.
+  source: z
+    .string()
+    .trim()
+    .max(40)
+    .regex(/^[a-z0-9_-]*$/)
+    .optional()
+    .default(''),
   // Honeypot: hidden from people, bots fill it in.
   website: z.string().max(200).optional().default(''),
 })
@@ -23,7 +31,7 @@ export type Lead = z.infer<typeof leadSchema>
 export type LeadFields = Pick<
   Lead,
   'name' | 'contact' | 'service' | 'budget' | 'estimate' | 'message' | 'locale' | 'page'
->
+> & { source?: string }
 
 export const serviceNames: Record<Lead['service'], string> = {
   websites: 'Сайт',
@@ -64,6 +72,8 @@ export function formatLead(lead: LeadFields, title = 'Новая заявка с
     ['Задача', clip(lead.message, 1000)],
     ['Язык', lead.locale.toUpperCase()],
     ['Страница', clip(lead.page, 300)],
+    // Last row, so the lines the lead reader already parses keep their places.
+    ['Источник', lead.source ?? ''],
   ]
   const body = rows
     .filter(([, value]) => value)

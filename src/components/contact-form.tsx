@@ -45,6 +45,7 @@ export function ContactForm({
   const [errors, setErrors] = useState<Errors>({})
   const [service, setService] = useState<string>(defaultService ?? 'unknown')
   const [estimate, setEstimate] = useState('')
+  const [source, setSource] = useState('')
   const [slot, setSlot] = useState('')
   const [slotTaken, setSlotTaken] = useState(false)
   const [takenSlots, setTakenSlots] = useState<string[]>([])
@@ -54,6 +55,7 @@ export function ContactForm({
     function onEstimate(event: Event) {
       const detail = (event as CustomEvent<EstimateDetail>).detail
       setService(detail.service)
+      setSource(detail.source ?? '')
       if (detail.summary !== undefined) setEstimate(detail.summary)
       setStatus('idle')
     }
@@ -83,6 +85,7 @@ export function ContactForm({
         body: JSON.stringify({
           ...data,
           estimate,
+          source,
           locale,
           // The lead schema keeps 600 characters; a builder link with long notes is cut, its
           // texts already travel in full in the estimate summary.
@@ -102,6 +105,7 @@ export function ContactForm({
       setSent((await response.json().catch(() => ({}))) as Sent)
       form.reset()
       setEstimate('')
+      setSource('')
       setSlot('')
       setStatus('sent')
       track('lead_sent', { service: data.service || 'unknown' })

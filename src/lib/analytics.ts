@@ -15,6 +15,7 @@ export type GoalParams = {
   estimate_pdf: [params: { service: string }]
   builder_link_copied: []
   extra_discuss: [params: { service: string }]
+  direction_discuss: [params: { source: string }]
 }
 export type Goal = keyof GoalParams
 
