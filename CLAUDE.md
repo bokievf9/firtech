@@ -78,6 +78,12 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `chat.id` from `https://api.telegram.org/bot<token>/getUpdates`), `NEXT_PUBLIC_TELEGRAM_USERNAME`
   (public username for the "write in Telegram" link; empty hides it), `NEXT_PUBLIC_SITE_URL`.
 - Without the bot env, dev mode logs the lead to the console and production returns 503.
+- Lead Intake (agents repo, `apps/lead-intake`): `src/lib/lead-forward.ts` POSTs each lead to
+  `${LEAD_INTAKE_URL}/lead` (header `x-lead-token: LEAD_INTAKE_TOKEN`, JSON as the agent's `webLeadSchema`:
+  name, contact, service, budget, message, estimate, locale, page, slot). Fail-open: no env or a failed
+  request (5 s timeout) is only logged without lead text; saving and Telegram go on as before. Not awaited.
+  Keep the field list in sync with `../agents/apps/lead-intake/src/webhook.ts`. The agent is not on the
+  server yet, so leave both vars empty in production until it is deployed.
 - Honeypot field `website` and an in-memory limit of 5 requests per IP per 10 minutes.
 
 - Leads are saved first to `$DATA_DIR/leads.json` (`src/lib/store.ts`; fine because there is one

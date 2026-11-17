@@ -2,6 +2,7 @@ import 'server-only'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isFreeSlot } from '@/lib/booking'
 import { formatLead, leadSchema } from '@/lib/lead'
+import { forwardLead } from '@/lib/lead-forward'
 import { flushPending, notifyOwner } from '@/lib/lead-bot'
 import { bookedSlots, createLead, SlotTakenError, type StoredLead } from '@/lib/store'
 import { leadToken, sendMessage, telegramEnv } from '@/lib/telegram'
@@ -64,6 +65,9 @@ export async function POST(request: NextRequest) {
     }
     console.error('[lead] could not save the lead', error, '\n' + formatLead(lead))
   }
+
+  // Copy for the Lead Intake agent; not awaited and fail-open, so it never delays or blocks the lead.
+  void forwardLead(lead, stored?.booking?.slot ?? slot)
 
   if (!telegramReady) {
     console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))
