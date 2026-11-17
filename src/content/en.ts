@@ -1298,9 +1298,9 @@ const en: Dict = {
   },
   serviceDetails: {
     websites: {
-      metaTitle: 'Website and landing page development from $200 | Fir Tech',
+      metaTitle: 'Website and landing page development from $150 | Fir Tech',
       metaDescription:
-        'Landing pages from $200, company websites and online stores. Mobile-friendly design, leads to Telegram, content editor. Price and deadline up front.',
+        'Landing pages from $150, company websites and online stores. Mobile-friendly design, leads to Telegram, content editor. Price and deadline up front.',
       title: 'A website that brings in leads',
       sub: 'A landing page in 5-7 days or a company website in 2-3 weeks. Looks right on a phone and sends every enquiry to your Telegram.',
       included: [

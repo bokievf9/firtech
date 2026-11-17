@@ -37,7 +37,7 @@ test('proposed prices from the brief', () => {
     agent: 400,
     implementation: 800,
     training: 150,
-    site: 200,
+    site: 150,
   })
   assert.equal(directionPrices.receptionist.supportMonthly, 25)
   assert.equal(directionPrices.training.team, 400)

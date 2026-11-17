@@ -34,7 +34,7 @@ export const directionPrices: Record<DirectionId, DirectionPrice> = {
   agent: { from: 400 },
   implementation: { from: 800 },
   training: { from: 150, unit: 'person', team: 400 },
-  site: { from: 200 },
+  site: { from: 150 },
 }
 
 // What the contact form preselects for a card (the lead keeps `source` as well).
