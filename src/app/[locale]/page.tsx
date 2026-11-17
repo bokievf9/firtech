@@ -1,20 +1,22 @@
 import { Compare } from '@/components/compare'
 import { ContactSection } from '@/components/contact-section'
-import { Extras } from '@/components/extras'
+import { Directions } from '@/components/directions'
+import { DonoCase } from '@/components/dono-case'
 import { Faq } from '@/components/faq'
 import { Hero } from '@/components/hero'
 import { JsonLd, faqJsonLd } from '@/components/json-ld'
 import { Pains } from '@/components/pains'
 import { PricingSection } from '@/components/pricing-section'
 import { Process } from '@/components/process'
+import { Region } from '@/components/region'
 import { Services } from '@/components/services'
 import { Showcase } from '@/components/showcase'
 import { StackMarquee } from '@/components/stack-marquee'
 import { Trust } from '@/components/trust'
 import { getDict } from '@/content'
 import { isLocale } from '@/lib/i18n'
-import { startingPrice } from '@/lib/pricing'
-import { serviceSlugs, siteUrl } from '@/lib/site'
+import { directionIds, directionPrices } from '@/lib/directions'
+import { siteUrl } from '@/lib/site'
 import { notFound } from 'next/navigation'
 
 export default async function HomePage({ params }: PageProps<'/[locale]'>) {
@@ -29,16 +31,20 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     url: `${siteUrl}/${locale}`,
     description: dict.meta.description,
     areaServed: ['TJ', 'UZ', 'KZ', 'KG', 'RU', 'Worldwide'],
-    priceRange: '$100-$5000',
+    priceRange: '$60-$5000',
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
-      name: dict.services.title,
-      itemListElement: serviceSlugs.map((slug) => ({
+      name: dict.directions.title,
+      itemListElement: directionIds.map((id) => ({
         '@type': 'Offer',
-        itemOffered: { '@type': 'Service', name: dict.services.items[slug].name },
+        itemOffered: {
+          '@type': 'Service',
+          name: dict.directions.items[id].title,
+          description: dict.directions.items[id].lines.join(' '),
+        },
         priceSpecification: {
           '@type': 'PriceSpecification',
-          minPrice: startingPrice[slug],
+          minPrice: directionPrices[id].from,
           priceCurrency: 'USD',
         },
       })),
@@ -51,12 +57,14 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
       <JsonLd data={faqJsonLd(dict.faq.items)} />
       <Hero locale={locale} dict={dict} />
       <StackMarquee dict={dict} />
+      <Directions locale={locale} dict={dict} />
+      <DonoCase dict={dict} />
       <Services locale={locale} dict={dict} />
-      <Extras locale={locale} dict={dict} />
       <Pains dict={dict} />
       <Showcase locale={locale} dict={dict} />
       <Compare dict={dict} />
       <Trust dict={dict} />
+      <Region dict={dict} />
       <PricingSection dict={dict} locale={locale} />
       <Process dict={dict} />
       <Faq id="faq" title={dict.faq.title} items={dict.faq.items} />

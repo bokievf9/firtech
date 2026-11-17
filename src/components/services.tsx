@@ -16,7 +16,7 @@ export function Services({ locale, dict }: { locale: Locale; dict: Dict }) {
   const s = dict.services
   const landing = dict.estimator.catalog.websites.variants.landing
   return (
-    <section id="services" className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-36">
+    <section id="base" className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-36">
       <RiseText text={s.title} className="text-4xl font-semibold tracking-[-0.035em] md:text-6xl" />
       <Reveal delay={0.15}>
         <p className="mt-5 max-w-[52ch] text-lg leading-relaxed text-muted">{s.sub}</p>

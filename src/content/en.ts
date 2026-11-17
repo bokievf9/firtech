@@ -4,9 +4,9 @@ import type { Dict } from './ru'
 const en: Dict = {
   langName: 'English',
   meta: {
-    title: 'Fir Tech: websites, Telegram bots, apps and business automation',
+    title: 'Fir Tech: AI agents for business, Telegram bots and websites',
     description:
-      'Websites from $150, Telegram bots from $100, apps from $1000, automation from $300. Fixed price and deadline before we start, paid in stages.',
+      'AI agents for business: a Telegram booking bot, lead intake 24/7, automation for small business and websites. We work with companies in Tashkent, Almaty, Dushanbe and Bishkek. Prices in US dollars, fixed before we start.',
   },
   nav: {
     services: 'Services',
@@ -21,10 +21,10 @@ const en: Dict = {
     home: 'Home',
   },
   hero: {
-    title: 'Websites and bots that bring in leads, not just look pretty',
+    title: 'AI agents that work 24/7 in place of an employee',
     // The h1 in three lines; the middle one is the accent.
-    lines: ['Websites and bots', 'that bring in leads,', 'not just look pretty'],
-    sub: 'Websites from $150, Telegram bots from $100. Price and deadline are fixed before we start, and you pay in stages.',
+    lines: ['AI agents', 'that work 24/7', 'in place of an employee'],
+    sub: 'They take leads, book clients and keep reports. We build agents, bots and websites for small business.',
     primary: 'Estimate the cost',
     telegram: 'Message on Telegram',
     trust: ['Price fixed in the quote', 'Pay in stages', 'Code and access are yours'],
@@ -59,8 +59,8 @@ const en: Dict = {
     },
   },
   services: {
-    title: 'What we build',
-    sub: 'The four things businesses ask us for most. Order one, or connect them all.',
+    title: 'Websites, bots and apps',
+    sub: 'The foundation the agents run on. Order one, or connect them all.',
     from: 'from',
     more: 'Learn more',
     items: {
@@ -93,6 +93,139 @@ const en: Dict = {
       pick: '14:30',
       done: 'Booked. See you on Saturday at 14:30',
     },
+  },
+  directions: {
+    title: 'Agents and bots that take the routine off your hands',
+    sub: 'Pick a direction. We show how it would work for you and name the price and deadline before we start.',
+    from: 'from',
+    perMonth: 'per month',
+    perPerson: 'per person',
+    team: 'per team',
+    support: 'support per month',
+    before: 'Before',
+    after: 'After',
+    discuss: 'Discuss',
+    more: 'Learn more',
+    items: {
+      admin: {
+        title: 'Booking bot',
+        lines: [
+          'Books clients in Telegram, reminds them about the visit and asks for a review afterwards.',
+          'You stop answering "do you have time on Friday?" by hand.',
+        ],
+        before: 'Bookings in a notebook, some clients forget to come',
+        after: 'The bot books and reminds a day and an hour ahead',
+      },
+      receptionist: {
+        title: 'AI lead receptionist',
+        lines: [
+          'Answers in Telegram, WhatsApp and Instagram at any hour of the day.',
+          'Clarifies the request with the client and hands the manager a ready lead with contacts.',
+        ],
+        before: 'Night messages wait until morning and go cold',
+        after: 'The client gets an answer in a minute, the manager sees the lead',
+      },
+      automation: {
+        title: 'Routine automation',
+        lines: [
+          'We connect Google Sheets, your CRM and messengers so data moves by itself.',
+          'Reports and mailings go out on a schedule.',
+        ],
+        before: 'The weekly report is assembled by hand on Friday evening',
+        after: 'The report arrives in your chat on its own, on time',
+      },
+      content: {
+        title: 'Content by subscription',
+        lines: [
+          'Posts, product cards and short videos come out on an agreed plan.',
+          'You approve the material in Telegram, we do the rest.',
+        ],
+        before: 'The page is silent for weeks, nobody has time for topics',
+        after: 'Content goes out on plan, you only approve it',
+      },
+      miniapp: {
+        title: 'Telegram Mini App',
+        lines: [
+          'A shop, booking or loyalty program right inside Telegram.',
+          'The client does not install an app or sign up.',
+        ],
+        before: 'A catalog of photos and orders through direct messages',
+        after: 'Catalog, cart and payment in one Telegram window',
+      },
+      agent: {
+        title: 'Personal agent',
+        lines: [
+          'Your own AI assistant in the spirit of Dono: it tracks tasks, deadlines and email.',
+          'Fits students, freelancers and business owners.',
+        ],
+        before: 'Deadlines and emails are scattered across five places',
+        after: 'The agent puts everything in one list and reminds you in Telegram',
+      },
+      implementation: {
+        title: 'AI rollout in your company',
+        lines: [
+          'We build a knowledge base from your documents, and AI answers staff and clients from it.',
+          'We show the team how to use it every day.',
+        ],
+        before: 'A newcomer spends a week searching chats and folders',
+        after: 'They ask the AI and get an answer with a link to the document',
+      },
+      training: {
+        title: 'Training',
+        lines: [
+          'A workshop on putting agents into your business, built on your real tasks.',
+          'Available for one person or for a whole team.',
+        ],
+        before: 'You have heard a lot about AI and have no idea where to start',
+        after: 'By the end you have a working agent for your task',
+      },
+      site: {
+        title: 'Websites and landing pages',
+        lines: [
+          'The base for everything above: a page that ads point to and leads come from.',
+          'Fast, comfortable on a phone, with an enquiry form straight into Telegram.',
+        ],
+        before: 'Ads lead to Instagram, where there is no price or booking',
+        after: 'A landing page with prices and a form, leads go straight to Telegram',
+      },
+    },
+  },
+  dono: {
+    title: 'How we build agents',
+    sub: 'An example: Dono, a study assistant for students. The same principle works for your leads, bookings and reports.',
+    steps: [
+      {
+        title: 'Connect the sources',
+        text: 'Dono watches deadlines in Moodle and messages in email.',
+      },
+      {
+        title: 'Put it in the calendar',
+        text: 'Every task gets a date in the calendar, and clashes are visible at once.',
+      },
+      {
+        title: 'Remind in Telegram',
+        text: 'A reminder arrives in advance and again on the day it is time to start.',
+      },
+      {
+        title: 'Prepare for exams',
+        text: 'Builds a summary of the topic and quizzes you while you revise.',
+      },
+    ],
+    flow: { sources: 'Moodle and email', agent: 'Dono', outputs: 'Calendar and Telegram' },
+    exampleLabel: 'Sample reminder',
+    example:
+      'Tomorrow at 10:00 the economics essay is due. The draft is there, the conclusion is missing. Block an hour tonight?',
+    note: 'A schematic and a neutral example: we do not show students’ personal data on the site.',
+    ctaTitle: 'Need an agent like this?',
+    agentLink: 'Personal agent',
+    receptionistLink: 'AI lead receptionist for business',
+  },
+  region: {
+    title: 'We work with companies in Tashkent, Almaty, Dushanbe and Bishkek',
+    sub: 'We communicate in Russian or English and take payment the way that suits you. All prices on the site are in US dollars.',
+    cities: ['Tashkent', 'Almaty', 'Dushanbe', 'Bishkek'],
+    payTitle: 'Ways to pay',
+    pay: ['Bank cards', 'Kaspi', 'Payme and Click', 'USDT'],
   },
   extras: {
     title: 'We also do',
@@ -1165,9 +1298,9 @@ const en: Dict = {
   },
   serviceDetails: {
     websites: {
-      metaTitle: 'Website and landing page development from $150 | Fir Tech',
+      metaTitle: 'Website and landing page development from $200 | Fir Tech',
       metaDescription:
-        'Landing pages from $150, company websites and online stores. Mobile-friendly design, leads to Telegram, content editor. Price and deadline up front.',
+        'Landing pages from $200, company websites and online stores. Mobile-friendly design, leads to Telegram, content editor. Price and deadline up front.',
       title: 'A website that brings in leads',
       sub: 'A landing page in 5-7 days or a company website in 2-3 weeks. Looks right on a phone and sends every enquiry to your Telegram.',
       included: [
