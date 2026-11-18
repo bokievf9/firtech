@@ -1,5 +1,18 @@
 import type { Dict } from '@/content'
-import { defaultStyle, encodeBuild, quote, type Build } from './builder'
+import {
+  builderUi,
+  densityNames,
+  kindName,
+  moodNames,
+  paletteNames,
+  pick,
+  productCatalog,
+  shapeNames,
+  typeNames,
+  kitNames,
+} from '../content/builder-catalog'
+import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
+import { usesAxes } from './builder-style'
 import { bundleDiscount, formatUsd } from './pricing'
 import { serviceSlugs, siteUrl, type ServiceSlug } from './site'
 
@@ -12,6 +25,12 @@ export type BriefRow = { id: string; label: string; value: string }
 export type Brief = { goals: BriefRow[]; style: BriefRow[]; details: BriefRow[] }
 
 export type EstimateDoc = {
+  // The business kind's name, when the build has one.
+  kind: string | null
+  // Every picked product by name; those without a price are also in `onRequest`.
+  products: string[]
+  // Products without a price in pricing.ts: "on quote", never part of a sum.
+  onRequest: EstimateRow[]
   parts: EstimateRow[]
   extras: EstimateRow[]
   subtotal: string
@@ -57,21 +76,33 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
       })
     }
   }
+  const quoteWord = pick(builderUi.onRequest, locale)
+  const onRequest: EstimateRow[] = productsOnRequest(build).map((id) => ({
+    id,
+    name: pick(productCatalog[id].name, locale),
+    detail: pick(productCatalog[id].hint, locale),
+    term: '',
+    price: quoteWord,
+  }))
   return {
+    kind: build.kind ? kindName(build.kind, locale) : null,
+    products: (build.products ?? []).map((id) => pick(productCatalog[id].name, locale)),
+    onRequest,
     parts,
     extras,
     subtotal: formatRange(q.subtotal),
     discount: q.discount ? `-${Math.round(bundleDiscount * 100)}%` : null,
-    total: formatRange(q.total),
+    // No priced lines: nothing to sum, the quote says so instead of showing zero.
+    total: q.lines.length ? formatRange(q.total) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,
-    brief: briefOf(build, dict),
+    brief: briefOf(build, dict, locale),
   }
 }
 
 // The brief (goals, style, details) as labelled rows, for the summary screen, the PDF and the lead.
 // Only what the visitor picked; the style shows defaults for fields left open once any is picked.
-export function briefOf(build: Build, dict: Dict): Brief {
+export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
   const t = dict.builder
   const goals: BriefRow[] = []
   if (build.goals?.length)
@@ -88,7 +119,43 @@ export function briefOf(build: Build, dict: Dict): Brief {
     })
 
   const style: BriefRow[] = []
-  if (build.style && Object.keys(build.style).length) {
+  if (build.style && usesAxes(build.style)) {
+    const s = build.style
+    const ui = builderUi
+    if (s.kit)
+      style.push({ id: 'look', label: t.looksTitle, value: pick(kitNames[s.kit].name, locale) })
+    else style.push({ id: 'look', label: t.looksTitle, value: pick(ui.customStyle, locale) })
+    if (s.palette)
+      style.push({
+        id: 'palette',
+        label: pick(ui.axes.palette, locale),
+        value: pick(paletteNames[s.palette], locale),
+      })
+    if (s.type)
+      style.push({
+        id: 'type',
+        label: pick(ui.axes.type, locale),
+        value: pick(typeNames[s.type].name, locale),
+      })
+    if (s.shape)
+      style.push({
+        id: 'shape',
+        label: pick(ui.axes.shape, locale),
+        value: pick(shapeNames[s.shape], locale),
+      })
+    if (s.density)
+      style.push({
+        id: 'density',
+        label: pick(ui.axes.density, locale),
+        value: pick(densityNames[s.density], locale),
+      })
+    if (s.mood)
+      style.push({
+        id: 'mood',
+        label: pick(ui.axes.mood, locale),
+        value: pick(moodNames[s.mood].name, locale),
+      })
+  } else if (build.style && Object.keys(build.style).length) {
     const s = { ...defaultStyle, ...build.style }
     style.push(
       { id: 'look', label: t.looksTitle, value: t.looks[s.look].name },
@@ -126,12 +193,21 @@ export function leadSummary(build: Build, dict: Dict, locale: string) {
   const t = dict.builder
   const doc = estimateDoc(build, dict, locale)
   const q = quote(build)
-  const lines = [
+  const ui = builderUi
+  const lines: string[] = []
+  if (doc.kind) lines.push(`${pick(ui.kindLabel, locale)}: ${doc.kind}`)
+  if (doc.products.length) lines.push(`${pick(ui.productsLabel, locale)}: ${doc.products.join(', ')}`)
+  lines.push(
     ...doc.parts.map((row) => `${row.name}: ${row.detail} (${row.price}, ${row.term})`),
     ...doc.extras.map((row) => `${row.name} (${row.price})`),
-  ]
+  )
   if (q.discount) lines.push(`${t.discount}: ${doc.subtotal} -> ${doc.total}`)
   lines.push(`${t.total}: ${doc.total}`)
+  // Products without a price are listed apart and never summed.
+  if (doc.onRequest.length)
+    lines.push(
+      `${pick(ui.onRequestLabel, locale)}: ${doc.onRequest.map((row) => row.name).join(', ')}`,
+    )
   if (doc.monthly) lines.push(`${dict.extras.items.support.name}: ${doc.monthly}`)
   const { goals, style, details } = doc.brief
   for (const row of goals) lines.push(`${row.label}: ${row.value}`)

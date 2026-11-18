@@ -38,12 +38,20 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never
   summed. The build lives in `?b=` so it can be shared; the lead arrives as service `bundle` with
   the full list and the link.
-  Seven full-screen steps (business, goal, parts, features, style, details, summary); the step is in
-  `?s=` (1-based) with history entries. The brief (goals, channels, style, details) rides in `?b=`
-  as extra chunks (`g.` `c.` `s.` `d.`, base64url `u.`/`w.` for links and the wish); old links
-  decode as before. Style only restyles the mockup via CSS variables (`src/lib/builder-style.ts`);
-  nothing in the brief changes the price, except website languages: two or more turn on the
-  existing `language` option. `leadSummary` (`estimate-doc.ts`) builds the lead text (max 1500).
+  Eight full-screen steps (business, products, goal, parts, features, style, details, summary); the
+  step is in `?step=` (1-based; old `?s=` links map to the new order) with history entries.
+  Catalogue: `src/content/builder-catalog.ts` holds every kind (56, in 10 categories; row = emoji,
+  mock block, default goals, 1-2 usual products, preset as an encoded build, RU/EN name, headline,
+  lead, 3 pains, 3 gets), the products and the style names. Presets, products and quotes derive
+  from it; prices only from `pricing.ts`. Products (`adminbot intake automation content miniapp
+  agent aiteam site bot app`): a priced product pre-selects its parts; unpriced ones (`content`,
+  `agent`, `aiteam`) show "по смете", are listed apart in the quote, estimate and lead and are
+  never summed. The brief (goals, channels, style, details) and the kind/products ride in `?b=` as
+  extra chunks (`k.` kind, `p.` products, `g.` `c.` `s.` old style, `y.` new style axes, `d.`,
+  base64url `u.`/`w.`); old links decode as before. Style: five axes (16 palettes, 7 type pairs,
+  shape, density, mood) plus 19 ready looks (kits) in `src/lib/builder-style.ts`; it only restyles
+  the mockup via CSS variables and never changes the price, except website languages (two or more
+  turn on the `language` option). `leadSummary` (`estimate-doc.ts`) builds the lead text (max 1500).
   The summary also links to `/[locale]/builder/estimate?b=...` (noindex, decoded on the client,
   rows from `estimateDoc` in `src/lib/estimate-doc.ts`): an A4 estimate saved as PDF via the print
   dialog. Site chrome carries `.print-hidden`; print rules are at the end of `globals.css`.
@@ -52,7 +60,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (`Process` with `serviceDetails.<slug>.steps`), concepts (`ServiceConcepts`, labelled as
   concepts), pricing, FAQ, contact, other services.
 - Solutions (`/[locale]/solutions`, `/[locale]/solutions/[kind]`, kinds in `src/lib/solutions.ts` =
-  builder `businessKinds` without `other`): niche pages for search built on `presets[kind]`
+  builder `businessKinds` without `other`; `allSolutionKinds`, copy via `solutionCopy`, the footer lists only the original five): niche pages for search built on `presets[kind]`
   (price from `quote()`, CTA opens the builder with that preset, mockup `BuilderPreview` labelled
   as a concept). Changing a preset changes its page.
 - Blog (`/[locale]/blog`): articles are typed data in `src/content/blog/` (one file each, ru + en).

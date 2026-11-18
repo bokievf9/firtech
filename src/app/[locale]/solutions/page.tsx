@@ -6,15 +6,15 @@ import { ContactSection } from '@/components/contact-section'
 import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
-import { solutionIcons } from '@/components/solution-parts'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
+import { categoryNames, kindCatalog, kindName, kindsByCategory, pick } from '@/content/builder-catalog'
 import { presets, quote } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { siteUrl } from '@/lib/site'
-import { solutionKinds } from '@/lib/solutions'
+import { solutionCopy, type SolutionKind } from '@/lib/solutions'
 import { shareBase } from '@/lib/share'
 
 export async function generateMetadata({
@@ -46,14 +46,15 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
   const dict = getDict(locale)
   const t = dict.solutions
 
+  const allKinds = kindsByCategory.flatMap((g) => g.kinds).filter((k): k is SolutionKind => k !== 'other')
   const list = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: t.title,
-    itemListElement: solutionKinds.map((kind, i) => ({
+    itemListElement: allKinds.map((kind, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      name: t.items[kind].title,
+      name: solutionCopy(kind, locale, dict).title,
       url: `${siteUrl}/${locale}/solutions/${kind}`,
     })),
   }
@@ -71,63 +72,74 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
         </HeroIntro>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-24 md:px-8">
-        <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {solutionKinds.map((kind, i) => {
-            const Glyph = solutionIcons[kind]
-            const q = quote(presets[kind])
-            return (
-              <li key={kind}>
-                <Reveal delay={(i % 3) * 0.06} className="h-full">
-                  <SpotlightCard className="relative flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-colors hover:border-line-strong md:p-8">
-                    <div className="flex items-center gap-3 text-sm text-muted">
-                      <Glyph size={22} className="text-accent" />
-                      {dict.builder.kinds[kind]}
-                    </div>
-                    <h2 className="mt-6 text-2xl leading-tight font-semibold tracking-[-0.02em]">
-                      <Link
-                        href={`/${locale}/solutions/${kind}`}
-                        className="after:absolute after:inset-0 after:rounded-card"
-                      >
-                        {t.items[kind].title}
-                      </Link>
-                    </h2>
-                    <p className="mt-3 leading-relaxed text-muted">{t.items[kind].card}</p>
-                    <div className="mt-8 flex items-end justify-between gap-4 pt-2 lg:mt-auto">
-                      <p className="font-mono text-2xl text-accent">
-                        <span className="text-sm text-muted">{t.from} </span>
-                        {formatUsd(q.total.min)}
-                      </p>
-                      <span className="inline-flex items-center gap-1.5 text-sm text-muted">
-                        {t.more}
-                        <ArrowUpRight size={16} className="text-accent" />
-                      </span>
-                    </div>
-                  </SpotlightCard>
-                </Reveal>
-              </li>
-            )
-          })}
-          <li>
-            <Reveal delay={0.12} className="h-full">
-              <div className="flex h-full flex-col rounded-card border border-dashed border-line-strong p-6 md:p-8">
-                <h2 className="text-2xl leading-tight font-semibold tracking-[-0.02em]">
-                  {t.otherTitle}
-                </h2>
-                <p className="mt-3 leading-relaxed text-muted">{t.otherText}</p>
-                <div className="mt-8 lg:mt-auto">
-                  <Link href={`/${locale}/builder`} className={cn(buttonStyles.secondary, 'group')}>
-                    {t.otherCta}
-                    <ArrowRight
-                      size={16}
-                      className="transition-transform duration-300 group-hover:translate-x-1"
-                    />
-                  </Link>
-                </div>
-              </div>
-            </Reveal>
-          </li>
-        </ul>
+      <section className="mx-auto grid max-w-7xl gap-14 px-4 pb-24 md:px-8">
+        {kindsByCategory.map((group) => {
+          const kinds = group.kinds.filter((k): k is SolutionKind => k !== 'other')
+          if (!kinds.length) return null
+          return (
+            <div key={group.category}>
+              <h2 className="mb-5 text-sm tracking-[0.12em] text-faint uppercase">
+                {pick(categoryNames[group.category], locale)}
+              </h2>
+              <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {kinds.map((kind, i) => {
+                  const q = quote(presets[kind])
+                  const copy = solutionCopy(kind, locale, dict)
+                  return (
+                    <li key={kind}>
+                      <Reveal delay={(i % 3) * 0.06} className="h-full">
+                        <SpotlightCard className="relative flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-colors hover:border-line-strong md:p-8">
+                          <div className="flex items-center gap-3 text-sm text-muted">
+                            <span aria-hidden="true" className="text-2xl leading-none">
+                              {kindCatalog[kind].emoji}
+                            </span>
+                            {kindName(kind, locale)}
+                          </div>
+                          <h3 className="mt-6 text-2xl leading-tight font-semibold tracking-[-0.02em]">
+                            <Link
+                              href={`/${locale}/solutions/${kind}`}
+                              className="after:absolute after:inset-0 after:rounded-card"
+                            >
+                              {copy.title}
+                            </Link>
+                          </h3>
+                          <p className="mt-3 leading-relaxed text-muted">{copy.card}</p>
+                          <div className="mt-8 flex items-end justify-between gap-4 pt-2 lg:mt-auto">
+                            <p className="font-mono text-2xl text-accent">
+                              <span className="text-sm text-muted">{t.from} </span>
+                              {formatUsd(q.total.min)}
+                            </p>
+                            <span className="inline-flex items-center gap-1.5 text-sm text-muted">
+                              {t.more}
+                              <ArrowUpRight size={16} className="text-accent" />
+                            </span>
+                          </div>
+                        </SpotlightCard>
+                      </Reveal>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          )
+        })}
+        <Reveal delay={0.12}>
+          <div className="flex flex-col gap-5 rounded-card border border-dashed border-line-strong p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
+            <div>
+              <h2 className="text-2xl leading-tight font-semibold tracking-[-0.02em]">
+                {t.otherTitle}
+              </h2>
+              <p className="mt-3 max-w-[60ch] leading-relaxed text-muted">{t.otherText}</p>
+            </div>
+            <Link href={`/${locale}/builder`} className={cn(buttonStyles.secondary, 'group shrink-0')}>
+              {t.otherCta}
+              <ArrowRight
+                size={16}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </Link>
+          </div>
+        </Reveal>
       </section>
 
       <ContactSection dict={dict} locale={locale} />

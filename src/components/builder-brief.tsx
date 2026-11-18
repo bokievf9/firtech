@@ -1,36 +1,57 @@
 'use client'
 
 import {
+  ArrowCounterClockwise,
   CalendarBlank,
   Check,
   Hourglass,
   Info,
   Lightning,
-  Moon,
-  Sun,
+  SlidersHorizontal,
   type Icon,
 } from '@phosphor-icons/react'
 import { useState } from 'react'
 import type { Dict } from '@/content'
+import {
+  builderUi,
+  densityNames,
+  kitNames,
+  moodNames,
+  paletteNames,
+  pick,
+  shapeNames,
+  typeNames,
+} from '@/content/builder-catalog'
 import {
   cleanExample,
   detailAssets,
   detailDeadlines,
   detailLangs,
   pagesRange,
-  styleAccents,
-  styleFonts,
-  styleLooks,
-  styleThemes,
+  styleDensities,
+  styleKits,
+  styleMoods,
+  stylePalettes,
+  styleShapes,
+  styleTypes,
   textLimits,
   withDetails,
   withLangs,
-  withStyle,
   type Build,
-  type BuildStyle,
   type DetailDeadline,
 } from '@/lib/builder'
-import { accentColors, resolveStyle, styleVars } from '@/lib/builder-style'
+import {
+  applyKit,
+  clearStyle,
+  currentAxes,
+  kits,
+  palettes,
+  resolveLook,
+  setAxis,
+  styleVars,
+  usesAxes,
+  type StyleAxes,
+} from '@/lib/builder-style'
 import { cn } from '@/lib/cn'
 import { catalog, formatUsd } from '@/lib/pricing'
 import { StyleSample } from './builder-preview'
@@ -47,144 +68,251 @@ const deadlineIcons: Record<DetailDeadline, Icon> = {
 const toggle = <T,>(list: readonly T[] | undefined, id: T) =>
   list?.includes(id) ? list.filter((x) => x !== id) : [...(list ?? []), id]
 
+// The style step: a gallery of ready looks (each card is the mockup in miniature), then "customize"
+// for the five axes. Everything here only restyles the mockup; the price never moves.
 export function StyleStep({
   dict,
+  locale,
   build,
   setBuild,
 }: {
   dict: Dict
+  locale: string
   build: Build
   setBuild: SetBuild
 }) {
+  const ui = builderUi
   const t = dict.builder
-  const current = resolveStyle(build.style)
-  const picked = build.style ?? {}
-  const set = (patch: Partial<BuildStyle>) => setBuild((b) => withStyle(b, patch))
+  const style = build.style
+  const axes = currentAxes(style)
+  const look = resolveLook(style)
+  const [open, setOpen] = useState(() => Boolean(style && usesAxes(style) && !style.kit))
+  const cta = pick(ui.sampleCta, locale)
+  const setAxes = (patch: Partial<StyleAxes>) => setBuild((b) => setAxis(b, patch))
 
   return (
-    <div className="grid gap-12">
-      <Group title={t.looksTitle}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {styleLooks.map((id) => {
-            const on = current.look === id
+    <div className="grid gap-10">
+      <Group
+        title={pick(ui.looksTitle, locale)}
+        hint={String(styleKits.length)}
+      >
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="radiogroup">
+          {styleKits.map((id) => {
+            const on = style?.kit === id
             return (
               <Choice
                 key={id}
                 role="radio"
-                on={on && Boolean(picked.look)}
-                onClick={() => set({ look: id })}
-                className={cn('p-2.5', on && !picked.look && 'border-line-strong')}
+                on={on}
+                onClick={() => setBuild((b) => applyKit(b, id))}
+                className="p-2"
               >
                 <StyleSample
-                  style={{ ...current, look: id }}
-                  title={t.sampleTitle}
-                  cta={t.sampleCta}
+                  style={{ kit: id, ...kits[id] }}
+                  title={pick(kitNames[id].name, locale)}
+                  cta={cta}
                 />
-                <span className="flex items-start justify-between gap-2 px-1.5 pt-3 pb-1">
+                <span className="flex items-start justify-between gap-2 px-1.5 pt-2.5 pb-1">
                   <span className="min-w-0">
-                    <span className="block text-[15px] font-medium">{t.looks[id].name}</span>
-                    <span className="mt-0.5 block text-xs leading-snug text-muted">
-                      {t.looks[id].hint}
+                    <span className="block text-[14px] leading-tight font-medium">
+                      {pick(kitNames[id].name, locale)}
+                    </span>
+                    <span className="mt-0.5 block text-[11px] leading-snug text-muted">
+                      {pick(kitNames[id].hint, locale)}
                     </span>
                   </span>
-                  <Tick on={on && Boolean(picked.look)} />
+                  <Tick on={on} />
                 </span>
               </Choice>
             )
           })}
         </div>
+        <p className="mt-3 text-[13px] text-faint">{t.noPrice}</p>
       </Group>
 
-      <Group title={t.accentTitle} hint={t.accents[current.accent]}>
-        <div className="flex flex-wrap gap-3" role="radiogroup" aria-label={t.accentTitle}>
-          {styleAccents.map((id) => {
-            const on = current.accent === id
-            return (
-              <button
-                key={id}
-                type="button"
-                role="radio"
-                aria-checked={on && Boolean(picked.accent)}
-                aria-label={t.accents[id]}
-                title={t.accents[id]}
-                onClick={() => set({ accent: id })}
-                className={cn(
-                  'grid size-12 place-items-center rounded-full border-2 transition-[border-color,transform] duration-200 active:scale-95',
-                  on ? 'border-fg' : 'border-transparent hover:border-line-strong',
-                )}
-              >
-                <span
-                  className="grid size-9 place-items-center rounded-full"
-                  style={{ background: accentColors[id][current.theme] }}
-                >
-                  {on && (
-                    <Check
-                      size={14}
-                      weight="bold"
-                      color={current.theme === 'dark' ? '#0d1408' : '#ffffff'}
-                    />
-                  )}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </Group>
-
-      <div className="grid gap-12 md:grid-cols-2">
-        <Group title={t.themeTitle}>
-          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={t.themeTitle}>
-            {styleThemes.map((id) => {
-              const Glyph = id === 'dark' ? Moon : Sun
-              const on = current.theme === id
-              return (
-                <Choice
-                  key={id}
-                  role="radio"
-                  on={on && Boolean(picked.theme)}
-                  onClick={() => set({ theme: id })}
-                  className="flex items-center gap-3 rounded-xl p-3"
-                >
-                  <span
-                    style={styleVars({ ...current, theme: id })}
-                    className="grid size-10 shrink-0 place-items-center rounded-lg border border-line-strong bg-bg text-accent"
-                  >
-                    <Glyph size={18} weight="fill" />
-                  </span>
-                  <span className="text-[15px] font-medium">{t.themes[id]}</span>
-                </Choice>
-              )
-            })}
-          </div>
-        </Group>
-        <Group title={t.fontTitle}>
-          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label={t.fontTitle}>
-            {styleFonts.map((id) => {
-              const on = current.font === id
-              return (
-                <Choice
-                  key={id}
-                  role="radio"
-                  on={on && Boolean(picked.font)}
-                  onClick={() => set({ font: id })}
-                  className="rounded-xl p-3"
-                >
-                  <span
-                    style={styleVars({ ...current, font: id })}
-                    className="pv-head block bg-transparent text-2xl leading-none text-fg [font-family:var(--pv-font)]"
-                  >
-                    Aa
-                  </span>
-                  <span className="mt-2 block text-[13px] font-medium">{t.fonts[id].name}</span>
-                  <span className="block text-[11px] leading-snug text-faint">
-                    {t.fonts[id].hint}
-                  </span>
-                </Choice>
-              )
-            })}
-          </div>
-        </Group>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong px-5 text-sm font-medium transition-colors hover:border-fg/40"
+        >
+          <SlidersHorizontal size={16} className="text-accent" />
+          {open ? pick(ui.tuneHide, locale) : pick(ui.tune, locale)}
+        </button>
+        {style && (
+          <button
+            type="button"
+            onClick={() => setBuild(clearStyle)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm text-muted transition-colors hover:text-fg"
+          >
+            <ArrowCounterClockwise size={15} />
+            {pick(ui.reset, locale)}
+          </button>
+        )}
       </div>
+
+      {open && (
+        <div className="grid gap-10 rounded-card border border-line bg-surface/40 p-5 md:p-7">
+          <Group
+            title={pick(ui.axes.palette, locale)}
+            hint={look.palette ? pick(paletteNames[look.palette], locale) : undefined}
+          >
+            <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-6 md:grid-cols-8" role="radiogroup">
+              {stylePalettes.map((id) => {
+                const c = palettes[id]
+                const on = axes.palette === id && Boolean(style && usesAxes(style))
+                const name = pick(paletteNames[id], locale)
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    role="radio"
+                    aria-checked={on}
+                    aria-label={`${name}, ${pick(c.mode === 'dark' ? ui.dark : ui.light, locale)}`}
+                    title={name}
+                    onClick={() => setAxes({ palette: id })}
+                    className={cn(
+                      'group grid justify-items-center gap-1.5 rounded-xl border p-1.5 transition-colors active:scale-95',
+                      on ? 'border-fg' : 'border-transparent hover:border-line-strong',
+                    )}
+                  >
+                    <span
+                      className="relative grid size-11 place-items-center overflow-hidden rounded-full border border-line-strong"
+                      style={{ background: c.bg }}
+                    >
+                      <span
+                        className="absolute right-0 bottom-0 left-0 h-1/2"
+                        style={{ background: c.surface2 }}
+                      />
+                      <span
+                        className="relative grid size-5 place-items-center rounded-full"
+                        style={{ background: c.accent }}
+                      >
+                        {on && <Check size={11} weight="bold" color={c.ink} />}
+                      </span>
+                    </span>
+                    <span className="max-w-full truncate text-[10px] leading-none text-faint">
+                      {name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </Group>
+
+          <Group title={pick(ui.axes.type, locale)} hint={pick(typeNames[axes.type].name, locale)}>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup">
+              {styleTypes.map((id) => {
+                const on = axes.type === id && Boolean(style && usesAxes(style))
+                return (
+                  <Choice
+                    key={id}
+                    role="radio"
+                    on={on}
+                    onClick={() => setAxes({ type: id })}
+                    className="rounded-xl p-3"
+                  >
+                    <span
+                      style={styleVars({ ...axes, type: id })}
+                      className="block bg-transparent text-2xl leading-none text-fg [font-family:var(--pv-head-font)] [font-stretch:var(--pv-stretch)] [font-weight:700]"
+                    >
+                      Aa
+                    </span>
+                    <span className="mt-2 block text-[13px] font-medium">
+                      {pick(typeNames[id].name, locale)}
+                    </span>
+                    <span className="block text-[11px] leading-snug text-faint">
+                      {pick(typeNames[id].hint, locale)}
+                    </span>
+                  </Choice>
+                )
+              })}
+            </div>
+          </Group>
+
+          <div className="grid gap-10 md:grid-cols-2">
+            <Group title={pick(ui.axes.shape, locale)}>
+              <div className="grid grid-cols-3 gap-2" role="radiogroup">
+                {styleShapes.map((id) => {
+                  const on = axes.shape === id && Boolean(style && usesAxes(style))
+                  return (
+                    <Choice
+                      key={id}
+                      role="radio"
+                      on={on}
+                      onClick={() => setAxes({ shape: id })}
+                      className="rounded-xl p-3"
+                    >
+                      <span
+                        style={styleVars({ ...axes, shape: id })}
+                        className="mb-2 block h-8 rounded-[var(--radius-lg)] border-2 border-accent bg-transparent"
+                      />
+                      <span className="block text-[13px] font-medium">
+                        {pick(shapeNames[id], locale)}
+                      </span>
+                    </Choice>
+                  )
+                })}
+              </div>
+            </Group>
+            <Group title={pick(ui.axes.density, locale)}>
+              <div className="grid grid-cols-2 gap-2" role="radiogroup">
+                {styleDensities.map((id) => {
+                  const on = axes.density === id && Boolean(style && usesAxes(style))
+                  return (
+                    <Choice
+                      key={id}
+                      role="radio"
+                      on={on}
+                      onClick={() => setAxes({ density: id })}
+                      className="rounded-xl p-3"
+                    >
+                      <span
+                        className={cn(
+                          'mb-2 grid h-8 content-center',
+                          id === 'airy' ? 'gap-2' : 'gap-0.5',
+                        )}
+                      >
+                        <span className="h-1 rounded-full bg-fg/30" />
+                        <span className="h-1 rounded-full bg-fg/30" />
+                        <span className="h-1 rounded-full bg-fg/30" />
+                      </span>
+                      <span className="block text-[13px] font-medium">
+                        {pick(densityNames[id], locale)}
+                      </span>
+                    </Choice>
+                  )
+                })}
+              </div>
+            </Group>
+          </div>
+
+          <Group title={pick(ui.axes.mood, locale)}>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup">
+              {styleMoods.map((id) => {
+                const on = axes.mood === id && Boolean(style && usesAxes(style))
+                return (
+                  <Choice
+                    key={id}
+                    role="radio"
+                    on={on}
+                    onClick={() => setAxes({ mood: id })}
+                    className="rounded-xl p-3"
+                  >
+                    <span className="block text-[14px] font-medium">
+                      {pick(moodNames[id].name, locale)}
+                    </span>
+                    <span className="block text-[11px] leading-snug text-faint">
+                      {pick(moodNames[id].hint, locale)}
+                    </span>
+                  </Choice>
+                )
+              })}
+            </div>
+          </Group>
+        </div>
+      )}
     </div>
   )
 }

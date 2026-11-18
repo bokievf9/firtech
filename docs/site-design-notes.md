@@ -132,3 +132,9 @@ creates a lead.
 - The demo section is minimal; it could show the live intake reaching the Sales head in the office.
 - Add a light theme only if the owner asks; the tokens are ready for it.
 - Lighthouse on the deployed site (stage C), and a real check of HQ's `/chat` against this contract.
+
+## Каталог конструктора
+- Всё содержимое каталога в `src/content/builder-catalog.ts` (RU + EN, типизировано): 56 ниш в 10 категориях, 10 продуктов, названия стилей. Новая ниша = одна строка в `kindCatalog` + id в `kindIds`; страница `/solutions/<id>` появляется сама из пресета и текстов (3 боли, 3 «что получите»).
+- Продукты без цены в `pricing.ts` (`content`, `agent`, `aiteam`) показываются «по смете» и никогда не суммируются. Цену задаёт владелец.
+- Стиль: оси палитра (16, светлые и тёмные), шрифтовая пара (7), форма, плотность, настроение, плюс 19 готовых образов. Только макет, цену не меняет. Старые поля `s.` по-прежнему читаются.
+- Ссылка `?b=`: чанки `k.` (ниша), `p.` (продукты), `y.` (оси стиля).

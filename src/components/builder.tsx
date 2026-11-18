@@ -5,16 +5,20 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
+import { builderUi, pick } from '@/content/builder-catalog'
 import {
+  applyKind,
   decodeBuild,
   emptyBuild,
   encodeBuild,
   leadServiceOf,
-  presets,
+  productsOnRequest,
   quote,
+  toggleProduct,
   type Build,
   type BuildExtra,
   type BusinessKind,
+  type ProductId,
 } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { formatRange, leadSummary } from '@/lib/estimate-doc'
@@ -26,29 +30,32 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { DetailsStep, StyleStep } from './builder-brief'
 import { BottomNav, NextButton, PreviewSheet, StepBar } from './builder-nav'
 import { BuilderPreview } from './builder-preview'
-import { FeaturesStep, GoalsStep, KindStep, PartsStep } from './builder-steps'
+import { FeaturesStep, GoalsStep, KindStep, PartsStep, ProductsStep } from './builder-steps'
 import { SummaryStep } from './builder-summary'
 import { Screen } from './builder-ui'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
-// Screens: 0 business, 1 goal, 2 parts, 3 features, 4 style, 5 details, 6 summary.
-const PARTS = 2
-const STYLE = 4
-const SUMMARY = 6
+// Screens: 0 business, 1 products, 2 goal, 3 parts, 4 features, 5 style, 6 details, 7 summary.
+const PRODUCTS = 1
+const PARTS = 3
+const STYLE = 5
+const SUMMARY = 7
 // Screens where the live mockup sits next to the content.
-const withPreview = new Set([2, 3, 4])
+const withPreview = new Set([1, 3, 4, 5])
+// Links from before the products step used `?s=` with seven steps: where each of them lands now.
+const legacyStep = [0, 2, 3, 4, 5, 6, 7]
 
-// Each step is its own screen. The step lives in the URL (`?b=...&s=3`, 1-based) and in history,
+// Each step is its own screen. The step lives in the URL (`?b=...&step=3`, 1-based) and in history,
 // so refresh and the browser Back button work while the page itself stays static.
 export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const t = dict.builder
-  const total = t.steps.length
+  const steps = pick(builderUi.steps, locale)
+  const total = steps.length
   const reduce = useReducedMotion()
   const pathname = usePathname()
   const [step, setStep] = useState(0)
   const [dir, setDir] = useState(1)
-  const [kind, setKind] = useState<BusinessKind | null>(null)
   const [build, setBuildState] = useState<Build>(emptyBuild)
   const [copied, setCopied] = useState(false)
   const [atForm, setAtForm] = useState(false)
@@ -57,13 +64,17 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const heading = useRef<HTMLHeadingElement>(null)
   const moved = useRef(false)
 
+  const kind = build.kind ?? null
   const hasParts = Object.keys(build.parts).length > 0
-  const reachable = useCallback((i: number) => i <= PARTS || hasParts, [hasParts])
+  // Something to quote: parts with prices, or products that are only listed "on quote".
+  const hasContent = hasParts || (build.products?.length ?? 0) > 0
+  const onRequest = productsOnRequest(build)
+  const reachable = useCallback((i: number) => i <= PARTS || hasContent, [hasContent])
 
   const urlFor = useCallback(
     (b: Build, s: number) => {
       const code = encodeBuild(b)
-      const query = [code && `b=${code}`, s > 0 && `s=${s + 1}`].filter(Boolean).join('&')
+      const query = [code && `b=${code}`, s > 0 && `step=${s + 1}`].filter(Boolean).join('&')
       return query ? `${pathname}?${query}` : pathname
     },
     [pathname],
@@ -74,9 +85,9 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const shared = decodeBuild(params.get('b'))
-    const asked = Number(params.get('s')) - 1
-    const parts = shared ? Object.keys(shared.parts).length > 0 : false
-    let next = Number.isInteger(asked) && asked >= 0 && asked < total ? asked : shared ? SUMMARY : 0
+    const asked = stepFromQuery(params)
+    const parts = shared ? Object.keys(shared.parts).length > 0 || Boolean(shared.products) : false
+    let next = asked !== null && asked < total ? asked : shared ? SUMMARY : 0
     if (next > PARTS && !parts) next = shared ? PARTS : 0
     /* eslint-disable react-hooks/set-state-in-effect -- one-time sync from the URL */
     if (shared) setBuildState(shared)
@@ -94,8 +105,8 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   // Browser Back and Forward walk the steps.
   useEffect(() => {
     function onPop() {
-      const s = Number(new URLSearchParams(window.location.search).get('s')) - 1
-      const next = Number.isInteger(s) && s >= 0 && s < total ? s : 0
+      const s = stepFromQuery(new URLSearchParams(window.location.search))
+      const next = s !== null && s < total ? s : 0
       setStep((prev) => {
         setDir(next >= prev ? 1 : -1)
         return next
@@ -141,14 +152,17 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     [build, step, total, urlFor],
   )
 
-  const canGo = step === 0 ? kind !== null || hasParts : step >= PARTS ? hasParts : true
+  const canGo = step === 0 ? kind !== null || hasContent : step >= PARTS ? hasContent : true
   const last = step === SUMMARY
 
   function pickKind(next: BusinessKind) {
-    setKind(next)
-    // The preset replaces the parts; goals, style and details already given stay.
-    setBuildState((b) => ({ ...b, ...structuredClone(presets[next]) }))
-    go(1)
+    // The preset replaces the kind, products and parts; goals, style and details already given stay.
+    setBuildState((b) => applyKind(b, next))
+    go(PRODUCTS)
+  }
+
+  function pickProduct(id: ProductId) {
+    setBuildState((b) => toggleProduct(b, id))
   }
 
   function toggleService(slug: ServiceSlug) {
@@ -221,12 +235,14 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
 
   const q = quote(build)
   const preview = withPreview.has(step)
+  const ui = builderUi
   const titles = [
-    { title: t.kindTitle, sub: `${t.sub} ${t.intro}` },
+    { title: pick(ui.kindTitle, locale), sub: `${pick(ui.kindSub, locale)} ${pick(ui.intro, locale)}` },
+    { title: pick(ui.productsTitle, locale), sub: pick(ui.productsSub, locale) },
     { title: t.goalsTitle, sub: t.goalsSub },
     { title: t.partsTitle, sub: t.partsSub },
     { title: t.featuresTitle, sub: t.featuresSub },
-    { title: t.styleTitle, sub: t.styleSub },
+    { title: pick(ui.styleTitle, locale), sub: pick(ui.styleSub, locale) },
     { title: t.detailsTitle, sub: t.detailsSub },
     { title: t.summaryTitle, sub: t.summarySub },
   ] as const
@@ -237,7 +253,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
       <StepBar
         eyebrow={t.eyebrow}
         title={t.title}
-        steps={t.steps}
+        steps={steps}
         step={step}
         reachable={reachable}
         onGo={go}
@@ -266,9 +282,12 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                 sub={screen.sub}
               >
                 {step === 0 && (
-                  <KindStep dict={dict} locale={locale} kind={kind} onPick={pickKind} />
+                  <KindStep locale={locale} kind={kind} onPick={pickKind} />
                 )}
-                {step === 1 && <GoalsStep dict={dict} build={build} setBuild={setBuild} />}
+                {step === PRODUCTS && (
+                  <ProductsStep locale={locale} build={build} onToggle={pickProduct} />
+                )}
+                {step === 2 && <GoalsStep dict={dict} build={build} setBuild={setBuild} />}
                 {step === PARTS && (
                   <PartsStep
                     dict={dict}
@@ -277,7 +296,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     onVariant={setVariant}
                   />
                 )}
-                {step === 3 && (
+                {step === 4 && (
                   <FeaturesStep
                     dict={dict}
                     build={build}
@@ -285,10 +304,12 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     onExtra={toggleExtra}
                   />
                 )}
-                {step === STYLE && <StyleStep dict={dict} build={build} setBuild={setBuild} />}
-                {step === 5 && <DetailsStep dict={dict} build={build} setBuild={setBuild} />}
+                {step === STYLE && (
+                  <StyleStep dict={dict} locale={locale} build={build} setBuild={setBuild} />
+                )}
+                {step === 6 && <DetailsStep dict={dict} build={build} setBuild={setBuild} />}
                 {step === SUMMARY &&
-                  (hasParts ? (
+                  (hasContent ? (
                     <SummaryStep
                       dict={dict}
                       locale={locale}
@@ -314,7 +335,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
               <aside className="hidden min-w-0 lg:block">
                 <div className="sticky top-44 grid gap-3">
                   <p className="text-sm text-muted">{t.previewLabel}</p>
-                  <BuilderPreview build={build} dict={dict} className="min-h-[520px]" />
+                  <BuilderPreview build={build} dict={dict} locale={locale} className="min-h-[520px]" />
                 </div>
               </aside>
             )}
@@ -335,7 +356,13 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
               {!last && canGo && <span className="hidden lg:inline"> · {t.enterHint}</span>}
             </p>
             <p className="truncate font-mono text-sm text-accent md:text-base" aria-live="polite">
-              {hasParts ? formatRange(q.total) : ''}
+              {hasParts ? formatRange(q.total) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
+              {hasParts && onRequest.length > 0 && (
+                <span className="hidden text-muted sm:inline">
+                  {' '}
+                  + {pick(ui.totalOnRequest, locale)}
+                </span>
+              )}
               {hasParts && q.monthly !== null && (
                 <span className="hidden text-muted sm:inline">
                   {' '}
@@ -348,7 +375,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
         }
         primary={
           last ? (
-            hasParts && <NextButton label={t.send} onClick={handOff} />
+            hasContent && <NextButton label={t.send} onClick={handOff} />
           ) : (
             <NextButton label={t.next} disabled={!canGo} onClick={() => go(step + 1)} />
           )
@@ -361,8 +388,17 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
         closeLabel={t.close}
         onClose={closeSheet}
       >
-        <BuilderPreview build={build} dict={dict} />
+        <BuilderPreview build={build} dict={dict} locale={locale} />
       </PreviewSheet>
     </div>
   )
+}
+
+// The step from the address: `step` (1-based) or the older `s`, which counted seven steps.
+function stepFromQuery(params: URLSearchParams): number | null {
+  const now = Number(params.get('step')) - 1
+  if (params.has('step') && Number.isInteger(now) && now >= 0) return now
+  const old = Number(params.get('s')) - 1
+  if (params.has('s') && Number.isInteger(old) && old >= 0) return legacyStep[old] ?? null
+  return null
 }

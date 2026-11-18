@@ -1,38 +1,49 @@
 'use client'
 
 import {
+  AppWindow,
   ArrowRight,
-  Briefcase,
+  Brain,
   CalendarCheck,
   ChatCircleDots,
   Clock,
-  Coffee,
   DeviceMobile,
-  DotsThreeOutline,
   FlowArrow,
   Globe,
+  Headset,
   InstagramLogo,
   MagnifyingGlass,
   Megaphone,
-  Moped,
   PhoneCall,
   Robot,
-  Scissors,
   ShoppingCart,
-  Storefront,
+  Sparkle,
   TelegramLogo,
   UsersThree,
   type Icon,
 } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
+import { useState } from 'react'
 import type { Dict } from '@/content'
+import {
+  builderUi,
+  categoryNames,
+  kindCatalog,
+  kindName,
+  kindsByCategory,
+  pick,
+  productCatalog,
+  productIds,
+  type KindCategory,
+  type ProductId,
+} from '@/content/builder-catalog'
 import {
   buildChannels,
   buildExtras,
   buildGoals,
-  businessKinds,
-  presets,
+  productParts,
+  quote,
   type Build,
   type BuildChannel,
   type BuildExtra,
@@ -47,13 +58,17 @@ import { Choice, Group, Pill, Tick } from './builder-ui'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
-export const kindIcons: Record<BusinessKind, Icon> = {
-  cafe: Coffee,
-  salon: Scissors,
-  shop: Storefront,
-  delivery: Moped,
-  services: Briefcase,
-  other: DotsThreeOutline,
+const productIcons: Record<ProductId, Icon> = {
+  adminbot: CalendarCheck,
+  intake: Headset,
+  automation: FlowArrow,
+  content: Sparkle,
+  miniapp: DeviceMobile,
+  agent: Robot,
+  aiteam: Brain,
+  site: Globe,
+  bot: TelegramLogo,
+  app: AppWindow,
 }
 
 export const serviceIcons: Record<ServiceSlug, Icon> = {
@@ -84,69 +99,179 @@ const toggle = <T,>(list: readonly T[] | undefined, id: T) =>
   list?.includes(id) ? list.filter((x) => x !== id) : [...(list ?? []), id]
 
 export function KindStep({
-  dict,
   locale,
   kind,
   onPick,
 }: {
-  dict: Dict
   locale: string
   kind: BusinessKind | null
   onPick: (kind: BusinessKind) => void
 }) {
-  const t = dict.builder
+  const ui = builderUi
+  const [filter, setFilter] = useState<KindCategory | 'all'>('all')
+  const groups = kindsByCategory.filter((g) => filter === 'all' || g.category === filter)
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        {businessKinds.map((id) => {
-          const Glyph = kindIcons[id]
-          const parts = serviceSlugs
-            .filter((slug) => presets[id].parts[slug])
-            .map((slug) => dict.services.items[slug].name)
-          return (
-            <Choice
-              key={id}
-              role="radio"
-              on={kind === id}
-              onClick={() => onPick(id)}
-              className="flex min-h-40 flex-col justify-between gap-6 p-5 md:min-h-48 md:p-6"
-            >
-              <span className="flex items-start justify-between gap-3">
-                <span
-                  className={cn(
-                    'grid size-12 place-items-center rounded-full border transition-colors',
-                    kind === id
-                      ? 'border-accent bg-accent text-accent-ink'
-                      : 'border-line-strong text-accent',
-                  )}
-                >
-                  <Glyph size={22} />
-                </span>
-                <ArrowRight
-                  size={16}
-                  className="mt-1 text-faint transition-transform duration-300 group-hover:translate-x-0.5 group-hover:text-accent"
-                />
-              </span>
-              <span>
-                <span className="block text-[17px] leading-tight font-medium md:text-lg">
-                  {t.kinds[id]}
-                </span>
-                <span className="mt-1.5 block min-h-[1lh] text-[13px] leading-snug text-faint">
-                  {id === 'other' ? t.kindOther : parts.join(' + ')}
-                </span>
-              </span>
-            </Choice>
-          )
-        })}
+      <div
+        role="tablist"
+        aria-label={pick(ui.kindTitle, locale)}
+        className="-mx-4 mb-8 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
+      >
+        {(['all', ...kindsByCategory.map((g) => g.category)] as const).map((id) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={filter === id}
+            onClick={() => setFilter(id)}
+            className={cn(
+              'min-h-10 shrink-0 rounded-full border px-4 text-sm whitespace-nowrap transition-colors duration-200',
+              filter === id
+                ? 'border-accent bg-accent text-accent-ink'
+                : 'border-line-strong text-muted hover:border-fg/40 hover:text-fg',
+            )}
+          >
+            {id === 'all' ? pick(ui.kindFilterAll, locale) : pick(categoryNames[id], locale)}
+          </button>
+        ))}
+      </div>
+      <div className="grid gap-10">
+        {groups.map((group) => (
+          <section key={group.category} aria-label={pick(categoryNames[group.category], locale)}>
+            {filter === 'all' && (
+              <h3 className="mb-4 text-xs tracking-[0.14em] text-faint uppercase">
+                {pick(categoryNames[group.category], locale)}
+              </h3>
+            )}
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+              {group.kinds.map((id) => {
+                const entry = kindCatalog[id]
+                const on = kind === id
+                const usual = entry.products
+                  .map((p) => pick(productCatalog[p].name, locale))
+                  .join(' + ')
+                return (
+                  <Choice
+                    key={id}
+                    role="radio"
+                    on={on}
+                    onClick={() => onPick(id)}
+                    className="flex min-h-[7.5rem] flex-col justify-between gap-3 p-4"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'grid size-10 place-items-center rounded-full border text-xl leading-none transition-colors',
+                        on ? 'border-accent bg-accent/15' : 'border-line-strong',
+                      )}
+                    >
+                      {entry.emoji}
+                    </span>
+                    <span>
+                      <span className="block text-[15px] leading-tight font-medium">
+                        {kindName(id, locale)}
+                      </span>
+                      <span className="mt-1 block text-xs leading-snug text-faint">
+                        {id === 'other' ? pick(ui.kindOtherHint, locale) : usual}
+                      </span>
+                    </span>
+                  </Choice>
+                )
+              })}
+            </div>
+          </section>
+        ))}
       </div>
       <Link
         href={`/${locale}/solutions`}
-        className="mt-7 inline-flex items-center gap-1.5 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
+        className="mt-9 inline-flex items-center gap-1.5 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
       >
-        {dict.solutions.builderLink}
+        {pick(ui.solutionsLinkAll, locale)}
         <ArrowRight size={14} className="shrink-0 text-accent" />
       </Link>
     </>
+  )
+}
+
+// "What are we building": the product line. A picked product pre-selects its parts and options;
+// products with no price in pricing.ts say "on quote" and never reach the sum.
+export function ProductsStep({
+  locale,
+  build,
+  onToggle,
+}: {
+  locale: string
+  build: Build
+  onToggle: (id: ProductId) => void
+}) {
+  const ui = builderUi
+  const picked = build.products ?? []
+  const usual = build.kind ? kindCatalog[build.kind].products : []
+  const rest = productIds.filter((id) => !usual.includes(id))
+  const sections = [
+    ...(usual.length && build.kind
+      ? [
+          {
+            id: 'usual',
+            title: `${pick(ui.productsRecommendedFor, locale)}: ${kindName(build.kind, locale).toLowerCase()}`,
+            ids: [...usual],
+          },
+        ]
+      : []),
+    { id: 'rest', title: usual.length ? pick(ui.productsMore, locale) : '', ids: rest },
+  ]
+  return (
+    <div className="grid gap-10">
+      {sections.map((section) => (
+        <section key={section.id}>
+          {section.title && (
+            <h3 className="mb-4 text-xs tracking-[0.14em] text-faint uppercase">{section.title}</h3>
+          )}
+          <div className="grid gap-3 sm:grid-cols-2">
+            {section.ids.map((id) => {
+              const entry = productCatalog[id]
+              const Glyph = productIcons[id]
+              const on = picked.includes(id)
+              const from = entry.priced
+                ? quote({ parts: productParts(id), extras: [] }).total.min
+                : null
+              return (
+                <Choice key={id} on={on} onClick={() => onToggle(id)} className="flex gap-4 p-5">
+                  <span
+                    className={cn(
+                      'grid size-11 shrink-0 place-items-center rounded-full border transition-colors',
+                      on ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-accent',
+                    )}
+                  >
+                    <Glyph size={20} />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-baseline justify-between gap-x-3">
+                      <span className="text-[16px] font-medium">{pick(entry.name, locale)}</span>
+                      <span
+                        className={cn(
+                          'font-mono text-xs',
+                          from === null ? 'text-muted' : 'text-accent',
+                        )}
+                      >
+                        {from === null
+                          ? pick(ui.onRequest, locale)
+                          : `${locale === 'ru' ? 'от' : 'from'} ${formatUsd(from)}`}
+                      </span>
+                    </span>
+                    <span className="mt-1 block text-sm leading-snug text-muted">
+                      {pick(entry.hint, locale)}
+                    </span>
+                  </span>
+                  <Tick on={on} />
+                </Choice>
+              )
+            })}
+          </div>
+        </section>
+      ))}
+      <p className="text-[13px] leading-relaxed text-faint">{pick(ui.onRequestNote, locale)}</p>
+    </div>
   )
 }
 

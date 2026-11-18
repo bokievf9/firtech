@@ -1,3 +1,11 @@
+import {
+  kindCatalog,
+  kindIds,
+  productCatalog,
+  productIds,
+  type KindId,
+  type ProductId,
+} from '../content/builder-catalog'
 import { bundleDiscount, catalog, estimate, extraPrice } from './pricing'
 import { serviceSlugs, type ServiceSlug } from './site'
 
@@ -18,6 +26,9 @@ export type BuildGoal = (typeof buildGoals)[number]
 export const buildChannels = ['instagram', 'telegram', 'search', 'word'] as const
 export type BuildChannel = (typeof buildChannels)[number]
 
+// Style has two layers. The old four (`look`, `accent`, `theme`, `font`) still decode, so old links
+// keep their look. The new axes (palette, type, shape, density, mood) combine freely, and a ready
+// look (`kit`) sets all five at once. Style only restyles the mockup and never changes the price.
 export const styleLooks = ['minimal', 'bold', 'premium', 'friendly', 'tech'] as const
 export type StyleLook = (typeof styleLooks)[number]
 export const styleAccents = [
@@ -35,14 +46,79 @@ export const styleThemes = ['dark', 'light'] as const
 export type StyleTheme = (typeof styleThemes)[number]
 export const styleFonts = ['strict', 'soft', 'bold'] as const
 export type StyleFont = (typeof styleFonts)[number]
+
+export const stylePalettes = [
+  'fir',
+  'midnight',
+  'noir',
+  'ember',
+  'aurora',
+  'forest',
+  'plum',
+  'graphite',
+  'paper',
+  'sand',
+  'mintlight',
+  'skylight',
+  'blush',
+  'lemon',
+  'lavender',
+  'latte',
+] as const
+export type StylePalette = (typeof stylePalettes)[number]
+export const styleTypes = [
+  'geometric',
+  'grotesk',
+  'humanist',
+  'serif',
+  'mono',
+  'rounded',
+  'condensed',
+] as const
+export type StyleType = (typeof styleTypes)[number]
+export const styleShapes = ['sharp', 'soft', 'pill'] as const
+export type StyleShape = (typeof styleShapes)[number]
+export const styleDensities = ['airy', 'compact'] as const
+export type StyleDensity = (typeof styleDensities)[number]
+export const styleMoods = ['minimal', 'bold', 'playful', 'premium'] as const
+export type StyleMood = (typeof styleMoods)[number]
+export const styleKits = [
+  'fir',
+  'nocturne',
+  'atelier',
+  'sunny',
+  'candy',
+  'brutal',
+  'luxe',
+  'clinic',
+  'eco',
+  'bistro',
+  'barber',
+  'techy',
+  'aurora',
+  'journal',
+  'kids',
+  'forest',
+  'wine',
+  'coffee',
+  'ember',
+] as const
+export type StyleKit = (typeof styleKits)[number]
+
 export type BuildStyle = {
   look?: StyleLook
   accent?: StyleAccent
   theme?: StyleTheme
   font?: StyleFont
+  palette?: StylePalette
+  type?: StyleType
+  shape?: StyleShape
+  density?: StyleDensity
+  mood?: StyleMood
+  kit?: StyleKit
 }
 // What the mockup shows until the visitor picks: the studio's own look.
-export const defaultStyle: Required<BuildStyle> = {
+export const defaultStyle: Required<Pick<BuildStyle, 'look' | 'accent' | 'theme' | 'font'>> = {
   look: 'tech',
   accent: 'lime',
   theme: 'dark',
@@ -67,6 +143,8 @@ export type BuildDetails = {
 }
 
 export type Build = {
+  kind?: BusinessKind
+  products?: ProductId[]
   parts: Partial<Record<ServiceSlug, BuildPart>>
   extras: BuildExtra[]
   goals?: BuildGoal[]
@@ -77,45 +155,92 @@ export type Build = {
 
 export const emptyBuild: Build = { parts: {}, extras: [] }
 
-export const businessKinds = ['cafe', 'salon', 'shop', 'delivery', 'services', 'other'] as const
-export type BusinessKind = (typeof businessKinds)[number]
+// The kinds, their copy and presets live in src/content/builder-catalog.ts (one table per kind).
+export const businessKinds = kindIds
+export type BusinessKind = KindId
+export { productIds, type ProductId }
 
-// Starting sets per kind of business, so nobody starts from a blank page. Pure suggestions: the
-// visitor edits them in the next steps.
-export const presets: Record<BusinessKind, Build> = {
-  cafe: {
-    parts: {
-      websites: { variant: 'landing', addons: ['telegram'] },
-      bots: { variant: 'booking', addons: ['payments'] },
-    },
-    extras: ['seo'],
-  },
-  salon: {
-    parts: {
-      bots: { variant: 'booking', addons: ['broadcasts'] },
-      websites: { variant: 'landing', addons: ['telegram'] },
-    },
-    extras: ['seo'],
-  },
-  shop: {
-    parts: { websites: { variant: 'shop', addons: ['payments', 'cms'] } },
-    extras: ['seo', 'support'],
-  },
-  delivery: {
-    parts: {
-      bots: { variant: 'miniapp', addons: ['payments', 'admin'] },
-      automation: { variant: 'integration', addons: ['alerts'] },
-    },
-    extras: ['support'],
-  },
-  services: {
-    parts: {
-      websites: { variant: 'company', addons: ['telegram'] },
-      automation: { variant: 'crm', addons: ['training'] },
-    },
-    extras: [],
-  },
-  other: { parts: { websites: { variant: 'landing', addons: [] } }, extras: [] },
+// Starting sets per kind of business, so nobody starts from a blank page: the kind, its usual
+// products and the parts they need. Pure suggestions: the visitor edits them in the next steps.
+function presetOf(id: BusinessKind): Build {
+  const entry = kindCatalog[id]
+  const build: Build = { parts: {}, extras: [] }
+  for (const chunk of entry.preset.split('~')) {
+    const [head = '', second = '', third = ''] = chunk.split('.')
+    if (head === 'x') build.extras = keepKnown(second, buildExtras)
+    else if ((serviceSlugs as readonly string[]).includes(head))
+      build.parts[head as ServiceSlug] = {
+        variant: second,
+        addons: third ? third.split('-') : [],
+      }
+  }
+  return {
+    kind: id,
+    ...(entry.products.length ? { products: [...entry.products] } : {}),
+    ...build,
+  }
+}
+
+export const presets = Object.fromEntries(
+  businessKinds.map((id) => [id, presetOf(id)]),
+) as Record<BusinessKind, Build>
+
+// What a product pre-selects, as a build (parts only). Unpriced products select nothing.
+export function productParts(id: ProductId): Build['parts'] {
+  const spec = productCatalog[id].parts
+  return spec ? (decodeBuild(spec)?.parts ?? {}) : {}
+}
+
+// Products with a matching price in pricing.ts add their parts to the quote; the rest are listed
+// "on quote" and are never summed into a number.
+export function productsOnRequest(build: Build): ProductId[] {
+  return (build.products ?? []).filter((id) => !productCatalog[id].priced)
+}
+
+// Turns a product on or off. On: its parts join the build (an existing part keeps its format and
+// gains the product's options). Off: parts that came from this product and were not changed since
+// leave again, unless another picked product still needs them.
+export function toggleProduct(build: Build, id: ProductId): Build {
+  const products = build.products ?? []
+  const parts = { ...build.parts }
+  const mine = productParts(id)
+  let next: ProductId[]
+  if (products.includes(id)) {
+    next = products.filter((p) => p !== id)
+    for (const slug of serviceSlugs) {
+      const own = mine[slug]
+      const part = parts[slug]
+      if (!own || !part) continue
+      const shared = next.some((other) => productParts(other)[slug])
+      const untouched =
+        part.variant === own.variant && part.addons.every((a) => own.addons.includes(a))
+      if (!shared && untouched) delete parts[slug]
+    }
+  } else {
+    next = [...products, id]
+    for (const slug of serviceSlugs) {
+      const own = mine[slug]
+      if (!own) continue
+      const part = parts[slug]
+      parts[slug] = part
+        ? { ...part, addons: [...new Set([...part.addons, ...own.addons])] }
+        : { variant: own.variant, addons: [...own.addons] }
+    }
+  }
+  const out: Build = { ...build, parts }
+  if (next.length) out.products = next
+  else delete out.products
+  return out
+}
+
+// A kind's starting set replaces kind, products, parts and extras; the brief the visitor already
+// gave (goals, channels, style, details) stays. Goals come from the kind only while none are set.
+export function applyKind(build: Build, id: BusinessKind): Build {
+  const preset = structuredClone(presets[id])
+  const next: Build = { ...build, ...preset }
+  if (!preset.products) delete next.products
+  if (!build.goals?.length && kindCatalog[id].goals.length) next.goals = [...kindCatalog[id].goals]
+  return next
 }
 
 export type QuoteLine = { id: ServiceSlug | BuildExtra; min: number; max: number }
@@ -159,8 +284,10 @@ export function quote(build: Build): Quote {
 
 // A build fits in one query parameter, so it can be saved or sent to a partner:
 // `websites.landing.telegram-payments~bots.booking~x.support-seo`, then the brief:
-// `g.leads-sales` goals, `c.instagram` channels, `s.minimal.coral.light.soft` style (`_` = not
-// picked), `d.5.ru-en.logo-texts.month` details, and the free texts as base64url: `u.<url>` (one
+// `k.barber` the business kind, `p.adminbot-site` the products, `g.leads-sales` goals,
+// `c.instagram` channels, `s.minimal.coral.light.soft` the old style (`_` = not picked),
+// `y.noir.serif.sharp.airy.premium.luxe` the new style axes (palette, type, shape, density, mood,
+// ready look), `d.5.ru-en.logo-texts.month` details, and the free texts as base64url: `u.<url>` (one
 // chunk per example) and `w.<wish>`. Old links (parts and extras only) decode as before; anything
 // unknown is dropped.
 export function encodeBuild(build: Build) {
@@ -170,12 +297,23 @@ export function encodeBuild(build: Build) {
     return [[slug, part.variant, ...(part.addons.length ? [part.addons.join('-')] : [])].join('.')]
   })
   if (build.extras.length) parts.push(`x.${build.extras.join('-')}`)
+  if (build.kind) parts.push(`k.${build.kind}`)
+  if (build.products?.length) parts.push(`p.${build.products.join('-')}`)
   if (build.goals?.length) parts.push(`g.${build.goals.join('-')}`)
   if (build.channels?.length) parts.push(`c.${build.channels.join('-')}`)
   const style = build.style
   if (style && (style.look || style.accent || style.theme || style.font)) {
     const s = [style.look, style.accent, style.theme, style.font].map((v) => v ?? '_')
     parts.push(`s.${s.join('.')}`)
+  }
+  if (
+    style &&
+    (style.palette || style.type || style.shape || style.density || style.mood || style.kit)
+  ) {
+    const y = [style.palette, style.type, style.shape, style.density, style.mood, style.kit].map(
+      (v) => v ?? '_',
+    )
+    parts.push(`y.${y.join('.')}`)
   }
   const d = build.details
   if (d && (d.pages || d.langs?.length || d.has?.length || d.deadline)) {
@@ -195,7 +333,32 @@ export function decodeBuild(value: string | null | undefined): Build | null {
   const style: BuildStyle = {}
   const details: BuildDetails = {}
   for (const chunk of value.slice(0, 2000).split('~')) {
-    const [head = '', second = '', third = '', fourth = '', fifth = ''] = chunk.split('.')
+    const [head = '', second = '', third = '', fourth = '', fifth = '', sixth = ''] =
+      chunk.split('.')
+    if (head === 'k') {
+      const kind = oneOf(second, businessKinds)
+      if (kind) build.kind = kind
+      continue
+    }
+    if (head === 'p') {
+      const products = keepKnown(second, productIds)
+      if (products.length) build.products = products
+      continue
+    }
+    if (head === 'y') {
+      const palette = oneOf(second, stylePalettes)
+      const type = oneOf(third, styleTypes)
+      const shape = oneOf(fourth, styleShapes)
+      const density = oneOf(fifth, styleDensities)
+      const [mood, kit] = [oneOf(sixth, styleMoods), oneOf(chunk.split('.')[6] ?? '', styleKits)]
+      if (palette) style.palette = palette
+      if (type) style.type = type
+      if (shape) style.shape = shape
+      if (density) style.density = density
+      if (mood) style.mood = mood
+      if (kit) style.kit = kit
+      continue
+    }
     if (head === 'x') {
       build.extras = keepKnown(second, buildExtras)
       continue
@@ -254,7 +417,9 @@ export function decodeBuild(value: string | null | undefined): Build | null {
   }
   if (Object.keys(style).length) build.style = style
   if (Object.keys(details).length) build.details = details
-  const hasBrief = Boolean(build.goals || build.channels || build.style || build.details)
+  const hasBrief = Boolean(
+    build.kind || build.products || build.goals || build.channels || build.style || build.details,
+  )
   return Object.keys(build.parts).length || build.extras.length || hasBrief ? build : null
 }
 

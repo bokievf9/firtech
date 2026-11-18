@@ -15,21 +15,27 @@ import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd, faqJsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
 import { RiseText } from '@/components/rise-text'
-import { SolutionSet, solutionIcons, usdRange } from '@/components/solution-parts'
+import { SolutionSet, usdRange } from '@/components/solution-parts'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
+import { kindCatalog, kindName } from '@/content/builder-catalog'
 import { presets, quote } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale, locales } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { siteUrl } from '@/lib/site'
-import { isSolutionKind, solutionBuilderHref, solutionKinds } from '@/lib/solutions'
+import {
+  allSolutionKinds,
+  isSolutionKind,
+  solutionBuilderHref,
+  solutionCopy,
+} from '@/lib/solutions'
 import { shareBase } from '@/lib/share'
 
 export const dynamicParams = false
 
 export function generateStaticParams() {
-  return locales.flatMap((locale) => solutionKinds.map((kind) => ({ locale, kind })))
+  return locales.flatMap((locale) => allSolutionKinds.map((kind) => ({ locale, kind })))
 }
 
 export async function generateMetadata({
@@ -37,7 +43,8 @@ export async function generateMetadata({
 }: PageProps<'/[locale]/solutions/[kind]'>): Promise<Metadata> {
   const { locale, kind } = await params
   if (!isLocale(locale) || !isSolutionKind(kind)) return {}
-  const page = getDict(locale).solutions.items[kind]
+  const dict = getDict(locale)
+  const page = solutionCopy(kind, locale, dict)
   const path = `/solutions/${kind}`
   return {
     title: page.metaTitle,
@@ -61,11 +68,11 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
   if (!isLocale(locale) || !isSolutionKind(kind)) notFound()
   const dict = getDict(locale)
   const t = dict.solutions
-  const page = t.items[kind]
+  const page = solutionCopy(kind, locale, dict)
+  const entry = kindCatalog[kind]
   const build = presets[kind]
   const q = quote(build)
   const builderHref = solutionBuilderHref(locale, kind)
-  const Glyph = solutionIcons[kind]
 
   const service = {
     '@context': 'https://schema.org',
@@ -76,7 +83,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
     provider: { '@type': 'ProfessionalService', name: 'Fir Tech', url: `${siteUrl}/${locale}` },
     offers: {
       '@type': 'Offer',
-      name: `${t.startSet}: ${dict.builder.kinds[kind]}`,
+      name: `${t.startSet}: ${kindName(kind, locale)}`,
       price: q.total.min,
       priceCurrency: 'USD',
       priceSpecification: {
@@ -124,8 +131,10 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
         <Reveal className="lg:col-span-4" delay={0.3}>
           <div className="rounded-card border border-line bg-surface p-7">
             <div className="flex items-center gap-3 text-sm text-muted">
-              <Glyph size={22} className="text-accent" />
-              {dict.builder.kinds[kind]}
+              <span aria-hidden="true" className="text-2xl leading-none">
+                {entry.emoji}
+              </span>
+              {kindName(kind, locale)}
             </div>
             <p className="mt-6 text-sm text-muted">
               {t.startSet} {t.from}
@@ -188,7 +197,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
         <p className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted">{t.setSub}</p>
         <div className="mt-12 grid gap-6 lg:grid-cols-12">
           <Reveal className="min-w-0 lg:col-span-7">
-            <SolutionSet kind={kind} dict={dict} />
+            <SolutionSet kind={kind} dict={dict} locale={locale} />
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link href={builderHref} className={cn(buttonStyles.primary, 'group sm:flex-1')}>
                 {t.cta}
@@ -210,7 +219,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                   {t.concept}
                 </span>
               </div>
-              <BuilderPreview build={build} dict={dict} />
+              <BuilderPreview build={build} dict={dict} locale={locale} />
               <p className="text-[13px] leading-relaxed text-faint">{t.previewNote}</p>
             </div>
           </Reveal>
@@ -223,7 +232,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8" aria-label={t.othersTitle}>
         <h2 className="text-xl font-semibold tracking-tight">{t.othersTitle}</h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {solutionKinds
+          {allSolutionKinds
             .filter((other) => other !== kind)
             .map((other) => (
               <Link
@@ -232,7 +241,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                 className="group flex items-center justify-between gap-4 rounded-card border border-line px-6 py-5 transition-colors hover:border-line-strong"
               >
                 <span className="min-w-0">
-                  <span className="block font-medium">{dict.builder.kinds[other]}</span>
+                  <span className="block font-medium">{kindName(other, locale)}</span>
                   <span className="font-mono text-sm text-muted">
                     {t.from} {formatUsd(quote(presets[other]).total.min)}
                   </span>

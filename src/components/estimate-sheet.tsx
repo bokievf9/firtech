@@ -5,6 +5,7 @@ import { motion } from 'motion/react'
 import Link from 'next/link'
 import { useEffect, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
+import { builderUi, pick } from '@/content/builder-catalog'
 import { decodeBuild, encodeBuild, type Build } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { accentOf } from '@/lib/builder-style'
@@ -55,6 +56,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
   const notes = [
     dict.builder.termsNote,
     dict.builder.payNote,
+    ...(doc.onRequest.length ? [pick(builderUi.onRequestNote, locale)] : []),
     ...(doc.monthly ? [dict.builder.monthlyNote] : []),
     dict.builder.note,
   ]
@@ -102,6 +104,25 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
           </p>
         </div>
 
+        {(doc.kind || doc.products.length > 0) && (
+          <dl className="mt-5 grid gap-1 text-[13.5px]">
+            {doc.kind && (
+              <div className="flex gap-3">
+                <dt className="w-24 shrink-0 text-[#5b6459]">{pick(builderUi.kindLabel, locale)}</dt>
+                <dd className="font-medium">{doc.kind}</dd>
+              </div>
+            )}
+            {doc.products.length > 0 && (
+              <div className="flex gap-3">
+                <dt className="w-24 shrink-0 text-[#5b6459]">
+                  {pick(builderUi.productsLabel, locale)}
+                </dt>
+                <dd>{doc.products.join(', ')}</dd>
+              </div>
+            )}
+          </dl>
+        )}
+
         <table className="mt-7 w-full border-collapse text-left text-[13.5px] leading-snug">
           <thead>
             <tr className="border-b border-[#d9ded4] text-[11px] tracking-[0.08em] text-[#5b6459] uppercase">
@@ -130,6 +151,19 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
               </tr>
             )}
             {doc.extras.map((row) => (
+              <Row key={row.id} row={row} />
+            ))}
+            {doc.onRequest.length > 0 && (
+              <tr className="break-inside-avoid">
+                <td
+                  colSpan={4}
+                  className="pt-5 pb-1 text-[11px] tracking-[0.08em] text-[#5b6459] uppercase"
+                >
+                  {pick(builderUi.onRequestLabel, locale)}
+                </td>
+              </tr>
+            )}
+            {doc.onRequest.map((row) => (
               <Row key={row.id} row={row} />
             ))}
           </tbody>

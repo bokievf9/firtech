@@ -3,10 +3,15 @@
 import {
   ArrowRight,
   Bell,
+  BookOpen,
+  Brain,
+  CalendarCheck,
+  CheckCircle,
   CreditCard,
   Lifebuoy,
   MapPin,
   PencilSimple,
+  Robot,
   Sparkle,
   TelegramLogo,
   UserCircle,
@@ -14,12 +19,27 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import type { Dict } from '@/content'
+import {
+  builderUi,
+  kindCatalog,
+  kindName,
+  pick,
+  previewCopy,
+  productCatalog,
+  type PreviewCopy,
+  type KindMock,
+} from '@/content/builder-catalog'
 import type { Build, BuildStyle } from '@/lib/builder'
 import { styleVars } from '@/lib/builder-style'
 import { cn } from '@/lib/cn'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 const ease = [0.16, 1, 0.3, 1] as const
+
+// Style hooks (variables set by styleVars): heading face, border width and the mood's shadow.
+const HEAD = 'pv-head [font-family:var(--pv-head-font)] [font-stretch:var(--pv-stretch)]'
+const BORDER = 'border [border-width:var(--pv-border)]'
+const SHADOW = '[box-shadow:var(--pv-shadow)]'
 
 // A mockup that assembles itself as the visitor picks parts and options: a browser for the website,
 // phones for the bot and the app, a strip for automation, chips for extras. Purely decorative; the
@@ -28,18 +48,29 @@ const ease = [0.16, 1, 0.3, 1] as const
 export function BuilderPreview({
   build,
   dict,
+  locale = 'ru',
   className,
 }: {
   build: Build
   dict: Dict
+  locale?: string
   className?: string
 }) {
   const p = dict.builder.preview
+  const c = pick(previewCopy, locale)
   const site = build.parts.websites
   const bot = build.parts.bots
   const app = build.parts.apps
   const auto = build.parts.automation
-  const empty = !site && !bot && !app && !auto && build.extras.length === 0
+  const products = build.products ?? []
+  const mock: KindMock = build.kind ? kindCatalog[build.kind].mock : 'services'
+  const brand = build.kind && build.kind !== 'other' ? kindName(build.kind, locale) : p.brand
+  const hasPart = Boolean(site || bot || app || auto)
+  const empty = !hasPart && build.extras.length === 0 && products.length === 0 && !build.kind
+  // A kind or a product with no website part still gets a page to show: header, hero and the
+  // block that suits the niche.
+  const frame = Boolean(site) || (!bot && !app && !auto && !empty)
+  const extraCards = products.filter((id) => id === 'content' || id === 'agent' || id === 'aiteam')
 
   return (
     <div
@@ -57,9 +88,16 @@ export function BuilderPreview({
           </Item>
         )}
 
-        {site && (
+        {frame && (
           <Item key="site">
-            <div className="relative overflow-hidden rounded-xl border border-line-strong bg-bg">
+            <div
+              className={cn(
+                'relative overflow-hidden rounded-xl bg-bg',
+                BORDER,
+                'border-line-strong',
+                SHADOW,
+              )}
+            >
               <div className="flex items-center gap-1.5 border-b border-line px-3 py-2">
                 <span className="size-2 rounded-full bg-fg/15" />
                 <span className="size-2 rounded-full bg-fg/15" />
@@ -67,55 +105,39 @@ export function BuilderPreview({
                 <span className="ml-2 truncate rounded-full bg-fg/5 px-2.5 py-0.5 font-mono text-[10px] text-faint">
                   {p.url}
                 </span>
-                <Flag show={site.addons.includes('language')} className="ml-auto">
+                <Flag show={Boolean(site?.addons.includes('language'))} className="ml-auto">
                   <span className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[9px] text-muted">
                     RU · EN
                   </span>
                 </Flag>
               </div>
-              <div className="grid gap-3 p-3.5">
-                <div className="flex items-center justify-between">
-                  <span className="pv-head text-[11px]">{p.brand}</span>
-                  <span className="flex gap-1.5">
+              <div className="grid gap-(--pv-gap) p-(--pv-pad)">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={cn(HEAD, 'min-w-0 truncate text-[11px]')}>{brand}</span>
+                  <span className="flex shrink-0 gap-1.5">
                     <Bar className="w-6" />
                     <Bar className="w-6" />
                     <Bar className="w-6" />
                   </span>
                 </div>
                 <div className="grid gap-1.5">
-                  <span className="pv-head max-w-[22ch] text-[17px] leading-[1.1]">
-                    {p.headline}
+                  <span
+                    className={cn(HEAD, 'max-w-[22ch] leading-[1.1] [font-size:calc(17px*var(--pv-hero))]')}
+                  >
+                    {c.headline}
                   </span>
                   <Bar className="w-1/2" />
                   <span className="mt-1.5 w-fit rounded-[var(--pv-button)] bg-accent px-2.5 py-1 text-[10px] font-medium text-accent-ink">
-                    {p.cta}
+                    {c.cta}
                   </span>
                 </div>
                 <AnimatePresence mode="popLayout" initial={false}>
-                  {site.variant === 'landing' && (
-                    <Item key="landing" className="grid grid-cols-[1fr_1fr_auto] gap-1.5">
-                      <span className="h-6 rounded-md border border-line" />
-                      <span className="h-6 rounded-md border border-line" />
-                      <span className="h-6 w-10 rounded-md bg-fg/80" />
-                    </Item>
-                  )}
-                  {site.variant === 'company' && (
-                    <Item key="company" className="grid grid-cols-3 gap-1.5">
-                      {[0, 1, 2].map((i) => (
-                        <span key={i} className="grid gap-1 rounded-md border border-line p-2">
-                          <span className="size-3 rounded-sm bg-accent/60" />
-                          <Bar className="w-full" />
-                          <Bar className="w-2/3" />
-                        </span>
-                      ))}
-                    </Item>
-                  )}
-                  {site.variant === 'shop' && (
+                  {site?.variant === 'shop' ? (
                     <Item key="shop" className="grid grid-cols-3 gap-1.5">
                       {['$12', '$18', '$9'].map((price) => (
                         <span
                           key={price}
-                          className="grid gap-1 rounded-md border border-line p-1.5"
+                          className={cn('grid gap-1 rounded-md p-1.5', BORDER, 'border-line')}
                         >
                           <span className="h-9 rounded-sm bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]" />
                           <span className="font-mono text-[9px] text-fg">{price}</span>
@@ -125,21 +147,42 @@ export function BuilderPreview({
                         </span>
                       ))}
                     </Item>
+                  ) : (
+                    <Item key={`kind-${mock}`}>
+                      <KindBlock mock={mock} c={c} />
+                    </Item>
+                  )}
+                  {site?.variant === 'company' && (
+                    <Item key="company" className="grid grid-cols-3 gap-1.5">
+                      {[0, 1, 2].map((i) => (
+                        <span
+                          key={i}
+                          className={cn('grid gap-1 rounded-md p-2', BORDER, 'border-line')}
+                        >
+                          <span className="size-3 rounded-sm bg-accent/60" />
+                          <Bar className="w-full" />
+                          <Bar className="w-2/3" />
+                        </span>
+                      ))}
+                    </Item>
                   )}
                 </AnimatePresence>
-                <Flag show={site.addons.includes('payments')}>
+                <Flag show={Boolean(site?.addons.includes('payments'))}>
                   <span className="block w-24">
                     <Pay label={p.pay} />
                   </span>
                 </Flag>
               </div>
-              <Flag show={site.addons.includes('cms')} className="absolute top-10 right-2">
+              <Flag show={Boolean(site?.addons.includes('cms'))} className="absolute top-10 right-2">
                 <Badge>
                   <PencilSimple size={10} weight="bold" />
                   {p.edit}
                 </Badge>
               </Flag>
-              <Flag show={site.addons.includes('telegram')} className="absolute right-2 bottom-2">
+              <Flag
+                show={Boolean(site?.addons.includes('telegram'))}
+                className="absolute right-2 bottom-2"
+              >
                 <span className="flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-[10px] shadow-lg shadow-black/30">
                   <TelegramLogo size={12} weight="fill" className="text-[#5cc4f5]" />
                   {p.toTelegram}
@@ -159,7 +202,7 @@ export function BuilderPreview({
                       <span className="grid size-5 place-items-center rounded-full bg-accent text-[9px] font-bold text-accent-ink">
                         F
                       </span>
-                      <span className="pv-head text-[10px]">{p.bot}</span>
+                      <span className={cn(HEAD, 'text-[10px]')}>{p.bot}</span>
                       <Flag show={bot.addons.includes('ai')} className="ml-auto">
                         <Badge>
                           <Sparkle size={9} weight="fill" />
@@ -177,13 +220,13 @@ export function BuilderPreview({
                       <AnimatePresence mode="popLayout" initial={false}>
                         {bot.variant === 'faq' && (
                           <Item key="faq" className="grid gap-1.5">
-                            <Bubble mine>{p.botFaq}</Bubble>
-                            <Bubble>{p.botFaqAnswer}</Bubble>
+                            <Bubble mine>{products.includes('intake') ? c.chatQ : p.botFaq}</Bubble>
+                            <Bubble>{products.includes('intake') ? c.chatA : p.botFaqAnswer}</Bubble>
                           </Item>
                         )}
                         {bot.variant === 'booking' && (
                           <Item key="booking" className="grid gap-1.5">
-                            <Bubble mine>{p.botBook}</Bubble>
+                            <Bubble mine>{c.chatQ}</Bubble>
                             <span className="flex gap-1">
                               {['11:00', '14:30', '17:00'].map((t, i) => (
                                 <span
@@ -203,7 +246,7 @@ export function BuilderPreview({
                         )}
                         {bot.variant === 'miniapp' && (
                           <Item key="miniapp" className="grid gap-1.5">
-                            <span className="pv-head text-[10px]">{p.botMenu}</span>
+                            <span className={cn(HEAD, 'text-[10px]')}>{p.botMenu}</span>
                             <span className="grid grid-cols-2 gap-1">
                               {[0, 1, 2, 3].map((i) => (
                                 <span
@@ -239,7 +282,7 @@ export function BuilderPreview({
                       </span>
                     </Flag>
                     <div className="flex items-center justify-between border-b border-line pb-2">
-                      <span className="pv-head text-[10px]">{p.app}</span>
+                      <span className={cn(HEAD, 'text-[10px]')}>{p.app}</span>
                       <Flag show={app.addons.includes('accounts')}>
                         <UserCircle size={14} className="text-accent" />
                       </Flag>
@@ -354,6 +397,32 @@ export function BuilderPreview({
           </Item>
         )}
 
+        {extraCards.length > 0 && (
+          <Item key="cards" className="mt-3 grid gap-3">
+            <AnimatePresence mode="popLayout" initial={false}>
+              {extraCards.map((id) => (
+                <Item key={id}>
+                  <ProductCard id={id} c={c} />
+                </Item>
+              ))}
+            </AnimatePresence>
+          </Item>
+        )}
+
+        {products.length > 0 && (
+          <Item key="chips" className="mt-3 flex flex-wrap gap-1.5">
+            {products.map((id) => (
+              <Chip key={id}>
+                <CheckCircle size={11} weight="fill" className="text-accent" />
+                {pick(productCatalog[id].name, locale)}
+                {!productCatalog[id].priced && (
+                  <span className="text-faint">· {pick(builderUi.onRequestShort, locale)}</span>
+                )}
+              </Chip>
+            ))}
+          </Item>
+        )}
+
         {build.extras.length > 0 && (
           <Item key="extras" className="mt-3 flex flex-wrap gap-1.5">
             <AnimatePresence mode="popLayout" initial={false}>
@@ -432,7 +501,13 @@ function Flag({
 
 function Phone({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-[250px] w-[148px] flex-col rounded-[var(--pv-phone)] border border-line-strong bg-bg p-2.5 pt-3">
+    <div
+      className={cn(
+        'flex h-[250px] w-[148px] flex-col rounded-[var(--pv-phone)] border-line-strong bg-bg p-2.5 pt-3',
+        BORDER,
+        SHADOW,
+      )}
+    >
       <span className="mx-auto mb-2 h-1 w-8 rounded-full bg-fg/15" />
       {children}
     </div>
@@ -513,7 +588,8 @@ function Flow() {
   )
 }
 
-// A small page in one style, for the style cards: the same variables as the mockup.
+// A small page in one style, for the gallery cards and the axis pickers: the same variables and
+// the same hooks as the mockup, so a card is the mockup in miniature.
 export function StyleSample({
   style,
   title,
@@ -530,32 +606,257 @@ export function StyleSample({
       aria-hidden="true"
       style={styleVars(style)}
       className={cn(
-        'pv-root block overflow-hidden rounded-xl border border-line bg-surface-2 p-2.5 transition-colors duration-300',
+        'pv-root block overflow-hidden rounded-xl border border-line bg-surface-2 p-2 transition-colors duration-300',
         className,
       )}
     >
-      <span className="block overflow-hidden rounded-lg border border-line-strong bg-bg p-2.5">
-        <span className="flex items-center justify-between">
-          <span className="pv-head min-w-0 truncate text-[9px]">{title}</span>
+      <span
+        className={cn(
+          'block overflow-hidden rounded-lg bg-bg p-(--pv-pad)',
+          BORDER,
+          'border-line-strong',
+          SHADOW,
+        )}
+      >
+        <span className="flex items-center justify-between gap-1">
+          <span className={cn(HEAD, 'min-w-0 truncate text-[8px]')}>{title}</span>
           <span className="flex shrink-0 gap-1">
-            <Bar className="w-3" />
-            <Bar className="w-3" />
+            <Bar className="w-2.5" />
+            <Bar className="w-2.5" />
           </span>
         </span>
-        <span className="pv-head mt-2.5 block text-[22px] leading-none">Aa</span>
-        <Bar className="mt-2 w-3/4" />
-        <span className="mt-2.5 flex items-center gap-1.5">
-          <span className="rounded-[var(--pv-button)] bg-accent px-2 py-0.5 text-[8px] font-medium text-accent-ink">
+        <span
+          className={cn(
+            HEAD,
+            'mt-2 block max-w-[10ch] leading-[1.05] [font-size:calc(15px*var(--pv-hero))]',
+          )}
+        >
+          {title}
+        </span>
+        <span className="mt-2 flex items-center gap-1.5">
+          <span className="rounded-[var(--pv-button)] bg-accent px-2 py-0.5 text-[7px] font-medium text-accent-ink">
             {cta}
           </span>
-          <span className="h-3.5 flex-1 rounded-md border border-line" />
+          <Bar className="w-6" />
         </span>
-        <span className="mt-2 grid grid-cols-3 gap-1">
+        <span className="mt-2 grid grid-cols-3 gap-(--pv-gap)">
           <span className="h-5 rounded-md bg-pine" />
-          <span className="h-5 rounded-md border border-line" />
-          <span className="h-5 rounded-md border border-line" />
+          <span className={cn('h-5 rounded-md', BORDER, 'border-line-strong')} />
+          <span className={cn('h-5 rounded-md', BORDER, 'border-line-strong')} />
         </span>
       </span>
     </span>
+  )
+}
+
+type Copy = PreviewCopy
+
+// The niche's own block on the page: a menu, a booking widget, a catalogue, a lesson, listings,
+// trips, a service list, a price quote or a chat. Generic copy, so every kind has something to show.
+function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
+  const tile =
+    'h-9 rounded-sm bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]'
+  const card = cn('rounded-md p-1.5', BORDER, 'border-line')
+  switch (mock) {
+    case 'menu':
+      return (
+        <div className={cn('grid gap-1', card)}>
+          <span className={cn(HEAD, 'text-[10px]')}>{c.menu[0]}</span>
+          {[c.menu[1], c.menu[2], c.menu[3]].map(([name, price]) => (
+            <span key={name} className="flex items-baseline gap-1 text-[9px]">
+              <span className="truncate">{name}</span>
+              <span className="min-w-2 flex-1 border-b border-dotted border-line-strong" />
+              <span className="font-mono text-accent">{price}</span>
+            </span>
+          ))}
+        </div>
+      )
+    case 'booking':
+      return (
+        <div className={cn('grid gap-1.5', card)}>
+          <span className="flex items-center gap-1 text-[10px]">
+            <CalendarCheck size={11} weight="fill" className="text-accent" />
+            <span className={HEAD}>{c.book}</span>
+          </span>
+          <span className="grid grid-cols-5 gap-1">
+            {[12, 13, 14, 15, 16].map((d, i) => (
+              <span
+                key={d}
+                className={cn(
+                  'rounded-sm py-0.5 text-center font-mono text-[9px]',
+                  i === 2 ? 'bg-accent text-accent-ink' : 'bg-fg/10 text-muted',
+                )}
+              >
+                {d}
+              </span>
+            ))}
+          </span>
+          <span className="flex gap-1">
+            {['11:00', '14:30', '17:00'].map((t, i) => (
+              <span
+                key={t}
+                className={cn(
+                  'rounded-md border px-1.5 py-1 font-mono text-[9px]',
+                  i === 1 ? 'border-accent text-accent' : 'border-line text-muted',
+                )}
+              >
+                {t}
+              </span>
+            ))}
+          </span>
+        </div>
+      )
+    case 'catalog':
+      return (
+        <div className="grid grid-cols-3 gap-1.5">
+          {['$24', '$38', '$15'].map((price) => (
+            <span key={price} className={cn('grid gap-1', card)}>
+              <span className={tile} />
+              <span className="font-mono text-[9px]">{price}</span>
+              <span className="rounded-sm bg-fg/10 py-0.5 text-center text-[8px] text-muted">
+                {c.cart}
+              </span>
+            </span>
+          ))}
+        </div>
+      )
+    case 'lesson':
+      return (
+        <div className={cn('grid gap-1.5', card)}>
+          <span className="flex items-center gap-1 text-[10px]">
+            <BookOpen size={11} weight="fill" className="text-accent" />
+            <span className={HEAD}>{c.lesson[0]}</span>
+          </span>
+          <span className="text-[9px] text-muted">{c.lesson[1]}</span>
+          <span className="h-1.5 overflow-hidden rounded-full bg-fg/10">
+            <span className="block h-full w-1/4 rounded-full bg-accent" />
+          </span>
+        </div>
+      )
+    case 'listing':
+      return (
+        <div className="grid gap-1.5">
+          {c.listing.map((name, i) => (
+            <span key={name} className={cn('grid grid-cols-[2.5rem_1fr] items-center gap-2', card)}>
+              <span className={cn(tile, 'h-8')} />
+              <span className="grid gap-1">
+                <span className="truncate text-[9px]">{name}</span>
+                <span className="font-mono text-[9px] text-accent">{i ? '$78k' : '$52k'}</span>
+              </span>
+            </span>
+          ))}
+        </div>
+      )
+    case 'trip':
+      return (
+        <div className="grid grid-cols-2 gap-1.5">
+          {c.trip.map((name, i) => (
+            <span key={name} className={cn('grid gap-1', card)}>
+              <span className={tile} />
+              <span className="truncate text-[9px]">{name}</span>
+              <span className="font-mono text-[9px] text-accent">{i ? '$540' : '$820'}</span>
+            </span>
+          ))}
+        </div>
+      )
+    case 'quote':
+      return (
+        <div className={cn('grid gap-1.5', card)}>
+          <span className={cn(HEAD, 'text-[10px]')}>{c.quote[0]}</span>
+          <span className="grid grid-cols-2 gap-1">
+            <span className="h-4 rounded-sm border border-line" />
+            <span className="h-4 rounded-sm border border-line" />
+          </span>
+          <span className="flex items-center justify-between text-[9px]">
+            <span className="text-muted">{c.quote[1]}</span>
+            <span className="font-mono text-accent">$120</span>
+          </span>
+        </div>
+      )
+    case 'chat':
+      return (
+        <div className={cn('grid gap-1', card)}>
+          <Bubble mine>{c.chatQ}</Bubble>
+          <Bubble>{c.chatA}</Bubble>
+        </div>
+      )
+    default:
+      return (
+        <div className={cn('grid gap-1', card)}>
+          {c.services.map((name, i) => (
+            <span key={name} className="flex items-center gap-1.5 text-[9px]">
+              <span className="size-1.5 rounded-full bg-accent" />
+              <span className="flex-1 truncate">{name}</span>
+              <span className="font-mono text-muted">${(i + 1) * 20}</span>
+            </span>
+          ))}
+        </div>
+      )
+  }
+}
+
+// Mini screens for the products that have no part of their own: a content plan, a personal agent
+// and a company knowledge base.
+function ProductCard({ id, c }: { id: 'content' | 'agent' | 'aiteam'; c: Copy }) {
+  const wrap = cn('grid gap-1.5 rounded-xl bg-bg p-(--pv-pad)', BORDER, 'border-line-strong')
+  if (id === 'content')
+    return (
+      <div className={wrap}>
+        <span className="flex items-center gap-1 text-[10px]">
+          <Sparkle size={11} weight="fill" className="text-accent" />
+          <span className={HEAD}>{c.contentTitle}</span>
+        </span>
+        <span className="grid grid-cols-4 gap-1.5">
+          {c.content.map((day, i) => (
+            <span key={day} className="grid gap-1">
+              <span className="font-mono text-[8px] text-faint">{day}</span>
+              <span
+                className={cn(
+                  'h-9 rounded-md',
+                  i % 2
+                    ? 'bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]'
+                    : 'bg-accent/80',
+                )}
+              />
+              <Bar className="w-full" />
+            </span>
+          ))}
+        </span>
+      </div>
+    )
+  if (id === 'agent')
+    return (
+      <div className={wrap}>
+        <span className="flex items-center gap-1.5 text-[10px]">
+          <span className="grid size-5 place-items-center rounded-full bg-accent text-accent-ink">
+            <Robot size={11} weight="fill" />
+          </span>
+          <span className={HEAD}>{c.agentTitle}</span>
+        </span>
+        {c.agentTasks.map((task, i) => (
+          <span key={task} className="flex items-center gap-1.5 text-[9px]">
+            <span
+              className={cn(
+                'size-2.5 rounded-sm border',
+                i === 0 ? 'border-accent bg-accent' : 'border-line-strong',
+              )}
+            />
+            {task}
+          </span>
+        ))}
+      </div>
+    )
+  return (
+    <div className={wrap}>
+      <span className="flex items-center gap-1.5 text-[10px]">
+        <Brain size={12} weight="fill" className="text-accent" />
+        <span className={HEAD}>{c.teamTitle}</span>
+      </span>
+      <Bubble mine>{c.teamQ}</Bubble>
+      <Bubble>{c.teamA}</Bubble>
+      <span className="w-fit rounded-full border border-accent/40 px-1.5 py-0.5 font-mono text-[8px] text-accent">
+        doc.pdf
+      </span>
+    </div>
   )
 }

@@ -3,15 +3,22 @@ import { test } from 'node:test'
 import en from '../src/content/en.ts'
 import ru from '../src/content/ru.ts'
 import { businessKinds, decodeBuild, presets, quote } from '../src/lib/builder.ts'
-import { isSolutionKind, solutionBuilderHref, solutionKinds } from '../src/lib/solutions.ts'
+import {
+  allSolutionKinds,
+  isSolutionKind,
+  solutionBuilderHref,
+  solutionKinds,
+} from '../src/lib/solutions.ts'
 
 const dashes = /[–—]/
 
 test('solutions: one page per business kind except "other"', () => {
   assert.deepEqual(
-    solutionKinds,
+    allSolutionKinds,
     businessKinds.filter((kind) => kind !== 'other'),
   )
+  // The footer lists only the original five, all of them real pages.
+  for (const kind of solutionKinds) assert.ok(isSolutionKind(kind), kind)
   assert.equal(isSolutionKind('other'), false)
   assert.equal(isSolutionKind('cafe'), true)
 })
@@ -38,7 +45,7 @@ test('solutions: every kind has ru and en copy with matching problems and FAQ co
 })
 
 test('solutions: the builder link decodes back to the preset', () => {
-  for (const kind of solutionKinds) {
+  for (const kind of allSolutionKinds) {
     for (const locale of ['ru', 'en']) {
       const href = solutionBuilderHref(locale, kind)
       const url = new URL(href, 'https://firtech.pro')
@@ -49,7 +56,7 @@ test('solutions: the builder link decodes back to the preset', () => {
 })
 
 test('solutions: every preset has a priced starting set', () => {
-  for (const kind of solutionKinds) {
+  for (const kind of allSolutionKinds) {
     const q = quote(presets[kind])
     assert.ok(q.lines.length > 0 && q.total.min > 0, kind)
     assert.ok(q.total.max >= q.total.min, kind)

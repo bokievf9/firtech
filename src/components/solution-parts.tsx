@@ -1,19 +1,10 @@
-import type { Icon } from '@phosphor-icons/react'
-import { Briefcase, Coffee, Moped, Scissors, Storefront } from '@phosphor-icons/react/ssr'
 import type { Dict } from '@/content'
+import { builderUi, pick, productCatalog } from '@/content/builder-catalog'
 import { quote, presets } from '@/lib/builder'
 import { cn } from '@/lib/cn'
 import { bundleDiscount, formatUsd } from '@/lib/pricing'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
 import type { SolutionKind } from '@/lib/solutions'
-
-export const solutionIcons: Record<SolutionKind, Icon> = {
-  cafe: Coffee,
-  salon: Scissors,
-  shop: Storefront,
-  delivery: Moped,
-  services: Briefcase,
-}
 
 type Variants = Record<string, { name: string; term: string }>
 
@@ -27,7 +18,15 @@ function isService(id: string): id is ServiceSlug {
 // The kind's builder preset as a readable list: each part with its format, options, term and price,
 // then the one-time total (with the bundle discount when it applies) and the monthly extras apart.
 // Terms stay per part and are never summed, like in the builder.
-export function SolutionSet({ kind, dict }: { kind: SolutionKind; dict: Dict }) {
+export function SolutionSet({
+  kind,
+  dict,
+  locale,
+}: {
+  kind: SolutionKind
+  dict: Dict
+  locale: string
+}) {
   const t = dict.solutions
   const b = dict.builder
   const build = presets[kind]
@@ -35,6 +34,23 @@ export function SolutionSet({ kind, dict }: { kind: SolutionKind; dict: Dict }) 
 
   return (
     <div className="rounded-card border border-line bg-surface p-5 md:p-8">
+      {build.products?.length ? (
+        <div className="mb-6">
+          <p className="text-xs tracking-[0.12em] text-faint uppercase">
+            {pick(builderUi.recommendedProducts, locale)}
+          </p>
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {build.products.map((id) => (
+              <li
+                key={id}
+                className="rounded-full border border-accent/50 bg-accent/[0.06] px-3 py-1 text-sm"
+              >
+                {pick(productCatalog[id].name, locale)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <ul className="divide-y divide-line border-y border-line">
         {q.lines.map((line) => {
           if (!isService(line.id)) {
