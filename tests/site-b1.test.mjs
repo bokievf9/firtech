@@ -3,13 +3,14 @@ import { existsSync, readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import ru from '../src/content/ru.ts'
 import en from '../src/content/en.ts'
-import { notFoundText, searchPages } from '../src/content/not-found.ts'
-import { decodeBuild } from '../src/lib/builder.ts'
-import { footerColumns, homeAnchors, homeSections, localePages, notFoundLinks, sectionAnchor } from '../src/lib/home.ts'
-import { agentPlans, catalog, estimate, extraPrice, startingPrice } from '../src/lib/pricing.ts'
-import { productBuild, productBuilderHref, productIds, productPrice } from '../src/lib/products.ts'
+import { notFoundLinks, notFoundText, searchPages } from '../src/content/not-found.ts'
+import { productCatalog } from '../src/content/builder-catalog.ts'
+import { decodeBuild, productParts, quote } from '../src/lib/builder.ts'
+import { footerColumns, homeAnchors, homeSections, localePages, sectionAnchor } from '../src/lib/home.ts'
+import { agentPlans } from '../src/lib/pricing.ts'
+import { builderProduct, productBuild, productBuilderHref, productIds, productPrice } from '../src/lib/products.ts'
 import { serviceSlugs } from '../src/lib/site.ts'
-import { solutionKinds } from '../src/lib/solutions.ts'
+import { isSolutionKind } from '../src/lib/solutions.ts'
 
 const dicts = { ru, en }
 
@@ -26,17 +27,15 @@ test('products: the seven from COMPANY.md, flagship first, texts in both languag
   }
 })
 
-test('product prices come only from pricing.ts, or the card says «по смете»', () => {
-  const allowed = new Set([
-    ...Object.values(startingPrice),
-    ...Object.values(catalog).flatMap((c) => [...Object.values(c.variants), ...Object.values(c.addons)]),
-    ...Object.values(extraPrice).map((e) => e.from),
-    estimate('bots', 'booking', []).min,
-  ])
+test('product prices come only from pricing.ts (as the builder counts them), or «по смете»', () => {
   for (const id of productIds) {
     const price = productPrice[id]
-    if (price.kind === 'from') assert.ok(allowed.has(price.from), `${id}: ${price.from}`)
-    if (price.kind === 'plans') assert.equal(price.plans, agentPlans)
+    const entry = productCatalog[builderProduct[id]]
+    if (price.kind === 'from') {
+      assert.ok(entry.priced, id)
+      assert.equal(price.from, quote({ parts: productParts(builderProduct[id]), extras: [] }).total.min, id)
+    } else if (price.kind === 'plans') assert.equal(price.plans, agentPlans)
+    else assert.equal(entry.priced, false, id)
   }
   assert.deepEqual(
     agentPlans.map((p) => [p.id, p.setup, p.monthly]),
@@ -52,16 +51,13 @@ test('product prices come only from pricing.ts, or the card says «по смет
   }
 })
 
-test('product builder links decode to the product preset', () => {
+test('«Собрать в конструкторе» opens the builder with the product picked', () => {
   for (const id of productIds) {
-    const href = productBuilderHref('ru', id)
-    const build = productBuild[id]
-    if (!build) {
-      assert.equal(href, '/ru/builder')
-      continue
-    }
-    const b = new URL(href, 'https://x').searchParams.get('b')
-    assert.deepEqual(decodeBuild(b)?.parts, build.parts, id)
+    const b = new URL(productBuilderHref('ru', id), 'https://x').searchParams.get('b')
+    assert.match(b, new RegExp(`(^|~)p\\.${builderProduct[id]}($|~)`), id)
+    const decoded = decodeBuild(b)
+    assert.deepEqual(decoded?.products, [builderProduct[id]], id)
+    assert.deepEqual(decoded?.parts, productBuild(id).parts, id)
   }
 })
 
@@ -81,7 +77,7 @@ function resolves(href, locale) {
   if (path === `/${locale}`) return !hash || homeAnchors.includes(hash)
   const rest = path.replace(`/${locale}/`, '').split('/')
   if (rest[0] === 'services') return serviceSlugs.includes(rest[1]) && rest.length === 2
-  if (rest[0] === 'solutions') return rest.length === 1 || solutionKinds.includes(rest[1])
+  if (rest[0] === 'solutions') return rest.length === 1 || (rest.length === 2 && isSolutionKind(rest[1]))
   if (!localePages.includes(rest[0]) || rest.length !== 1) return false
   return existsSync(new URL(`../src/app/[locale]/${rest[0]}/page.tsx`, import.meta.url))
 }

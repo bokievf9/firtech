@@ -1,6 +1,8 @@
-import { productAnchor, productIds, type ProductId } from './products'
+import { productAnchor, productIds, type ProductId } from './product-ids'
 import { serviceSlugs, type ServiceSlug } from './site'
-import { solutionKinds, type SolutionKind } from './solutions'
+import { solutionKinds } from './solutions'
+
+type FeaturedKind = (typeof solutionKinds)[number]
 
 // Home page map (stage B1, docs/site-design-notes.md): eight sections, products first. The page
 // renders `homeSections` in this order; each one's anchor id is in `sectionAnchor` (null = no
@@ -43,7 +45,7 @@ export const localePages = ['builder', 'blog', 'privacy', 'solutions'] as const
 export type FooterLink =
   | { kind: 'product'; id: ProductId; href: string }
   | { kind: 'service'; id: ServiceSlug; href: string }
-  | { kind: 'solution'; id: SolutionKind; href: string }
+  | { kind: 'solution'; id: FeaturedKind; href: string }
   | { kind: 'page'; id: string; href: string }
 
 export type FooterColumn = { id: 'products' | 'services' | 'solutions' | 'company'; links: FooterLink[] }
@@ -79,16 +81,4 @@ export function footerColumns(locale: string): FooterColumn[] {
       ],
     },
   ]
-}
-
-// Links offered on the 404 page, in this order.
-export function notFoundLinks(locale: string) {
-  return [
-    { id: 'home', href: `/${locale}` },
-    { id: 'products', href: `/${locale}#products` },
-    { id: 'builder', href: `/${locale}/builder` },
-    { id: 'solutions', href: `/${locale}/solutions` },
-    { id: 'blog', href: `/${locale}/blog` },
-    { id: 'contact', href: `/${locale}#contact` },
-  ] as const
 }

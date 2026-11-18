@@ -92,3 +92,15 @@ export function searchPages<T extends { label: string; keys: string }>(pages: T[
     return words.every((w) => hay.includes(w))
   })
 }
+
+// Links offered on the 404 page, in this order.
+export function notFoundLinks(locale: string) {
+  return [
+    { id: 'home', href: `/${locale}` },
+    { id: 'products', href: `/${locale}#products` },
+    { id: 'builder', href: `/${locale}/builder` },
+    { id: 'solutions', href: `/${locale}/solutions` },
+    { id: 'blog', href: `/${locale}/blog` },
+    { id: 'contact', href: `/${locale}#contact` },
+  ] as const
+}

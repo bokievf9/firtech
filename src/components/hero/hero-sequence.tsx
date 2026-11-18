@@ -16,7 +16,7 @@ import {
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
-import { productAnchor, productIds, type ProductId } from '@/lib/products'
+import { productAnchor, productIds, type ProductId } from '@/lib/product-ids'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { HeroField } from '../live/hero-field'
 import { ProductDemo } from '../products/product-demo'
@@ -160,11 +160,11 @@ export function HeroSequence({
         <HeroField />
         <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: glow }} />
         <motion.div
-          className="relative mx-auto grid h-full w-full max-w-7xl grid-cols-[minmax(0,1fr)] content-center gap-x-8 gap-y-7 px-4 pt-28 pb-10 [grid-template-areas:'head'_'sub'_'cta'_'stage'_'cap'] md:px-8 lg:grid-cols-12 lg:grid-rows-[auto_minmax(0,1fr)_auto_auto] lg:content-normal lg:gap-y-6 lg:pt-28 lg:pb-24 lg:[grid-template-areas:none]"
+          className="relative mx-auto grid h-full w-full max-w-7xl grid-cols-[minmax(0,1fr)] content-center gap-x-8 gap-y-7 px-4 pt-28 pb-10 md:px-8 lg:grid-cols-12 lg:grid-rows-[auto_minmax(0,1fr)_auto_auto] lg:content-normal lg:gap-y-6 lg:pt-28 lg:pb-[7.5rem]"
           style={{ scale: scrollDriven ? release : 1 }}
         >
           <motion.div
-            className="hero-head relative z-10 min-w-0 origin-top-left [grid-area:head] lg:col-span-12 lg:row-start-1"
+            className="hero-head relative z-10 min-w-0 origin-top-left lg:col-span-12 lg:row-start-1"
             style={
               scrollDriven
                 ? { scale: headScale, y: headY, ['--hp' as string]: hp }
@@ -177,26 +177,18 @@ export function HeroSequence({
           </motion.div>
 
           <motion.div
-            className="relative z-10 min-w-0 [grid-area:sub] lg:col-span-5 lg:col-start-1 lg:row-start-3"
+            className="relative z-10 min-w-0 lg:col-span-5 lg:col-start-1 lg:row-start-3"
             style={scrollDriven ? { opacity: subOpacity } : wide ? { opacity: 0 } : undefined}
           >
             {sub}
           </motion.div>
 
-          <div className="relative z-10 min-w-0 [grid-area:cta] lg:col-span-5 lg:col-start-1 lg:row-start-4">
+          <div className="relative z-10 min-w-0 lg:col-span-7 lg:col-start-1 lg:row-start-4">
             {actions}
           </div>
 
-          {/* The product caption: below the stage on phones, in place of the sub on large screens. */}
           <motion.div
-            className="relative z-10 min-w-0 [grid-area:cap] lg:col-span-5 lg:col-start-1 lg:row-start-3"
-            style={scrollDriven ? { opacity: capOpacity } : undefined}
-          >
-            <Caption product={current} index={active} copy={copy} reduce={reduce} />
-          </motion.div>
-
-          <motion.div
-            className="relative min-w-0 [grid-area:stage] lg:absolute lg:inset-y-0 lg:right-8 lg:flex lg:w-[56%] lg:items-center"
+            className="relative min-w-0 lg:absolute lg:inset-y-0 lg:right-8 lg:flex lg:w-[56%] lg:items-center"
             style={scrollDriven ? { y: stageY, scale: stageScale } : wide ? { y: '6vh' } : undefined}
           >
             <motion.div
@@ -223,11 +215,19 @@ export function HeroSequence({
               </motion.div>
             </motion.div>
           </motion.div>
+          {/* The product caption: below the stage on phones, in place of the sub on large screens. */}
+          <motion.div
+            className="relative z-10 min-w-0 lg:col-span-5 lg:col-start-1 lg:row-start-3"
+            style={scrollDriven ? { opacity: capOpacity } : undefined}
+          >
+            <Caption product={current} index={active} copy={copy} reduce={reduce} />
+          </motion.div>
+
         </motion.div>
 
         {/* Progress rail: seven dots (buttons) and, on the scroll track, a filling line. */}
         <div className="absolute inset-x-0 bottom-0 z-10 hidden lg:block">
-          <div className="mx-auto flex max-w-7xl items-center gap-5 px-4 pb-7 md:px-8">
+          <div className="mx-auto flex max-w-7xl items-center gap-5 px-4 pb-7 md:px-8 lg:pr-64">
             <Dots products={products} active={active} onPick={show} label={copy.pick} />
             <div className="relative h-px flex-1 bg-line">
               {scrollDriven && (
@@ -362,7 +362,7 @@ function StageCard({
 
   return (
     <motion.div
-      className="absolute inset-x-0 top-1/2 mx-auto w-[min(100%,24rem)] -translate-y-1/2 lg:w-[min(92%,27rem)]"
+      className="absolute inset-x-0 top-1/2 mx-auto w-[min(100%,24rem)] -translate-y-1/2 lg:w-[min(94%,31rem)]"
       style={
         reduce
           ? { opacity: active ? 1 : 0, zIndex: active ? 10 : 0 }

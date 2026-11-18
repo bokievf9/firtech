@@ -138,3 +138,75 @@ creates a lead.
 - Продукты без цены в `pricing.ts` (`content`, `agent`, `aiteam`) показываются «по смете» и никогда не суммируются. Цену задаёт владелец.
 - Стиль: оси палитра (16, светлые и тёмные), шрифтовая пара (7), форма, плотность, настроение, плюс 19 готовых образов. Только макет, цену не меняет. Старые поля `s.` по-прежнему читаются.
 - Ссылка `?b=`: чанки `k.` (ниша), `p.` (продукты), `y.` (оси стиля).
+
+## Stage B1: products lead the site (2026-11-19)
+Owner after stage A: the pixel-office hero looked weak, the rest had not changed, and the products
+(the admin bot first) were missing almost everywhere. B1 rebuilds the home page around the seven
+products of COMPANY.md and replaces the hero with a motion-heavy one in the spirit of motionsites.
+
+### Hero architecture
+- `components/hero/hero.tsx` (server): eyebrow, `KineticHeadline` (CSS word rise, LCP), sub,
+  buttons and the three rules as server children of `HeroSequence`, so the text reads without JS.
+  `.hero-display`: the headline is as large as the container allows (`min(clamp(..), container *
+  0.084)`), three lines.
+- `components/hero/hero-sequence.tsx` (client): the section is `lg:h-[250vh]`, its content sticks
+  for 150vh. `useScroll` on the section, smoothed with a spring, maps 0.08..0.9 of the track to
+  `p` = 0..6. Seven `StageCard`s sit in one 3D stage (perspective 1500px, `preserve-3d`): card i
+  takes its place from `o = i - p` (waiting cards behind, higher, smaller, blurred; shown cards fly
+  toward the viewer and fade). React re-renders only when the front card changes. The first 0.14
+  of the track shrinks the headline to 0.56 (lines drift apart via `--hp`), lifts the stage from
+  peeking at the bottom (38vh) to the centre and swaps the sub for the caption (`Продукт 04 из 07`,
+  name, benefit, link to the card). Pointer parallax (springs) tilts the stage and moves a light;
+  each card gets one light sweep (`.hero-card::after`) when it comes to the front. Seven dots are
+  buttons (scroll to that product). WebGL field from stage A stays the backdrop (lazy, same
+  fallbacks).
+- Phones and tablets (< 1024): no sticky track; headline, sub, buttons, the stage and the caption
+  in one column; the front card changes every 3.4 s while visible. Reduced motion: no track (CSS),
+  no timer, no tilt; the dots switch products.
+- Removed from the hero: the live office window and the status line (`components/live/*` stay; the
+  pixel office is admin only).
+
+### Product system
+- `src/lib/product-ids.ts` (client-safe ids and anchors), `src/lib/products.ts` (prices and builder
+  links). Each home product maps to a builder catalogue product (`builderProduct`: admin→adminbot,
+  receptionist→intake, automation, content, miniapp, agent, implementation→aiteam). The builder link
+  is `toggleProduct(emptyBuild, id)` encoded, so it carries `p.<id>` and the product's parts.
+- Prices: priced catalogue products cost what their parts cost in the calculator (`quote()` over
+  pricing.ts): admin $380, receptionist $350, automation $360, Mini App $920. Personal agent:
+  `agentPlans` in pricing.ts (Dono $150 + $15/мес, Polly $100 + $10/мес, owner-approved).
+  Content and AI implementation say «по смете» until the owner sets prices.
+- `components/products/product-demo.tsx`: seven small interfaces in plain markup; `.pd` CSS shows the
+  final state at rest and replays the steps (`--d` delays) on `.pd-play`, card hover or focus.
+  Shared by the hero stage, the bento and the proof section. Zero JS.
+
+### Section map (what moved where)
+| # | Section | Component | Took in |
+|---|---|---|---|
+| 1 | Hero `#top` | `hero/hero.tsx` | hero trust line |
+| 2 | Products `#products` | `products/products-bento.tsx` | directions, services, before/after of pains |
+| 3 | Demo `#demo` | `demo-section.tsx` | (restyled) |
+| 4 | Proof `#proof` | `proof/proof.tsx` | Dono case, live office counts |
+| 5 | Process `#process` | `work-timeline.tsx` | process, trust rules |
+| 6 | Prices `#pricing` | `pricing-section.tsx` (`teaser`) | builder teaser, regions payment line |
+| 7 | FAQ + contact `#faq` `#contact` | `faq-contact.tsx` | FAQ, contact |
+| 8 | Footer | `footer.tsx` | product list, Instagram |
+Removed components: compare, pains, region, trust, showcase (concepts stay on service pages),
+directions, dono-case, stack-marquee, services, extras, hero-picker, hero-lines. Dictionary
+sections `pains`, `stack`, `compare`, `trust`, `dono` are gone; `directions` stays (lead source,
+llms.txt), `region` stays (llms.txt, payment line).
+
+### Wide screens and checks
+- Bento: 12 columns from lg (7+5, 4+4+4, 6+6), from 1920 four across (6+3+3, 3+3+3+3).
+- Process: sticky horizontal track on lg, the section is as tall as the track is wide.
+- Playwright (production build): no horizontal overflow at 390, 1024, 1280, 1440, 1920, 2560;
+  LCP at 1440 is the headline line «которые работают 24/7».
+- First-load JS for `/ru`: 284.6 KB gzip (15 scripts) against 286.4 KB before B1: the hero sequence
+  and demos cost less than the removed office window, marquee and showcase.
+
+### 404
+`components/not-found/not-found-view.tsx`: a floating «404» with a turning ring for the zero, the
+receptionist «lost» in a chat bubble, a search over `notFoundText.pages` and quick links
+(`notFoundLinks`), a button to the chat. `[locale]/not-found.tsx` inside the locale layout;
+`app/global-not-found.tsx` for paths outside /ru and /en (own html, no chat). Known gap: a
+two-segment path with an unknown locale (`/xx/yy`) still gets Next's plain 404 because
+`[locale]` has `dynamicParams = false`.

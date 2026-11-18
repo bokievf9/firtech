@@ -3,9 +3,8 @@
 import { ArrowUpRight, ChatCircleDots, MagnifyingGlass } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useId, useState } from 'react'
-import { notFoundText, searchPages } from '@/content/not-found'
+import { notFoundLinks, notFoundText, searchPages } from '@/content/not-found'
 import { buttonStyles, cn } from '@/lib/cn'
-import { notFoundLinks } from '@/lib/home'
 import type { Locale } from '@/lib/i18n'
 import { openChat } from '../chat/chat-events'
 

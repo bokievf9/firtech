@@ -24,15 +24,22 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   change them only on the owner's word (current set: low entry, decided 2026-10-16, not yet
   confirmed per format).
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
-- Home page order: hero («Живая компания», stage A: kinetic headline, live office window with the
-  status line, WebGL field; see `docs/site-design-notes.md`), logo marquee, demo (`#demo`, opens the
-  receptionist chat), services, extras ("we also do": smaller services from
-  `extraSlugs`, no own pages; `extraPrice` reuses a main service's price or holds the owner's
-  own price for that extra; owner decisions like the rest), pains (before/after switch), showcase (concepts,
-  pinned horizontal pan on lg), compare, trust (the one lime colour block), pricing, process, FAQ,
-  contact. Showcase prices come from `estimate()`, so they always match the calculator. Showcase
-  items are concepts and must stay labelled as such; never present them as client work, and no
-  invented reviews or statistics anywhere (trust numbers are rules from the quote).
+- Home page order (stage B1, products lead; `homeSections` in `src/lib/home.ts`, tested): hero
+  (`#top`, kinetic headline over a 3D product stage; on lg a 250vh scroll track brings the seven
+  products forward one by one, phones rotate them on a timer), products bento (`#products`, old
+  `#services` anchor kept; seven cards from `src/lib/products.ts` with CSS mini-demos, «для кого»,
+  «что внутри», price, «Собрать в конструкторе» opening the builder with the product picked via the
+  `p.<id>` chunk, plus the four classic services), demo (`#demo`, opens the receptionist chat),
+  proof (`#proof`: Dono, Polly, Fir Tech HQ with live counts from `/api/office/public`), process
+  (`#process`, sticky horizontal timeline with the rules), pricing (`#pricing`: builder teaser and
+  calculator), FAQ + contact on one screen (`#faq`, `#contact`), footer (products, services,
+  solutions, studio columns, Instagram, giant wordmark; links from `footerColumns`, tested).
+  Product prices: `productPrice` = the builder catalogue product's parts priced by `quote()`
+  (pricing.ts), the personal agent shows `agentPlans` (pricing.ts, owner-approved), the rest say
+  «по смете». Never type a price into copy. Mini-demos are labelled «Пример интерфейса»; no
+  invented reviews or statistics anywhere. The pixel office lives only in /admin/office now. 404:
+  `components/not-found/not-found-view.tsx` (search over `notFoundText.pages`) for `[locale]` and
+  `src/app/global-not-found.tsx` (`experimental.globalNotFound`) for paths outside the locales.
 - Builder (`/[locale]/builder`, logic in `src/lib/builder.ts`, tested): the visitor combines
   services, options and extras into one quote. Prices come from `pricing.ts`; `bundleDiscount`
   (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never
