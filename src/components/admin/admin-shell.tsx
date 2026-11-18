@@ -48,7 +48,9 @@ function ViewSwitch() {
   )
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+// `wide`: the пульт uses the whole screen: fluid up to 1760 px, then 88% of the viewport, so large
+// and ultrawide screens get proportional side gutters instead of a fixed 1440 px column.
+export function AdminShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
   const pathname = usePathname()
   const router = useRouter()
   const [busy, setBusy] = useState(false)
@@ -67,7 +69,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div
-      className="mx-auto flex min-h-[100dvh] max-w-[1440px] flex-col px-4 pb-10 sm:px-6 lg:px-8"
+      className={cn(
+        'mx-auto flex min-h-[100dvh] w-full flex-col px-4 pb-10 sm:px-6 lg:px-8',
+        wide ? 'max-w-[max(1760px,88vw)]' : 'max-w-[1440px]',
+      )}
     >
       <header className="sticky top-0 z-30 -mx-4 flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         <Link href="/admin" className="flex items-center gap-2.5">

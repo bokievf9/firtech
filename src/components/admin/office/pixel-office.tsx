@@ -213,7 +213,7 @@ export function PixelOffice({
       ref={wrapRef}
       className="office-scene min-w-0 max-w-full overflow-x-auto overscroll-x-contain rounded-card border border-line bg-[#0b1030]"
     >
-      <div className="relative w-max">
+      <div className="relative mx-auto w-max">
         <canvas
           ref={canvasRef}
           role="img"

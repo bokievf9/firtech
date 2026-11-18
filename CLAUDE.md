@@ -104,7 +104,18 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
   site. Bot `/admin` sends the link. Overview, leads with drawer, calendar, CSV export.
-- Live office `/admin/office` («Живой офис», nav link «Офис»): a pixel-art office on canvas in the
+- Пульт `/admin/office` (control center, stage 1 since 2026-11-19, nav link «Офис»): the owner's
+  workplace instead of the Director bot. Top bar with the presence switch («На месте» / «Не на месте»;
+  the page pings HQ every 60 s while visible, HQ goes «away» by itself and sends to Telegram),
+  badges and HQ link; the pixel office below (click a person or department to filter tasks); then
+  panels Входящие, Одобрения, Задачи (board + drawer), Директор (chat to `/say` and `/command`),
+  Учения (`src/components/admin/control/`). Browser calls only `/api/admin/hq/[...path]`, a
+  session-checked whitelist proxy (`src/lib/hq-admin.ts`, 5 s timeout) to `HQ_ADMIN_URL` (default
+  `http://127.0.0.1:8787/admin`, header `x-admin-token: HQ_ADMIN_TOKEN`, falls back to
+  `HQ_OFFICE_TOKEN`); unset in development = in-memory mock `src/lib/hq-admin-mock.ts`. View models
+  `src/lib/hq-admin-view.ts`, tests `tests/hq-admin.test.mjs`, notes «Пульт (этап 1)» in
+  `docs/office-design-notes.md`. The page uses `AdminShell wide` (fluid to 1760 px, then 88vw).
+- Live office on that page («Живой офис»): a pixel-art office on canvas in the
   spirit of Lumio (engine `src/components/pixel-office/`, shared with the public hero; admin wrapper `src/components/admin/office/pixel-office.tsx`; tests `tests/pixel-office.test.mjs`):
   a desk and a little person per agent whose behaviour shows the status, window light from the
   sun in the company's TZ; status strip above, feed, people by department, routines, funnel and

@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Panel } from '@/components/admin/admin-shell'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
+import { useFolded } from '@/components/admin/control/cc-panel'
+import { officePeople } from '@/components/pixel-office/model'
 import { PixelOffice } from './pixel-office'
 import type { HitTarget } from '@/components/pixel-office/scene'
 import {
@@ -215,10 +217,12 @@ function DeptCard({
   dept,
   selected,
   onSelect,
+  onDept,
 }: {
   dept: OfficeDepartment
   selected: HitTarget | null
   onSelect: (target: HitTarget | null) => void
+  onDept?: (id: string) => void
 }) {
   const agents: [OfficeAgent, boolean][] = [
     [dept.head, true],
@@ -227,7 +231,17 @@ function DeptCard({
   return (
     <li className="rounded-2xl border border-line bg-bg/40 p-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-2">
-        <p className="truncate text-sm font-medium">{deptName(dept.id, dept.title)}</p>
+        {onDept ? (
+          <button
+            type="button"
+            onClick={() => onDept(dept.id)}
+            className="truncate text-left text-sm font-medium underline-offset-4 hover:underline"
+          >
+            {deptName(dept.id, dept.title)}
+          </button>
+        ) : (
+          <p className="truncate text-sm font-medium">{deptName(dept.id, dept.title)}</p>
+        )}
         <p className="text-xs text-faint tabular-nums">
           {(Object.keys(t.deptCount) as (keyof typeof t.deptCount)[])
             .filter((k) => dept.tasks[k] > 0)
@@ -271,20 +285,52 @@ function DeptCard({
   )
 }
 
-export function OfficeBoard() {
+// What a click in the office means for the пульт's task board: a department, or one person.
+export type OfficePick = { dept: string | null; agentId: string | null; label: string | null }
+
+// `onPick` (the пульт) filters its task board by the clicked person or department; `children` are
+// rendered between the scene and the old blocks (feed, people, routines, funnel), which the пульт
+// folds away by default.
+export function OfficeBoard({
+  onPick,
+  children,
+}: {
+  onPick?: (pick: OfficePick | null) => void
+  children?: React.ReactNode
+} = {}) {
   const { data, fetchedAt, error, busy, fresh, retry } = useOffice()
   const now = useNow()
   const [selected, setSelected] = useState<HitTarget | null>(null)
+  const [extrasFolded, setExtrasFolded] = useFolded('office-extras', !!onPick)
   const age = fetchedAt ? Math.round((now - fetchedAt) / 1000) : 0
 
   if (!data) {
-    return error ? (
-      <DownBanner error={error} hasData={false} age={0} busy={busy} onRetry={retry} />
-    ) : (
-      <div className="grid min-h-[40dvh] place-items-center text-sm text-muted" role="status">
-        {admin.login.checking}
+    return (
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
+        {error ? (
+          <DownBanner error={error} hasData={false} age={0} busy={busy} onRetry={retry} />
+        ) : (
+          <div className="grid min-h-[30dvh] place-items-center text-sm text-muted" role="status">
+            {admin.login.checking}
+          </div>
+        )}
+        {children}
       </div>
     )
+  }
+
+  // Selecting someone in the office also tells the пульт; the director means «all tasks».
+  const select = (target: HitTarget | null) => {
+    setSelected(target)
+    if (!onPick) return
+    if (!target || target.kind !== 'agent') return
+    const person = officePeople(data).find((p) => p.id === target.id)
+    if (!person || person.role === 'director') onPick(null)
+    else onPick({ dept: person.deptId, agentId: person.id, label: person.title })
+  }
+  const pickDept = (id: string) => {
+    setSelected(null)
+    onPick?.({ dept: id, agentId: null, label: null })
   }
 
   const names = new Map<string, string>([[data.director.id, data.director.title]])
@@ -306,7 +352,11 @@ export function OfficeBoard() {
   return (
     <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="font-brand text-xl">{t.title}</h1>
+        {onPick ? (
+          <h2 className="font-brand text-lg">{t.title}</h2>
+        ) : (
+          <h1 className="font-brand text-xl">{t.title}</h1>
+        )}
         <p className="flex items-center gap-3 text-xs text-muted">
           {data.quietHours ? (
             <span className="inline-flex items-center gap-1">
@@ -322,7 +372,7 @@ export function OfficeBoard() {
       <div className="grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 [&>*]:bg-surface">
         <button
           type="button"
-          onClick={() => setSelected({ kind: 'agent', id: data.director.id })}
+          onClick={() => select({ kind: 'agent', id: data.director.id })}
           className="flex min-w-0 flex-col items-start justify-center gap-0.5 px-3.5 py-2 text-left hover:bg-surface-2"
         >
           <span className="truncate text-xs text-muted">{t.strip.director}</span>
@@ -361,13 +411,34 @@ export function OfficeBoard() {
       </div>
 
       <div className={cn('grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 transition-opacity duration-300', down && 'opacity-60')}>
-        <PixelOffice data={data} now={now} selected={selected} onSelect={setSelected} />
+        <PixelOffice data={data} now={now} selected={selected} onSelect={select} />
         <p className="text-xs text-faint">
           {down ? `${reasons[error] ?? error}. ${fill(t.down.withData, { t: formatDataAge(age) })}` : t.scene.hint}
         </p>
       </div>
 
-      <div className={cn('grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-12', down && 'opacity-60')}>
+      {children}
+
+      {onPick ? (
+        <button
+          type="button"
+          onClick={() => setExtrasFolded(!extrasFolded)}
+          aria-expanded={!extrasFolded}
+          aria-controls="office-extras"
+          className="inline-flex min-h-11 items-center gap-2 justify-self-start rounded-full border border-line px-4 text-sm text-muted transition-colors hover:text-fg"
+        >
+          <span aria-hidden="true" className={cn('inline-block transition-transform duration-200', !extrasFolded && 'rotate-90')}>
+            ›
+          </span>
+          {admin.cc.more}
+        </button>
+      ) : null}
+
+      <div
+        id="office-extras"
+        hidden={!!onPick && extrasFolded}
+        className={cn('grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-12', down && 'opacity-60')}
+      >
         <Panel
           title={t.feed}
           aside={
@@ -411,7 +482,7 @@ export function OfficeBoard() {
         <Panel title={t.scene.people} className="lg:col-span-5">
           <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
             {data.departments.map((d) => (
-              <DeptCard key={d.id} dept={d} selected={selected} onSelect={setSelected} />
+              <DeptCard key={d.id} dept={d} selected={selected} onSelect={select} onDept={onPick ? pickDept : undefined} />
             ))}
           </ul>
         </Panel>
@@ -468,7 +539,7 @@ export function OfficeBoard() {
                 <li key={p.id}>
                   <button
                     type="button"
-                    onClick={() => setSelected({ kind: 'product', id: p.id })}
+                    onClick={() => select({ kind: 'product', id: p.id })}
                     className="flex min-h-10 w-full items-center justify-between gap-3 rounded-xl px-1.5 text-left hover:bg-surface-2"
                   >
                     <span className="text-sm font-medium">{p.title}</span>
