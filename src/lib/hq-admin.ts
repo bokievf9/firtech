@@ -103,13 +103,17 @@ export async function callHqAdmin(
   const headers: Record<string, string> = { accept: 'application/json' }
   if (token) headers['x-admin-token'] = token
   if (method === 'POST') headers['content-type'] = 'application/json'
+  // An explicit timer: AbortSignal.timeout() does not keep the event loop alive, so a hanging request
+  // could outlive the process (seen in CI).
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(new DOMException('timeout', 'TimeoutError')), timeoutMs)
   try {
     const res = await fetcher(`${base}/${path}${qs ? `?${qs}` : ''}`, {
       method,
       headers,
       ...(method === 'POST' ? { body: JSON.stringify(body ?? {}) } : {}),
       cache: 'no-store',
-      signal: AbortSignal.timeout(timeoutMs),
+      signal: controller.signal,
     })
     if (res.status === 401 || res.status === 403) return { ok: false, error: 'hq_unauthorized' }
     const data: unknown = await res.json().catch(() => undefined)
@@ -125,5 +129,7 @@ export async function callHqAdmin(
   } catch (error) {
     const timeout = error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')
     return { ok: false, error: timeout ? 'hq_timeout' : 'hq_unreachable' }
+  } finally {
+    clearTimeout(timer)
   }
 }
