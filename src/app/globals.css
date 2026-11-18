@@ -720,7 +720,7 @@
 
 /* Hero display size: as large as the page container allows (three lines, the middle one longest). */
 .hero-display {
-  font-size: min(clamp(2.6rem, 1rem + 6vw, 7.4rem), calc(var(--container-7xl) * 0.084));
+  font-size: min(clamp(2.6rem, 1rem + 6vw, 7.4rem), calc(var(--container-7xl) * 0.084), 13.5vh);
   line-height: 0.92;
   letter-spacing: -0.05em;
 }

@@ -74,7 +74,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
               {h.chatCta}
             </ChatOpenButton>
           </div>
-          <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-faint">
+          <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-faint lg:hidden">
             {h.trust.map((item) => (
               <li key={item} className="flex items-center gap-2">
                 <span className="size-1 rounded-full bg-accent/70" aria-hidden="true" />
