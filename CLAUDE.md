@@ -142,9 +142,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 
 ## Infrastructure
 - Domain `firtech.pro`: bought 2026-10-16 at Cloudflare (registrar and DNS). Records: `A @` and
-  `A www` -> `68.183.177.183`, DNS only (grey cloud), so Certbot can issue the certificate.
-- Hosting: the Vibely DigitalOcean VPS (`68.183.177.183`, see `../vibely/CLAUDE.md`), a separate
-  PM2 process `firtech` (one fork process, `ecosystem.config.cjs`) on 127.0.0.1:3001 and its own
+  `A www` -> `201.79.122.133` (since 2026-11), DNS only (grey cloud), so Certbot can issue the certificate.
+- Hosting: own VPS `firtech-sg-1` (`201.79.122.133`, Ubuntu 24.04, 4 GB, user `deploy`, SSH keys
+  only). The old shared Vibely VPS (`68.183.177.183`) is destroyed; never deploy there. Node and
+  PM2 come from `scripts/deploy/server-runtime.sh` (root, once, before `server-setup.sh`). A
+  separate PM2 process `firtech` (one fork process, `ecosystem.config.cjs`) on 127.0.0.1:3001 and its own
   nginx site (`infra/nginx/firtech.conf` + snippet, Certbot SSL). Never edit Vibely's nginx files.
 - Release model as Vibely: push to `main` -> GitHub Actions (`.github/workflows/deploy.yml`):
   checks, build in CI (`output: 'standalone'`), `scripts/deploy/assemble.sh`, upload to
