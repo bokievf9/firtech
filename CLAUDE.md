@@ -154,6 +154,12 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `http://127.0.0.1:8787/office`; unset in development = built-in mock `src/lib/office-mock.ts`) and
   `HQ_OFFICE_TOKEN` (header `x-office-token`, server only, never returned). 3 s timeout; on failure
   the page shows «HQ не отвечает» over dimmed last data. Design notes: `docs/office-design-notes.md`.
+  Office v2 (2026-11-19): reception with visitors (`scene.visitors`), approvals carried to the
+  Director and reactions, props per department, weather for Dushanbe (`GET /api/office/weather`,
+  Open-Meteo, 10 min cache, fail-soft to clear; `src/lib/office-weather.ts`), elevator, doors,
+  clocks, lounge TV, growing plants; camera (wheel/pinch zoom 2x-6x, drag, follow, fullscreen,
+  name tags); static layers cached per zoom level; dev `?office=rain|snow|night|stats`. Contract
+  `scene` block in `office-view.ts` (`normalizeScene`), tests `tests/office-v2.test.mjs`.
 - Public live office (home hero, stage A): `GET /api/office/public` (no session) reads the same HQ
   office through `fetchOffice` and returns only `PublicOffice` (`src/lib/office-public.ts`):
   departments `{id,title}`, agents `{id,title,status}`, director status, counts `{agents, working,

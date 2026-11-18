@@ -21,6 +21,11 @@ export function parseSprite(rows: readonly string[]): Sprite {
   return { w, h: rows.length, px }
 }
 
+// `n` copies of one row (poles, panels).
+function rows(n: number, row: string): string[] {
+  return Array.from({ length: n }, () => row)
+}
+
 // People: 12 x 16 standing, 12 x 14 sitting. Feet on the last row.
 const HEAD = [
   '....kkkk....',
@@ -263,6 +268,83 @@ const RAW = {
     'kwwwwk',
     'kkkkkk',
   ],
+  // ---- Office v2 props (palette keys in palette.ts) ----
+  ringLight: [
+    '..www..',
+    '.w...w.',
+    'w.....w',
+    'w..k..w',
+    'w.....w',
+    '.w...w.',
+    '..www..',
+    ...rows(11, '...M...'),
+    '..MMM..',
+    '.M.M.M.',
+    'M..M..M',
+    'M.....M',
+  ],
+  tripod: [
+    '.kkkkk...',
+    'kxxxxxkk.',
+    'kxzzxxkBk',
+    'kxxxxxkkk',
+    '.kkkkk...',
+    ...rows(10, '..MM.....'),
+    '.M..M....',
+    'M....M...',
+    'M....M...',
+  ],
+  deskPhone: ['.kkk.', 'kzxzk', 'kkkkk'],
+  headset: ['.kkk.', 'k...k', 'B...B', '..M..', '..M..', '..M..', '.MMM.'],
+  miniRack: [
+    'kkkkkkkkkk',
+    ...Array.from({ length: 6 }, (_, i) => [i % 2 ? 'kxxxxxxxxk' : 'kzGzGzzzzk', 'kxxxxxxxxk', 'kzzzzzzzzk']).flat(),
+    'kkkkkkkkkk',
+  ],
+  cabinet: [
+    'kkkkkkkkk',
+    ...Array.from({ length: 3 }, () => ['kmmmmmmmk', 'kmmMMMmmk', 'kmmmmmmmk', 'kmmmmmmmk', 'kMMMMMMMk', 'kkkkkkkkk']).flat(),
+  ],
+  printer: ['.kkkkkkk.', 'kmmmmmmmk', 'kmzzzzzmk', 'kmmmmmGmk', 'kkkkkkkkk'],
+  safe: [
+    'kkkkkkkkkk',
+    'kxxxxxxxxk',
+    'kxkkkkkkxk',
+    'kxkMMMkkxk',
+    'kxkMzMkMxk',
+    'kxkMMMkMxk',
+    'kxkkkkkkxk',
+    'kxxxxxxxxk',
+    'kkkkkkkkkk',
+    '.k......k.',
+  ],
+  award: ['YYYYYY', 'YzzzzY', 'YzYYzY', 'YYYYYY', 'YzYYzY', 'YzzYzY', 'YzzzzY', 'YYYYYY'],
+  bin: ['kkkkk', 'kMMMk', 'kMxMk', 'kMxMk', 'kMMMk', '.kkk.'],
+  generator: [
+    '..kkkkkkkkkkkkkk..',
+    '.kxxxxxxxxxxxxxxk.',
+    'kxxzzzzzzxxkkkkxxk',
+    'kxzMzMzMzxxk..kxxk',
+    'kxzzzzzzzxxk..kxxk',
+    'kxzMzMzMzxxkkkkxxk',
+    'kxzzzzzzzxxxxxxxxk',
+    'kxzMzMzMzxxMMMMxxk',
+    'kxzzzzzzzxxxxxxxxk',
+    'kxxxxxxxxxxMMMMxxk',
+    'kxxxxxxxxxxxxxxxxk',
+    'kYYYYYYYYYYYYYYYYk',
+    'kxxxxxxxxxxxxxxxxk',
+    'kkkkkkkkkkkkkkkkkk',
+    '.kk............kk.',
+  ],
+  box: ['kkkkkk', 'koOOok', 'kooook', 'kooook', 'kkkkkk'],
+  // ---- Icons in bubbles and over visitors ----
+  iconCheck: ['....G', '...G.', 'G.G..', '.G...'],
+  iconMail: ['kkkkkkk', 'kwkwkwk', 'kwwkwwk', 'kwwwwwk', 'kkkkkkk'],
+  iconThumb: ['.Yk..', '.Yk..', 'kYYYk', 'kYYYk', 'kYYk.'],
+  iconGlobe: ['.BBB.', 'BwBwB', 'BBBBB', 'BwBwB', '.BBB.'],
+  iconPlane: ['....T', '..TTT', 'TTTT.', '..TT.', '...T.'],
+  bell: ['..k..', '.YYY.', '.YYY.', '.YYY.', 'YYYYY', '..k..'],
 } as const satisfies Record<string, readonly string[]>
 
 export type SpriteName = keyof typeof RAW

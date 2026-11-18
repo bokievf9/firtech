@@ -68,7 +68,11 @@ test('pixel font widths and coverage', () => {
   assert.equal(F.textWidth('AB'), 7)
   assert.equal(F.textWidth('M'), 5)
   assert.ok(F.canWrite('BACK OFFICE'))
-  assert.equal(F.canWrite('Маркетинг'), false)
+  // Office v2: the whole Cyrillic alphabet (notice board, lounge TV); quotes are still skipped.
+  assert.ok(F.canWrite('Маркетинг'))
+  assert.ok(F.canWrite('Утренняя сводка, 19.11'))
+  assert.ok(F.canWrite('ЁЖЗИЙФХЦШЩЪЫЭЮЯ +7° 99%'))
+  assert.equal(F.canWrite('«Да»'), false)
 })
 
 test('layout is deterministic and gives every person a desk', () => {
@@ -80,8 +84,10 @@ test('layout is deterministic and gives every person a desk', () => {
   assert.equal(a.desks.length, people.length)
   for (const p of people) assert.ok(a.desks.some((d) => d.agentId === p.id), p.id)
   assert.equal(a.desks.find((d) => d.director)?.agentId, 'director')
-  assert.deepEqual(a.racks.map((r) => r.productId), ['dono', 'polly'])
-  for (const kind of ['director', 'meeting', 'builders', 'lounge', 'servers']) assert.ok(L.roomOf(a, kind), kind)
+  // Products, then the firtech.pro rack (Office v2).
+  assert.deepEqual(a.racks.map((r) => r.productId), ['dono', 'polly', 'firtech.pro'])
+  assert.deepEqual(a.racks.map((r) => r.kind), ['product', 'product', 'site'])
+  for (const kind of ['director', 'meeting', 'builders', 'lounge', 'servers', 'lobby']) assert.ok(L.roomOf(a, kind), kind)
 })
 
 test('desks stay put when statuses change', () => {

@@ -1,4 +1,5 @@
-import type { OfficeData } from './office-view'
+import type { OfficeData, OfficeReaction, OfficeScene, OfficeVisitor, ReactionKind } from './office-view'
+import { clearWeather, type OfficeWeather, type WeatherKind } from './office-weather'
 
 // Realistic stand-in for HQ's GET /office, same shape as fir-tech/docs/office-api.md. Used only in
 // development when HQ_OFFICE_URL is unset. Times are relative to `now`, so the page looks live.
@@ -20,8 +21,8 @@ export function officeMock(now = Date.now()): OfficeData {
       status: 'idle',
       lastSummaryAt: ago(60 * 15),
       nextSummaryAt: ahead(60 * 9),
-      pendingApprovals: 3,
-      openBuilderIssues: 1,
+      pendingApprovals: approvalsTotal(now),
+      openBuilderIssues: 3,
     },
     departments: [
       {
@@ -123,5 +124,90 @@ export function officeMock(now = Date.now()): OfficeData {
       { id: 'dono', title: 'Dono', status: 'working' },
       { id: 'polly', title: 'Polly', status: 'idle' },
     ],
+    visitorsActive: mockVisitors(now).length,
+    scene: mockScene(now),
   }
+}
+
+// ---- Scene block (Office v2) ------------------------------------------------------------------
+// Everything moves on fixed cycles so the dev page shows every mechanic within a few minutes:
+// a web visitor goes chat > intake > contact > done every 2 minutes (a new one each cycle),
+// the publisher's approvals go 1 > 2 > 1 every minute, and a reaction of the next kind happens
+// every 15 seconds.
+
+export const VISITOR_CYCLE_MS = 120_000
+export const REACTION_STEP_MS = 15_000
+
+const hex6 = (n: number) => (n >>> 0).toString(16).padStart(6, '0').slice(-6)
+
+export function mockVisitors(now: number): OfficeVisitor[] {
+  const cycle = Math.floor(now / VISITOR_CYCLE_MS)
+  const at = now % VISITOR_CYCLE_MS
+  const ago = (min: number) => new Date(now - min * 60_000).toISOString()
+  const walker: OfficeVisitor = {
+    id: `v-${hex6(0xa10000 + (cycle % 0xffff))}`,
+    channel: 'web',
+    state: at < 30_000 ? 'chat' : at < 60_000 ? 'intake' : at < 90_000 ? 'contact' : 'done',
+    since: new Date(now - at).toISOString(),
+  }
+  // Newest first, like HQ.
+  return [
+    walker,
+    { id: 'v-c0ffee', channel: 'web', state: 'intake', since: ago(5) },
+    { id: 'v-0f0f0f', channel: 'telegram', state: 'chat', since: ago(3) },
+    { id: 'v-77aa11', channel: 'telegram', state: 'human', since: ago(12) },
+  ]
+}
+
+function approvalsByAgent(now: number): Record<string, number> {
+  return { publisher: Math.floor(now / 60_000) % 2 ? 2 : 1, presales: 1 }
+}
+
+const approvalsTotal = (now: number) => Object.values(approvalsByAgent(now)).reduce((s, n) => s + n, 0)
+
+// Who reacts to what in the mock.
+export const MOCK_REACTIONS: readonly [ReactionKind, string][] = [
+  ['approved', 'presales'],
+  ['published', 'publisher'],
+  ['lead', 'lead-handler'],
+  ['blocked', 'seo-specialist'],
+  ['issue_closed', 'content-maker'],
+  ['done', 'monitoring'],
+  ['rejected', 'publisher'],
+]
+
+function mockReactions(now: number): OfficeReaction[] {
+  const last = Math.floor(now / REACTION_STEP_MS)
+  const out: OfficeReaction[] = []
+  // The last 10 minutes, oldest first, newest last, at most 30.
+  for (let step = last - 29; step <= last; step++) {
+    if (step * REACTION_STEP_MS < now - 10 * 60_000) continue
+    const [kind, agent] = MOCK_REACTIONS[((step % MOCK_REACTIONS.length) + MOCK_REACTIONS.length) % MOCK_REACTIONS.length]!
+    out.push({ agent, kind, at: new Date(step * REACTION_STEP_MS).toISOString() })
+  }
+  return out
+}
+
+export function mockScene(now: number): OfficeScene {
+  const day = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Asia/Tashkent', day: '2-digit', month: '2-digit' }).format(now)
+  return {
+    visitors: mockVisitors(now),
+    leadsToday: 3,
+    publishedToday: 2,
+    approvedToday: 4,
+    rejectedToday: 1,
+    builderIssuesByDept: { marketing: 1, sales: 2 },
+    approvalsByAgent: approvalsByAgent(now),
+    reactions: mockReactions(now),
+    notice: `Утренняя сводка, ${day}`,
+    uptimeDays: 12.4,
+    visitorsTotalToday: 9,
+  }
+}
+
+// Dev weather for ?office=rain|snow|fog|thunder|clouds|clear (the page skips the real call).
+export function weatherMock(kind: WeatherKind, now = Date.now()): OfficeWeather {
+  const temp: Record<WeatherKind, number> = { clear: 14, clouds: 9, rain: 7, snow: -3, fog: 4, thunder: 18 }
+  const code: Record<WeatherKind, number> = { clear: 0, clouds: 3, rain: 63, snow: 73, fog: 45, thunder: 95 }
+  return { ...clearWeather(now), ok: true, kind, tempC: temp[kind], isDay: true, windKmh: 8, code: code[kind] }
 }

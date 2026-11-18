@@ -21,6 +21,8 @@ export type PublicCounts = {
   waiting: number
   tasksRunning: number
   doneToday: number
+  // Active client chats (Office v2); the only scene number the public view gets.
+  visitorsActive: number
 }
 
 export type PublicOffice = {
@@ -71,6 +73,7 @@ export function countsOf(
   departments: PublicDepartment[],
   tasksRunning: number,
   doneToday: number,
+  visitorsActive = 0,
 ): PublicCounts {
   const people = [director, ...departments.flatMap((d) => [d.head, ...d.workers])]
   return {
@@ -79,6 +82,7 @@ export function countsOf(
     waiting: people.filter((p) => p.status === 'waiting').length,
     tasksRunning,
     doneToday,
+    visitorsActive,
   }
 }
 
@@ -108,7 +112,7 @@ export function toPublicOffice(data: OfficeData, demo = false): PublicOffice {
     ...(data.queueEmpty === true ? { queueEmpty: true } : {}),
     director,
     departments,
-    counts: countsOf(director, departments, tasksRunning, doneToday),
+    counts: countsOf(director, departments, tasksRunning, doneToday, count(data.visitorsActive)),
   }
 }
 
@@ -220,7 +224,7 @@ export function publicDemo(now = Date.now()): PublicOffice {
     quietHours: false,
     director,
     departments,
-    counts: countsOf(director, departments, tasksRunning, 3 + Math.floor(hour * 0.6) + phase),
+    counts: countsOf(director, departments, tasksRunning, 3 + Math.floor(hour * 0.6) + phase, phase % 3),
   }
 }
 
@@ -278,5 +282,15 @@ export function publicToScene(pub: PublicOffice): OfficeData {
     health: { firtech: { ok: true, pct24h: 100 }, omniroute: { ok: true }, incidentsToday: 0 },
     funnel: { leadsWeek: 0, prospects: {} },
     products: [],
+    visitorsActive: count(pub.counts.visitorsActive),
+    // Anonymous visitors from the count only (at most 4 drawn): no ids, states or channels leave HQ.
+    scene: {
+      visitors: Array.from({ length: Math.min(4, count(pub.counts.visitorsActive)) }, (_, i) => ({
+        id: `pub-${i}`,
+        channel: i % 2 ? 'telegram' : 'web',
+        state: 'chat',
+        since: pub.generatedAt,
+      })),
+    },
   }
 }

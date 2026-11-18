@@ -1,6 +1,6 @@
 import 'server-only'
 import { officeMock } from './office-mock'
-import { looksLikeOffice, type OfficeResponse } from './office-view'
+import { looksLikeOffice, normalizeScene, type OfficeData, type OfficeResponse } from './office-view'
 
 const DEFAULT_URL = 'http://127.0.0.1:8787/office'
 const TIMEOUT_MS = 3000
@@ -25,9 +25,21 @@ export async function fetchOffice(
     if (!res.ok) return { ok: false, error: 'hq_error' }
     const body: unknown = await res.json()
     if (!looksLikeOffice(body)) return { ok: false, error: 'hq_bad_response' }
-    return body
+    return withScene(body)
   } catch (error) {
     const timeout = error instanceof Error && error.name === 'TimeoutError'
     return { ok: false, error: timeout ? 'hq_timeout' : 'hq_unreachable' }
   }
+}
+
+// Passes the optional scene block (Office v2) through, cleaned: a malformed block never reaches
+// the canvas, and a missing one stays missing (the scene treats it as absent).
+export function withScene(body: OfficeData): OfficeData {
+  const out: OfficeData = { ...body }
+  const va = (body as { visitorsActive?: unknown }).visitorsActive
+  if (typeof va === 'number' && Number.isFinite(va) && va >= 0) out.visitorsActive = Math.floor(va)
+  else delete out.visitorsActive
+  if (body.scene !== undefined && body.scene !== null) out.scene = normalizeScene(body.scene)
+  else delete out.scene
+  return out
 }

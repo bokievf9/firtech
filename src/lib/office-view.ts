@@ -83,6 +83,110 @@ export type OfficeData = {
   }
   funnel: { leadsWeek: number; prospects: Record<string, number> }
   products: { id: string; title: string; status: AgentStatus }[]
+  // Active client chats right now (optional, not capped; absent = 0).
+  visitorsActive?: number
+  // What the pixel office animates beyond statuses (optional; every field may be missing).
+  scene?: OfficeScene
+}
+
+// ---- Scene block (Office v2) ----------------------------------------------------------------------
+
+export type VisitorChannel = 'web' | 'telegram'
+export type VisitorState = 'chat' | 'intake' | 'contact' | 'done' | 'human'
+
+// One active client chat: id 'v-' + 6 hex, `since` ISO (when the chat started).
+export type OfficeVisitor = { id: string; channel: VisitorChannel; state: VisitorState; since: string }
+
+export type ReactionKind = 'approved' | 'rejected' | 'published' | 'blocked' | 'issue_closed' | 'lead' | 'done'
+
+export type OfficeReaction = { agent: string; kind: ReactionKind; at: string }
+
+export type OfficeScene = {
+  // Max 20, newest first.
+  visitors?: OfficeVisitor[]
+  leadsToday?: number
+  publishedToday?: number
+  // Owner decisions only.
+  approvedToday?: number
+  rejectedToday?: number
+  builderIssuesByDept?: Record<string, number>
+  approvalsByAgent?: Record<string, number>
+  // Oldest first, newest last, max 30, the last 10 minutes.
+  reactions?: OfficeReaction[]
+  // Usually «Утренняя сводка, DD.MM», at most 80 chars, may be ''.
+  notice?: string
+  // One decimal.
+  uptimeDays?: number | null
+  visitorsTotalToday?: number
+}
+
+// A clean scene block with every field present, whatever HQ sent: bad entries are dropped,
+// numbers are clamped to whole non-negative values (uptimeDays keeps one decimal).
+export type NormalScene = {
+  visitors: OfficeVisitor[]
+  leadsToday: number
+  publishedToday: number
+  approvedToday: number
+  rejectedToday: number
+  builderIssuesByDept: Record<string, number>
+  approvalsByAgent: Record<string, number>
+  reactions: OfficeReaction[]
+  notice: string
+  uptimeDays: number | null
+  visitorsTotalToday: number
+}
+
+const VISITOR_STATES: readonly string[] = ['chat', 'intake', 'contact', 'done', 'human']
+const REACTION_KINDS: readonly string[] = ['approved', 'rejected', 'published', 'blocked', 'issue_closed', 'lead', 'done']
+
+const count = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0)
+
+function countMap(v: unknown): Record<string, number> {
+  const out: Record<string, number> = {}
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return out
+  for (const [k, n] of Object.entries(v as Record<string, unknown>)) {
+    const c = count(n)
+    if (c > 0 && k.length <= 64) out[k] = c
+  }
+  return out
+}
+
+const isoOk = (v: unknown): v is string => typeof v === 'string' && !Number.isNaN(Date.parse(v))
+
+export function normalizeScene(raw: unknown): NormalScene {
+  const s = raw && typeof raw === 'object' && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {}
+  const visitors: OfficeVisitor[] = []
+  const seen = new Set<string>()
+  for (const v of Array.isArray(s.visitors) ? s.visitors : []) {
+    if (!v || typeof v !== 'object') continue
+    const o = v as Record<string, unknown>
+    if (typeof o.id !== 'string' || !o.id || o.id.length > 64 || seen.has(o.id)) continue
+    if (!VISITOR_STATES.includes(o.state as string) || !isoOk(o.since)) continue
+    seen.add(o.id)
+    visitors.push({ id: o.id, channel: o.channel === 'telegram' ? 'telegram' : 'web', state: o.state as VisitorState, since: o.since })
+    if (visitors.length >= 20) break
+  }
+  const reactions: OfficeReaction[] = []
+  for (const r of Array.isArray(s.reactions) ? s.reactions : []) {
+    if (!r || typeof r !== 'object') continue
+    const o = r as Record<string, unknown>
+    if (typeof o.agent !== 'string' || !o.agent || !REACTION_KINDS.includes(o.kind as string) || !isoOk(o.at)) continue
+    reactions.push({ agent: o.agent, kind: o.kind as ReactionKind, at: o.at })
+  }
+  const up = typeof s.uptimeDays === 'number' && Number.isFinite(s.uptimeDays) && s.uptimeDays >= 0 ? Math.round(s.uptimeDays * 10) / 10 : null
+  return {
+    visitors,
+    leadsToday: count(s.leadsToday),
+    publishedToday: count(s.publishedToday),
+    approvedToday: count(s.approvedToday),
+    rejectedToday: count(s.rejectedToday),
+    builderIssuesByDept: countMap(s.builderIssuesByDept),
+    approvalsByAgent: countMap(s.approvalsByAgent),
+    reactions: reactions.slice(-30),
+    notice: typeof s.notice === 'string' ? s.notice.replace(/\s+/g, ' ').trim().slice(0, 80) : '',
+    uptimeDays: up,
+    visitorsTotalToday: count(s.visitorsTotalToday),
+  }
 }
 
 export type OfficeResponse = OfficeData | { ok: false; error: string }

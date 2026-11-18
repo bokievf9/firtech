@@ -32,6 +32,16 @@ export const BASE: Palette = {
   u: '#4a3f5c', // chair / sofa
   U: '#342c42', // chair shade
   '9': '#7fc4ff', // water
+  // Office v2 props and icons.
+  G: '#4fb08a', // green: check mark, LEDs
+  B: '#5b8def', // blue: lens, web globe
+  T: '#2aabee', // Telegram blue
+  Y: '#e8b33f', // gold: award, bell
+  x: '#2c313c', // dark panel
+  z: '#14161c', // near black
+  P: '#e86fa0', // pink: posters, flowers
+  a: '#d9c9a3', // map paper
+  i: '#6fa8c9', // map sea
 }
 
 // Fixed colours of the building and the rooms.

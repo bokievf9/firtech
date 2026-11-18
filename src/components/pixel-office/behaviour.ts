@@ -71,12 +71,15 @@ export function targetFor(person: Person, desk: Desk, layout: Layout, crowd: Cro
   }
 }
 
-export type Point = { x: number; y: number }
+// `lift` marks a ride in the elevator cabin (the vertical move waits for the cabin).
+export type Point = { x: number; y: number; lift?: boolean }
 
-// Straight walks on a floor; a change of floor goes through the stairwell.
-export function planPath(from: Point, fromFloor: number, to: Target, stairsX: number): Point[] {
+// Straight walks on a floor; a change of floor goes through the stairwell, or by elevator when
+// `liftX` is given (one vertical ride straight to the target floor).
+export function planPath(from: Point, fromFloor: number, to: Target, stairsX: number, liftX?: number): Point[] {
   const end = { x: to.x, y: feetY(to.floor) }
   if (fromFloor === to.floor) return [end]
+  if (liftX !== undefined) return [{ x: liftX, y: from.y }, { x: liftX, y: feetY(to.floor), lift: true }, end]
   const path: Point[] = [{ x: stairsX, y: from.y }]
   const step = to.floor > fromFloor ? 1 : -1
   for (let f = fromFloor + step; f !== to.floor + step; f += step) path.push({ x: stairsX, y: feetY(f) })

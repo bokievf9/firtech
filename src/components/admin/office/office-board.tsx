@@ -411,7 +411,7 @@ export function OfficeBoard({
       </div>
 
       <div className={cn('grid min-w-0 grid-cols-[minmax(0,1fr)] gap-2 transition-opacity duration-300', down && 'opacity-60')}>
-        <PixelOffice data={data} now={now} selected={selected} onSelect={select} />
+        <PixelOffice data={data} now={now} selected={selected} onSelect={select} onDept={onPick ? pickDept : undefined} />
         <p className="text-xs text-faint">
           {down ? `${reasons[error] ?? error}. ${fill(t.down.withData, { t: formatDataAge(age) })}` : t.scene.hint}
         </p>

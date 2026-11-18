@@ -7,24 +7,61 @@ import type { OfficeData } from '@/lib/office-view'
 import { type Ctx, paintSprite, rect, text } from './draw'
 import { canWrite, FONT_H, textWidth } from './font'
 import {
+  cityWindow,
   type Desk,
+  deptKind,
   FEET,
   FLOOR_H,
-  FLOOR_X,
   feetY,
   floorTop,
   hasBoard,
   type Layout,
+  LIFT_W,
+  lobbySpots,
   MARGIN,
   type Rack,
   ROOF_H,
   type Room,
+  STAIRS_W,
   WINDOW_W,
   windowXs,
 } from './layout'
 import { BASE, COLORS, hashId, mix, shade, wallColor } from './palette'
+import type { Prop } from './props'
 import { SPRITES } from './sprites'
 import type { Sky } from './sun'
+import type { WeatherKind } from '@/lib/office-weather'
+
+// What the static layers show beyond the layout and the sky (Office v2). Part of the cache key.
+export type BackEnv = {
+  weather: WeatherKind
+  plant: number
+  pins: number
+  props: readonly Prop[]
+  issuesByDept: Readonly<Record<string, number>>
+  deptOrder: readonly string[]
+  uptimePct: number
+}
+
+export const NO_ENV: BackEnv = { weather: 'clear', plant: 0, pins: 5, props: [], issuesByDept: {}, deptOrder: [], uptimePct: 100 }
+
+// A pot plant whose leaves grow one step per 10 tasks done today (stage 0..4); `x` is the left
+// edge of the pot sprite, `feet` the floor line.
+export function paintPlant(ctx: Ctx, x: number, feet: number, stage: number) {
+  const s = SPRITES.plant
+  const y = feet - s.h
+  for (let i = 1; i <= stage; i++) {
+    const ly = y - i * 2
+    const w = Math.max(1, 5 - Math.floor(i / 2) * 2)
+    const lx = x + Math.floor((s.w - w) / 2)
+    rect(ctx, lx, ly, w, 2, i % 2 ? BASE.n! : BASE.N!)
+    rect(ctx, lx + (i % 2 ? -1 : w), ly + 1, 1, 1, BASE.n!)
+  }
+  if (stage >= 4) rect(ctx, x + 3, y - stage * 2 - 1, 1, 1, BASE.P!)
+  paintSprite(ctx, s, x, y, BASE)
+}
+
+const sprite = (ctx: Ctx, name: keyof typeof SPRITES, x: number, y: number, flip = false) => paintSprite(ctx, SPRITES[name], x, y, BASE, flip)
 
 // ---- Geometry shared with the live layer -------------------------------------------------------
 
@@ -47,7 +84,7 @@ export function signText(room: Room): string {
 
 // ---- Back layer ---------------------------------------------------------------------------------
 
-export function paintBack(ctx: Ctx, layout: Layout, data: OfficeData, sky: Sky) {
+export function paintBack(ctx: Ctx, layout: Layout, data: OfficeData, sky: Sky, env: BackEnv = NO_ENV) {
   const { width, height } = layout
   const night = 1 - sky.daylight
 
@@ -86,16 +123,35 @@ export function paintBack(ctx: Ctx, layout: Layout, data: OfficeData, sky: Sky) 
   for (let f = 0; f < layout.floors; f++) {
     const top = floorTop(f)
     rect(ctx, bx, top, bw, FLOOR_H, shell)
-    rect(ctx, MARGIN, top + 3, FLOOR_X - MARGIN, FLOOR_H - 3, mix(COLORS.stairs, COLORS.night, night * 0.3))
+    const stairsEnd = MARGIN + STAIRS_W
+    rect(ctx, MARGIN, top + 3, STAIRS_W, FLOOR_H - 3, mix(COLORS.stairs, COLORS.night, night * 0.3))
     for (let s = 0; s < 14; s++) {
-      const x = f % 2 ? FLOOR_X - 2 - s : MARGIN + 1 + s
+      const x = f % 2 ? stairsEnd - 2 - s : MARGIN + 1 + s
       rect(ctx, x, top + FEET - s * 4 - 1, 2, 1, COLORS.stairsEdge)
       rect(ctx, x, top + FEET - s * 4, 2, 3, shade(COLORS.stairs, -0.2))
     }
-    rect(ctx, MARGIN, top + FEET, FLOOR_X - MARGIN, FLOOR_H - FEET, COLORS.floor)
+    rect(ctx, MARGIN, top + FEET, STAIRS_W, FLOOR_H - FEET, COLORS.floor)
+    // Elevator shaft: cables, a door frame and the floor number on every floor.
+    const lx = stairsEnd
+    rect(ctx, lx, top + 3, LIFT_W, FLOOR_H - 3, '#1f1b29')
+    rect(ctx, lx + 3, top + 3, 1, FLOOR_H - 3, '#3a3446')
+    rect(ctx, lx + LIFT_W - 4, top + 3, 1, FLOOR_H - 3, '#3a3446')
+    rect(ctx, lx, top + FEET - 19, LIFT_W, 1, '#6a6278')
+    rect(ctx, lx, top + FEET - 19, 1, 19, '#6a6278')
+    rect(ctx, lx + LIFT_W - 1, top + FEET - 19, 1, 19, '#6a6278')
+    text(ctx, String(layout.floors - f), lx + 4, top + FEET - 26, '#e8b33f')
+    rect(ctx, lx, top + FEET, LIFT_W, FLOOR_H - FEET, COLORS.floor)
   }
 
-  for (const room of layout.rooms) paintRoomBack(ctx, layout, room, data, sky)
+  for (const room of layout.rooms) paintRoomBack(ctx, layout, room, data, sky, env)
+
+  // Fog: a haze over the whole street side.
+  if (env.weather === 'fog') {
+    ctx.globalAlpha = 0.22
+    rect(ctx, 0, 0, width, ROOF_H - 4, '#c9ccd6')
+    rect(ctx, 0, groundY, width, 12, '#c9ccd6')
+    ctx.globalAlpha = 1
+  }
 
   // Slabs between floors (drawn last so partitions end cleanly).
   for (let f = 0; f <= layout.floors; f++) {
@@ -105,7 +161,7 @@ export function paintBack(ctx: Ctx, layout: Layout, data: OfficeData, sky: Sky) 
   }
 }
 
-function paintRoomBack(ctx: Ctx, layout: Layout, room: Room, data: OfficeData, sky: Sky) {
+function paintRoomBack(ctx: Ctx, layout: Layout, room: Room, data: OfficeData, sky: Sky, env: BackEnv) {
   const top = floorTop(room.floor)
   const feet = top + FEET
   const wall = wallColor(room.id)
@@ -125,8 +181,9 @@ function paintRoomBack(ctx: Ctx, layout: Layout, room: Room, data: OfficeData, s
     rect(ctx, x - 1, top + 6, 3, 1, COLORS.cityLit)
   }
 
-  if (room.kind !== 'servers') paintWindows(ctx, room, sky)
+  if (room.kind !== 'servers') paintWindows(ctx, room, sky, env.weather)
   paintSign(ctx, room)
+  const props = env.props.filter((p) => p.roomId === room.id)
 
   switch (room.kind) {
     case 'director': {
@@ -137,7 +194,17 @@ function paintRoomBack(ctx: Ctx, layout: Layout, room: Room, data: OfficeData, s
         rect(ctx, bx + 1, feet - 25 + s * 8, 6, 7, shade(BASE.O!, -0.35))
         for (let b = 0; b < 3; b++) rect(ctx, bx + 1 + b * 2, feet - 23 + s * 8, 1, 5, ['#c45b5b', '#5b8def', '#e8b33f'][(b + s) % 3]!)
       }
-      paintSprite(ctx, SPRITES.plant, room.x + room.w - 10, feet - 11, BASE)
+      paintPlant(ctx, room.x + room.w - 10, feet, env.plant)
+      // Wide window onto the city, the framed award, the bin by the desk.
+      const win = cityWindow(room)
+      paintWindow(ctx, win.x, win.y, win.w, win.h, sky, hashId('city'), env.weather)
+      for (const p of props) {
+        if (p.kind === 'award') {
+          sprite(ctx, 'award', p.x, p.y)
+          rect(ctx, p.x + 2, p.y - 2, 2, 1, '#8d93a3')
+        }
+        if (p.kind === 'bin') sprite(ctx, 'bin', p.x, p.y)
+      }
       break
     }
     case 'meeting': {
@@ -170,23 +237,42 @@ function paintRoomBack(ctx: Ctx, layout: Layout, room: Room, data: OfficeData, s
       break
     }
     case 'dept': {
+      const extraFloor = props.some((p) => p.y + p.h === feet && p.kind !== 'deskPhone' && p.kind !== 'headset')
+      if (!extraFloor && room.w - (room.agentIds.length * 26 + 12) >= 10) paintPlant(ctx, room.x + room.w - 9, feet, env.plant)
       for (const desk of layout.desks) {
         if (desk.roomId !== room.id) continue
         paintSprite(ctx, SPRITES.chair, desk.x, feet - 12, BASE)
       }
-      if (room.w - (room.agentIds.length * 26 + 12) >= 10) paintSprite(ctx, SPRITES.plant, room.x + room.w - 9, feet - 11, BASE)
+      paintDeptProps(ctx, room, props, env)
       break
     }
     case 'builders': {
       // Issue board: one red sticky per open builder issue (up to 8), a number when more.
+      // Sticky notes: one per open builder issue (up to 8), coloured by department when HQ
+      // says which; red otherwise.
       const n = data.director.openBuilderIssues
       const bx = room.x + room.w - 22
       const by = top + 18
       rect(ctx, bx, by, 18, 12, '#6b4a3a')
       rect(ctx, bx + 1, by + 1, 16, 10, '#c9a77a')
-      for (let i = 0; i < Math.min(8, n); i++) rect(ctx, bx + 2 + (i % 4) * 4, by + 2 + Math.floor(i / 4) * 4, 3, 3, COLORS.red)
+      const inks = ['#ffd166', '#e86fa0', '#7fc4ff', '#b5eb6a', '#f08a5d']
+      const notes: string[] = []
+      env.deptOrder.forEach((id, i) => {
+        for (let k = 0; k < (env.issuesByDept[id] ?? 0); k++) notes.push(inks[i % inks.length]!)
+      })
+      while (notes.length < n) notes.push(COLORS.red)
+      notes.slice(0, 8).forEach((ink, i) => {
+        const nx = bx + 2 + (i % 4) * 4
+        const ny = by + 2 + Math.floor(i / 4) * 4
+        rect(ctx, nx, ny, 3, 3, ink)
+        rect(ctx, nx, ny + 2, 3, 1, shade(ink, -0.2))
+      })
       if (n === 0) text(ctx, '0', bx + 7, by + 3, '#6b4a3a')
+      // Loose stickies on the wall too.
+      for (let i = 0; i < Math.min(3, n); i++) rect(ctx, bx - 4 - i * 3, by + 3 + (i % 2) * 4, 2, 2, inks[i]!)
       paintSprite(ctx, SPRITES.chair, room.x + 1, feet - 12, BASE)
+      // Frame of the issue monitor (the scene writes «MKT #2» lines into it).
+      for (const p of props) if (p.kind === 'issueMonitor') paintScreenFrame(ctx, p)
       break
     }
     case 'lounge': {
@@ -204,42 +290,99 @@ function paintRoomBack(ctx: Ctx, layout: Layout, room: Room, data: OfficeData, s
         rect(ctx, sx + 1, feet - 2, 2, 2, '#1a1626')
         rect(ctx, sx + sw - 3, feet - 2, 2, 2, '#1a1626')
       }
-      paintSprite(ctx, SPRITES.plant, room.x + room.w - 9 - (sw >= 18 ? sw + 6 : 0), feet - 11, BASE)
+      paintPlant(ctx, room.x + room.w - 9 - (sw >= 18 ? sw + 6 : 0), feet, env.plant)
+      for (const p of props) {
+        if (p.kind === 'tv') {
+          paintScreenFrame(ctx, p)
+          rect(ctx, p.x + Math.floor(p.w / 2) - 3, p.y + p.h, 6, 1, '#3a3446')
+        }
+        if (p.kind === 'noticeBoard') {
+          rect(ctx, p.x, p.y, p.w, p.h, '#6b4a3a')
+          rect(ctx, p.x + 1, p.y + 1, p.w - 2, p.h - 2, '#c9a77a')
+          rect(ctx, p.x + 2, p.y + 2, 6, 3, BASE.w!)
+          rect(ctx, p.x + p.w - 8, p.y + 2, 5, 4, '#ffd166')
+          rect(ctx, p.x + 4, p.y + 2, 1, 1, COLORS.red)
+          rect(ctx, p.x + p.w - 6, p.y + 2, 1, 1, '#5b8def')
+        }
+        if (p.kind === 'clock') paintClockFace(ctx, p)
+      }
+      break
+    }
+    case 'lobby': {
+      paintLobbyBack(ctx, layout, room, props, env)
       break
     }
     case 'servers': {
       for (const rack of layout.racks) {
-        const label = rack.title.toUpperCase()
+        const label = rack.kind === 'site' ? 'SITE' : rack.title.toUpperCase()
         if (canWrite(label)) text(ctx, label, rack.x + 7 - Math.floor(textWidth(label) / 2), feet - 42, '#9aa3b5')
+        if (rack.kind === 'site') {
+          const pct = `${Math.round(env.uptimePct)}%`
+          text(ctx, pct, rack.x + 7 - Math.floor(textWidth(pct) / 2), feet - 48, env.uptimePct >= 99 ? COLORS.ledOn : '#e8b33f')
+        }
       }
+      if (layout.generatorX !== null) text(ctx, 'OMNI', layout.generatorX + 1, feet - 22, '#9aa3b5')
       break
     }
   }
 }
 
-function paintWindows(ctx: Ctx, room: Room, sky: Sky) {
+function paintWindows(ctx: Ctx, room: Room, sky: Sky, weather: WeatherKind) {
   const top = floorTop(room.floor)
   const wy = top + 18
   const xs = windowXs(room)
   xs.forEach((wx, i) => {
-    if (i === 0 && hasBoard(room)) paintBoard(ctx, wx, wy, WINDOW_W, 14, hashId(room.id))
-    else paintWindow(ctx, wx, wy, WINDOW_W, 14, sky, hashId(`${room.id}${i}`))
+    if (i === 0 && hasBoard(room)) paintBoard(ctx, wx, wy, WINDOW_W, 14, hashId(room.id), deptKind(room.id) === 'production')
+    else paintWindow(ctx, wx, wy, WINDOW_W, 14, sky, hashId(`${room.id}${i}`), weather)
   })
 }
 
-// Department whiteboard: a few scribbles and a marker tray.
-function paintBoard(ctx: Ctx, x: number, y: number, w: number, h: number, seed: number) {
+// Inside of a window (where weather is drawn live), for every window of the layout.
+export function windowRects(layout: Layout): { x: number; y: number; w: number; h: number; seed: number }[] {
+  const out: { x: number; y: number; w: number; h: number; seed: number }[] = []
+  for (const room of layout.rooms) {
+    if (room.kind === 'servers') continue
+    const wy = floorTop(room.floor) + 18
+    windowXs(room).forEach((wx, i) => {
+      if (i === 0 && hasBoard(room)) return
+      out.push({ x: wx + 1, y: wy + 1, w: WINDOW_W - 2, h: 12, seed: hashId(`${room.id}${i}`) })
+    })
+    if (room.kind === 'director') {
+      const c = cityWindow(room)
+      out.push({ x: c.x + 1, y: c.y + 1, w: c.w - 2, h: c.h - 2, seed: hashId('city') })
+    }
+  }
+  return out
+}
+
+// Department whiteboard: a few scribbles and a marker tray; Production writes indented code.
+function paintBoard(ctx: Ctx, x: number, y: number, w: number, h: number, seed: number, code = false) {
   rect(ctx, x - 1, y - 1, w + 2, h + 2, '#8d93a3')
   rect(ctx, x, y, w, h, '#f4f1ea')
   const inks = ['#5b8def', '#c45b5b', '#4fb08a']
-  for (let line = 0; line < 4; line++) {
-    const len = 4 + ((seed >>> (line * 3)) % 8)
-    rect(ctx, x + 2, y + 2 + line * 3, Math.min(len, w - 4), 1, inks[(line + seed) % 3]!)
+  if (code) {
+    paintCode(ctx, x + 1, y + 1, w - 2, h - 2, seed)
+  } else {
+    for (let line = 0; line < 4; line++) {
+      const len = 4 + ((seed >>> (line * 3)) % 8)
+      rect(ctx, x + 2, y + 2 + line * 3, Math.min(len, w - 4), 1, inks[(line + seed) % 3]!)
+    }
   }
   rect(ctx, x + 2, y + h, w - 4, 1, '#6a6278')
 }
 
-function paintWindow(ctx: Ctx, x: number, y: number, w: number, h: number, sky: Sky, seed: number) {
+// Code lines with indentation: braces in blue, names in green, strings in red.
+function paintCode(ctx: Ctx, x: number, y: number, w: number, h: number, seed: number) {
+  const indents = [0, 2, 2, 4, 4, 2, 0]
+  for (let line = 0; line * 2 + 1 < h && line < indents.length; line++) {
+    const ind = indents[line]!
+    const len = 3 + ((seed >>> (line * 3)) % 6)
+    rect(ctx, x + 1 + ind, y + 1 + line * 2 - (line ? 0 : 0), Math.min(len, w - 2 - ind), 1, line % 3 === 0 ? '#5b8def' : '#4fb08a')
+    if (line % 2 && ind + len + 3 < w - 1) rect(ctx, x + 2 + ind + len, y + 1 + line * 2, 2, 1, '#c45b5b')
+  }
+}
+
+function paintWindow(ctx: Ctx, x: number, y: number, w: number, h: number, sky: Sky, seed: number, weather: WeatherKind = 'clear') {
   rect(ctx, x - 1, y - 1, w + 2, h + 2, COLORS.frameShade)
   rect(ctx, x, y, w, h, COLORS.frame)
   const ix = x + 1
@@ -270,8 +413,136 @@ function paintWindow(ctx: Ctx, x: number, y: number, w: number, h: number, sky: 
     cx += bw
     s = Math.imul(s ^ (s >>> 13), 0x5bd1e995) >>> 0
   }
+  // Snow on the roofs outside, fog over the glass.
+  if (weather === 'snow') {
+    ctx.globalAlpha = 0.85
+    rect(ctx, ix, iy + ih - 1, iw, 1, '#f4f6fb')
+    ctx.globalAlpha = 1
+  }
+  if (weather === 'fog') {
+    ctx.globalAlpha = 0.45
+    rect(ctx, ix, iy, iw, ih, '#c9ccd6')
+    ctx.globalAlpha = 1
+  }
   // Cross bars of the frame.
   rect(ctx, x + Math.floor(w / 2), y, 1, h, COLORS.frame)
+  if (w > 20) rect(ctx, x, y + Math.floor(h / 2), w, 1, COLORS.frame)
+}
+
+function paintScreenFrame(ctx: Ctx, p: Prop) {
+  rect(ctx, p.x, p.y, p.w, p.h, '#1a1626')
+  rect(ctx, p.x + 1, p.y + 1, p.w - 2, p.h - 2, '#454c5c')
+  rect(ctx, p.x + 2, p.y + 2, p.w - 4, p.h - 4, COLORS.terminal)
+}
+
+// TV / monitor screen area inside a prop frame (the scene writes into it).
+export const screenOf = (p: Prop) => ({ x: p.x + 2, y: p.y + 2, w: p.w - 4, h: p.h - 4 })
+
+function paintClockFace(ctx: Ctx, p: Prop) {
+  rect(ctx, p.x + 2, p.y, p.w - 4, p.h, '#1a1626')
+  rect(ctx, p.x, p.y + 2, p.w, p.h - 4, '#1a1626')
+  rect(ctx, p.x + 1, p.y + 1, p.w - 2, p.h - 2, '#1a1626')
+  rect(ctx, p.x + 2, p.y + 1, p.w - 4, p.h - 2, BASE.w!)
+  rect(ctx, p.x + 1, p.y + 2, p.w - 2, p.h - 4, BASE.w!)
+  for (const [dx, dy] of [[4, 1], [7, 4], [4, 7], [1, 4]] as const) rect(ctx, p.x + dx, p.y + dy, 1, 1, '#6a6278')
+}
+
+// Centre of a clock prop (hands are drawn live).
+export const clockCentre = (p: Prop) => ({ x: p.x + 4, y: p.y + 4 })
+
+function paintDeptProps(ctx: Ctx, room: Room, props: readonly Prop[], env: BackEnv) {
+  const posterInks = [['#e86fa0', '#ffd166'], ['#5b8def', '#b5eb6a']] as const
+  for (const p of props) {
+    switch (p.kind) {
+      case 'ringLight':
+        sprite(ctx, 'ringLight', p.x, p.y)
+        break
+      case 'tripod':
+        sprite(ctx, 'tripod', p.x, p.y, true)
+        break
+      case 'poster': {
+        const [a, b] = posterInks[(p.n ?? 0) % 2]!
+        rect(ctx, p.x, p.y, p.w, p.h, '#1a1626')
+        rect(ctx, p.x + 1, p.y + 1, p.w - 2, p.h - 2, a)
+        rect(ctx, p.x + 2, p.y + 2, p.w - 4, 3, b)
+        rect(ctx, p.x + 2, p.y + 6, p.w - 4, 1, BASE.w!)
+        rect(ctx, p.x + 2, p.y + 8, 2, 1, BASE.w!)
+        break
+      }
+      case 'wallMap': {
+        rect(ctx, p.x, p.y, p.w, p.h, '#6b4a3a')
+        rect(ctx, p.x + 1, p.y + 1, p.w - 2, p.h - 2, BASE.i!)
+        // Land masses.
+        rect(ctx, p.x + 2, p.y + 2, 4, 3, BASE.a!)
+        rect(ctx, p.x + 3, p.y + 5, 2, 2, BASE.a!)
+        rect(ctx, p.x + 7, p.y + 2, 4, 2, BASE.a!)
+        rect(ctx, p.x + 8, p.y + 4, 3, 3, BASE.a!)
+        for (let i = 0; i < env.pins; i++) {
+          const h = hashId(`pin${i}`)
+          rect(ctx, p.x + 2 + (h % (p.w - 4)), p.y + 2 + ((h >>> 5) % (p.h - 4)), 1, 1, COLORS.red)
+        }
+        break
+      }
+      case 'ticketBoard': {
+        rect(ctx, p.x, p.y, p.w, p.h, '#8d93a3')
+        rect(ctx, p.x + 1, p.y + 1, p.w - 2, p.h - 2, '#f4f1ea')
+        // Three columns: new, in progress, done.
+        const cols = ['#e0524b', '#e8b33f', '#4fb08a']
+        cols.forEach((ink, c) => {
+          const cx = p.x + 2 + c * 4
+          rect(ctx, cx, p.y + 2, 3, 1, ink)
+          for (let k = 0; k < 2 + (hashId(`${room.id}t${c}`) % 2); k++) rect(ctx, cx, p.y + 4 + k * 2, 3, 1, '#c9c3b6')
+        })
+        break
+      }
+      case 'codeBoard':
+        if (p.board) break
+        rect(ctx, p.x, p.y, p.w, p.h, '#8d93a3')
+        rect(ctx, p.x + 1, p.y + 1, p.w - 2, p.h - 2, '#f4f1ea')
+        paintCode(ctx, p.x + 1, p.y + 1, p.w - 2, p.h - 2, hashId(room.id))
+        break
+      case 'miniRack':
+        sprite(ctx, 'miniRack', p.x, p.y)
+        break
+      case 'cabinet':
+        sprite(ctx, 'cabinet', p.x, p.y)
+        break
+      case 'safe':
+        sprite(ctx, 'safe', p.x, p.y)
+        break
+      default:
+        break
+    }
+  }
+}
+
+function paintLobbyBack(ctx: Ctx, layout: Layout, room: Room, props: readonly Prop[], env: BackEnv) {
+  const s = lobbySpots(layout)
+  if (!s) return
+  const feet = feetY(room.floor)
+  // A rug in front of the counter and the brand on the wall behind the receptionist.
+  rect(ctx, s.counterX + s.counterW + 2, feet, 24, 1, '#7a3f4a')
+  rect(ctx, s.counterX + s.counterW + 3, feet + 1, 22, 1, '#5c2f38')
+  const brand = 'FIR.TECH'
+  text(ctx, brand, s.counterX + Math.floor((s.counterW - textWidth(brand)) / 2), floorTop(room.floor) + 19, COLORS.lime)
+  for (const p of props) {
+    if (p.kind === 'bench') {
+      rect(ctx, p.x, p.y + 1, p.w, 2, BASE.o!)
+      rect(ctx, p.x, p.y + 3, p.w, 1, BASE.O!)
+      rect(ctx, p.x + 1, p.y + 4, 1, 3, BASE.O!)
+      rect(ctx, p.x + p.w - 2, p.y + 4, 1, 3, BASE.O!)
+      rect(ctx, p.x, p.y - 5, p.w, 1, BASE.O!)
+      for (let k = 2; k < p.w; k += 6) rect(ctx, p.x + k, p.y - 4, 1, 5, BASE.O!)
+    }
+    if (p.kind === 'clock') paintClockFace(ctx, p)
+    if (p.kind === 'frontDoor') {
+      // The door frame; the leaf is drawn live (it opens).
+      rect(ctx, p.x - 1, p.y - 2, 4, 2, '#454c5c')
+      rect(ctx, p.x - 9, p.y - 7, 9, 5, COLORS.sign)
+      text(ctx, 'IN', p.x - 7, p.y - 7, COLORS.lime)
+    }
+  }
+  paintPlant(ctx, room.x + 4, feet, env.plant)
 }
 
 function paintSign(ctx: Ctx, room: Room) {
@@ -283,7 +554,7 @@ function paintSign(ctx: Ctx, room: Room) {
 
 // ---- Front layer --------------------------------------------------------------------------------
 
-export function paintFront(ctx: Ctx, layout: Layout, data: OfficeData) {
+export function paintFront(ctx: Ctx, layout: Layout, _data: OfficeData, props: readonly Prop[] = []) {
   for (const desk of layout.desks) {
     const t = deskTable(desk)
     rect(ctx, t.x, t.y, t.w, 2, BASE.o!)
@@ -294,8 +565,7 @@ export function paintFront(ctx: Ctx, layout: Layout, data: OfficeData) {
       // Drawer block and a paper stack, one sheet per pending approval (up to 6).
       rect(ctx, t.x + t.w - 9, t.y + 3, 7, 6, BASE.O!)
       rect(ctx, t.x + t.w - 8, t.y + 5, 5, 1, BASE.o!)
-      const sheets = Math.min(6, data.director.pendingApprovals)
-      for (let i = 0; i < sheets; i++) rect(ctx, t.x + t.w - 10 + (i % 2), t.y - 1 - i, 6, 1, i % 2 ? BASE.W! : BASE.w!)
+      // The paper stack is live (scene.ts drawStack): papers arrive and leave.
       rect(ctx, t.x + 14, t.y - 2, 2, 2, '#c45b5b')
     } else {
       // Keyboard and a mug.
@@ -316,6 +586,26 @@ export function paintFront(ctx: Ctx, layout: Layout, data: OfficeData) {
     }
     rect(ctx, r.x + 1, r.y + r.h - 2, 2, 2, '#111')
     rect(ctx, r.x + r.w - 3, r.y + r.h - 2, 2, 2, '#111')
+  }
+
+  for (const p of props) {
+    if (p.kind === 'deskPhone') sprite(ctx, 'deskPhone', p.x, p.y)
+    if (p.kind === 'headset') sprite(ctx, 'headset', p.x, p.y)
+    if (p.kind === 'printer') sprite(ctx, 'printer', p.x, p.y)
+    if (p.kind === 'counter') {
+      rect(ctx, p.x, p.y, p.w, 2, BASE.o!)
+      rect(ctx, p.x + 1, p.y + 2, p.w - 2, p.h - 2, '#3a3446')
+      rect(ctx, p.x + 1, p.y + 2, p.w - 2, 1, '#4a4458')
+      rect(ctx, p.x + 3, p.y + 5, p.w - 6, 4, COLORS.lime)
+      rect(ctx, p.x + 4, p.y + 6, p.w - 8, 2, '#3a3446')
+      // A tablet and a small bell on the counter.
+      rect(ctx, p.x + 2, p.y - 1, 4, 1, '#1a1626')
+      rect(ctx, p.x + p.w - 5, p.y - 2, 3, 2, '#e8b33f')
+    }
+  }
+  if (layout.generatorX !== null) {
+    const room = layout.rooms.find((r) => r.kind === 'servers')
+    if (room) sprite(ctx, 'generator', layout.generatorX, feetY(room.floor) - SPRITES.generator.h)
   }
 
   const builders = layout.rooms.find((r) => r.kind === 'builders')
