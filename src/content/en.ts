@@ -9,8 +9,8 @@ const en: Dict = {
       'AI agents for business: a Telegram booking bot, lead intake 24/7, automation for small business and websites. We work with companies in Tashkent, Almaty, Dushanbe and Bishkek. Prices in US dollars, fixed before we start.',
   },
   nav: {
-    services: 'Services',
-    examples: 'Examples',
+    products: 'Products',
+    demo: 'Demo',
     pricing: 'Pricing',
     process: 'Process',
     faq: 'FAQ',
@@ -24,8 +24,16 @@ const en: Dict = {
     title: 'AI agents that work 24/7 in place of an employee',
     // The h1 in three lines; the middle one is the accent.
     lines: ['AI agents', 'that work 24/7', 'in place of an employee'],
-    sub: 'They take leads, book clients and keep reports. We build agents, bots and websites for small business.',
-    primary: 'Estimate the cost',
+    eyebrow: 'Fir Tech, AI agent studio',
+    sub: 'Seven ready products for small business: a bot books clients, a receptionist answers requests at night, reports put themselves together.',
+    sequence: {
+      label: 'Product',
+      of: 'of',
+      hint: 'Scroll: seven products, one by one',
+      pick: 'Show product',
+      open: 'More about the product',
+    },
+    primary: 'Build it in the builder',
     telegram: 'Message on Telegram',
     trust: ['Price fixed in the quote', 'Pay in stages', 'Code and access are yours'],
     scroll: 'Scroll',
@@ -78,15 +86,6 @@ const en: Dict = {
         documents: 'Documents',
       },
     },
-    picker: {
-      title: 'What does your business need?',
-      hint: 'Pick one or several',
-      total: 'Price guide',
-      bundle: '-10% for a bundle',
-      empty: 'Pick at least one and we will show the price and timeline',
-      build: 'Build it in full',
-      concept: 'Example mockup',
-    },
     demo: {
       caption: 'Lead automation in action: your website, Telegram and CRM working together.',
       site: 'Website',
@@ -138,11 +137,225 @@ const en: Dict = {
       restart: 'Start over',
     },
   },
+  products: {
+    eyebrow: 'Products',
+    title: 'Seven agents that take work off your hands',
+    sub: 'Each one handles one job in your business. Take one, or combine several in the builder and see the price right away.',
+    forWhom: 'Who it is for',
+    inside: 'What is inside',
+    from: 'from',
+    perMonth: '/mo',
+    quote: 'Custom quote',
+    quoteHint: 'We name the price after a call',
+    build: 'Build it in the builder',
+    discuss: 'Discuss',
+    flagship: 'Flagship',
+    concept: 'Sample interface',
+    plans: { dono: 'Dono, study', polly: 'Polly, languages' },
+    classicTitle: 'The foundation the agents run on',
+    classicSub: 'We also build websites, bots and apps on their own.',
+    more: 'Learn more',
+    items: {
+      admin: {
+        name: 'Booking admin bot',
+        benefit: 'Clients book themselves, even at night',
+        forWhom: 'Salons, clinics, studios, car services',
+        inside: [
+          'Booking in Telegram by free slots',
+          'Reminders a day and an hour before the visit',
+          'Asks for a review after the visit',
+        ],
+      },
+      receptionist: {
+        name: 'AI lead receptionist',
+        benefit: 'Answers a client within a minute, any time',
+        forWhom: 'Businesses that get messages in chat apps',
+        inside: [
+          'Telegram, WhatsApp and Instagram in one agent',
+          'Clarifies the task, timing and contact',
+          'A ready request for your manager in Telegram',
+        ],
+      },
+      automation: {
+        name: 'Routine automation',
+        benefit: 'Reports and mailings go out by themselves',
+        forWhom: 'Teams that live in spreadsheets and chats',
+        inside: [
+          'Google Sheets, CRM and messengers connected',
+          'A report in your chat on schedule',
+          'Client mailings without manual work',
+        ],
+      },
+      content: {
+        name: 'Content on autopilot',
+        benefit: 'Posts go out on plan, you only approve',
+        forWhom: 'Shops, cafes and experts on social media',
+        inside: [
+          'A posting plan a month ahead',
+          'Posts, product cards and short videos',
+          'One-tap approval in Telegram',
+        ],
+      },
+      miniapp: {
+        name: 'Telegram Mini App',
+        benefit: 'A shop and booking right inside Telegram',
+        forWhom: 'Delivery, shops, coffee places',
+        inside: [
+          'Catalog, cart and payment in one window',
+          'Nothing for the client to install',
+          'Loyalty program and bonuses',
+        ],
+      },
+      agent: {
+        name: 'Personal agent',
+        benefit: 'Remembers deadlines and tasks for you',
+        forWhom: 'Students, freelancers, business owners',
+        inside: [
+          'Dono: deadlines, mail and calendar',
+          'Polly: language lessons in Telegram',
+          'Reminds you at the right moment',
+        ],
+      },
+      implementation: {
+        name: 'AI in your company',
+        benefit: 'Answers from your documents in seconds',
+        forWhom: 'Companies whose know-how sits in folders',
+        inside: [
+          'A knowledge base from your documents',
+          'Answers with a link to the source',
+          'Team training on your own tasks',
+        ],
+      },
+    },
+    demo: {
+      admin: {
+        title: 'Booking',
+        day: 'Saturday',
+        slots: ['11:00', '14:30', '17:00'],
+        confirmed: 'Booked for 14:30',
+        reminder: 'Reminder an hour before',
+      },
+      receptionist: {
+        channels: ['Telegram', 'WhatsApp', 'Instagram'],
+        user: 'Hi! Are you open on Sunday?',
+        bot: 'Yes, from 10:00 to 18:00. Shall I book a time for you?',
+        lead: 'Request sent to the manager',
+      },
+      automation: {
+        title: 'Weekly report',
+        rows: ['Requests', 'Bookings', 'Reviews', 'Returning'],
+        sent: 'Report sent to the chat',
+      },
+      content: {
+        title: 'Post plan',
+        days: ['Mon', 'Wed', 'Fri', 'Sun'],
+        post: 'New this week',
+        approve: 'Approve',
+        approved: 'Approved',
+      },
+      miniapp: {
+        title: 'Coffee place',
+        items: ['Cappuccino', 'Croissant', 'Cheesecake'],
+        cart: 'In the cart',
+        pay: 'Pay',
+      },
+      agent: {
+        name: 'Dono',
+        text: 'Essay due tomorrow at 10:00. Set aside an hour tonight?',
+        yes: 'Yes, at 19:00',
+        done: 'Added to the calendar',
+      },
+      implementation: {
+        q: 'How do I process a product return?',
+        a: 'A request within 14 days, with the receipt and packaging. The money goes back to the card.',
+        source: 'Returns policy, section 2',
+      },
+    },
+  },
+  proof: {
+    eyebrow: 'We use it ourselves',
+    title: 'We run on these agents ourselves',
+    sub: 'Every product runs in our own studio first. Here are three systems that work for us every day.',
+    setup: 'setup',
+    items: {
+      dono: {
+        name: 'Dono',
+        role: 'Study assistant',
+        text: 'Watches Moodle deadlines and email, puts tasks in the calendar and sends reminders in Telegram.',
+      },
+      polly: {
+        name: 'Polly',
+        role: 'Language teacher',
+        text: 'Teaches in Telegram: short lessons, mistake reviews and spaced repetition on schedule.',
+      },
+      hq: {
+        name: 'Fir Tech HQ',
+        role: 'A company of AI agents',
+        text: 'A director and sales, marketing, production and support departments. A request from this site lands with them.',
+      },
+    },
+    live: {
+      online: 'HQ online',
+      demo: 'Demo: HQ is not answering right now',
+      loading: 'Connecting to HQ',
+      agents: 'agents on staff',
+      working: 'working now',
+      done: 'tasks closed today',
+    },
+    note: 'We never show personal data on the site.',
+    lesson: {
+      task: 'Translate: Я жду уже час',
+      answer: 'I have been waiting for an hour',
+      ok: 'Correct. Next word tomorrow at 9:00',
+    },
+  },
+  work: {
+    eyebrow: 'Process',
+    title: 'Four steps from a call to launch',
+    sub: 'The rules are simple and written into the quote.',
+    step: 'Step',
+    rulesTitle: 'Our rules',
+    rules: [
+      {
+        title: 'The price does not grow',
+        text: 'Everything in the quote is done for the agreed amount. New ideas are priced separately and only with your consent.',
+      },
+      {
+        title: 'Code and access are yours',
+        text: 'Domain, accounts and code are registered to you. If you leave, you take the whole project.',
+      },
+      {
+        title: 'Pay in stages',
+        text: 'We start the next stage once you have accepted the previous one.',
+      },
+      {
+        title: 'A month of fixes',
+        text: 'For a month after launch we fix anything that breaks, free.',
+      },
+    ],
+  },
+  pricingHome: {
+    builderEyebrow: 'Builder',
+    builderTitle: 'Combine products into one build',
+    builderText: 'Pick products and features to see the price and timeline. Save the quote as a PDF or send it to a partner as a link.',
+    builderCta: 'Open the builder',
+    bundle: '{n}% off the launch from two products',
+    pdf: 'Quote as PDF',
+    link: 'Shareable link',
+    payTitle: 'Payment',
+    currency: 'Prices in US dollars, paid in stages',
+  },
+  faqContact: {
+    title: 'Questions and a request',
+    sub: 'No answer here? Describe your task and we reply within a working day.',
+  },
   demoSection: {
+    eyebrow: 'Product 02, live',
     title: 'Try the receptionist',
-    sub: 'This is how your business takes requests at night and on weekends: the agent asks three questions and hands a ready request to your manager.',
+    sub: 'The chat in the corner of this site is the AI receptionist, the same one we set up for clients. It asks three questions and hands a ready request to your manager in Telegram.',
     cta: 'Open the chat',
     points: ['Answers in seconds', 'Asks the right questions', 'Sends the request to Telegram'],
+    night: 'Just as quick at night and on weekends',
   },
   services: {
     title: 'Websites, bots and apps',
@@ -275,36 +488,6 @@ const en: Dict = {
         after: 'A landing page with prices and a form, leads go straight to Telegram',
       },
     },
-  },
-  dono: {
-    title: 'How we build agents',
-    sub: 'An example: Dono, a study assistant for students. The same principle works for your leads, bookings and reports.',
-    steps: [
-      {
-        title: 'Connect the sources',
-        text: 'Dono watches deadlines in Moodle and messages in email.',
-      },
-      {
-        title: 'Put it in the calendar',
-        text: 'Every task gets a date in the calendar, and clashes are visible at once.',
-      },
-      {
-        title: 'Remind in Telegram',
-        text: 'A reminder arrives in advance and again on the day it is time to start.',
-      },
-      {
-        title: 'Prepare for exams',
-        text: 'Builds a summary of the topic and quizzes you while you revise.',
-      },
-    ],
-    flow: { sources: 'Moodle and email', agent: 'Dono', outputs: 'Calendar and Telegram' },
-    exampleLabel: 'Sample reminder',
-    example:
-      'Tomorrow at 10:00 the economics essay is due. The draft is there, the conclusion is missing. Block an hour tonight?',
-    note: 'A schematic and a neutral example: we do not show students’ personal data on the site.',
-    ctaTitle: 'Need an agent like this?',
-    agentLink: 'Personal agent',
-    receptionistLink: 'AI lead receptionist for business',
   },
   region: {
     title: 'We work with companies in Tashkent, Almaty, Dushanbe and Bishkek',
@@ -631,9 +814,6 @@ const en: Dict = {
       design: 'Brand identity',
     },
   },
-  stack: {
-    label: 'We work with the services and technologies your business already runs on',
-  },
   solutions: {
     metaTitle: 'Solutions for small business: cafes, salons, shops, delivery and services',
     metaDescription:
@@ -897,39 +1077,6 @@ const en: Dict = {
       },
     },
   },
-  pains: {
-    title: 'Sound familiar?',
-    sub: 'Flip the switch to see what changes after launch.',
-    before: 'Now',
-    after: 'With Fir Tech',
-    toggle: 'Show what it looks like after launch',
-    items: [
-      {
-        pain: 'Leads get lost in private messages',
-        fix: 'A bot collects every request and sends it to a manager with the phone number and details.',
-      },
-      {
-        pain: 'Clients call just to ask about prices and opening hours',
-        fix: 'Your website and bot answer common questions at any hour.',
-      },
-      {
-        pain: 'Bookings live in a notebook or a spreadsheet',
-        fix: 'Online booking with reminders sent a day and an hour before the visit.',
-      },
-      {
-        pain: 'Monthly reports are put together by hand',
-        fix: 'Sales and expenses flow into a spreadsheet or CRM on their own.',
-      },
-      {
-        pain: 'You have a website, but it brings almost no leads',
-        fix: 'We build the new site around one action: a call, an enquiry or an order.',
-      },
-      {
-        pain: 'You want your own app, but the budget is scary',
-        fix: 'We start with a minimal version and grow it with your business.',
-      },
-    ],
-  },
   showcase: {
     title: 'What it could look like for you',
     sub: 'The four solutions we are asked to build most often. These are concepts, but the prices and timelines are real.',
@@ -998,46 +1145,6 @@ const en: Dict = {
       tea: 'Tea',
       aiReply: 'AI: free delivery in town from $20',
     },
-  },
-  compare: {
-    title: 'Freelancer, agency or Fir Tech',
-    sub: 'Each option has its strengths. We kept what usually matters most to a small business: a clear price, deadlines and control over the project.',
-    criteria: 'What matters',
-    columns: ['Freelancer', 'Big agency', 'Fir Tech'],
-    rows: [
-      {
-        label: 'Price',
-        values: ['Usually affordable', 'Above average', 'Affordable and written in the quote'],
-      },
-      {
-        label: 'Deadlines',
-        values: [
-          'Depend on their workload',
-          'More approval steps',
-          'Fixed in the quote, progress every week',
-        ],
-      },
-      {
-        label: 'Payment',
-        values: [
-          'Whatever you agree',
-          'Usually with prepayment',
-          'In stages, each paid separately',
-        ],
-      },
-      {
-        label: 'Who is responsible',
-        values: [
-          'One person',
-          'A team and a manager',
-          'We do, by the quote, and the code and access are yours from day one',
-        ],
-      },
-      {
-        label: 'After launch',
-        values: ['By agreement', 'Usually a separate contract', 'A month of free fixes'],
-      },
-    ],
   },
   estimator: {
     eyebrow: 'Calculator',
@@ -1123,34 +1230,6 @@ const en: Dict = {
       {
         title: 'Launch',
         text: 'We go live, show your team how everything works and fix any bugs free for a month.',
-      },
-    ],
-  },
-  trust: {
-    title: 'Why working with us is low-risk',
-    sub: "We're a young studio and know trust has to be earned. So the rules are simple and written into the quote.",
-    stats: [
-      { value: 0, prefix: '$', suffix: '', label: 'extra charges beyond the quote' },
-      { value: 100, prefix: '', suffix: '%', label: 'of the code, domain and access are yours' },
-      { value: 30, prefix: '', suffix: ' min', label: "free call, even if you don't hire us" },
-      { value: 1, prefix: '', suffix: ' month', label: 'of free fixes after launch' },
-    ],
-    items: [
-      {
-        title: 'The price does not grow',
-        text: 'Everything in the quote is done for the agreed amount. New ideas are priced separately and only with your approval.',
-      },
-      {
-        title: 'Code, domain and access are yours',
-        text: 'Everything is registered in your name. If you decide to leave, you take the whole project with you.',
-      },
-      {
-        title: 'Pay for what you see',
-        text: 'The work is split into stages, and you pay for each one separately. We start the next stage once you have accepted the previous one.',
-      },
-      {
-        title: 'Plain language',
-        text: 'We write in Telegram without jargon and reply the same working day.',
       },
     ],
   },
@@ -1358,13 +1437,23 @@ const en: Dict = {
     footerLink: 'Privacy policy',
   },
   footer: {
-    tagline: 'Development studio. Websites, Telegram bots, apps and automation for business.',
+    tagline: 'AI agent studio. Booking admin bot, lead receptionist, automation, websites and apps for business.',
     ctaTitle: 'Got a task? Let’s talk it through in 30 minutes',
     top: 'Back to top',
+    products: 'Products',
     services: 'Services',
     company: 'Studio',
+    social: 'Follow us',
     rights: 'All rights reserved.',
     language: 'Русский',
+    pages: {
+      solutions: 'All solutions',
+      builder: 'Builder',
+      pricing: 'Pricing',
+      process: 'Process',
+      blog: 'Blog',
+      contact: 'Discuss a project',
+    },
   },
   servicePage: {
     included: "What's included",

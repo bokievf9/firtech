@@ -1,25 +1,21 @@
-import { Compare } from '@/components/compare'
+import { Fragment, type ReactNode } from 'react'
 import { DemoSection } from '@/components/demo-section'
-import { ContactSection } from '@/components/contact-section'
-import { Directions } from '@/components/directions'
-import { DonoCase } from '@/components/dono-case'
-import { Faq } from '@/components/faq'
-import { Hero } from '@/components/hero'
+import { FaqContact } from '@/components/faq-contact'
+import { Hero } from '@/components/hero/hero'
 import { JsonLd, faqJsonLd } from '@/components/json-ld'
-import { Pains } from '@/components/pains'
 import { PricingSection } from '@/components/pricing-section'
-import { Process } from '@/components/process'
-import { Region } from '@/components/region'
-import { Services } from '@/components/services'
-import { Showcase } from '@/components/showcase'
-import { StackMarquee } from '@/components/stack-marquee'
-import { Trust } from '@/components/trust'
+import { ProductsBento } from '@/components/products/products-bento'
+import { Proof } from '@/components/proof/proof'
+import { WorkTimeline } from '@/components/work-timeline'
 import { getDict } from '@/content'
+import { homeSections, type HomeSection } from '@/lib/home'
 import { isLocale } from '@/lib/i18n'
-import { directionIds, directionPrices } from '@/lib/directions'
+import { productIds, productPrice } from '@/lib/products'
 import { siteUrl } from '@/lib/site'
 import { notFound } from 'next/navigation'
 
+// Home page, stage B1: products lead. The order is `homeSections` (src/lib/home.ts, tested); the
+// footer is the eighth section and comes from the locale layout.
 export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   const { locale } = await params
   if (!isLocale(locale)) notFound()
@@ -32,45 +28,51 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     url: `${siteUrl}/${locale}`,
     description: dict.meta.description,
     areaServed: ['TJ', 'UZ', 'KZ', 'KG', 'RU', 'Worldwide'],
-    priceRange: '$60-$5000',
+    priceRange: '$100-$5000',
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
-      name: dict.directions.title,
-      itemListElement: directionIds.map((id) => ({
-        '@type': 'Offer',
-        itemOffered: {
-          '@type': 'Service',
-          name: dict.directions.items[id].title,
-          description: dict.directions.items[id].lines.join(' '),
-        },
-        priceSpecification: {
-          '@type': 'PriceSpecification',
-          minPrice: directionPrices[id].from,
-          priceCurrency: 'USD',
-        },
-      })),
+      name: dict.products.title,
+      itemListElement: productIds.map((id) => {
+        const price = productPrice[id]
+        const min =
+          price.kind === 'from'
+            ? price.from
+            : price.kind === 'plans'
+              ? Math.min(...price.plans.map((p) => p.setup))
+              : null
+        return {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: dict.products.items[id].name,
+            description: dict.products.items[id].benefit,
+          },
+          ...(min !== null && {
+            priceSpecification: { '@type': 'PriceSpecification', minPrice: min, priceCurrency: 'USD' },
+          }),
+        }
+      }),
     },
+  }
+
+  const sections: Record<HomeSection, ReactNode> = {
+    hero: <Hero locale={locale} dict={dict} />,
+    products: <ProductsBento locale={locale} dict={dict} />,
+    demo: <DemoSection dict={dict} />,
+    proof: <Proof dict={dict} />,
+    process: <WorkTimeline dict={dict} />,
+    pricing: <PricingSection dict={dict} locale={locale} teaser />,
+    faqContact: <FaqContact dict={dict} locale={locale} />,
+    footer: null,
   }
 
   return (
     <>
       <JsonLd data={organization} />
       <JsonLd data={faqJsonLd(dict.faq.items)} />
-      <Hero locale={locale} dict={dict} />
-      <StackMarquee dict={dict} />
-      <DemoSection dict={dict} />
-      <Directions locale={locale} dict={dict} />
-      <DonoCase dict={dict} />
-      <Services locale={locale} dict={dict} />
-      <Pains dict={dict} />
-      <Showcase locale={locale} dict={dict} />
-      <Compare dict={dict} />
-      <Trust dict={dict} />
-      <Region dict={dict} />
-      <PricingSection dict={dict} locale={locale} />
-      <Process dict={dict} />
-      <Faq id="faq" title={dict.faq.title} items={dict.faq.items} />
-      <ContactSection dict={dict} locale={locale} />
+      {homeSections.map((id) => (
+        <Fragment key={id}>{sections[id]}</Fragment>
+      ))}
     </>
   )
 }

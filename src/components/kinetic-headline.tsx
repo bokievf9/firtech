@@ -21,7 +21,10 @@ export function KineticHeadline({
       <span className="sr-only">{title}</span>
       <span aria-hidden="true" className="block">
         {lines.map((line, i) => (
-          <span key={line} className={i === accent ? 'kinetic-accent block' : 'block'}>
+          <span
+            key={line}
+            className={i === accent ? 'kinetic-line kinetic-accent block' : 'kinetic-line block'}
+          >
             {line.split(' ').map((word, w, all) => {
               const delay = 0.06 + index++ * 0.065
               // The accent line runs two animations (rise, then sweep); each gets its own delay.

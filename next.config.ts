@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
   // Self-contained server bundle, same release model as Vibely (built in CI, run by PM2).
   output: 'standalone',
   poweredByHeader: false,
+  // app/global-not-found.tsx: the branded 404 for paths outside /ru and /en.
+  experimental: { globalNotFound: true },
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },

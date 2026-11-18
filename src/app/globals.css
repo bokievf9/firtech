@@ -712,3 +712,155 @@
     color: var(--color-accent);
   }
 }
+
+/* ============================================================================================
+   Stage B1 (2026-11): products lead the site. Notes: docs/site-design-notes.md («Stage B1»).
+   Only transform, opacity and filter move; everything stops under reduced motion.
+   ============================================================================================ */
+
+/* Hero display size: as large as the page container allows (three lines, the middle one longest). */
+.hero-display {
+  font-size: min(clamp(2.6rem, 1rem + 6vw, 7.4rem), calc(var(--container-7xl) * 0.084));
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+}
+
+/* The headline lines drift apart as the scroll sequence starts (--hp 0..1 set by HeroSequence). */
+.hero-head .kinetic-line:nth-child(1) {
+  translate: calc(var(--hp, 0) * -2.5%) 0;
+}
+.hero-head .kinetic-line:nth-child(3) {
+  translate: calc(var(--hp, 0) * 5%) 0;
+}
+
+/* A light sweeps across a product card each time it comes to the front. */
+@keyframes card-sweep {
+  from {
+    transform: translateX(-130%);
+  }
+  to {
+    transform: translateX(130%);
+  }
+}
+.hero-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgb(241 255 217 / 0.08) 50%, transparent 65%);
+  transform: translateX(-130%);
+}
+.hero-card[data-active='true']::after {
+  animation: card-sweep 1.5s var(--ease-in-out-soft) 0.15s both;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+}
+.hero-nudge {
+  animation: nudge 1.8s var(--ease-in-out-soft) infinite;
+}
+
+/*
+  Product mini-demos (components/products/product-demo.tsx). At rest the final state is shown;
+  playing (.pd-play, or a hovered or focused card) replays the steps, each after its --d delay.
+*/
+@keyframes pd-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+@keyframes pd-bar {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes pd-typing {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.pd-typing {
+  opacity: 0;
+}
+.pd-bar {
+  transform-origin: left;
+}
+.pd-play [data-step],
+.group:hover .pd [data-step],
+.group:focus-within .pd [data-step] {
+  animation: pd-in 0.55s var(--ease-out-expo) var(--d, 0ms) both;
+}
+.pd-play .pd-bar,
+.group:hover .pd .pd-bar,
+.group:focus-within .pd .pd-bar {
+  animation: pd-bar 0.9s var(--ease-out-expo) var(--d, 0ms) both;
+}
+.pd-play .pd-typing,
+.group:hover .pd .pd-typing,
+.group:focus-within .pd .pd-typing {
+  animation: pd-typing 0.75s linear var(--d, 0ms) both;
+}
+
+/* Footer wordmark: a soft lime light follows the scroll position of the footer. */
+.wordmark-fill {
+  background: linear-gradient(180deg, rgb(237 242 234 / 0.95), rgb(237 242 234 / 0.08) 78%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* 404: the big digits float a little, the zero is a slowly turning ring. */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.nf-float {
+  animation: float-y 5s var(--ease-in-out-soft) infinite;
+}
+.nf-spin {
+  animation: spin-slow 18s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No scroll track: the hero is one screen with its end state. */
+  .hero-track {
+    height: auto !important;
+  }
+  .hero-sticky {
+    position: relative !important;
+  }
+  .hero-card::after,
+  .hero-nudge,
+  .nf-float,
+  .nf-spin,
+  .pd [data-step],
+  .pd .pd-bar,
+  .pd .pd-typing {
+    animation: none !important;
+  }
+}

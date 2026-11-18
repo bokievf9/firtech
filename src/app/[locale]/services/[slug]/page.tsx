@@ -108,7 +108,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
             <>
               <HeroIntro>
                 <Link
-                  href={homeAnchor(locale, 'services')}
+                  href={homeAnchor(locale, 'products')}
                   className="inline-flex items-center gap-2 rounded-full border border-line px-3.5 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-fg"
                 >
                   <ArrowLeft size={14} />

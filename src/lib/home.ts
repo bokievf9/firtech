@@ -1,0 +1,94 @@
+import { productAnchor, productIds, type ProductId } from './products'
+import { serviceSlugs, type ServiceSlug } from './site'
+import { solutionKinds, type SolutionKind } from './solutions'
+
+// Home page map (stage B1, docs/site-design-notes.md): eight sections, products first. The page
+// renders `homeSections` in this order; each one's anchor id is in `sectionAnchor` (null = no
+// anchor). Tested in tests/site-b1.test.mjs.
+export const homeSections = [
+  'hero',
+  'products',
+  'demo',
+  'proof',
+  'process',
+  'pricing',
+  'faqContact',
+  'footer',
+] as const
+export type HomeSection = (typeof homeSections)[number]
+
+export const sectionAnchor: Record<HomeSection, string | null> = {
+  hero: 'top',
+  products: 'products',
+  demo: 'demo',
+  proof: 'proof',
+  process: 'process',
+  pricing: 'pricing',
+  faqContact: 'contact',
+  footer: null,
+}
+
+// Every anchor that exists on the home page: the sections, the FAQ inside the last section, the
+// old `#services` (kept on the products section for old links) and one per product card.
+export const homeAnchors: string[] = [
+  ...homeSections.flatMap((s) => (sectionAnchor[s] ? [sectionAnchor[s] as string] : [])),
+  'faq',
+  'services',
+  ...productIds.map(productAnchor),
+]
+
+// Pages under /[locale] besides the home page (directories in src/app/[locale]).
+export const localePages = ['builder', 'blog', 'privacy', 'solutions'] as const
+
+export type FooterLink =
+  | { kind: 'product'; id: ProductId; href: string }
+  | { kind: 'service'; id: ServiceSlug; href: string }
+  | { kind: 'solution'; id: SolutionKind; href: string }
+  | { kind: 'page'; id: string; href: string }
+
+export type FooterColumn = { id: 'products' | 'services' | 'solutions' | 'company'; links: FooterLink[] }
+
+// Footer columns as data, so a test can check that every link points to a real route.
+export function footerColumns(locale: string): FooterColumn[] {
+  return [
+    {
+      id: 'products',
+      links: productIds.map((id) => ({ kind: 'product', id, href: `/${locale}#${productAnchor(id)}` })),
+    },
+    {
+      id: 'services',
+      links: serviceSlugs.map((id) => ({ kind: 'service', id, href: `/${locale}/services/${id}` })),
+    },
+    {
+      id: 'solutions',
+      links: [
+        { kind: 'page', id: 'solutions', href: `/${locale}/solutions` },
+        ...solutionKinds.map(
+          (id): FooterLink => ({ kind: 'solution', id, href: `/${locale}/solutions/${id}` }),
+        ),
+      ],
+    },
+    {
+      id: 'company',
+      links: [
+        { kind: 'page', id: 'builder', href: `/${locale}/builder` },
+        { kind: 'page', id: 'pricing', href: `/${locale}#pricing` },
+        { kind: 'page', id: 'process', href: `/${locale}#process` },
+        { kind: 'page', id: 'blog', href: `/${locale}/blog` },
+        { kind: 'page', id: 'contact', href: `/${locale}#contact` },
+      ],
+    },
+  ]
+}
+
+// Links offered on the 404 page, in this order.
+export function notFoundLinks(locale: string) {
+  return [
+    { id: 'home', href: `/${locale}` },
+    { id: 'products', href: `/${locale}#products` },
+    { id: 'builder', href: `/${locale}/builder` },
+    { id: 'solutions', href: `/${locale}/solutions` },
+    { id: 'blog', href: `/${locale}/blog` },
+    { id: 'contact', href: `/${locale}#contact` },
+  ] as const
+}

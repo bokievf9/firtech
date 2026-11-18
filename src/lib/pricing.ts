@@ -47,6 +47,13 @@ export const extraPrice: Record<
   internal: { from: catalog.apps.variants.internal ?? null, page: 'apps' },
 }
 
+// Personal agents (owner decision, 2026-11-19): Dono, a study assistant, and Polly, a language
+// teacher. One-time setup plus a monthly fee, USD.
+export const agentPlans = [
+  { id: 'dono', setup: 150, monthly: 15 },
+  { id: 'polly', setup: 100, monthly: 10 },
+] as const
+
 // Owner decision (2026-10-16): 10% off the one-time total when a build has two or more parts.
 export const bundleDiscount = 0.1
 

@@ -16,10 +16,6 @@ export function Faq({
   items: { q: string; a: string }[]
   id?: string
 }) {
-  const [open, setOpen] = useState<number | null>(0)
-  const reduce = useReducedMotion()
-  const base = useId()
-
   return (
     <section
       id={id}
@@ -27,50 +23,68 @@ export function Faq({
     >
       <RiseText
         text={title}
-        className="text-4xl font-semibold tracking-[-0.035em] md:text-6xl lg:col-span-4"
+        className="font-display text-title font-semibold lg:col-span-4"
       />
       <div className="lg:col-span-8">
-        {items.map((item, i) => {
-          const isOpen = open === i
-          const panel = `${base}-${i}`
-          return (
-            <div key={item.q} className="border-b border-line first:border-t">
-              <h3>
-                <button
-                  type="button"
-                  aria-expanded={isOpen}
-                  aria-controls={panel}
-                  onClick={() => setOpen(isOpen ? null : i)}
-                  className="flex w-full items-center justify-between gap-6 py-6 text-left text-lg font-medium md:text-xl"
-                >
-                  {item.q}
-                  <Plus
-                    size={18}
-                    className={cn(
-                      'shrink-0 text-accent transition-transform duration-300 ease-out-expo',
-                      isOpen && 'rotate-45',
-                    )}
-                  />
-                </button>
-              </h3>
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    id={panel}
-                    initial={reduce ? false : { height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={reduce ? undefined : { height: 0, opacity: 0 }}
-                    transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                    className="overflow-hidden"
-                  >
-                    <p className="max-w-[62ch] pb-7 leading-relaxed text-muted">{item.a}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )
-        })}
+        <FaqList items={items} />
       </div>
     </section>
+  )
+}
+
+// The accordion alone, for layouts that place it next to something else (FAQ + contact).
+export function FaqList({ items, compact = false }: { items: { q: string; a: string }[]; compact?: boolean }) {
+  const [open, setOpen] = useState<number | null>(0)
+  const reduce = useReducedMotion()
+  const base = useId()
+
+  return (
+    <div>
+      {items.map((item, i) => {
+        const isOpen = open === i
+        const panel = `${base}-${i}`
+        return (
+          <div key={item.q} className="border-b border-line first:border-t">
+            <h3>
+              <button
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={panel}
+                onClick={() => setOpen(isOpen ? null : i)}
+                className={cn(
+                  'flex w-full items-center justify-between gap-6 text-left font-medium',
+                  compact ? 'py-4 text-base md:text-lg' : 'py-6 text-lg md:text-xl',
+                )}
+              >
+                {item.q}
+                <Plus
+                  size={18}
+                  className={cn(
+                    'shrink-0 text-accent transition-transform duration-300 ease-out-expo',
+                    isOpen && 'rotate-45',
+                  )}
+                />
+              </button>
+            </h3>
+            <AnimatePresence initial={false}>
+              {isOpen && (
+                <motion.div
+                  id={panel}
+                  initial={reduce ? false : { height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={reduce ? undefined : { height: 0, opacity: 0 }}
+                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden"
+                >
+                  <p className={cn('max-w-[62ch] leading-relaxed text-muted', compact ? 'pb-5 text-[15px]' : 'pb-7')}>
+                    {item.a}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )
+      })}
+    </div>
   )
 }

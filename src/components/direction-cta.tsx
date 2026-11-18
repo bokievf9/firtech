@@ -8,7 +8,15 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 // "Discuss" on a direction card: preselects the service in the contact form, hands it the card id
 // as the lead `source` and scrolls to the form.
-export function DirectionCta({ id, label }: { id: DirectionId; label: string }) {
+export function DirectionCta({
+  id,
+  label,
+  variant = 'button',
+}: {
+  id: DirectionId
+  label: string
+  variant?: 'button' | 'link'
+}) {
   const reduce = useReducedMotion()
   return (
     <button
@@ -20,7 +28,11 @@ export function DirectionCta({ id, label }: { id: DirectionId; label: string }) 
           .getElementById('contact')
           ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
       }}
-      className="relative z-10 inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition-[background-color,transform] duration-300 ease-out-expo hover:bg-accent-strong active:scale-[0.98]"
+      className={
+        variant === 'link'
+          ? 'relative z-10 inline-flex items-center gap-1.5 text-sm font-medium text-fg transition-colors hover:text-accent-text'
+          : 'relative z-10 inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition-[background-color,transform] duration-300 ease-out-expo hover:bg-accent-strong active:scale-[0.98]'
+      }
     >
       {label}
       <ArrowRight size={14} aria-hidden="true" />

@@ -1,31 +1,71 @@
+import { ArrowRight, Check } from '@phosphor-icons/react/ssr'
+import Link from 'next/link'
 import type { Dict } from '@/content'
+import { buttonStyles, cn } from '@/lib/cn'
+import { bundleDiscount } from '@/lib/pricing'
 import type { ServiceSlug } from '@/lib/site'
 import { Estimator } from './estimator'
 import { Reveal } from './reveal'
-import { RiseText } from './rise-text'
 
+// Prices (#pricing): the calculator; on the home page (`teaser`) also the builder teaser and the
+// payment line (folded in from the old regions block). The bundle discount comes from pricing.ts.
 export function PricingSection({
   dict,
   locale,
   initialService,
+  teaser = false,
 }: {
   dict: Dict
   locale: string
   initialService?: ServiceSlug
+  teaser?: boolean
 }) {
   const t = dict.estimator
+  const h = dict.pricingHome
   return (
-    <section id="pricing" className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-36">
-      <Reveal>
-        <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.eyebrow}</p>
-      </Reveal>
-      <RiseText
-        text={t.title}
-        className="mt-4 text-4xl font-semibold tracking-[-0.035em] md:text-6xl"
-      />
-      <Reveal delay={0.15}>
-        <p className="mt-5 text-lg text-muted">{t.sub}</p>
-      </Reveal>
+    <section id="pricing" className="mx-auto max-w-7xl px-4 py-section md:px-8">
+      <div className={cn('grid gap-gutter', teaser && 'lg:grid-cols-12 lg:items-stretch')}>
+        <Reveal className={cn(teaser && 'lg:col-span-7 lg:self-center')}>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
+          <h2 className="mt-4 font-display text-title font-semibold">{t.title}</h2>
+          <p className="mt-5 max-w-[48ch] text-lead text-muted">{t.sub}</p>
+          {teaser && (
+            <p className="mt-6 text-sm text-faint">
+              {h.currency}. {dict.region.payTitle}: {dict.region.pay.join(', ')}.
+            </p>
+          )}
+        </Reveal>
+        {teaser && (
+          <Reveal delay={0.08} className="lg:col-span-5">
+            <div className="relative h-full overflow-hidden rounded-card border border-accent/30 bg-[linear-gradient(150deg,var(--color-pine),var(--color-surface)_70%)] p-6 md:p-8">
+              <div aria-hidden="true" className="dot-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
+              <div className="relative">
+                <p className="font-mono text-[11px] tracking-[0.14em] text-accent-text uppercase">
+                  {h.builderEyebrow}
+                </p>
+                <p className="mt-3 font-display text-3xl font-semibold tracking-tight">{h.builderTitle}</p>
+                <p className="mt-3 leading-relaxed text-muted">{h.builderText}</p>
+                <ul className="mt-5 grid gap-2 text-sm">
+                  {[h.bundle.replace('{n}', String(Math.round(bundleDiscount * 100))), h.pdf, h.link].map((line) => (
+                    <li key={line} className="flex items-center gap-2">
+                      <Check size={14} weight="bold" aria-hidden="true" className="text-accent-text" />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  href={`/${locale}/builder`}
+                  data-cta="pricing_builder"
+                  className={cn(buttonStyles.primary, 'group mt-7')}
+                >
+                  {h.builderCta}
+                  <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+        )}
+      </div>
       <Reveal className="mt-12">
         <Estimator dict={dict} locale={locale} initialService={initialService} />
       </Reveal>

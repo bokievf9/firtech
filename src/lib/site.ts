@@ -30,3 +30,6 @@ export type LeadService = ServiceSlug | ExtraSlug | 'bundle'
 export function isServiceSlug(value: string): value is ServiceSlug {
   return (serviceSlugs as readonly string[]).includes(value)
 }
+
+// Instagram of the studio (owner decision 2026-11-19: the account `firtech.pro` exists).
+export const instagramUrl = 'https://www.instagram.com/firtech.pro/'
