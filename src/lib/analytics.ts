@@ -16,6 +16,10 @@ export type GoalParams = {
   builder_link_copied: []
   extra_discuss: [params: { service: string }]
   direction_discuss: [params: { source: string }]
+  // On-page receptionist chat (stage A): opened (source: fab, hero, demo, hash) and each reply
+  // state reached (intake, contact, done). Never the visitor's text.
+  chat_open: [params: { source: string }]
+  chat_state: [params: { state: string }]
 }
 export type Goal = keyof GoalParams
 

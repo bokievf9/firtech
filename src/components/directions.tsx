@@ -41,16 +41,17 @@ const icons: Record<DirectionId, Icon> = {
 }
 
 // Eight cards in two columns with alternating widths, websites as a full-width ninth card.
+// lg: two per row, the last full width. >= 1920px: three per row with shifting widths.
 const spans = [
-  'lg:col-span-7',
-  'lg:col-span-5',
-  'lg:col-span-5',
-  'lg:col-span-7',
-  'lg:col-span-7',
-  'lg:col-span-5',
-  'lg:col-span-5',
-  'lg:col-span-7',
-  'lg:col-span-12',
+  'lg:col-span-7 min-[1920px]:col-span-5',
+  'lg:col-span-5 min-[1920px]:col-span-4',
+  'lg:col-span-5 min-[1920px]:col-span-3',
+  'lg:col-span-7 min-[1920px]:col-span-3',
+  'lg:col-span-7 min-[1920px]:col-span-5',
+  'lg:col-span-5 min-[1920px]:col-span-4',
+  'lg:col-span-5 min-[1920px]:col-span-4',
+  'lg:col-span-7 min-[1920px]:col-span-3',
+  'lg:col-span-12 min-[1920px]:col-span-5',
 ]
 
 export function Directions({ locale, dict }: { locale: Locale; dict: Dict }) {
@@ -62,7 +63,7 @@ export function Directions({ locale, dict }: { locale: Locale; dict: Dict }) {
         <p className="mt-5 max-w-[52ch] text-lg leading-relaxed text-muted">{d.sub}</p>
       </Reveal>
 
-      <div className="mt-14 grid gap-4 lg:grid-cols-12">
+      <div className="mt-14 grid gap-4 lg:grid-cols-12 min-[1920px]:gap-5">
         {directionIds.map((id, i) => (
           <Reveal key={id} className={spans[i]} delay={(i % 2) * 0.08}>
             <Card id={id} index={i} locale={locale} dict={dict} />
@@ -123,7 +124,7 @@ function Card({
       )}
     >
       <article id={`dir-${id}`} className="contents">
-        <div className={cn(wide && 'lg:grid lg:grid-cols-2 lg:gap-12')}>
+        <div className={cn(wide && 'lg:grid lg:grid-cols-2 lg:gap-12 min-[1920px]:block')}>
           <div>
             <div className="flex items-start justify-between gap-4">
               <div className="flex min-w-0 items-center gap-3">

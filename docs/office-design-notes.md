@@ -43,7 +43,7 @@ sleeping (приглушённый), offline (пунктирная рамка), 
 С 2026-11-19 вместо bento-сетки на `/admin/office` живёт пиксельный офис в духе Lumio
 (lumiomac.com): разрез здания сбоку, у каждого агента стол и человечек, поведение которого
 показывает статус. Данные и опрос прежние (`/api/admin/office`, 10 с / 60 с, мок без
-`HQ_OFFICE_URL` в dev). Код: `src/components/admin/office/pixel-office/`, тесты
+`HQ_OFFICE_URL` в dev). Код: движок `src/components/pixel-office/` (общий с публичным героем), обёртка админки `src/components/admin/office/pixel-office.tsx`, тесты
 `tests/pixel-office.test.mjs`.
 
 ### Модули

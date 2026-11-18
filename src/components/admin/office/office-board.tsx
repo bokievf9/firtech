@@ -5,8 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Panel } from '@/components/admin/admin-shell'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { PixelOffice } from './pixel-office/pixel-office'
-import type { HitTarget } from './pixel-office/scene'
+import { PixelOffice } from './pixel-office'
+import type { HitTarget } from '@/components/pixel-office/scene'
 import {
   ACTIVITY_CAP,
   activityKey,

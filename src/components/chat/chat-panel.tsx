@@ -1,0 +1,374 @@
+'use client'
+
+import { PaperPlaneRight, X } from '@phosphor-icons/react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { track } from '@/lib/analytics'
+import {
+  btnMessage,
+  MESSAGE_MAX,
+  START,
+  type ChatButton,
+  type ChatResponse,
+  type ChatState,
+} from '@/lib/chat'
+import type { Locale } from '@/lib/i18n'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
+import type { ChatCopy } from './chat-widget'
+
+type Message = {
+  id: string
+  from: 'bot' | 'me' | 'sys'
+  text: string
+  buttons?: ChatButton[]
+  link?: boolean
+}
+type Saved = { sessionId: string; messages: Message[]; state: ChatState; mock: boolean }
+
+const STORE_KEY = 'firtech-chat-v1'
+// Client-side pace: one message per 2 s (the route also limits each IP to 30 an hour).
+const MIN_GAP_MS = 2000
+
+function uuid(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  // Older Safari on plain http (dev over LAN): build a v4 uuid by hand.
+  const b = crypto.getRandomValues(new Uint8Array(16))
+  b[6] = (b[6]! & 0x0f) | 0x40
+  b[8] = (b[8]! & 0x3f) | 0x80
+  const h = [...b].map((x) => x.toString(16).padStart(2, '0')).join('')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+}
+
+function load(): Saved | null {
+  try {
+    const raw = sessionStorage.getItem(STORE_KEY)
+    if (!raw) return null
+    const v = JSON.parse(raw) as Saved
+    return typeof v.sessionId === 'string' && Array.isArray(v.messages) ? v : null
+  } catch {
+    return null
+  }
+}
+
+function save(v: Saved) {
+  try {
+    sessionStorage.setItem(STORE_KEY, JSON.stringify({ ...v, messages: v.messages.slice(-60) }))
+  } catch {
+    // Private mode or full storage: the chat still works for this page view.
+  }
+}
+
+const FOCUSABLE =
+  'a[href], button:not([disabled]), textarea, input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+
+export default function ChatPanel({
+  open,
+  onClose,
+  locale,
+  copy,
+  contactHref,
+}: {
+  open: boolean
+  onClose: () => void
+  locale: Locale
+  copy: ChatCopy
+  contactHref: string
+}) {
+  const reduce = useReducedMotion()
+  const titleId = useId()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const listRef = useRef<HTMLOListElement>(null)
+  const lastSent = useRef(0)
+  const busy = useRef(false)
+  const [chat, setChat] = useState<Saved>(
+    () => load() ?? { sessionId: uuid(), messages: [], state: 'chat', mock: false },
+  )
+  const [pending, setPending] = useState(false)
+  const [text, setText] = useState('')
+  const [hint, setHint] = useState('')
+  const chatRef = useRef(chat)
+
+  useEffect(() => {
+    chatRef.current = chat
+    save(chat)
+  }, [chat])
+
+  const send = useCallback(
+    async (message: string, shown: string | null) => {
+      // The pace applies to the visitor's own messages; the greeting request does not count.
+      if (shown !== null) {
+        const now = Date.now()
+        if (busy.current || now - lastSent.current < MIN_GAP_MS) {
+          setHint(copy.tooFast)
+          return false
+        }
+        lastSent.current = now
+      }
+      busy.current = true
+      setHint('')
+      setPending(true)
+      if (shown) {
+        setChat((c) => ({
+          ...c,
+          messages: [...c.messages, { id: uuid(), from: 'me', text: shown }],
+        }))
+      }
+      let mock = chatRef.current.mock
+      let answer: ChatResponse
+      let status = 0
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: chatRef.current.sessionId,
+            locale,
+            message,
+            page: window.location.pathname,
+          }),
+        })
+        status = res.status
+        mock = res.headers.get('x-chat-mode') === 'mock'
+        answer = (await res.json()) as ChatResponse
+      } catch {
+        answer = { ok: false, error: 'network' }
+      }
+      busy.current = false
+      setPending(false)
+      setChat((c) => {
+        if (answer.ok) {
+          return {
+            ...c,
+            mock,
+            state: answer.state,
+            messages: [
+              ...c.messages,
+              { id: uuid(), from: 'bot', text: answer.reply, buttons: answer.buttons },
+            ],
+          }
+        }
+        const limited = status === 429 || answer.error === 'rate_limited'
+        return {
+          ...c,
+          messages: [
+            ...c.messages,
+            { id: uuid(), from: 'sys', text: limited ? copy.rateLimited : copy.error, link: true },
+          ],
+        }
+      })
+      if (answer.ok && answer.state !== chatRef.current.state)
+        track('chat_state', { state: answer.state })
+      return true
+    },
+    [copy.error, copy.rateLimited, copy.tooFast, locale],
+  )
+
+  // The greeting: the first open of a session asks HQ (or the mock) to start.
+  const started = useRef(false)
+  useEffect(() => {
+    if (!open || started.current || chatRef.current.messages.length) return
+    started.current = true
+    void send(START, null)
+  }, [open, send])
+
+  // Focus the input on open; Esc closes; Tab stays inside the dialog.
+  useEffect(() => {
+    if (!open) return
+    const t = window.setTimeout(() => inputRef.current?.focus(), 60)
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        onClose()
+        return
+      }
+      if (e.key !== 'Tab' || !dialogRef.current) return
+      const items = [...dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+        (el) => el.offsetParent !== null,
+      )
+      if (!items.length) return
+      const first = items[0]!
+      const last = items[items.length - 1]!
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      window.clearTimeout(t)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open, onClose])
+
+  // Keep the newest message in view.
+  useEffect(() => {
+    const list = listRef.current
+    if (list) list.scrollTo({ top: list.scrollHeight, behavior: reduce ? 'auto' : 'smooth' })
+  }, [chat.messages.length, pending, reduce])
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const value = text.trim().slice(0, MESSAGE_MAX)
+    if (!value || pending) return
+    if (await send(value, value)) setText('')
+  }
+
+  const lastBot = [...chat.messages].reverse().find((m) => m.from !== 'me')
+  const chips = !pending && lastBot?.from === 'bot' ? (lastBot.buttons ?? []) : []
+
+  return (
+    <AnimatePresence>
+      {open ? (
+        <motion.div
+          key="chat"
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
+          style={{ transformOrigin: '100% 100%' }}
+          className="print-hidden glass bg-glass-strong fixed inset-x-2 top-[max(0.5rem,env(safe-area-inset-top))] bottom-2 z-50 flex flex-col overflow-hidden rounded-panel sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:h-[min(600px,calc(100dvh-3rem))] sm:w-[400px]"
+        >
+          <header className="flex items-center gap-3 px-5 pt-4 pb-3">
+            <span className="relative grid size-10 shrink-0 place-items-center rounded-full bg-pine font-display text-sm font-bold text-accent">
+              AI
+              <span
+                className="live-dot absolute -right-0.5 -bottom-0.5 border-2 border-bg"
+                aria-hidden="true"
+              />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2
+                id={titleId}
+                className="truncate font-display text-base font-semibold tracking-tight"
+              >
+                {copy.title}
+              </h2>
+              <p className="truncate text-xs text-muted">
+                {chat.mock ? copy.mockNote : copy.subtitle}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={copy.close}
+              className="grid size-10 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-fg/5 hover:text-fg"
+            >
+              <X size={18} aria-hidden="true" />
+            </button>
+          </header>
+          <div className="hairline" />
+
+          <ol
+            ref={listRef}
+            role="log"
+            aria-live="polite"
+            aria-relevant="additions"
+            className="flex-1 space-y-3 overflow-y-auto overscroll-contain px-4 py-4"
+          >
+            {chat.messages.map((m) => (
+              <li
+                key={m.id}
+                className={`chat-in flex ${m.from === 'me' ? 'justify-end' : 'justify-start'}`}
+                style={
+                  {
+                    '--chat-origin': m.from === 'me' ? '100% 100%' : '0 100%',
+                  } as React.CSSProperties
+                }
+              >
+                <div
+                  className={
+                    m.from === 'me'
+                      ? 'max-w-[85%] rounded-[18px] rounded-br-md bg-accent px-3.5 py-2.5 text-[15px] leading-snug text-accent-ink'
+                      : m.from === 'sys'
+                        ? 'max-w-[90%] rounded-[18px] border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm leading-snug text-fg'
+                        : 'max-w-[85%] rounded-[18px] rounded-bl-md bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line text-fg'
+                  }
+                >
+                  <span className="sr-only">{m.from === 'me' ? copy.you : copy.bot}: </span>
+                  {m.text}
+                  {m.link ? (
+                    <a
+                      href={contactHref}
+                      onClick={onClose}
+                      className="mt-2 block font-medium text-accent underline-offset-4 hover:underline"
+                    >
+                      {copy.contact}
+                    </a>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+            {pending ? (
+              <li className="chat-in flex justify-start" aria-label={copy.typing}>
+                <span className="inline-flex items-center gap-1 rounded-[18px] rounded-bl-md bg-surface-2 px-4 py-3.5">
+                  <span className="typing-dot" />
+                  <span className="typing-dot" />
+                  <span className="typing-dot" />
+                </span>
+              </li>
+            ) : null}
+            {chips.length ? (
+              <li className="chat-in flex flex-wrap gap-2 pt-1">
+                {chips.map((b) => (
+                  <button
+                    key={b.id}
+                    type="button"
+                    onClick={() => void send(btnMessage(b.id), b.label)}
+                    className="rounded-full border border-accent/40 px-3.5 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent hover:bg-accent/10 active:scale-[0.97]"
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </li>
+            ) : null}
+          </ol>
+
+          <form onSubmit={submit} className="border-t border-glass-line p-3">
+            {hint ? (
+              <p role="status" className="px-2 pb-2 text-xs text-faint">
+                {hint}
+              </p>
+            ) : null}
+            <div className="flex items-end gap-2 rounded-[22px] border border-line-strong bg-bg/60 p-1.5 pl-4 focus-within:border-accent/60">
+              <label htmlFor={`${titleId}-input`} className="sr-only">
+                {copy.input}
+              </label>
+              <textarea
+                id={`${titleId}-input`}
+                ref={inputRef}
+                rows={1}
+                value={text}
+                maxLength={MESSAGE_MAX}
+                placeholder={copy.placeholder}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault()
+                    e.currentTarget.form?.requestSubmit()
+                  }
+                }}
+                className="ym-disable-keys max-h-28 min-h-10 flex-1 resize-none bg-transparent py-2 text-[15px] text-fg placeholder:text-faint focus:outline-none"
+              />
+              <button
+                type="submit"
+                disabled={pending || !text.trim()}
+                aria-label={copy.send}
+                className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-[background-color,transform,opacity] duration-200 hover:bg-accent-strong active:scale-[0.94] disabled:opacity-40"
+              >
+                <PaperPlaneRight size={18} weight="fill" aria-hidden="true" />
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  )
+}

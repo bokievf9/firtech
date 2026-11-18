@@ -22,14 +22,52 @@
   --color-pine: #1d3a2a;
   --color-danger: #ff9a8a;
 
+  /* Glass surfaces (header, live window, chat): see .glass below. */
+  --color-glass: rgb(16 20 17 / 0.62);
+  --color-glass-strong: rgb(16 20 17 / 0.86);
+  --color-glass-line: rgb(232 240 230 / 0.1);
+  --color-glass-highlight: rgb(255 255 255 / 0.07);
+
+  /* Radii: pills for controls, 12px inputs (rounded-xl), 20px cards, 28px windows and sheets. */
   --radius-card: 20px;
+  --radius-panel: 28px;
 
   --font-sans: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
   --font-brand: var(--font-unbounded), var(--font-onest), sans-serif;
+  --font-display: var(--font-geologica), var(--font-onest), ui-sans-serif, sans-serif;
+
+  /*
+    Type scale (stage A). text-display is the hero only; text-title for section titles, text-lead
+    for the line under a title. Fluid between 360px and 1440px, tight leading and tracking at size.
+  */
+  --text-display: clamp(2.55rem, 1.15rem + 5.6vw, 6.4rem);
+  --text-display--line-height: 0.96;
+  --text-display--letter-spacing: -0.048em;
+  --text-title: clamp(2rem, 1.35rem + 2.4vw, 3.5rem);
+  --text-title--line-height: 1.04;
+  --text-title--letter-spacing: -0.035em;
+  --text-lead: clamp(1.05rem, 0.98rem + 0.35vw, 1.3rem);
+  --text-lead--line-height: 1.55;
+  --text-micro: 0.6875rem;
+  --text-micro--line-height: 1.3;
+
+  /* Section rhythm: py-section between home page sections, gap-gutter inside grids. */
+  --spacing-section: clamp(5rem, 3.2rem + 6vw, 9rem);
+  --spacing-gutter: clamp(1rem, 0.6rem + 1.2vw, 1.75rem);
+
+  --shadow-glass: inset 0 1px 0 var(--color-glass-highlight), 0 30px 80px -30px rgb(0 0 0 / 0.7);
+  --shadow-float: 0 18px 50px -18px rgb(0 0 0 / 0.75), 0 0 0 1px var(--color-glass-line);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
+
+/*
+  Z-index scale (keep to it): 10 inside a component, 30 floating chat button, 40 header and the
+  phone CTA bar, 50 chat panel and the mobile menu sheet, 60 film grain (pointer-events: none).
+*/
 
 /*
   Light theme of the owner panel (/admin only; the public site stays dark). The admin layout sets
@@ -72,6 +110,16 @@
 
   :root[data-theme='light'] {
     color-scheme: light;
+  }
+
+  /*
+    Big screens (public site only, html.site): the root size grows from 16px at 1440 to about
+    19.5px at 2560, so rem-based type and spacing scale with the viewport, and the page container
+    (every max-w-7xl) grows from 1280px to 1760px instead of leaving bars on the sides.
+  */
+  html.site {
+    font-size: clamp(100%, 0.55rem + 0.42vw, 125%);
+    --container-7xl: clamp(80rem, 736px + 40vw, 1760px);
   }
 
   h2 {
@@ -430,4 +478,237 @@
 @media (prefers-reduced-motion: reduce) {
   .office-breathe, .office-in { animation: none; }
   .office-bar { transition: none; }
+}
+
+/* ============================================================================================
+   Stage A (2026-11): «Живая компания». Design notes and token table: docs/site-design-notes.md.
+   Everything below moves only transform and opacity and stops under reduced motion.
+   ============================================================================================ */
+
+/*
+  Glass surface: header pill, live office window, chat panel. A real blur over the page, a 1px
+  line and a top highlight; solid fill where blur is not supported or the visitor asks for less
+  transparency.
+*/
+@layer components {
+.glass {
+  background: var(--color-glass);
+  border: 1px solid var(--color-glass-line);
+  box-shadow: var(--shadow-glass);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: var(--color-glass-strong);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: var(--color-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+}
+
+/* Hairline that fades out at both ends: separators inside glass. */
+.hairline {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-line-strong), transparent);
+}
+
+/*
+  Kinetic hero headline: words rise from under a mask with a stagger (delays set inline by
+  KineticHeadline). CSS only, so it starts on first paint and the text is in the HTML for LCP.
+*/
+@keyframes word-rise {
+  from {
+    transform: translateY(108%) rotate(4deg);
+  }
+}
+
+.kinetic-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.12em;
+  margin-bottom: -0.12em;
+}
+
+.kinetic-word {
+  display: inline-block;
+  transform-origin: 0 100%;
+  animation: word-rise 1.05s var(--ease-out-expo) both;
+}
+
+/* The accent line: lime, with a soft light that sweeps once after the words land. */
+@keyframes accent-sweep {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+.kinetic-accent {
+  color: var(--color-accent);
+}
+
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .kinetic-accent .kinetic-word {
+    background: linear-gradient(100deg, var(--color-accent) 0 40%, #f1ffd9 50%, var(--color-accent) 60% 100%) 0 0 /
+      300% 100% repeat-x;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation:
+      word-rise 1.05s var(--ease-out-expo) both,
+      accent-sweep 1.6s var(--ease-in-out-soft) 1.3s both;
+  }
+}
+
+/* "Live" dot: a soft ring breathing out of a lime dot. Real state only (HQ online). */
+@keyframes live-ring {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.live-dot {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-accent);
+}
+
+.live-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: live-ring 2.2s var(--ease-out-quint) infinite;
+}
+
+.live-dot[data-demo='true'] {
+  background: #e8b33f;
+}
+
+.live-dot[data-demo='true']::after {
+  animation: none;
+}
+
+/* Hero background fallback (and the base under the WebGL field): pine and lime light, still. */
+.hero-aurora {
+  background:
+    radial-gradient(60% 55% at 78% 12%, rgb(29 58 42 / 0.95), transparent 70%),
+    radial-gradient(40% 40% at 8% 90%, rgb(181 235 106 / 0.07), transparent 70%),
+    radial-gradient(35% 30% at 55% 60%, rgb(29 58 42 / 0.45), transparent 75%);
+}
+
+/* Fades the hero's bottom edge into the page so the next section starts calmly. */
+.hero-fade {
+  background: linear-gradient(to bottom, transparent, var(--color-bg));
+}
+
+/* Live office window on phones: the scene pans slowly from end to end (--pan set inline). */
+@keyframes office-pan {
+  0%,
+  8% {
+    transform: translateX(0);
+  }
+  92%,
+  100% {
+    transform: translateX(var(--pan, 0px));
+  }
+}
+
+.office-pan {
+  animation: office-pan 38s var(--ease-in-out-soft) infinite alternate;
+}
+
+/* Skeleton shimmer for the status line before the first answer. */
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, rgb(232 240 230 / 0.08) 50%, var(--color-surface-2) 75%)
+    0 0 / 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Chat: messages slide in, the typing indicator's dots hop in turn. */
+@keyframes chat-in {
+  from {
+    transform: translateY(10px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+.chat-in {
+  transform-origin: var(--chat-origin, 0 100%);
+  animation: chat-in 320ms var(--ease-out-quint) both;
+}
+
+@keyframes typing-hop {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-muted);
+  animation: typing-hop 1.1s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kinetic-word,
+  .kinetic-accent .kinetic-word,
+  .live-dot::after,
+  .office-pan,
+  .skeleton,
+  .chat-in,
+  .typing-dot {
+    animation: none;
+  }
+
+  .kinetic-accent .kinetic-word {
+    background: none;
+    color: var(--color-accent);
+  }
 }

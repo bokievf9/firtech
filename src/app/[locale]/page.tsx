@@ -1,4 +1,5 @@
 import { Compare } from '@/components/compare'
+import { DemoSection } from '@/components/demo-section'
 import { ContactSection } from '@/components/contact-section'
 import { Directions } from '@/components/directions'
 import { DonoCase } from '@/components/dono-case'
@@ -57,6 +58,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
       <JsonLd data={faqJsonLd(dict.faq.items)} />
       <Hero locale={locale} dict={dict} />
       <StackMarquee dict={dict} />
+      <DemoSection dict={dict} />
       <Directions locale={locale} dict={dict} />
       <DonoCase dict={dict} />
       <Services locale={locale} dict={dict} />

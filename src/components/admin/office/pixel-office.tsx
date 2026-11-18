@@ -5,8 +5,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { admin } from '@/content/admin'
 import { formatDuration, minutesSince, type OfficeData } from '@/lib/office-view'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
-import { officePeople } from './model'
-import { createScene, type HitTarget, type Scene } from './scene'
+import { officePeople } from '@/components/pixel-office/model'
+import { createScene, type HitTarget, type Scene } from '@/components/pixel-office/scene'
 
 const t = admin.office
 const MIN_SCALE = 2

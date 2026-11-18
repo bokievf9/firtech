@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { officeMock } from '../src/lib/office-mock.ts'
-import * as B from '../src/components/admin/office/pixel-office/behaviour.ts'
-import * as F from '../src/components/admin/office/pixel-office/font.ts'
-import * as L from '../src/components/admin/office/pixel-office/layout.ts'
-import { officePeople } from '../src/components/admin/office/pixel-office/model.ts'
-import * as P from '../src/components/admin/office/pixel-office/palette.ts'
-import { parseSprite, SPRITES } from '../src/components/admin/office/pixel-office/sprites.ts'
-import * as S from '../src/components/admin/office/pixel-office/sun.ts'
+import * as B from '../src/components/pixel-office/behaviour.ts'
+import * as F from '../src/components/pixel-office/font.ts'
+import * as L from '../src/components/pixel-office/layout.ts'
+import { officePeople } from '../src/components/pixel-office/model.ts'
+import * as P from '../src/components/pixel-office/palette.ts'
+import { parseSprite, SPRITES } from '../src/components/pixel-office/sprites.ts'
+import * as S from '../src/components/pixel-office/sun.ts'
 
 const NOW = Date.parse('2026-11-19T12:00:00Z')
 const STATUSES = ['working', 'waiting', 'blocked', 'idle', 'sleeping', 'paused', 'offline']

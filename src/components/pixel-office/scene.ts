@@ -18,6 +18,7 @@ import {
   layoutSignature,
   ROOF_H,
   type Room,
+  SCENE_MIN_W,
 } from './layout'
 import { officePeople, type Person } from './model'
 import {
@@ -47,6 +48,10 @@ export type Scene = {
   anchorOf(target: HitTarget): Rect | null
   size(): { width: number; height: number }
   resize(cssScale: number): void
+  // Public hero: rebuild the building for a new box width (logical px); no-op when unchanged.
+  setMinWidth(minWidth: number): void
+  // Stops the animation loop (offscreen, or the hero scrolled away); resumes when false.
+  setPaused(paused: boolean): void
   destroy(): void
 }
 
@@ -77,17 +82,23 @@ const within = (r: Rect, x: number, y: number) => x >= r.x && x < r.x + r.w && y
 
 const deskRect = (desk: Desk): Rect => ({ x: desk.x, y: deskTable(desk).y - 12, w: desk.w, h: 21 })
 
-const sameHit = (a: HitTarget | null, b: HitTarget | null) =>
+export const sameHit = (a: HitTarget | null, b: HitTarget | null) =>
   a === b || (!!a && !!b && a.kind === b.kind && (a.kind === 'builders' || a.id === (b as { id: string }).id))
 
-export function createScene(canvas: HTMLCanvasElement, initial: OfficeData, opts: { reducedMotion: boolean }): Scene {
+export function createScene(
+  canvas: HTMLCanvasElement,
+  initial: OfficeData,
+  opts: { reducedMotion: boolean; minWidth?: number },
+): Scene {
   const ctx = context(canvas)
   const sprite = spriteCache()
 
   let data = initial
   let people: Person[] = []
   let byId = new Map<string, Person>()
-  let layout: Layout = buildLayout(initial)
+  let minWidth = opts.minWidth ?? SCENE_MIN_W
+  let paused = false
+  let layout: Layout = buildLayout(initial, minWidth)
   let deskById = new Map<string, Desk>()
   const actors = new Map<string, Actor>()
   let reduced = opts.reducedMotion
@@ -112,9 +123,9 @@ export function createScene(canvas: HTMLCanvasElement, initial: OfficeData, opts
     data = next
     people = officePeople(next)
     byId = new Map(people.map((p) => [p.id, p]))
-    const relayout = first || layoutSignature(next) !== layout.signature
+    const relayout = first || layoutSignature(next, minWidth) !== layout.signature
     if (relayout) {
-      layout = buildLayout(next)
+      layout = buildLayout(next, minWidth)
       deskById = new Map(layout.desks.map((d) => [d.agentId, d]))
     }
     for (const id of [...actors.keys()]) if (!byId.has(id)) actors.delete(id)
@@ -484,7 +495,7 @@ export function createScene(canvas: HTMLCanvasElement, initial: OfficeData, opts
   }
 
   function schedule() {
-    if (!raf && !destroyed && !document.hidden) raf = requestAnimationFrame(frame)
+    if (!raf && !destroyed && !paused && !document.hidden) raf = requestAnimationFrame(frame)
   }
 
   function onVisibility() {
@@ -571,6 +582,24 @@ export function createScene(canvas: HTMLCanvasElement, initial: OfficeData, opts
     anchorOf,
     size: () => ({ width: layout.width, height: layout.height }),
     resize,
+    setMinWidth(next) {
+      const w = Math.max(SCENE_MIN_W, Math.round(next))
+      if (w === minWidth) return
+      minWidth = w
+      apply(data, true)
+      resize(cssScale)
+    },
+    setPaused(on) {
+      if (on === paused) return
+      paused = on
+      if (on) {
+        if (raf) cancelAnimationFrame(raf)
+        raf = 0
+      } else {
+        last = 0
+        schedule()
+      }
+    },
     destroy() {
       destroyed = true
       if (raf) cancelAnimationFrame(raf)

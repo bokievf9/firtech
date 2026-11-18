@@ -1,0 +1,76 @@
+import 'server-only'
+import { getDict } from '@/content'
+import { createMockReceptionist, sanitizeReply, type ChatRequest, type ChatResponse } from './chat'
+
+// Server side of POST /api/chat: forwards one visitor message to HQ's receptionist and cleans the
+// answer. Never throws and never returns the token or the URL.
+//   POST ${HQ_CHAT_URL}   (default http://127.0.0.1:8787/chat)
+//   x-chat-token: ${HQ_CHAT_TOKEN}  (falls back to LEAD_INTAKE_TOKEN)
+//   { sessionId, locale, message, page }
+// Without HQ_CHAT_URL in development the scripted mock answers, so the widget can be reviewed
+// locally. Production always talks to HQ (loopback default): a mock there would collect contacts
+// that nobody reads.
+
+const DEFAULT_URL = 'http://127.0.0.1:8787/chat'
+// HQ answers through an LLM gateway with free providers; give it time, but not forever.
+export const CHAT_TIMEOUT_MS = 20_000
+
+const mock = createMockReceptionist()
+
+export function chatMode(env: Record<string, string | undefined>): 'mock' | 'hq' {
+  return !env.HQ_CHAT_URL?.trim() && env.NODE_ENV !== 'production' ? 'mock' : 'hq'
+}
+
+export async function askReceptionist(
+  req: ChatRequest,
+  env: Record<string, string | undefined> = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<ChatResponse> {
+  if (chatMode(env) === 'mock') return mock(req, getDict(req.locale).chat.mock)
+  const url = env.HQ_CHAT_URL?.trim() || DEFAULT_URL
+  const token = (env.HQ_CHAT_TOKEN || env.LEAD_INTAKE_TOKEN || '').trim()
+  try {
+    const res = await fetcher(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...(token ? { 'x-chat-token': token } : {}) },
+      body: JSON.stringify({
+        sessionId: req.sessionId,
+        locale: req.locale,
+        message: req.message,
+        page: req.page,
+      }),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
+    })
+    if (res.status === 401 || res.status === 403) return { ok: false, error: 'hq_unauthorized' }
+    if (res.status === 429) return { ok: false, error: 'rate_limited' }
+    const body: unknown = await res.json().catch(() => null)
+    const clean = sanitizeReply(body)
+    if (!clean) return { ok: false, error: res.ok ? 'hq_bad_response' : 'hq_error' }
+    return clean
+  } catch (error) {
+    const timeout = error instanceof Error && error.name === 'TimeoutError'
+    return { ok: false, error: timeout ? 'hq_timeout' : 'hq_unreachable' }
+  }
+}
+
+// Per-IP limit for the public chat: 30 messages per hour, in memory (one PM2 process).
+export const CHAT_LIMIT = 30
+export const CHAT_WINDOW_MS = 60 * 60 * 1000
+
+export function createLimiter(max = CHAT_LIMIT, windowMs = CHAT_WINDOW_MS) {
+  const hits = new Map<string, number[]>()
+  return function limited(key: string, now = Date.now()): boolean {
+    const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs)
+    if (recent.length >= max) {
+      hits.set(key, recent)
+      return true
+    }
+    recent.push(now)
+    hits.set(key, recent)
+    if (hits.size > 5000) hits.clear()
+    return false
+  }
+}
+
+export const chatLimited = createLimiter()

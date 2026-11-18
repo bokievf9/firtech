@@ -7,7 +7,8 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 ## Stack
 - Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4, Motion (`motion/react`),
   Phosphor icons (`@phosphor-icons/react`, `/ssr` in server components), zod.
-- Fonts: Onest (Cyrillic-first) and JetBrains Mono via `next/font` (`src/app/fonts.ts`).
+- Fonts: Onest (Cyrillic-first, text), Geologica (display: hero and section titles, `font-display`,
+  sharpness axis) and JetBrains Mono (data) via `next/font` (`src/app/fonts.ts`).
 - Brand: wordmark `fir.tech` ("fir" is from the founder's name, not the tree) in Unbounded 700
   with a lime dot (`src/components/logo.tsx`, font in `fonts.ts` and `assets/fonts` for the OG
   image). Avatars and files in `brand/` (`1-fir.png` is the chosen avatar).
@@ -23,7 +24,9 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   change them only on the owner's word (current set: low entry, decided 2026-10-16, not yet
   confirmed per format).
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
-- Home page order: hero, logo marquee, services, extras ("we also do": smaller services from
+- Home page order: hero («Живая компания», stage A: kinetic headline, live office window with the
+  status line, WebGL field; see `docs/site-design-notes.md`), logo marquee, demo (`#demo`, opens the
+  receptionist chat), services, extras ("we also do": smaller services from
   `extraSlugs`, no own pages; `extraPrice` reuses a main service's price or holds the owner's
   own price for that extra; owner decisions like the rest), pains (before/after switch), showcase (concepts,
   pinned horizontal pan on lg), compare, trust (the one lime colour block), pricing, process, FAQ,
@@ -102,7 +105,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
   site. Bot `/admin` sends the link. Overview, leads with drawer, calendar, CSV export.
 - Live office `/admin/office` («Живой офис», nav link «Офис»): a pixel-art office on canvas in the
-  spirit of Lumio (`src/components/admin/office/pixel-office/`, tests `tests/pixel-office.test.mjs`):
+  spirit of Lumio (engine `src/components/pixel-office/`, shared with the public hero; admin wrapper `src/components/admin/office/pixel-office.tsx`; tests `tests/pixel-office.test.mjs`):
   a desk and a little person per agent whose behaviour shows the status, window light from the
   sun in the company's TZ; status strip above, feed, people by department, routines, funnel and
   products below. Sprites are palette-indexed strings, no image assets or libraries. The page polls
@@ -112,6 +115,23 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `http://127.0.0.1:8787/office`; unset in development = built-in mock `src/lib/office-mock.ts`) and
   `HQ_OFFICE_TOKEN` (header `x-office-token`, server only, never returned). 3 s timeout; on failure
   the page shows «HQ не отвечает» over dimmed last data. Design notes: `docs/office-design-notes.md`.
+- Public live office (home hero, stage A): `GET /api/office/public` (no session) reads the same HQ
+  office through `fetchOffice` and returns only `PublicOffice` (`src/lib/office-public.ts`):
+  departments `{id,title}`, agents `{id,title,status}`, director status, counts `{agents, working,
+  waiting, tasksRunning, doneToday}`, `quietHours`, `tz`, `generatedAt`, `demo`. Never task titles,
+  activity or costs (tested in `tests/office-public.test.mjs`). 15 s in-memory cache
+  (`src/lib/office-public-hq.ts`); HQ unset in dev or unavailable = deterministic demo company with
+  `demo: true` (the hero labels it «Демо»). The hero polls it every 15 s (60 s on a hidden tab). The
+  canvas engine is shared with the admin office (`src/components/pixel-office/`).
+- Receptionist chat (stage A): floating widget in the locale layout (`src/components/chat/`), opened
+  by its button, the hero's secondary button, the `#demo` section and `/<locale>#demo`. `POST
+  /api/chat` (`src/app/api/chat/route.ts`, logic `src/lib/chat.ts` and `src/lib/chat-hq.ts`, tests
+  `tests/chat.test.mjs`) validates (uuid session, `ru|en`, 1..1000 chars after HTML stripping),
+  limits 30 messages per IP per hour and forwards to HQ: `POST ${HQ_CHAT_URL}` (default
+  `http://127.0.0.1:8787/chat`) with header `x-chat-token: ${HQ_CHAT_TOKEN}` (falls back to
+  `LEAD_INTAKE_TOKEN`), 20 s timeout. Unset `HQ_CHAT_URL` in development = scripted mock (3 steps and a
+  contact request, never creates a lead, header `x-chat-mode: mock` shows «Демо-режим»). Production
+  never uses the mock. Contract in `docs/site-design-notes.md`. Visitor texts are never logged.
 - Echo is OFF since 2026-11-10 (owner: not needed yet): everything below works only with
   `ECHO_ENABLED=1` (`src/lib/echo-flag.ts`); otherwise the Pulse bar, panel and "ask Echo" button are
   hidden, `/admin/echo` and `/api/admin/echo*` answer 404 and the nav link is gone (re-add it in

@@ -70,15 +70,18 @@ const MIN_W: Record<Exclude<RoomKind, 'dept' | 'servers'>, number> = {
 type Draft = Omit<Room, 'floor' | 'x'>
 
 // The structure the layout is built from; two data snapshots with the same signature share a layout.
-export function layoutSignature(data: OfficeData): string {
-  return JSON.stringify([
+export function layoutSignature(data: OfficeData, minWidth = SCENE_MIN_W): string {
+  const base = JSON.stringify([
     data.director.id,
     data.departments.map((d) => [d.id, d.title, d.head.id, d.workers.map((w) => w.id)]),
     data.products.map((p) => [p.id, p.title]),
   ])
+  return minWidth === SCENE_MIN_W ? base : `${base}|${minWidth}`
 }
 
-export function buildLayout(data: OfficeData): Layout {
+// `minWidth` (logical px) widens the building so fewer floors are needed: the public hero passes
+// its box width divided by the CSS scale, the admin page keeps the default.
+export function buildLayout(data: OfficeData, minWidth = SCENE_MIN_W): Layout {
   const people = officePeople(data)
   const drafts: Draft[] = [
     { id: 'director', kind: 'director', title: 'Director', w: MIN_W.director, agentIds: [data.director.id] },
@@ -94,7 +97,7 @@ export function buildLayout(data: OfficeData): Layout {
     { id: 'servers', kind: 'servers', title: 'Servers', w: 12 + 22 * Math.max(1, data.products.length), agentIds: [] },
   )
 
-  const floorW = Math.max(SCENE_MIN_W - FLOOR_X - MARGIN, ...drafts.map((d) => d.w))
+  const floorW = Math.max(Math.max(SCENE_MIN_W, minWidth) - FLOOR_X - MARGIN, ...drafts.map((d) => d.w))
 
   // Greedy first fit in order, then each floor's spare width is shared evenly between its rooms.
   const floors: Draft[][] = [[]]
@@ -149,7 +152,7 @@ export function buildLayout(data: OfficeData): Layout {
     desks,
     racks,
     stairsX: MARGIN + STAIRS_W / 2,
-    signature: layoutSignature(data),
+    signature: layoutSignature(data, minWidth),
   }
 }
 

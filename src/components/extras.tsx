@@ -44,14 +44,14 @@ export function Extras({ locale, dict }: { locale: Locale; dict: Dict }) {
         <p className="mt-5 max-w-[56ch] text-lg leading-relaxed text-muted">{e.sub}</p>
       </Reveal>
 
-      <ul className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
+      <ul className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-6 min-[1920px]:grid-cols-4">
         {extraSlugs.map((slug, i) => {
           const item = e.items[slug]
           const price = extraPrice[slug]
           const Glyph = icons[slug]
           const wide = featured.includes(slug)
           return (
-            <li key={slug} className={wide ? 'lg:col-span-3' : 'lg:col-span-2'}>
+            <li key={slug} className={cn(wide ? 'lg:col-span-3' : 'lg:col-span-2', 'min-[1920px]:col-span-1')}>
               <Reveal delay={(i % 3) * 0.06} className="h-full">
                 <SpotlightCard
                   className={cn(

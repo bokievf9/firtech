@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { notFound } from 'next/navigation'
+import { ChatWidget } from '@/components/chat/chat-widget'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { MobileCta } from '@/components/mobile-cta'
@@ -8,7 +9,7 @@ import { YandexMetrika } from '@/components/yandex-metrika'
 import { getDict } from '@/content'
 import { isLocale, locales } from '@/lib/i18n'
 import { siteUrl } from '@/lib/site'
-import { jetbrains, onest, unbounded } from '../fonts'
+import { geologica, jetbrains, onest, unbounded } from '../fonts'
 import '../globals.css'
 
 export function generateStaticParams() {
@@ -49,7 +50,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   const dict = getDict(locale)
 
   return (
-    <html lang={locale} className={`${onest.variable} ${jetbrains.variable} ${unbounded.variable}`}>
+    <html lang={locale} className={`site ${onest.variable} ${jetbrains.variable} ${unbounded.variable} ${geologica.variable}`}>
       <body className="grain min-h-[100dvh]">
         {/* Without JavaScript Motion never reveals the blocks it renders hidden. */}
         <noscript>
@@ -64,6 +65,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
             label={dict.nav.cta}
             telegramLabel={dict.contact.telegramCta}
           />
+          <ChatWidget locale={locale} copy={dict.chat} contactHref={`/${locale}#contact`} />
         </MotionProvider>
         <YandexMetrika />
       </body>

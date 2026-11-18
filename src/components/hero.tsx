@@ -1,39 +1,45 @@
-import { ArrowDown, ArrowRight, Key, Receipt, Stack, TelegramLogo } from '@phosphor-icons/react/ssr'
+import { ArrowRight, ChatCircleDots } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
-import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
+import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
-import { telegramUrl } from '@/lib/site'
+import { ChatOpenButton } from './chat/chat-open-button'
 import { HeroIntro } from './hero-intro'
-import { HeroLines } from './hero-lines'
-import { HeroPicker } from './hero-picker'
-import { HeroStage } from './hero-stage'
+import { KineticHeadline } from './kinetic-headline'
+import { HeroField } from './live/hero-field'
+import { HeroLive } from './live/hero-live'
 import { Magnetic } from './magnetic'
 
-const trustIcons = [Receipt, Stack, Key]
-
+// Home hero «Живая компания» (stage A, docs/site-design-notes.md). Server component: the headline,
+// text and buttons are in the HTML and animate in CSS (LCP is the headline). Client islands: the
+// WebGL backdrop (lazy, capable devices only) and the live office window with its status line.
+// The primary button keeps going to the builder; the secondary one opens the receptionist chat.
 export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
   const h = dict.hero
   return (
-    <section className="relative overflow-hidden">
-      <HeroStage
-        tilt={false}
-        copy={
-          <>
-            <h1 className="font-brand text-[clamp(1.85rem,3.05vw,3rem)] leading-[1.1] font-bold tracking-[-0.045em] text-balance">
-              <span className="sr-only">{h.title}</span>
-              <HeroLines lines={h.lines} accent={1} />
-            </h1>
-            <HeroIntro delay={0.5}>
-              <p className="mt-7 max-w-[46ch] text-lg leading-relaxed text-muted md:text-xl">
-                {h.sub}
-              </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+    <section className="relative isolate overflow-hidden">
+      <HeroField />
+      {/* The copy sits in the page container; the live window spans the viewport (full bleed with
+          gutters), so on 1920 and 2560 screens the office fills the width at 4x. */}
+      <div className="relative flex min-h-[100dvh] flex-col justify-center gap-10 pt-28 pb-16 lg:gap-12 lg:pt-28">
+        <div className="mx-auto w-full max-w-7xl px-4 md:px-8">
+          <KineticHeadline
+            title={h.title}
+            lines={h.lines}
+            accent={1}
+            className="max-w-[15ch] font-display text-display font-semibold text-balance [font-variation-settings:'SHRP'_60] lg:max-w-none"
+          />
+          <div className="mt-8 grid items-end gap-7 lg:grid-cols-12 lg:gap-8">
+            <HeroIntro delay={0.55} className="lg:col-span-6">
+              <p className="max-w-[44ch] text-lead text-muted">{h.sub}</p>
+            </HeroIntro>
+            <HeroIntro delay={0.64} className="lg:col-span-6">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:justify-end">
                 <Magnetic>
                   <Link
                     href={`/${locale}/builder`}
                     data-cta="hero_builder"
-                    className={`${buttonStyles.primary} group w-full sm:w-auto`}
+                    className={cn(buttonStyles.primary, 'group w-full sm:w-auto')}
                   >
                     {h.primary}
                     <ArrowRight
@@ -43,58 +49,30 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
                     />
                   </Link>
                 </Magnetic>
-                {telegramUrl ? (
-                  <a
-                    href={telegramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-place="hero"
-                    className={buttonStyles.secondary}
-                  >
-                    <TelegramLogo
-                      size={18}
-                      weight="fill"
-                      aria-hidden="true"
-                      className="text-[#5cc4f5]"
-                    />
-                    {h.telegram}
-                  </a>
-                ) : (
-                  <Link
-                    href={homeAnchor(locale, 'contact')}
-                    data-cta="hero_contact"
-                    className={buttonStyles.secondary}
-                  >
-                    {dict.nav.cta}
-                  </Link>
-                )}
+                <ChatOpenButton
+                  source="hero"
+                  fallbackHref="#demo"
+                  className={cn(buttonStyles.secondary, 'glass')}
+                >
+                  <ChatCircleDots
+                    size={18}
+                    weight="fill"
+                    aria-hidden="true"
+                    className="text-accent"
+                  />
+                  {h.chatCta}
+                </ChatOpenButton>
               </div>
-              <ul className="mt-9 flex flex-wrap gap-x-6 gap-y-3 text-sm text-muted">
-                {h.trust.map((item, i) => {
-                  const Glyph = trustIcons[i] ?? Receipt
-                  return (
-                    <li key={item} className="flex items-center gap-2">
-                      <Glyph size={17} aria-hidden="true" className="text-accent" />
-                      {item}
-                    </li>
-                  )
-                })}
-              </ul>
             </HeroIntro>
-          </>
-        }
-        demo={<HeroPicker locale={locale} dict={dict} />}
-        footer={
-          <a
-            href="#services"
-            className={cn(
-              'absolute bottom-6 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-xs text-faint transition-colors hover:text-fg lg:flex',
-            )}
-          >
-            {h.scroll}
-            <ArrowDown size={14} aria-hidden="true" className="motion-safe:animate-bounce" />
-          </a>
-        }
+          </div>
+        </div>
+        <HeroIntro delay={0.8} className="w-full px-4 md:px-8 min-[1920px]:px-12">
+          <HeroLive locale={locale} copy={h.live} />
+        </HeroIntro>
+      </div>
+      <div
+        aria-hidden="true"
+        className="hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-24"
       />
     </section>
   )
