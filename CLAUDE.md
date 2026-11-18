@@ -101,6 +101,14 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
   site. Bot `/admin` sends the link. Overview, leads with drawer, calendar, CSV export.
+- Live office `/admin/office` («Живой офис», nav link «Офис»): one-screen bento board of the agent
+  company (departments, status chips, activity feed, routines, funnel, products). The page polls
+  `/api/admin/office` (10 s, 60 s on a hidden tab); that handler checks the admin session and reads
+  HQ's JSON (contract: `../docs/office-api.md`, code `src/lib/office-hq.ts`, types and pure helpers
+  `src/lib/office-view.ts`, tests `tests/office-view.test.mjs`). Env: `HQ_OFFICE_URL` (default
+  `http://127.0.0.1:8787/office`; unset in development = built-in mock `src/lib/office-mock.ts`) and
+  `HQ_OFFICE_TOKEN` (header `x-office-token`, server only, never returned). 3 s timeout; on failure
+  the page shows «HQ не отвечает» over dimmed last data. Design notes: `docs/office-design-notes.md`.
 - Echo is OFF since 2026-11-10 (owner: not needed yet): everything below works only with
   `ECHO_ENABLED=1` (`src/lib/echo-flag.ts`); otherwise the Pulse bar, panel and "ask Echo" button are
   hidden, `/admin/echo` and `/api/admin/echo*` answer 404 and the nav link is gone (re-add it in

@@ -414,3 +414,20 @@
   background-color: #0a0d0b;
   color: #edf2ea;
 }
+
+/* Live office (/admin/office): only transform and opacity move; all of it stops under reduced motion. */
+@keyframes office-breathe {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.35); opacity: 0.55; }
+}
+@keyframes office-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.office-breathe { animation: office-breathe 2.4s ease-in-out infinite; }
+.office-in { animation: office-in 420ms var(--ease-out-expo) both; }
+.office-bar { transform-origin: left; transition: transform 600ms var(--ease-out-expo); }
+@media (prefers-reduced-motion: reduce) {
+  .office-breathe, .office-in { animation: none; }
+  .office-bar { transition: none; }
+}
