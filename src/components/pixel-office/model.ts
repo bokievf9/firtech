@@ -13,6 +13,8 @@ export type Person = {
   deptId: string
   deptTitle: string
   agent: OfficeAgent
+  // In a model call right now; absent in the data counts as false.
+  thinking: boolean
 }
 
 const KNOWN: readonly AgentStatus[] = ['working', 'waiting', 'blocked', 'idle', 'sleeping', 'paused', 'offline']
@@ -33,7 +35,8 @@ export function officePeople(data: OfficeData): Person[] {
       role: 'director',
       deptId: 'director',
       deptTitle: d.title,
-      agent: { id: d.id, title: d.title, status: knownStatus(d.status), lastActiveAt: d.lastSummaryAt ?? undefined },
+      agent: { id: d.id, title: d.title, status: knownStatus(d.status), lastActiveAt: d.lastSummaryAt ?? undefined, thinking: d.thinking === true },
+      thinking: d.thinking === true,
     },
   ]
   const seen = new Set([d.id])
@@ -50,6 +53,7 @@ export function officePeople(data: OfficeData): Person[] {
         deptId: dept.id,
         deptTitle: dept.title,
         agent,
+        thinking: agent.thinking === true,
       })
     }
   }

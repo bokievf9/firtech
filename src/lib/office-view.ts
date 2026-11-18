@@ -21,6 +21,8 @@ export type OfficeAgent = {
   lastActiveAt?: string
   tasksToday?: number
   costTodayUsd?: number
+  // The agent is in the middle of a model call right now (optional; absent counts as false).
+  thinking?: boolean
 }
 
 export type OfficeDepartment = {
@@ -43,10 +45,13 @@ export type OfficeData = {
   generatedAt: string
   tz: string
   quietHours: boolean
+  // True when no task waits in the queue (optional; the director's room shows a sign).
+  queueEmpty?: boolean
   director: {
     id: string
     title: string
     status: AgentStatus
+    thinking?: boolean
     lastSummaryAt: string | null
     nextSummaryAt: string | null
     pendingApprovals: number

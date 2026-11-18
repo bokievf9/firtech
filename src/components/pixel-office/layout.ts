@@ -61,7 +61,7 @@ export const seatX = (desk: Desk) => desk.x + 7
 export const standX = (desk: Desk) => desk.x + desk.w - 6
 
 const MIN_W: Record<Exclude<RoomKind, 'dept' | 'servers'>, number> = {
-  director: 64,
+  director: 80,
   meeting: 54,
   builders: 44,
   lounge: 80,
@@ -175,4 +175,48 @@ export function buildersSpot(layout: Layout, index: number): { floor: number; x:
   const room = roomOf(layout, 'builders')
   if (!room) return { floor: 0, x: layout.stairsX }
   return { floor: room.floor, x: room.x + room.w - 8 - (index % 3) * 6 }
+}
+
+// ---- Windows, whiteboards and lounge furniture ------------------------------------------------
+// Shared by the painters (paint-static.ts) and by behaviour.ts, so people stand where the
+// furniture really is.
+
+export const WINDOW_W = 16
+
+// Left x of every window of a room (the painter draws them 14 px tall at floorTop + 18).
+export function windowXs(room: Room): number[] {
+  if (room.kind === 'servers') return []
+  if (room.kind === 'meeting' && room.w < 70) return []
+  let count = Math.max(1, Math.floor((room.w - 10) / 30))
+  if (room.kind === 'builders' || room.kind === 'meeting') count = 1
+  const gap = (room.w - count * WINDOW_W) / (count + 1)
+  return Array.from({ length: count }, (_, i) => {
+    if (room.kind === 'builders') return room.x + 5
+    if (room.kind === 'meeting') return room.x + room.w - WINDOW_W - 4
+    return Math.round(room.x + gap + i * (WINDOW_W + gap))
+  })
+}
+
+// A department room with two or more window slots gives its first slot to a whiteboard.
+export const hasBoard = (room: Room) => room.kind === 'dept' && windowXs(room).length >= 2
+export const boardX = (room: Room) => windowXs(room)[0] ?? room.x
+// Windows people can look out of.
+export const lookWindows = (room: Room) => windowXs(room).slice(hasBoard(room) ? 1 : 0)
+
+export type LoungeSpots = {
+  coffee: number
+  cooler: number
+  plant: number
+  sofa: number[]
+  floor: number
+}
+
+// Where people stand or sit in the lounge, next to the furniture painted in paintRoomBack.
+export function loungeSpots(layout: Layout): LoungeSpots | null {
+  const room = roomOf(layout, 'lounge')
+  if (!room) return null
+  const sw = Math.min(30, room.w - 60)
+  const sofa = sw >= 18 ? [room.x + room.w - sw - 4 + 6, room.x + room.w - 4 - 7] : []
+  const plantX = room.x + room.w - 9 - (sw >= 18 ? sw + 6 : 0)
+  return { floor: room.floor, coffee: room.x + 19, cooler: room.x + 29, plant: plantX - 5, sofa }
 }

@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import type { AgentStatus, OfficeData } from '@/lib/office-view'
 import { publicToScene, type PublicOffice } from '@/lib/office-public'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { officePeople } from '../pixel-office/model'
@@ -16,6 +17,28 @@ export type LiveOfficeCopy = {
   canvas: string
   status: Record<string, string>
   titles: Record<string, string>
+}
+
+// Dev preview of the quiet-hours office: everybody who is up goes to "sleeping", the queue is empty.
+function forceScene(base: OfficeData, mode: 'night' | 'day'): OfficeData {
+  const night = mode === 'night'
+  const status = (st: AgentStatus): AgentStatus =>
+    night ? (st === 'paused' || st === 'offline' ? st : 'sleeping') : st === 'sleeping' ? 'idle' : st
+  const agent = <T extends { status: AgentStatus }>(a: T): T => ({ ...a, status: status(a.status) })
+  return {
+    ...base,
+    quietHours: night,
+    queueEmpty: night,
+    director: agent(base.director),
+    departments: base.departments.map((d) => ({ ...d, head: agent(d.head), workers: d.workers.map(agent) })),
+  }
+}
+
+const subscribeNever = () => () => {}
+function forceFromUrl(): 'night' | 'day' | null {
+  if (process.env.NODE_ENV === 'production') return null
+  const v = new URLSearchParams(window.location.search).get('office')
+  return v === 'night' || v === 'day' ? v : null
 }
 
 const PHONE_BREAK = 640
@@ -39,7 +62,13 @@ export default function LiveOffice({ data, copy }: { data: PublicOffice; copy: L
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sceneRef = useRef<Scene | null>(null)
-  const scene = useMemo(() => publicToScene(data), [data])
+  // Dev only: ?office=night or ?office=day forces the quiet-hours scene (or a daytime one).
+  const force = useSyncExternalStore(subscribeNever, forceFromUrl, () => null)
+  const scene = useMemo(() => {
+    const base = publicToScene(data)
+    if (!force) return base
+    return forceScene(base, force)
+  }, [data, force])
   const latest = useRef(scene)
   const reduced = useReducedMotion()
   const reducedRef = useRef(reduced)
@@ -98,6 +127,11 @@ export default function LiveOffice({ data, copy }: { data: PublicOffice; copy: L
       sceneRef.current = null
     }
   }, [fit])
+
+  // After the scene exists (effects run in order): the dev switch also moves the sky.
+  useEffect(() => {
+    sceneRef.current?.setHour(force === 'night' ? 1.5 : force === 'day' ? 14 : null)
+  }, [force])
 
   const people = useMemo(() => officePeople(scene), [scene])
   const titleOf = (id: string, fallback: string) => copy.titles[id] ?? fallback

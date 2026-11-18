@@ -5,6 +5,7 @@
 
 import type { AgentStatus, OfficeData } from '@/lib/office-view'
 import { crowdOf, planPath, type Point, type Pose, roomLight, type Target, targetFor } from './behaviour'
+import { speaks, thinkCue } from './life'
 import { context, type Ctx, makeCanvas, rect, spriteCache, text } from './draw'
 import { textWidth } from './font'
 import {
@@ -31,7 +32,7 @@ import {
   signRect,
   terminalScreen,
 } from './paint-static'
-import { agentLook, COLORS, hashId, type Look, mix } from './palette'
+import { agentLook, BASE, COLORS, hashId, type Look, mix } from './palette'
 import { PERSON_W, SIT_H, type SpriteName, SPRITES, STAND_H } from './sprites'
 import { localHour, skyAt } from './sun'
 
@@ -50,6 +51,8 @@ export type Scene = {
   resize(cssScale: number): void
   // Public hero: rebuild the building for a new box width (logical px); no-op when unchanged.
   setMinWidth(minWidth: number): void
+  // Dev only: pretend it is this local hour (sky and city lights); null follows the clock.
+  setHour(hour: number | null): void
   // Stops the animation loop (offscreen, or the hero scrolled away); resumes when false.
   setPaused(paused: boolean): void
   destroy(): void
@@ -74,7 +77,14 @@ const CLIMB_SPEED = 26
 const REDUCED_STEP_MS = 800
 
 const sameTarget = (a: Target | null, b: Target) =>
-  !!a && a.floor === b.floor && a.x === b.x && a.pose === b.pose && a.facing === b.facing
+  !!a &&
+  a.floor === b.floor &&
+  a.x === b.x &&
+  a.pose === b.pose &&
+  a.facing === b.facing &&
+  a.tag === b.tag &&
+  a.side === b.side &&
+  a.z === b.z
 
 const floorOfY = (y: number) => Math.round((y - ROOF_H - FEET) / FLOOR_H)
 
@@ -106,6 +116,7 @@ export function createScene(
   let selected: HitTarget | null = null
   let cssScale = 3
   let k = 3
+  let hourOverride: number | null = null
 
   let back: HTMLCanvasElement | null = null
   let front: HTMLCanvasElement | null = null
@@ -151,7 +162,7 @@ export function createScene(
 
   // Works out every person's target; on a change they walk there (or jump with reduced motion).
   function retarget(now: number, snap: boolean) {
-    const crowd = crowdOf(people, data.director.openBuilderIssues, now)
+    const crowd = crowdOf(people, data.director.openBuilderIssues, now, reduced)
     for (const p of people) {
       const actor = actors.get(p.id)
       const desk = deskById.get(p.id)
@@ -182,6 +193,8 @@ export function createScene(
   }
 
   function step(dt: number) {
+    // A night shift walks slowly.
+    const calm = data.quietHours ? 0.6 : 1
     for (const a of actors.values()) {
       if (!a.walking) continue
       let budget = dt
@@ -190,15 +203,15 @@ export function createScene(
         const dx = next.x - a.x
         const dy = next.y - a.y
         if (dy !== 0) {
-          const move = Math.min(Math.abs(dy), CLIMB_SPEED * budget)
+          const move = Math.min(Math.abs(dy), CLIMB_SPEED * calm * budget)
           a.y += Math.sign(dy) * move
-          budget -= move / CLIMB_SPEED
+          budget -= move / (CLIMB_SPEED * calm)
           a.stride += move
         } else if (dx !== 0) {
-          const move = Math.min(Math.abs(dx), WALK_SPEED * budget)
+          const move = Math.min(Math.abs(dx), WALK_SPEED * calm * budget)
           a.x += Math.sign(dx) * move
           a.facing = dx > 0 ? 1 : -1
-          budget -= move / WALK_SPEED
+          budget -= move / (WALK_SPEED * calm)
           a.stride += move
         }
         if (Math.abs(next.x - a.x) < 0.01 && Math.abs(next.y - a.y) < 0.01) {
@@ -219,7 +232,7 @@ export function createScene(
   // ---- Layers -------------------------------------------------------------------------------
 
   function ensureLayers(now: number) {
-    const hour = localHour(now, data.tz || 'Asia/Tashkent')
+    const hour = hourOverride ?? localHour(now, data.tz || 'Asia/Tashkent')
     const c = data.tasks.counts
     const bk = [
       layout.signature,
@@ -256,16 +269,24 @@ export function createScene(
         return 'sit'
       case 'sleep':
         return 'sleep'
+      case 'read':
+        return 'read'
+      case 'lean':
+        return 'lean'
+      case 'stretch':
+        return 'stretch'
       case 'hand':
         return 'hand'
       case 'coffee':
+      case 'water':
         return 'coffee'
       default:
         return 'stand'
     }
   }
 
-  const seated = (a: Actor) => !a.walking && (a.pose === 'type' || a.pose === 'sit' || a.pose === 'sleep')
+  const seated = (a: Actor) =>
+    !a.walking && (a.pose === 'type' || a.pose === 'sit' || a.pose === 'sleep' || a.pose === 'read' || a.pose === 'lean')
 
   function actorRect(a: Actor): Rect {
     const h = seated(a) ? SIT_H : STAND_H
@@ -341,27 +362,85 @@ export function createScene(
       drawBubble(c, cx, r.y - 1 + bob, COLORS.red, 'X', '#f4f1ea')
       return r.y - 10
     }
-    if (p.status === 'sleeping') {
+    if (a.target?.z) {
+      // At most two people doze for real: a few drifting Zs.
       for (let i = 0; i < 3; i++) {
-        const phase = reduced ? i / 3 : ((now / 2600 + i / 3) % 1)
+        const phase = reduced ? i / 3 : ((now / 3600 + i / 3) % 1)
         c.globalAlpha = 1 - phase * 0.8
         text(c, 'Z', cx + 4 + Math.round(phase * 8), r.y + 2 - Math.round(phase * 14), '#dfe6ff')
       }
       c.globalAlpha = 1
       return r.y - 10
     }
-    if (a.pose === 'coffee') {
+    if (p.thinking && p.status !== 'sleeping') {
+      // Thinking: a little dot circling above the head.
+      const ox = Math.round(cx)
+      const oy = r.y - 5
+      for (const d of thinkCue(now, reduced)) {
+        c.globalAlpha = d.alpha
+        rect(c, ox + d.dx - 1, oy + d.dy - 1, 1, 1, COLORS.lime)
+      }
+      c.globalAlpha = 1
+      return r.y - 9
+    }
+    if (a.pose === 'water') {
+      // Watering can tipping over the plant, a few drops falling.
+      const canX = a.facing > 0 ? r.x + 10 : r.x - 2
+      rect(c, canX, r.y + 7, 3, 2, '#8d93a3')
+      rect(c, canX + (a.facing > 0 ? 3 : -1), r.y + 6, 1, 1, '#8d93a3')
+      const drop = reduced ? 0 : Math.floor(now / 250) % 4
+      rect(c, canX + (a.facing > 0 ? 4 : -2), r.y + 8 + drop, 1, 1, BASE['9']!)
+    }
+    if (a.pose === 'coffee' && a.target?.tag !== 'cooler') {
       const cupX = a.facing > 0 ? r.x + 9 : r.x + 1
       const phase = reduced ? 0 : (now / 1200) % 1
       c.globalAlpha = 0.6 * (1 - phase)
       rect(c, cupX + (Math.floor(now / 400) % 2), r.y + 6 - Math.round(phase * 4), 1, 1, '#e8e8e8')
       c.globalAlpha = 1
     }
-    if (a.pose === 'chat' && beat(now, 1, hashId(a.id) % 3)) {
-      drawBubble(c, cx + 2, r.y - 1, '#f4f1ea', '...', '#1a1626')
+    if (a.pose === 'chat' && speaks(a.target?.side, now, reduced)) {
+      drawBubble(c, cx + (a.facing > 0 ? 2 : -2), r.y - 1, '#f4f1ea', '...', '#1a1626')
       return r.y - 10
     }
     return r.y
+  }
+
+  // Night lamp on the desk of everybody who rests or reads: it blinks slowly, the one subtle
+  // sleeping cue left. Readers get a faint cone of light over the desk.
+  function drawLamps(c: Ctx, now: number) {
+    for (const desk of layout.desks) {
+      const p = byId.get(desk.agentId)
+      const a = actors.get(desk.agentId)
+      if (!p || p.status !== 'sleeping' || !a?.target?.lamp || a.target.pose === 'hand') continue
+      if (a.walking || !a.visible) continue
+      const t = deskTable(desk)
+      const lx = t.x + 7
+      const ly = t.y - 5
+      const seed = hashId(desk.agentId) % 7
+      const glow = reduced ? 0.7 : 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(now / 1500 + seed))
+      rect(c, lx + 1, ly + 2, 1, 3, '#6a6278')
+      rect(c, lx, ly + 4, 3, 1, '#6a6278')
+      c.globalAlpha = glow
+      rect(c, lx - 1, ly, 4, 2, '#ffd166')
+      if (a.target.cone) {
+        c.globalAlpha = 0.14 + glow * 0.08
+        for (let row = 0; row < 5; row++) rect(c, lx - 2 - row, ly + 2 + row, 4 + row * 2, 1, '#ffd166')
+      }
+      c.globalAlpha = 1
+    }
+  }
+
+  // «Очередь пуста» on the director's wall while no task waits in the queue.
+  function drawQueueSign(c: Ctx, room: Room) {
+    const l1 = 'ОЧЕРЕДЬ'
+    const l2 = 'ПУСТА'
+    const w = textWidth(l1) + 4
+    const x = room.x + room.w - w - 3
+    const y = floorTop(room.floor) + 5
+    rect(c, x, y, w, 13, COLORS.sign)
+    rect(c, x, y + 13, w, 1, '#14121c')
+    text(c, l1, x + 2, y + 2, COLORS.lime)
+    text(c, l2, x + 2, y + 8, COLORS.lime)
   }
 
   function drawRooms(c: Ctx, now: number, quiet: boolean) {
@@ -377,6 +456,7 @@ export function createScene(
         c.strokeRect(s.x - 0.5, s.y - 0.5, s.w + 1, s.h + 1)
         c.globalAlpha = 1
       }
+      if (room.kind === 'director' && data.queueEmpty === true) drawQueueSign(c, room)
       const light = room.kind === 'dept' || room.kind === 'director' ? roomLight(room, statusOf, quiet) : quiet ? 'dim' : 'on'
       if (light === 'on') continue
       const r = roomInterior(room)
@@ -446,6 +526,7 @@ export function createScene(
     for (const a of list) if (seated(a)) drawActor(c, a, now)
     if (front) c.drawImage(front, 0, 0)
     for (const desk of layout.desks) drawScreen(c, desk, byId.get(desk.agentId)?.status, now)
+    drawLamps(c, now)
     drawProducts(c, now)
     drawTerminal(c, now)
     const standing = list.filter((a) => !seated(a)).sort((a, b) => a.y - b.y || a.x - b.x)
@@ -582,6 +663,10 @@ export function createScene(
     anchorOf,
     size: () => ({ width: layout.width, height: layout.height }),
     resize,
+    setHour(hour) {
+      hourOverride = hour
+      draw(Date.now())
+    },
     setMinWidth(next) {
       const w = Math.max(SCENE_MIN_W, Math.round(next))
       if (w === minWidth) return

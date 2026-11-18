@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { officeMock } from '../src/lib/office-mock.ts'
 import * as B from '../src/components/pixel-office/behaviour.ts'
+import * as Life from '../src/components/pixel-office/life.ts'
 import * as F from '../src/components/pixel-office/font.ts'
 import * as L from '../src/components/pixel-office/layout.ts'
 import { officePeople } from '../src/components/pixel-office/model.ts'
@@ -35,11 +36,11 @@ test('every sprite uses only palette keys; people are 12 wide, 16 standing and 1
   for (const [name, s] of Object.entries(SPRITES)) {
     for (const key of s.px) if (key) assert.ok(key in P.BASE, `${name} uses unknown key ${key}`)
   }
-  for (const name of ['stand', 'hand', 'walkA', 'walkB', 'coffee']) {
+  for (const name of ['stand', 'hand', 'walkA', 'walkB', 'coffee', 'stretch']) {
     assert.equal(SPRITES[name].w, 12, name)
     assert.equal(SPRITES[name].h, 16, name)
   }
-  for (const name of ['sit', 'typeA', 'typeB', 'sleep']) {
+  for (const name of ['sit', 'typeA', 'typeB', 'sleep', 'read', 'lean']) {
     assert.equal(SPRITES[name].w, 12, name)
     assert.equal(SPRITES[name].h, 14, name)
   }
@@ -141,17 +142,23 @@ test('status decides where a person goes and what they do there', () => {
   assert.equal(waiting.pose, 'hand')
   assert.equal(waiting.x, L.standX(desk('publisher')))
 
+  // Sleeping people rest at their desk (a lamp, no slump); only the night plan wakes a few.
   const sleeping = B.targetFor(person('analyst', 'sleeping'), desk('analyst'), layout, crowd(people))
-  assert.equal(sleeping.pose, 'sleep')
-  assert.equal(sleeping.x, L.seatX(desk('analyst')))
+  assert.equal(sleeping.floor, desk('analyst').floor)
+  assert.ok(['lean', 'sleep', 'read', 'hand', 'stand', 'coffee'].includes(sleeping.pose))
 
+  // An idle worker is somewhere on a floor of the building, doing something from the repertoire.
   const idle = B.targetFor(person('finance', 'idle'), desk('finance'), layout, crowd(people))
-  assert.equal(idle.floor, lounge.floor)
-  assert.ok(idle.x >= lounge.x && idle.x < lounge.x + lounge.w)
-  assert.ok(idle.pose === 'coffee' || idle.pose === 'chat')
+  assert.ok(idle.tag)
+  assert.ok(idle.floor >= 0 && idle.floor < layout.floors)
+  void lounge
 
+  // The director stays in his office (or the meeting room) when idle.
   const director = B.targetFor(person('director', 'idle'), desk('director'), layout, crowd(people))
-  assert.equal(director.pose, 'sit')
+  const droom = L.roomOf(layout, 'director')
+  const meet = L.roomOf(layout, 'meeting')
+  const inRoom = (t, r) => t.floor === r.floor && t.x >= r.x && t.x < r.x + r.w
+  assert.ok(inRoom(director, droom) || inRoom(director, meet))
 
   for (const status of ['paused', 'offline']) {
     const away = B.targetFor(person('presales', status), desk('presales'), layout, crowd(people))
@@ -171,14 +178,11 @@ test('status decides where a person goes and what they do there', () => {
   assert.ok(visits > 5 && visits < 40, `visits ${visits}`)
 })
 
-test('idle people get distinct lounge spots in a stable order', () => {
+test('crowd keeps the lounge order of idle people sorted by id', () => {
   const data = officeMock(NOW)
-  const layout = L.buildLayout(data)
   const people = officePeople(data)
   const crowd = B.crowdOf(people, 0, NOW)
   const idle = people.filter((p) => p.status === 'idle' && p.role !== 'director')
-  const xs = idle.map((p) => B.targetFor(p, layout.desks.find((d) => d.agentId === p.id), layout, crowd).x)
-  assert.equal(new Set(xs).size, xs.length)
   assert.deepEqual([...crowd.idle.keys()], idle.map((p) => p.id).sort())
 })
 
@@ -239,4 +243,178 @@ test('the mock shows every agent status', () => {
   for (const s of STATUSES) assert.ok(seen.has(s), s)
   const production = officeMock(NOW).departments.find((d) => d.id === 'production')
   assert.ok([production.head, ...production.workers].every((a) => a.status === 'paused'))
+})
+
+// ---- Office life ------------------------------------------------------------------------------
+
+const everyone = (status) => officePeople(company(19)).map((p) => ({ ...p, status }))
+const inRoom = (layout, kind, t) => {
+  const r = L.roomOf(layout, kind)
+  return !!r && t.floor === r.floor && t.x >= r.x && t.x < r.x + r.w
+}
+const targets = (people, layout, time) => {
+  const crowd = B.crowdOf(people, 0, time)
+  return people.map((p) => ({ p, t: B.targetFor(p, layout.desks.find((d) => d.agentId === p.id), layout, crowd) }))
+}
+
+test('life: repertoire is stable inside a bucket and changes across buckets', () => {
+  const id = 'content-maker'
+  const b0 = Life.bucketOf(id, NOW)
+  // Same bucket: same pick, however often it is asked.
+  assert.equal(Life.idleRoll(id, b0), Life.idleRoll(id, b0))
+  let t = NOW
+  while (Life.bucketOf(id, t) === b0) t += 1000
+  const length = t - NOW
+  assert.ok(length <= 91_000, `bucket ends within a minute and a half (${length} ms)`)
+  // Buckets last 30 to 90 s.
+  let end = t
+  while (Life.bucketOf(id, end) === b0 + 1) end += 1000
+  assert.ok(end - t >= 30_000 && end - t <= 91_000, `bucket length ${end - t}`)
+  // Over many buckets a person does several different things.
+  const seen = new Set(Array.from({ length: 60 }, (_, i) => Life.idleRoll(id, i)))
+  assert.ok(seen.size >= 5, `activities seen: ${[...seen]}`)
+  // Two pages asking at the same moment get the same office; a later bucket changes some of it.
+  const layout = L.buildLayout(company(19))
+  const people = everyone('idle')
+  const a = JSON.stringify(targets(people, layout, NOW).map((x) => x.t))
+  assert.equal(a, JSON.stringify(targets(people, layout, NOW).map((x) => x.t)))
+  assert.notEqual(a, JSON.stringify(targets(people, layout, NOW + 200_000).map((x) => x.t)))
+})
+
+test('life: heads and the director never go to the lounge', () => {
+  const layout = L.buildLayout(company(19))
+  const people = everyone('idle')
+  for (let time = NOW; time < NOW + 1_800_000; time += 7_000) {
+    for (const { p, t } of targets(people, layout, time)) {
+      if (p.role === 'worker') continue
+      assert.ok(!inRoom(layout, 'lounge', t), `${p.id} in the lounge at +${time - NOW}`)
+      if (p.role === 'director') assert.ok(inRoom(layout, 'director', t) || inRoom(layout, 'meeting', t), 'director strays')
+    }
+  }
+})
+
+test('life: heads meet in the Meeting room now and then, and talk in turns', () => {
+  const layout = L.buildLayout(company(19))
+  const people = everyone('idle')
+  let meetings = 0
+  for (let time = NOW - (NOW % Life.MEET_PERIOD); time < NOW + 3_600_000; time += 5_000) {
+    const there = targets(people, layout, time).filter(({ p, t }) => p.role !== 'worker' && inRoom(layout, 'meeting', t))
+    if (there.length) {
+      meetings++
+      assert.equal(there.length, 2)
+      assert.deepEqual(there.map(({ t }) => t.side).sort(), [0, 1])
+    }
+  }
+  assert.ok(meetings > 20, `meeting ticks ${meetings}`)
+  // Bubbles alternate: exactly one side speaks at any moment, and it switches.
+  assert.notEqual(Life.speaks(0, 0), Life.speaks(1, 0))
+  assert.notEqual(Life.speaks(0, 0), Life.speaks(0, 1600))
+  assert.equal(Life.speaks(undefined, 0), false)
+})
+
+test('life: at most 40% of idle people are in the lounge, the rest stay near their desks', () => {
+  for (const n of [5, 12, 19]) {
+    const data = company(n)
+    const layout = L.buildLayout(data)
+    const people = officePeople(data).map((p) => ({ ...p, status: 'idle' }))
+    let peak = 0
+    for (let time = NOW; time < NOW + 3_600_000; time += 9_000) {
+      const inLounge = targets(people, layout, time).filter(({ t }) => inRoom(layout, 'lounge', t)).length
+      peak = Math.max(peak, inLounge)
+      assert.ok(inLounge <= Math.floor(people.length * 0.4), `${inLounge} of ${people.length} in the lounge`)
+    }
+    assert.ok(peak > 0, 'the lounge is used')
+  }
+})
+
+test('life: chats are pairs that face each other', () => {
+  const layout = L.buildLayout(company(19))
+  const people = everyone('idle')
+  let pairs = 0
+  for (let time = NOW; time < NOW + 1_200_000; time += 11_000) {
+    const chat = targets(people, layout, time).filter(({ t }) => t.pose === 'chat' && t.tag !== 'meeting')
+    const sides = chat.map(({ t }) => t.side)
+    assert.equal(sides.filter((s) => s === 0).length, sides.filter((s) => s === 1).length, 'every talker has a partner')
+    pairs += sides.filter((s) => s === 0).length
+    for (const { t } of chat.filter(({ t }) => t.side === 0)) {
+      const partner = chat.find(({ t: u }) => u.side === 1 && u.floor === t.floor && Math.abs(u.x - t.x) === 11)
+      assert.ok(partner, 'partner stands next to them')
+      assert.equal(partner.t.facing, -t.facing)
+    }
+  }
+  assert.ok(pairs > 10, `pairs ${pairs}`)
+})
+
+test('life: quiet night keeps at most 20% awake and at most two with Z', () => {
+  const layout = L.buildLayout(company(19))
+  const people = everyone('sleeping')
+  let awakeSeen = 0
+  let headsAtBoard = 0
+  for (let time = NOW; time < NOW + 7_200_000; time += 20_000) {
+    const all = targets(people, layout, time)
+    const awake = all.filter(({ t }) => t.pose !== 'lean' && t.pose !== 'sleep')
+    assert.ok(awake.length <= Math.floor(people.length * 0.2), `${awake.length} awake of ${people.length}`)
+    assert.ok(all.filter(({ t }) => t.z).length <= 2)
+    awakeSeen = Math.max(awakeSeen, awake.length)
+    headsAtBoard = Math.max(headsAtBoard, all.filter(({ p, t }) => p.role === 'head' && t.tag === 'board').length)
+    // Nobody is mass-asleep, the rest rest with a lamp on.
+    for (const { t } of all) if (t.pose === 'lean' || t.pose === 'sleep') assert.equal(t.lamp, true)
+    assert.ok(all.filter(({ t }) => t.pose === 'lean').length >= people.length - 2 - Math.floor(people.length * 0.2))
+  }
+  assert.ok(awakeSeen >= 2, 'a few stay up')
+  assert.ok(headsAtBoard >= 1 && headsAtBoard <= 2, `heads at the board ${headsAtBoard}`)
+})
+
+test('life: night targets are slow-changing (buckets of 90 s and more)', () => {
+  assert.ok(Life.bucketOf('analyst', NOW, 'night') !== undefined)
+  let t = NOW
+  const b = Life.bucketOf('analyst', t, 'night')
+  while (Life.bucketOf('analyst', t, 'night') === b) t += 1000
+  let end = t
+  while (Life.bucketOf('analyst', end, 'night') === b + 1) end += 1000
+  assert.ok(end - t >= 90_000, `night bucket ${end - t}`)
+})
+
+test('life: reduced motion re-rolls half as often and nobody paces', () => {
+  const slowLen = (() => {
+    let t = NOW
+    const b = Life.bucketOf('analyst', t, 'day', true)
+    while (Life.bucketOf('analyst', t, 'day', true) === b) t += 1000
+    let end = t
+    while (Life.bucketOf('analyst', end, 'day', true) === b + 1) end += 1000
+    return end - t
+  })()
+  assert.ok(slowLen >= 60_000)
+})
+
+test('thinking flag reaches the person and draws a moving cue', () => {
+  const data = officeMock(NOW)
+  data.departments[0].workers[0] = { ...data.departments[0].workers[0], thinking: true }
+  const people = officePeople(data)
+  assert.equal(people.find((p) => p.id === data.departments[0].workers[0].id).thinking, true)
+  assert.equal(people.filter((p) => p.thinking).length, 1)
+  // Absent in the data counts as false.
+  assert.ok(officePeople(officeMock(NOW)).every((p) => p.thinking === false))
+  const a = Life.thinkCue(0, false)
+  assert.equal(a.length, 3)
+  assert.notDeepEqual(a, Life.thinkCue(200, false))
+  // Reduced motion: the same frame for half a second, then a slow step.
+  assert.deepEqual(Life.thinkCue(0, true), Life.thinkCue(500, true))
+  assert.notDeepEqual(Life.thinkCue(0, true), Life.thinkCue(900, true))
+})
+
+test('director sign: the font can write «Очередь пуста»', () => {
+  assert.ok(F.canWrite('ОЧЕРЕДЬ'))
+  assert.ok(F.canWrite('ПУСТА'))
+})
+
+test('whiteboards and windows do not collide, lounge spots are inside the lounge', () => {
+  const layout = L.buildLayout(company(19))
+  const lounge = L.roomOf(layout, 'lounge')
+  const spots = L.loungeSpots(layout)
+  for (const x of [spots.coffee, spots.cooler, spots.plant, ...spots.sofa]) assert.ok(x > lounge.x && x < lounge.x + lounge.w)
+  for (const room of layout.rooms.filter((r) => L.hasBoard(r))) {
+    assert.ok(!L.lookWindows(room).includes(L.boardX(room)))
+  }
+  assert.ok(layout.rooms.some((r) => L.hasBoard(r)))
 })

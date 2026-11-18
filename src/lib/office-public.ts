@@ -6,7 +6,7 @@
 
 import { statusChip, type AgentStatus, type OfficeAgent, type OfficeData } from './office-view'
 
-export type PublicAgent = { id: string; title: string; status: AgentStatus }
+export type PublicAgent = { id: string; title: string; status: AgentStatus; thinking?: boolean }
 
 export type PublicDepartment = {
   id: string
@@ -30,6 +30,7 @@ export type PublicOffice = {
   generatedAt: string
   tz: string
   quietHours: boolean
+  queueEmpty?: boolean
   director: PublicAgent
   departments: PublicDepartment[]
   counts: PublicCounts
@@ -56,11 +57,12 @@ const cleanTitle = (v: unknown) =>
 const count = (v: unknown) =>
   typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0
 
-function agentOf(a: Pick<OfficeAgent, 'id' | 'title' | 'status'>): PublicAgent {
+function agentOf(a: Pick<OfficeAgent, 'id' | 'title' | 'status' | 'thinking'>): PublicAgent {
   return {
     id: cleanId(a.id),
     title: cleanTitle(a.title),
     status: statusChip(String(a.status)).status,
+    ...(a.thinking === true ? { thinking: true } : {}),
   }
 }
 
@@ -103,6 +105,7 @@ export function toPublicOffice(data: OfficeData, demo = false): PublicOffice {
       : new Date(generated).toISOString(),
     tz: /^[A-Za-z_]+\/[A-Za-z_]+$/.test(data.tz) ? data.tz : 'Asia/Tashkent',
     quietHours: data.quietHours === true,
+    ...(data.queueEmpty === true ? { queueEmpty: true } : {}),
     director,
     departments,
     counts: countsOf(director, departments, tasksRunning, doneToday),
@@ -186,12 +189,20 @@ const DEMO_STATUS: Record<string, AgentStatus[]> = {
 
 export const DEMO_CYCLE_MS = 40_000
 
+const hashDemo = (id: string) => [...id].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 9973, 7)
+
 export function publicDemo(now = Date.now()): PublicOffice {
   const phase = Math.floor(now / DEMO_CYCLE_MS) % 4
   // Done tasks grow through the (UTC) day so the counter moves, never past a believable number.
   const hour = new Date(now).getUTCHours()
   const status = (id: string): AgentStatus => DEMO_STATUS[id]?.[phase] ?? 'idle'
-  const agent = (id: string, title: string): PublicAgent => ({ id, title, status: status(id) })
+  // Some working agents are mid model call, so the demo shows the thinking cue too.
+  const agent = (id: string, title: string): PublicAgent => ({
+    id,
+    title,
+    status: status(id),
+    ...(status(id) === 'working' && (hashDemo(id) + phase) % 3 === 0 ? { thinking: true } : {}),
+  })
   const director = agent('director', 'Director')
   const departments = DEMO_DEPTS.map(([id, title, workers, [headId, headTitle]]) => ({
     id,
@@ -235,16 +246,19 @@ export function publicToScene(pub: PublicOffice): OfficeData {
     title: a.title,
     status: a.status,
     currentTask: null,
+    thinking: a.thinking === true,
   })
   return {
     ok: true,
     generatedAt: pub.generatedAt,
     tz: pub.tz,
     quietHours: pub.quietHours,
+    queueEmpty: pub.queueEmpty === true,
     director: {
       id: pub.director.id,
       title: pub.director.title,
       status: pub.director.status,
+      thinking: pub.director.thinking === true,
       lastSummaryAt: null,
       nextSummaryAt: null,
       pendingApprovals: 0,

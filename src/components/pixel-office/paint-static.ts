@@ -13,11 +13,14 @@ import {
   FLOOR_X,
   feetY,
   floorTop,
+  hasBoard,
   type Layout,
   MARGIN,
   type Rack,
   ROOF_H,
   type Room,
+  WINDOW_W,
+  windowXs,
 } from './layout'
 import { BASE, COLORS, hashId, mix, shade, wallColor } from './palette'
 import { SPRITES } from './sprites'
@@ -216,22 +219,24 @@ function paintRoomBack(ctx: Ctx, layout: Layout, room: Room, data: OfficeData, s
 
 function paintWindows(ctx: Ctx, room: Room, sky: Sky) {
   const top = floorTop(room.floor)
-  const sign = signRect(room)
   const wy = top + 18
-  const ww = 16
-  const wh = 14
-  let count = Math.max(1, Math.floor((room.w - 10) / 30))
-  if (room.kind === 'builders' || room.kind === 'meeting') count = 1
-  const gap = (room.w - count * ww) / (count + 1)
-  for (let i = 0; i < count; i++) {
-    let wx = Math.round(room.x + gap + i * (ww + gap))
-    if (room.kind === 'builders') wx = room.x + 5
-    if (room.kind === 'meeting') wx = room.x + room.w - ww - 4
-    // Leave the meeting room's whiteboard visible.
-    if (room.kind === 'meeting' && room.w < 70) continue
-    if (wy < sign.y + sign.h) continue
-    paintWindow(ctx, wx, wy, ww, wh, sky, hashId(`${room.id}${i}`))
+  const xs = windowXs(room)
+  xs.forEach((wx, i) => {
+    if (i === 0 && hasBoard(room)) paintBoard(ctx, wx, wy, WINDOW_W, 14, hashId(room.id))
+    else paintWindow(ctx, wx, wy, WINDOW_W, 14, sky, hashId(`${room.id}${i}`))
+  })
+}
+
+// Department whiteboard: a few scribbles and a marker tray.
+function paintBoard(ctx: Ctx, x: number, y: number, w: number, h: number, seed: number) {
+  rect(ctx, x - 1, y - 1, w + 2, h + 2, '#8d93a3')
+  rect(ctx, x, y, w, h, '#f4f1ea')
+  const inks = ['#5b8def', '#c45b5b', '#4fb08a']
+  for (let line = 0; line < 4; line++) {
+    const len = 4 + ((seed >>> (line * 3)) % 8)
+    rect(ctx, x + 2, y + 2 + line * 3, Math.min(len, w - 4), 1, inks[(line + seed) % 3]!)
   }
+  rect(ctx, x + 2, y + h, w - 4, 1, '#6a6278')
 }
 
 function paintWindow(ctx: Ctx, x: number, y: number, w: number, h: number, sky: Sky, seed: number) {

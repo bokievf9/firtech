@@ -2,22 +2,12 @@
 // get there and how lit each room is. Pure module, covered by tests/pixel-office.test.mjs.
 
 import type { AgentStatus } from '@/lib/office-view'
-import {
-  buildersSpot,
-  type Desk,
-  feetY,
-  type Layout,
-  loungeSpot,
-  type Room,
-  seatX,
-  standX,
-} from './layout'
+import { buildersSpot, type Desk, feetY, type Layout, type Room, seatX, standX } from './layout'
+import { planOffice, type Pose, type Target } from './life'
 import type { Person } from './model'
 import { hashId } from './palette'
 
-export type Pose = 'type' | 'sit' | 'sleep' | 'hand' | 'stand' | 'coffee' | 'chat' | 'absent'
-
-export type Target = { floor: number; x: number; pose: Pose; facing: 1 | -1 }
+export type { Pose, Target } from './life'
 
 // Blocked agents visit the builders' corner now and then while builder issues are open: about a
 // quarter of a 60 to 80 s cycle, phase-shifted per agent so they do not all walk at once.
@@ -34,9 +24,14 @@ export type Crowd = {
   blocked: ReadonlyMap<string, number>
   builderIssues: number
   time: number
+  people: readonly Person[]
+  // Reduced motion: activities change half as often and nobody paces back and forth.
+  slow: boolean
+  // Plan of idle and sleeping people (life.ts), made once per crowd on first use.
+  memo: { layout: Layout; plan: Map<string, Target> } | null
 }
 
-export function crowdOf(people: readonly Person[], builderIssues: number, time: number): Crowd {
+export function crowdOf(people: readonly Person[], builderIssues: number, time: number, slow = false): Crowd {
   const order = (status: AgentStatus) =>
     new Map(
       people
@@ -45,7 +40,7 @@ export function crowdOf(people: readonly Person[], builderIssues: number, time: 
         .sort()
         .map((id, i) => [id, i] as const),
     )
-  return { idle: order('idle'), blocked: order('blocked'), builderIssues, time }
+  return { idle: order('idle'), blocked: order('blocked'), builderIssues, time, people, slow, memo: null }
 }
 
 export function targetFor(person: Person, desk: Desk, layout: Layout, crowd: Crowd): Target {
@@ -54,8 +49,6 @@ export function targetFor(person: Person, desk: Desk, layout: Layout, crowd: Cro
   switch (person.status) {
     case 'working':
       return atDesk('type')
-    case 'sleeping':
-      return atDesk('sleep')
     case 'waiting':
       return byDesk('hand')
     case 'blocked': {
@@ -65,12 +58,12 @@ export function targetFor(person: Person, desk: Desk, layout: Layout, crowd: Cro
       }
       return byDesk('stand')
     }
-    case 'idle': {
-      if (person.role === 'director') return atDesk('sit')
-      const i = crowd.idle.get(person.id) ?? 0
-      const spot = loungeSpot(layout, i)
-      // Every third person chats with the one on their left instead of holding a cup.
-      return i % 3 === 2 ? { ...spot, pose: 'chat', facing: -1 } : { ...spot, pose: 'coffee', facing: i % 2 ? -1 : 1 }
+    case 'idle':
+    case 'sleeping': {
+      if (crowd.memo?.layout !== layout) {
+        crowd.memo = { layout, plan: planOffice({ people: crowd.people, layout, time: crowd.time, slow: crowd.slow }) }
+      }
+      return crowd.memo.plan.get(person.id) ?? atDesk(person.status === 'idle' ? 'read' : 'lean')
     }
     case 'paused':
     case 'offline':

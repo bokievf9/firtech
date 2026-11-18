@@ -1,5 +1,5 @@
 // A 3 x 5 pixel font (M, W, N and a few are wider) for signs, labels and bubbles. Latin capitals,
-// digits and a little punctuation; anything else is skipped. Pure module.
+// digits, a little punctuation and the few Cyrillic capitals the signs need; anything else is skipped. Pure module.
 
 const GLYPHS: Readonly<Record<string, readonly string[]>> = {
   A: ['.#.', '#.#', '###', '#.#', '#.#'],
@@ -46,6 +46,18 @@ const GLYPHS: Readonly<Record<string, readonly string[]>> = {
   '$': ['.##', '##.', '.#.', '.##', '##.'],
   '>': ['#..', '.#.', '..#', '.#.', '#..'],
   '_': ['...', '...', '...', '...', '###'],
+  // Cyrillic capitals for the director's «ОЧЕРЕДЬ ПУСТА» sign (look-alikes reuse Latin shapes).
+  'О': ['.#.', '#.#', '#.#', '#.#', '.#.'],
+  'Ч': ['#.#', '#.#', '###', '..#', '..#'],
+  'Е': ['###', '#..', '##.', '#..', '###'],
+  'Р': ['##.', '#.#', '##.', '#..', '#..'],
+  'Д': ['.#.', '#.#', '#.#', '###', '#.#'],
+  'Ь': ['#..', '#..', '##.', '#.#', '##.'],
+  'П': ['###', '#.#', '#.#', '#.#', '#.#'],
+  'У': ['#.#', '#.#', '.#.', '.#.', '#..'],
+  'С': ['.##', '#..', '#..', '#..', '.##'],
+  'Т': ['###', '.#.', '.#.', '.#.', '.#.'],
+  'А': ['.#.', '#.#', '###', '#.#', '#.#'],
   ' ': ['..', '..', '..', '..', '..'],
 }
 
