@@ -1,11 +1,12 @@
 'use client'
 
-import { Buildings, CloudSlash, Kanban, Robot, SealCheck, Siren, Tray } from '@phosphor-icons/react'
+import { Buildings, CloudSlash, Kanban, Phone, Robot, SealCheck, Siren, Tray, UsersThree } from '@phosphor-icons/react'
 import { MotionConfig } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { OfficeBoard, type OfficePick } from '@/components/admin/office/office-board'
-import { Toast, type ToastMessage } from '@/components/admin/pulse/toast'
+import { Toast, type ToastMessage } from './toast'
 import { admin } from '@/content/admin'
+import { callsToday, newLeadCount } from '@/lib/admin-crm'
 import { cn } from '@/lib/cn'
 import {
   badgeText,
@@ -29,6 +30,8 @@ import {
 import { errText, fill, hq, usePoll } from './api'
 import { ApprovalsPanel } from './approvals-panel'
 import { useFolded } from './cc-panel'
+import { useCrmLeads } from './crm-data'
+import { CrmPanels } from './crm-panels'
 import { DirectorChat } from './director-chat'
 import { DrillPanel } from './drill-panel'
 import { InboxPanel } from './inbox-panel'
@@ -53,16 +56,20 @@ function useNow(step = 15_000) {
 const scrollToPanel = (id: string) =>
   document.getElementById(`cc-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
+// The panel registry of the tab bar: add a panel here (its section has id `cc-<id>`) and it gets a tab.
+const tabs = [
+  { id: 'office', icon: Buildings, label: t.tabs.office },
+  { id: 'inbox', icon: Tray, label: t.tabs.inbox },
+  { id: 'approvals', icon: SealCheck, label: t.tabs.approvals },
+  { id: 'tasks', icon: Kanban, label: t.tabs.tasks },
+  { id: 'director', icon: Robot, label: t.tabs.director },
+  { id: 'drill', icon: Siren, label: t.tabs.drill },
+  { id: 'leads', icon: UsersThree, label: t.tabs.leads },
+  { id: 'calls', icon: Phone, label: t.tabs.calls },
+]
+
 // Sticky tab bar for phones: jumps to a panel, highlights the one in view, carries the badges.
 function TabBar({ badges }: { badges: Record<string, string | null> }) {
-  const tabs = [
-    { id: 'office', icon: Buildings, label: t.tabs.office },
-    { id: 'inbox', icon: Tray, label: t.tabs.inbox },
-    { id: 'approvals', icon: SealCheck, label: t.tabs.approvals },
-    { id: 'tasks', icon: Kanban, label: t.tabs.tasks },
-    { id: 'director', icon: Robot, label: t.tabs.director },
-    { id: 'drill', icon: Siren, label: t.tabs.drill },
-  ]
   const [active, setActive] = useState('office')
   useEffect(() => {
     const seen = new Map<string, number>()
@@ -74,7 +81,7 @@ function TabBar({ badges }: { badges: Record<string, string | null> }) {
       },
       { threshold: [0, 0.25, 0.5, 0.75, 1] },
     )
-    for (const tab of ['office', 'inbox', 'approvals', 'tasks', 'director', 'drill']) {
+    for (const { id: tab } of tabs) {
       const el = document.getElementById(`cc-${tab}`)
       if (el) io.observe(el)
     }
@@ -85,9 +92,9 @@ function TabBar({ badges }: { badges: Record<string, string | null> }) {
       aria-label={t.tabs.label}
       className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-bg/92 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden"
     >
-      <ul className="mx-auto grid max-w-xl grid-cols-6">
+      <ul className="mx-auto flex max-w-xl overflow-x-auto">
         {tabs.map(({ id, icon: TabIcon, label }) => (
-          <li key={id}>
+          <li key={id} className="min-w-[3.5rem] flex-1">
             <a
               href={`#cc-${id}`}
               onClick={(e) => {
@@ -280,7 +287,13 @@ export function ControlCenter() {
   const view = presenceView(s, now)
   const unread = inbox.data ? inbox.data.items.filter((i) => !i.read).length : (s?.inboxUnread ?? 0)
   const pending = approvals.data ? approvals.data.items.length : (s?.approvalsPending ?? 0)
-  const badges = { inbox: badgeText(unread), approvals: badgeText(pending) }
+  const crm = useCrmLeads()
+  const badges = {
+    inbox: badgeText(unread),
+    approvals: badgeText(pending),
+    leads: crm.leads ? badgeText(newLeadCount(crm.leads)) : null,
+    calls: crm.leads ? badgeText(callsToday(crm.leads, crm.now).length) : null,
+  }
   const departments = depts.data?.items ?? []
   const tz = s?.tz ?? 'Asia/Tashkent'
 
@@ -380,6 +393,7 @@ export function ControlCenter() {
                 <DirectorChat className="lg:col-span-4" onOpenTask={setOpenTask} onSent={refreshAll} />
                 <DrillPanel departments={departments} className="lg:order-2 lg:col-span-12 min-[120rem]:order-none" />
               </div>
+              <CrmPanels crm={crm} />
             </div>
           </OfficeBoard>
         </div>

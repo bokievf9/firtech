@@ -2,51 +2,15 @@
 
 import { DownloadSimple, DotsThree } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { Logo } from '@/components/logo'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 
-const links = [
-  { href: '/admin', label: admin.nav.overview },
-  { href: '/admin/leads', label: admin.nav.leads },
-  { href: '/admin/calendar', label: admin.nav.calendar },
-  { href: '/admin/office', label: admin.nav.office },
-] as const
-
-// Switch between the two layouts of the Pulse (/admin?v=a or ?v=b, B by default). Plain links that
-// keep the other query parameters, so it works without JavaScript.
-function ViewSwitch() {
-  const params = useSearchParams()
-  const current = params.get('v') === 'a' ? 'a' : 'b'
-  const href = (view: 'a' | 'b') => {
-    const next = new URLSearchParams(params.toString())
-    next.set('v', view)
-    return `/admin?${next.toString()}`
-  }
-  return (
-    <nav
-      aria-label={admin.pulse.views.label}
-      className="flex rounded-full border border-line p-0.5 text-sm"
-    >
-      {(['a', 'b'] as const).map((view) => (
-        <Link
-          key={view}
-          href={href(view)}
-          aria-current={current === view ? 'page' : undefined}
-          className={cn(
-            'inline-flex h-10 items-center rounded-full px-3.5 whitespace-nowrap transition-colors',
-            current === view ? 'bg-fg text-bg' : 'text-muted hover:text-fg',
-          )}
-        >
-          {admin.pulse.views[view]}
-        </Link>
-      ))}
-    </nav>
-  )
-}
+// The only page of the owner panel is the control center; Echo (off) adds its own link when on.
+const links = [{ href: '/admin/office', label: admin.nav.office }] as const
 
 // `wide`: the пульт uses the whole screen: fluid up to 1760 px, then 88% of the viewport, so large
 // and ultrawide screens get proportional side gutters instead of a fixed 1440 px column.
@@ -75,7 +39,7 @@ export function AdminShell({ children, wide = false }: { children: React.ReactNo
       )}
     >
       <header className="sticky top-0 z-30 -mx-4 flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-line bg-bg/90 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
-        <Link href="/admin" className="flex items-center gap-2.5">
+        <Link href="/admin/office" className="flex items-center gap-2.5">
           <Logo className="text-[17px]" />
           <span className="hidden rounded-full border border-line px-2.5 py-0.5 text-xs text-muted sm:inline">
             admin
@@ -83,8 +47,7 @@ export function AdminShell({ children, wide = false }: { children: React.ReactNo
         </Link>
         <nav className="order-3 -mx-1 flex w-full gap-1 overflow-x-auto sm:order-none sm:w-auto">
           {links.map((link) => {
-            const active =
-              link.href === '/admin' ? pathname === '/admin' : pathname.startsWith(link.href)
+            const active = pathname.startsWith(link.href)
             return (
               <Link
                 key={link.href}
@@ -101,11 +64,6 @@ export function AdminShell({ children, wide = false }: { children: React.ReactNo
           })}
         </nav>
         <div className="ml-auto flex items-center gap-2">
-          {pathname === '/admin' ? (
-            <Suspense fallback={null}>
-              <ViewSwitch />
-            </Suspense>
-          ) : null}
           <ThemeToggle />
           <details className="relative">
             <summary

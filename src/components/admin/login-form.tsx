@@ -74,7 +74,7 @@ export function LoginForm() {
     setError('')
     const result = await post('/api/admin/login', { code })
     if (result.ok) {
-      router.replace('/admin')
+      router.replace('/admin/office')
       router.refresh()
       return
     }

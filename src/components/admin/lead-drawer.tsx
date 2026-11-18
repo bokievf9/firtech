@@ -17,12 +17,12 @@ import type { LeadStatus } from '@/lib/store'
 
 const t = admin.drawer
 
-type Action =
+export type Action =
   | { action: 'status'; status: LeadStatus }
   | { action: 'notes'; notes: string }
   | { action: 'booking'; op: 'ok' | 'move' }
 
-async function send(id: number, body: Action) {
+export async function send(id: number, body: Action) {
   const response = await fetch(`/api/admin/leads/${id}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

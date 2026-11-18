@@ -111,18 +111,31 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   revocable; back it up with `leads.json`). Pages and `/api/admin/*` check the session on the
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
-  site. Bot `/admin` sends the link. Overview, leads with drawer, calendar, CSV export.
+  site. Bot `/admin` sends the link. Since 2026-11-19 (owner: «в админке всё кроме офиса не нужно») the
+  panel has ONE page, the control center below; `/admin` redirects to `/admin/office`, the old overview
+  (Pulse), `/admin/leads` and `/admin/calendar` and their code are deleted (404). Site-form leads and
+  call bookings live inside the control center as panels «Лиды» and «Созвоны» (see below).
+  The admin shell nav shows only «Офис», the theme switch and logout.
 - Пульт `/admin/office` (control center, stage 1 since 2026-11-19, nav link «Офис»): the owner's
   workplace instead of the Director bot. Top bar with the presence switch («На месте» / «Не на месте»;
   the page pings HQ every 60 s while visible, HQ goes «away» by itself and sends to Telegram),
   badges and HQ link; the pixel office below (click a person or department to filter tasks); then
   panels Входящие, Одобрения, Задачи (board + drawer), Директор (chat to `/say` and `/command`),
-  Учения (`src/components/admin/control/`). Browser calls only `/api/admin/hq/[...path]`, a
+  Учения, then «Лиды» and «Созвоны» (`src/components/admin/control/`). Browser calls only `/api/admin/hq/[...path]`, a
   session-checked whitelist proxy (`src/lib/hq-admin.ts`, 5 s timeout) to `HQ_ADMIN_URL` (default
   `http://127.0.0.1:8787/admin`, header `x-admin-token: HQ_ADMIN_TOKEN`, falls back to
   `HQ_OFFICE_TOKEN`); unset in development = in-memory mock `src/lib/hq-admin-mock.ts`. View models
   `src/lib/hq-admin-view.ts`, tests `tests/hq-admin.test.mjs`, notes «Пульт (этап 1)» in
   `docs/office-design-notes.md`. The page uses `AdminShell wide` (fluid to 1760 px, then 88vw).
+- Panels «Лиды» and «Созвоны» of the пульт (`control/leads-panel.tsx`, `calls-panel.tsx`, mounted by
+  `crm-panels.tsx` in `control-center.tsx`; data hook `crm-data.ts` polls `GET /api/admin/leads` every
+  30 s; view models `src/lib/admin-crm.ts`, tests `tests/admin-crm.test.mjs`). They show the site-form
+  store (`leads.json`) only: status chips and counts, search, the lead drawer (`lead-drawer.tsx`,
+  private notes, booking, status through `/api/admin/leads/[id]` = `setLeadStatus`/`bookingAction`
+  like the bot buttons) and «Экспорт CSV» of the visible list. Telegram and web-chat leads live in
+  «Задачи» under Продажи. Calls: today, pending ones with confirm/move, and a two-week Mon-Fri view.
+  Badges (new leads, calls today) are in the phone tab bar, whose panel registry is `tabs` in
+  `control-center.tsx`; add a panel there and it gets a tab. Side by side from 1920 px.
 - Live office on that page («Живой офис»): a pixel-art office on canvas in the
   spirit of Lumio (engine `src/components/pixel-office/`, shared with the public hero; admin wrapper `src/components/admin/office/pixel-office.tsx`; tests `tests/pixel-office.test.mjs`):
   a desk and a little person per agent whose behaviour shows the status, window light from the
