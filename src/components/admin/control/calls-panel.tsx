@@ -82,7 +82,7 @@ export function CallsPanel({
             <section>
               <h3 className="mb-1.5 text-xs text-faint">{t.today}</h3>
               {today.length ? (
-                <ul className="grid gap-1.5 sm:grid-cols-2">
+                <ul className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-[repeat(2,minmax(0,1fr))]">
                   {today.map((c) => (
                     <li key={c.id}>
                       <CallChip call={c} onOpen={onOpen} />
@@ -139,7 +139,7 @@ export function CallsPanel({
             {weeks.map((week, i) => (
               <section key={week.start} aria-label={t.weeks[i] ?? fill(t.week, { d: week.start })}>
                 <h3 className="mb-1.5 text-xs text-faint">{t.weeks[i] ?? fill(t.week, { d: week.start })}</h3>
-                <ol className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-5">
+                <ol className="grid grid-cols-[minmax(0,1fr)] gap-1.5 sm:grid-cols-[repeat(5,minmax(0,1fr))]">
                   {week.days.map((day) => (
                     <li
                       key={day.date}
@@ -154,7 +154,7 @@ export function CallsPanel({
                         {!day.past ? <span className="text-faint">{fill(t.freeShort, { n: day.free })}</span> : null}
                       </p>
                       {day.calls.length ? (
-                        <ul className="grid gap-1">
+                        <ul className="grid grid-cols-[minmax(0,1fr)] gap-1">
                           {day.calls.map((c) => (
                             <li key={c.id}>
                               <CallChip call={c} onOpen={onOpen} />
