@@ -271,11 +271,10 @@ export function windowXs(room: Room): number[] {
   // The builders' corner has no window: the issue monitor and the sticky board take the wall.
   if (room.kind === 'builders') return []
   let count = Math.max(1, Math.floor((room.w - 10 - propFloorW(room)) / 30))
-  if (room.kind === 'builders' || room.kind === 'meeting') count = 1
+  if (room.kind === 'meeting') count = 1
   const span = room.w - propFloorW(room)
   const gap = (span - count * WINDOW_W) / (count + 1)
   return Array.from({ length: count }, (_, i) => {
-    if (room.kind === 'builders') return room.x + 5
     if (room.kind === 'meeting') return room.x + room.w - WINDOW_W - 4
     return Math.round(room.x + gap + i * (WINDOW_W + gap))
   })
