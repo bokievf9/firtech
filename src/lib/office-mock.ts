@@ -2,7 +2,10 @@ import type { OfficeData } from './office-view'
 
 // Realistic stand-in for HQ's GET /office, same shape as fir-tech/docs/office-api.md. Used only in
 // development when HQ_OFFICE_URL is unset. Times are relative to `now`, so the page looks live.
+// Every agent status appears at least once (Production is a fully paused department), and the
+// Trend Scout flips between idle and working every 40 s so the pixel office shows people walking.
 export function officeMock(now = Date.now()): OfficeData {
+  const scoutWorking = Math.floor(now / 40_000) % 2 === 1
   const ago = (min: number) => new Date(now - min * 60_000).toISOString()
   const ahead = (min: number) => new Date(now + min * 60_000).toISOString()
   const task = (id: number, title: string, min: number) => ({ id, title, since: ago(min) })
@@ -33,7 +36,9 @@ export function officeMock(now = Date.now()): OfficeData {
           tasksToday: 2,
         },
         workers: [
-          { id: 'trend-scout', title: 'Trend Scout', status: 'idle', currentTask: null, lastActiveAt: ago(95), tasksToday: 1, costTodayUsd: 0 },
+          scoutWorking
+            ? { id: 'trend-scout', title: 'Trend Scout', status: 'working', currentTask: task(16, 'Тренды недели: ИИ-боты', 1), lastActiveAt: ago(0), tasksToday: 2, costTodayUsd: 0 }
+            : { id: 'trend-scout', title: 'Trend Scout', status: 'idle', currentTask: null, lastActiveAt: ago(95), tasksToday: 1, costTodayUsd: 0 },
           { id: 'content-maker', title: 'Content Maker', status: 'working', currentTask: task(13, 'Клип: ИИ-приёмщик', 7), lastActiveAt: ago(0), tasksToday: 4, costTodayUsd: 0 },
           { id: 'publisher', title: 'Publisher', status: 'waiting', currentTask: task(14, 'Пост в Telegram: кейс бота', 42), lastActiveAt: ago(30), tasksToday: 2, costTodayUsd: 0 },
           { id: 'seo-specialist', title: 'SEO Specialist', status: 'blocked', currentTask: task(15, 'Статья: сайт для барбершопа', 180), lastActiveAt: ago(170), tasksToday: 0, costTodayUsd: 0 },
@@ -65,9 +70,9 @@ export function officeMock(now = Date.now()): OfficeData {
       {
         id: 'production',
         title: 'Production',
-        head: { id: 'production-head', title: 'Head of Production', status: 'idle', currentTask: null, lastActiveAt: ago(200), tasksToday: 0 },
+        head: { id: 'production-head', title: 'Head of Production', status: 'paused', currentTask: null, lastActiveAt: ago(60 * 26), tasksToday: 0 },
         workers: [
-          { id: 'project-manager', title: 'Project Manager', status: 'offline', currentTask: null, lastActiveAt: ago(60 * 3), tasksToday: 0, costTodayUsd: 0 },
+          { id: 'project-manager', title: 'Project Manager', status: 'paused', currentTask: null, lastActiveAt: ago(60 * 26), tasksToday: 0, costTodayUsd: 0 },
         ],
         tasks: { inbox: 0, running: 0, review: 0, approval: 0, blocked: 0, doneToday: 0 },
       },
@@ -77,7 +82,7 @@ export function officeMock(now = Date.now()): OfficeData {
         head: { id: 'back-office-head', title: 'Head of Back Office', status: 'idle', currentTask: null, lastActiveAt: ago(300), tasksToday: 0 },
         workers: [
           { id: 'finance', title: 'Finance', status: 'idle', currentTask: null, lastActiveAt: ago(300), tasksToday: 1, costTodayUsd: 0 },
-          { id: 'documents', title: 'Documents', status: 'idle', currentTask: null, lastActiveAt: ago(500), tasksToday: 0, costTodayUsd: 0 },
+          { id: 'documents', title: 'Documents', status: 'offline', currentTask: null, lastActiveAt: ago(60 * 3), tasksToday: 0, costTodayUsd: 0 },
         ],
         tasks: { inbox: 0, running: 0, review: 0, approval: 0, blocked: 0, doneToday: 1 },
       },

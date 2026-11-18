@@ -101,8 +101,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
   site. Bot `/admin` sends the link. Overview, leads with drawer, calendar, CSV export.
-- Live office `/admin/office` («Живой офис», nav link «Офис»): one-screen bento board of the agent
-  company (departments, status chips, activity feed, routines, funnel, products). The page polls
+- Live office `/admin/office` («Живой офис», nav link «Офис»): a pixel-art office on canvas in the
+  spirit of Lumio (`src/components/admin/office/pixel-office/`, tests `tests/pixel-office.test.mjs`):
+  a desk and a little person per agent whose behaviour shows the status, window light from the
+  sun in the company's TZ; status strip above, feed, people by department, routines, funnel and
+  products below. Sprites are palette-indexed strings, no image assets or libraries. The page polls
   `/api/admin/office` (10 s, 60 s on a hidden tab); that handler checks the admin session and reads
   HQ's JSON (contract: `../docs/office-api.md`, code `src/lib/office-hq.ts`, types and pure helpers
   `src/lib/office-view.ts`, tests `tests/office-view.test.mjs`). Env: `HQ_OFFICE_URL` (default

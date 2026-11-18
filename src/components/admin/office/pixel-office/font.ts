@@ -1,0 +1,84 @@
+// A 3 x 5 pixel font (M, W, N and a few are wider) for signs, labels and bubbles. Latin capitals,
+// digits and a little punctuation; anything else is skipped. Pure module.
+
+const GLYPHS: Readonly<Record<string, readonly string[]>> = {
+  A: ['.#.', '#.#', '###', '#.#', '#.#'],
+  B: ['##.', '#.#', '##.', '#.#', '##.'],
+  C: ['.##', '#..', '#..', '#..', '.##'],
+  D: ['##.', '#.#', '#.#', '#.#', '##.'],
+  E: ['###', '#..', '##.', '#..', '###'],
+  F: ['###', '#..', '##.', '#..', '#..'],
+  G: ['.##', '#..', '#.#', '#.#', '.##'],
+  H: ['#.#', '#.#', '###', '#.#', '#.#'],
+  I: ['###', '.#.', '.#.', '.#.', '###'],
+  J: ['..#', '..#', '..#', '#.#', '.#.'],
+  K: ['#.#', '#.#', '##.', '#.#', '#.#'],
+  L: ['#..', '#..', '#..', '#..', '###'],
+  M: ['#...#', '##.##', '#.#.#', '#...#', '#...#'],
+  N: ['#..#', '##.#', '#.##', '#..#', '#..#'],
+  O: ['.#.', '#.#', '#.#', '#.#', '.#.'],
+  P: ['##.', '#.#', '##.', '#..', '#..'],
+  Q: ['.#.', '#.#', '#.#', '#.#', '.##'],
+  R: ['##.', '#.#', '##.', '#.#', '#.#'],
+  S: ['.##', '#..', '.#.', '..#', '##.'],
+  T: ['###', '.#.', '.#.', '.#.', '.#.'],
+  U: ['#.#', '#.#', '#.#', '#.#', '###'],
+  V: ['#.#', '#.#', '#.#', '#.#', '.#.'],
+  W: ['#...#', '#...#', '#.#.#', '##.##', '#...#'],
+  X: ['#.#', '#.#', '.#.', '#.#', '#.#'],
+  Y: ['#.#', '#.#', '.#.', '.#.', '.#.'],
+  Z: ['###', '..#', '.#.', '#..', '###'],
+  '0': ['###', '#.#', '#.#', '#.#', '###'],
+  '1': ['.#.', '##.', '.#.', '.#.', '###'],
+  '2': ['##.', '..#', '.#.', '#..', '###'],
+  '3': ['##.', '..#', '.#.', '..#', '##.'],
+  '4': ['#.#', '#.#', '###', '..#', '..#'],
+  '5': ['###', '#..', '##.', '..#', '##.'],
+  '6': ['.##', '#..', '###', '#.#', '###'],
+  '7': ['###', '..#', '.#.', '.#.', '.#.'],
+  '8': ['###', '#.#', '###', '#.#', '###'],
+  '9': ['###', '#.#', '###', '..#', '##.'],
+  '!': ['#', '#', '#', '.', '#'],
+  '.': ['.', '.', '.', '.', '#'],
+  ':': ['.', '#', '.', '#', '.'],
+  '-': ['...', '...', '###', '...', '...'],
+  '#': ['#.#', '###', '#.#', '###', '#.#'],
+  '$': ['.##', '##.', '.#.', '.##', '##.'],
+  '>': ['#..', '.#.', '..#', '.#.', '#..'],
+  '_': ['...', '...', '...', '...', '###'],
+  ' ': ['..', '..', '..', '..', '..'],
+}
+
+export const FONT_H = 5
+
+function glyph(ch: string): readonly string[] | undefined {
+  return GLYPHS[ch.toUpperCase()]
+}
+
+// Width in pixels of a string, 1 px between letters.
+export function textWidth(text: string): number {
+  let w = 0
+  for (const ch of text) {
+    const g = glyph(ch)
+    if (g) w += g[0]!.length + 1
+  }
+  return Math.max(0, w - 1)
+}
+
+// True when every character of the text has a glyph (signs fall back to the room id otherwise).
+export function canWrite(text: string): boolean {
+  return [...text].every((ch) => glyph(ch) !== undefined)
+}
+
+// Calls `dot(x, y)` for every lit pixel; the caller decides how to paint.
+export function forEachTextPixel(text: string, x: number, y: number, dot: (x: number, y: number) => void) {
+  let cx = x
+  for (const ch of text) {
+    const g = glyph(ch)
+    if (!g) continue
+    g.forEach((row, gy) => {
+      for (let gx = 0; gx < row.length; gx++) if (row[gx] === '#') dot(cx + gx, y + gy)
+    })
+    cx += g[0]!.length + 1
+  }
+}
