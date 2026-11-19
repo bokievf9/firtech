@@ -12,6 +12,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const paths = [
     '',
     '/builder',
+    '/compare',
+    '/referral',
     ...serviceSlugs.map((slug) => `/services/${slug}`),
     '/solutions',
     ...allSolutionKinds.map((kind) => `/solutions/${kind}`),

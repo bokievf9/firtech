@@ -2,8 +2,8 @@ import type { Lead } from './lead'
 
 // Forwards a lead to the Lead Intake agent (agents repo, apps/lead-intake, POST /lead).
 // Fail-open: never throws, a missing config or a failed request only reaches the log, so the lead is
-// still saved and sent to Telegram. The body matches the agent's webLeadSchema; `source` is not part
-// of it and is left out.
+// still saved and sent to Telegram. The body matches the agent's webLeadSchema; `source` carries
+// `ref:<slug>` for referral leads (HQ reads it as the referrer).
 export type ForwardEnv = Record<string, string | undefined>
 
 const TIMEOUT_MS = 5000
@@ -31,6 +31,8 @@ export async function forwardLead(
         locale: lead.locale,
         page: lead.page,
         slot: slot ?? '',
+        // HQ's schema rejects an empty source, so the field is sent only when there is one.
+        ...(lead.source ? { source: lead.source } : {}),
       }),
       signal: AbortSignal.timeout(TIMEOUT_MS),
     })

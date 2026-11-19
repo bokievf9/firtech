@@ -3,6 +3,7 @@ import { DemoSection } from '@/components/demo-section'
 import { FaqContact } from '@/components/faq-contact'
 import { Hero } from '@/components/hero/hero'
 import { JsonLd, faqJsonLd } from '@/components/json-ld'
+import { RefCapture } from '@/components/ref-capture'
 import { PricingSection } from '@/components/pricing-section'
 import { ProductsBento } from '@/components/products/products-bento'
 import { Proof } from '@/components/proof/proof'
@@ -72,6 +73,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     <>
       <JsonLd data={organization} />
       <JsonLd data={faqJsonLd(dict.faq.items)} />
+      <RefCapture />
       {homeSections.map((id) => (
         <Fragment key={id}>{sections[id]}</Fragment>
       ))}

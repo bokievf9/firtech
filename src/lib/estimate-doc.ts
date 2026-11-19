@@ -37,6 +37,8 @@ export type EstimateDoc = {
   discount: string | null
   total: string
   monthly: string | null
+  // The money-back guarantee sentence for the footer notes (dictionary `guarantee.line`).
+  guarantee: string
   link: string
   brief: Brief
 }
@@ -95,6 +97,7 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
     // No priced lines: nothing to sum, the quote says so instead of showing zero.
     total: q.lines.length ? formatRange(q.total) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
+    guarantee: dict.guarantee.line,
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,
     brief: briefOf(build, dict, locale),
   }

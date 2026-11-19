@@ -5,6 +5,7 @@ import { buttonStyles, cn } from '@/lib/cn'
 import { bundleDiscount } from '@/lib/pricing'
 import type { ServiceSlug } from '@/lib/site'
 import { Estimator } from './estimator'
+import { GuaranteeLine } from './guarantee-line'
 import { Reveal } from './reveal'
 
 // Prices (#pricing): the calculator; on the home page (`teaser`) also the builder teaser and the
@@ -34,6 +35,14 @@ export function PricingSection({
               {h.currency}. {dict.region.payTitle}: {dict.region.pay.join(', ')}.
             </p>
           )}
+          <GuaranteeLine dict={dict} locale={locale} className="mt-5 max-w-[52ch]" />
+          <Link
+            href={`/${locale}/compare`}
+            className="mt-4 inline-flex items-center gap-1.5 text-sm text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+          >
+            {h.compareLink}
+            <ArrowRight size={14} aria-hidden="true" />
+          </Link>
         </Reveal>
         {teaser && (
           <Reveal delay={0.08} className="lg:col-span-5">

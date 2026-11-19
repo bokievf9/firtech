@@ -59,6 +59,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
     ...(doc.onRequest.length ? [pick(builderUi.onRequestNote, locale)] : []),
     ...(doc.monthly ? [dict.builder.monthlyNote] : []),
     dict.builder.note,
+    doc.guarantee,
   ]
   const shownLink = doc.link.replace(/^https?:\/\//, '')
 

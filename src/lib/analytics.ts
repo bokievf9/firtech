@@ -6,7 +6,7 @@ export type GoalParams = {
   lead_sent: [params: { service: string }]
   telegram_click: [params: { place: string }]
   // Main buttons, marked with data-cta="<place>" (hero_builder, hero_contact, header, menu, footer,
-  // mobile_bar, article_builder).
+  // mobile_bar, article_builder, referral_copy).
   cta_click: [params: { place: string }]
   estimate_handoff: [params: { service: string }]
   builder_step: [params: { step: number }]

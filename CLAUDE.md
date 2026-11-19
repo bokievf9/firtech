@@ -89,6 +89,21 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   at the paid amount; contractor «Fir Tech», contact `hello@firtech.pro`, law of Tajikistan, filled
   on the owner's word 2026-11-19; `placeholder` stays in the dictionary for future gaps); `llms.txt`
   comes from the products and `pricing.ts`.
+- Guarantee, referral, comparison (owner decisions 2026-11-19): the money-back sentence («первый экран
+  или первый сценарий не понравился, возвращаем предоплату») is `guarantee.line` in the dictionaries,
+  shown by `components/guarantee-line.tsx` in `#pricing` and the builder summary, in the estimate notes
+  (`estimateDoc().guarantee`), in the FAQ, in `llms.txt` (`guarantee.llms`); the rule is the `guarantee`
+  section of `terms` (after `payment`, 7 days, full return minus network fees). `/[locale]/referral`
+  (`referral` dictionary, link generator `components/referral-link.tsx`) pays `referralPercent`
+  (`pricing.ts`, number 10) of the referred client's estimate; copy carries the `{percent}` token
+  (`fillReferralPercent` in `src/lib/referral.ts`), never a typed percent. `/[locale]/compare`
+  (`comparePage` dictionary, words only, no figures or named competitors). Both are in `localePages`,
+  the sitemap and the footer «Студия» column; links from `#pricing` and under the home FAQ.
+- `?ref=<slug>` flow: `RefCapture` on the home page stores the sanitized slug in sessionStorage
+  (`fir-ref`); the contact form (and the builder hand-off through it) sends `source: 'ref:<slug>'`
+  (wins over a showcase source); `leadSchema.source` accepts `ref:[a-z0-9_-]{1,32}`; `forwardLead`
+  passes `source` to HQ only when not empty (HQ rejects an empty one). The public chat has no field
+  for it, so chat leads carry no ref. Tests: `tests/site-d.test.mjs`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass

@@ -1,4 +1,5 @@
-import { TelegramLogo } from '@phosphor-icons/react/ssr'
+import { ArrowRight, TelegramLogo } from '@phosphor-icons/react/ssr'
+import Link from 'next/link'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
@@ -22,6 +23,19 @@ export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
           <div id="faq" className="scroll-mt-28">
             <p className="mb-4 text-sm text-faint">{dict.faq.title}</p>
             <FaqList items={dict.faq.items} compact />
+            <ul className="mt-5 grid gap-2 text-sm">
+              {(['compare', 'referral'] as const).map((page) => (
+                <li key={page}>
+                  <Link
+                    href={`/${locale}/${page}`}
+                    className="inline-flex items-center gap-1.5 text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                  >
+                    {dict.faqLinks[page]}
+                    <ArrowRight size={14} aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
           {telegramUrl && (
             <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-card border border-line p-5">

@@ -210,3 +210,17 @@ receptionist «lost» in a chat bubble, a search over `notFoundText.pages` and q
 `app/global-not-found.tsx` for paths outside /ru and /en (own html, no chat). Known gap: a
 two-segment path with an unknown locale (`/xx/yy`) still gets Next's plain 404 because
 `[locale]` has `dynamicParams = false`.
+
+## Гарантия, рефералы, сравнение (2026-11-19)
+- Гарантия: одно предложение `guarantee.line` (ru/en) с щитом (`GuaranteeLine`) в `#pricing` и на шаге
+  «Итог» конструктора рядом с суммой, в примечаниях PDF-сметы, в FAQ («Что если не понравится?») и в
+  `llms.txt`. Точные условия: раздел `guarantee` оферты после `payment` (первый экран или первый
+  сценарий, письменно в течение 7 дней, предоплата полностью минус комиссии сети, после приёмки работа
+  идёт на обычных условиях).
+- `/referral`: три шага, правила, генератор ссылки (клиентский, без сервера). Доля награды это
+  `referralPercent` в `pricing.ts`, в текстах токен `{percent}`. Ссылка `?ref=` попадает в
+  sessionStorage и в заявку как `source: 'ref:<slug>'`; HQ понимает такой source.
+- `/compare`: честная таблица из 10 строк (фрилансер, агентство, Fir Tech), только слова, без цифр,
+  без названий конкурентов. На телефоне таблица превращается в карточки. Ссылка на живой HQ ведёт
+  на блок `#proof`, потому что пиксельный офис живёт только в /admin/office.
+

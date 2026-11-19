@@ -10,6 +10,7 @@ import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
 import { bundleDiscount } from '@/lib/pricing'
 import { BuilderPreview } from './builder-preview'
 import { EstimateGate } from './estimate-gate'
+import { GuaranteeLine } from './guarantee-line'
 import { Panel } from './builder-ui'
 
 // The last screen: the quote, the brief and the mockup side by side, then the actions.
@@ -122,6 +123,7 @@ export function SummaryStep({
               </dd>
             </div>
           </dl>
+          <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
           <ul className="mt-6 grid gap-2 text-[13px] leading-relaxed text-faint">
             {doc.onRequest.length > 0 && <li>{pick(ui.onRequestNote, locale)}</li>}
             <li>{t.termsNote}</li>

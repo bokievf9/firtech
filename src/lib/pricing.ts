@@ -74,3 +74,7 @@ export function estimate(service: ServiceSlug, variant: string, addons: string[]
 export function formatUsd(value: number) {
   return `$${value.toLocaleString('en-US')}`
 }
+
+// Referral reward (owner decision 2026-11-19): this share of the referred client's estimate, paid
+// once after the client's first payment. Copy carries the `{percent}` token, never the number.
+export const referralPercent = 10

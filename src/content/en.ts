@@ -336,6 +336,8 @@ const en: Dict = {
     ],
   },
   pricingHome: {
+    // Link under the price block to the comparison page.
+    compareLink: 'Why cheaper than an agency',
     builderEyebrow: 'Builder',
     builderTitle: 'Combine products into one build',
     builderText: 'Pick products and features to see the price and timeline. Save the quote as a PDF or send it to a partner as a link.',
@@ -1166,6 +1168,10 @@ const en: Dict = {
         a: 'No office and no account managers in the middle: you talk to us directly. Where it does not hurt quality, we use proven ready-made components. Complex projects cost more, and you know the price before we start.',
       },
       {
+        q: 'What if I do not like it?',
+        a: 'If you do not like the first screen of the website or the first bot scenario, we return the prepayment in full, minus network fees. Tell us in writing within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
+      },
+      {
         q: 'How long does it take?',
         a: 'A landing page usually takes 5-7 days, a bot from 3 days, an app from 4 weeks. The exact deadline is in the quote.',
       },
@@ -1342,7 +1348,7 @@ const en: Dict = {
         id: 'cookies',
         title: 'Cookies and browser storage',
         text: [
-          'The site itself sets no cookies except technical ones it cannot work without. The chat uses tab storage (sessionStorage) for the session id, which is cleared when you close the tab. Yandex Metrica cookies are described in the analytics section.',
+          'The site itself sets no cookies except technical ones it cannot work without. The chat uses tab storage (sessionStorage) for the session id, and a referral link (the ref parameter) is kept there too, so that we know who recommended us. The storage is cleared when you close the tab. Yandex Metrica cookies are described in the analytics section.',
         ],
         list: [],
       },
@@ -1423,6 +1429,16 @@ const en: Dict = {
         ],
       },
       {
+        id: 'guarantee',
+        title: 'Prepayment guarantee',
+        text: [
+          'The guarantee covers the first delivered result: the first screen of a website or the first bot scenario. If the client does not like it, they say so in writing, for example in Telegram, within 7 days of receiving it.',
+          'The prepayment is then returned in full, minus network and payment service fees. This rule applies instead of the charge for completed work in the termination section.',
+          'If the client approved the first screen or the first scenario, the guarantee for that stage is closed and the work continues on the usual terms.',
+        ],
+        list: [],
+      },
+      {
         id: 'delivery',
         title: 'Timelines and acceptance',
         text: [
@@ -1477,6 +1493,150 @@ const en: Dict = {
     privacyLink: 'Privacy policy',
     footerLink: 'Terms of service',
   },
+  // Money-back guarantee (owner decision 2026-11-19). One sentence reused in the pricing section,
+  // the builder summary, the estimate notes, the FAQ and llms.txt; the exact rule is in `terms`.
+  guarantee: {
+    line: 'If you do not like the first screen of the website or the first bot scenario, we return the prepayment.',
+    more: 'Guarantee terms',
+    llms: 'Guarantee: if you do not like the first screen of the website or the first bot scenario, the prepayment is returned.',
+  },
+  // Referral page /[locale]/referral. `{percent}` is filled from `referralPercent` (pricing.ts).
+  referral: {
+    metaTitle: 'Referral program: {percent} of the estimate | Fir Tech',
+    metaDescription:
+      'Recommend Fir Tech to a friend and get {percent} of their estimate as a USDT or online wallet transfer, or as a discount on your own project. Rules and link.',
+    eyebrow: 'Referral program',
+    title: 'Recommend us and get {percent} of the estimate',
+    sub: 'A friend needs a website, a bot or automation? Send them our way, and after their first payment you get a reward.',
+    stepsTitle: 'How it works',
+    steps: [
+      {
+        title: 'Recommend us',
+        text: 'Tell a friend about Fir Tech or send them your link.',
+      },
+      {
+        title: 'The client names you',
+        text: 'They write your name in the first message or arrive through your link, and then we see it automatically.',
+      },
+      {
+        title: 'You get the reward',
+        text: 'After the client\'s first payment you get {percent} of their estimate: as a USDT transfer, to an online wallet, or as a discount on your own project.',
+      },
+    ],
+    rulesTitle: 'Rules',
+    rules: [
+      'The reward is paid once for each new client.',
+      'It arrives within 7 days of the client\'s first payment.',
+      'There is no reward for yourself or for a client who has already written to us.',
+      'We may refuse the reward if a recommendation looks like spam.',
+      'The reward is counted from the estimate the client confirmed.',
+    ],
+    generatorTitle: 'Your link',
+    generatorText: 'Enter a name or a username, get a link and send it to friends. Nothing is saved on a server.',
+    inputLabel: 'Your name or @username',
+    inputPlaceholder: '@username',
+    linkLabel: 'Your link',
+    copy: 'Copy link',
+    copied: 'Link copied',
+    empty: 'The link appears here once you enter a name.',
+    hint: 'Latin letters, digits, hyphen and underscore, up to 32 characters. Cyrillic is turned into Latin.',
+    ctaTitle: 'Know someone with a project?',
+    ctaBuilder: 'Plan a project in the builder',
+    ctaTelegram: 'Write on Telegram',
+  },
+  // Comparison page /[locale]/compare: honest trade-offs, words only, no figures.
+  comparePage: {
+    metaTitle: 'Freelancer, agency or an agent studio | Fir Tech',
+    metaDescription:
+      'An honest comparison of a freelancer, an agency and an AI agent studio: who does the work, how fast, who answers after delivery and what happens in a year.',
+    eyebrow: 'Comparison',
+    title: 'Freelancer, agency or an agent studio',
+    sub: 'Three ways to order a website or a bot. Each has strengths, and here is how they differ in practice.',
+    aspect: 'What we compare',
+    columns: { freelancer: 'Freelancer', agency: 'Agency', fir: 'Fir Tech' },
+    rows: [
+      {
+        id: 'who',
+        label: 'Who does the work',
+        freelancer: 'One person: designer, developer and manager in one.',
+        agency: 'A team with a manager, a designer and a developer.',
+        fir: 'A team of AI agents, the result is checked by a developer.',
+      },
+      {
+        id: 'first',
+        label: 'Time to the first screen',
+        freelancer: 'Depends on the workload of one person.',
+        agency: 'Usually after approvals and the studio queue.',
+        fir: 'Shown in the first days of work, the timeline is in the estimate.',
+      },
+      {
+        id: 'price',
+        label: 'Price',
+        freelancer: 'Usually below an agency, with fewer guarantees on price and timing.',
+        agency: 'Includes a markup for managers and an office.',
+        fir: 'From the price of one option at an agency, fixed in the estimate before we start.',
+      },
+      {
+        id: 'support',
+        label: 'Who answers after delivery',
+        freelancer: 'The same person, if they are reachable and not on another project.',
+        agency: 'Support under a plan, more often through a manager.',
+        fir: 'You write to us directly, and bugs are fixed free for the first month.',
+      },
+      {
+        id: 'night',
+        label: 'Support at night',
+        freelancer: 'Usually none: the person sleeps.',
+        agency: 'During the office hours.',
+        fir: 'Agents take requests around the clock, a person joins in working hours.',
+      },
+      {
+        id: 'edits',
+        label: 'Revisions',
+        freelancer: 'As agreed, sometimes each edit is paid.',
+        agency: 'Under the contract rules, then hourly billing.',
+        fir: 'Two rounds of revisions are in the estimate, anything beyond is priced separately.',
+      },
+      {
+        id: 'year',
+        label: 'What happens in a year',
+        freelancer: 'Only the contractor knows the code, switching people is costly.',
+        agency: 'The project is tied to the agency and its rates for changes.',
+        fir: 'Source files, domain and access pass to you after payment.',
+      },
+      {
+        id: 'estimate',
+        label: 'Estimate transparency',
+        freelancer: 'Often one total.',
+        agency: 'Packages where the content is not always visible.',
+        fir: 'An estimate by parts, the builder shows every line.',
+      },
+      {
+        id: 'progress',
+        label: 'Where you see progress',
+        freelancer: 'In chat and on request.',
+        agency: 'In the manager\'s reports.',
+        fir: 'The studio at work is visible online, in the HQ block on the home page.',
+      },
+      {
+        id: 'risk',
+        label: 'Risk of the contractor vanishing',
+        freelancer: 'One person: a holiday or an illness stops the project.',
+        agency: 'Lower, but the project depends on the contract and the studio queue.',
+        fir: 'The work is split into agent roles, and the sources and access are yours.',
+      },
+    ],
+    officeLink: 'See our HQ',
+    note: 'The table describes typical cases. A good freelancer and a good agency may work differently. We do not suit everyone either: for now we work as an individual contractor without a legal entity.',
+    ctaTitle: 'Price your project',
+    ctaBuilder: 'Open the builder',
+    ctaTelegram: 'Write on Telegram',
+  },
+  // Two links under the home FAQ.
+  faqLinks: {
+    compare: 'Comparison: freelancer, agency or us',
+    referral: 'Recommend us and get a reward',
+  },
   footer: {
     tagline: 'AI agent studio. Booking admin bot, lead receptionist, automation, websites and apps for business.',
     ctaTitle: 'Got a task? Let’s talk it through in 30 minutes',
@@ -1494,6 +1654,8 @@ const en: Dict = {
       process: 'Process',
       blog: 'Blog',
       contact: 'Discuss a project',
+      compare: 'Comparison',
+      referral: 'Referrals',
     },
   },
   servicePage: {

@@ -42,6 +42,8 @@ export function GET() {
       ...services,
       '',
       `${dict.region.title}. ${dict.region.payTitle}: ${dict.region.pay.join(', ')}.`,
+      '',
+      dict.guarantee.llms,
     ].join('\n')
   })
   const body = [

@@ -11,6 +11,7 @@ import { formatSlot } from '@/lib/booking'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ESTIMATE_EVENT, type EstimateDetail } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
+import { refSource, storedRef } from '@/lib/referral'
 import { defaultTelegramBot, extraSlugs, serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { ConsentText } from './consent-text'
@@ -88,7 +89,8 @@ export function ContactForm({
         body: JSON.stringify({
           ...data,
           estimate,
-          source,
+          // A referral link wins over the showcase card: the reward depends on it.
+          source: refSource(storedRef()) || source,
           locale,
           // The lead schema keeps 600 characters; a builder link with long notes is cut, its
           // texts already travel in full in the estimate summary.

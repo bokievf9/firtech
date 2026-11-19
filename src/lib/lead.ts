@@ -14,12 +14,13 @@ export const leadSchema = z.object({
   page: z.string().trim().max(600).optional().default(''),
   // Chosen call slot (UTC ISO string from /api/slots); the route checks it is still free.
   slot: z.string().trim().max(40).optional().default(''),
-  // The showcase card the lead came from (a direction id, see directions.ts); empty for the rest.
+  // The showcase card the lead came from (a direction id, see directions.ts), or `ref:<slug>` for a
+  // referral link (see referral.ts); empty for the rest.
   source: z
     .string()
     .trim()
     .max(40)
-    .regex(/^[a-z0-9_-]*$/)
+    .regex(/^(?:ref:[a-z0-9_-]{1,32}|[a-z0-9_-]*)$/)
     .optional()
     .default(''),
   // Honeypot: hidden from people, bots fill it in.
