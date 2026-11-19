@@ -11,7 +11,7 @@ import { formatSlot } from '@/lib/booking'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ESTIMATE_EVENT, type EstimateDetail } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
-import { extraSlugs, serviceSlugs, type ServiceSlug } from '@/lib/site'
+import { defaultTelegramBot, extraSlugs, serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { ConsentText } from './consent-text'
 
@@ -19,7 +19,10 @@ type Status = 'idle' | 'sending' | 'sent' | 'error'
 type Errors = Partial<Record<'name' | 'contact', string>>
 
 // Bot that sends the client updates on their lead; empty hides the "follow in Telegram" button.
-const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '').replace(/^@/, '')
+const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || defaultTelegramBot).replace(
+  /^@/,
+  '',
+)
 
 type Sent = { id?: number; token?: string; slot?: string | null }
 
@@ -147,6 +150,7 @@ export function ContactForm({
                   href={followUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-place="lead-success"
                   aria-describedby={`${uid}-bot-hint`}
                   className={buttonStyles.primary}
                 >

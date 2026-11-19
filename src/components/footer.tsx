@@ -125,6 +125,9 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
           <Link href={`/${locale}/privacy`} className="transition-colors hover:text-fg">
             {dict.privacy.footerLink}
           </Link>
+          <Link href={`/${locale}/terms`} className="transition-colors hover:text-fg">
+            {dict.terms.footerLink}
+          </Link>
           <Link href={`/${other}`} hrefLang={other} className="transition-colors hover:text-fg">
             {f.language}
           </Link>

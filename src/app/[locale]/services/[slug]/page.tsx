@@ -32,6 +32,7 @@ import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
 import { isLocale, locales } from '@/lib/i18n'
 import { catalog, formatUsd, startingPrice } from '@/lib/pricing'
 import { isServiceSlug, serviceSlugs, siteUrl, type ServiceSlug } from '@/lib/site'
+import { fillServicePrice } from '@/lib/seo'
 import { shareBase } from '@/lib/share'
 
 export const dynamicParams = false
@@ -45,7 +46,11 @@ export async function generateMetadata({
 }: PageProps<'/[locale]/services/[slug]'>): Promise<Metadata> {
   const { locale, slug } = await params
   if (!isLocale(locale) || !isServiceSlug(slug)) return {}
-  const page = getDict(locale).serviceDetails[slug]
+  const raw = getDict(locale).serviceDetails[slug]
+  const page = {
+    metaTitle: fillServicePrice(raw.metaTitle, slug),
+    metaDescription: fillServicePrice(raw.metaDescription, slug),
+  }
   return {
     title: page.metaTitle,
     description: page.metaDescription,
@@ -83,7 +88,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: dict.services.items[slug].name,
-    description: page.metaDescription,
+    description: fillServicePrice(page.metaDescription, slug),
     url: `${siteUrl}/${locale}/services/${slug}`,
     provider: { '@type': 'ProfessionalService', name: 'Fir Tech', url: `${siteUrl}/${locale}` },
     offers: Object.entries(variants).map(([id, v]) => ({

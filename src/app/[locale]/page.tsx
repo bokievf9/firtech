@@ -10,7 +10,9 @@ import { WorkTimeline } from '@/components/work-timeline'
 import { getDict } from '@/content'
 import { homeSections, type HomeSection } from '@/lib/home'
 import { isLocale } from '@/lib/i18n'
+import { formatUsd } from '@/lib/pricing'
 import { productIds, productPrice } from '@/lib/products'
+import { lowestPrice } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import { notFound } from 'next/navigation'
 
@@ -28,7 +30,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     url: `${siteUrl}/${locale}`,
     description: dict.meta.description,
     areaServed: ['TJ', 'UZ', 'KZ', 'KG', 'RU', 'Worldwide'],
-    priceRange: '$100-$5000',
+    priceRange: `${formatUsd(lowestPrice)}+`,
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: dict.products.title,

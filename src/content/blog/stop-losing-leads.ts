@@ -8,7 +8,7 @@ export const stopLosingLeads: Article = {
   ru: {
     title: 'Как перестать терять заявки: 5 простых шагов',
     description:
-      'Заявки теряются в личных сообщениях, пропущенных звонках и комментариях. Пять шагов, которые помогают отвечать быстрее и не забывать о клиентах, и где здесь помогают бот и автоматизация.',
+      'Заявки теряются в личных сообщениях, звонках и комментариях. Пять шагов, чтобы отвечать быстрее и не забывать о клиентах, и где помогают бот и автоматизация.',
     blocks: [
       {
         type: 'p',
@@ -108,7 +108,7 @@ export const stopLosingLeads: Article = {
   en: {
     title: 'How to stop losing leads: 5 simple steps',
     description:
-      'Requests get lost in direct messages, missed calls and comments. Five steps that help you answer faster and not forget about customers, and where a bot and automation help.',
+      'Requests get lost in messages, calls and comments. Five steps to answer faster and not forget customers, and where a bot and automation help.',
     blocks: [
       {
         type: 'p',

@@ -1,8 +1,10 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
+import { formatUsd } from '@/lib/pricing'
+import { lowestPrice } from '@/lib/seo'
 
-export const alt = 'Fir Tech: websites, Telegram bots, apps and automation'
+export const alt = 'Fir Tech: AI agents, Telegram bots and websites for small business'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -31,9 +33,9 @@ export default async function OpengraphImage() {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <span style={{ fontSize: 76, fontWeight: 600, letterSpacing: -2, lineHeight: 1.05 }}>
-            Websites, bots, apps and automation
+            AI agents, Telegram bots and websites
           </span>
-          <span style={{ fontSize: 36, color: '#b5eb6a' }}>From $100. Fixed price before we start.</span>
+          <span style={{ fontSize: 36, color: '#b5eb6a' }}>{`From ${formatUsd(lowestPrice)}. Fixed price before we start.`}</span>
         </div>
       </div>
     ),

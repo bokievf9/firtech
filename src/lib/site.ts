@@ -3,7 +3,12 @@ export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://firtech.pro
   '',
 )
 
-const telegramUsername = (process.env.NEXT_PUBLIC_TELEGRAM_USERNAME || '').replace(/^@/, '')
+// Public client bot. Falls back to the bot when the variable is unset (the CI variable may be empty).
+export const defaultTelegramBot = 'firtech_bot'
+const telegramUsername = (process.env.NEXT_PUBLIC_TELEGRAM_USERNAME || defaultTelegramBot).replace(
+  /^@/,
+  '',
+)
 export const telegramUrl = telegramUsername ? `https://t.me/${telegramUsername}` : null
 export const telegramHandle = telegramUsername ? `@${telegramUsername}` : null
 

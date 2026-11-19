@@ -12,10 +12,11 @@ if [ "$BRANCH" != main ] && [ "${DEPLOY_BRANCH:-}" != "$BRANCH" ]; then
   echo "On '$BRANCH', not main. To deploy it anyway: DEPLOY_BRANCH=$BRANCH $0"
   exit 1
 fi
-HOST=deploy@68.183.177.183
+HOST=deploy@201.79.122.133
 SSH=(ssh -i "$HOME/.ssh/id_ed25519_firtech" -o IdentitiesOnly=yes -o BatchMode=yes)
 SCP=(scp -q -i "$HOME/.ssh/id_ed25519_firtech" -o IdentitiesOnly=yes -o BatchMode=yes)
 TG=$(grep -E '^NEXT_PUBLIC_TELEGRAM_USERNAME=' .env.local | cut -d= -f2- || true)
+TG=${TG:-firtech_bot} # public client bot when .env.local has no value
 # Yandex Metrika counter id (public, digits). Empty builds the site without the tag.
 YM=$(grep -E '^NEXT_PUBLIC_YM_ID=' .env.local | cut -d= -f2- || true)
 SHA=$(git rev-parse --short=7 HEAD)

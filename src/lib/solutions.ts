@@ -33,9 +33,22 @@ export type SolutionCopy = {
   faq: { q: string; a: string }[]
 }
 
-const metaTail = {
-  ru: 'Состав, цена и сроки на одной странице.',
-  en: 'Scope, price and terms on one page.',
+// Meta descriptions stay within 120-160 characters (tested): the longest closing line that fits.
+const metaTails = {
+  ru: [
+    'Состав стартового набора, цена и сроки на одной странице. Цену считает наш калькулятор.',
+    'Состав стартового набора, цена и сроки на одной странице.',
+  ],
+  en: [
+    'Contents of the starting set, price and timing on one page. Our calculator works out the price.',
+    'Contents of the starting set, price and timing on one page.',
+  ],
+}
+
+function metaDescription(sub: string, locale: string) {
+  const tails = metaTails[locale === 'ru' ? 'ru' : 'en']
+  const fits = tails.find((tail) => `${sub} ${tail}`.length <= 160)
+  return `${sub} ${fits ?? tails[tails.length - 1]}`
 }
 
 // A kind's page text: the hand-written copy in the dictionary when there is some, otherwise built
@@ -49,7 +62,7 @@ export function solutionCopy(kind: SolutionKind, locale: string, dict: Dict): So
   const from = formatUsd(quote(presets[kind]).total.min)
   return {
     metaTitle: title,
-    metaDescription: `${sub} ${pick(metaTail, locale)}`,
+    metaDescription: metaDescription(sub, locale),
     title,
     sub,
     card: sub,

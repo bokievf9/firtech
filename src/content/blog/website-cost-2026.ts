@@ -148,7 +148,7 @@ export const websiteCost2026: Article = {
   en: {
     title: 'How much does a small business website cost in 2026',
     description:
-      'What drives the price of a website, what a landing page, a company site and an online store cost with us, how a fixed quote and staged payment work, and how not to overpay.',
+      'What drives the price of a website, what a landing page, a company site and an online store cost, how a fixed quote works, and how not to overpay.',
     blocks: [
       {
         type: 'p',

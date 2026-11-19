@@ -6,7 +6,7 @@ const en: Dict = {
   meta: {
     title: 'Fir Tech: AI agents for business, Telegram bots and websites',
     description:
-      'AI agents for business: a Telegram booking bot, lead intake 24/7, automation for small business and websites. We work with companies in Tashkent, Almaty, Dushanbe and Bishkek. Prices in US dollars, fixed before we start.',
+      'AI agents for small business: client booking, lead intake 24/7, routine automation, plus websites and bots. Price and timeline are fixed before we start.',
   },
   nav: {
     products: 'Products',
@@ -393,102 +393,6 @@ const en: Dict = {
       done: 'Booked. See you on Saturday at 14:30',
     },
   },
-  directions: {
-    title: 'Agents and bots that take the routine off your hands',
-    sub: 'Pick a direction. We show how it would work for you and name the price and deadline before we start.',
-    from: 'from',
-    perMonth: 'per month',
-    perPerson: 'per person',
-    team: 'per team',
-    support: 'support per month',
-    before: 'Before',
-    after: 'After',
-    discuss: 'Discuss',
-    more: 'Learn more',
-    items: {
-      admin: {
-        title: 'Booking bot',
-        lines: [
-          'Books clients in Telegram, reminds them about the visit and asks for a review afterwards.',
-          'You stop answering "do you have time on Friday?" by hand.',
-        ],
-        before: 'Bookings in a notebook, some clients forget to come',
-        after: 'The bot books and reminds a day and an hour ahead',
-      },
-      receptionist: {
-        title: 'AI lead receptionist',
-        lines: [
-          'Answers in Telegram, WhatsApp and Instagram at any hour of the day.',
-          'Clarifies the request with the client and hands the manager a ready lead with contacts.',
-        ],
-        before: 'Night messages wait until morning and go cold',
-        after: 'The client gets an answer in a minute, the manager sees the lead',
-      },
-      automation: {
-        title: 'Routine automation',
-        lines: [
-          'We connect Google Sheets, your CRM and messengers so data moves by itself.',
-          'Reports and mailings go out on a schedule.',
-        ],
-        before: 'The weekly report is assembled by hand on Friday evening',
-        after: 'The report arrives in your chat on its own, on time',
-      },
-      content: {
-        title: 'Content by subscription',
-        lines: [
-          'Posts, product cards and short videos come out on an agreed plan.',
-          'You approve the material in Telegram, we do the rest.',
-        ],
-        before: 'The page is silent for weeks, nobody has time for topics',
-        after: 'Content goes out on plan, you only approve it',
-      },
-      miniapp: {
-        title: 'Telegram Mini App',
-        lines: [
-          'A shop, booking or loyalty program right inside Telegram.',
-          'The client does not install an app or sign up.',
-        ],
-        before: 'A catalog of photos and orders through direct messages',
-        after: 'Catalog, cart and payment in one Telegram window',
-      },
-      agent: {
-        title: 'Personal agent',
-        lines: [
-          'Your own AI assistant in the spirit of Dono: it tracks tasks, deadlines and email.',
-          'Fits students, freelancers and business owners.',
-        ],
-        before: 'Deadlines and emails are scattered across five places',
-        after: 'The agent puts everything in one list and reminds you in Telegram',
-      },
-      implementation: {
-        title: 'AI rollout in your company',
-        lines: [
-          'We build a knowledge base from your documents, and AI answers staff and clients from it.',
-          'We show the team how to use it every day.',
-        ],
-        before: 'A newcomer spends a week searching chats and folders',
-        after: 'They ask the AI and get an answer with a link to the document',
-      },
-      training: {
-        title: 'Training',
-        lines: [
-          'A workshop on putting agents into your business, built on your real tasks.',
-          'Available for one person or for a whole team.',
-        ],
-        before: 'You have heard a lot about AI and have no idea where to start',
-        after: 'By the end you have a working agent for your task',
-      },
-      site: {
-        title: 'Websites and landing pages',
-        lines: [
-          'The base for everything above: a page that ads point to and leads come from.',
-          'Fast, comfortable on a phone, with an enquiry form straight into Telegram.',
-        ],
-        before: 'Ads lead to Instagram, where there is no price or booking',
-        after: 'A landing page with prices and a form, leads go straight to Telegram',
-      },
-    },
-  },
   region: {
     title: 'We work with companies in Tashkent, Almaty, Dushanbe and Bishkek',
     sub: 'We communicate in Russian or English and take payment the way that suits you. All prices on the site are in US dollars.',
@@ -850,7 +754,7 @@ const en: Dict = {
       cafe: {
         metaTitle: 'Website and Telegram bot for a cafe or restaurant',
         metaDescription:
-          'A website with the menu, table bookings and orders in a Telegram bot, payment in the bot and a place on the maps. Price and timing of the starting set for a cafe or restaurant.',
+          'A website with the menu, table bookings and orders in a Telegram bot, payment in the bot and a place on maps. Price and timing for a cafe or restaurant.',
         title: 'Website and Telegram bot for a cafe or restaurant',
         sub: 'The menu and contacts on the website, table bookings and orders in a Telegram bot, and you are easy to find on the maps. Guests handle it themselves, and the staff sees every request.',
         card: 'Menu, table bookings and orders in one bot, plus a website and a place on the maps.',
@@ -898,7 +802,7 @@ const en: Dict = {
       salon: {
         metaTitle: 'Online booking and Telegram bot for a beauty salon',
         metaDescription:
-          'Online booking in a Telegram bot with reminders and broadcasts, and a website with services and prices. Price and timing of the starting set for a beauty salon or barbershop.',
+          'Online booking in a Telegram bot with reminders and broadcasts, and a website with services and prices. Price and timing for a beauty salon or barbershop.',
         title: 'Online booking and a bot for a beauty salon',
         sub: 'Clients book a stylist in the bot at any time, get a reminder and do not forget the visit. The website shows services and prices, and its requests arrive in Telegram.',
         card: 'Booking in a bot, reminders, broadcasts and a website with services.',
@@ -1236,7 +1140,7 @@ const en: Dict = {
   blog: {
     metaTitle: 'Fir Tech blog: websites, bots and automation in plain words',
     metaDescription:
-      'Practical articles for small business owners: what a website costs, website or Telegram bot, how to stop losing leads.',
+      'Practical articles for small business owners: what a website costs, website or Telegram bot, and how to stop losing leads.',
     eyebrow: 'Blog',
     title: 'Websites, bots and leads in plain words',
     sub: 'Practical advice for small business owners: what to order, what it costs and how not to overpay.',
@@ -1333,7 +1237,7 @@ const en: Dict = {
       'By sending this form you agree that we use these details only to reply to your request, as described in the [privacy policy].',
     successTitle: 'Request received',
     successText:
-      "We'll get back to you within one working day. If it's urgent, message us on Telegram.",
+      "We'll get back to you within one working day. If it's urgent, message our bot @firtech_bot on Telegram.",
     again: 'Send another one',
     error: "Couldn't send the form. Try again or message us on Telegram.",
     errors: {
@@ -1353,12 +1257,13 @@ const en: Dict = {
   privacy: {
     metaTitle: 'Privacy policy | Fir Tech',
     metaDescription:
-      'What data the Fir Tech contact form collects, why, where it is kept and how to ask us to delete it.',
+      'What data the Fir Tech form, chat and bot collect, why, where it is kept and how to ask us to delete it. A draft pending a lawyer review.',
     eyebrow: 'Document',
     title: 'Privacy policy',
-    updated: 'Version of 18 October 2026',
+    updated: 'Version of 19 November 2026',
+    draftNote: 'A draft pending a lawyer review.',
     intro:
-      'In short and in plain words: what data you leave on this site, what we do with it and how to ask us to delete it. The data is handled by the Fir Tech studio.',
+      'In short and in plain words: what data you leave on this site, in the chat and in our bot, what we do with it and how to ask us to delete it. The data is handled by the Fir Tech studio.',
     sections: [
       {
         id: 'collect',
@@ -1375,6 +1280,23 @@ const en: Dict = {
         ],
       },
       {
+        id: 'chat',
+        title: 'Chat on the site',
+        text: [
+          'If you write to the chat assistant on the site, we receive the texts of your messages and a random session id. The texts go to our internal system, where the assistant prepares a reply, and studio staff can read the conversation if you left contacts or asked us to get in touch.',
+          'The session id and the chat history stay only in your browser tab and disappear when you close it. Please do not type passwords, card details or other sensitive information into the chat.',
+        ],
+        list: [],
+      },
+      {
+        id: 'bot',
+        title: 'Telegram bot @firtech_bot',
+        text: [
+          'If you write to our bot or press "Get replies in Telegram" after sending a request, we receive your Telegram id, profile name, username and message texts. We need them to hold the conversation and send you the status of your request. You can stop the bot by blocking it in Telegram.',
+        ],
+        list: [],
+      },
+      {
         id: 'purpose',
         title: 'Why',
         text: [
@@ -1386,7 +1308,7 @@ const en: Dict = {
         id: 'storage',
         title: 'Where it is kept',
         text: [
-          'The request arrives in our Telegram bot and is saved to a file on our server, so it is not lost if Telegram is briefly unavailable.',
+          'The request arrives in our Telegram bot and is saved to a file on our server, so it is not lost if Telegram is briefly unavailable. Conversations from the chat and the bot are kept in the internal system of the studio on the same server.',
         ],
         list: [],
       },
@@ -1402,7 +1324,7 @@ const en: Dict = {
         id: 'sharing',
         title: 'Who we share it with',
         text: [
-          'We do not sell your data or share it with third parties. The only exception is the technical services the site cannot work without: Telegram (requests arrive through it) and the hosting the site runs on.',
+          'We do not sell your data or share it with third parties. The only exception is the technical services this cannot work without: Telegram (requests and bot conversations go through it), the hosting the site runs on, and the AI model providers that help the assistant write chat replies.',
         ],
         list: [],
       },
@@ -1412,6 +1334,14 @@ const en: Dict = {
         text: [
           'We use Yandex Metrica to see which pages help and which do not. Metrica sets cookies and collects anonymised visit data: pages opened, transitions, clicks and scrolling, device and browser type, approximate region. Metrica also records actions on the page (Webvisor), but not what you type into form fields. This data does not tell us who you are.',
           'You can turn this off in your browser settings (block cookies or turn on tracking protection) or with the Yandex add-on that blocks Metrica on all sites.',
+        ],
+        list: [],
+      },
+      {
+        id: 'cookies',
+        title: 'Cookies and browser storage',
+        text: [
+          'The site itself sets no cookies except technical ones it cannot work without. The chat uses tab storage (sessionStorage) for the session id, which is cleared when you close the tab. Yandex Metrica cookies are described in the analytics section.',
         ],
         list: [],
       },
@@ -1435,6 +1365,105 @@ const en: Dict = {
     contactForm: 'To make a request, write to us through the form on the site:',
     contactFormLink: 'Go to the form',
     footerLink: 'Privacy policy',
+  },
+  terms: {
+    metaTitle: 'Terms of service | Fir Tech',
+    metaDescription:
+      'The terms Fir Tech works on: how we agree an estimate, take payment in stages, hand over the work and answer for the result. A draft pending a lawyer review.',
+    eyebrow: 'Document',
+    title: 'Terms of service',
+    updated: 'Version of 19 November 2026',
+    draftNote: 'A draft pending a lawyer review.',
+    placeholder: '[to be filled in by the owner]',
+    intro:
+      'This is a template of the terms on which the Fir Tech studio does work for clients. It becomes an offer after a lawyer has checked it and the requisites are filled in. Until then it creates no obligations.',
+    sections: [
+      {
+        id: 'parties',
+        title: 'The contractor',
+        text: ['The work is done by the Fir Tech studio. The contractor details:'],
+        list: [
+          'Name: [to be filled in by the owner]',
+          'Address: [to be filled in by the owner]',
+          'Registration number: [to be filled in by the owner]',
+          'Bank details: [to be filled in by the owner]',
+          'Contact email: [to be filled in by the owner]',
+        ],
+      },
+      {
+        id: 'subject',
+        title: 'Subject',
+        text: [
+          'The contractor builds a website, a Telegram bot, an app, an AI agent or an automation for the client. The scope, timeline and price are fixed in an estimate that the client receives before the work starts.',
+        ],
+        list: [],
+      },
+      {
+        id: 'price',
+        title: 'Price and estimate',
+        text: [
+          'Prices are in US dollars. The calculator and the builder on the site give an indicative figure. The final price and timeline are written in the estimate and apply once the client confirms it in writing, for example in Telegram.',
+          'If the client changes the scope during the work, the change is agreed separately and the estimate is updated before that work starts.',
+        ],
+        list: [],
+      },
+      {
+        id: 'payment',
+        title: 'Payment',
+        text: [
+          'Payment is split into stages. The size of the prepayment, the order and the methods of payment: [to be filled in by the owner].',
+        ],
+        list: [],
+      },
+      {
+        id: 'delivery',
+        title: 'Timelines and acceptance',
+        text: [
+          'Timelines run from the prepayment and from receiving everything the client has to provide. The client checks the result and reports remarks within the period set in the estimate. Number of free revisions: [to be filled in by the owner].',
+        ],
+        list: [],
+      },
+      {
+        id: 'rights',
+        title: 'Rights to the result',
+        text: [
+          'After full payment the client receives the rights to the result of the work. The contractor may show the project in its portfolio unless the client objects. Terms of the transfer of rights: [to be filled in by the owner].',
+        ],
+        list: [],
+      },
+      {
+        id: 'ai',
+        title: 'AI agents',
+        text: [
+          'An AI agent can make mistakes. The contractor sets the limits of its work and a review step, but the client is responsible for decisions made on the basis of the agent\'s answers. The cost of AI models and third-party services is paid by the client, and we name it in advance.',
+        ],
+        list: [],
+      },
+      {
+        id: 'data',
+        title: 'Data and confidentiality',
+        text: [
+          'The contractor does not disclose the client\'s materials and data to third parties. How we handle the data of site visitors is described in the privacy policy.',
+        ],
+        list: [],
+      },
+      {
+        id: 'liability',
+        title: 'Liability and termination',
+        text: [
+          'The limits of the contractor\'s liability, the order of termination and refund of the prepayment: [to be filled in by the owner].',
+        ],
+        list: [],
+      },
+      {
+        id: 'law',
+        title: 'Governing law and disputes',
+        text: ['Governing law and the way disputes are resolved: [to be filled in by the owner].'],
+        list: [],
+      },
+    ],
+    privacyLink: 'Privacy policy',
+    footerLink: 'Terms of service',
   },
   footer: {
     tagline: 'AI agent studio. Booking admin bot, lead receptionist, automation, websites and apps for business.',
@@ -1473,9 +1502,9 @@ const en: Dict = {
   },
   serviceDetails: {
     websites: {
-      metaTitle: 'Website and landing page development from $150 | Fir Tech',
+      metaTitle: 'Website and landing page development from {price} | Fir Tech',
       metaDescription:
-        'Landing pages from $150, company websites and online stores. Mobile-friendly design, leads to Telegram, content editor. Price and deadline up front.',
+        'Landing pages from {price}, company websites and online stores. Mobile-friendly design, leads to Telegram, content editor. Price and deadline up front.',
       title: 'A website that brings in leads',
       sub: 'A landing page in 5-7 days or a company website in 2-3 weeks. Looks right on a phone and sends every enquiry to your Telegram.',
       included: [
@@ -1526,9 +1555,9 @@ const en: Dict = {
       ],
     },
     bots: {
-      metaTitle: 'Telegram bot development from $100 | Fir Tech',
+      metaTitle: 'Telegram bot development from {price} | Fir Tech',
       metaDescription:
-        'Telegram bots for bookings, orders and customer questions, Telegram Mini Apps, in-bot payments and AI answers. From $100, from 3 days.',
+        'Telegram bots for bookings, orders and customer questions, Telegram Mini Apps, in-bot payments and AI answers. From {price}, from 3 days.',
       title: 'A Telegram bot that works for you',
       sub: 'Takes orders, books clients and answers common questions around the clock. A simple bot is ready in 3-5 days.',
       included: [
@@ -1574,14 +1603,14 @@ const en: Dict = {
         },
         {
           q: 'How much does it cost to run a bot?',
-          a: 'Usually $5-10 a month for the server. With AI, there is also a per-request cost, which we estimate up front.',
+          a: 'Usually a few dollars a month for the server. With AI, there is also a per-request cost, which we estimate up front.',
         },
       ],
     },
     apps: {
-      metaTitle: 'App development from $1000 | Fir Tech',
+      metaTitle: 'App development from {price} | Fir Tech',
       metaDescription:
-        'Web apps, iOS and Android apps, customer accounts and internal tools for your team. From $1000, paid in stages.',
+        'Web apps, iOS and Android apps, customer accounts and internal tools for your team. From {price}, paid in stages. Price and timeline up front.',
       title: 'An app without wasted budget',
       sub: 'We start with a minimal version that solves the main problem and grow it as you grow. Paid in stages.',
       included: [
@@ -1632,9 +1661,9 @@ const en: Dict = {
       ],
     },
     automation: {
-      metaTitle: 'Business automation and AI assistants from $300 | Fir Tech',
+      metaTitle: 'Business automation and AI assistants from {price} | Fir Tech',
       metaDescription:
-        'We connect your website, Telegram, CRM and Google Sheets, set up CRM and AI assistants. Less manual work, from $300.',
+        'We connect your website, Telegram, CRM and Google Sheets, set up CRM and AI assistants. Less manual work, from {price}. Price and timeline up front.',
       title: 'Let routine work run itself',
       sub: 'We connect your tools: leads land in the CRM, reports fill a spreadsheet, clients get answers and reminders.',
       included: [

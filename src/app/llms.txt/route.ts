@@ -1,35 +1,43 @@
 import { getDict } from '@/content'
-import { directionIds, directionPrices, type DirectionId } from '@/lib/directions'
-import { formatUsd } from '@/lib/pricing'
-import { siteUrl } from '@/lib/site'
+import { formatUsd, startingPrice } from '@/lib/pricing'
+import { productIds, productPrice, type ProductId } from '@/lib/products'
+import { serviceSlugs, siteUrl, telegramHandle } from '@/lib/site'
 
-// llms.txt: a plain description of the studio and its services for AI assistants. Built from the
+// llms.txt: a plain description of the studio and its products for AI assistants. Built from the
 // same dictionaries and price config as the page, so it never drifts from the site.
 export const dynamic = 'force-static'
 
-function priceLine(id: DirectionId, from: string, unit: Record<string, string>) {
-  const price = directionPrices[id]
-  const parts = [`${from} ${formatUsd(price.from)}${price.unit ? ` ${unit[price.unit]}` : ''}`]
-  if (price.team) parts.push(`${formatUsd(price.team)} ${unit.team}`)
-  if (price.supportMonthly) parts.push(`+ ${formatUsd(price.supportMonthly)} ${unit.support}`)
-  return parts.join(', ')
+function priceText(id: ProductId, t: { from: string; perMonth: string; quote: string }) {
+  const price = productPrice[id]
+  if (price.kind === 'from') return `${t.from} ${formatUsd(price.from)}`
+  if (price.kind === 'plans') {
+    return price.plans.map((p) => `${formatUsd(p.setup)} + ${formatUsd(p.monthly)}${t.perMonth}`).join(', ')
+  }
+  return t.quote
 }
 
 export function GET() {
   const blocks = (['en', 'ru'] as const).map((locale) => {
     const dict = getDict(locale)
-    const d = dict.directions
-    const unit = { month: d.perMonth, person: d.perPerson, team: d.team, support: d.support }
-    const items = directionIds.map((id) => {
-      const item = d.items[id]
-      return `- ${item.title} (${priceLine(id, d.from, unit)}): ${item.lines.join(' ')}\n  ${d.before}: ${item.before}. ${d.after}: ${item.after}.`
+    const t = dict.products
+    const items = productIds.map((id) => {
+      const item = t.items[id]
+      return `- ${item.name} (${priceText(id, t)}): ${item.benefit}. ${t.forWhom}: ${item.forWhom}.`
     })
+    const services = serviceSlugs.map(
+      (slug) =>
+        `- ${dict.services.items[slug].name} (${t.from} ${formatUsd(startingPrice[slug])}): ${siteUrl}/${locale}/services/${slug}`,
+    )
     return [
-      `## ${locale === 'en' ? 'Services' : 'Услуги'} (${siteUrl}/${locale})`,
+      `## ${locale === 'en' ? 'Products' : 'Продукты'} (${siteUrl}/${locale})`,
       '',
       dict.meta.description,
       '',
       ...items,
+      '',
+      `## ${locale === 'en' ? 'Services' : 'Услуги'}`,
+      '',
+      ...services,
       '',
       `${dict.region.title}. ${dict.region.payTitle}: ${dict.region.pay.join(', ')}.`,
     ].join('\n')
@@ -42,6 +50,7 @@ export function GET() {
     `- Russian: ${siteUrl}/ru`,
     `- English: ${siteUrl}/en`,
     `- Project builder and estimate: ${siteUrl}/en/builder`,
+    ...(telegramHandle ? [`- Telegram: ${telegramHandle}`] : []),
     '',
     ...blocks.flatMap((block) => [block, '']),
   ].join('\n')
