@@ -1,6 +1,7 @@
 import 'server-only'
 import { NextResponse, type NextRequest } from 'next/server'
 import { isFreeSlot } from '@/lib/booking'
+import { checkPublicPost, visitorIp } from '@/lib/public-post'
 import { formatLead, leadSchema } from '@/lib/lead'
 import { forwardLead } from '@/lib/lead-forward'
 import { flushPending, notifyOwner } from '@/lib/lead-bot'
@@ -22,11 +23,10 @@ function limited(ip: string) {
 }
 
 export async function POST(request: NextRequest) {
-  const ip =
-    request.headers.get('x-real-ip') ??
-    request.headers.get('x-forwarded-for')?.split(',')[0] ??
-    'local'
-  if (limited(ip.trim())) {
+  const rejected = checkPublicPost(request)
+  if (rejected) return NextResponse.json({ ok: false, error: rejected.error }, { status: rejected.status })
+  const ip = visitorIp(request.headers)
+  if (limited(ip)) {
     return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
   }
 
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Copy for the Lead Intake agent; not awaited and fail-open, so it never delays or blocks the lead.
-  void forwardLead(lead, stored?.booking?.slot ?? slot)
+  void forwardLead(lead, stored?.booking?.slot ?? slot, process.env, fetch, ip)
 
   if (!telegramReady) {
     console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))

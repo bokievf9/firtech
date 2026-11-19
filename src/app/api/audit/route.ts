@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { checkPublicPost, visitorIp } from '@/lib/public-post'
 import { auditSchema, createAuditLimiter, forwardAudit } from '@/lib/audit'
 
 // Free site audit: validates the form, limits each IP to 5 requests per 10 minutes and forwards to
@@ -9,11 +10,10 @@ export const dynamic = 'force-dynamic'
 const limited = createAuditLimiter()
 
 export async function POST(request: NextRequest) {
-  const ip =
-    request.headers.get('x-real-ip') ??
-    request.headers.get('x-forwarded-for')?.split(',')[0] ??
-    'local'
-  if (limited(ip.trim())) {
+  const rejected = checkPublicPost(request)
+  if (rejected) return NextResponse.json({ ok: false, error: rejected.error }, { status: rejected.status })
+  const ip = visitorIp(request.headers)
+  if (limited(ip)) {
     return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
   }
   const parsed = auditSchema.safeParse(await request.json().catch(() => null))
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
   if (parsed.data.website) return NextResponse.json({ ok: true })
 
   const { url, contact, name, locale, ref } = parsed.data
-  const answer = await forwardAudit({ url, contact, name, locale, ref })
+  const answer = await forwardAudit({ url, contact, name, locale, ref }, process.env, fetch, ip)
   const { status, ...body } = answer
   if (!answer.ok) console.error(`[audit] not forwarded: ${answer.error}`)
   return NextResponse.json(body, { status, headers: { 'cache-control': 'no-store' } })

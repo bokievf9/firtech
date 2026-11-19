@@ -49,7 +49,7 @@ export function GET() {
   const body = [
     '# Fir Tech',
     '',
-    '> Fir Tech builds AI agents, Telegram bots and websites for small business. Working with companies in Tashkent, Almaty, Dushanbe and Bishkek. Prices in US dollars, fixed before the work starts. The site is in Russian and English.',
+    '> Fir Tech builds AI agents, Telegram bots and websites for small business. Taking orders from Tashkent, Almaty, Dushanbe, Bishkek and other cities of the CIS. Prices in US dollars, fixed before the work starts. The site is in Russian and English.',
     '',
     `- Russian: ${siteUrl}/ru`,
     `- English: ${siteUrl}/en`,

@@ -32,6 +32,8 @@ export function AuditForm({
   const [errors, setErrors] = useState<Errors>({})
   const [failure, setFailure] = useState('')
   const [mock, setMock] = useState(false)
+  // The result goes to Telegram only when the contact is a @username.
+  const [viaTelegram, setViaTelegram] = useState(true)
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -72,6 +74,7 @@ export function AuditForm({
       } | null
       if (res.ok && body?.ok) {
         setMock(Boolean(body.mock))
+        setViaTelegram(contact.startsWith('@'))
         setStatus(body.duplicate ? 'duplicate' : 'sent')
         form.reset()
         track('audit_sent')
@@ -99,9 +102,9 @@ export function AuditForm({
           {dup ? t.duplicateTitle : t.successTitle}
         </h2>
         <p className="mt-3 max-w-[40ch] leading-relaxed text-fg">
-          {dup ? t.duplicateText : t.successText}
+          {dup ? t.duplicateText : viaTelegram ? t.successText : t.successTextOther}
         </p>
-        {!dup && <p className="mt-3 max-w-[44ch] text-[13px] text-faint">{t.successHint}</p>}
+        {!dup && viaTelegram && <p className="mt-3 max-w-[44ch] text-[13px] text-faint">{t.successHint}</p>}
         {mock && <p className="mt-3 text-[13px] text-faint">{t.mockNote}</p>}
         <div className="mt-8 flex flex-wrap gap-3">
           {botUrl && (

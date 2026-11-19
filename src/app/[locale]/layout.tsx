@@ -5,6 +5,7 @@ import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { MobileCta } from '@/components/mobile-cta'
 import { MotionProvider } from '@/components/motion-provider'
+import { RefLinks } from '@/components/ref-links'
 import { YandexMetrika } from '@/components/yandex-metrika'
 import { getDict } from '@/content'
 import { isLocale, locales } from '@/lib/i18n'
@@ -75,6 +76,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
           />
           <ChatWidget locale={locale} copy={dict.chat} contactHref={`/${locale}#contact`} />
         </MotionProvider>
+        <RefLinks />
         <YandexMetrika />
       </body>
     </html>

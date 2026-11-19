@@ -1,4 +1,5 @@
 import type { Lead } from './lead'
+import { visitorIpHeader } from './public-post'
 
 // Forwards a lead to the Lead Intake agent (agents repo, apps/lead-intake, POST /lead).
 // Fail-open: never throws, a missing config or a failed request only reaches the log, so the lead is
@@ -13,6 +14,7 @@ export async function forwardLead(
   slot: string | undefined,
   env: ForwardEnv = process.env,
   fetchImpl: typeof fetch = fetch,
+  ip?: string,
 ): Promise<boolean> {
   const base = env.LEAD_INTAKE_URL?.trim().replace(/\/+$/, '')
   const token = env.LEAD_INTAKE_TOKEN?.trim()
@@ -20,7 +22,7 @@ export async function forwardLead(
   try {
     const res = await fetchImpl(`${base}/lead`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-lead-token': token },
+      headers: { 'content-type': 'application/json', 'x-lead-token': token, ...visitorIpHeader(ip) },
       body: JSON.stringify({
         name: lead.name,
         contact: lead.contact,

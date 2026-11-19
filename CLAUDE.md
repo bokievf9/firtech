@@ -108,11 +108,13 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (`fillReferralPercent` in `src/lib/referral.ts`), never a typed percent. `/[locale]/compare`
   (`comparePage` dictionary, words only, no figures or named competitors). Both are in `localePages`,
   the sitemap and the footer «Студия» column; links from `#pricing` and under the home FAQ.
-- `?ref=<slug>` flow: `RefCapture` on the home page stores the sanitized slug in sessionStorage
-  (`fir-ref`); the contact form (and the builder hand-off through it) sends `source: 'ref:<slug>'`
+- `?ref=<slug>` flow: `RefCapture` on the home page stores the sanitized slug in localStorage for 30 days
+  (`fir-ref` = `{slug, exp}`; sessionStorage when localStorage throws; `storedRef()` in `src/lib/referral.ts`);
+  `RefLinks` (layout) adds `?start=ref_<slug>` to every `t.me/firtech_bot` link without its own `start`
+  (`demo_salon` wins); the audit form and the chat send `ref` too; the contact form (and the builder hand-off through it) sends `source: 'ref:<slug>'`
   (wins over a showcase source); `leadSchema.source` accepts `ref:[a-z0-9_-]{1,32}`; `forwardLead`
-  passes `source` to HQ only when not empty (HQ rejects an empty one). The public chat has no field
-  for it, so chat leads carry no ref. Tests: `tests/site-d.test.mjs`.
+  passes `source` to HQ only when not empty (HQ rejects an empty one). HQ's `chatSchema` is not strict, so the chat payload now carries `ref` (ignored by HQ until it reads
+  it: TODO in `chat-hq.ts`). Tests: `tests/site-d.test.mjs`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass
@@ -127,6 +129,19 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `simple-icons` (pinned exact version).
 
 ## Leads
+- Public POST routes (`/api/lead`, `/api/chat`, `/api/audit`): `checkPublicPost` (`src/lib/public-post.ts`) requires
+  `content-type: application/json` (415) and, when `Origin` is present, the site origin (`NEXT_PUBLIC_SITE_URL`, or
+  localhost outside production; 403). The visitor IP (`visitorIp`: `x-real-ip`, else first `x-forwarded-for` hop, like the
+  limiters) goes to HQ in header `x-visitor-ip` on every forward (not sent when 'local'). Tests: `tests/audit-2026-11-19.test.mjs`.
+- `GET /api/prices` (`force-static`, `cache-control: public, max-age=600`): `pricesJson()` in `src/lib/prices-json.ts`
+  from `pricing.ts` and `products.ts` (starting prices, catalog, extras, plans, referral percent, products); the agents read it
+  instead of copies. Bump `PRICES_UPDATED_AT` when prices change.
+- Security headers (`next.config.ts`, all paths): nosniff, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
+  `Permissions-Policy` (microphone only on `/admin/echo`), HSTS in production (nginx sends none, so no duplicate). No CSP yet.
+- Payment copy (owner 2026-11-19): USDT (TRC20/TON) or an online wallet named in the estimate, 50% before the start and 50%
+  after acceptance, stages from the estimate for projects over a month; never cards, Kaspi, Payme, Click as our own methods
+  and never «за каждый этап отдельно». The free audit is promised «в течение рабочего дня после заявки, обычно быстрее».
+  The public office maps `blocked` to `waiting`.
 - Env (in `.env.local`, see `.env.example`): `TELEGRAM_BOT_TOKEN` (bot from @BotFather),
   `TELEGRAM_CHAT_ID` (the owner's user id or a group id: send the bot a message, then read
   `chat.id` from `https://api.telegram.org/bot<token>/getUpdates`), `NEXT_PUBLIC_TELEGRAM_USERNAME`

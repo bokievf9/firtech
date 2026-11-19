@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { visitorIpHeader } from './public-post'
 
 // Free audit: request shape of POST /api/audit and of HQ's POST /audit (agents/docs/public-api.md).
 export const AUDIT_URL_MAX = 200
@@ -69,6 +70,7 @@ export async function forwardAudit(
   input: Omit<AuditInput, 'website'>,
   env: AuditEnv = process.env,
   fetchImpl: typeof fetch = fetch,
+  ip?: string,
 ): Promise<AuditAnswer & { status: number }> {
   const base = env.LEAD_INTAKE_URL?.trim().replace(/\/+$/, '')
   const token = env.LEAD_INTAKE_TOKEN?.trim()
@@ -79,7 +81,7 @@ export async function forwardAudit(
   try {
     const res = await fetchImpl(`${base}/audit`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', 'x-lead-token': token },
+      headers: { 'content-type': 'application/json', 'x-lead-token': token, ...visitorIpHeader(ip) },
       body: JSON.stringify({
         url: input.url,
         contact: input.contact,

@@ -1,12 +1,14 @@
 import 'server-only'
 import { getDict } from '@/content'
+import { visitorIpHeader } from './public-post'
 import { createMockReceptionist, sanitizeReply, type ChatRequest, type ChatResponse } from './chat'
 
 // Server side of POST /api/chat: forwards one visitor message to HQ's receptionist and cleans the
 // answer. Never throws and never returns the token or the URL.
 //   POST ${HQ_CHAT_URL}   (default http://127.0.0.1:8787/chat)
 //   x-chat-token: ${HQ_CHAT_TOKEN}  (falls back to LEAD_INTAKE_TOKEN)
-//   { sessionId, locale, message, page }
+//   x-visitor-ip: the visitor's address (HQ's per-IP limit), only when a proxy gave one
+//   { sessionId, locale, message, page, ref? }
 // Without HQ_CHAT_URL in development the scripted mock answers, so the widget can be reviewed
 // locally. Production always talks to HQ (loopback default): a mock there would collect contacts
 // that nobody reads.
@@ -25,6 +27,7 @@ export async function askReceptionist(
   req: ChatRequest,
   env: Record<string, string | undefined> = process.env,
   fetcher: typeof fetch = fetch,
+  ip?: string,
 ): Promise<ChatResponse> {
   if (chatMode(env) === 'mock') return mock(req, getDict(req.locale).chat.mock)
   const url = env.HQ_CHAT_URL?.trim() || DEFAULT_URL
@@ -32,12 +35,19 @@ export async function askReceptionist(
   try {
     const res = await fetcher(url, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', ...(token ? { 'x-chat-token': token } : {}) },
+      headers: {
+        'content-type': 'application/json',
+        ...(token ? { 'x-chat-token': token } : {}),
+        ...visitorIpHeader(ip),
+      },
       body: JSON.stringify({
         sessionId: req.sessionId,
         locale: req.locale,
         message: req.message,
         page: req.page,
+        // HQ's chatSchema is not strict, so an unknown `ref` is ignored today; HQ reads it later.
+        // TODO(agents): add `ref` to chatSchema and attribute web-chat leads.
+        ...(req.ref ? { ref: req.ref } : {}),
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),

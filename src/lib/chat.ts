@@ -47,6 +47,11 @@ export const chatRequestSchema = z.object({
     .string()
     .max(300)
     .transform((p) => (p.startsWith('/') ? p.split(/[?#]/)[0]!.slice(0, 200) : '/')),
+  // Referral slug (sanitized by the site, see referral.ts).
+  ref: z
+    .string()
+    .regex(/^[a-z0-9_-]{1,32}$/)
+    .optional(),
 })
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>

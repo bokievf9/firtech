@@ -36,10 +36,10 @@ const en: Dict = {
     },
     primary: 'Build it in the builder',
     telegram: 'Message on Telegram',
-    trust: ['Price fixed in the quote', 'Pay in stages', 'Code and access are yours'],
+    trust: ['Price fixed in the quote', '50% upfront', 'Code and access are yours'],
     scroll: 'Scroll',
     chatCta: 'Talk to the receptionist',
-    auditLink: 'A free audit of your website in 24 hours',
+    auditLink: 'A free website audit: we reply within a working day',
     live: {
       badge: 'Office online',
       demoBadge: 'Demo',
@@ -328,8 +328,8 @@ const en: Dict = {
         text: 'Domain, accounts and code are registered to you. If you leave, you take the whole project.',
       },
       {
-        title: 'Pay in stages',
-        text: 'We start the next stage once you have accepted the previous one.',
+        title: 'Pay 50% and 50%',
+        text: 'Half before we start, the rest after acceptance. Large projects go in stages from the quote.',
       },
       {
         title: 'A month of fixes',
@@ -348,7 +348,7 @@ const en: Dict = {
     pdf: 'Quote as PDF',
     link: 'Shareable link',
     payTitle: 'Payment',
-    currency: 'Prices in US dollars, paid in stages',
+    currency: 'Prices in US dollars, 50% prepayment',
   },
   faqContact: {
     title: 'Questions and a request',
@@ -399,11 +399,11 @@ const en: Dict = {
     },
   },
   region: {
-    title: 'We work with companies in Tashkent, Almaty, Dushanbe and Bishkek',
-    sub: 'We communicate in Russian or English and take payment the way that suits you. All prices on the site are in US dollars.',
+    title: 'We take orders from Tashkent, Almaty, Dushanbe, Bishkek and other cities of the CIS',
+    sub: 'We communicate in Russian or English. You pay in USDT or through an online wallet named in the quote. All prices on the site are in US dollars.',
     cities: ['Tashkent', 'Almaty', 'Dushanbe', 'Bishkek'],
     payTitle: 'Ways to pay',
-    pay: ['Bank cards', 'Kaspi', 'Payme and Click', 'USDT'],
+    pay: ['USDT (TRC20 or TON)', 'Online wallet named in the quote'],
   },
   extras: {
     title: 'We also do',
@@ -491,7 +491,7 @@ const en: Dict = {
     monthlyNote: 'Support is paid separately, every month.',
     termsNote:
       'Timelines are per part. We will give the exact overall timeline in the quote: some work can run in parallel.',
-    payNote: 'You pay in stages, for each stage separately.',
+    payNote: 'Payment: 50% before we start and 50% after acceptance. Projects longer than a month go in stages from the quote.',
     note: 'This is a rough estimate. We fix the exact price in the quote after a short call.',
     send: 'Send my build',
     copy: 'Copy link',
@@ -1134,7 +1134,7 @@ const en: Dict = {
       },
       {
         title: 'Build',
-        text: 'You see progress every week and pay in stages, for each one separately.',
+        text: 'You see progress every week. Payment: 50% before we start, 50% after acceptance.',
       },
       {
         title: 'Launch',
@@ -1175,7 +1175,7 @@ const en: Dict = {
       },
       {
         q: 'Can I see first what is wrong?',
-        a: 'Yes. Leave a link to your website or Instagram on the free audit page: in 24 hours we send you 5 points on what to fix in Telegram.',
+        a: 'Yes. Leave a link to your website or Instagram on the free audit page: within a working day of your request, usually sooner, we send you 5 points on what to fix.',
       },
       {
         q: 'How long does it take?',
@@ -1187,7 +1187,7 @@ const en: Dict = {
       },
       {
         q: 'How do payments work?',
-        a: 'In stages: the work is split into stages and you pay for each one separately. The quote lists the stages and what each includes. We agree on the payment method together.',
+        a: 'Half of the amount before we start, the other half after acceptance. Projects longer than a month are split into stages, and the quote lists the stages and their payments. You can pay in USDT (TRC20 or TON) or through an online wallet named in the quote.',
       },
       {
         q: 'Do you work with clients abroad?',
@@ -1296,7 +1296,7 @@ const en: Dict = {
         id: 'chat',
         title: 'Chat on the site',
         text: [
-          'If you write to the chat assistant on the site, we receive the texts of your messages and a random session id. The texts go to our internal system, where the assistant prepares a reply, and studio staff can read the conversation if you left contacts or asked us to get in touch.',
+          'If you write to the chat assistant on the site, we receive the texts of your messages and a random session id. The texts go to our internal system, where the assistant prepares a reply, and studio staff can read the conversation if you left contacts or asked us to get in touch. To write the reply, third-party AI model providers process the texts, see the section "Processing of texts by AI models".',
           'The session id and the chat history stay only in your browser tab and disappear when you close it. Please do not type passwords, card details or other sensitive information into the chat.',
         ],
         list: [],
@@ -1314,6 +1314,14 @@ const en: Dict = {
         title: 'Telegram bot @firtech_bot',
         text: [
           'If you write to our bot or press "Get replies in Telegram" after sending a request, we receive your Telegram id, profile name, username and message texts. We need them to hold the conversation and send you the status of your request. You can stop the bot by blocking it in Telegram.',
+        ],
+        list: [],
+      },
+      {
+        id: 'ai',
+        title: 'Processing of texts by AI models',
+        text: [
+          'The texts from the chat, the bot and the audit (your messages and the content of the page being checked) are processed by AI model providers that we reach through our own gateway. They are third-party companies, some of them outside your country. We do not send them your name or contacts unless you typed them into the message yourself. Please do not write to the chat or the bot anything you do not want to leave the studio.',
         ],
         list: [],
       },
@@ -1345,7 +1353,7 @@ const en: Dict = {
         id: 'sharing',
         title: 'Who we share it with',
         text: [
-          'We do not sell your data or share it with third parties. The only exception is the technical services this cannot work without: Telegram (requests and bot conversations go through it), the hosting the site runs on, and the AI model providers that help the assistant write chat replies.',
+          'We do not sell your data or share it with third parties. The only exception is the technical services this cannot work without: Telegram (requests and bot conversations go through it), the hosting the site runs on, and the AI model providers that help write replies in the chat, the bot and the audit (more below).',
         ],
         list: [],
       },
@@ -1362,7 +1370,7 @@ const en: Dict = {
         id: 'cookies',
         title: 'Cookies and browser storage',
         text: [
-          'The site itself sets no cookies except technical ones it cannot work without. The chat uses tab storage (sessionStorage) for the session id, and a referral link (the ref parameter) is kept there too, so that we know who recommended us. The storage is cleared when you close the tab. Yandex Metrica cookies are described in the analytics section.',
+          'The site itself sets no cookies except technical ones it cannot work without. The chat uses tab storage (sessionStorage) for the session id, and a referral link (the ref parameter) is kept in localStorage for 30 days (in sessionStorage if localStorage is unavailable), so that we know who recommended us. Tab storage is cleared when you close the tab; the referral tag can be deleted in your browser settings. Yandex Metrica cookies are described in the analytics section.',
         ],
         list: [],
       },
@@ -1390,14 +1398,14 @@ const en: Dict = {
   terms: {
     metaTitle: 'Terms of service | Fir Tech',
     metaDescription:
-      'The terms Fir Tech works on: how we agree an estimate, take payment in stages, hand over the work and answer for the result. A draft pending a lawyer review.',
+      'The terms Fir Tech works on: how we agree an estimate, take payment, hand over the work and answer for the result. The document is under legal review.',
     eyebrow: 'Document',
     title: 'Terms of service',
     updated: 'Version of 19 November 2026',
-    draftNote: 'A draft pending a lawyer review.',
+    draftNote: 'The document is under legal review and the wording may be refined.',
     placeholder: '[to be filled in by the owner]',
     intro:
-      'These are the terms on which the Fir Tech studio does work for clients. By confirming an estimate the client agrees to them. The document becomes an offer after a lawyer has checked it; until then it describes how we work and creates no obligations by itself.',
+      'These are the terms on which the Fir Tech studio does work for clients. These terms apply from the moment the client confirms an estimate and form part of the agreement together with it.',
     sections: [
       {
         id: 'parties',
@@ -1446,11 +1454,18 @@ const en: Dict = {
         id: 'guarantee',
         title: 'Prepayment guarantee',
         text: [
-          'The guarantee covers the first delivered result: the first screen of a website or the first bot scenario. If the client does not like it, they say so in writing, for example in Telegram, within 7 days of receiving it.',
+          'The guarantee covers the first delivered result. What counts as the first result depends on the product, see the list below. If the client does not like it, they say so in writing, for example in Telegram, within 7 days of receiving it.',
           'The prepayment is then returned in full, minus network and payment service fees. This rule applies instead of the charge for completed work in the termination section.',
-          'If the client approved the first screen or the first scenario, the guarantee for that stage is closed and the work continues on the usual terms.',
+          'If the client approved the first result, the guarantee for that stage is closed and the work continues on the usual terms.',
         ],
-        list: [],
+        list: [
+          'Website: the first screen',
+          'Bot, admin bot, request receptionist: the first scenario in a test bot',
+          'Mini App: the first screen of the app',
+          'Automation: the first connection on test data',
+          'AI rollout: the first answer of the assistant from your documents',
+          'Subscriptions (content, personal agents): the first approved item or the first week of work',
+        ],
       },
       {
         id: 'delivery',
@@ -1458,6 +1473,7 @@ const en: Dict = {
         text: [
           'Timelines run from the prepayment and from receiving everything the client has to provide: texts, photos, access. A delay in materials moves the deadline by the same time.',
           'The estimate includes two rounds of revisions: the client sends remarks as a list and the contractor applies them. New features and a change of task beyond the estimate are priced separately. If no remarks arrive within 7 days of delivery, the work counts as accepted.',
+          'For 30 days after delivery we fix bugs in the delivered work for free.',
         ],
         list: [],
       },
@@ -1659,12 +1675,12 @@ const en: Dict = {
     botDemo: 'Bot demo',
   },
   auditPage: {
-    metaTitle: 'Free website audit in 24 hours | Fir Tech',
+    metaTitle: 'Free website audit within a working day | Fir Tech',
     metaDescription:
-      'Send a link to your website or Instagram and get 5 clear points on what to fix in Telegram. We reply within 24 hours and it is free.',
+      'Send a link to your website or Instagram and get 5 clear points on what to fix. We reply within a working day of your request, usually sooner. It is free.',
     eyebrow: 'Free audit',
-    title: 'What is wrong with your website? We show you in 24 hours',
-    sub: 'Leave a link to your website or Instagram. Agents check the page, a person reviews the result and sends you 5 points in Telegram.',
+    title: 'What is wrong with your website? We show you within a working day',
+    sub: 'Leave a link to your website or Instagram. Agents check the page, a person reviews the result and sends you 5 points.',
     pointsTitle: 'What we check',
     points: [
       'The title, the page description and how fast the site answers',
@@ -1695,11 +1711,12 @@ const en: Dict = {
       network: 'No connection to the server. Check your internet and try again.',
     },
     successTitle: 'Audit ordered',
-    successText: 'In 24 hours we send you 5 points in Telegram.',
+    successText: 'The result comes to Telegram from @firtech_bot within a working day of your request, usually sooner.',
+    successTextOther: 'We will write to you at the contact you gave within a working day of your request, usually sooner.',
     successHint: 'If you have not written to @firtech_bot yet, open it so we can send the result to the chat.',
     botCta: 'Open @firtech_bot',
     duplicateTitle: 'Audit already ordered',
-    duplicateText: 'The audit is already ordered, please wait. You can order a new one in 24 hours.',
+    duplicateText: 'The audit is already ordered, please wait. You can order a new one in a day.',
     again: 'Order for another site',
     mockNote: 'Demo mode: the request was not sent anywhere',
   },
@@ -1901,9 +1918,9 @@ const en: Dict = {
     apps: {
       metaTitle: 'App development from {price} | Fir Tech',
       metaDescription:
-        'Web apps, iOS and Android apps, customer accounts and internal tools for your team. From {price}, paid in stages. Price and timeline up front.',
+        'Web apps, iOS and Android apps, customer accounts and internal tools for your team. From {price}, stages and payments in the quote. Price and timeline up front.',
       title: 'An app without wasted budget',
-      sub: 'We start with a minimal version that solves the main problem and grow it as you grow. Paid in stages.',
+      sub: 'We start with a minimal version that solves the main problem and grow it as you grow. Stages and payments are written in the quote.',
       included: [
         'Task breakdown and screen prototype',
         'Interface design',
@@ -1923,7 +1940,7 @@ const en: Dict = {
         },
         {
           title: 'Development',
-          text: 'We build the app and its backend in stages. You see each stage, and payment goes in stages too.',
+          text: 'We build the app and its backend in stages. You see each stage, and the payments per stage are written in the quote.',
         },
         {
           title: 'Launch',

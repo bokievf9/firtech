@@ -59,11 +59,16 @@ const cleanTitle = (v: unknown) =>
 const count = (v: unknown) =>
   typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : 0
 
+function publicStatus(status: AgentStatus): AgentStatus {
+  return status === 'blocked' ? 'waiting' : status
+}
+
 function agentOf(a: Pick<OfficeAgent, 'id' | 'title' | 'status' | 'thinking'>): PublicAgent {
   return {
     id: cleanId(a.id),
     title: cleanTitle(a.title),
-    status: statusChip(String(a.status)).status,
+    // The public hero never shows «blocked»: a stuck agent looks like one that waits.
+    status: publicStatus(statusChip(String(a.status)).status),
     ...(a.thinking === true ? { thinking: true } : {}),
   }
 }

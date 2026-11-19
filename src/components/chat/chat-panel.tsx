@@ -14,6 +14,7 @@ import {
 } from '@/lib/chat'
 import { demoChatMessage, demoPlace } from '@/lib/demo'
 import type { Locale } from '@/lib/i18n'
+import { storedRef } from '@/lib/referral'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import type { ChatCopy } from './chat-widget'
 
@@ -150,6 +151,7 @@ export default function ChatPanel({
             locale,
             message,
             page: window.location.pathname,
+            ...(storedRef() ? { ref: storedRef() } : {}),
           }),
         })
         status = res.status

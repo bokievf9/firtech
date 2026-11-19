@@ -1,6 +1,6 @@
 import { referralPercent } from './pricing'
 
-// Referral links (`/ru?ref=<slug>`). No backend: the slug travels in sessionStorage (`fir-ref`) and
+// Referral links (`/ru?ref=<slug>`). No backend: the slug travels in localStorage for 30 days (`fir-ref`) and
 // then in the lead as `source: 'ref:<slug>'`, which HQ already reads as the referrer.
 export const REF_STORAGE_KEY = 'fir-ref'
 export const REF_PARAM = 'ref'
@@ -47,18 +47,71 @@ export function refFromSearch(search: string): string {
   return sanitizeRefSlug(new URLSearchParams(search).get(REF_PARAM))
 }
 
-export function storeRef(slug: string) {
+// The slug lives 30 days in localStorage as {"slug","exp"} (exp = ms timestamp); when localStorage
+// throws (private mode, blocked), sessionStorage holds it for the tab. An old plain string in
+// sessionStorage (before 2026-11-19) is still read.
+export const REF_TTL_MS = 30 * 24 * 60 * 60 * 1000
+
+export function encodeStoredRef(slug: string, now = Date.now()): string {
+  return JSON.stringify({ slug, exp: now + REF_TTL_MS })
+}
+
+// The slug of a stored value, '' when it is empty, broken or expired.
+export function decodeStoredRef(raw: string | null, now = Date.now()): string {
+  if (!raw) return ''
   try {
-    if (slug) sessionStorage.setItem(REF_STORAGE_KEY, slug)
+    const v: unknown = JSON.parse(raw)
+    if (v && typeof v === 'object') {
+      const { slug, exp } = v as { slug?: unknown; exp?: unknown }
+      return typeof exp === 'number' && exp > now ? sanitizeRefSlug(slug) : ''
+    }
   } catch {
-    // Storage may be blocked; the referral is then simply not carried.
+    // not JSON: a plain slug from the old sessionStorage format
+  }
+  return sanitizeRefSlug(raw)
+}
+
+export function storeRef(slug: string) {
+  if (!slug) return
+  try {
+    localStorage.setItem(REF_STORAGE_KEY, encodeStoredRef(slug))
+    return
+  } catch {
+    // localStorage may be blocked; fall back to the tab.
+  }
+  try {
+    sessionStorage.setItem(REF_STORAGE_KEY, slug)
+  } catch {
+    // The referral is then simply not carried.
   }
 }
 
 export function storedRef(): string {
   try {
+    const slug = decodeStoredRef(localStorage.getItem(REF_STORAGE_KEY))
+    if (slug) return slug
+    localStorage.removeItem(REF_STORAGE_KEY)
+  } catch {
+    // fall through to sessionStorage
+  }
+  try {
     return sanitizeRefSlug(sessionStorage.getItem(REF_STORAGE_KEY))
   } catch {
     return ''
+  }
+}
+
+// `t.me/firtech_bot` gets `?start=ref_<slug>`, so the bot can credit the referrer. A link that
+// already has `start` (the demo salon link) is left as it is: `demo_salon` wins.
+export function withRefStart(href: string, slug: string): string {
+  if (!slug) return href
+  try {
+    const u = new URL(href)
+    if (u.hostname !== 't.me' || u.pathname.toLowerCase() !== '/firtech_bot') return href
+    if (u.searchParams.has('start')) return href
+    u.searchParams.set('start', `ref_${slug}`)
+    return u.toString()
+  } catch {
+    return href
   }
 }
