@@ -328,7 +328,10 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       }
       const inv = seg[2] ? byId(invoices, seg[2]) : undefined
       if (method !== 'POST' || !inv) return bad('not_found')
-      if (body.action === 'remind') inv.remindedAt = iso(now)
+      if (body.action === 'remind') {
+        inv.remindedAt = iso(now)
+        return ok({ item: inv, remindedVia: String(inv.client) === 'Pulse Gym' ? 'telegram' : 'owner' })
+      }
       else if (body.action === 'mark_paid') {
         if (inv.status !== 'issued') return bad('illegal_transition', { from: inv.status })
         inv.status = 'paid'
@@ -389,7 +392,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
               support: { todayUsd: 0.05, monthUsd: 0.9, limitUsd: 5 },
               production: { todayUsd: 0, monthUsd: 0.4, limitUsd: 5 },
               backoffice: { todayUsd: 0.02, monthUsd: 0.3, limitUsd: 3 },
-              director: { todayUsd: 0.11, monthUsd: 2.2, limitUsd: null },
+              director: { todayUsd: 0.11, monthUsd: 2.2, limitUsd: 0 },
             },
             byDay: Array.from({ length: 14 }, (_, i) => ({ date: iso(now - (13 - i) * 86_400_000).slice(0, 10), usd: Math.round((0.4 + ((i * 7) % 5) * 0.15) * 100) / 100 })),
           },
@@ -410,6 +413,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
         const r = routines.find((x) => x.name === seg[2])
         if (!r) return bad('not_found')
         if (seg[3] === 'run') {
+          if (!r.enabled) return bad('not_started', { reason: 'disabled' })
           r.lastRunAt = iso(now)
           r.lastStatus = 'running'
           return ok({ taskId: 700 + Math.floor(now / 1000) % 100 })

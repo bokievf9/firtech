@@ -1,0 +1,206 @@
+'use client'
+
+import { LockSimple, Play } from '@phosphor-icons/react'
+import { useState } from 'react'
+import { errText, fill, hq } from '@/components/admin/control/api'
+import { CrmDrawer } from '@/components/admin/control/crm-hq-ui'
+import { Sparkline } from '@/components/admin/sparkline'
+import { admin } from '@/content/admin'
+import { cn } from '@/lib/cn'
+import { plainBotText } from '@/lib/hq-admin-view'
+import { formatUntil } from '@/lib/office-view'
+import { limitShare, normalizeCompany, routineRow, trustRow, type Routine, type TrustRow } from '@/lib/pult'
+import { Chip, shortTime, usd } from './bits'
+import { Empty, Loading, Offline, useConfirm, useHqView, useHub } from '../hub/ui'
+
+const k = admin.pult.company
+const dept = (id: string) => (admin.hub.panels as Record<string, string>)[id.replace(/[^a-z]/g, '')] ?? id
+
+function Toggle({ on, label, disabled, onChange }: { on: boolean; label: string; disabled?: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!on)}
+      className={cn('relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-50', on ? 'border-accent bg-accent' : 'border-line-strong bg-surface-2')}
+    >
+      <span aria-hidden="true" className={cn('absolute top-0.5 size-4.5 rounded-full transition-transform', on ? 'translate-x-5 bg-accent-ink' : 'translate-x-0.5 bg-muted')} />
+    </button>
+  )
+}
+
+// «Компания»: routines (switch, run now), spend by department against its limit, trust levels
+// (locked kinds only by the owner, with a confirm), playbooks and the workers' states.
+export function CompanyTab() {
+  const { now, notify } = useHub()
+  const feed = useHqView('company', normalizeCompany, { visible: 60_000, hidden: 300_000 })
+  const { ask, dialog } = useConfirm()
+  const [playbook, setPlaybook] = useState<{ role: string; text: string | null } | null>(null)
+  const c = feed.view
+
+  const setRoutine = async (r: Routine, enabled: boolean) => {
+    const swap = (x: Routine) => feed.mutate((v) => ({ ...v, routines: v.routines.map((i) => (i.name === x.name ? x : i)) }))
+    swap({ ...r, enabled })
+    const res = await hq<{ item?: unknown }>(`company/routines/${r.name}`, { enabled })
+    if (res.ok) {
+      const item = routineRow(res.item)
+      if (item) swap(item)
+      notify(fill(enabled ? k.routineOn : k.routineOff, { t: r.title || r.name }))
+    } else {
+      swap(r)
+      notify(fill(k.failed, { e: errText(res.error) }), 'error')
+    }
+  }
+  const run = async (r: Routine) => {
+    const res = await hq<{ taskId?: unknown }>(`company/routines/${r.name}/run`, {})
+    if (res.ok) notify(fill(k.ran, { t: r.title || r.name, id: String(res.taskId ?? '') }))
+    else if (res.error === 'not_started') notify(fill(k.notStarted, { why: (k.reasons as Record<string, string>)[res.reason ?? ''] ?? res.reason ?? '' }), 'error')
+    else notify(fill(k.failed, { e: errText(res.error) }), 'error')
+    void feed.reload()
+  }
+  const setTrust = async (t: TrustRow, level: 0 | 1) => {
+    if (t.locked && level === 1 && !(await ask(fill(k.trustConfirm, { kind: t.kind }), { yes: k.trustYes }))) return
+    const swap = (x: TrustRow) => feed.mutate((v) => ({ ...v, trust: v.trust.map((i) => (i.kind === x.kind ? x : i)) }))
+    swap({ ...t, level })
+    const res = await hq<{ item?: unknown }>(`company/trust/${t.kind}`, { level })
+    if (res.ok) {
+      const item = trustRow(res.item)
+      if (item) swap(item)
+    } else {
+      swap(t)
+      notify(fill(k.failed, { e: errText(res.error) }), 'error')
+    }
+  }
+  const openPlaybook = async (role: string) => {
+    setPlaybook({ role, text: null })
+    const res = await hq<{ replies?: string[] }>('command', { name: 'playbook', arg: role })
+    const text = res.ok && Array.isArray(res.replies) ? res.replies.map((r) => plainBotText(String(r))).join('\n\n') : null
+    setPlaybook({ role, text: text || (res.ok ? k.playbookEmpty : fill(k.failed, { e: errText(res.error) })) })
+  }
+
+  if (!c) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading rows={4} />
+  const byDay = c.costs.byDay.map((d) => d.usd)
+  return (
+    <div className="grid gap-5 p-3 sm:p-4">
+      <section className="grid gap-2">
+        <h3 className="text-sm font-medium">{k.routines}</h3>
+        {c.routines.length ? (
+          <ul className="grid gap-1">
+            {c.routines.map((r) => (
+              <li key={r.name} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-line bg-bg/50 px-3 py-2">
+                <Toggle on={r.enabled} label={fill(k.routineToggle, { t: r.title || r.name })} onChange={(on) => void setRoutine(r, on)} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm">{r.title || r.name}</span>
+                  <span className="block truncate font-mono text-xs text-faint">
+                    {dept(r.dept)} · {r.cron} {r.tz ? `· ${r.tz}` : ''}
+                  </span>
+                </span>
+                <span className="text-xs text-muted">
+                  {r.lastStatus ? <Chip tone={r.lastStatus === 'failed' ? 'bad' : r.lastStatus === 'done' ? 'accent' : 'plain'}>{(k.statuses as Record<string, string>)[r.lastStatus] ?? r.lastStatus}</Chip> : null}{' '}
+                  {r.nextRunAt && r.enabled ? formatUntil(r.nextRunAt, now) : r.lastRunAt ? fill(k.last, { t: shortTime(r.lastRunAt) }) : ''}
+                </span>
+                <button type="button" onClick={() => void run(r)} title={k.runNow} aria-label={fill(k.runNowFor, { t: r.title || r.name })} className="grid size-9 place-items-center rounded-full border border-line-strong text-muted hover:border-accent hover:text-accent-text">
+                  <Play size={14} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Empty>{k.noRoutines}</Empty>
+        )}
+      </section>
+
+      <section className="grid gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-sm font-medium">{k.costs}</h3>
+          {byDay.length > 1 ? <Sparkline values={byDay} label={k.costsTrend} /> : null}
+        </div>
+        <ul className="grid gap-2">
+          {c.costs.byDept.map((d) => {
+            const share = limitShare(d)
+            return (
+              <li key={d.dept} className="text-sm">
+                <div className="flex justify-between gap-2">
+                  <span>{dept(d.dept)}</span>
+                  <span className="text-xs text-muted tabular-nums">
+                    {fill(k.today, { usd: usd(d.todayUsd) })} · {d.limitUsd ? fill(k.month, { usd: usd(d.monthUsd), limit: usd(d.limitUsd) }) : fill(k.monthNoLimit, { usd: usd(d.monthUsd) })}
+                  </span>
+                </div>
+                {share !== null ? (
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={Math.round(share * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={dept(d.dept)}>
+                    <div className={cn('h-full rounded-full', share >= 1 ? 'bg-danger' : share >= 0.8 ? 'bg-warn' : 'bg-accent')} style={{ width: `${Math.min(100, share * 100)}%` }} />
+                  </div>
+                ) : null}
+              </li>
+            )
+          })}
+        </ul>
+      </section>
+
+      <section className="grid gap-2">
+        <h3 className="text-sm font-medium">{k.trust}</h3>
+        <p className="text-xs text-faint">{k.trustHint}</p>
+        <ul className="grid gap-1">
+          {c.trust.map((t) => (
+            <li key={t.kind} className="flex items-center gap-3 rounded-xl border border-line bg-bg/50 px-3 py-2">
+              <Toggle on={t.level === 1} label={fill(k.trustToggle, { kind: t.kind })} onChange={(on) => void setTrust(t, on ? 1 : 0)} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-mono text-xs">{t.kind}</span>
+                <span className="block text-xs text-faint">
+                  {fill(k.level, { n: t.level })} · {fill(k.approvals, { n: t.approvals })}
+                </span>
+              </span>
+              {t.locked ? (
+                <span className="inline-flex items-center gap-1 text-xs text-warn" title={k.lockedHint}>
+                  <LockSimple size={12} aria-hidden="true" /> {k.locked}
+                </span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+        {!c.trust.length ? <Empty>{k.noTrust}</Empty> : null}
+      </section>
+
+      <section className="grid gap-2">
+        <h3 className="text-sm font-medium">{k.playbooks}</h3>
+        {c.playbooks.length ? (
+          <ul className="flex flex-wrap gap-1.5">
+            {c.playbooks.map((p) => (
+              <li key={p.role}>
+                <button type="button" onClick={() => void openPlaybook(p.role)} className="rounded-full border border-line-strong px-3 py-1.5 text-xs hover:border-accent">
+                  {p.role} <span className="text-faint">· {fill(k.lines, { n: p.lines })}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Empty>{k.noPlaybooks}</Empty>
+        )}
+      </section>
+
+      <section className="grid gap-2">
+        <h3 className="text-sm font-medium">{k.workers}</h3>
+        {c.workers.length ? (
+          <ul className="grid gap-1 sm:grid-cols-2">
+            {c.workers.map((w) => (
+              <li key={w.id} className="flex items-center gap-2 text-sm">
+                <span aria-hidden="true" className={cn('size-1.5 rounded-full', w.state === 'working' ? 'office-breathe bg-accent' : w.state === 'blocked' ? 'bg-danger' : 'bg-line-strong')} />
+                <span className="min-w-0 flex-1 truncate">{w.title}</span>
+                <span className="text-xs text-faint">{(admin.office.status as Record<string, string>)[w.state] ?? w.state}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Empty>{k.noWorkers}</Empty>
+        )}
+      </section>
+      {dialog}
+      <CrmDrawer open={playbook !== null} title={playbook?.role ?? ''} subtitle={k.playbook} onClose={() => setPlaybook(null)}>
+        {playbook?.text ? <p className="text-sm whitespace-pre-wrap">{playbook.text}</p> : <Loading />}
+      </CrmDrawer>
+    </div>
+  )
+}

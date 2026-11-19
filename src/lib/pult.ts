@@ -216,6 +216,8 @@ export function leadRow(raw: unknown): Lead | null {
       : arr(r.notes, 50)
           .map((n) => (typeof n === 'string' ? { at: null, text: n.slice(0, 2000) } : { at: when(rec(n).at), text: str(rec(n).text) }))
           .filter((n) => n.text)
+  // HQ keeps one owner note per lead in `note` (contract deviation 2026-11-20); shown first.
+  if (typeof r.note === 'string' && r.note.trim() && !notes.some((n) => n.text === r.note)) notes.unshift({ at: null, text: r.note.slice(0, 2000) })
   return {
     id: r.id,
     name: str(r.name, 200),
@@ -290,6 +292,56 @@ export type ReplyResult = { sent: boolean; via: 'telegram' | 'web' | 'none' }
 export function normalizeReply(body: unknown): ReplyResult {
   const b = rec(body)
   return { sent: b.sent === true, via: oneOf(b.via, ['telegram', 'web', 'none'] as const, 'none') }
+}
+
+// ---- clients -----------------------------------------------------------------------------------
+
+export type ClientRow = {
+  id: string
+  name: string
+  contact: string
+  sources: string[]
+  cabinet: boolean
+  lastTouchAt: string | null
+  counts: { leads: number; tickets: number; projects: number; invoices: number; documents: number }
+}
+
+export function clientRow(raw: unknown): ClientRow | null {
+  const r = rec(raw)
+  const id = idOf(r.id)
+  if (!id) return null
+  const c = rec(r.counts)
+  const sources = arr(r.sources, 20).filter((x): x is string => typeof x === 'string' && x !== '').map((x) => x.slice(0, 40))
+  return {
+    id,
+    name: str(r.name, 200),
+    contact: str(r.contact, 200),
+    sources,
+    cabinet: r.cabinet === true || sources.includes('cabinet'),
+    lastTouchAt: when(r.lastTouchAt),
+    counts: { leads: num(c.leads), tickets: num(c.tickets), projects: num(c.projects), invoices: num(c.invoices), documents: num(c.documents) },
+  }
+}
+export const normalizeClientRows = (body: unknown) => rows(body, clientRow)
+
+// Client ids go into the URL path: digits stay, `c:<name>` is encoded by the proxy call.
+export const clientPath = (id: string) => `crm/clients/${encodeURIComponent(id)}`
+
+// ---- support -----------------------------------------------------------------------------------
+
+export type SupportTicket = Ticket & { answer: string | null }
+export function normalizeSupportTickets(body: unknown): Rows<SupportTicket> | null {
+  const list = normalizeTickets(body)
+  if (!list) return null
+  const answers = new Map(arr(rec(body).items, 500).map((t) => [num(rec(t).id), rec(t).answer]))
+  return {
+    available: list.available,
+    nextCursor: list.nextCursor,
+    items: list.items.map((t) => {
+      const a = answers.get(t.id)
+      return { ...t, answer: typeof a === 'string' && a ? a.slice(0, 2000) : null }
+    }),
+  }
 }
 
 // ---- client 360 --------------------------------------------------------------------------------
@@ -408,6 +460,8 @@ export type Invoice = {
   txId: string
   payUrl: string | null
   remindedAt: string | null
+  leadId: number | null
+  projectId: number | null
 }
 
 export function invoiceRow(raw: unknown): Invoice | null {
@@ -429,6 +483,8 @@ export function invoiceRow(raw: unknown): Invoice | null {
     txId: str(r.txId, 200),
     payUrl: safeUrl(r.payUrl),
     remindedAt: when(r.remindedAt),
+    leadId: typeof r.leadId === 'number' && Number.isInteger(r.leadId) ? r.leadId : null,
+    projectId: typeof r.projectId === 'number' && Number.isInteger(r.projectId) ? r.projectId : null,
   }
 }
 export const normalizeInvoices = (body: unknown) => rows(body, invoiceRow)
@@ -766,7 +822,7 @@ export function normalizeCompany(body: unknown): Company | null {
   }
 }
 
-// Share of the department's limit spent this month (0..1+), null without a limit.
+// Share of the department's limit spent this month (0..1+), null without a limit (HQ sends 0 for none).
 export const limitShare = (c: DeptCost): number | null => (c.limitUsd && c.limitUsd > 0 ? c.monthUsd / c.limitUsd : null)
 
 // ---- support SLA -------------------------------------------------------------------------------

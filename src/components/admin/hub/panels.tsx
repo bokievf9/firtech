@@ -5,37 +5,32 @@ import { LeadDrawer } from '@/components/admin/lead-drawer'
 import { ApprovalsPanel } from '@/components/admin/control/approvals-panel'
 import { CallsPanel } from '@/components/admin/control/calls-panel'
 import { BarePanel } from '@/components/admin/control/cc-panel'
-import { ClientsPanel } from '@/components/admin/control/clients-panel'
 import { useCrmLeads } from '@/components/admin/control/crm-data'
 import { LIST_LIMIT, useFeed } from '@/components/admin/control/crm-hq-data'
 import { DirectorChat } from '@/components/admin/control/director-chat'
 import { DocumentsPanel } from '@/components/admin/control/documents-panel'
 import { DrillPanel } from '@/components/admin/control/drill-panel'
 import { LeadsPanel } from '@/components/admin/control/leads-panel'
-import { ProjectsPanel } from '@/components/admin/control/projects-panel'
 import { ProspectsPanel } from '@/components/admin/control/prospects-panel'
 import { ReferralsPanel } from '@/components/admin/control/referrals-panel'
 import { ReviewsPanel } from '@/components/admin/control/reviews-panel'
 import { TasksPanel, type BoardFilter } from '@/components/admin/control/tasks-panel'
-import { TicketsPanel } from '@/components/admin/control/tickets-panel'
-import { admin } from '@/content/admin'
-import {
-  normalizeClients,
-  normalizeDocuments,
-  normalizeProjects,
-  normalizeProspects,
-  normalizeReferrals,
-  normalizeReviews,
-  normalizeTickets,
-} from '@/lib/admin-crm-hq'
+import { normalizeDocuments, normalizeProspects, normalizeReferrals, normalizeReviews } from '@/lib/admin-crm-hq'
 import type { Approval, HqDepartment, HqTask, Id } from '@/lib/hq-admin-view'
 import type { OfficeData } from '@/lib/office-view'
 import type { HubInboxItem, PanelId, PanelLink } from '@/lib/pult'
+import { ClientsTab } from '@/components/admin/pult/clients'
+import { CompanyTab } from '@/components/admin/pult/company'
+import { ContentTab } from '@/components/admin/pult/content'
+import { InvoicesTab } from '@/components/admin/pult/invoices'
+import { LeadsBoard } from '@/components/admin/pult/leads-funnel'
+import { MetricsTab } from '@/components/admin/pult/metrics'
+import { ProjectsBoard } from '@/components/admin/pult/projects'
+import { SupportTab } from '@/components/admin/pult/support'
 import { Feed } from './feed'
 import { Notifications } from './notifications'
-import { Empty, Offline, useHub } from './ui'
+import { Offline, useHub } from './ui'
 
-const h = admin.hub
 const q = `?limit=${LIST_LIMIT}`
 
 // Everything the Director panel needs from the hub (it owns the polls and the optimistic updates).
@@ -66,14 +61,6 @@ export type DirectorProps = {
 
 export type Badges = Partial<Record<string, string | null>>
 
-function Soon() {
-  return (
-    <div className="p-3 sm:p-4">
-      <Empty>{h.tabs.soon}</Empty>
-    </div>
-  )
-}
-
 // Site-form leads and calls (leads.json), as in the stage 1 panels; one lead drawer for both tabs.
 function SiteLeads({ calls }: { calls: boolean }) {
   const crm = useCrmLeads()
@@ -93,17 +80,6 @@ function SiteLeads({ calls }: { calls: boolean }) {
 function Prospects({ badge }: { badge: string | null }) {
   const { now } = useHub()
   return <ProspectsPanel feed={useFeed(`crm/prospects${q}`, normalizeProspects)} badge={badge} now={now} />
-}
-function Clients() {
-  const { now } = useHub()
-  return <ClientsPanel feed={useFeed(`crm/clients${q}`, normalizeClients)} now={now} />
-}
-function Tickets({ badge, onSent }: { badge: string | null; onSent: () => void }) {
-  const { now } = useHub()
-  return <TicketsPanel feed={useFeed(`crm/tickets${q}`, normalizeTickets)} badge={badge} now={now} onSent={onSent} />
-}
-function Projects({ badge }: { badge: string | null }) {
-  return <ProjectsPanel feed={useFeed(`crm/projects${q}`, normalizeProjects)} badge={badge} />
 }
 function Documents({ badge }: { badge: string | null }) {
   const { now } = useHub()
@@ -166,6 +142,7 @@ function DirectorTab({ tab, d }: { tab: string; d: DirectorProps }) {
 export function PanelContent({
   panel,
   tab,
+  focus,
   director,
   badges,
 }: {
@@ -178,19 +155,20 @@ export function PanelContent({
   const b = (k: string) => badges[k] ?? null
   let body: React.ReactNode = null
   if (panel === 'director') body = <DirectorTab tab={tab} d={director} />
+  else if (panel === 'marketing') body = tab === 'metrics' ? <MetricsTab /> : <ContentTab focus={focus} />
   else if (panel === 'sales') {
     if (tab === 'site') body = <SiteLeads calls={false} />
     else if (tab === 'calls') body = <SiteLeads calls />
     else if (tab === 'prospects') body = <Prospects badge={b('prospects')} />
-    else if (tab === 'clients') body = <Clients />
-    else body = <Soon />
-  } else if (panel === 'support') body = <Tickets badge={b('tickets')} onSent={director.onSent} />
-  else if (panel === 'production') body = <Projects badge={b('projects')} />
+    else if (tab === 'clients') body = <ClientsTab focus={focus} />
+    else body = <LeadsBoard focus={focus} />
+  } else if (panel === 'support') body = <SupportTab focus={focus} />
+  else if (panel === 'production') body = <ProjectsBoard focus={focus} />
   else if (panel === 'backoffice') {
     if (tab === 'documents') body = <Documents badge={b('documents')} />
     else if (tab === 'referrals') body = <Referrals badge={b('referrals')} />
     else if (tab === 'reviews') body = <Reviews badge={b('reviews')} />
-    else body = <Soon />
-  } else body = <Soon />
+    else body = <InvoicesTab focus={focus} />
+  } else body = <CompanyTab />
   return <BarePanel.Provider value>{body}</BarePanel.Provider>
 }

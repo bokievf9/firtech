@@ -12,7 +12,7 @@ export const HQ_ADMIN_TIMEOUT_MS = 5000
 
 type Method = 'GET' | 'POST'
 type Env = Record<string, string | undefined>
-export type Proxied = { ok: true; [k: string]: unknown } | { ok: false; error: string }
+export type Proxied = { ok: true; [k: string]: unknown } | { ok: false; error: string; reason?: string }
 
 const segment = /^[\w-]{1,64}$/
 const id = z.union([z.string().regex(segment), z.number().int().nonnegative()])
@@ -208,8 +208,13 @@ export async function callHqAdmin(
     if (res.status === 401 || res.status === 403) return { ok: false, error: 'hq_unauthorized' }
     const data: unknown = await res.json().catch(() => undefined)
     if (data && typeof data === 'object' && (data as { ok?: unknown }).ok === false) {
-      const error = (data as { error?: unknown }).error
-      return { ok: false, error: typeof error === 'string' && error ? error.slice(0, 200) : 'hq_error' }
+      const { error, reason } = data as { error?: unknown; reason?: unknown }
+      return {
+        ok: false,
+        error: typeof error === 'string' && error ? error.slice(0, 200) : 'hq_error',
+        // Why an action did not start (e.g. a routine run: 'disabled' | 'busy'); a short code only.
+        ...(typeof reason === 'string' && /^[\w-]{1,40}$/.test(reason) ? { reason } : {}),
+      }
     }
     if (!res.ok) return { ok: false, error: res.status === 404 ? 'hq_not_found' : 'hq_error' }
     if (!data || typeof data !== 'object' || (data as { ok?: unknown }).ok !== true) {

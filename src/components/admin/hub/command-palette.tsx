@@ -52,27 +52,38 @@ export function CommandPalette({
   open,
   onClose,
   entries,
+  more,
   onOpen,
 }: {
   open: boolean
   onClose: () => void
   entries: PaletteItem[]
+  // Entries read once per opening (content of the week loaded in the Marketing panel).
+  more?: () => PaletteItem[]
   onOpen: (panel: string, tab: string, focus: string) => void
 }) {
-  return <AnimatePresence>{open ? <PaletteBody key="palette" onClose={onClose} entries={entries} onOpen={onOpen} /> : null}</AnimatePresence>
+  return (
+    <AnimatePresence>
+      {open ? <PaletteBody key="palette" onClose={onClose} entries={entries} more={more} onOpen={onOpen} /> : null}
+    </AnimatePresence>
+  )
 }
 
 // Mounted only while open, so every opening starts with an empty query.
 function PaletteBody({
   onClose,
-  entries,
+  entries: base,
+  more,
   onOpen,
 }: {
   onClose: () => void
   entries: PaletteItem[]
+  more?: () => PaletteItem[]
   onOpen: (panel: string, tab: string, focus: string) => void
 }) {
   const open = true
+  const [extra] = useState(() => more?.() ?? [])
+  const entries = useMemo(() => [...base, ...extra], [base, extra])
   const [q, setQ] = useState('')
   const [found, setFound] = useState<{ q: string; items: PaletteItem[] } | null>(null)
   const [busy, setBusy] = useState(false)

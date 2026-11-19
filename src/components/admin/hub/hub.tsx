@@ -51,6 +51,7 @@ import {
   type PanelId,
   type PanelLink,
 } from '@/lib/pult'
+import { loadedContent } from '@/components/admin/pult/content'
 import { CommandPalette, type PaletteItem } from './command-palette'
 import { PanelContent, type DirectorProps } from './panels'
 import { SidePanel, type PanelSize } from './side-panel'
@@ -396,6 +397,19 @@ export function Hub() {
     return [...panels, ...commands, ...tabs]
   }, [openPanel, command, notify, refreshAll])
 
+  const contentEntries = useCallback(
+    (): PaletteItem[] =>
+      loadedContent.items.map((item) => ({
+        id: `content:${item.id}`,
+        group: h.palette.groups.content,
+        title: item.title || item.hook || item.id,
+        hint: admin.pult.content.statuses[item.status],
+        keywords: `${item.kind} ${item.platform}`,
+        run: () => openPanel('marketing', 'content', item.id),
+      })),
+    [openPanel],
+  )
+
   const api = useMemo<HubApi>(() => ({ now, notify, open: openPanel }), [now, notify, openPanel])
 
   const director: DirectorProps = {
@@ -519,7 +533,7 @@ export function Hub() {
           </main>
         </div>
 
-        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} entries={paletteEntries} onOpen={openPanel} />
+        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} entries={paletteEntries} more={contentEntries} onOpen={openPanel} />
         <TaskDrawer id={openTask} now={now} tz={s?.tz ?? 'Asia/Tashkent'} onClose={closeDrawer} onOpen={setOpenTask} onRetry={onRetry} />
         <Toast message={toast} onClose={closeToast} />
       </HubContext.Provider>

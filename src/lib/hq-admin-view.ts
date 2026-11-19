@@ -98,7 +98,7 @@ export type HqDepartment = {
   counts: Record<string, number>
 }
 
-export type HqError = { ok: false; error: string }
+export type HqError = { ok: false; error: string; reason?: string }
 export type HqResult<T> = (T & { ok: true }) | HqError
 
 // ---------------------------------------------------------------------------------------------
