@@ -20,7 +20,12 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/[locale]/cab
   if (!supabase) return NextResponse.redirect(`${origin}/${lang}/cabinet`)
   if (!code) return login('callback')
   const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-  if (error || !data.user) return login('callback')
+  if (error || !data.user) {
+    // Diagnostics only: the error code and whether the PKCE verifier cookie reached us; no tokens.
+    const hasVerifier = request.cookies.getAll().some((c) => c.name.endsWith('-code-verifier'))
+    console.warn('[cabinet] code exchange failed', { code: error?.code ?? 'no_user', status: error?.status, hasVerifier })
+    return login('callback')
+  }
 
   try {
     const profile = await loadProfile(supabase, data.user)
