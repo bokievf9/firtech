@@ -7,6 +7,7 @@ import { useEffect, useId, useState, type FormEvent } from 'react'
 import { SlotPicker } from '@/components/slot-picker'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
+import { trackEvent } from '@/lib/track-event'
 import { formatSlot } from '@/lib/booking'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ESTIMATE_EVENT, type EstimateDetail } from '@/lib/estimate-event'
@@ -114,6 +115,7 @@ export function ContactForm({
       setSlot('')
       setStatus('sent')
       track('lead_sent', { service: data.service || 'unknown' })
+      trackEvent('lead_sent')
     } catch {
       setStatus('error')
     }

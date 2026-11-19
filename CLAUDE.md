@@ -186,43 +186,42 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
   site. Bot `/admin` sends the link. Since 2026-11-19 (owner: «в админке всё кроме офиса не нужно») the
-  panel has ONE page, the control center below; `/admin` redirects to `/admin/office`, the old overview
+  panel has ONE page, the пульт below; `/admin` redirects to `/admin/office`, the old overview
   (Pulse), `/admin/leads` and `/admin/calendar` and their code are deleted (404). Site-form leads and
-  call bookings live inside the control center as panels «Лиды» and «Созвоны» (see below).
+  call bookings live in the Sales panel as tabs «Заявки с сайта» and «Созвоны» (see below).
   The admin shell nav shows only «Офис», the theme switch and logout.
-- Пульт `/admin/office` (control center, stage 1 since 2026-11-19, nav link «Офис»): the owner's
-  workplace instead of the Director bot. Top bar with the presence switch («На месте» / «Не на месте»;
-  the page pings HQ every 60 s while visible, HQ goes «away» by itself and sends to Telegram),
-  badges and HQ link; the pixel office below (click a person or department to filter tasks); then
-  panels Входящие, Одобрения, Задачи (board + drawer), Директор (chat to `/say` and `/command`),
-  Учения, then «Лиды» and «Созвоны» (`src/components/admin/control/`). Browser calls only `/api/admin/hq/[...path]`, a
-  session-checked whitelist proxy (`src/lib/hq-admin.ts`, 5 s timeout) to `HQ_ADMIN_URL` (default
-  `http://127.0.0.1:8787/admin`, header `x-admin-token: HQ_ADMIN_TOKEN`, falls back to
-  `HQ_OFFICE_TOKEN`); unset in development = in-memory mock `src/lib/hq-admin-mock.ts`. View models
-  `src/lib/hq-admin-view.ts`, tests `tests/hq-admin.test.mjs`, notes «Пульт (этап 1)» in
-  `docs/office-design-notes.md`. The page uses `AdminShell wide` (fluid to 1760 px, then 88vw).
-- Panels «Лиды» and «Созвоны» of the пульт (`control/leads-panel.tsx`, `calls-panel.tsx`, mounted by
-  `crm-panels.tsx` in `control-center.tsx`; data hook `crm-data.ts` polls `GET /api/admin/leads` every
-  30 s; view models `src/lib/admin-crm.ts`, tests `tests/admin-crm.test.mjs`). They show the site-form
-  store (`leads.json`) only: status chips and counts, search, the lead drawer (`lead-drawer.tsx`,
-  private notes, booking, status through `/api/admin/leads/[id]` = `setLeadStatus`/`bookingAction`
-  like the bot buttons) and «Экспорт CSV» of the visible list. Telegram and web-chat leads live in
-  «Задачи» under Продажи. Calls: today, pending ones with confirm/move, and a two-week Mon-Fri view.
-  Badges (new leads, calls today) are in the phone tab bar, whose panel registry is `tabs` in
-  `control-center.tsx`; add a panel there and it gets a tab. Side by side from 1920 px.
-- CRM panels of the пульт, stage 2 («Разведка», «Клиенты», «Тикеты», «Документы», «Проекты»,
-  «Рекомендации», «Отзывы»; `control/*-panel.tsx`, shared `crm-hq-ui.tsx`, data `crm-hq-data.ts`, view
-  models `src/lib/admin-crm-hq.ts`, tests `tests/admin-crm-hq.test.mjs`): fed by HQ `GET /admin/crm/*`
-  through the same proxy (whitelist `CRM_ENDPOINTS` in `hq-admin.ts`; only POST `crm/prospects/<id>` and
-  `crm/tickets/<id>` write: status and owner note). Polled every 30 s with `crm/summary` for the tab
-  badges; `available: false` renders «Воркер ещё не запускался», never zeros. A reply to a client is not
-  sent from the panel: the ticket drawer calls the Director command `ticket`. Contract:
-  `agents/docs/admin-crm-api.md`; notes «Пульт (этап 2, CRM)» in `docs/office-design-notes.md`.
+- Пульт v3 `/admin/office` (owner 2026-11-20, full notes `docs/pult.md`): the live pixel office fills the screen and is the hub
+  (`src/components/admin/hub/`). Every room is a zone (click = its department's panel, hover = name, counters and a desk lamp
+  glow from HQ `GET /admin/hub`); slim top bar (presence «На месте» / «Не на месте», counters одобрения, лиды, оплаты, тикеты,
+  `⌘K` palette with HQ search, theme, menu). Panels slide in from the right over the animating office (two widths, full screen on
+  phones; Esc closes, keys 1-6 departments, 7 the company): Директор (уведомления from `hub.inbox` with links to objects,
+  одобрения, задачи + task drawer, чат, лента, учения), Маркетинг (Контент: week calendar, MP4/PNG through `/api/admin/files/*`,
+  captions, Telegram-card actions; Цифры: funnel, site events against the previous week, blog, YouTube, money), Продажи (Лиды:
+  kanban by `stage` with drawer, reply, call, notes; Клиенты 360; Заявки с сайта and Созвоны = `leads.json` as before; Разведка),
+  Поддержка (tickets, SLA 4 h), Производство (projects kanban, milestones, deadlines, issues), Бэк-офис (Счета: remind, paid by
+  hand, void, pay link, tronscan/tonviewer; Документы, Рекомендации, Отзывы), Компания (server room: routines, costs, trust
+  levels, playbooks, workers). CRM panels are `src/components/admin/pult/*`, stage 1-2 panels render bare inside tabs
+  (`BarePanel` in `cc-panel.tsx`). Writes are optimistic with rollback and a toast. View models `src/lib/pult.ts` (tests
+  `tests/pult-v3.test.mjs`), dev mock `src/lib/pult-mock.ts` (wired into `hq-admin-mock.ts`). Contract: `pult-v3` (HQ side in
+  `agents/docs/admin-crm-api.md`). Browser calls only `/api/admin/hq/[...path]`, a session-checked whitelist proxy
+  (`src/lib/hq-admin.ts`: `ENDPOINTS`, `CRM_ENDPOINTS`, `PULT_ENDPOINTS`, 5 s timeout, client ids `c:<name>` URL-encoded) to
+  `HQ_ADMIN_URL` (default `http://127.0.0.1:8787/admin`, header `x-admin-token: HQ_ADMIN_TOKEN`, falls back to
+  `HQ_OFFICE_TOKEN`); unset in development = in-memory mock. Renders: `/api/admin/files/[...path]` (`src/lib/hq-files.ts`,
+  `safeRenderPath`, Range passed, type from the extension, dev SVG placeholder).
+- Site events (pult v3 part C): `trackEvent(name)` (`src/lib/track-event.ts`, pure helpers `src/lib/site-events.ts`) POSTs
+  same-origin to `/api/events` (JSON only, origin check, 120 per IP per minute), which forwards to HQ `POST /events` (header
+  `x-site-token` = `SITE_EVENTS_TOKEN`, else `HQ_CHAT_TOKEN`; URL `HQ_EVENTS_URL`, else the origin of `HQ_CHAT_URL` + `/events`;
+  development without both sends nothing). Once per event per page view, nothing under Do Not Track or GPC, only name, path
+  without query, locale and ref slug. Fired at chat open, builder summary, estimate PDF, lead sent, audit sent, `?ref=`
+  landing, pay page and blog article (`components/track-view.tsx`); `cabinet_signup` server-side in the auth callback on the
+  first HQ sync. Metrika goals stay. Owner replies to web-chat leads come back in HQ's `/chat` answer as `ownerReplies` and show
+  in the chat as «Менеджер Fir Tech». Tests: `tests/site-events.test.mjs`. The privacy page has the section `events`.
 - Live office on that page («Живой офис»): a pixel-art office on canvas in the
   spirit of Lumio (engine `src/components/pixel-office/`, shared with the public hero; admin wrapper `src/components/admin/office/pixel-office.tsx`; tests `tests/pixel-office.test.mjs`):
   a desk and a little person per agent whose behaviour shows the status, window light from the
-  sun in the company's TZ; status strip above, feed, people by department, routines, funnel and
-  products below. Sprites are palette-indexed strings, no image assets or libraries. The page polls
+  sun in the company's TZ; since пульт v3 it fills the screen as the hub (zones, badges and lamps:
+  `setZoneHits`, `setZoneGlow`, `zoneRect` in `scene.ts`; props `zones`, `fill`, `personAction` of the
+  admin wrapper). Sprites are palette-indexed strings, no image assets or libraries. The page polls
   `/api/admin/office` (10 s, 60 s on a hidden tab); that handler checks the admin session and reads
   HQ's JSON (contract: `../docs/office-api.md`, code `src/lib/office-hq.ts`, types and pure helpers
   `src/lib/office-view.ts`, tests `tests/office-view.test.mjs`). Env: `HQ_OFFICE_URL` (default

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
+import { trackEvent } from '@/lib/track-event'
 import { builderUi, pick } from '@/content/builder-catalog'
 import {
   applyKind,
@@ -95,6 +96,11 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     setReady(true)
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [total])
+
+  // Пульт «Цифры»: the visitor reached the summary (the estimate) of the builder.
+  useEffect(() => {
+    if (ready && step === SUMMARY) trackEvent('builder_done')
+  }, [ready, step])
 
   // Keep the address in sync with the build and step, without a navigation.
   useEffect(() => {

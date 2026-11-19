@@ -8,6 +8,7 @@ import {
   type Referral,
   type Ticket,
 } from './admin-crm-hq'
+import { SITE_EVENTS, type SiteEventName } from './site-events'
 
 // Пульт v3 (2026-11-20): view models of the office hub and the CRM panels with actions, fed by HQ's
 // /admin/hub, /admin/crm/*, /admin/content, /admin/metrics/week and /admin/company (contract
@@ -673,18 +674,7 @@ export function weekDates(week: string): string[] {
 
 // ---- metrics -----------------------------------------------------------------------------------
 
-export const SITE_EVENTS = [
-  'chat_open',
-  'builder_done',
-  'estimate_pdf',
-  'lead_sent',
-  'audit_sent',
-  'ref_click',
-  'cabinet_signup',
-  'pay_view',
-  'blog_view',
-] as const
-export type SiteEventName = (typeof SITE_EVENTS)[number]
+export { SITE_EVENTS, type SiteEventName } from './site-events'
 export const FUNNEL_KEYS = ['leads', 'qualified', 'proposals', 'contracts', 'paid', 'projects'] as const
 
 type MetricsBlock = {

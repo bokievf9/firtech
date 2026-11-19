@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle, TelegramLogo } from '@phosphor-icons/react'
 import { useId, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
+import { trackEvent } from '@/lib/track-event'
 import { isAuditContact, isAuditUrl, normalizeAuditContact, normalizeAuditUrl } from '@/lib/audit'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
@@ -78,6 +79,7 @@ export function AuditForm({
         setStatus(body.duplicate ? 'duplicate' : 'sent')
         form.reset()
         track('audit_sent')
+        trackEvent('audit_sent')
         return
       }
       const key = body?.error && body.error in t.failures ? body.error : 'unavailable'

@@ -1,3 +1,4 @@
+import { TrackView } from '@/components/track-view'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import QRCode from 'qrcode'
@@ -87,6 +88,7 @@ export default async function PayPage({ params, searchParams }: PageProps<'/[loc
 
   return (
     <section className="mx-auto max-w-2xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
+      <TrackView name="pay_view" />
       <HeroIntro>
         <PayView
           initial={invoice}

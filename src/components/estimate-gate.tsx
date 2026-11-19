@@ -4,6 +4,7 @@ import { ArrowSquareOut, FilePdf } from '@phosphor-icons/react'
 import { useId, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
+import { trackEvent } from '@/lib/track-event'
 import { leadServiceOf, type Build } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { leadSummary } from '@/lib/estimate-doc'
@@ -58,6 +59,7 @@ export function EstimateGate({
       })
       if (!response.ok) throw new Error(String(response.status))
       track('estimate_pdf', { service })
+      trackEvent('estimate_pdf')
       setSent(true)
       setStatus('idle')
     } catch {

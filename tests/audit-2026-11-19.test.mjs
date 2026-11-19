@@ -191,7 +191,8 @@ test('privacy: AI model providers named, no names or contacts sent', () => {
   assert.match(ruAi, /Имя и контакты мы им не передаём/)
   assert.match(enAi, /AI model providers/)
   assert.match(enAi, /do not send them your name or contacts/)
-  assert.match(ru.privacy.updated, /19 ноября 2026/)
+  // Bumped on 2026-11-20 for the site event counter (pult v3).
+  assert.match(ru.privacy.updated, /(19|20) ноября 2026/)
 })
 
 test('region copy claims no existing clients', () => {

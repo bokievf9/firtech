@@ -20,7 +20,7 @@ import type { ChatCopy } from './chat-widget'
 
 type Message = {
   id: string
-  from: 'bot' | 'me' | 'sys'
+  from: 'bot' | 'me' | 'sys' | 'owner'
   text: string
   buttons?: ChatButton[]
   link?: boolean
@@ -170,6 +170,7 @@ export default function ChatPanel({
             state: answer.state,
             messages: [
               ...c.messages,
+              ...(answer.ownerReplies ?? []).map((text): Message => ({ id: uuid(), from: 'owner', text })),
               { id: uuid(), from: 'bot', text: answer.reply, buttons: answer.buttons },
             ],
           }
@@ -315,11 +316,17 @@ export default function ChatPanel({
                       ? 'max-w-[85%] rounded-[18px] rounded-br-md bg-accent px-3.5 py-2.5 text-[15px] leading-snug text-accent-ink'
                       : m.from === 'sys'
                         ? 'max-w-[90%] rounded-[18px] border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm leading-snug text-fg'
+                        : m.from === 'owner'
+                          ? 'max-w-[85%] rounded-[18px] rounded-bl-md border border-accent/40 bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line text-fg'
                         : 'max-w-[85%] rounded-[18px] rounded-bl-md bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line text-fg'
                   }
                 >
-                  <span className="sr-only">{m.from === 'me' ? copy.you : copy.bot}: </span>
-                  {m.from === 'bot' ? withLinks(m.text) : m.text}
+                  {m.from === 'owner' ? (
+                    <span className="mb-1 block text-xs font-medium text-accent-text">{copy.owner}</span>
+                  ) : (
+                    <span className="sr-only">{m.from === 'me' ? copy.you : copy.bot}: </span>
+                  )}
+                  {m.from === 'bot' || m.from === 'owner' ? withLinks(m.text) : m.text}
                   {m.link ? (
                     <a
                       href={contactHref}

@@ -3,6 +3,8 @@ import { appOrigin } from '@/lib/cabinet-auth'
 import { safeCabinetNext } from '@/lib/cabinet-data'
 import { ensureHqSync, loadProfile } from '@/lib/cabinet-session'
 import { isLocale } from '@/lib/i18n'
+import { forwardSiteEvent } from '@/lib/events-hq'
+import { visitorIp } from '@/lib/public-post'
 import { createClient } from '@/lib/supabase/server'
 
 // Email confirmation, password reset and Google/Apple sign-in all come back here with `?code=`.
@@ -38,7 +40,11 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/[locale]/cab
 
   try {
     const profile = await loadProfile(supabase, data.user)
-    await ensureHqSync(supabase, data.user, profile)
+    const synced = await ensureHqSync(supabase, data.user, profile)
+    // First successful sync of this account = a new cabinet (пульт «Цифры»); best effort, no personal data.
+    if (profile && !profile.hq_synced_at && synced?.hq_synced_at) {
+      void forwardSiteEvent({ name: 'cabinet_signup', locale: lang, path: `/${lang}/cabinet` }, visitorIp(request.headers))
+    }
   } catch {
     console.warn('[cabinet] callback sync failed')
   }

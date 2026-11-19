@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
+import { trackEvent } from '@/lib/track-event'
 import type { Locale } from '@/lib/i18n'
 import { CHAT_OPEN_EVENT } from './chat-events'
 
@@ -35,6 +36,7 @@ export function ChatWidget({
     setMounted(true)
     setOpen(true)
     track('chat_open', { source })
+    trackEvent('chat_open')
   }, [])
 
   const close = useCallback(() => {

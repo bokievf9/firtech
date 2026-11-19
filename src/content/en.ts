@@ -120,6 +120,7 @@ const en: Dict = {
     typing: 'The receptionist is typing',
     you: 'You',
     bot: 'Receptionist',
+    owner: 'Fir Tech manager',
     tooFast: 'One second, still answering',
     error: 'The receptionist is not available right now. Message us on Telegram or leave a request at the bottom of the page.',
     rateLimited: 'Too many messages this hour. Message us on Telegram or leave a request.',
@@ -1282,7 +1283,7 @@ const en: Dict = {
       'What data the Fir Tech form, chat and bot collect, why, where it is kept and how to ask us to delete it. A draft pending a lawyer review.',
     eyebrow: 'Document',
     title: 'Privacy policy',
-    updated: 'Version of 19 November 2026',
+    updated: 'Version of 20 November 2026',
     draftNote: 'A draft pending a lawyer review.',
     intro:
       'In short and in plain words: what data you leave on this site, in the chat and in our bot, what we do with it and how to ask us to delete it. The data is handled by the Fir Tech studio.',
@@ -1372,6 +1373,15 @@ const en: Dict = {
         text: [
           'We use Yandex Metrica to see which pages help and which do not. Metrica sets cookies and collects anonymised visit data: pages opened, transitions, clicks and scrolling, device and browser type, approximate region. Metrica also records actions on the page (Webvisor), but not what you type into form fields. This data does not tell us who you are.',
           'You can turn this off in your browser settings (block cookies or turn on tracking protection) or with the Yandex add-on that blocks Metrica on all sites.',
+        ],
+        list: [],
+      },
+      {
+        id: 'events',
+        title: 'Site event counter',
+        text: [
+          'The site itself counts a few events to see what works: opening the chat, reaching the estimate in the builder, opening the PDF estimate, sending a request or ordering an audit, arriving by a referral link, creating a cabinet, opening a payment page and reading a blog article. Only the page address without parameters, the site language and the referral tag, if there is one, travel with an event. No cookies are set for this, no names, contacts or texts are sent, and the IP address is used only to limit the request rate.',
+          'If Do Not Track or Global Privacy Control is on in your browser, no events are sent.',
         ],
         list: [],
       },

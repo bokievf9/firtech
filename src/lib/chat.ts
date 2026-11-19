@@ -22,6 +22,8 @@ export type ChatReply = {
   buttons?: ChatButton[]
   state: ChatState
   leadCreated?: boolean
+  // Replies the owner wrote from the пульт (lead reply via 'web'), delivered with the next answer.
+  ownerReplies?: string[]
 }
 export type ChatError = { ok: false; error: string }
 export type ChatResponse = ChatReply | ChatError
@@ -80,12 +82,20 @@ export function sanitizeReply(body: unknown): ChatResponse | null {
         .slice(0, BUTTONS_MAX)
     : []
   const state = STATES.includes(b.state as ChatState) ? (b.state as ChatState) : 'chat'
+  const ownerReplies = Array.isArray(b.ownerReplies)
+    ? b.ownerReplies
+        .filter((x): x is string => typeof x === 'string')
+        .map((x) => stripHtml(x).slice(0, REPLY_MAX))
+        .filter(Boolean)
+        .slice(0, 5)
+    : []
   return {
     ok: true,
     reply,
     ...(buttons.length ? { buttons } : {}),
     state,
     ...(b.leadCreated === true ? { leadCreated: true } : {}),
+    ...(ownerReplies.length ? { ownerReplies } : {}),
   }
 }
 

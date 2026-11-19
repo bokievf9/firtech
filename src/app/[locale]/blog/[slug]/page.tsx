@@ -1,3 +1,4 @@
+import { TrackView } from '@/components/track-view'
 import { ArrowLeft, ArrowUpRight } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -80,6 +81,7 @@ export default async function ArticlePage({ params }: PageProps<'/[locale]/blog/
   return (
     <>
       <JsonLd data={jsonLd} />
+      <TrackView name="blog_view" />
 
       <article className="mx-auto max-w-[46rem] px-4 pt-32 md:px-8 md:pt-40">
         <header>
