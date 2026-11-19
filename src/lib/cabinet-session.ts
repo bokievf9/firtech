@@ -2,6 +2,7 @@ import 'server-only'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { syncClientToHq } from './cabinet-hq'
+import { forwardSiteEvent } from './events-hq'
 import { createClient } from './supabase/server'
 
 export type Profile = {
@@ -53,4 +54,21 @@ export async function ensureHqSync(supabase: SupabaseClient, user: User, profile
   const { error } = await supabase.from('profiles').update({ hq_synced_at: at }).eq('id', user.id)
   if (error) console.warn('[cabinet] could not store hq_synced_at')
   return { ...profile, hq_synced_at: at }
+}
+
+// After any sign-in (callback, the cabinet page, a lead sent right after an inline sign-in): the
+// profile exists, HQ knows the client, and the first successful sync counts one `cabinet_signup`
+// (пульт «Цифры», no personal data). Never throws.
+export async function syncAfterSignIn(supabase: SupabaseClient, user: User, locale: 'ru' | 'en', ip?: string) {
+  try {
+    const profile = await loadProfile(supabase, user)
+    const synced = await ensureHqSync(supabase, user, profile)
+    if (profile && !profile.hq_synced_at && synced?.hq_synced_at) {
+      void forwardSiteEvent({ name: 'cabinet_signup', locale, path: `/${locale}/cabinet` }, ip)
+    }
+    return synced
+  } catch {
+    console.warn('[cabinet] sync after sign-in failed')
+    return null
+  }
 }

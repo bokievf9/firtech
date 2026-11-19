@@ -1,39 +1,53 @@
 'use client'
 
 import Link from 'next/link'
-import { useActionState, useId, useState } from 'react'
+import { useActionState, useEffect, useId, useRef, useState } from 'react'
 import {
   forgotAction,
-  oauthAction,
+  resendAction,
   resetPasswordAction,
   signInAction,
   signUpAction,
   type FormState,
 } from '@/app/[locale]/cabinet/actions'
 import type { Dict } from '@/content'
+import type { AuthErrorKey } from '@/lib/cabinet-auth'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { ConsentText } from '../consent-text'
+import { OAuthButton } from './oauth-button'
 import { Field, FormMessage, fill, inputClass } from './ui'
 
 type Mode = 'in' | 'up' | 'forgot'
 const initial: FormState = {}
 
-// Login page body: tabs «Войти» / «Создать аккаунт», the password-reset request, and the Google
-// and Apple buttons. Every submit is a server action; errors come back as keys and are shown here.
+// Sign-in body: tabs «Войти» / «Создать аккаунт», the password-reset request, Google. Email and
+// password go through server actions (errors come back as keys); Google starts in the browser.
+// `compact` is the version shown inline next to a lead form: smaller, no page chrome, and a
+// successful sign-in calls `onSignedIn` instead of leaving the page. `next` is where email links
+// and Google come back to (the lead page with `draft=1`, or the cabinet).
 export function AuthForms({
   dict,
   locale,
   startMode,
   callbackError,
+  next,
+  compact = false,
+  onSignedIn,
+  onBeforeRedirect,
 }: {
   dict: Dict
   locale: Locale
   startMode: 'in' | 'up'
-  callbackError: 'callback' | 'oauth' | null
+  callbackError: AuthErrorKey | null
+  next?: string
+  compact?: boolean
+  onSignedIn?: (email: string) => void
+  onBeforeRedirect?: () => void
 }) {
   const t = dict.cabinet.auth
   const uid = useId()
+  const back = next ?? `/${locale}/cabinet`
   const [mode, setMode] = useState<Mode>(startMode)
   const [inState, inAction, inPending] = useActionState(signInAction, initial)
   const [upState, upAction, upPending] = useActionState(signUpAction, initial)
@@ -42,6 +56,25 @@ export function AuthForms({
   const errors = t.errors as Record<string, string>
   const err = (state: FormState) => (state.error ? (errors[state.error] ?? errors.generic) : null)
 
+  // The inline variant: a session now exists, the lead form takes over.
+  const told = useRef(false)
+  useEffect(() => {
+    const done = inState.notice === 'signed_in' ? inState : upState.notice === 'signed_in' ? upState : null
+    if (done && !told.current) {
+      told.current = true
+      onSignedIn?.(done.email ?? '')
+    }
+  }, [inState, upState, onSignedIn])
+
+  const hidden = (
+    <>
+      <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="next" value={back} />
+      {compact && <input type="hidden" name="stay" value="1" />}
+    </>
+  )
+  const box = compact ? 'rounded-card border border-accent/30 bg-surface-2 p-5' : 'rounded-card border border-line bg-surface p-6 md:p-8'
+
   const tabs: { id: 'in' | 'up'; label: string }[] = [
     { id: 'in', label: t.tabIn },
     { id: 'up', label: t.tabUp },
@@ -49,16 +82,17 @@ export function AuthForms({
 
   if (mode === 'forgot') {
     return (
-      <div className="rounded-card border border-line bg-surface p-6 md:p-8">
+      <div className={box}>
         <h2 className="font-display text-xl font-semibold tracking-tight">{t.forgotTitle}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">{t.forgotText}</p>
         {forgotState.notice === 'reset_sent' ? (
-          <div className="mt-6">
+          <div className="mt-6 grid gap-2">
             <FormMessage kind="ok">{fill(t.forgotSent, { email: forgotState.email ?? '' })}</FormMessage>
+            <p className="text-[13px] leading-relaxed text-faint">{t.mailLimit}</p>
           </div>
         ) : (
           <form action={forgotFormAction} className="mt-6 grid gap-5">
-            <input type="hidden" name="locale" value={locale} />
+            {hidden}
             <Field id={id('f-email')} label={t.email}>
               <input
                 id={id('f-email')}
@@ -89,7 +123,13 @@ export function AuthForms({
   }
 
   return (
-    <div className="rounded-card border border-line bg-surface p-6 md:p-8">
+    <div className={box} data-auth-forms={compact ? 'compact' : 'page'}>
+      {compact && (
+        <div className="mb-5">
+          <p className="font-display text-lg font-semibold tracking-tight">{t.inlineTitle}</p>
+          <p className="mt-1 text-sm leading-relaxed text-muted">{t.inlineText}</p>
+        </div>
+      )}
       <div
         role="tablist"
         aria-label={t.tabsLabel}
@@ -116,20 +156,21 @@ export function AuthForms({
 
       {callbackError && (
         <div className="mt-5">
-          <FormMessage kind="error">{errors[callbackError]}</FormMessage>
+          <FormMessage kind="error">{errors[callbackError] ?? errors.callback}</FormMessage>
         </div>
       )}
 
-      <div className="mt-6 grid gap-3">
+      <div className={compact ? 'mt-5 grid gap-3' : 'mt-6 grid gap-3'}>
         {/* Apple sign-in is off (owner 2026-11-20: no Apple Developer account); add 'apple' back here to show it. */}
         {(['google'] as const).map((provider) => (
-          <form key={provider} action={oauthAction}>
-            <input type="hidden" name="locale" value={locale} />
-            <input type="hidden" name="provider" value={provider} />
-            <button type="submit" className={cn(buttonStyles.secondary, 'w-full')}>
-              {provider === 'google' ? t.google : t.apple}
-            </button>
-          </form>
+          <OAuthButton
+            key={provider}
+            dict={dict}
+            locale={locale}
+            provider={provider}
+            next={back}
+            onBeforeRedirect={onBeforeRedirect}
+          />
         ))}
       </div>
 
@@ -145,7 +186,7 @@ export function AuthForms({
           aria-labelledby={id('tab-in')}
           className="grid gap-5"
         >
-          <input type="hidden" name="locale" value={locale} />
+          {hidden}
           <Field id={id('in-email')} label={t.email}>
             <input
               id={id('in-email')}
@@ -170,6 +211,9 @@ export function AuthForms({
             />
           </Field>
           {err(inState) && <FormMessage kind="error">{err(inState)}</FormMessage>}
+          {inState.canResend && inState.email && (
+            <ResendBox dict={dict} locale={locale} email={inState.email} next={back} />
+          )}
           <button type="submit" disabled={inPending} className={buttonStyles.primary}>
             {inPending ? t.sending : t.submitIn}
           </button>
@@ -182,9 +226,10 @@ export function AuthForms({
           </button>
         </form>
       ) : upState.notice === 'check_email' ? (
-        <div role="tabpanel" id={id('panel-up')} aria-labelledby={id('tab-up')} className="grid gap-2">
+        <div role="tabpanel" id={id('panel-up')} aria-labelledby={id('tab-up')} className="grid gap-3">
           <h2 className="font-display text-xl font-semibold tracking-tight">{t.checkEmailTitle}</h2>
           <FormMessage kind="ok">{fill(t.checkEmailText, { email: upState.email ?? '' })}</FormMessage>
+          <ResendBox dict={dict} locale={locale} email={upState.email ?? ''} next={back} />
         </div>
       ) : (
         <form
@@ -194,7 +239,7 @@ export function AuthForms({
           aria-labelledby={id('tab-up')}
           className="grid gap-5"
         >
-          <input type="hidden" name="locale" value={locale} />
+          {hidden}
           <Field id={id('up-name')} label={t.name}>
             <input
               id={id('up-name')}
@@ -229,22 +274,26 @@ export function AuthForms({
               className={inputClass}
             />
           </Field>
-          <Field id={id('up-telegram')} label={t.telegram} help={t.telegramHint}>
-            <input
-              id={id('up-telegram')}
-              name="telegram"
-              autoCapitalize="none"
-              autoComplete="off"
-              maxLength={60}
-              placeholder="@name"
-              aria-describedby={`${id('up-telegram')}-help`}
-              className={inputClass}
-            />
-          </Field>
-          <label className="flex items-start gap-3 text-sm text-muted">
-            <input type="checkbox" name="marketing" className="mt-1 size-4 accent-[var(--color-accent)]" />
-            {t.marketing}
-          </label>
+          {!compact && (
+            <Field id={id('up-telegram')} label={t.telegram} help={t.telegramHint}>
+              <input
+                id={id('up-telegram')}
+                name="telegram"
+                autoCapitalize="none"
+                autoComplete="off"
+                maxLength={60}
+                placeholder="@name"
+                aria-describedby={`${id('up-telegram')}-help`}
+                className={inputClass}
+              />
+            </Field>
+          )}
+          {!compact && (
+            <label className="flex items-start gap-3 text-sm text-muted">
+              <input type="checkbox" name="marketing" className="mt-1 size-4 accent-[var(--color-accent)]" />
+              {t.marketing}
+            </label>
+          )}
           {err(upState) && <FormMessage kind="error">{err(upState)}</FormMessage>}
           <button type="submit" disabled={upPending} className={buttonStyles.primary}>
             {upPending ? t.sending : t.submitUp}
@@ -254,7 +303,34 @@ export function AuthForms({
           </p>
         </form>
       )}
+      {compact && (
+        <p className="mt-5 text-[13px] text-faint">
+          <Link href={`/${locale}/cabinet/login`} className="underline decoration-line-strong underline-offset-4 hover:text-fg">
+            {t.inlineFullPage}
+          </Link>
+        </p>
+      )}
     </div>
+  )
+}
+
+// «Отправить письмо ещё раз» with the honest limit next to it.
+export function ResendBox({ dict, locale, email, next }: { dict: Dict; locale: Locale; email: string; next: string }) {
+  const t = dict.cabinet.auth
+  const errors = t.errors as Record<string, string>
+  const [state, action, pending] = useActionState(resendAction, initial)
+  return (
+    <form action={action} className="grid gap-2 rounded-xl border border-line p-4" data-resend>
+      <input type="hidden" name="locale" value={locale} />
+      <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="email" value={email} />
+      <p className="text-[13px] leading-relaxed text-muted">{t.mailLimit}</p>
+      {state.notice === 'resent' && <FormMessage kind="ok">{fill(t.resent, { email })}</FormMessage>}
+      {state.error && <FormMessage kind="error">{errors[state.error] ?? errors.generic}</FormMessage>}
+      <button type="submit" disabled={pending} className={cn(buttonStyles.secondary, 'justify-self-start')}>
+        {pending ? t.sending : t.resend}
+      </button>
+    </form>
   )
 }
 

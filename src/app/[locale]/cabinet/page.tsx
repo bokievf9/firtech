@@ -7,7 +7,7 @@ import { HeroIntro } from '@/components/hero-intro'
 import { getDict } from '@/content'
 import { fetchClientByEmail } from '@/lib/cabinet-hq'
 import type { CabinetData } from '@/lib/cabinet-data'
-import { ensureHqSync, loadProfile, requireCabinetUser } from '@/lib/cabinet-session'
+import { requireCabinetUser, syncAfterSignIn } from '@/lib/cabinet-session'
 import { isLocale } from '@/lib/i18n'
 import { cabinetEnabled } from '@/lib/supabase/config'
 import { logoutAction } from './actions'
@@ -33,7 +33,7 @@ export default async function CabinetPage({ params }: PageProps<'/[locale]/cabin
   if (!cabinetEnabled()) return <CabinetSoon locale={locale} dict={dict} />
 
   const { supabase, user } = await requireCabinetUser(locale)
-  const profile = await ensureHqSync(supabase, user, await loadProfile(supabase, user))
+  const profile = await syncAfterSignIn(supabase, user, locale)
   const email = (profile?.email ?? user.email ?? '').toLowerCase()
   const result = await fetchClientByEmail(email)
   const name = (profile?.name ?? '').trim()

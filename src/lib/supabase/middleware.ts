@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { supabaseConfig } from './config'
+import { serverCookieOptions, supabaseConfig } from './config'
 
 // Refreshes the Supabase session cookies for a request (called from src/proxy.ts on cabinet
 // routes). Redirecting signed-out visitors is done by the pages, which know the locale.
@@ -9,6 +9,7 @@ export async function updateSession(request: NextRequest) {
   const config = supabaseConfig()
   if (!config) return response
   const supabase = createServerClient(config.url, config.anonKey, {
+    cookieOptions: serverCookieOptions(),
     cookies: {
       getAll() {
         return request.cookies.getAll()

@@ -3,6 +3,7 @@
 import { ArrowUpRight, ChatCircleDots, List, UserCircle, X } from '@phosphor-icons/react'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react'
 import Link from 'next/link'
+import { CabinetNavLabel } from './cabinet/cabinet-nav-label'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
@@ -146,7 +147,7 @@ export function Header({
               className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm text-muted transition-colors hover:text-fg lg:inline-flex"
             >
               <UserCircle size={18} aria-hidden="true" />
-              {dict.nav.cabinet}
+              <CabinetNavLabel signedIn={dict.nav.cabinet} start={dict.nav.cabinetStart} />
             </Link>
           )}
           <div className="hidden sm:block">{localeSwitch}</div>
@@ -240,7 +241,7 @@ export function Header({
                   className={cn(buttonStyles.secondary, 'w-full')}
                 >
                   <UserCircle size={18} aria-hidden="true" className="text-accent" />
-                  {dict.nav.cabinet}
+                  <CabinetNavLabel signedIn={dict.nav.cabinet} start={dict.nav.cabinetStart} />
                 </Link>
               )}
               <button

@@ -1,5 +1,6 @@
 import { ArrowRight, ArrowUp, InstagramLogo, TelegramLogo } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
+import { CabinetNavLabel } from './cabinet/cabinet-nav-label'
 import type { Dict } from '@/content'
 import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
 import { footerColumns, type FooterLink } from '@/lib/home'
@@ -132,7 +133,7 @@ export function Footer({
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
           {cabinet && (
             <Link href={`/${locale}/cabinet`} className="transition-colors hover:text-fg">
-              {dict.nav.cabinet}
+              <CabinetNavLabel signedIn={dict.nav.cabinet} start={dict.nav.cabinetStart} />
             </Link>
           )}
           <Link href={`/${locale}/privacy`} className="transition-colors hover:text-fg">

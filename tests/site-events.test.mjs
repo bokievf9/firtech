@@ -166,7 +166,9 @@ test('call sites: every contract event is fired somewhere, the server one in the
   }
   // Metrika goals stay next to ours.
   assert.match(read('src/components/contact-form.tsx'), /track\('lead_sent'/)
-  assert.match(read('src/app/[locale]/cabinet/auth/callback/route.ts'), /forwardSiteEvent\(\{ name: 'cabinet_signup'/)
+  // The server event fires in syncAfterSignIn (first HQ sync), which the auth callback calls.
+  assert.match(read('src/lib/cabinet-session.ts'), /forwardSiteEvent\(\{ name: 'cabinet_signup'/)
+  assert.match(read('src/app/[locale]/cabinet/auth/callback/route.ts'), /syncAfterSignIn\(/)
   assert.match(read('.env.example'), /^SITE_EVENTS_TOKEN=$/m)
 })
 

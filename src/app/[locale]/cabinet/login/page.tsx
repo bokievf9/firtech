@@ -3,10 +3,13 @@ import { AuthForms } from '@/components/cabinet/auth-forms'
 import { CabinetSoon } from '@/components/cabinet/cabinet-soon'
 import { HeroIntro } from '@/components/hero-intro'
 import { getDict } from '@/content'
+import { isAuthErrorKey, safeNextPath } from '@/lib/cabinet-auth'
 import { isLocale } from '@/lib/i18n'
 import { cabinetEnabled } from '@/lib/supabase/config'
 import { createClient } from '@/lib/supabase/server'
 
+// Dynamic and never cached: the page reads the session, and nothing about a previous visitor's
+// sign-in attempt (no verifier, no form state) may be served from a cache.
 export const dynamic = 'force-dynamic'
 
 export default async function LoginPage({
@@ -18,12 +21,13 @@ export default async function LoginPage({
   const dict = getDict(locale)
   if (!cabinetEnabled()) return <CabinetSoon locale={locale} dict={dict} />
 
-  const supabase = await createClient()
-  const { data } = (await supabase?.auth.getUser()) ?? { data: { user: null } }
-  if (data.user) redirect(`/${locale}/cabinet`)
-
   const query = await searchParams
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
+  const next = safeNextPath(one(query.next), locale)
+  const supabase = await createClient()
+  const { data } = (await supabase?.auth.getUser()) ?? { data: { user: null } }
+  if (data.user) redirect(next)
+
   const error = one(query.error)
   const t = dict.cabinet.auth
 
@@ -41,7 +45,8 @@ export default async function LoginPage({
           dict={dict}
           locale={locale}
           startMode={one(query.tab) === 'signup' ? 'up' : 'in'}
-          callbackError={error === 'oauth' ? 'oauth' : error ? 'callback' : null}
+          next={next}
+          callbackError={isAuthErrorKey(error) ? error : error ? 'callback' : null}
         />
       </div>
     </section>

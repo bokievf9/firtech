@@ -15,3 +15,14 @@ export function supabaseConfig(
 export function cabinetEnabled(env: Record<string, string | undefined> = process.env) {
   return supabaseConfig(env) !== null
 }
+
+// One set of cookie options for every Supabase client (server, proxy, browser), so the session and
+// the PKCE verifier are written and read under the same path and flags: path `/` (the callback,
+// the cabinet and the lead forms all see them), `lax` (survives the top-level redirect back from
+// Google), `secure` in production. httpOnly stays off: the browser client must read its verifier.
+export type AuthCookieOptions = { path: '/'; sameSite: 'lax'; secure: boolean }
+export function authCookieOptions(secure: boolean): AuthCookieOptions {
+  return { path: '/', sameSite: 'lax', secure }
+}
+export const serverCookieOptions = (env: Record<string, string | undefined> = process.env) =>
+  authCookieOptions(env.NODE_ENV === 'production')

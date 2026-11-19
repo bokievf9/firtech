@@ -142,3 +142,24 @@ export function cabinetMock(email: string): CabinetData {
     referralSlug: 'test-client',
   }
 }
+
+// Is HQ's admin API reachable with our token? For /cabinet/health only: one GET for an address
+// that cannot exist (HQ answers 404 or 400 without side effects), 3 s. Any answer except 401/403
+// counts as reachable. Never returns the URL or the token.
+export type HqPing = 'ok' | 'mock' | 'not_configured' | 'unauthorized' | 'unreachable'
+export async function pingHq(env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqPing> {
+  const cfg = setup(env)
+  if (cfg === 'mock') return 'mock'
+  if (!cfg) return 'not_configured'
+  try {
+    const res = await fetcher(`${cfg.base}/clients/by-email?email=${encodeURIComponent('health-check@firtech.invalid')}`, {
+      method: 'GET',
+      headers: { 'x-admin-token': cfg.token },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(3000),
+    })
+    return res.status === 401 || res.status === 403 ? 'unauthorized' : 'ok'
+  } catch {
+    return 'unreachable'
+  }
+}
