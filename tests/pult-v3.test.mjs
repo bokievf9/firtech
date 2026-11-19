@@ -473,3 +473,80 @@ test('copy: hub and CRM panel strings are Russian, filled, without long dashes o
   for (const s of p.ALL_LEAD_STAGES) assert.ok(admin.pult.leads.stages[s], s)
   for (const e of p.SITE_EVENTS) assert.ok(admin.pult.metrics.events[e], e)
 })
+
+// ---- follow-ups (2026-11-20) --------------------------------------------------------------------
+
+test('company tools: tolerant parsing, grouping by prefix, state and limits text', () => {
+  assert.deepEqual(p.normalizeCompany({ ok: true }).tools, [], 'the field may be absent')
+  const c = p.normalizeCompany({
+    tools: [
+      { name: 'web.search', departments: ['marketing', 'Bad Dept!', 'sales'], configured: true, callsToday: 4, errorsToday: 1, limits: { timeoutMs: 8000, minGapMs: 1000, cacheTtlMs: 3_600_000, maxResults: 10, junk: { x: 1 } }, env: ['BRAVE_SEARCH_KEY', 'not a key'] },
+      { name: 'google.youtube.channel', configured: false, env: ['YT_REFRESH_TOKEN'] },
+      { name: 'media.pdf', configured: false },
+      { name: '../evil' },
+      'garbage',
+      { name: 'web.getJson', configured: true, callsToday: -3 },
+    ],
+  })
+  assert.equal(c.tools.length, 4)
+  const search = c.tools.find((t) => t.name === 'web.search')
+  assert.deepEqual(search.departments, ['marketing', 'sales'])
+  assert.deepEqual(search.env, ['BRAVE_SEARCH_KEY'])
+  assert.equal(p.limitsText(search.limits), 'таймаут 8 с, пауза 1 с, кэш 1 ч, до 10 результатов')
+  assert.equal(c.tools.find((t) => t.name === 'web.getJson').callsToday, 0)
+  assert.equal(p.toolState(search), 'ok')
+  assert.equal(p.toolState(c.tools.find((t) => t.name === 'google.youtube.channel')), 'missing')
+  assert.equal(p.toolState(c.tools.find((t) => t.name === 'media.pdf')), 'off')
+  assert.deepEqual(p.toolGroups(c.tools).map((g) => g.group), ['web', 'media', 'google'])
+  assert.deepEqual(p.toolGroups(c.tools)[0].tools.map((t) => t.name), ['web.getJson', 'web.search'])
+  for (const g of p.TOOL_GROUP_ORDER) assert.ok(admin.pult.company.toolGroups[g], g)
+})
+
+test('support: ticket clientId and the search fallback', () => {
+  const body = { ok: true, available: true, items: [{ id: 3, clientName: 'Алиса', contact: '@alice', text: 'x', status: 'open', clientId: 1 }, { id: 4, clientName: 'Боб', contact: '@bob', text: 'y', status: 'open', clientId: 'bad id!' }, { id: 5, clientName: 'Z', contact: '', text: 'z', status: 'open' }] }
+  const t = p.normalizeSupportTickets(body).items
+  assert.deepEqual(t.map((x) => x.clientId), ['1', null, null])
+  assert.equal(p.clientIdOf('c:Боб'), 'c:Боб')
+  assert.equal(p.clientIdOf('../x'), null)
+  assert.equal(p.ticketClientQuery({ contact: '@bob', clientName: 'Боб' }), 'bob')
+  assert.equal(p.ticketClientQuery({ contact: '', clientName: 'Боб' }), 'Боб')
+  const rows = [{ id: '1', name: 'Алиса', contact: '@alice' }, { id: 'c:Боб', name: 'Боб', contact: '@bob' }]
+  assert.equal(p.pickTicketClient(rows, { contact: '@BOB', clientName: 'x' }), 'c:Боб')
+  assert.equal(p.pickTicketClient(rows, { contact: '', clientName: 'алиса' }), '1')
+  assert.equal(p.pickTicketClient([rows[0]], { contact: 'other', clientName: 'other' }), '1', 'a single result is taken')
+  assert.equal(p.pickTicketClient(rows, { contact: 'other', clientName: 'other' }), null, 'ambiguous gives the list')
+  assert.equal(p.pickTicketClient([], { contact: 'a', clientName: 'b' }), null)
+})
+
+test('metrics: week-to-week sparkline until HQ sends days, daily after', () => {
+  const base = { week: '2026-W47', site: { chat_open: 5 }, prevWeek: { site: { chat_open: 2 } } }
+  const m = p.normalizeMetrics(base)
+  assert.equal(m.days, null)
+  assert.deepEqual(p.eventSeries(m, 'chat_open'), { values: [2, 5], daily: false })
+  const daily = p.normalizeMetrics({ ...base, days: [{ date: '2026-11-17', site: { chat_open: 1 } }, { date: '2026-11-18', chat_open: 4 }, { date: 'bad' }, null] })
+  assert.deepEqual(p.eventSeries(daily, 'chat_open'), { values: [1, 4], daily: true })
+  assert.equal(p.normalizeMetrics({ ...base, days: [{ date: '2026-11-17' }] }).days, null, 'one day is no series')
+  assert.equal(p.normalizeMetrics({ ...base, days: 'x' }).days, null)
+})
+
+test('content: profile kit items carry three sections split into copyable blocks', () => {
+  const item = p.normalizeContentItem({ item: { id: 9, kind: 'profile', platform: 'all', status: 'pending', kit: { instagram: 'Био: a\nСсылка: b\n\nАктуальное:\n1. x', youtube: 'Название: Fir', tiktok: '  ' } } })
+  assert.equal(item.kind, 'profile')
+  assert.deepEqual(p.kitSections(item.kit), ['instagram', 'youtube'])
+  assert.deepEqual(p.kitBlocks(item.kit.instagram), ['Био: a\nСсылка: b', 'Актуальное:\n1. x'])
+  assert.equal(p.normalizeContentItem({ item: { id: 1, kind: 'post', kit: 'x' } }).kit, null)
+  assert.equal(p.normalizeContentItem({ item: { id: 1, kind: 'profile', kit: { instagram: '', youtube: '', tiktok: '' } } }).kit, null)
+  assert.deepEqual([p.YOUTUBE_BANNER.w, p.YOUTUBE_BANNER.h], [2560, 1440])
+  assert.ok(admin.pult.content.kinds.profile)
+})
+
+test('mock: tools, a profile kit and a ticket with clientId are served', () => {
+  const mock = createHqMock(NOW)
+  const company = p.normalizeCompany(mock('GET', 'company', {}, {}, NOW))
+  assert.ok(company.tools.length >= 5)
+  assert.ok(company.tools.some((t) => p.toolState(t) === 'missing'))
+  const items = p.normalizeContent(mock('GET', 'content', {}, {}, NOW)).days.flatMap((d) => d.items)
+  assert.ok(items.some((i) => i.kind === 'profile' && i.kit && p.kitSections(i.kit).length === 3))
+  const tickets = p.normalizeSupportTickets(mock('GET', 'crm/tickets', {}, {}, NOW)).items
+  assert.ok(tickets.some((t) => t.clientId) && tickets.some((t) => !t.clientId))
+})

@@ -330,17 +330,42 @@ export const clientPath = (id: string) => `crm/clients/${encodeURIComponent(id)}
 
 // ---- support -----------------------------------------------------------------------------------
 
-export type SupportTicket = Ticket & { answer: string | null }
+export type SupportTicket = Ticket & { answer: string | null; clientId: string | null }
+
+// A client id as the proxy accepts it: digits or `c:<name>`.
+const CLIENT_ID_RE = /^(\d{1,12}|c:[\p{L}\p{N} ._'&-]{1,80})$/u
+export const clientIdOf = (v: unknown): string | null => {
+  const id = typeof v === 'number' && Number.isInteger(v) && v >= 0 ? String(v) : typeof v === 'string' ? v : null
+  return id && CLIENT_ID_RE.test(id) ? id : null
+}
+
+// The search string for finding a ticket's client when HQ gave no `clientId`: the contact first
+// (a Telegram nick or an email is the sharpest key), then the name.
+export const ticketClientQuery = (t: Pick<SupportTicket, 'contact' | 'clientName'>): string =>
+  (t.contact.trim() || t.clientName.trim()).replace(/^@/, '').slice(0, 64)
+
+const squash = (v: string) => v.trim().replace(/^@/, '').toLowerCase()
+// Picks the client for a ticket from `GET /admin/crm/clients?q=` rows: the contact or the name
+// matches exactly (case-insensitive), else the only row; null when it is ambiguous or empty.
+export function pickTicketClient(rowsFound: Pick<ClientRow, 'id' | 'name' | 'contact'>[], t: Pick<SupportTicket, 'contact' | 'clientName'>): string | null {
+  if (!rowsFound.length) return null
+  const contact = squash(t.contact)
+  const name = squash(t.clientName)
+  const exact = rowsFound.find((r) => (contact && squash(r.contact) === contact) || (name && squash(r.name) === name))
+  if (exact) return exact.id
+  return rowsFound.length === 1 ? rowsFound[0]!.id : null
+}
 export function normalizeSupportTickets(body: unknown): Rows<SupportTicket> | null {
   const list = normalizeTickets(body)
   if (!list) return null
   const answers = new Map(arr(rec(body).items, 500).map((t) => [num(rec(t).id), rec(t).answer]))
+  const ids = new Map(arr(rec(body).items, 500).map((t) => [num(rec(t).id), rec(t).clientId]))
   return {
     available: list.available,
     nextCursor: list.nextCursor,
     items: list.items.map((t) => {
       const a = answers.get(t.id)
-      return { ...t, answer: typeof a === 'string' && a ? a.slice(0, 2000) : null }
+      return { ...t, answer: typeof a === 'string' && a ? a.slice(0, 2000) : null, clientId: clientIdOf(ids.get(t.id)) }
     }),
   }
 }
@@ -527,9 +552,13 @@ export function txExplorerUrl(paidVia: string, txId: string): string | null {
 
 // ---- content -----------------------------------------------------------------------------------
 
-export const CONTENT_KINDS = ['clip', 'post', 'carousel', 'story', 'article'] as const
+export const CONTENT_KINDS = ['clip', 'post', 'carousel', 'story', 'article', 'profile'] as const
 export const CONTENT_STATUSES = ['draft', 'pending', 'approved', 'rendering', 'ready', 'published', 'rejected'] as const
 export const CAPTION_PLATFORMS = ['instagram', 'tiktok', 'shorts', 'dzen'] as const
+export const KIT_SECTIONS = ['instagram', 'youtube', 'tiktok'] as const
+export type KitSection = (typeof KIT_SECTIONS)[number]
+export type ProfileKit = Record<KitSection, string>
+export const YOUTUBE_BANNER = { w: 2560, h: 1440, safeW: 1546, safeH: 423 } as const
 export type ContentFile = { path: string; type: 'png' | 'mp4'; w: number; h: number }
 export type ContentItem = {
   id: string
@@ -544,7 +573,18 @@ export type ContentItem = {
   approvalId: string | null
   publishedUrl: string | null
   error: string | null
+  kit: ProfileKit | null
 }
+
+// A kit section as text blocks (paragraphs split by blank lines), each to be copied on its own.
+export function kitBlocks(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map((b) => b.trim())
+    .filter(Boolean)
+}
+// Kit sections that have text, in display order.
+export const kitSections = (kit: ProfileKit | null): KitSection[] => (kit ? KIT_SECTIONS.filter((s) => kit[s].trim()) : [])
 export type ContentDay = { date: string; items: ContentItem[] }
 export type ContentWeek = {
   week: string
@@ -597,7 +637,15 @@ function contentItem(raw: unknown): ContentItem | null {
     approvalId: idOf(r.approvalId),
     publishedUrl: safeUrl(r.publishedUrl),
     error: typeof r.error === 'string' && r.error ? r.error.slice(0, 500) : null,
+    kit: kitOf(r.kit),
   }
+}
+
+function kitOf(raw: unknown): ProfileKit | null {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null
+  const r = raw as Rec
+  const kit = Object.fromEntries(KIT_SECTIONS.map((s) => [s, str(r[s], 8000)])) as ProfileKit
+  return kitSections(kit).length ? kit : null
 }
 
 export function normalizeContent(body: unknown): ContentWeek | null {
@@ -684,7 +732,30 @@ type MetricsBlock = {
   funnel: Record<(typeof FUNNEL_KEYS)[number], number>
   money: { invoicedUsd: number; paidUsd: number }
 }
-export type Metrics = MetricsBlock & { week: string; prev: MetricsBlock | null }
+export type MetricsDay = { date: string; site: Record<SiteEventName, number> }
+// `days` is the optional daily series (HQ does not send it yet); null while absent.
+export type Metrics = MetricsBlock & { week: string; prev: MetricsBlock | null; days: MetricsDay[] | null }
+
+// Daily rows from `days`: each has a date and the event counts either under `site` or flat.
+function metricsDays(raw: unknown): MetricsDay[] | null {
+  if (!Array.isArray(raw)) return null
+  const out: MetricsDay[] = []
+  for (const d of raw.slice(0, 7)) {
+    const r = rec(d)
+    const date = typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : null
+    if (!date) continue
+    const src = r.site && typeof r.site === 'object' ? rec(r.site) : r
+    out.push({ date, site: Object.fromEntries(SITE_EVENTS.map((k) => [k, Math.max(0, num(src[k]))])) as Record<SiteEventName, number> })
+  }
+  return out.length >= 2 ? out : null
+}
+
+// The sparkline of one site event: the daily series when HQ sends `days`, else the two points
+// (previous week, this week) and `daily: false` so the chart is labelled week to week.
+export function eventSeries(m: Pick<Metrics, 'days' | 'site' | 'prev'>, e: SiteEventName): { values: number[]; daily: boolean } {
+  if (m.days) return { values: m.days.map((d) => d.site[e]), daily: true }
+  return { values: [m.prev?.site[e] ?? 0, m.site[e]], daily: false }
+}
 
 function metricsBlock(raw: unknown): MetricsBlock {
   const r = rec(raw)
@@ -710,6 +781,7 @@ export function normalizeMetrics(body: unknown): Metrics | null {
     week: typeof b.week === 'string' && /^\d{4}-W\d{2}$/.test(b.week) ? b.week : '',
     ...metricsBlock(b),
     prev: prevRaw && typeof prevRaw === 'object' ? metricsBlock(prevRaw) : null,
+    days: metricsDays(b.days),
   }
 }
 
@@ -743,8 +815,18 @@ export type DeptCost = { dept: string; todayUsd: number; monthUsd: number; limit
 export type TrustRow = { kind: string; level: 0 | 1; locked: boolean; approvals: number }
 export type Playbook = { role: string; updatedAt: string | null; lines: number }
 export type Worker = { id: string; dept: string; title: string; state: string }
+export type CompanyTool = {
+  name: string
+  departments: string[]
+  configured: boolean
+  callsToday: number
+  errorsToday: number
+  limits: Record<string, number | string>
+  env: string[]
+}
 export type Company = {
   routines: Routine[]
+  tools: CompanyTool[]
   costs: { byDept: DeptCost[]; byDay: { date: string; usd: number }[] }
   trust: TrustRow[]
   playbooks: Playbook[]
@@ -775,12 +857,72 @@ export function trustRow(raw: unknown): TrustRow | null {
   return { kind: r.kind, level: r.level === 1 || r.level === '1' ? 1 : 0, locked: r.locked === true, approvals: Math.max(0, num(r.approvals)) }
 }
 
+const toolNameOk = (v: unknown): v is string => typeof v === 'string' && /^[\w.-]{1,64}$/.test(v)
+
+export function toolRow(raw: unknown): CompanyTool | null {
+  const r = rec(raw)
+  if (!toolNameOk(r.name)) return null
+  const limits: CompanyTool['limits'] = {}
+  for (const [key, v] of Object.entries(rec(r.limits)).slice(0, 12)) {
+    if (/^\w{1,40}$/.test(key) && (typeof v === 'number' || typeof v === 'string')) limits[key] = typeof v === 'string' ? v.slice(0, 40) : v
+  }
+  return {
+    name: r.name,
+    departments: arr(r.departments, 12).filter((x): x is string => typeof x === 'string' && /^[a-z]{1,20}$/.test(x)),
+    configured: r.configured === true,
+    callsToday: Math.max(0, num(r.callsToday)),
+    errorsToday: Math.max(0, num(r.errorsToday)),
+    limits,
+    env: arr(r.env, 8).filter((x): x is string => typeof x === 'string' && /^[A-Z][A-Z0-9_]{1,63}$/.test(x)),
+  }
+}
+
+// Tool state for the table: ok (configured), missing (needs a key that is not set: red dot, the
+// env names are listed) or off (not configured and no key to blame: an adapter or a folder).
+export type ToolState = 'ok' | 'missing' | 'off'
+export const toolState = (t: Pick<CompanyTool, 'configured' | 'env'>): ToolState => (t.configured ? 'ok' : t.env.length ? 'missing' : 'off')
+
+// Tools grouped by the name prefix (`web.search` goes to `web`), groups in a fixed order then
+// alphabetically, tools by name.
+export const TOOL_GROUP_ORDER = ['web', 'media', 'google', 'files', 'cache', 'llm', 'knowledge', 'crm', 'events', 'chain', 'telegram', 'email', 'mac', 'prices', 'playbook', 'clock'] as const
+export function toolGroups(tools: CompanyTool[]): { group: string; tools: CompanyTool[] }[] {
+  const map = new Map<string, CompanyTool[]>()
+  for (const t of tools) {
+    const g = t.name.split('.')[0]!
+    map.set(g, [...(map.get(g) ?? []), t])
+  }
+  const rank = (g: string) => {
+    const i = (TOOL_GROUP_ORDER as readonly string[]).indexOf(g)
+    return i === -1 ? TOOL_GROUP_ORDER.length : i
+  }
+  return [...map.entries()]
+    .sort((a, b) => rank(a[0]) - rank(b[0]) || a[0].localeCompare(b[0]))
+    .map(([group, list]) => ({ group, tools: list.sort((a, b) => a.name.localeCompare(b.name)) }))
+}
+
+const secText = (ms: number) => (ms >= 3_600_000 && ms % 3_600_000 === 0 ? `${ms / 3_600_000} ч` : ms >= 60_000 && ms % 60_000 === 0 ? `${ms / 60_000} мин` : ms % 1000 === 0 ? `${ms / 1000} с` : `${ms / 1000} с`)
+// Limits as one line: known keys in words, unknown ones as `key value`.
+export function limitsText(limits: CompanyTool['limits']): string {
+  const parts: string[] = []
+  for (const [key, v] of Object.entries(limits)) {
+    if (typeof v === 'number') {
+      if (key === 'timeoutMs') parts.push(`таймаут ${secText(v)}`)
+      else if (key === 'minGapMs') parts.push(`пауза ${secText(v)}`)
+      else if (key === 'cacheTtlMs') parts.push(`кэш ${secText(v)}`)
+      else if (key === 'maxResults') parts.push(`до ${v} результатов`)
+      else parts.push(`${key} ${v}`)
+    } else parts.push(`${key} ${v}`)
+  }
+  return parts.join(', ')
+}
+
 export function normalizeCompany(body: unknown): Company | null {
   if (!body || typeof body !== 'object' || Array.isArray(body)) return null
   const b = body as Rec
   const costs = rec(b.costs)
   return {
     routines: arr(b.routines, 200).map(routineRow).filter((x): x is Routine => !!x),
+    tools: arr(b.tools, 200).map(toolRow).filter((x): x is CompanyTool => !!x),
     costs: {
       byDept: Object.entries(rec(costs.byDept))
         .slice(0, 20)

@@ -9,7 +9,7 @@ import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { plainBotText } from '@/lib/hq-admin-view'
 import { formatUntil } from '@/lib/office-view'
-import { limitShare, normalizeCompany, routineRow, trustRow, type Routine, type TrustRow } from '@/lib/pult'
+import { limitShare, limitsText, normalizeCompany, routineRow, toolGroups, toolState, trustRow, type CompanyTool, type Routine, type TrustRow } from '@/lib/pult'
 import { Chip, shortTime, usd } from './bits'
 import { Empty, Loading, Offline, useConfirm, useHqView, useHub } from '../hub/ui'
 
@@ -29,6 +29,79 @@ function Toggle({ on, label, disabled, onChange }: { on: boolean; label: string;
     >
       <span aria-hidden="true" className={cn('absolute top-0.5 size-4.5 rounded-full transition-transform', on ? 'translate-x-5 bg-accent-ink' : 'translate-x-0.5 bg-muted')} />
     </button>
+  )
+}
+
+const toolCols = 'md:grid md:grid-cols-[minmax(9rem,13rem)_minmax(0,1fr)_6.5rem_4.5rem_4.5rem_minmax(0,14rem)] md:items-center md:gap-x-3'
+
+// One row of the toolbox table: a state dot (red = needs a key that is not set), the name, the
+// departments as chips, configured yes/no, calls and errors today, limits. Stacked on narrow screens.
+function ToolRow({ t }: { t: CompanyTool }) {
+  const state = toolState(t)
+  const limits = limitsText(t.limits)
+  const why = state === 'missing' ? fill(k.toolMissing, { keys: t.env.join(', ') }) : state === 'off' ? k.toolOff : ''
+  return (
+    <li className={cn('grid gap-1 rounded-xl border border-line bg-bg/50 px-3 py-2', toolCols)}>
+      <span className="flex min-w-0 items-center gap-2">
+        <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', state === 'ok' ? 'bg-accent' : state === 'missing' ? 'bg-danger' : 'bg-line-strong')} />
+        <span className="min-w-0 truncate font-mono text-xs">{t.name}</span>
+      </span>
+      <span className="flex flex-wrap gap-1">
+        {t.departments.map((d) => (
+          <Chip key={d}>{dept(d)}</Chip>
+        ))}
+      </span>
+      <span className="text-xs md:text-sm">
+        <span className="text-faint md:hidden">{k.toolConfigured}: </span>
+        <span className={state === 'missing' ? 'text-danger' : state === 'ok' ? '' : 'text-muted'} title={why || undefined}>
+          {t.configured ? k.toolYes : k.toolNo}
+        </span>
+      </span>
+      <span className="text-xs tabular-nums md:text-right md:text-sm">
+        <span className="md:hidden">{fill(k.toolCallsShort, { n: t.callsToday })}</span>
+        <span className="hidden md:inline">{t.callsToday}</span>
+      </span>
+      <span className={cn('text-xs tabular-nums md:text-right md:text-sm', t.errorsToday > 0 && 'text-warn')}>
+        <span className="md:hidden">{fill(k.toolErrorsShort, { n: t.errorsToday })}</span>
+        <span className="hidden md:inline">{t.errorsToday}</span>
+      </span>
+      <span className="text-xs text-faint">{limits}</span>
+      {why ? <span className={cn('text-xs md:col-span-6', state === 'missing' ? 'text-danger' : 'text-faint')}>{why}</span> : null}
+    </li>
+  )
+}
+
+function ToolsSection({ tools }: { tools: CompanyTool[] }) {
+  const groups = toolGroups(tools)
+  return (
+    <section className="grid gap-2">
+      <h3 className="text-sm font-medium">{k.tools}</h3>
+      <p className="text-xs text-faint">{k.toolsHint}</p>
+      {groups.length ? (
+        <div className="grid gap-3">
+          <div aria-hidden="true" className={cn('hidden px-3 text-xs text-faint', toolCols)}>
+            <span>{k.toolName}</span>
+            <span>{k.toolDepts}</span>
+            <span>{k.toolConfigured}</span>
+            <span className="text-right">{k.toolCalls}</span>
+            <span className="text-right">{k.toolErrors}</span>
+            <span>{k.toolLimits}</span>
+          </div>
+          {groups.map((g) => (
+            <div key={g.group} className="grid gap-1">
+              <h4 className="text-xs text-muted">{(k.toolGroups as Record<string, string>)[g.group] ?? g.group}</h4>
+              <ul className="grid gap-1">
+                {g.tools.map((t) => (
+                  <ToolRow key={t.name} t={t} />
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <Empty>{k.noTools}</Empty>
+      )}
+    </section>
   )
 }
 
@@ -180,6 +253,8 @@ export function CompanyTab() {
           <Empty>{k.noPlaybooks}</Empty>
         )}
       </section>
+
+      <ToolsSection tools={c.tools} />
 
       <section className="grid gap-2">
         <h3 className="text-sm font-medium">{k.workers}</h3>

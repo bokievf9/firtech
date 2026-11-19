@@ -60,7 +60,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   const projectNotes = new Map<string, string[]>()
 
   const tickets: Row[] = [
-    { id: 3, clientName: 'Алиса', contact: '@alice', text: 'Бот не отвечает с утра, клиенты жалуются.', status: 'open', money: true, slaAlerted: true, answer: null, createdAt: ago(250) },
+    { id: 3, clientName: 'Алиса', contact: '@alice', text: 'Бот не отвечает с утра, клиенты жалуются.', clientId: 1, status: 'open', money: true, slaAlerted: true, answer: null, createdAt: ago(250) },
     { id: 4, clientName: 'Pulse Gym', contact: '@pulse.gym', text: 'Как добавить новый тариф абонемента?', status: 'open', money: false, slaAlerted: false, answer: null, createdAt: ago(70) },
     { id: 2, clientName: 'Боб', contact: '@bob', text: 'Можно поменять цвет кнопки на сайте?', status: 'answered', money: false, slaAlerted: false, answer: 'Да, поменяем сегодня, пришлите цвет.', createdAt: ago(60 * 7), answeredAt: ago(60 * 6) },
   ]
@@ -94,6 +94,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
           approvalId: null,
           publishedUrl: null,
           error: null,
+          kit: null,
           ...over,
         }
         items.set(id, row)
@@ -132,6 +133,20 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
           approvalId: null,
           publishedUrl: null,
           error: i === 2 ? 'Отклонено: слишком много текста на слайде' : null,
+        })
+      }
+      if (full && i === 3) {
+        add(4, {
+          kind: 'profile',
+          platform: 'all',
+          status: 'pending',
+          title: 'Старт-кит профилей',
+          kit: {
+            instagram: 'Профиль Instagram: настройка (био 118 знаков)\nБио: Сайты, боты и автоматизация для бизнеса. Работаем из Таджикистана.\nСсылка в шапке: https://firtech.pro\n\nАктуальное (название, обложка 1080x1920):\n1. Кейсы. Обложка: зелёная\n2. Цены. Обложка: тёмная\n\nЗакреплённые посты:\n1) Что мы делаем\n2) Сколько это стоит',
+            youtube: 'Профиль YouTube: настройка канала\nНазвание: Fir Tech\nХэндл: @firtech\nБаннер: 2560x1440, текст внутри безопасной зоны 1546x423 по центру\n\nОписание канала (212 знаков):\nДелаем сайты, Telegram-боты и автоматизацию для малого бизнеса. Подробности на firtech.pro.\n\nПлейлисты:\n1) Кейсы. Что получилось\n2) Разборы. Как это устроено',
+            tiktok: 'Профиль TikTok: настройка (био 61 знак)\nИмя: Fir Tech\nБио: Сайты и боты для бизнеса. firtech.pro\n\nПервые 3 видео:\n1) Хук: Клиенты пишут ночью. Текст на экране: Бот отвечает за вас',
+          },
+          files: [{ path: 'content/2026-w47/profile-youtube-banner.png', type: 'png', w: 2560, h: 1440 }],
         })
       }
       if (full && i === 5) add(3, { kind: 'story', status: 'draft', title: 'Опрос: что автоматизировать первым?', files: [png('story-5')] })
@@ -385,6 +400,15 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       if (method === 'GET' && seg.length === 1) {
         return ok({
           routines,
+          tools: [
+            { name: 'web.search', departments: ['marketing', 'sales', 'director'], configured: true, callsToday: 14, errorsToday: 0, limits: { timeoutMs: 8000, minGapMs: 1000, cacheTtlMs: 3_600_000, maxResults: 10 }, env: ['BRAVE_SEARCH_KEY'] },
+            { name: 'web.readable', departments: ['marketing', 'sales', 'director'], configured: true, callsToday: 9, errorsToday: 2, limits: { timeoutMs: 8000 }, env: [] },
+            { name: 'media.png', departments: ['marketing'], configured: true, callsToday: 21, errorsToday: 0, limits: { timeoutMs: 20000 }, env: [] },
+            { name: 'media.pdf', departments: ['sales', 'backoffice'], configured: false, callsToday: 0, errorsToday: 0, limits: {}, env: [] },
+            { name: 'google.youtube.channel', departments: ['marketing', 'director'], configured: false, callsToday: 0, errorsToday: 1, limits: { timeoutMs: 10000 }, env: ['YT_OAUTH_CLIENT_JSON', 'YT_REFRESH_TOKEN', 'YOUTUBE_API_KEY'] },
+            { name: 'google.trends', departments: ['marketing', 'director'], configured: true, callsToday: 3, errorsToday: 0, limits: { cacheTtlMs: 3_600_000 }, env: [] },
+            { name: 'email.send', departments: ['support', 'sales', 'backoffice'], configured: false, callsToday: 0, errorsToday: 0, limits: {}, env: ['RESEND_API_KEY', 'RESEND_FROM'] },
+          ],
           costs: {
             byDept: {
               marketing: { todayUsd: 0.42, monthUsd: 6.8, limitUsd: 15 },

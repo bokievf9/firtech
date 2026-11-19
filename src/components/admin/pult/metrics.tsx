@@ -6,7 +6,7 @@ import { fill } from '@/components/admin/control/api'
 import { Sparkline } from '@/components/admin/sparkline'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { delta, funnelShares, isoWeek, normalizeMetrics, shiftWeek, SITE_EVENTS } from '@/lib/pult'
+import { delta, eventSeries, funnelShares, isoWeek, normalizeMetrics, shiftWeek, SITE_EVENTS } from '@/lib/pult'
 import { usd } from './bits'
 import { Loading, Offline, useHqView, useHub } from '../hub/ui'
 
@@ -32,6 +32,18 @@ function Stat({ label, value, prev, money = false }: { label: string; value: num
       <p className="mt-1 font-mono text-xl tabular-nums">{money ? usd(value) : value.toLocaleString('ru-RU')}</p>
       <Delta cur={value} prev={prev} money={money} />
     </div>
+  )
+}
+
+// The sparkline of one event: daily when HQ sends `days`, else two points labelled «неделя к неделе».
+function Trend({ m, e }: { m: NonNullable<ReturnType<typeof normalizeMetrics>>; e: (typeof SITE_EVENTS)[number] }) {
+  const { values, daily } = eventSeries(m, e)
+  const note = daily ? k.daily : k.weekToWeek
+  return (
+    <span className="flex flex-col items-end gap-0.5">
+      <Sparkline values={values} label={`${fill(k.trendLabel, { e: k.events[e] })}, ${note}`} />
+      <span className="text-[10px] leading-none whitespace-nowrap text-faint">{note}</span>
+    </span>
   )
 }
 
@@ -113,7 +125,7 @@ export function MetricsTab() {
                       <Delta cur={m.site[e]} prev={prev?.site[e]} />
                     </td>
                     <td className="py-1.5 pl-3">
-                      <Sparkline values={[prev?.site[e] ?? 0, m.site[e]]} label={fill(k.trendLabel, { e: k.events[e] })} />
+                      <Trend m={m} e={e} />
                     </td>
                   </tr>
                 ))}

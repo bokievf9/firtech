@@ -289,7 +289,7 @@ export function createCrmMock(start = Date.now()) {
   ]
   const notes = new Map<string, string>(prospects.map((p) => [`p${p.id}`, String(p.note)]))
   const tickets: Row[] = [
-    { id: 3, clientName: 'Алиса', contact: '@alice', text: 'Бот не отвечает с утра, клиенты жалуются.', status: 'open', money: true, slaAlerted: true, note: '', answer: null, createdAt: ago(95), answeredAt: null },
+    { id: 3, clientName: 'Алиса', contact: '@alice', text: 'Бот не отвечает с утра, клиенты жалуются.', clientId: 1, status: 'open', money: true, slaAlerted: true, note: '', answer: null, createdAt: ago(95), answeredAt: null },
     { id: 2, clientName: 'Боб', contact: '@bob', text: 'Можно поменять цвет кнопки на сайте?', status: 'open', money: false, slaAlerted: false, note: '', answer: null, createdAt: ago(60 * 7), answeredAt: null },
   ]
   const documents: Row[] = [

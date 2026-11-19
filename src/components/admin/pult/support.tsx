@@ -8,7 +8,7 @@ import { admin } from '@/content/admin'
 import { ticketCommandArg } from '@/lib/admin-crm-hq'
 import { cn } from '@/lib/cn'
 import { plainBotText } from '@/lib/hq-admin-view'
-import { matchesQuery, normalizeSupportTickets, slaLeft, slaText, type SupportTicket } from '@/lib/pult'
+import { matchesQuery, normalizeClientRows, normalizeSupportTickets, pickTicketClient, slaLeft, slaText, ticketClientQuery, type SupportTicket } from '@/lib/pult'
 import { Chip, shortTime } from './bits'
 import { btn, btnPrimary, Empty, inputClass, Loading, Offline, Pills, useHqView, useHub } from '../hub/ui'
 
@@ -44,6 +44,18 @@ export function SupportTab({ focus }: { focus: string | null }) {
     swap(before)
     notify(fill(k.failed, { e: errText(res.error) }), 'error')
     return false
+  }
+
+  // The ticket's client 360: by the ticket's `clientId` when HQ sends one, else by a search over the
+  // clients (contact first, then name); the list opens when nothing matches.
+  const toClient = async (t: SupportTicket) => {
+    if (t.clientId) return openPanel('sales', 'clients', t.clientId)
+    const query = ticketClientQuery(t)
+    const res = query ? await hq<Record<string, unknown>>(`crm/clients?q=${encodeURIComponent(query)}&limit=20`) : null
+    const found = res?.ok ? (normalizeClientRows(res)?.items ?? []) : []
+    const id = pickTicketClient(found, t)
+    if (!id) notify(k.clientNotFound)
+    openPanel('sales', 'clients', id)
   }
 
   if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading />
@@ -92,7 +104,7 @@ export function SupportTab({ focus }: { focus: string | null }) {
             t={ticket}
             now={now}
             onWrite={write}
-            onClient={() => openPanel('sales', 'clients')}
+            onClient={() => toClient(ticket)}
             onReply={async () => {
               const res = await hq<{ replies?: string[] }>('command', { name: 'ticket', arg: ticketCommandArg(ticket) })
               if (res.ok) notify(plainBotText(String(res.replies?.[0] ?? '')).slice(0, 200) || k.replyQueued)
@@ -115,11 +127,12 @@ function TicketBody({
   t: SupportTicket
   now: number
   onWrite: (t: SupportTicket, body: Record<string, string>) => Promise<boolean>
-  onClient: () => void
+  onClient: () => Promise<void>
   onReply: () => Promise<void>
 }) {
   const [note, setNote] = useState(t.note)
   const [busy, setBusy] = useState(false)
+  const [finding, setFinding] = useState(false)
   const left = slaLeft(t, now)
   return (
     <>
@@ -159,8 +172,17 @@ function TicketBody({
             {k.reopen}
           </button>
         )}
-        <button type="button" className={btn} onClick={onClient}>
-          {k.client}
+        <button
+          type="button"
+          className={btn}
+          disabled={finding}
+          onClick={async () => {
+            setFinding(true)
+            await onClient()
+            setFinding(false)
+          }}
+        >
+          {finding ? k.clientSearching : k.client}
         </button>
       </div>
       <p className="text-xs text-faint">{k.replyHint}</p>

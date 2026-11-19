@@ -10,12 +10,17 @@ import {
   CAPTION_PLATFORMS,
   fileUrl,
   isoWeek,
+  kitBlocks,
+  kitSections,
   normalizeContent,
   normalizeContentItem,
   replaceContentItem,
   shiftWeek,
   weekDates,
   type ContentItem,
+  type KitSection,
+  type ProfileKit,
+  YOUTUBE_BANNER,
 } from '@/lib/pult'
 import { Chip, type Tone } from './bits'
 import { btn, btnDanger, btnPrimary, CopyButton, Empty, inputClass, Loading, Offline, useHqView, useHub } from '../hub/ui'
@@ -156,6 +161,57 @@ function ContentCard({ item, onOpen }: { item: ContentItem; onOpen: () => void }
   )
 }
 
+// The profile start kit: one card, a tab per platform, every text block with its own copy button.
+function KitCard({ kit }: { kit: ProfileKit }) {
+  const sections = kitSections(kit)
+  const [tab, setTab] = useState<KitSection>(sections[0] ?? 'instagram')
+  const blocks = kitBlocks(kit[tab])
+  return (
+    <section className="grid gap-2 rounded-xl border border-line bg-bg/50 p-3" aria-label={k.kitTitle}>
+      <h3 className="text-sm font-medium">{k.kitTitle}</h3>
+      <div role="tablist" aria-label={k.kitTitle} className="flex flex-wrap gap-1.5">
+        {sections.map((s) => (
+          <button
+            key={s}
+            type="button"
+            role="tab"
+            id={`kit-tab-${s}`}
+            aria-selected={tab === s}
+            aria-controls="kit-panel"
+            onClick={() => setTab(s)}
+            className={cn('min-h-9 rounded-full border px-3 text-xs', tab === s ? 'border-accent bg-accent/10 text-accent-text' : 'border-line-strong text-muted hover:border-accent')}
+          >
+            {k.kitTabs[s]}
+          </button>
+        ))}
+      </div>
+      <div role="tabpanel" id="kit-panel" aria-labelledby={`kit-tab-${tab}`} className="grid gap-2">
+        {tab === 'youtube' ? (
+          <p className="text-xs text-muted">{fill(k.kitBanner, { w: YOUTUBE_BANNER.w, h: YOUTUBE_BANNER.h, sw: YOUTUBE_BANNER.safeW, sh: YOUTUBE_BANNER.safeH })}</p>
+        ) : null}
+        {blocks.length ? (
+          <>
+            <div className="flex justify-end">
+              <CopyButton text={kit[tab]} label={k.kitCopyAll} />
+            </div>
+            {blocks.map((b, i) => (
+              <div key={i} className="rounded-lg border border-line p-2.5">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="text-xs text-faint">{fill(k.kitBlock, { n: i + 1 })}</span>
+                  <CopyButton text={b} />
+                </div>
+                <p className="text-sm break-words whitespace-pre-wrap">{b}</p>
+              </div>
+            ))}
+          </>
+        ) : (
+          <p className="text-xs text-faint">{k.kitEmpty}</p>
+        )}
+      </div>
+    </section>
+  )
+}
+
 function ContentBody({ item, onAct }: { item: ContentItem; onAct: (item: ContentItem, action: Action, extra?: { note?: string; platform?: string }) => Promise<boolean> }) {
   const [slide, setSlide] = useState(0)
   const [revise, setRevise] = useState<string | null>(null)
@@ -210,7 +266,8 @@ function ContentBody({ item, onAct }: { item: ContentItem; onAct: (item: Content
       ) : null}
       {!video && !current ? <Empty>{k.noFiles}</Empty> : null}
 
-      <section className="grid gap-2">
+      {item.kit ? <KitCard kit={item.kit} /> : null}
+      <section className={cn('grid gap-2', item.kit && !CAPTION_PLATFORMS.some((p) => item.caption[p]) && 'hidden')}>
         <h3 className="text-sm font-medium">{k.captions}</h3>
         {CAPTION_PLATFORMS.filter((p) => item.caption[p]).map((p) => (
           <div key={p} className="rounded-xl border border-line bg-bg/50 p-3">
@@ -221,7 +278,7 @@ function ContentBody({ item, onAct }: { item: ContentItem; onAct: (item: Content
             <p className="text-sm whitespace-pre-wrap">{item.caption[p]}</p>
           </div>
         ))}
-        {!CAPTION_PLATFORMS.some((p) => item.caption[p]) ? <p className="text-xs text-faint">{k.noCaptions}</p> : null}
+        {!item.kit && !CAPTION_PLATFORMS.some((p) => item.caption[p]) ? <p className="text-xs text-faint">{k.noCaptions}</p> : null}
       </section>
 
       <section className="grid gap-2 border-t border-line pt-4">
