@@ -1,5 +1,6 @@
 import 'server-only'
 import { getDict } from '@/content'
+import { identityFields, type LeadIdentity } from './lead-identity'
 import { visitorIpHeader } from './public-post'
 import { createMockReceptionist, sanitizeReply, type ChatRequest, type ChatResponse } from './chat'
 
@@ -8,7 +9,7 @@ import { createMockReceptionist, sanitizeReply, type ChatRequest, type ChatRespo
 //   POST ${HQ_CHAT_URL}   (default http://127.0.0.1:8787/chat)
 //   x-chat-token: ${HQ_CHAT_TOKEN}  (falls back to LEAD_INTAKE_TOKEN)
 //   x-visitor-ip: the visitor's address (HQ's per-IP limit), only when a proxy gave one
-//   { sessionId, locale, message, page, ref? }
+//   { sessionId, locale, message, page, ref?, clientEmail?, cabinetId?, clientName? }
 // Without HQ_CHAT_URL in development the scripted mock answers, so the widget can be reviewed
 // locally. Production always talks to HQ (loopback default): a mock there would collect contacts
 // that nobody reads.
@@ -28,6 +29,7 @@ export async function askReceptionist(
   env: Record<string, string | undefined> = process.env,
   fetcher: typeof fetch = fetch,
   ip?: string,
+  identity: LeadIdentity | null = null,
 ): Promise<ChatResponse> {
   if (chatMode(env) === 'mock') return mock(req, getDict(req.locale).chat.mock)
   const url = env.HQ_CHAT_URL?.trim() || DEFAULT_URL
@@ -48,6 +50,9 @@ export async function askReceptionist(
         // HQ's chatSchema is not strict, so an unknown `ref` is ignored today; HQ reads it later.
         // TODO(agents): add `ref` to chatSchema and attribute web-chat leads.
         ...(req.ref ? { ref: req.ref } : {}),
+        // The signed-in cabinet account, so a lead from the chat lands in that client's cabinet.
+        // HQ's chatSchema is not strict: ignored until HQ reads it.
+        ...identityFields(identity),
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),

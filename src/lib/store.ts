@@ -30,6 +30,8 @@ export type StoredLead = Omit<Lead, 'website' | 'slot'> & {
   note?: string
   // Owner's private notes from the admin panel; never sent anywhere. Older leads simply lack it.
   notes?: string
+  // Email of the cabinet account that sent the lead (since 2026-11-20); older leads lack it.
+  account?: string
 }
 
 type Db = { nextId: number; leads: StoredLead[] }
@@ -77,7 +79,7 @@ function serialize<T>(task: () => Promise<T>): Promise<T> {
 const activeSlot = (lead: StoredLead) =>
   lead.booking && lead.booking.state !== 'released' ? lead.booking.slot : null
 
-export function createLead(lead: Lead, slot?: string): Promise<StoredLead> {
+export function createLead(lead: Lead & { account?: string }, slot?: string): Promise<StoredLead> {
   return serialize(async () => {
     const db = await load()
     // Checked inside the queue, so two visitors can't take the same slot at the same moment.

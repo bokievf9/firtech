@@ -81,7 +81,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
             label={dict.nav.cta}
             telegramLabel={dict.contact.telegramCta}
           />
-          <ChatWidget locale={locale} copy={dict.chat} contactHref={`/${locale}#contact`} />
+          <ChatWidget locale={locale} dict={dict} contactHref={`/${locale}#contact`} />
         </MotionProvider>
         <RefLinks />
         <YandexMetrika />

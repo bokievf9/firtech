@@ -12,7 +12,7 @@ registerHooks({
   resolve(specifier, context, next) {
     if (specifier === 'server-only')
       return { url: 'data:text/javascript,export{}', shortCircuit: true }
-    if (specifier === 'next/server') return next('next/server.js', context)
+    if (specifier === 'next/server' || specifier === 'next/navigation' || specifier === 'next/headers') return next(`${specifier}.js`, context)
     if (specifier.startsWith('@/')) {
       const base = new URL(specifier.slice(2), src).href
       for (const candidate of [`${base}.ts`, `${base}.tsx`, `${base}/index.ts`]) {
@@ -318,7 +318,8 @@ test('lead route: error only when both storage and Telegram fail', async () => {
   try {
     const stored = await postLead({ name: 'Ali', contact: '@ali' })
     assert.equal(stored.status, 200)
-    assert.deepEqual(await stored.json(), { ok: true })
+    // The cabinet is off in this test (no Supabase env): no account, so no cabinet link.
+    assert.deepEqual(await stored.json(), { ok: true, hqLeadId: null, cabinet: null })
     assert.match(sent('sendMessage')[0].body.text, /не сохранилась на сайте/)
 
     telegramDown = true
@@ -346,4 +347,22 @@ test('lead route: a call slot must be free right now', async () => {
   assert.equal(sent('sendMessage')[0].body.reply_markup.inline_keyboard[2][0].text, 'Подтвердить')
 
   assert.equal((await postLead({ name: 'Bek', contact: '@bek', slot })).status, 409)
+})
+
+test('lead route: with the cabinet on, a signed-out request gets 401 and nothing is stored or sent', async () => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://x.supabase.co'
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon'
+  try {
+    const before = sent('sendMessage').length
+    const response = await postLead({ name: 'Ali', contact: '@ali' })
+    assert.equal(response.status, 401)
+    assert.deepEqual(await response.json(), { ok: false, error: 'auth_required' })
+    assert.equal((await store.listLeads()).length, 0)
+    assert.equal(sent('sendMessage').length, before)
+    // The honeypot still answers like a success before any check.
+    assert.equal((await postLead({ name: 'Bot', contact: '@bot', website: 'x' })).status, 200)
+  } finally {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  }
 })

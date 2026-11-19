@@ -111,6 +111,17 @@ const en: Dict = {
       crmManager: 'Manager assigned',
     },
   },
+  // The sign-in step next to every lead form (contact form, builder, audit, PDF estimate, chat).
+  leadAuth: {
+    why: 'A request opens your personal cabinet: stages, documents, the invoice and messages live there.',
+    signedInAs: 'Signed in as {email}',
+    contactHelp: 'Your account email is already here. You can add a phone or Telegram.',
+    draftRestored: 'Your draft is back. Check the fields and press «Send».',
+    send: 'Send',
+    authRequired: 'To send a request, sign in or create an account.',
+    redirecting: 'Request sent. Opening your cabinet...',
+    toCabinet: 'Open the cabinet',
+  },
   chat: {
     fab: 'Chat with the AI receptionist',
     title: 'Fir Tech AI receptionist',
@@ -130,6 +141,11 @@ const en: Dict = {
     mockNote: 'Demo mode: scripted answers, nothing is sent',
     demoChip: 'Demo',
     restart: 'Start over',
+    // Leads need an account (owner 2026-11-20): the chat itself stays open to everyone.
+    signInFirst: 'To leave a request, sign in or create an account. The conversation is kept and the request appears in your cabinet.',
+    sendAs: 'Send the request as {email}',
+    leadInCabinet: 'Your request is in the cabinet: you can follow what happens next there.',
+    toCabinet: 'Open the cabinet',
     mock: {
       greeting: 'Hello! I am the Fir Tech AI receptionist. Three short questions and your request goes to the team. What do you need?',
       what: { site: 'Website', bot: 'Telegram bot', agent: 'AI agent', other: 'Something else' },
@@ -1402,6 +1418,7 @@ const en: Dict = {
           'If you create an account in the cabinet, we store your email, name, Telegram handle (if you gave one), language and your answer about news and offers. We never see your password: the Supabase authentication service stores only its protected hash. Account data sits on Supabase servers in Singapore.',
           'If you sign in with Google or Apple, those services give us only your name and email. We do not receive your password or other account data from them.',
           'Projects, invoices, documents and requests shown in the cabinet are kept in our internal system and tied to your email.',
+          'A request, an audit or an estimate can be sent only from an account: the email, name and account number go with it. While you sign in or confirm your email, the fields you typed stay in your browser (localStorage) for up to 24 hours and are removed once sent.',
           'You can delete the account with the "Delete account" button in the cabinet profile or by asking support. If automatic deletion is switched off, the button sends us a "delete account" request and we do it by hand.',
         ],
         list: [],

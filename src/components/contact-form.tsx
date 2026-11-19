@@ -3,7 +3,7 @@
 import { ArrowRight, CheckCircle, TelegramLogo, X } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { usePathname } from 'next/navigation'
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { SlotPicker } from '@/components/slot-picker'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
@@ -15,6 +15,9 @@ import type { Locale } from '@/lib/i18n'
 import { refSource, storedRef } from '@/lib/referral'
 import { defaultTelegramBot, extraSlugs, serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { draftReturnPath, draftStorage, clearDraft, hasDraftFlag, loadDraft, saveDraft, withoutDraftFlag } from '@/lib/lead-draft'
+import { LeadAccountNote, LeadAuthStep } from './cabinet/lead-auth'
+import { useCabinetUser, type CabinetUserState } from './cabinet/use-cabinet-user'
 import { ConsentText } from './consent-text'
 
 type Status = 'idle' | 'sending' | 'sent' | 'error'
@@ -26,7 +29,7 @@ const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || defaultTel
   '',
 )
 
-type Sent = { id?: number; token?: string; slot?: string | null }
+type Sent = { id?: number; token?: string; slot?: string | null; cabinet?: string | null }
 
 // 16px on phones: iOS Safari zooms into any field with smaller text when it gets focus.
 // ym-disable-keys: Metrika's Webvisor never records what is typed here.
@@ -55,6 +58,17 @@ export function ContactForm({
   const [slotTaken, setSlotTaken] = useState(false)
   const [takenSlots, setTakenSlots] = useState<string[]>([])
   const [sent, setSent] = useState<Sent>({})
+  // Leads need a cabinet account (owner 2026-11-20): who is signed in, the inline sign-in step,
+  // and a draft that survives the sign-in.
+  const { state: me, refresh } = useCabinetUser()
+  const meRef = useRef<CabinetUserState>(me)
+  useEffect(() => {
+    meRef.current = me
+  }, [me])
+  const formRef = useRef<HTMLFormElement>(null)
+  const [authStep, setAuthStep] = useState(false)
+  const [restored, setRestored] = useState(false)
+  const [returnPath, setReturnPath] = useState('')
 
   useEffect(() => {
     function onEstimate(event: Event) {
@@ -68,6 +82,65 @@ export function ContactForm({
     return () => window.removeEventListener(ESTIMATE_EVENT, onEstimate)
   }, [])
 
+  // The fields plus what the calculator or builder handed over, for the draft.
+  const collect = useCallback(
+    (form: HTMLFormElement) => ({
+      ...(Object.fromEntries(new FormData(form)) as Record<string, string>),
+      estimate,
+      service,
+      source,
+    }),
+    [estimate, service, source],
+  )
+  const keepDraft = useCallback(() => {
+    if (formRef.current) saveDraft(draftStorage(window), 'lead', collect(formRef.current))
+  }, [collect])
+
+  // Back from sign-in or the confirmation email with `draft=1`: put the draft back (one-time sync
+  // from storage), the visitor checks it and presses «Отправить» once.
+  useEffect(() => {
+    if (!hasDraftFlag(window.location.search)) return
+    const draft = loadDraft(draftStorage(window), 'lead')
+    const form = formRef.current
+    if (!draft || !form) return
+    for (const name of ['name', 'contact', 'message', 'budget'] as const) {
+      const field = form.elements.namedItem(name) as HTMLInputElement | null
+      if (field && draft[name]) field.value = draft[name]
+    }
+    /* eslint-disable react-hooks/set-state-in-effect -- one-time sync from the saved draft */
+    if (draft.service) setService(draft.service)
+    if (draft.estimate) setEstimate(draft.estimate)
+    if (draft.source) setSource(draft.source)
+    setRestored(true)
+    /* eslint-enable react-hooks/set-state-in-effect */
+    form.scrollIntoView({ block: 'start' })
+  }, [])
+
+  // Signed in: the account email fills an empty contact field, the profile name an empty name.
+  useEffect(() => {
+    const form = formRef.current
+    if (me.status !== 'in' || !form) return
+    const contact = form.elements.namedItem('contact') as HTMLInputElement | null
+    const name = form.elements.namedItem('name') as HTMLInputElement | null
+    if (contact && !contact.value) contact.value = me.user.email
+    if (name && !name.value && me.user.name) name.value = me.user.name
+  }, [me])
+
+  function askToSignIn() {
+    keepDraft()
+    setReturnPath(draftReturnPath(window.location.pathname, window.location.search, '#contact'))
+    setAuthStep(true)
+    setStatus('idle')
+  }
+
+  async function onSignedIn() {
+    const next = await refresh()
+    meRef.current = next
+    setAuthStep(false)
+    // The visitor already pressed «Отправить»: send now.
+    formRef.current?.requestSubmit()
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = event.currentTarget
@@ -78,6 +151,16 @@ export function ContactForm({
     setErrors(nextErrors)
     if (Object.keys(nextErrors).length) {
       form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+      return
+    }
+
+    let who = meRef.current
+    if (who.status === 'loading') {
+      who = await refresh()
+      meRef.current = who
+    }
+    if (who.status === 'out') {
+      askToSignIn()
       return
     }
 
@@ -107,15 +190,27 @@ export function ContactForm({
         setStatus('idle')
         return
       }
+      if (response.status === 401) {
+        // The session ended between the check and the send.
+        meRef.current = { status: 'out' }
+        askToSignIn()
+        return
+      }
       if (!response.ok) throw new Error(String(response.status))
-      setSent((await response.json().catch(() => ({}))) as Sent)
+      const answer = (await response.json().catch(() => ({}))) as Sent
+      setSent(answer)
+      clearDraft(draftStorage(window), 'lead')
+      window.history.replaceState(window.history.state, '', withoutDraftFlag(window.location.pathname, window.location.search, window.location.hash))
       form.reset()
       setEstimate('')
       setSource('')
       setSlot('')
+      setRestored(false)
       setStatus('sent')
       track('lead_sent', { service: data.service || 'unknown' })
       trackEvent('lead_sent')
+      // The cabinet shows the request and what happens next (owner 2026-11-20).
+      if (answer.cabinet) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
     } catch {
       setStatus('error')
     }
@@ -142,7 +237,9 @@ export function ContactForm({
           >
             <CheckCircle size={44} weight="light" className="text-accent" />
             <h3 className="mt-6 text-3xl font-semibold tracking-tight">{t.successTitle}</h3>
-            <p className="mt-3 max-w-[40ch] leading-relaxed text-muted">{t.successText}</p>
+            <p className="mt-3 max-w-[40ch] leading-relaxed text-muted">
+              {sent.cabinet ? dict.leadAuth.redirecting : t.successText}
+            </p>
             {sent.slot && (
               <p className="mt-3 max-w-[40ch] leading-relaxed text-fg">
                 {dict.booking.successBooked.replace('{time}', formatSlot(sent.slot, locale))}
@@ -162,13 +259,19 @@ export function ContactForm({
                   {dict.booking.telegramCta}
                 </a>
               )}
-              <button
-                type="button"
-                onClick={() => setStatus('idle')}
-                className={buttonStyles.secondary}
-              >
-                {t.again}
-              </button>
+              {sent.cabinet ? (
+                <a href={sent.cabinet} className={buttonStyles.secondary}>
+                  {dict.leadAuth.toCabinet}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setStatus('idle')}
+                  className={buttonStyles.secondary}
+                >
+                  {t.again}
+                </button>
+              )}
             </div>
             {followUrl && (
               <p id={`${uid}-bot-hint`} className="mt-4 max-w-[44ch] text-[13px] text-faint">
@@ -177,11 +280,9 @@ export function ContactForm({
             )}
           </motion.div>
         ) : (
+          <motion.div key="form" initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
           <motion.form
-            key="form"
-            initial={reduce ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            ref={formRef}
             onSubmit={onSubmit}
             noValidate
             className="grid gap-5 rounded-card border border-line bg-surface p-6 md:p-10"
@@ -202,7 +303,7 @@ export function ContactForm({
               <Field
                 id={fieldId('contact')}
                 label={t.contactField}
-                help={t.contactHelp}
+                help={me.status === 'in' ? dict.leadAuth.contactHelp : t.contactHelp}
                 error={errors.contact}
               >
                 <input
@@ -320,20 +421,40 @@ export function ContactForm({
               </p>
             )}
 
+            {restored && me.status === 'in' && (
+              <p role="status" className="rounded-xl border border-accent/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
+                {dict.leadAuth.draftRestored}
+              </p>
+            )}
+
+            <LeadAccountNote dict={dict} state={me} />
+
             <div className="flex flex-col gap-4 pt-1 md:flex-row md:items-center md:justify-between">
               <p className="max-w-[44ch] text-[13px] leading-relaxed text-faint">
                 <ConsentText text={t.consent} href={`/${locale}/privacy`} />
               </p>
-              <button
-                type="submit"
-                disabled={status === 'sending'}
-                className={cn(buttonStyles.primary, 'md:min-w-[200px]')}
-              >
-                {status === 'sending' ? t.sending : t.submit}
-                {status !== 'sending' && <ArrowRight size={16} />}
-              </button>
+              {!authStep && (
+                <button
+                  type="submit"
+                  disabled={status === 'sending'}
+                  className={cn(buttonStyles.primary, 'md:min-w-[200px]')}
+                >
+                  {status === 'sending' ? t.sending : restored && me.status === 'in' ? dict.leadAuth.send : t.submit}
+                  {status !== 'sending' && <ArrowRight size={16} />}
+                </button>
+              )}
             </div>
           </motion.form>
+          {authStep && (
+            <LeadAuthStep
+              dict={dict}
+              locale={locale}
+              returnPath={returnPath}
+              onSignedIn={() => void onSignedIn()}
+              onBeforeRedirect={keepDraft}
+            />
+          )}
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

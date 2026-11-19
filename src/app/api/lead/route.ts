@@ -3,7 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { isFreeSlot } from '@/lib/booking'
 import { checkPublicPost, visitorIp } from '@/lib/public-post'
 import { formatLead, leadSchema } from '@/lib/lead'
-import { forwardLead } from '@/lib/lead-forward'
+import { cabinetLeadPath, leadGate } from '@/lib/lead-identity'
+import { forwardLeadDetailed, withinMs } from '@/lib/lead-forward'
+import { currentLeadUser } from '@/lib/lead-session'
 import { flushPending, notifyOwner } from '@/lib/lead-bot'
 import { bookedSlots, createLead, SlotTakenError, type StoredLead } from '@/lib/store'
 import { leadToken, sendMessage, telegramEnv } from '@/lib/telegram'
@@ -34,9 +36,14 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: 'invalid' }, { status: 400 })
   }
-  const lead = parsed.data
   // Bots that filled the honeypot get a normal answer, and nothing is sent.
-  if (lead.website) return NextResponse.json({ ok: true })
+  if (parsed.data.website) return NextResponse.json({ ok: true })
+
+  // Leads come only from signed-in cabinet accounts (owner 2026-11-20); the account rides along.
+  const gate = await leadGate(() => currentLeadUser(parsed.data.locale, ip))
+  if (!gate.ok) return NextResponse.json({ ok: false, error: gate.error }, { status: gate.status })
+  const identity = gate.identity
+  const lead = { ...parsed.data, ...(identity ? { account: identity.clientEmail } : {}) }
 
   const { token, ownerChatId } = telegramEnv()
   const telegramReady = Boolean(token && ownerChatId)
@@ -66,8 +73,9 @@ export async function POST(request: NextRequest) {
     console.error('[lead] could not save the lead', error, '\n' + formatLead(lead))
   }
 
-  // Copy for the Lead Intake agent; not awaited and fail-open, so it never delays or blocks the lead.
-  void forwardLead(lead, stored?.booking?.slot ?? slot, process.env, fetch, ip)
+  // Copy for the Lead Intake agent, fail-open. Its answer (HQ's lead id, for the cabinet link) is
+  // awaited at most 3 s further down; the forward itself never blocks the lead.
+  const forwarded = forwardLeadDetailed(lead, stored?.booking?.slot ?? slot, process.env, fetch, ip, identity)
 
   if (!telegramReady) {
     console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))
@@ -94,11 +102,18 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  if (!stored) return NextResponse.json({ ok: true })
+  const hq = await withinMs(forwarded, 3000, { ok: false, id: null })
+  const followToken = stored ? leadToken(stored.id) : ''
+  const cabinet = identity
+    ? cabinetLeadPath(lead.locale, hq.id, stored ? { id: stored.id, token: followToken } : undefined)
+    : null
+  if (!stored) return NextResponse.json({ ok: true, hqLeadId: hq.id, cabinet })
   return NextResponse.json({
     ok: true,
     id: stored.id,
-    token: leadToken(stored.id),
+    token: followToken,
     slot: stored.booking?.slot ?? null,
+    hqLeadId: hq.id,
+    cabinet,
   })
 }

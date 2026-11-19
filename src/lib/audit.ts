@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { identityFields, type LeadIdentity } from './lead-identity'
 import { visitorIpHeader } from './public-post'
 
 // Free audit: request shape of POST /api/audit and of HQ's POST /audit (agents/docs/public-api.md).
@@ -71,6 +72,7 @@ export async function forwardAudit(
   env: AuditEnv = process.env,
   fetchImpl: typeof fetch = fetch,
   ip?: string,
+  identity: LeadIdentity | null = null,
 ): Promise<AuditAnswer & { status: number }> {
   const base = env.LEAD_INTAKE_URL?.trim().replace(/\/+$/, '')
   const token = env.LEAD_INTAKE_TOKEN?.trim()
@@ -88,6 +90,8 @@ export async function forwardAudit(
         locale: input.locale,
         ...(input.name ? { name: input.name } : {}),
         ...(input.ref ? { ref: input.ref } : {}),
+        // The cabinet account (since 2026-11-20); HQ's schema ignores fields it does not read yet.
+        ...identityFields(identity),
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(AUDIT_TIMEOUT_MS),

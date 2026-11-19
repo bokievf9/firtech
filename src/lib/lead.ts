@@ -32,7 +32,7 @@ export type Lead = z.infer<typeof leadSchema>
 export type LeadFields = Pick<
   Lead,
   'name' | 'contact' | 'service' | 'budget' | 'estimate' | 'message' | 'locale' | 'page'
-> & { source?: string }
+> & { source?: string; account?: string }
 
 export const serviceNames: Record<Lead['service'], string> = {
   websites: 'Сайт',
@@ -75,6 +75,8 @@ export function formatLead(lead: LeadFields, title = 'Новая заявка с
     ['Страница', clip(lead.page, 300)],
     // Last row, so the lines the lead reader already parses keep their places.
     ['Источник', lead.source ?? ''],
+    // The cabinet account the lead was sent from (email), after the source for the same reason.
+    ['Аккаунт', lead.account ?? ''],
   ]
   const body = rows
     .filter(([, value]) => value)

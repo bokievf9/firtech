@@ -12,11 +12,15 @@ import {
   type ChatResponse,
   type ChatState,
 } from '@/lib/chat'
+import type { Dict } from '@/content'
 import { demoChatMessage, demoPlace } from '@/lib/demo'
 import type { Locale } from '@/lib/i18n'
+import { draftReturnPath } from '@/lib/lead-draft'
+import { AuthForms } from '../cabinet/auth-forms'
+import { fill } from '../cabinet/ui'
+import { useCabinetUser } from '../cabinet/use-cabinet-user'
 import { storedRef } from '@/lib/referral'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
-import type { ChatCopy } from './chat-widget'
 
 type Message = {
   id: string
@@ -24,8 +28,11 @@ type Message = {
   text: string
   buttons?: ChatButton[]
   link?: boolean
+  // «Открыть кабинет» under the message (a lead was created).
+  cabinet?: boolean
 }
-type Saved = { sessionId: string; messages: Message[]; state: ChatState; mock: boolean }
+// `needAuth`: the site refused to pass a contact on while signed out (owner 2026-11-20).
+type Saved = { sessionId: string; messages: Message[]; state: ChatState; mock: boolean; needAuth?: boolean }
 
 const STORE_KEY = 'firtech-chat-v1'
 // Client-side pace: one message per 2 s (the route also limits each IP to 30 an hour).
@@ -90,15 +97,17 @@ export default function ChatPanel({
   open,
   onClose,
   locale,
-  copy,
+  dict,
   contactHref,
 }: {
   open: boolean
   onClose: () => void
   locale: Locale
-  copy: ChatCopy
+  dict: Dict
   contactHref: string
 }) {
+  const copy = dict.chat
+  const { state: me, refresh } = useCabinetUser()
   const reduce = useReducedMotion()
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
@@ -168,10 +177,12 @@ export default function ChatPanel({
             ...c,
             mock,
             state: answer.state,
+            needAuth: answer.authRequired === true,
             messages: [
               ...c.messages,
               ...(answer.ownerReplies ?? []).map((text): Message => ({ id: uuid(), from: 'owner', text })),
               { id: uuid(), from: 'bot', text: answer.reply, buttons: answer.buttons },
+              ...(answer.leadCreated ? [{ id: uuid(), from: 'sys' as const, text: copy.leadInCabinet, cabinet: true }] : []),
             ],
           }
         }
@@ -188,7 +199,7 @@ export default function ChatPanel({
         track('chat_state', { state: answer.state })
       return true
     },
-    [copy.error, copy.rateLimited, copy.tooFast, locale],
+    [copy.error, copy.leadInCabinet, copy.rateLimited, copy.tooFast, locale],
   )
 
   // The greeting: the first open of a session asks HQ (or the mock) to start.
@@ -246,6 +257,11 @@ export default function ChatPanel({
 
   const lastBot = [...chat.messages].reverse().find((m) => m.from !== 'me')
   const chips = !pending && lastBot?.from === 'bot' ? (lastBot.buttons ?? []) : []
+  // HQ asks for a contact (or the site refused one): a signed-out visitor signs in right here, a
+  // signed-in one sends the request with the account email in one tap.
+  const wantsContact = !pending && (chat.state === 'contact' || chat.needAuth === true)
+  const askSignIn = wantsContact && me.status === 'out'
+  const sendAs = wantsContact && me.status === 'in' ? me.user.email : null
 
   return (
     <AnimatePresence>
@@ -314,6 +330,8 @@ export default function ChatPanel({
                   className={
                     m.from === 'me'
                       ? 'max-w-[85%] rounded-[18px] rounded-br-md bg-accent px-3.5 py-2.5 text-[15px] leading-snug text-accent-ink'
+                      : m.cabinet
+                        ? 'max-w-[90%] rounded-[18px] border border-accent/40 bg-accent/[0.06] px-3.5 py-2.5 text-sm leading-snug text-fg'
                       : m.from === 'sys'
                         ? 'max-w-[90%] rounded-[18px] border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm leading-snug text-fg'
                         : m.from === 'owner'
@@ -327,6 +345,14 @@ export default function ChatPanel({
                     <span className="sr-only">{m.from === 'me' ? copy.you : copy.bot}: </span>
                   )}
                   {m.from === 'bot' || m.from === 'owner' ? withLinks(m.text) : m.text}
+                  {m.cabinet ? (
+                    <a
+                      href={`/${locale}/cabinet?lead=new`}
+                      className="mt-2 block font-medium text-accent underline-offset-4 hover:underline"
+                    >
+                      {copy.toCabinet}
+                    </a>
+                  ) : null}
                   {m.link ? (
                     <a
                       href={contactHref}
@@ -346,6 +372,30 @@ export default function ChatPanel({
                   <span className="typing-dot" />
                   <span className="typing-dot" />
                 </span>
+              </li>
+            ) : null}
+            {sendAs ? (
+              <li className="chat-in flex flex-wrap gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => void send(sendAs, sendAs)}
+                  className="rounded-full border border-accent bg-accent/10 px-3.5 py-2 text-sm text-fg transition-[background-color,transform] duration-200 hover:bg-accent/20 active:scale-[0.97]"
+                >
+                  {fill(copy.sendAs, { email: sendAs })}
+                </button>
+              </li>
+            ) : null}
+            {askSignIn ? (
+              <li className="chat-in" data-chat-auth>
+                <AuthForms
+                  compact
+                  dict={dict}
+                  locale={locale}
+                  startMode="up"
+                  callbackError={null}
+                  next={draftReturnPath(window.location.pathname, window.location.search, '#chat')}
+                  onSignedIn={() => void refresh()}
+                />
               </li>
             ) : null}
             {chips.length ? (

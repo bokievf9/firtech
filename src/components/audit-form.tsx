@@ -1,7 +1,7 @@
 'use client'
 
 import { ArrowRight, CheckCircle, TelegramLogo } from '@phosphor-icons/react'
-import { useId, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
 import { trackEvent } from '@/lib/track-event'
@@ -9,6 +9,9 @@ import { isAuditContact, isAuditUrl, normalizeAuditContact, normalizeAuditUrl } 
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { refSource, storedRef } from '@/lib/referral'
+import { clearDraft, draftReturnPath, draftStorage, hasDraftFlag, loadDraft, saveDraft, withoutDraftFlag } from '@/lib/lead-draft'
+import { LeadAccountNote, LeadAuthStep } from './cabinet/lead-auth'
+import { useCabinetUser, type CabinetUserState } from './cabinet/use-cabinet-user'
 import { ConsentText } from './consent-text'
 
 type Status = 'idle' | 'sending' | 'sent' | 'duplicate'
@@ -35,6 +38,53 @@ export function AuditForm({
   const [mock, setMock] = useState(false)
   // The result goes to Telegram only when the contact is a @username.
   const [viaTelegram, setViaTelegram] = useState(true)
+  // Audit requests need a cabinet account too (owner 2026-11-20).
+  const { state: me, refresh } = useCabinetUser()
+  const meRef = useRef<CabinetUserState>(me)
+  useEffect(() => {
+    meRef.current = me
+  }, [me])
+  const formRef = useRef<HTMLFormElement>(null)
+  const [authStep, setAuthStep] = useState(false)
+  const [restored, setRestored] = useState(false)
+  const [returnPath, setReturnPath] = useState('')
+  const [cabinet, setCabinet] = useState<string | null>(null)
+
+  const keepDraft = useCallback(() => {
+    if (formRef.current) saveDraft(draftStorage(window), 'audit', Object.fromEntries(new FormData(formRef.current)))
+  }, [])
+
+  // Back from sign-in with `draft=1`: the site address and contact come back.
+  useEffect(() => {
+    if (!hasDraftFlag(window.location.search)) return
+    const draft = loadDraft(draftStorage(window), 'audit')
+    const form = formRef.current
+    if (!draft || !form) return
+    for (const name of ['url', 'contact', 'name'] as const) {
+      const field = form.elements.namedItem(name) as HTMLInputElement | null
+      if (field && draft[name]) field.value = draft[name]
+    }
+    setRestored(true)
+  }, [])
+
+  // The profile name fills an empty name field.
+  useEffect(() => {
+    const field = formRef.current?.elements.namedItem('name') as HTMLInputElement | null
+    if (me.status === 'in' && field && !field.value && me.user.name) field.value = me.user.name
+  }, [me])
+
+  function askToSignIn() {
+    keepDraft()
+    setReturnPath(draftReturnPath(window.location.pathname, window.location.search, window.location.hash))
+    setAuthStep(true)
+    setStatus('idle')
+  }
+
+  async function onSignedIn() {
+    meRef.current = await refresh()
+    setAuthStep(false)
+    formRef.current?.requestSubmit()
+  }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -49,6 +99,16 @@ export function AuditForm({
     setFailure('')
     if (Object.keys(next).length) {
       form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+      return
+    }
+
+    let who = meRef.current
+    if (who.status === 'loading') {
+      who = await refresh()
+      meRef.current = who
+    }
+    if (who.status === 'out') {
+      askToSignIn()
       return
     }
 
@@ -72,14 +132,25 @@ export function AuditForm({
         duplicate?: boolean
         mock?: boolean
         error?: string
+        cabinet?: string | null
       } | null
+      if (res.status === 401) {
+        meRef.current = { status: 'out' }
+        askToSignIn()
+        return
+      }
       if (res.ok && body?.ok) {
         setMock(Boolean(body.mock))
         setViaTelegram(contact.startsWith('@'))
         setStatus(body.duplicate ? 'duplicate' : 'sent')
+        setCabinet(body.cabinet ?? null)
+        clearDraft(draftStorage(window), 'audit')
+        window.history.replaceState(window.history.state, '', withoutDraftFlag(window.location.pathname, window.location.search, window.location.hash))
         form.reset()
         track('audit_sent')
         trackEvent('audit_sent')
+        // The cabinet shows the request and its progress (owner 2026-11-20).
+        if (body.cabinet) window.setTimeout(() => window.location.assign(body.cabinet!), 900)
         return
       }
       const key = body?.error && body.error in t.failures ? body.error : 'unavailable'
@@ -121,16 +192,24 @@ export function AuditForm({
               {t.botCta}
             </a>
           )}
-          <button type="button" onClick={() => setStatus('idle')} className={buttonStyles.secondary}>
-            {t.again}
-          </button>
+          {cabinet ? (
+            <a href={cabinet} className={buttonStyles.secondary}>
+              {dict.leadAuth.toCabinet}
+            </a>
+          ) : (
+            <button type="button" onClick={() => setStatus('idle')} className={buttonStyles.secondary}>
+              {t.again}
+            </button>
+          )}
         </div>
       </div>
     )
   }
 
   return (
+    <div>
     <form
+      ref={formRef}
       onSubmit={onSubmit}
       noValidate
       className="relative grid gap-5 rounded-card border border-line bg-surface p-6 md:p-10"
@@ -191,20 +270,40 @@ export function AuditForm({
         </p>
       )}
 
+      {restored && me.status === 'in' && (
+        <p role="status" className="rounded-xl border border-accent/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
+          {dict.leadAuth.draftRestored}
+        </p>
+      )}
+
+      <LeadAccountNote dict={dict} state={me} />
+
       <div className="flex flex-col gap-4 pt-1 md:flex-row md:items-center md:justify-between">
         <p className="max-w-[44ch] text-[13px] leading-relaxed text-faint">
           <ConsentText text={t.consent} href={`/${locale}/privacy`} />
         </p>
-        <button
-          type="submit"
-          disabled={status === 'sending'}
-          className={cn(buttonStyles.primary, 'md:min-w-[200px]')}
-        >
-          {status === 'sending' ? t.sending : t.submit}
-          {status !== 'sending' && <ArrowRight size={16} />}
-        </button>
+        {!authStep && (
+          <button
+            type="submit"
+            disabled={status === 'sending'}
+            className={cn(buttonStyles.primary, 'md:min-w-[200px]')}
+          >
+            {status === 'sending' ? t.sending : t.submit}
+            {status !== 'sending' && <ArrowRight size={16} />}
+          </button>
+        )}
       </div>
     </form>
+    {authStep && (
+      <LeadAuthStep
+        dict={dict}
+        locale={locale}
+        returnPath={returnPath}
+        onSignedIn={() => void onSignedIn()}
+        onBeforeRedirect={keepDraft}
+      />
+    )}
+    </div>
   )
 }
 

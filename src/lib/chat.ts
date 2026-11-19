@@ -24,6 +24,9 @@ export type ChatReply = {
   leadCreated?: boolean
   // Replies the owner wrote from the пульт (lead reply via 'web'), delivered with the next answer.
   ownerReplies?: string[]
+  // Set by the site itself (never taken from HQ): the visitor sent a contact while signed out, so
+  // the message was not forwarded and the widget shows the sign-in step (owner 2026-11-20).
+  authRequired?: boolean
 }
 export type ChatError = { ok: false; error: string }
 export type ChatResponse = ChatReply | ChatError
@@ -127,6 +130,14 @@ const buttonsOf = (labels: Record<string, string>): ChatButton[] =>
   Object.entries(labels).map(([id, label]) => ({ id, label }))
 
 // Telegram username, e-mail or a phone number with at least 7 digits.
+// A message that would turn the chat into a lead: a contact while HQ waits for one, or anything
+// that looks like a contact. Commands (/start, button presses) never do.
+export function wouldCreateLead(message: string): boolean {
+  const m = message.trim()
+  if (m === START || m.startsWith('/btn ')) return false
+  return looksLikeContact(m)
+}
+
 export function looksLikeContact(text: string): boolean {
   if (/(^|\s)@[a-z0-9_]{4,}/i.test(text)) return true
   if (/t\.me\/[a-z0-9_]{4,}/i.test(text)) return true

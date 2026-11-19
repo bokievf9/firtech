@@ -8,7 +8,7 @@ const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
   resolve(specifier, context, next) {
     if (specifier === 'server-only') return { url: 'data:text/javascript,export{}', shortCircuit: true }
-    if (specifier === 'next/server') return next('next/server.js', context)
+    if (specifier === 'next/server' || specifier === 'next/navigation' || specifier === 'next/headers') return next(`${specifier}.js`, context)
     if (specifier.startsWith('@/')) {
       const base = new URL(specifier.slice(2), src).href
       for (const candidate of [`${base}.ts`, `${base}.tsx`, `${base}/index.ts`]) {
@@ -181,4 +181,23 @@ test('HQ mode: contract request with the chat token, LEAD_INTAKE_TOKEN as fallba
   assert.deepEqual(await hq.askReceptionist(r, env, async () => { throw new TypeError('down') }), { ok: false, error: 'hq_unreachable' })
   const timeout = Object.assign(new Error('t'), { name: 'TimeoutError' })
   assert.deepEqual(await hq.askReceptionist(r, env, async () => { throw timeout }), { ok: false, error: 'hq_timeout' })
+})
+
+test('route: with the cabinet on, a contact from a signed-out visitor is not forwarded', async () => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://x.supabase.co'
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon'
+  try {
+    const res = await post({ sessionId: SID, locale: 'ru', message: '@alice_b', page: '/ru' })
+    assert.equal(res.status, 200)
+    const body = await res.json()
+    assert.equal(body.authRequired, true)
+    assert.equal(body.state, 'contact')
+    assert.equal(body.reply, getDict('ru').chat.signInFirst)
+    // Plain questions still reach the receptionist.
+    const q = await (await post({ sessionId: SID, locale: 'ru', message: 'Сколько стоит сайт?', page: '/ru' })).json()
+    assert.notEqual(q.authRequired, true)
+  } finally {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  }
 })

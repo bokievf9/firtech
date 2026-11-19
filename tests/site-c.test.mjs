@@ -201,8 +201,8 @@ test('manifest and icons: present, themed, referenced', async () => {
 
 test('lead route keeps the honeypot, the rate limit and the Telegram + HQ forwarding', () => {
   const route = readFileSync('src/app/api/lead/route.ts', 'utf8')
-  assert.match(route, /if \(lead\.website\) return NextResponse\.json\(\{ ok: true \}\)/)
+  assert.match(route, /if \(parsed\.data\.website\) return NextResponse\.json\(\{ ok: true \}\)/)
   assert.match(route, /MAX_PER_WINDOW = 5/)
-  assert.match(route, /forwardLead\(/)
+  assert.match(route, /forwardLeadDetailed\(/)
   assert.match(route, /notifyOwner\(/)
 })
