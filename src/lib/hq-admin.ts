@@ -61,6 +61,26 @@ export const ENDPOINTS: readonly Endpoint[] = [
   { method: 'POST', path: /^drill$/, body: z.object({ arg: z.string().max(100).optional() }).strict() },
 ]
 
+// «Пульт» stage 2: the read-mostly CRM views (agents/docs/admin-crm-api.md) and the two writes
+// (a prospect's status and note, a ticket's status and note). Ids are numeric. A reply to a client
+// is never sent from here; it goes through the Director command `ticket` on /command.
+const crmQuery = ['limit', 'cursor', 'q', 'status', 'kind', 'niche'] as const
+const crmNote = z.string().max(2000)
+const crmWrite = (statuses: [string, ...string[]]) =>
+  z
+    .object({ status: z.enum(statuses).optional(), note: crmNote.optional() })
+    .strict()
+    .refine((b) => b.status !== undefined || b.note !== undefined, 'status or note')
+export const CRM_ENDPOINTS: readonly Endpoint[] = [
+  { method: 'GET', path: /^crm\/summary$/ },
+  { method: 'GET', path: /^crm\/(prospects|leads|clients|tickets|documents|projects|referrals|reviews)$/, query: crmQuery },
+  {
+    method: 'POST',
+    path: /^crm\/prospects\/\d{1,12}$/,
+    body: crmWrite(['new', 'proposed', 'sent', 'replied', 'no_reply', 'skipped']),
+  },
+  { method: 'POST', path: /^crm\/tickets\/\d{1,12}$/, body: crmWrite(['open', 'answered']) },
+]
 export type Resolved =
   | { ok: true; path: string; query: Record<string, string>; body?: unknown }
   | { ok: false; status: 400 | 404; error: 'invalid' | 'not_found' }
@@ -72,7 +92,7 @@ export function resolveEndpoint(method: string, segments: string[], search: URLS
     return { ok: false, status: 404, error: 'not_found' }
   }
   const path = segments.join('/')
-  const endpoint = ENDPOINTS.find((e) => e.method === method && e.path.test(path))
+  const endpoint = [...ENDPOINTS, ...CRM_ENDPOINTS].find((e) => e.method === method && e.path.test(path))
   if (!endpoint) return { ok: false, status: 404, error: 'not_found' }
   const query: Record<string, string> = {}
   for (const key of endpoint.query ?? []) {

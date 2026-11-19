@@ -361,3 +361,67 @@ test('director chat: commands, Telegram HTML, kept messages', () => {
     ['a'],
   )
 })
+
+test('proxy: CRM whitelist - GET lists and summary, two POSTs with numeric ids, nothing else', async () => {
+  const seen = []
+  process.env.HQ_ADMIN_URL = 'http://hq.test/admin'
+  process.env.HQ_ADMIN_TOKEN = 'tok'
+  globalThis.fetch = async (url, init) => {
+    seen.push({ url: String(url), method: init.method, body: init.body })
+    return Response.json({ ok: true, available: true, items: [] })
+  }
+  let res = await call('GET', '/api/admin/hq/crm/summary', ['crm', 'summary'])
+  assert.equal(res.status, 200)
+  for (const name of ['prospects', 'leads', 'clients', 'tickets', 'documents', 'projects', 'referrals', 'reviews']) {
+    res = await call('GET', `/api/admin/hq/crm/${name}?limit=50`, ['crm', name])
+    assert.equal(res.status, 200, name)
+  }
+  // Known query keys pass, others are dropped before HQ.
+  res = await call('GET', '/api/admin/hq/crm/prospects?status=new&niche=barber&q=bro&cursor=7&limit=5&evil=1', ['crm', 'prospects'])
+  assert.equal(res.status, 200)
+  const last = new URL(seen.at(-1).url)
+  assert.equal(last.pathname, '/admin/crm/prospects')
+  assert.deepEqual([...last.searchParams.keys()].sort(), ['cursor', 'limit', 'niche', 'q', 'status'])
+  res = await call('POST', '/api/admin/hq/crm/prospects/7', ['crm', 'prospects', '7'], { body: { status: 'proposed', note: 'ok' } })
+  assert.equal(res.status, 200)
+  assert.equal(seen.at(-1).method, 'POST')
+  res = await call('POST', '/api/admin/hq/crm/tickets/3', ['crm', 'tickets', '3'], { body: { status: 'answered' } })
+  assert.equal(res.status, 200)
+  const count = seen.length
+  const cases = [
+    ['GET', ['crm']],
+    ['GET', ['crm', 'secrets']],
+    ['GET', ['crm', 'prospects', '7']],
+    ['POST', ['crm', 'prospects'], { status: 'new' }],
+    ['POST', ['crm', 'prospects', 'abc'], { status: 'new' }],
+    ['POST', ['crm', 'documents', '1'], { note: 'x' }],
+    ['POST', ['crm', 'summary'], {}],
+  ]
+  for (const [method, segs, body] of cases) {
+    res = await call(method, `/api/admin/hq/${segs.join('/')}`, segs, body === undefined ? {} : { body })
+    assert.equal(res.status, 404, `${method} ${segs.join('/')}`)
+  }
+  // Bad bodies are 400 and never reach HQ: unknown status, reply, extra field, empty body, long note.
+  const bad = [{ status: 'bogus' }, { status: 'sent', reply: 'x' }, { reply: 'x' }, {}, { note: 'x'.repeat(2001) }, { status: 5 }]
+  for (const body of bad) {
+    res = await call('POST', '/api/admin/hq/crm/prospects/7', ['crm', 'prospects', '7'], { body })
+    assert.equal(res.status, 400, JSON.stringify(body).slice(0, 40))
+  }
+  res = await call('POST', '/api/admin/hq/crm/tickets/3', ['crm', 'tickets', '3'], { body: { status: 'replied' } })
+  assert.equal(res.status, 400)
+  assert.equal(seen.length, count)
+  // No session, no CRM.
+  res = await call('GET', '/api/admin/hq/crm/summary', ['crm', 'summary'], { cookie: null })
+  assert.equal(res.status, 401)
+  res = await call('POST', '/api/admin/hq/crm/prospects/7', ['crm', 'prospects', '7'], { body: { note: 'x' }, origin: 'https://evil.example' })
+  assert.equal(res.status, 403)
+})
+
+test('proxy: CRM falls back to the mock without HQ_ADMIN_URL, and keeps its 5 s timeout setting', async () => {
+  const res = await call('GET', '/api/admin/hq/crm/prospects', ['crm', 'prospects'])
+  assert.equal(res.status, 200)
+  const body = await res.json()
+  assert.equal(body.available, true)
+  assert.ok(body.items.length >= 5)
+  assert.equal(proxy.HQ_ADMIN_TIMEOUT_MS, 5000)
+})

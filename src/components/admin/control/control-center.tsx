@@ -1,6 +1,23 @@
 'use client'
 
-import { Buildings, CloudSlash, Kanban, Phone, Robot, SealCheck, Siren, Tray, UsersThree } from '@phosphor-icons/react'
+import {
+  AddressBook,
+  Binoculars,
+  Briefcase,
+  Buildings,
+  CloudSlash,
+  FileText,
+  Gift,
+  Kanban,
+  Lifebuoy,
+  Phone,
+  Robot,
+  SealCheck,
+  Siren,
+  Star,
+  Tray,
+  UsersThree,
+} from '@phosphor-icons/react'
 import { MotionConfig } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { OfficeBoard, type OfficePick } from '@/components/admin/office/office-board'
@@ -31,6 +48,8 @@ import { errText, fill, hq, usePoll } from './api'
 import { ApprovalsPanel } from './approvals-panel'
 import { useFolded } from './cc-panel'
 import { useCrmLeads } from './crm-data'
+import { useCrmHq } from './crm-hq-data'
+import { CrmHqPanels } from './crm-hq-panels'
 import { CrmPanels } from './crm-panels'
 import { DirectorChat } from './director-chat'
 import { DrillPanel } from './drill-panel'
@@ -66,6 +85,13 @@ const tabs = [
   { id: 'drill', icon: Siren, label: t.tabs.drill },
   { id: 'leads', icon: UsersThree, label: t.tabs.leads },
   { id: 'calls', icon: Phone, label: t.tabs.calls },
+  { id: 'prospects', icon: Binoculars, label: t.tabs.prospects },
+  { id: 'clients', icon: AddressBook, label: t.tabs.clients },
+  { id: 'tickets', icon: Lifebuoy, label: t.tabs.tickets },
+  { id: 'documents', icon: FileText, label: t.tabs.documents },
+  { id: 'projects', icon: Briefcase, label: t.tabs.projects },
+  { id: 'referrals', icon: Gift, label: t.tabs.referrals },
+  { id: 'reviews', icon: Star, label: t.tabs.reviews },
 ]
 
 // Sticky tab bar for phones: jumps to a panel, highlights the one in view, carries the badges.
@@ -288,11 +314,13 @@ export function ControlCenter() {
   const unread = inbox.data ? inbox.data.items.filter((i) => !i.read).length : (s?.inboxUnread ?? 0)
   const pending = approvals.data ? approvals.data.items.length : (s?.approvalsPending ?? 0)
   const crm = useCrmLeads()
+  const crmHq = useCrmHq()
   const badges = {
     inbox: badgeText(unread),
     approvals: badgeText(pending),
     leads: crm.leads ? badgeText(newLeadCount(crm.leads)) : null,
     calls: crm.leads ? badgeText(callsToday(crm.leads, crm.now).length) : null,
+    ...crmHq.badges,
   }
   const departments = depts.data?.items ?? []
   const tz = s?.tz ?? 'Asia/Tashkent'
@@ -394,6 +422,7 @@ export function ControlCenter() {
                 <DrillPanel departments={departments} className="lg:order-2 lg:col-span-12 min-[120rem]:order-none" />
               </div>
               <CrmPanels crm={crm} />
+              <CrmHqPanels crm={crmHq} now={now} onSent={refreshAll} />
             </div>
           </OfficeBoard>
         </div>

@@ -155,6 +155,14 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   «Задачи» under Продажи. Calls: today, pending ones with confirm/move, and a two-week Mon-Fri view.
   Badges (new leads, calls today) are in the phone tab bar, whose panel registry is `tabs` in
   `control-center.tsx`; add a panel there and it gets a tab. Side by side from 1920 px.
+- CRM panels of the пульт, stage 2 («Разведка», «Клиенты», «Тикеты», «Документы», «Проекты»,
+  «Рекомендации», «Отзывы»; `control/*-panel.tsx`, shared `crm-hq-ui.tsx`, data `crm-hq-data.ts`, view
+  models `src/lib/admin-crm-hq.ts`, tests `tests/admin-crm-hq.test.mjs`): fed by HQ `GET /admin/crm/*`
+  through the same proxy (whitelist `CRM_ENDPOINTS` in `hq-admin.ts`; only POST `crm/prospects/<id>` and
+  `crm/tickets/<id>` write: status and owner note). Polled every 30 s with `crm/summary` for the tab
+  badges; `available: false` renders «Воркер ещё не запускался», never zeros. A reply to a client is not
+  sent from the panel: the ticket drawer calls the Director command `ticket`. Contract:
+  `agents/docs/admin-crm-api.md`; notes «Пульт (этап 2, CRM)» in `docs/office-design-notes.md`.
 - Live office on that page («Живой офис»): a pixel-art office on canvas in the
   spirit of Lumio (engine `src/components/pixel-office/`, shared with the public hero; admin wrapper `src/components/admin/office/pixel-office.tsx`; tests `tests/pixel-office.test.mjs`):
   a desk and a little person per agent whose behaviour shows the status, window light from the

@@ -19,7 +19,7 @@ import {
 
 type Query = Record<string, string>
 type Json = Record<string, unknown>
-export type MockReply = { ok: true; [k: string]: unknown } | { ok: false; error: string }
+export type MockReply = { ok: true; [k: string]: unknown } | { ok: false; error: string; allowed?: string[]; from?: unknown }
 
 type DrillRow = { id: string; title: string; startedAt: number; answerAfterS: number; fails: boolean }
 
@@ -256,9 +256,162 @@ function drillText(state: MockState, now: number): string {
   return [head, '', ...lines, '', '⏳ ждём  🟡 проверяю  🟢 ответил  🔴 не ответил'].join('\n')
 }
 
+// ---- CRM views (agents/docs/admin-crm-api.md): a small fixed dataset, same shapes and the same
+// prospect state machine (409 on illegal transitions), kept in memory with the rest of the mock.
+const PROSPECT_STATUSES = ['new', 'proposed', 'sent', 'replied', 'no_reply', 'skipped']
+const PROSPECT_NEXT: Record<string, string[]> = {
+  new: ['proposed', 'skipped'],
+  proposed: ['sent', 'skipped'],
+  sent: ['replied', 'no_reply', 'skipped'],
+  no_reply: ['replied'],
+  replied: [],
+  skipped: [],
+}
+
+type Row = Record<string, unknown> & { id: number | string }
+
+export function createCrmMock(start = Date.now()) {
+  const ago = (min: number) => iso(start - min * 60_000)
+  const ahead = (days: number) => iso(start + days * 86_400_000)
+  const prospect = (id: number, over: Record<string, unknown>): Row => ({
+    id, name: '', niche: '', city: 'Dushanbe', website: '', instagram: '', telegram: '', phone: '',
+    noticed: '', offer: '', hook: '', source: 'scout', status: 'new', followups: 0, draft: null, draftKind: null,
+    sentText: null, note: '', createdAt: ago(60 * 30), proposedAt: null, sentAt: null, repliedAt: null, ...over,
+  })
+  const prospects: Row[] = [
+    prospect(7, { name: 'Bro Barber', niche: 'barber', telegram: '@brobarber', noticed: 'Запись только по звонку, сайта нет.', offer: 'Лендинг с онлайн-записью.', hook: 'Клиенты не дозваниваются в выходные.' }),
+    prospect(6, { name: 'Sadaf Clinic', niche: 'clinic', website: 'sadaf-clinic.example', status: 'proposed', noticed: 'Сайт без мобильной версии.', offer: 'Новый сайт и бот для записи.', hook: 'Пациенты пишут в Instagram и ждут ответа часами.', draft: 'Здравствуйте! Посмотрел ваш сайт на телефоне...', draftKind: 'email', proposedAt: ago(60 * 5) }),
+    prospect(5, { name: 'Pulse Gym', niche: 'gym', instagram: '@pulse.gym', status: 'sent', followups: 1, sentText: 'Здравствуйте! Сделаем вам страницу с расписанием.', proposedAt: ago(60 * 40), sentAt: ago(60 * 30) }),
+    prospect(4, { name: 'Dilovar Auto', niche: 'auto', phone: '+992 90 000 00 04', status: 'no_reply', followups: 2, proposedAt: ago(60 * 90), sentAt: ago(60 * 80) }),
+    prospect(3, { name: 'Zebo Beauty', niche: 'beauty', instagram: '@zebo.beauty', status: 'replied', note: 'Просила прислать примеры.', proposedAt: ago(60 * 120), sentAt: ago(60 * 110), repliedAt: ago(60 * 100) }),
+    prospect(2, { name: 'Old Cafe', niche: 'cafe', status: 'skipped', createdAt: ago(60 * 200) }),
+  ]
+  const notes = new Map<string, string>(prospects.map((p) => [`p${p.id}`, String(p.note)]))
+  const tickets: Row[] = [
+    { id: 3, clientName: 'Алиса', contact: '@alice', text: 'Бот не отвечает с утра, клиенты жалуются.', status: 'open', money: true, slaAlerted: true, note: '', createdAt: ago(95), answeredAt: null },
+    { id: 2, clientName: 'Боб', contact: '@bob', text: 'Можно поменять цвет кнопки на сайте?', status: 'open', money: false, slaAlerted: false, note: '', createdAt: ago(60 * 7), answeredAt: null },
+  ]
+  const documents: Row[] = [
+    { id: 'bl:5', source: 'billing', kind: 'invoice', status: 'issued', client: 'Алиса', title: 'Сайт, этап 1', excerpt: 'Сайт, этап 1', amountUsd: 300, number: 'FT-2026-001', createdAt: ago(60 * 20), link: null },
+    { id: 'ps:4', source: 'presales', kind: 'kp', status: 'draft', client: 'Боб', title: 'КП на Telegram-бота', excerpt: 'Бот для записи клиентов: меню, напоминания, оплата.', amountUsd: null, number: null, createdAt: ago(60 * 26), link: null },
+    { id: 'bo:2', source: 'back_office', kind: 'contract', status: 'pending', client: 'Алиса', title: 'Договор на разработку сайта', excerpt: 'Исполнитель обязуется разработать сайт...', amountUsd: null, number: null, createdAt: ago(60 * 50), link: null },
+  ]
+  const projects: Row[] = [
+    { id: 2, client: 'Алиса', what: 'Сайт', product: 'site', status: 'active', source: 'owner', taskId: null, stage: 'brief', deadline: ahead(3), nextMilestone: { kind: 'brief', title: 'Бриф', dueAt: ahead(3) }, tasksTotal: 4, tasksDone: 1, createdAt: ago(60 * 60) },
+  ]
+  const referrals: Row[] = [
+    { id: 1, referrer: 'Алиса', referred: 'Боб', leadId: null, source: 'owner', status: 'proposed', reward: '10%', rewardRequested: false, createdAt: ago(60 * 48), paidAt: null, rewardedAt: null },
+  ]
+  const withNote = (kind: 'p' | 't', r: Row): Row => ({ ...r, note: notes.get(`${kind}${r.id}`) ?? '' })
+  const prospectRow = (r: Row): Row => ({ ...withNote('p', r), nextStatuses: PROSPECT_NEXT[String(r.status)] ?? [] })
+
+  const page = (rows: Row[], q: Record<string, string>, search: string[], filters: string[]) => {
+    const needle = (q.q ?? '').toLowerCase()
+    const hit = rows.filter(
+      (r) =>
+        filters.every((f) => !q[f] || String(r[f]) === q[f]) &&
+        (!needle || search.some((f) => String(r[f] ?? '').toLowerCase().includes(needle))),
+    )
+    const from = Math.max(0, Number(q.cursor) || 0)
+    const limit = Math.min(200, Math.max(1, Number(q.limit) || 50))
+    return { items: hit.slice(from, from + limit), nextCursor: from + limit < hit.length ? String(from + limit) : null }
+  }
+  const list = (rows: Row[], q: Record<string, string>, search: string[], filters: string[], extra: Record<string, unknown> = {}) => ({
+    ok: true as const, available: true, ...extra, ...page(rows, q, search, filters),
+  })
+
+  const write = (kind: 'p' | 't', rows: Row[], id: string, body: Json, now: number): MockReply => {
+    const row = rows.find((r) => String(r.id) === id)
+    if (!row) return { ok: false, error: 'not_found' }
+    const statuses = kind === 'p' ? PROSPECT_STATUSES : ['open', 'answered']
+    const allowed = Object.keys(body).filter((k) => !['status', 'note'].includes(k))
+    if (allowed.length) return { ok: false, error: kind === 't' && body.reply !== undefined ? 'reply_not_supported' : 'invalid' }
+    if (typeof body.note === 'string' && body.note.length > 2000) return { ok: false, error: 'invalid' }
+    if (body.status !== undefined) {
+      const next = String(body.status)
+      if (!statuses.includes(next)) return { ok: false, error: 'invalid_status', allowed: statuses }
+      if (next !== row.status) {
+        if (kind === 'p') {
+          const can = PROSPECT_NEXT[String(row.status)] ?? []
+          if (!can.includes(next)) return { ok: false, error: 'illegal_transition', from: row.status, allowed: can }
+          if (next === 'proposed') row.proposedAt = iso(now)
+          if (next === 'sent') row.sentAt = iso(now)
+          if (next === 'replied') row.repliedAt = iso(now)
+        } else row.answeredAt = next === 'answered' ? iso(now) : null
+        row.status = next
+      }
+    }
+    if (typeof body.note === 'string') notes.set(`${kind}${row.id}`, body.note)
+    return { ok: true, available: true, statuses, item: kind === 'p' ? prospectRow(row) : withNote('t', row) }
+  }
+
+  const count = (rows: Row[], key: string, values: string[]) =>
+    Object.fromEntries(values.map((v) => [v, rows.filter((r) => r[key] === v).length]))
+
+  return function handle(method: 'GET' | 'POST', seg: string[], q: Record<string, string>, body: Json, now: number): MockReply {
+    const name = seg[1] ?? ''
+    if (method === 'POST') {
+      if (seg.length !== 3 || !/^\d+$/.test(seg[2]!)) return { ok: false, error: 'not_found' }
+      if (name === 'prospects') return write('p', prospects, seg[2]!, body, now)
+      if (name === 'tickets') return write('t', tickets, seg[2]!, body, now)
+      return { ok: false, error: 'not_found' }
+    }
+    if (seg.length !== 2) return { ok: false, error: 'not_found' }
+    switch (name) {
+      case 'summary':
+        return {
+          ok: true,
+          generatedAt: iso(now),
+          prospects: { available: true, total: prospects.length, byStatus: count(prospects, 'status', PROSPECT_STATUSES) },
+          leads: { available: true, total: 2, byStatus: { inbox: 1, assigned: 1 } },
+          tickets: { available: true, open: tickets.filter((t) => t.status === 'open').length, byStatus: count(tickets, 'status', ['open', 'answered']) },
+          documents: { available: true, pending: documents.length, byKind: { contract: { pending: 1 }, kp: { draft: 1 }, invoice: { issued: 1 } } },
+          projects: { available: true, active: projects.filter((p) => p.status === 'active').length, byStatus: count(projects, 'status', ['draft', 'active', 'done']) },
+          referrals: { available: true, total: referrals.length, byStatus: count(referrals, 'status', ['proposed', 'paid', 'rewarded']) },
+          reviews: { available: false, pending: 0 },
+          chats: { available: true, web: 12, telegram: 3 },
+        }
+      case 'prospects':
+        return list(prospects.map(prospectRow), q, ['name', 'city', 'niche', 'telegram', 'phone', 'website', 'instagram'], ['status', 'niche'], { statuses: PROSPECT_STATUSES })
+      case 'leads':
+        return list(
+          [
+            { id: 2, kind: 'lead', taskId: 42, status: 'assigned', name: 'Боб', contact: '@bob', service: 'bot', niche: '', task: 'Бот для записи клиентов', deadline: '', budget: '', source: 'telegram', temperature: 'warm', lang: 'ru', priceAsked: true, priceApproved: false, createdAt: ago(60 * 26) },
+            { id: 1, kind: 'lead', taskId: 41, status: 'inbox', name: 'Алиса', contact: '@alice', service: 'site', niche: '', task: 'Сайт для студии', deadline: '', budget: '', source: 'site', temperature: 'cold', lang: 'ru', priceAsked: false, priceApproved: false, createdAt: ago(60 * 60) },
+          ],
+          q, ['name', 'contact', 'service', 'source'], [],
+        )
+      case 'clients':
+        return {
+          ...list(
+            [
+              { id: 'alisa', name: 'Алиса', contact: '@alice', sources: ['billing', 'documents', 'project', 'site', 'support'], firstTouchAt: ago(60 * 60), lastTouchAt: ago(95), counts: { leads: 1, tickets: 1, projects: 1, invoices: 1, documents: 1 } },
+              { id: 'bob', name: 'Боб', contact: '@bob', sources: ['documents', 'support', 'telegram'], firstTouchAt: ago(60 * 26), lastTouchAt: ago(60 * 7), counts: { leads: 1, tickets: 1, projects: 0, invoices: 0, documents: 1 } },
+            ],
+            q, ['name', 'contact'], [],
+          ),
+          chats: { web: 12, telegram: 3 },
+        }
+      case 'tickets':
+        return list(tickets.map((t) => withNote('t', t)), q, ['clientName', 'contact', 'text'], ['status'], { statuses: ['open', 'answered'] })
+      case 'documents':
+        return list(documents, q, ['client', 'title', 'number'], ['kind', 'status'], { kinds: ['contract', 'invoice', 'kp'] })
+      case 'projects':
+        return list(projects, q, ['client', 'what', 'product'], ['status'])
+      case 'referrals':
+        return list(referrals, q, ['referrer', 'referred'], ['status'], { statuses: ['proposed', 'paid', 'rewarded'] })
+      case 'reviews':
+        return { ok: true, available: false, items: [], nextCursor: null }
+      default:
+        return { ok: false, error: 'not_found' }
+    }
+  }
+}
+
 export function createHqMock(start = Date.now()) {
   const state = seed(start)
   const office = () => officeMock()
+  const crm = createCrmMock(start)
 
   const addInbox = (now: number, kind: InboxKind, text: string, extra: Partial<InboxItem> = {}) => {
     state.inbox.push({
@@ -451,6 +604,7 @@ export function createHqMock(start = Date.now()) {
   return function handle(method: 'GET' | 'POST', path: string, query: Query = {}, body: Json = {}, now = Date.now()): MockReply {
     advance(now)
     const seg = path.split('/').filter(Boolean)
+    if (seg[0] === 'crm') return crm(method, seg, query, body, now)
     const key = `${method} ${seg[0] ?? ''}`
     switch (key) {
       case 'GET state':
