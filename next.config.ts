@@ -19,6 +19,22 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },
+      // Payment pages carry the invoice key in the URL: no referrer, never indexed. A later rule wins
+      // for the same header, so Referrer-Policy here overrides the global one.
+      {
+        source: '/:locale/pay/:path*',
+        headers: [
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
+        ],
+      },
+      {
+        source: '/api/pay/:path*',
+        headers: [
+          { key: 'Referrer-Policy', value: 'no-referrer' },
+          { key: 'X-Robots-Tag', value: 'noindex' },
+        ],
+      },
       // Echo listens to the owner's voice: the microphone is allowed on that page only. A later
       // rule wins for the same header.
       {
