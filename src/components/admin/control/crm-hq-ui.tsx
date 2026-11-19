@@ -259,7 +259,7 @@ export function CrmDrawer({
                 <X size={18} aria-hidden="true" />
               </button>
             </div>
-            <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5 sm:px-6">{children}</div>
+            <div className="flex-1 space-y-5 overflow-y-auto px-5 pt-5 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6">{children}</div>
           </>
         ) : null}
       </div>

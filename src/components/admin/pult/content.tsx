@@ -81,7 +81,7 @@ export function ContentTab({ focus }: { focus: string | null }) {
   }
 
   return (
-    <div className="grid gap-3 p-3 sm:p-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">
       <div className="flex flex-wrap items-center gap-2">
         <button type="button" onClick={() => setWeek((w) => shiftWeek(w, -1))} aria-label={k.prev} className="grid size-10 place-items-center rounded-full border border-line-strong hover:border-accent">
           <CaretLeft size={16} aria-hidden="true" />
@@ -132,7 +132,7 @@ export function ContentTab({ focus }: { focus: string | null }) {
         </div>
       )}
       {data && !items.length ? <Empty>{k.empty}</Empty> : null}
-      <CrmDrawer open={open !== null} title={open?.title || k.title} subtitle={open ? `${k.kinds[open.kind]} · ${open.platform}` : ''} onClose={() => setOpenId(null)}>
+      <CrmDrawer open={open !== null} title={open?.title || k.title} subtitle={open ? `${k.kinds[open.kind]} · ${open.platform === 'all' ? k.allPlatforms : open.platform}` : ''} onClose={() => setOpenId(null)}>
         {open ? <ContentBody key={open.id} item={open} onAct={act} /> : null}
       </CrmDrawer>
     </div>

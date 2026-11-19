@@ -41,7 +41,7 @@ function Trend({ m, e }: { m: NonNullable<ReturnType<typeof normalizeMetrics>>; 
   const note = daily ? k.daily : k.weekToWeek
   return (
     <span className="flex flex-col items-end gap-0.5">
-      <Sparkline values={values} label={`${fill(k.trendLabel, { e: k.events[e] })}, ${note}`} />
+      <Sparkline className="h-auto w-16 sm:w-[120px]" values={values} label={`${fill(k.trendLabel, { e: k.events[e] })}, ${note}`} />
       <span className="text-[10px] leading-none whitespace-nowrap text-faint">{note}</span>
     </span>
   )
@@ -57,7 +57,7 @@ export function MetricsTab() {
   const m = feed.view
   const prev = m?.prev ?? null
   return (
-    <div className="grid gap-4 p-3 sm:p-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 p-3 sm:p-4">
       <div className="flex items-center gap-2">
         <button type="button" onClick={() => setWeek((w) => shiftWeek(w, -1))} aria-label={k.prev} className="grid size-10 place-items-center rounded-full border border-line-strong hover:border-accent">
           <CaretLeft size={16} aria-hidden="true" />
@@ -72,7 +72,7 @@ export function MetricsTab() {
         >
           <CaretRight size={16} aria-hidden="true" />
         </button>
-        <p className="ml-auto text-xs text-faint">{k.vsPrev}</p>
+        <p className="ml-auto min-w-0 text-right text-xs text-faint">{k.vsPrev}</p>
       </div>
       {!m ? (
         feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading rows={4} />
@@ -107,10 +107,10 @@ export function MetricsTab() {
               <thead>
                 <tr className="text-left text-xs text-faint">
                   <th className="py-1 font-normal">{k.event}</th>
-                  <th className="py-1 text-right font-normal">{k.thisWeek}</th>
-                  <th className="py-1 text-right font-normal">{k.prevWeek}</th>
-                  <th className="py-1 text-right font-normal">{k.change}</th>
-                  <th className="py-1 font-normal">
+                  <th className="px-1 py-1 text-right font-normal">{k.thisWeek}</th>
+                  <th className="px-1 py-1 text-right font-normal">{k.prevWeek}</th>
+                  <th className="px-1 py-1 text-right font-normal">{k.change}</th>
+                  <th className="py-1 pl-3 font-normal">
                     <span className="sr-only">{k.trend}</span>
                   </th>
                 </tr>
@@ -118,10 +118,10 @@ export function MetricsTab() {
               <tbody>
                 {SITE_EVENTS.map((e) => (
                   <tr key={e} className="border-t border-line">
-                    <td className="py-1.5">{k.events[e]}</td>
-                    <td className="py-1.5 text-right tabular-nums">{m.site[e]}</td>
-                    <td className="py-1.5 text-right text-muted tabular-nums">{prev ? prev.site[e] : '-'}</td>
-                    <td className="py-1.5 text-right">
+                    <td className="max-w-[7rem] py-1.5 pr-1 sm:max-w-none">{k.events[e]}</td>
+                    <td className="px-1 py-1.5 text-right tabular-nums">{m.site[e]}</td>
+                    <td className="px-1 py-1.5 text-right text-muted tabular-nums">{prev ? prev.site[e] : '-'}</td>
+                    <td className="px-1 py-1.5 text-right">
                       <Delta cur={m.site[e]} prev={prev?.site[e]} />
                     </td>
                     <td className="py-1.5 pl-3">

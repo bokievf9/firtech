@@ -99,7 +99,7 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
   if (!feed.view.available) return <div className="p-4"><Empty>{k.unavailable}</Empty></div>
 
   return (
-    <div className="grid gap-3 p-3 sm:p-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <Search value={q} onChange={setQ} placeholder={k.search} />
         <p className="text-xs text-faint">{fill(k.count, { n: shown.length })}</p>

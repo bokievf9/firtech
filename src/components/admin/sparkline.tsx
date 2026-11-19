@@ -1,5 +1,5 @@
 // Tiny inline chart: daily counts as a line with a soft area, the last day marked.
-export function Sparkline({ values, label }: { values: number[]; label: string }) {
+export function Sparkline({ values, label, className }: { values: number[]; label: string; className?: string }) {
   const width = 120
   const height = 36
   const max = Math.max(1, ...values)
@@ -14,7 +14,7 @@ export function Sparkline({ values, label }: { values: number[]; label: string }
       height={height}
       role="img"
       aria-label={label}
-      className="overflow-visible"
+      className={className ? `overflow-visible ${className}` : 'overflow-visible'}
     >
       <polygon
         points={`0,${height} ${line} ${width},${height}`}

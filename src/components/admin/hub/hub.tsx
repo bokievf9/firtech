@@ -446,7 +446,7 @@ export function Hub() {
     <MotionConfig reducedMotion="user">
       <HubContext.Provider value={api}>
         <div className="fixed inset-0 flex flex-col bg-bg">
-          <header className="relative z-50 flex min-h-14 items-center gap-2 border-b border-line bg-bg/95 px-2 py-1.5 backdrop-blur sm:gap-3 sm:px-4">
+          <header className="relative z-50 flex min-h-14 flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-line bg-bg/95 px-2 py-1.5 backdrop-blur sm:gap-x-3 sm:px-4">
             <Link href="/admin/office" className="hidden shrink-0 items-center gap-2 sm:flex" aria-label={h.title}>
               <Logo className="text-[16px]" />
             </Link>
@@ -457,10 +457,10 @@ export function Hub() {
                 <span className="hidden md:inline">{h.offline}</span>
               </span>
             ) : s?.mock ? (
-              <span className="hidden shrink-0 rounded-full border border-dashed border-line-strong px-2 py-0.5 text-xs text-faint md:inline">{cc.link.mock}</span>
+              <span className="hidden shrink-0 rounded-full border border-dashed border-line-strong px-2 py-0.5 text-xs text-faint xl:inline">{cc.link.mock}</span>
             ) : null}
             <Presence view={view} busy={presenceBusy} onChange={setPresence} />
-            <nav aria-label={h.counters.label} className="ml-auto flex min-w-0 items-center gap-1 overflow-x-auto">
+            <nav aria-label={h.counters.label} className="order-last grid w-full grid-cols-4 gap-1.5 lg:order-none lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-1">
               {counters.map(({ id, icon: CIcon, n, label, go }) => (
                 <button
                   key={id}
@@ -469,7 +469,7 @@ export function Hub() {
                   title={`${label}: ${n ?? '?'}`}
                   aria-label={`${label}: ${n ?? '?'}`}
                   className={cn(
-                    'inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-sm tabular-nums transition-colors',
+                    'inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-full border px-2.5 text-sm tabular-nums transition-colors lg:shrink-0',
                     n ? 'border-accent/50 text-fg' : 'border-line text-muted hover:text-fg',
                   )}
                 >
@@ -483,7 +483,7 @@ export function Hub() {
               onClick={() => setPaletteOpen(true)}
               aria-label={`${h.search} (${h.searchKey})`}
               title={h.keys}
-              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-line px-2.5 text-sm text-muted transition-colors hover:text-fg"
+              className="ml-auto inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-line px-2.5 text-sm text-muted transition-colors hover:text-fg lg:ml-0"
             >
               <MagnifyingGlass size={16} aria-hidden="true" />
               <kbd className="hidden font-mono text-xs lg:inline">{h.searchKey}</kbd>

@@ -51,6 +51,7 @@ function ToolRow({ t }: { t: CompanyTool }) {
           <Chip key={d}>{dept(d)}</Chip>
         ))}
       </span>
+      <span className="flex flex-wrap gap-x-3 gap-y-0.5 md:contents">
       <span className="text-xs md:text-sm">
         <span className="text-faint md:hidden">{k.toolConfigured}: </span>
         <span className={state === 'missing' ? 'text-danger' : state === 'ok' ? '' : 'text-muted'} title={why || undefined}>
@@ -64,6 +65,7 @@ function ToolRow({ t }: { t: CompanyTool }) {
       <span className={cn('text-xs tabular-nums md:text-right md:text-sm', t.errorsToday > 0 && 'text-warn')}>
         <span className="md:hidden">{fill(k.toolErrorsShort, { n: t.errorsToday })}</span>
         <span className="hidden md:inline">{t.errorsToday}</span>
+      </span>
       </span>
       <span className="text-xs text-faint">{limits}</span>
       {why ? <span className={cn('text-xs md:col-span-6', state === 'missing' ? 'text-danger' : 'text-faint')}>{why}</span> : null}
@@ -157,7 +159,7 @@ export function CompanyTab() {
   if (!c) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading rows={4} />
   const byDay = c.costs.byDay.map((d) => d.usd)
   return (
-    <div className="grid gap-5 p-3 sm:p-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5 p-3 sm:p-4">
       <section className="grid gap-2">
         <h3 className="text-sm font-medium">{k.routines}</h3>
         {c.routines.length ? (
@@ -165,13 +167,13 @@ export function CompanyTab() {
             {c.routines.map((r) => (
               <li key={r.name} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-line bg-bg/50 px-3 py-2">
                 <Toggle on={r.enabled} label={fill(k.routineToggle, { t: r.title || r.name })} onChange={(on) => void setRoutine(r, on)} />
-                <span className="min-w-0 flex-1">
+                <span className="min-w-[9rem] flex-[1_1_9rem]">
                   <span className="block truncate text-sm">{r.title || r.name}</span>
                   <span className="block truncate font-mono text-xs text-faint">
                     {dept(r.dept)} · {r.cron} {r.tz ? `· ${r.tz}` : ''}
                   </span>
                 </span>
-                <span className="text-xs text-muted">
+                <span className="order-last basis-full pl-14 text-xs text-muted sm:order-none sm:basis-auto sm:pl-0">
                   {r.lastStatus ? <Chip tone={r.lastStatus === 'failed' ? 'bad' : r.lastStatus === 'done' ? 'accent' : 'plain'}>{(k.statuses as Record<string, string>)[r.lastStatus] ?? r.lastStatus}</Chip> : null}{' '}
                   {r.nextRunAt && r.enabled ? formatUntil(r.nextRunAt, now) : r.lastRunAt ? fill(k.last, { t: shortTime(r.lastRunAt) }) : ''}
                 </span>

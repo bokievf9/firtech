@@ -605,6 +605,7 @@ export const admin = {
       captions: 'Подписи',
       platforms: { instagram: 'Instagram', tiktok: 'TikTok', shorts: 'YouTube Shorts', youtube: 'YouTube', dzen: 'Дзен' },
       noCaptions: 'Подписей нет.',
+      allPlatforms: 'три площадки',
       kitTitle: 'Старт-кит профиля',
       kitTabs: { instagram: 'Instagram', youtube: 'YouTube', tiktok: 'TikTok' },
       kitEmpty: 'В этом разделе текста нет.',

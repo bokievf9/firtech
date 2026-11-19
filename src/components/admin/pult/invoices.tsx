@@ -82,7 +82,7 @@ export function InvoicesTab({ focus }: { focus: string | null }) {
   const waiting = items.filter((i) => i.status === 'issued').reduce((s, i) => s + i.amountUsd, 0)
 
   return (
-    <div className="grid gap-3 p-3 sm:p-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">
       <p className="text-sm text-muted">{fill(k.waiting, { usd: usd(waiting) })}</p>
       <Search value={q} onChange={setQ} placeholder={k.search} />
       <Pills
@@ -98,14 +98,14 @@ export function InvoicesTab({ focus }: { focus: string | null }) {
       {!items.length ? <Empty>{k.empty}</Empty> : !shown.length ? <Empty>{k.nothing}</Empty> : null}
       {shown.length ? (
         <div className="-mx-3 overflow-x-auto sm:mx-0">
-          <table className="w-full min-w-[560px] border-separate border-spacing-0 text-sm">
+          <table className="w-full border-separate border-spacing-0 text-sm">
             <thead>
               <tr className="text-left text-xs text-faint">
                 <th className="px-3 py-2 font-normal">{k.number}</th>
-                <th className="px-3 py-2 font-normal">{k.client}</th>
+                <th className="hidden px-3 py-2 font-normal sm:table-cell">{k.client}</th>
                 <th className="px-3 py-2 text-right font-normal">{k.amount}</th>
                 <th className="px-3 py-2 font-normal">{k.status}</th>
-                <th className="px-3 py-2 font-normal">
+                <th className="hidden px-3 py-2 font-normal sm:table-cell">
                   <span className="sr-only">{k.actions}</span>
                 </th>
               </tr>
@@ -127,8 +127,9 @@ export function InvoicesTab({ focus }: { focus: string | null }) {
                     <td className="px-3 py-2.5">
                       <span className="font-mono text-xs">{inv.number}</span>
                       <span className="block max-w-48 truncate text-xs text-faint">{inv.title}</span>
+                      <span className="mt-0.5 block text-xs text-muted sm:hidden">{inv.client || '-'}</span>
                     </td>
-                    <td className="px-3 py-2.5">{inv.client || '-'}</td>
+                    <td className="hidden px-3 py-2.5 sm:table-cell">{inv.client || '-'}</td>
                     <td className="px-3 py-2.5 text-right tabular-nums">
                       {usd(inv.amountUsd)}
                       {inv.payAmountUsd !== null && inv.payAmountUsd !== inv.amountUsd ? (
@@ -145,26 +146,10 @@ export function InvoicesTab({ focus }: { focus: string | null }) {
                       {inv.paidAt ? <span className="mt-1 block text-xs text-faint">{fill(k.paidAt, { t: shortTime(inv.paidAt) })}</span> : null}
                       {inv.remindedAt && inv.status === 'issued' ? <span className="mt-1 block text-xs text-faint">{fill(k.remindedAt, { t: shortTime(inv.remindedAt) })}</span> : null}
                       <TxLink inv={inv} />
+                      <Actions inv={inv} act={act} busy={busy} className="mt-2 sm:hidden" />
                     </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex flex-nowrap justify-end gap-1.5">
-                        {inv.payUrl && inv.status === 'issued' ? <CopyButton text={inv.payUrl} label={k.payLinkShort} /> : null}
-                        {inv.status === 'issued' ? (
-                          <>
-                            <IconAction label={k.remind} onClick={() => void act(inv, 'remind')} disabled={busy === inv.id}>
-                              <BellRinging size={16} aria-hidden="true" />
-                            </IconAction>
-                            <IconAction label={k.markPaid} onClick={() => void act(inv, 'mark_paid')} disabled={busy === inv.id}>
-                              <CheckCircle size={16} aria-hidden="true" />
-                            </IconAction>
-                          </>
-                        ) : null}
-                        {inv.status === 'issued' || inv.status === 'draft' ? (
-                          <IconAction label={k.void} onClick={() => void act(inv, 'void')} disabled={busy === inv.id} danger>
-                            <Prohibit size={16} aria-hidden="true" />
-                          </IconAction>
-                        ) : null}
-                      </div>
+                    <td className="hidden px-3 py-2.5 sm:table-cell">
+                      <Actions inv={inv} act={act} busy={busy} className="max-w-[9.5rem] justify-end" />
                     </td>
                   </tr>
                 )
@@ -193,5 +178,32 @@ function IconAction({ label, onClick, disabled, danger, children }: { label: str
     >
       {children}
     </button>
+  )
+}
+
+type ActFn = (inv: Invoice, action: 'remind' | 'mark_paid' | 'void') => Promise<unknown>
+
+// The row's buttons: copy the pay link, remind, mark paid, void. They wrap instead of pushing the
+// table wider than the panel.
+function Actions({ inv, act, busy, className }: { inv: Invoice; act: ActFn; busy: string | null; className?: string }) {
+  return (
+    <div className={cn('flex flex-wrap gap-1.5', className)}>
+      {inv.payUrl && inv.status === 'issued' ? <CopyButton text={inv.payUrl} label={k.payLinkShort} /> : null}
+      {inv.status === 'issued' ? (
+        <>
+          <IconAction label={k.remind} onClick={() => void act(inv, 'remind')} disabled={busy === inv.id}>
+            <BellRinging size={16} aria-hidden="true" />
+          </IconAction>
+          <IconAction label={k.markPaid} onClick={() => void act(inv, 'mark_paid')} disabled={busy === inv.id}>
+            <CheckCircle size={16} aria-hidden="true" />
+          </IconAction>
+        </>
+      ) : null}
+      {inv.status === 'issued' || inv.status === 'draft' ? (
+        <IconAction label={k.void} onClick={() => void act(inv, 'void')} disabled={busy === inv.id} danger>
+          <Prohibit size={16} aria-hidden="true" />
+        </IconAction>
+      ) : null}
+    </div>
   )
 }

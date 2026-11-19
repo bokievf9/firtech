@@ -25,7 +25,7 @@ export function ClientsTab({ focus }: { focus: string | null }) {
 
   if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading />
   return (
-    <div className="grid gap-3 p-3 sm:p-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">
       <Search value={q} onChange={setQ} placeholder={c.search} />
       <Pills
         label={c.filter}
