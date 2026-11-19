@@ -86,7 +86,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   as a concept). Changing a preset changes its page.
 - Blog (`/[locale]/blog`): articles are typed data in `src/content/blog/` (one file each, ru + en).
   Only `published: true` reaches production and the sitemap; drafts show in `next dev` with a
-  "Черновик" badge. Publish = set `published: true` and the date. Article prices come from
+  "Черновик" badge. Publish = set `published: true` and the date. Since 2026-11-19 HQ also publishes
+  approved articles: `allArticles()` (`src/lib/blog-hq.ts`) = HQ `GET ${HQ_BLOG_URL||http://127.0.0.1:8787/blog}?lang=all`
+  (3 s, validated by `parseArticle`, `[]` on any failure, `[]` in dev without the URL) merged with the bundled ones, HQ wins
+  on an equal slug, newest first; blog pages, sitemap and `/rss.xml` (RU feed) use it with `revalidate = 300`, the slug route
+  has `dynamicParams = true`. Tests: `tests/blog-hq.test.mjs`. Article prices come from
   `src/content/blog/prices.ts`; tests fail on hardcoded prices or long dashes.
 - Privacy (`/[locale]/privacy`, texts in `privacy`): a template pending a lawyer's review, linked
   from the form consent (`[brackets]` mark the link) and the footer. Update it with a new date

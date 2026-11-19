@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url'
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
   resolve(specifier, context, next) {
+    if (specifier === 'server-only') return { url: 'data:text/javascript,export{}', shortCircuit: true }
     if (specifier.startsWith('@/')) {
       const base = new URL(specifier.slice(2), src).href
       for (const candidate of [`${base}.ts`, `${base}.tsx`, `${base}/index.ts`]) {
@@ -42,12 +43,12 @@ function* strings(value, at = '') {
 const dicts = [['ru', ru], ['en', en]]
 const newCopy = (dict) => [dict.guarantee, dict.referral, dict.comparePage, dict.faqLinks, dict.faq, dict.terms]
 
-test('new pages: in localePages, sitemap with alternates, footer, labels, files', () => {
+test('new pages: in localePages, sitemap with alternates, footer, labels, files', async () => {
   for (const page of ['referral', 'compare']) {
     assert.ok(localePages.includes(page), page)
     assert.ok(existsSync(`src/app/[locale]/${page}/page.tsx`), page)
   }
-  const urls = sitemap().map((e) => e.url)
+  const urls = (await sitemap()).map((e) => e.url)
   for (const [locale, dict] of dicts) {
     for (const page of ['referral', 'compare']) {
       assert.ok(urls.some((u) => u.endsWith(`/${locale}/${page}`)), `${locale} ${page}`)
@@ -56,7 +57,7 @@ test('new pages: in localePages, sitemap with alternates, footer, labels, files'
       assert.ok(dict.footer.pages[page], `label ${locale} ${page}`)
     }
   }
-  for (const e of sitemap().filter((e) => /\/(referral|compare)$/.test(e.url)))
+  for (const e of (await sitemap()).filter((e) => /\/(referral|compare)$/.test(e.url)))
     assert.deepEqual(Object.keys(e.alternates.languages), ['ru', 'en'])
 })
 

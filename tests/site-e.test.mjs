@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url'
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
   resolve(specifier, context, next) {
+    if (specifier === 'server-only') return { url: 'data:text/javascript,export{}', shortCircuit: true }
     if (specifier.startsWith('@/')) {
       const base = new URL(specifier.slice(2), src).href
       for (const candidate of [`${base}.ts`, `${base}.tsx`, `${base}/index.ts`]) {
@@ -39,8 +40,8 @@ function* strings(value, at = '') {
 const dicts = [['ru', ru], ['en', en]]
 const pages = ['audit', 'status']
 
-test('pages: in localePages, sitemap with alternates, footer, labels, files', () => {
-  const urls = sitemap().map((e) => e.url)
+test('pages: in localePages, sitemap with alternates, footer, labels, files', async () => {
+  const urls = (await sitemap()).map((e) => e.url)
   for (const page of pages) {
     assert.ok(localePages.includes(page), page)
     assert.ok(existsSync(`src/app/[locale]/${page}/page.tsx`), page)
@@ -50,7 +51,7 @@ test('pages: in localePages, sitemap with alternates, footer, labels, files', ()
       assert.ok(company.links.some((l) => l.href === `/${locale}/${page}`), `footer ${locale} ${page}`)
       assert.ok(dict.footer.pages[page], `label ${locale} ${page}`)
     }
-    const entry = sitemap().find((e) => e.url.endsWith(`/ru/${page}`))
+    const entry = (await sitemap()).find((e) => e.url.endsWith(`/ru/${page}`))
     assert.deepEqual(Object.keys(entry.alternates.languages), ['ru', 'en'])
   }
   assert.ok(existsSync('src/app/api/audit/route.ts') && existsSync('src/app/api/status/route.ts'))

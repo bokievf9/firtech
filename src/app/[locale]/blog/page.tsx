@@ -7,10 +7,13 @@ import { ContactSection } from '@/components/contact-section'
 import { HeroIntro } from '@/components/hero-intro'
 import { Reveal } from '@/components/reveal'
 import { getDict } from '@/content'
-import { formatArticleDate, readingTime, visibleArticles } from '@/content/blog'
+import { formatArticleDate, readingTime } from '@/content/blog'
+import { allArticles } from '@/lib/blog-hq'
 import { buttonStyles, homeAnchor } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
+
+export const revalidate = 300
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/blog'>): Promise<Metadata> {
   const { locale } = await params
@@ -38,7 +41,7 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
   const t = dict.blog
-  const list = visibleArticles()
+  const list = await allArticles()
 
   return (
     <>

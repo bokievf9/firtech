@@ -54,6 +54,7 @@ export function GET() {
     `- Russian: ${siteUrl}/ru`,
     `- English: ${siteUrl}/en`,
     `- Project builder and estimate: ${siteUrl}/en/builder`,
+    `- Blog: ${siteUrl}/en/blog (RSS feed with the Russian articles: ${siteUrl}/rss.xml)`,
     ...(telegramHandle ? [`- Telegram: ${telegramHandle}`] : []),
     '',
     ...blocks.flatMap((block) => [block, '']),

@@ -9,6 +9,7 @@ import { pathToFileURL } from 'node:url'
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
   resolve(specifier, context, next) {
+    if (specifier === 'server-only') return { url: 'data:text/javascript,export{}', shortCircuit: true }
     if (specifier.startsWith('@/')) {
       const base = new URL(specifier.slice(2), src).href
       for (const candidate of [`${base}.ts`, `${base}.tsx`, `${base}/index.ts`]) {
@@ -112,8 +113,8 @@ test('seo: titles are present and not too long', () => {
   }
 })
 
-test('sitemap: every page, 55 solutions, services, blog, legal pages, with alternates', () => {
-  const entries = sitemap()
+test('sitemap: every page, 55 solutions, services, blog, legal pages, with alternates', async () => {
+  const entries = (await sitemap())
   const urls = entries.map((e) => e.url)
   assert.equal(new Set(urls).size, urls.length)
   for (const locale of ['ru', 'en']) {

@@ -1,14 +1,16 @@
 import type { MetadataRoute } from 'next'
-import { articles } from '@/content/blog'
+import { allArticles } from '@/lib/blog-hq'
 import { locales } from '@/lib/i18n'
 import { serviceSlugs, siteUrl } from '@/lib/site'
 import { allSolutionKinds } from '@/lib/solutions'
 
 const legal = ['/privacy', '/terms']
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  // Published articles only: drafts never reach the sitemap, even when built in dev.
-  const posts = articles.filter((article) => article.published)
+export const revalidate = 300
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Published articles only (bundled and from HQ): drafts never reach the sitemap, even in dev.
+  const posts = (await allArticles()).filter((article) => article.published)
   const paths = [
     '',
     '/builder',

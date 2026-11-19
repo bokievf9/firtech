@@ -52,6 +52,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
 
   return (
     <html lang={locale} className={`site ${onest.variable} ${jetbrains.variable} ${unbounded.variable} ${geologica.variable}`}>
+      <head>
+        <link rel="alternate" type="application/rss+xml" title="Fir Tech" href="/rss.xml" />
+      </head>
       <body className="grain min-h-[100dvh]">
         {/* Without JavaScript Motion never reveals the blocks it renders hidden. */}
         <noscript>

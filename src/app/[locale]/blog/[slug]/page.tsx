@@ -8,25 +8,27 @@ import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
 import { RiseText } from '@/components/rise-text'
 import { getDict } from '@/content'
-import { formatArticleDate, getArticle, readingTime, visibleArticles } from '@/content/blog'
+import { formatArticleDate, readingTime } from '@/content/blog'
+import { allArticles, findArticle } from '@/lib/blog-hq'
 import { isLocale, locales } from '@/lib/i18n'
 import { siteUrl } from '@/lib/site'
 import { shareBase } from '@/lib/share'
 
-export const dynamicParams = false
+// A slug that exists only in HQ renders on demand, then is cached and refreshed every 5 minutes.
+export const dynamicParams = true
+export const revalidate = 300
 
-// Production builds only published articles; drafts exist in `next dev` alone.
-export function generateStaticParams() {
-  return locales.flatMap((locale) =>
-    visibleArticles().map((article) => ({ locale, slug: article.slug })),
-  )
+// Bundled and HQ articles are prebuilt; drafts exist in `next dev` alone.
+export async function generateStaticParams() {
+  const list = await allArticles()
+  return locales.flatMap((locale) => list.map((article) => ({ locale, slug: article.slug })))
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<'/[locale]/blog/[slug]'>): Promise<Metadata> {
   const { locale, slug } = await params
-  const article = isLocale(locale) ? getArticle(slug) : undefined
+  const article = isLocale(locale) ? await findArticle(slug) : undefined
   if (!article || !isLocale(locale)) return {}
   const content = article[locale]
   const path = `/blog/${slug}`
@@ -53,13 +55,13 @@ export async function generateMetadata({
 export default async function ArticlePage({ params }: PageProps<'/[locale]/blog/[slug]'>) {
   const { locale, slug } = await params
   if (!isLocale(locale)) notFound()
-  const article = getArticle(slug)
+  const article = await findArticle(slug)
   if (!article) notFound()
   const dict = getDict(locale)
   const t = dict.blog
   const content = article[locale]
   const url = `${siteUrl}/${locale}/blog/${slug}`
-  const others = visibleArticles().filter((other) => other.slug !== slug)
+  const others = (await allArticles()).filter((other) => other.slug !== slug)
 
   const jsonLd = {
     '@context': 'https://schema.org',
