@@ -128,13 +128,19 @@ test('sitemap: every page, 55 solutions, services, blog, legal pages, with alter
   assert.equal(urls.some((u) => u.includes('/admin') || u.includes('/estimate')), false)
 })
 
-test('terms: page, both dictionaries, placeholders and footer link', () => {
+test('terms: page, both dictionaries, filled on the owner\'s word, footer link', () => {
   assert.ok(existsSync('src/app/[locale]/terms/page.tsx'))
   for (const dict of [ru, en]) {
     const t = dict.terms
     assert.ok(t.sections.length >= 8 && t.draftNote && t.footerLink)
     const text = JSON.stringify(t.sections)
-    assert.ok(text.includes(t.placeholder), 'placeholders present')
+    // Owner 2026-11-19: Fir Tech as an individual contractor, hello@firtech.pro, law of Tajikistan,
+    // crypto or an online wallet from the estimate. No placeholder left.
+    assert.equal(text.includes(t.placeholder), false, 'no placeholders left')
+    assert.match(text, /Fir Tech/)
+    assert.match(text, /hello@firtech\.pro/)
+    assert.match(text, /USDT/)
+    assert.match(text, /50%/)
     assert.ok(dict.privacy.draftNote)
   }
   assert.equal(ru.terms.placeholder, '[заполнит владелец]')
