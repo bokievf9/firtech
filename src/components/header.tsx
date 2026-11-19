@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUpRight, ChatCircleDots, List, X } from '@phosphor-icons/react'
+import { ArrowUpRight, ChatCircleDots, List, UserCircle, X } from '@phosphor-icons/react'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -17,7 +17,15 @@ import { ScrollProgress } from './scroll-progress'
 // that condenses into a floating glass pill once the page scrolls; a hover highlight slides
 // between the links; locale switch as a two-letter segmented control; one clear CTA. Phones get a
 // full-screen sheet with large links (Esc closes, focus moves in and back, page scroll locked).
-export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
+export function Header({
+  locale,
+  dict,
+  cabinet = false,
+}: {
+  locale: Locale
+  dict: Dict
+  cabinet?: boolean
+}) {
   const pathname = usePathname()
   const reduce = useReducedMotion()
   const [scrolled, setScrolled] = useState(false)
@@ -131,6 +139,16 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
         </nav>
 
         <div className="flex items-center gap-2">
+          {cabinet && (
+            <Link
+              href={`/${locale}/cabinet`}
+              data-place="header-cabinet"
+              className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm text-muted transition-colors hover:text-fg lg:inline-flex"
+            >
+              <UserCircle size={18} aria-hidden="true" />
+              {dict.nav.cabinet}
+            </Link>
+          )}
           <div className="hidden sm:block">{localeSwitch}</div>
           <Link
             href={homeAnchor(locale, 'contact')}
@@ -215,6 +233,16 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dict }) {
               >
                 {dict.nav.cta}
               </Link>
+              {cabinet && (
+                <Link
+                  href={`/${locale}/cabinet`}
+                  onClick={() => setOpen(false)}
+                  className={cn(buttonStyles.secondary, 'w-full')}
+                >
+                  <UserCircle size={18} aria-hidden="true" className="text-accent" />
+                  {dict.nav.cabinet}
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={() => {

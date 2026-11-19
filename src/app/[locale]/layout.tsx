@@ -10,6 +10,7 @@ import { YandexMetrika } from '@/components/yandex-metrika'
 import { getDict } from '@/content'
 import { isLocale, locales } from '@/lib/i18n'
 import { siteUrl } from '@/lib/site'
+import { cabinetEnabled } from '@/lib/supabase/config'
 import { geologica, jetbrains, onest, unbounded } from '../fonts'
 import '../globals.css'
 
@@ -49,6 +50,9 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   const { locale } = await params
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
+  // The cabinet link shows only when Supabase is configured. The layout is prerendered, so this is
+  // decided when the site is built; the cabinet pages themselves check the env on every request.
+  const cabinet = cabinetEnabled()
 
   return (
     <html lang={locale} className={`site ${onest.variable} ${jetbrains.variable} ${unbounded.variable} ${geologica.variable}`}>
@@ -67,11 +71,11 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
           >
             {dict.nav.skip}
           </a>
-          <Header locale={locale} dict={dict} />
+          <Header locale={locale} dict={dict} cabinet={cabinet} />
           <main id="main" tabIndex={-1} className="outline-none">
             {children}
           </main>
-          <Footer locale={locale} dict={dict} />
+          <Footer locale={locale} dict={dict} cabinet={cabinet} />
           <MobileCta
             locale={locale}
             label={dict.nav.cta}

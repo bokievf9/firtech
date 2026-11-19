@@ -12,7 +12,15 @@ import { Reveal } from './reveal'
 // Site footer (stage B1, footer.design patterns): a call to action, the brand with social links,
 // four link columns led by the products, a legal row, and the page ends on a giant wordmark.
 // Columns come from footerColumns (src/lib/home.ts), tested to point at real routes.
-export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
+export function Footer({
+  locale,
+  dict,
+  cabinet = false,
+}: {
+  locale: Locale
+  dict: Dict
+  cabinet?: boolean
+}) {
   const other: Locale = locale === 'ru' ? 'en' : 'ru'
   const f = dict.footer
   const columns = footerColumns(locale)
@@ -122,6 +130,11 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dict }) {
           © {new Date().getFullYear()} Fir Tech. {f.rights}
         </p>
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          {cabinet && (
+            <Link href={`/${locale}/cabinet`} className="transition-colors hover:text-fg">
+              {dict.nav.cabinet}
+            </Link>
+          )}
           <Link href={`/${locale}/privacy`} className="transition-colors hover:text-fg">
             {dict.privacy.footerLink}
           </Link>

@@ -122,6 +122,15 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (wins over a showcase source); `leadSchema.source` accepts `ref:[a-z0-9_-]{1,32}`; `forwardLead`
   passes `source` to HQ only when not empty (HQ rejects an empty one). HQ's `chatSchema` is not strict, so the chat payload now carries `ref` (ignored by HQ until it reads
   it: TODO in `chat-hq.ts`). Tests: `tests/site-d.test.mjs`.
+- Client cabinet (`/[locale]/cabinet`, owner decision 2026-11-19, full notes `docs/cabinet.md`): Supabase Auth (email +
+  password with confirmation, Google, Apple) and `public.profiles` (`supabase/migrations/0001_profiles.sql`, RLS own row,
+  `hq_synced_at`); projects, invoices, documents, tickets and referrals come from HQ by email through `src/lib/cabinet-hq.ts`
+  (`fetchClientByEmail`, `createClientTicket`, `syncClientToHq`; `HQ_ADMIN_URL` + `HQ_ADMIN_TOKEN`, 4 s, short codes
+  `hq_unreachable|hq_timeout|hq_error|not_found`, dev mock). Env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  (both needed, else the pages say «Кабинет скоро откроется» and header/footer links hide; baked in at build) and optional
+  `SUPABASE_SERVICE_ROLE_KEY` (account deletion; without it the button makes a ticket). `src/proxy.ts` refreshes the session on
+  cabinet routes only. Cabinet pages are `noindex`, not in the sitemap. Copy in `cabinet` of the dictionaries; the referral link
+  is `cabinetRefLink` (`/<locale>/?ref=<slug>`), the percent comes from `referralPercent`. Tests: `tests/cabinet.test.mjs`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass
