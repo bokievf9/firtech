@@ -35,7 +35,8 @@ jobs:
   #   VPS_HOST, VPS_USER (deploy), VPS_SSH_KEY, VPS_KNOWN_HOSTS. Passed to scripts only through env.
   # Repository variables (public values, inlined into the client bundle at build time):
   #   NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_TELEGRAM_USERNAME, NEXT_PUBLIC_TELEGRAM_BOT_USERNAME,
-  #   optional NEXT_PUBLIC_YM_ID.
+  #   optional NEXT_PUBLIC_YM_ID, NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (client
+  #   cabinet; the same two values also live in shared/.env.production for request-time reads).
   # Server-only secrets live in /var/www/firtech/shared/.env.production on the VPS.
   deploy:
     needs: check
@@ -47,6 +48,8 @@ jobs:
       NEXT_PUBLIC_TELEGRAM_USERNAME: ${{ vars.NEXT_PUBLIC_TELEGRAM_USERNAME }}
       NEXT_PUBLIC_TELEGRAM_BOT_USERNAME: ${{ vars.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME }}
       NEXT_PUBLIC_YM_ID: ${{ vars.NEXT_PUBLIC_YM_ID }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
