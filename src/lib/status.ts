@@ -3,7 +3,7 @@
 // fields survive: HQ's titles, notes and any other text are dropped, so no URL, port or error text
 // can reach the page even if HQ one day sends one.
 
-export const statusServiceIds = ['site', 'hq', 'bot', 'omniroute', 'polly', 'dono'] as const
+export const statusServiceIds = ['site', 'hq', 'bot', 'omniroute', 'renderer'] as const
 export type StatusServiceId = (typeof statusServiceIds)[number]
 export type ServiceState = 'up' | 'degraded' | 'down' | 'unknown'
 const STATES: readonly ServiceState[] = ['up', 'degraded', 'down', 'unknown']
@@ -108,8 +108,7 @@ export function statusMock(now: number = Date.now()): StatusData {
       { id: 'hq', state: 'up', uptime30d: 100 },
       { id: 'bot', state: 'unknown' },
       { id: 'omniroute', state: 'degraded', since: at(95), uptime30d: 97.4 },
-      { id: 'polly', state: 'unknown' },
-      { id: 'dono', state: 'unknown' },
+      { id: 'renderer', state: 'up', uptime30d: 100 },
     ],
     incidents: [
       { service: 'omniroute', startedAt: at(95) },

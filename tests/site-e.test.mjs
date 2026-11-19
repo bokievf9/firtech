@@ -203,10 +203,10 @@ const hqBody = {
   uptime30d: { site: 99.94, hq: 120, bot: 'x', omniroute: -5 },
 }
 
-test('status: normalizer keeps six services in order, ignores unknown fields, leaks nothing', () => {
+test('status: normalizer keeps five services in order, ignores unknown fields, leaks nothing', () => {
   const data = status.normalizeStatus(hqBody)
   assert.deepEqual(data.services.map((s) => s.id), status.statusServiceIds.slice())
-  assert.deepEqual(data.services.map((s) => s.state), ['up', 'degraded', 'unknown', 'down', 'unknown', 'unknown'])
+  assert.deepEqual(data.services.map((s) => s.state), ['up', 'degraded', 'unknown', 'down', 'unknown'])
   const byId = Object.fromEntries(data.services.map((s) => [s.id, s]))
   assert.equal(byId.site.state, 'up')
   assert.equal(byId.hq.state, 'degraded')
@@ -245,7 +245,7 @@ test('status: not a status answer gives null; headline rules', () => {
 test('status: mock has two incidents; dates are shown in Dushanbe time', () => {
   const m = status.statusMock(Date.UTC(2026, 10, 19, 12, 0, 0))
   assert.equal(m.incidents.length, 2)
-  assert.equal(m.services.length, 6)
+  assert.equal(m.services.length, 5)
   assert.equal(m.mock, true)
   assert.deepEqual(status.statusMock(5), status.statusMock(5))
   // 12:00 UTC is 17:00 in Dushanbe (UTC+5).
