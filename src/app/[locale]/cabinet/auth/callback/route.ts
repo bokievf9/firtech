@@ -19,10 +19,19 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/[locale]/cab
   const supabase = await createClient()
   if (!supabase) return NextResponse.redirect(`${origin}/${lang}/cabinet`)
   if (!code) return login('callback')
+  const next = safeCabinetNext(request.nextUrl.searchParams.get('next'), lang)
+  // Diagnostics (no tokens): the tail of the code shows whether the same callback is requested twice.
+  const hasVerifier = request.cookies.getAll().some((c) => c.name.endsWith('-code-verifier'))
+  console.info('[cabinet] callback', { codeTail: code.slice(-6), hasVerifier, ua: request.headers.get('user-agent')?.slice(0, 60) })
   const { data, error } = await supabase.auth.exchangeCodeForSession(code)
   if (error || !data.user) {
-    // Diagnostics only: the error code and whether the PKCE verifier cookie reached us; no tokens.
-    const hasVerifier = request.cookies.getAll().some((c) => c.name.endsWith('-code-verifier'))
+    // A code can be exchanged once. When the browser requests the callback twice (prefetch, retry),
+    // the first exchange already set the session cookies: let a signed-in visitor through.
+    const existing = await supabase.auth.getUser()
+    if (existing.data.user) {
+      console.info('[cabinet] callback repeated, session present')
+      return NextResponse.redirect(`${origin}${next}`)
+    }
     console.warn('[cabinet] code exchange failed', { code: error?.code ?? 'no_user', status: error?.status, hasVerifier })
     return login('callback')
   }
@@ -33,6 +42,5 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/[locale]/cab
   } catch {
     console.warn('[cabinet] callback sync failed')
   }
-  const next = safeCabinetNext(request.nextUrl.searchParams.get('next'), lang)
   return NextResponse.redirect(`${origin}${next}`)
 }
