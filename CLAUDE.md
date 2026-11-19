@@ -41,6 +41,15 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   invented reviews or statistics anywhere. The pixel office lives only in /admin/office now. 404:
   `components/not-found/not-found-view.tsx` (search over `notFoundText.pages`) for `[locale]` and
   `src/app/global-not-found.tsx` (`experimental.globalNotFound`) for paths outside the locales.
+- Demo, audit, status (2026-11-19, contract `agents/docs/public-api.md`): the demo salon is the deep link
+  `https://t.me/firtech_bot?start=demo_salon` (`src/lib/demo.ts`; `#demo` block, product cards admin and Mini App,
+  chat chip «Демо» that sends `demo`; links carry `data-place` `demo_salon*`). `/[locale]/audit`: form to
+  `POST /api/audit` (zod in `src/lib/audit.ts`, 5 per IP per 10 min, honeypot `website`, forwards to
+  `${LEAD_INTAKE_URL}/audit` with `x-lead-token`, 8 s; development without HQ = `{ok:true, mock:true}`; sends `ref` from
+  `fir-ref`; goal `audit_sent`). `/[locale]/status`: server page plus a client island refreshing `GET /api/status` every
+  60 s; `src/lib/status.ts` (normalizer, only known fields, no URLs) and `status-hq.ts` (60 s cache, 3 s timeout,
+  `HQ_STATUS_URL` optional, else the origin of `LEAD_INTAKE_URL` + `/status`; the site row comes from its own `/api/health`
+  when HQ says `unknown`; dev mock). Both pages are in `localePages`, the sitemap and the footer «Студия». Tests: `tests/site-e.test.mjs`.
 - Builder (`/[locale]/builder`, logic in `src/lib/builder.ts`, tested): the visitor combines
   services, options and extras into one quote. Prices come from `pricing.ts`; `bundleDiscount`
   (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never

@@ -12,6 +12,7 @@ import {
   type ChatResponse,
   type ChatState,
 } from '@/lib/chat'
+import { demoChatMessage, demoPlace } from '@/lib/demo'
 import type { Locale } from '@/lib/i18n'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import type { ChatCopy } from './chat-widget'
@@ -56,6 +57,29 @@ function save(v: Saved) {
   } catch {
     // Private mode or full storage: the chat still works for this page view.
   }
+}
+
+// The demo link HQ puts into its answer to «demo» becomes a real link (only @firtech_bot links).
+const BOT_LINK = /(https:\/\/t\.me\/firtech_bot[^\s]*)/g
+function withLinks(text: string): React.ReactNode {
+  const parts = text.split(BOT_LINK)
+  if (parts.length === 1) return text
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <a
+        key={i}
+        href={part.replace(/[.,)]+$/, '')}
+        data-place={`chat_${demoPlace}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="break-all text-accent underline underline-offset-2"
+      >
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  )
 }
 
 const FOCUSABLE =
@@ -293,7 +317,7 @@ export default function ChatPanel({
                   }
                 >
                   <span className="sr-only">{m.from === 'me' ? copy.you : copy.bot}: </span>
-                  {m.text}
+                  {m.from === 'bot' ? withLinks(m.text) : m.text}
                   {m.link ? (
                     <a
                       href={contactHref}
@@ -337,6 +361,16 @@ export default function ChatPanel({
                 {hint}
               </p>
             ) : null}
+            <div className="flex flex-wrap gap-2 px-1 pb-2">
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => void send(demoChatMessage, copy.demoChip)}
+                className="rounded-full border border-accent/40 px-3 py-1 text-[13px] text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent hover:bg-accent/10 active:scale-[0.97] disabled:opacity-40"
+              >
+                {copy.demoChip}
+              </button>
+            </div>
             <div className="flex items-end gap-2 rounded-[22px] border border-line-strong bg-bg/60 p-1.5 pl-4 focus-within:border-accent/60">
               <label htmlFor={`${titleId}-input`} className="sr-only">
                 {copy.input}

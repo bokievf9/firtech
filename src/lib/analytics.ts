@@ -20,6 +20,8 @@ export type GoalParams = {
   // state reached (intake, contact, done). Never the visitor's text.
   chat_open: [params: { source: string }]
   chat_state: [params: { state: string }]
+  // Free audit ordered (the form got ok from HQ, also for a repeat order).
+  audit_sent: []
 }
 export type Goal = keyof GoalParams
 

@@ -21,7 +21,7 @@ solutions, blog, builder, estimate, terms, privacy, 404), Playwright measurement
 `lead_sent`, `telegram_click` (param `place`), `cta_click` (param `place`: header, menu, footer,
 mobile_bar, hero_builder, pricing_builder, article_builder, chat_fab, `product_<id>`, `chat_<source>`),
 `estimate_handoff`, `builder_step` (param `step`), `builder_sent`, `estimate_pdf`,
-`builder_link_copied`, `extra_discuss`, `direction_discuss` (card "Обсудить"), `chat_open`
+`builder_link_copied`, `audit_sent` (free audit ordered), `extra_discuss`, `direction_discuss` (card "Обсудить"), `chat_open`
 (param `source`: fab, hero, demo, hash), `chat_state` (param `state`: intake, contact, done).
 Minimum for the first client: `lead_sent`, `telegram_click`, `chat_open`, `chat_state`, `builder_sent`.
 

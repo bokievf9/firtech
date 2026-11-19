@@ -2,6 +2,7 @@ import { ArrowRight, ArrowUpRight, Check } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
+import { demoPlace, demoSalonUrl } from '@/lib/demo'
 import type { Locale } from '@/lib/i18n'
 import { formatUsd, startingPrice } from '@/lib/pricing'
 import { productAnchor, productBuilderHref, productIds, type ProductId } from '@/lib/products'
@@ -183,6 +184,18 @@ function ProductCard({
               </ChatOpenButton>
             ) : (
               <DirectionCta id={id} label={t.discuss} variant="link" />
+            )}
+            {(id === 'admin' || id === 'miniapp') && (
+              <a
+                href={demoSalonUrl}
+                data-place={`${demoPlace}_${id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-accent-text"
+              >
+                {id === 'admin' ? dict.demoStand.tryDemo : dict.demoStand.botDemo}
+                <ArrowUpRight size={14} aria-hidden="true" />
+              </a>
             )}
           </div>
         </div>

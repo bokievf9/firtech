@@ -24,7 +24,7 @@ export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
             <p className="mb-4 text-sm text-faint">{dict.faq.title}</p>
             <FaqList items={dict.faq.items} compact />
             <ul className="mt-5 grid gap-2 text-sm">
-              {(['compare', 'referral'] as const).map((page) => (
+              {(['compare', 'referral', 'audit'] as const).map((page) => (
                 <li key={page}>
                   <Link
                     href={`/${locale}/${page}`}

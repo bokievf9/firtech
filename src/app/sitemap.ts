@@ -14,6 +14,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/builder',
     '/compare',
     '/referral',
+    '/audit',
+    '/status',
     ...serviceSlugs.map((slug) => `/services/${slug}`),
     '/solutions',
     ...allSolutionKinds.map((kind) => `/solutions/${kind}`),

@@ -1,6 +1,7 @@
-import { ArrowRight, Check, MoonStars } from '@phosphor-icons/react/ssr'
+import { ArrowRight, Check, MoonStars, TelegramLogo } from '@phosphor-icons/react/ssr'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
+import { demoPlace, demoSalonUrl } from '@/lib/demo'
 import { ChatOpenButton } from './chat/chat-open-button'
 import { Reveal } from './reveal'
 
@@ -44,6 +45,33 @@ export function DemoSection({ dict }: { dict: Dict }) {
               className="transition-transform duration-300 group-hover:translate-x-1"
             />
           </ChatOpenButton>
+
+          <div className="mt-10 max-w-[52ch] rounded-card border border-line p-5 md:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="font-display text-xl font-semibold">{dict.demoStand.title}</p>
+              <span className="rounded-full bg-accent/15 px-3 py-1 text-xs text-accent-text">
+                {dict.demoStand.badge}
+              </span>
+            </div>
+            <ol className="mt-4 grid gap-2.5 text-[15px] text-muted">
+              {dict.demoStand.lines.map((line, i) => (
+                <li key={line} className="flex gap-3">
+                  <span className="font-mono text-sm text-accent-text">{String(i + 1).padStart(2, '0')}</span>
+                  {line}
+                </li>
+              ))}
+            </ol>
+            <a
+              href={demoSalonUrl}
+              data-place={demoPlace}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(buttonStyles.secondary, 'mt-5')}
+            >
+              <TelegramLogo size={18} weight="fill" aria-hidden="true" />
+              {dict.demoStand.cta}
+            </a>
+          </div>
         </Reveal>
         <Reveal delay={0.1} className="lg:col-span-5 lg:col-start-8">
           <div aria-hidden="true" className="relative">

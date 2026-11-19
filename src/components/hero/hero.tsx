@@ -74,6 +74,16 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
               {h.chatCta}
             </ChatOpenButton>
           </div>
+          <p className="mt-4 text-[13px]">
+            <Link
+              href={`/${locale}/audit`}
+              data-cta="hero_audit"
+              className="inline-flex items-center gap-1.5 text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+            >
+              {h.auditLink}
+              <ArrowRight size={12} aria-hidden="true" />
+            </Link>
+          </p>
           <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-faint lg:hidden">
             {h.trust.map((item) => (
               <li key={item} className="flex items-center gap-2">
