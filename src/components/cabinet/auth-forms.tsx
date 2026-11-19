@@ -121,7 +121,8 @@ export function AuthForms({
       )}
 
       <div className="mt-6 grid gap-3">
-        {(['google', 'apple'] as const).map((provider) => (
+        {/* Apple sign-in is off (owner 2026-11-20: no Apple Developer account); add 'apple' back here to show it. */}
+        {(['google'] as const).map((provider) => (
           <form key={provider} action={oauthAction}>
             <input type="hidden" name="locale" value={locale} />
             <input type="hidden" name="provider" value={provider} />
