@@ -1389,7 +1389,7 @@ const en: Dict = {
         id: 'parties',
         title: 'The contractor',
         text: [
-          'Fir Tech works as the studio of an independent developer, without a legal entity. The contractor and the client record their agreement in the estimate and in writing, which is enough for payment and acceptance.',
+          'The work is done by the Fir Tech studio. The contractor and the client record their agreement in the estimate and in writing, which is enough for payment and acceptance.',
         ],
         list: [
           'Contractor: Fir Tech',
@@ -1627,7 +1627,7 @@ const en: Dict = {
       },
     ],
     officeLink: 'See our HQ',
-    note: 'The table describes typical cases. A good freelancer and a good agency may work differently. We do not suit everyone either: for now we work as an individual contractor without a legal entity.',
+    note: 'The table describes typical cases. A good freelancer and a good agency may work differently.',
     ctaTitle: 'Price your project',
     ctaBuilder: 'Open the builder',
     ctaTelegram: 'Write on Telegram',
