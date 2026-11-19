@@ -1386,8 +1386,8 @@ const en: Dict = {
           'Fir Tech works as the studio of an independent developer, without a legal entity. The contractor and the client record their agreement in the estimate and in writing, which is enough for payment and acceptance.',
         ],
         list: [
-          'Contractor: [to be filled in by the owner]',
-          'Contact: Telegram @firtech_bot and email [to be filled in by the owner]',
+          'Contractor: Fir Tech',
+          'Contact: Telegram @firtech_bot and email hello@firtech.pro',
           'Payment details come with the estimate and are not published on the site',
         ],
       },
@@ -1469,7 +1469,7 @@ const en: Dict = {
         id: 'law',
         title: 'Governing law and disputes',
         text: [
-          'A dispute is first resolved by negotiation in writing within 14 days. Governing law: [to be filled in by the owner].',
+          'A dispute is first resolved by negotiation in writing within 14 days. Governing law: the Republic of Tajikistan.',
         ],
         list: [],
       },

@@ -86,8 +86,9 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (`terms` in the dictionaries, `components/legal-doc.tsx` shared with privacy) is a full draft
   (2026-11-19: individual contractor without a legal entity, 50% prepayment, USDT TRC20/TON or an
   online wallet named in the estimate, two rounds of revisions, 7-day acceptance, liability capped
-  at the paid amount) with three `[заполнит владелец]` placeholders: the contractor's name, email
-  and governing law; `llms.txt` comes from the products and `pricing.ts`.
+  at the paid amount; contractor «Fir Tech», contact `hello@firtech.pro`, law of Tajikistan, filled
+  on the owner's word 2026-11-19; `placeholder` stays in the dictionary for future gaps); `llms.txt`
+  comes from the products and `pricing.ts`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass
