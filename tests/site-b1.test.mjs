@@ -7,7 +7,7 @@ import { notFoundLinks, notFoundText, searchPages } from '../src/content/not-fou
 import { productCatalog } from '../src/content/builder-catalog.ts'
 import { decodeBuild, productParts, quote } from '../src/lib/builder.ts'
 import { footerColumns, homeAnchors, homeSections, localePages, sectionAnchor } from '../src/lib/home.ts'
-import { agentPlans } from '../src/lib/pricing.ts'
+import { agentPlans, contentPlans } from '../src/lib/pricing.ts'
 import { builderProduct, productBuild, productBuilderHref, productIds, productPrice } from '../src/lib/products.ts'
 import { serviceSlugs } from '../src/lib/site.ts'
 import { isSolutionKind } from '../src/lib/solutions.ts'
@@ -34,15 +34,25 @@ test('product prices come only from pricing.ts (as the builder counts them), or 
     if (price.kind === 'from') {
       assert.ok(entry.priced, id)
       assert.equal(price.from, quote({ parts: productParts(builderProduct[id]), extras: [] }).total.min, id)
-    } else if (price.kind === 'plans') assert.equal(price.plans, agentPlans)
-    else assert.equal(entry.priced, false, id)
+    } else if (price.kind === 'plans') {
+      assert.ok(price.plans === agentPlans || price.plans === contentPlans, id)
+      assert.equal(entry.priced, false, id)
+    } else assert.equal(entry.priced, false, id)
   }
   assert.deepEqual(
     agentPlans.map((p) => [p.id, p.setup, p.monthly]),
     [['dono', 150, 15], ['polly', 100, 10]],
   )
-  assert.equal(productPrice.content.kind, 'quote')
-  assert.equal(productPrice.implementation.kind, 'quote')
+  assert.deepEqual(
+    contentPlans.map((p) => [p.id, p.setup, p.monthly]),
+    [['content', 90, 60]],
+  )
+  assert.equal(productPrice.content.kind, 'plans')
+  assert.equal(productPrice.agent.kind, 'plans')
+  assert.equal(productPrice.implementation.kind, 'from')
+  // Every plan id has a label in both dictionaries.
+  for (const dict of [ru, en])
+    for (const p of [...agentPlans, ...contentPlans]) assert.ok(dict.products.plans[p.id], p.id)
   // Copy never carries a price or a long dash.
   for (const dict of [ru, en]) {
     const text = JSON.stringify([dict.products, dict.proof, dict.work, dict.pricingHome, dict.faqContact, dict.hero.sequence, dict.footer])

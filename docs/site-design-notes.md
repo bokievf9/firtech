@@ -135,7 +135,7 @@ creates a lead.
 
 ## Каталог конструктора
 - Всё содержимое каталога в `src/content/builder-catalog.ts` (RU + EN, типизировано): 56 ниш в 10 категориях, 10 продуктов, названия стилей. Новая ниша = одна строка в `kindCatalog` + id в `kindIds`; страница `/solutions/<id>` появляется сама из пресета и текстов (3 боли, 3 «что получите»).
-- Продукты без цены в `pricing.ts` (`content`, `agent`, `aiteam`) показываются «по смете» и никогда не суммируются. Цену задаёт владелец.
+- Продукты без частей в конструкторе (`content`, `agent`) показываются «по смете» и никогда не суммируются; на карточках у них подписка (`contentPlans`, `agentPlans`). `aiteam` с 2026-11-19 = `automation.assistant.training`. Цены задаёт владелец.
 - Стиль: оси палитра (16, светлые и тёмные), шрифтовая пара (7), форма, плотность, настроение, плюс 19 готовых образов. Только макет, цену не меняет. Старые поля `s.` по-прежнему читаются.
 - Ссылка `?b=`: чанки `k.` (ниша), `p.` (продукты), `y.` (оси стиля).
 
@@ -174,7 +174,7 @@ products of COMPANY.md and replaces the hero with a motion-heavy one in the spir
 - Prices: priced catalogue products cost what their parts cost in the calculator (`quote()` over
   pricing.ts): admin $380, receptionist $350, automation $360, Mini App $920. Personal agent:
   `agentPlans` in pricing.ts (Dono $150 + $15/мес, Polly $100 + $10/мес, owner-approved).
-  Content and AI implementation say «по смете» until the owner sets prices.
+  Content shows its subscription plan and AI implementation a starting price since 2026-11-19.
 - `components/products/product-demo.tsx`: seven small interfaces in plain markup; `.pd` CSS shows the
   final state at rest and replays the steps (`--d` delays) on `.pd-play`, card hover or focus.
   Shared by the hero stage, the bento and the proof section. Zero JS.

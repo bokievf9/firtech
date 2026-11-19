@@ -1,58 +1,64 @@
 import type { ExtraSlug, ServiceSlug } from './site'
 
-// Starting prices in USD (owner decision, 2026-10-16: low entry). Names and terms live in the
+// Starting prices in USD. Owner decision 2026-11-19: everything below the freelance market of
+// RU/CIS (Kwork, FL.ru, Workspace), extras cut by about half. Names and terms live in the
 // dictionaries (src/content), keyed by the same ids, so prices are defined once for both languages.
 export const startingPrice: Record<ServiceSlug, number> = {
   websites: 150,
   bots: 100,
-  apps: 1000,
-  automation: 300,
+  apps: 800,
+  automation: 200,
 }
 
 type Catalog = { variants: Record<string, number>; addons: Record<string, number> }
 
 export const catalog: Record<ServiceSlug, Catalog> = {
   websites: {
-    variants: { landing: 150, company: 400, shop: 900 },
-    addons: { language: 80, telegram: 40, payments: 150, cms: 200 },
+    variants: { landing: 150, company: 350, shop: 700 },
+    addons: { language: 40, telegram: 20, payments: 60, cms: 100 },
   },
   bots: {
-    variants: { faq: 100, booking: 300, miniapp: 800 },
-    addons: { payments: 120, broadcasts: 80, admin: 200, ai: 250 },
+    variants: { faq: 100, booking: 250, miniapp: 600 },
+    addons: { payments: 60, broadcasts: 40, admin: 100, ai: 120 },
   },
   apps: {
-    variants: { pwa: 1000, mobile: 2500, internal: 1500 },
-    addons: { accounts: 300, payments: 200, push: 150, admin: 400 },
+    variants: { pwa: 800, mobile: 2000, internal: 1200 },
+    addons: { accounts: 150, payments: 100, push: 60, admin: 200 },
   },
   automation: {
-    variants: { integration: 300, crm: 600, assistant: 800 },
-    addons: { sheets: 100, alerts: 60, training: 100, support: 200 },
+    variants: { integration: 200, crm: 450, assistant: 500 },
+    addons: { sheets: 50, alerts: 30, training: 50, support: 90 },
   },
 }
 
 // Extras that are a part of a main service take its existing price and link to its page. The rest
-// are the owner's prices (2026-10-16). `null` would show "priced after a call"; `monthly` adds
+// are the owner's prices (2026-11-19). `null` would show "priced after a call"; `monthly` adds
 // "per month".
 export const extraPrice: Record<
   ExtraSlug,
   { from: number | null; page?: ServiceSlug; monthly?: boolean }
 > = {
   ai: { from: catalog.automation.variants.assistant ?? null, page: 'automation' },
-  support: { from: 30, monthly: true },
+  support: { from: 20, monthly: true },
   payments: { from: catalog.bots.addons.payments ?? null, page: 'bots' },
-  seo: { from: 80 },
+  seo: { from: 50 },
   crm: { from: catalog.automation.variants.crm ?? null, page: 'automation' },
-  design: { from: 150 },
-  rescue: { from: 100 },
+  design: { from: 90 },
+  rescue: { from: 60 },
   internal: { from: catalog.apps.variants.internal ?? null, page: 'apps' },
 }
 
-// Personal agents (owner decision, 2026-11-19): Dono, a study assistant, and Polly, a language
-// teacher. One-time setup plus a monthly fee, USD.
+// Subscriptions: one-time setup plus a monthly fee, USD. Personal agents (owner decision,
+// 2026-11-19): Dono, a study assistant, and Polly, a language teacher. Content on autopilot
+// (owner decision 2026-11-19): setup of the channels and the plan, then posts every month.
 export const agentPlans = [
   { id: 'dono', setup: 150, monthly: 15 },
   { id: 'polly', setup: 100, monthly: 10 },
 ] as const
+
+export const contentPlans = [{ id: 'content', setup: 90, monthly: 60 }] as const
+
+export type Plan = (typeof agentPlans)[number] | (typeof contentPlans)[number]
 
 // Owner decision (2026-10-16): 10% off the one-time total when a build has two or more parts.
 export const bundleDiscount = 0.1

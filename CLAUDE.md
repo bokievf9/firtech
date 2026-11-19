@@ -21,8 +21,9 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - `src/content/ru.ts` and `en.ts`: every visible text. `en` is typed against `ru`, so both must keep
   the same shape. No em or en dashes in copy (use a hyphen).
 - `src/lib/pricing.ts`: starting prices and calculator prices in USD. **Prices are owner decisions**:
-  change them only on the owner's word (current set: low entry, decided 2026-10-16, not yet
-  confirmed per format).
+  change them only on the owner's word (current set decided 2026-11-19: below the RU/CIS freelance
+  market, extras about half the old prices; `contentPlans` = content subscription, `agentPlans` =
+  Dono and Polly).
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
 - Home page order (stage B1, products lead; `homeSections` in `src/lib/home.ts`, tested): hero
   (`#top`, kinetic headline over a 3D product stage; on lg a 250vh scroll track brings the seven
@@ -52,8 +53,9 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   lead, 3 pains, 3 gets), the products and the style names. Presets, products and quotes derive
   from it; prices only from `pricing.ts`. Products (`adminbot intake automation content miniapp
   agent aiteam site bot app`): a priced product pre-selects its parts; unpriced ones (`content`,
-  `agent`, `aiteam`) show "по смете", are listed apart in the quote, estimate and lead and are
-  never summed. The brief (goals, channels, style, details) and the kind/products ride in `?b=` as
+  `agent`) show "по смете" in the builder, are listed apart in the quote, estimate and lead and are
+  never summed; on the product cards both show their subscription plans (`contentPlans`, `agentPlans`).
+  `aiteam` = `automation.assistant.training`. The brief (goals, channels, style, details) and the kind/products ride in `?b=` as
   extra chunks (`k.` kind, `p.` products, `g.` `c.` `s.` old style, `y.` new style axes, `d.`,
   base64url `u.`/`w.`); old links decode as before. Style: five axes (16 palettes, 7 type pairs,
   shape, density, mood) plus 19 ready looks (kits) in `src/lib/builder-style.ts`; it only restyles
@@ -81,8 +83,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `@firtech_bot` (`defaultTelegramBot` in `src/lib/site.ts`); service-page meta texts hold a `{price}`
   token filled by `fillServicePrice` (`src/lib/seo.ts`); meta descriptions must be 120-160 characters
   and copy must have no long dashes, AI tells or dollar amounts (`tests/site-c.test.mjs`); `/terms`
-  (`terms` in the dictionaries, `components/legal-doc.tsx` shared with privacy) is a skeleton with
-  `[заполнит владелец]` placeholders; `llms.txt` comes from the products and `pricing.ts`.
+  (`terms` in the dictionaries, `components/legal-doc.tsx` shared with privacy) is a full draft
+  (2026-11-19: individual contractor without a legal entity, 50% prepayment, USDT TRC20/TON or an
+  online wallet named in the estimate, two rounds of revisions, 7-day acceptance, liability capped
+  at the paid amount) with three `[заполнит владелец]` placeholders: the contractor's name, email
+  and governing law; `llms.txt` comes from the products and `pricing.ts`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass

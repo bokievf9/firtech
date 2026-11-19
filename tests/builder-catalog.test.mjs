@@ -180,15 +180,15 @@ test('products: the product line, prices only from pricing.ts', () => {
   }
   assert.deepEqual(
     productIds.filter((id) => !productCatalog[id].priced).sort(),
-    ['agent', 'aiteam', 'content'],
+    ['agent', 'content'],
   )
 })
 
 test('products: products without a price are listed apart and never summed', () => {
   const base = presets.barber
-  const withUnpriced = { ...base, products: [...base.products, 'content', 'agent', 'aiteam'] }
+  const withUnpriced = { ...base, products: [...base.products, 'content', 'agent'] }
   assert.deepEqual(quote(withUnpriced), quote(base))
-  assert.deepEqual(productsOnRequest(withUnpriced), ['content', 'agent', 'aiteam'])
+  assert.deepEqual(productsOnRequest(withUnpriced), ['content', 'agent'])
   const only = { parts: {}, extras: [], products: ['content', 'agent'] }
   const q = quote(only)
   assert.deepEqual(q.lines, [])
@@ -279,10 +279,10 @@ test('link: the kind and product chunks round trip, old links decode as before',
 })
 
 test('quote: estimate() and the old combinations are unchanged', () => {
-  assert.deepEqual(estimate('websites', 'landing', ['telegram']), { min: 190, max: 270 })
-  assert.deepEqual(estimate('bots', 'booking', ['payments']), { min: 420, max: 590 })
-  assert.deepEqual(estimate('websites', 'shop', ['payments', 'cms']), { min: 1250, max: 1750 })
-  assert.deepEqual(quote(presets.cafe).total, { min: 620, max: 870 })
+  assert.deepEqual(estimate('websites', 'landing', ['telegram']), { min: 170, max: 240 })
+  assert.deepEqual(estimate('bots', 'booking', ['payments']), { min: 310, max: 430 })
+  assert.deepEqual(estimate('websites', 'shop', ['payments', 'cms']), { min: 860, max: 1200 })
+  assert.deepEqual(quote(presets.cafe).total, { min: 480, max: 670 })
   // Kind, products and style never change a price.
   const bare = { parts: presets.cafe.parts, extras: presets.cafe.extras }
   assert.deepEqual(quote(presets.cafe), quote(bare))

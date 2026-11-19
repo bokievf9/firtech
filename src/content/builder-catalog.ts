@@ -130,8 +130,8 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
     },
   },
   aiteam: {
-    parts: '',
-    priced: false,
+    parts: 'automation.assistant.training',
+    priced: true,
     name: { ru: 'Внедрение ИИ в компанию', en: 'AI for your company' },
     hint: {
       ru: 'База знаний, ответы по документам и обучение команды',

@@ -1,18 +1,18 @@
 import { productCatalog, type ProductId as CatalogProductId } from '../content/builder-catalog'
 import { emptyBuild, encodeBuild, productParts, quote, toggleProduct, type Build } from './builder'
-import { agentPlans } from './pricing'
+import { agentPlans, contentPlans, type Plan } from './pricing'
 
 export { isProductId, productAnchor, productIds, type ProductId } from './product-ids'
 import { productIds, type ProductId } from './product-ids'
 
-export { agentPlans }
+export { agentPlans, contentPlans }
 export type AgentPlanId = (typeof agentPlans)[number]['id']
 
 export type ProductPrice =
   // A starting price taken from pricing.ts (the calculator's own numbers).
   | { kind: 'from'; from: number }
   // Setup plus a subscription per plan.
-  | { kind: 'plans'; plans: typeof agentPlans }
+  | { kind: 'plans'; plans: readonly Plan[] }
   // No price in pricing.ts yet: the card says «по смете». The owner sets these.
   | { kind: 'quote' }
 
@@ -34,10 +34,12 @@ export function productBuild(id: ProductId): Build {
 
 // Prices only from pricing.ts, the same way the builder counts them: a priced catalogue product
 // costs what its parts cost in the calculator (quote()), so the card and the opened builder show
-// the same number. Unpriced ones say «по смете»; the personal agent shows the approved plans.
+// the same number. Unpriced ones say «по смете»; the personal agent and the content subscription
+// show the approved plans (setup + monthly) and stay «по смете» inside the builder.
 export const productPrice: Record<ProductId, ProductPrice> = Object.fromEntries(
   productIds.map((id): [ProductId, ProductPrice] => {
     if (id === 'agent') return [id, { kind: 'plans', plans: agentPlans }]
+    if (id === 'content') return [id, { kind: 'plans', plans: contentPlans }]
     const entry = productCatalog[builderProduct[id]]
     if (!entry.priced) return [id, { kind: 'quote' }]
     const min = quote({ parts: productParts(builderProduct[id]), extras: [] }).total.min

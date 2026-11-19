@@ -27,10 +27,10 @@ Minimum for the first client: `lead_sent`, `telegram_click`, `chat_open`, `chat_
 
 ## Owner's to-do
 1. Metrika: create the goals above in counter 113665084.
-2. Terms page: fill the requisites (company name, address, registration number, bank details, email), prepayment size, free revisions, rights transfer, liability and refund terms, governing law. Search the text for `[заполнит владелец]`.
+2. Terms page (rewritten 2026-11-19 on the owner's word: no legal entity, crypto or online wallet, 50% prepayment, two rounds of revisions, 7-day acceptance, liability capped at the paid amount): three placeholders left, the contractor's name, the contact email and the governing law. Search the text for `[заполнит владелец]`.
 3. Lawyer: review privacy and terms (both say "черновик до проверки юристом"); confirm the AI model providers wording and the 1-year retention.
-4. Prices for the two unpriced products (content on autopilot, AI in your company): add them to pricing.ts when decided; until then they say "по смете".
+4. Prices (owner 2026-11-19: below the RU/CIS freelance market, extras about half): done in pricing.ts. Content on autopilot = `contentPlans` ($90 setup + $60 a month), AI in your company = `automation.assistant.training`. Products now: admin bot $290, intake $220, automation $230, Mini App $660, AI implementation $550, site $150, bot $100, app $800.
 5. Search Console and Yandex Webmaster: add firtech.pro, submit `https://firtech.pro/sitemap.xml`, check hreflang report.
-6. GitHub variable `NEXT_PUBLIC_TELEGRAM_USERNAME`: set to `firtech_bot` (or leave empty, the code now falls back). If it holds a personal username, the site shows that instead of the bot.
+6. GitHub variable `NEXT_PUBLIC_TELEGRAM_USERNAME`: set to `firtech_bot` on 2026-11-19 (was the owner's personal username).
 7. Ask HQ's SEO agent to re-check the meta descriptions on /ru and /en after deploy.
 8. Optional: a 192 px maskable app icon; real-device Lighthouse after deploy.

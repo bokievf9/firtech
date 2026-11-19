@@ -152,7 +152,7 @@ const en: Dict = {
     discuss: 'Discuss',
     flagship: 'Flagship',
     concept: 'Sample interface',
-    plans: { dono: 'Dono, study', polly: 'Polly, languages' },
+    plans: { dono: 'Dono, study', polly: 'Polly, languages', content: 'Subscription' },
     classicTitle: 'The foundation the agents run on',
     classicSub: 'We also build websites, bots and apps on their own.',
     more: 'Learn more',
@@ -1377,18 +1377,18 @@ const en: Dict = {
     draftNote: 'A draft pending a lawyer review.',
     placeholder: '[to be filled in by the owner]',
     intro:
-      'This is a template of the terms on which the Fir Tech studio does work for clients. It becomes an offer after a lawyer has checked it and the requisites are filled in. Until then it creates no obligations.',
+      'These are the terms on which the Fir Tech studio does work for clients. By confirming an estimate the client agrees to them. The document becomes an offer after a lawyer has checked it; until then it describes how we work and creates no obligations by itself.',
     sections: [
       {
         id: 'parties',
         title: 'The contractor',
-        text: ['The work is done by the Fir Tech studio. The contractor details:'],
+        text: [
+          'Fir Tech works as the studio of an independent developer, without a legal entity. The contractor and the client record their agreement in the estimate and in writing, which is enough for payment and acceptance.',
+        ],
         list: [
-          'Name: [to be filled in by the owner]',
-          'Address: [to be filled in by the owner]',
-          'Registration number: [to be filled in by the owner]',
-          'Bank details: [to be filled in by the owner]',
-          'Contact email: [to be filled in by the owner]',
+          'Contractor: [to be filled in by the owner]',
+          'Contact: Telegram @firtech_bot and email [to be filled in by the owner]',
+          'Payment details come with the estimate and are not published on the site',
         ],
       },
       {
@@ -1412,15 +1412,22 @@ const en: Dict = {
         id: 'payment',
         title: 'Payment',
         text: [
-          'Payment is split into stages. The size of the prepayment, the order and the methods of payment: [to be filled in by the owner].',
+          'A prepayment of 50% of the estimate before the work starts, the rest after acceptance and before access and source files are handed over. For projects longer than a month the stages and their payments are written in the estimate.',
+          'Subscriptions (support, content on autopilot, personal agents) are paid a month in advance. A subscription can be stopped at any time; the paid month is served to its end.',
         ],
-        list: [],
+        list: [
+          'Cryptocurrency: USDT on the TRC20 or TON network, address in the estimate',
+          'An online wallet or transfer named in the estimate',
+          'Network and payment service fees are paid by the payer',
+          'A payment counts as received when the funds reach the contractor',
+        ],
       },
       {
         id: 'delivery',
         title: 'Timelines and acceptance',
         text: [
-          'Timelines run from the prepayment and from receiving everything the client has to provide. The client checks the result and reports remarks within the period set in the estimate. Number of free revisions: [to be filled in by the owner].',
+          'Timelines run from the prepayment and from receiving everything the client has to provide: texts, photos, access. A delay in materials moves the deadline by the same time.',
+          'The estimate includes two rounds of revisions: the client sends remarks as a list and the contractor applies them. New features and a change of task beyond the estimate are priced separately. If no remarks arrive within 7 days of delivery, the work counts as accepted.',
         ],
         list: [],
       },
@@ -1428,7 +1435,8 @@ const en: Dict = {
         id: 'rights',
         title: 'Rights to the result',
         text: [
-          'After full payment the client receives the rights to the result of the work. The contractor may show the project in its portfolio unless the client objects. Terms of the transfer of rights: [to be filled in by the owner].',
+          'After full payment the rights to the result pass to the client: the design, texts and code of the project, and the bot, domain and server when they are registered to the client. Open-source libraries stay under their own licences.',
+          'The contractor may reuse general building blocks (templates, tools, agents) in other projects and show the project in its portfolio unless the client objects in writing.',
         ],
         list: [],
       },
@@ -1452,14 +1460,17 @@ const en: Dict = {
         id: 'liability',
         title: 'Liability and termination',
         text: [
-          'The limits of the contractor\'s liability, the order of termination and refund of the prepayment: [to be filled in by the owner].',
+          'The contractor\'s liability is limited to the amount the client has paid under this estimate. The contractor is not liable for lost profit, for failures of third-party services (Telegram, hosting, payment services, AI models) or for the consequences of changes made by the client\'s side.',
+          'Either party may terminate in writing. If the client terminates, the prepayment is refunded minus the cost of the work done under the estimate, and the finished part is handed over. If the contractor terminates, the unearned part of the prepayment is refunded in full.',
         ],
         list: [],
       },
       {
         id: 'law',
         title: 'Governing law and disputes',
-        text: ['Governing law and the way disputes are resolved: [to be filled in by the owner].'],
+        text: [
+          'A dispute is first resolved by negotiation in writing within 14 days. Governing law: [to be filled in by the owner].',
+        ],
         list: [],
       },
     ],

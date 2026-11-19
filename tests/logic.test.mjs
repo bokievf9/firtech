@@ -15,7 +15,7 @@ test('pickLocale: Russian and CIS languages get ru, English gets en', () => {
 
 test('estimate: base price plus extras, upper bound 40% higher', () => {
   assert.deepEqual(estimate('websites', 'landing', []), { min: 150, max: 210 })
-  assert.deepEqual(estimate('bots', 'faq', ['ai']), { min: 350, max: 490 })
+  assert.deepEqual(estimate('bots', 'faq', ['ai']), { min: 220, max: 310 })
   assert.deepEqual(estimate('apps', 'unknown', ['nope']), { min: 0, max: 0 })
 })
 
@@ -68,7 +68,7 @@ test('builder quote: parts add up, 10% off from two parts, support is monthly', 
   assert.deepEqual(combo.subtotal, { min: 250, max: 350 })
   assert.deepEqual(combo.discount, { min: 30, max: 40 })
   assert.deepEqual(combo.total, { min: 220, max: 310 })
-  assert.equal(combo.monthly, 30)
+  assert.equal(combo.monthly, 20)
   assert.equal(quote({ parts: {}, extras: ['support'] }).discount, null)
 })
 
