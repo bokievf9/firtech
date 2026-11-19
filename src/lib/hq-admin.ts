@@ -129,6 +129,7 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   },
   { method: 'GET', path: /^metrics\/week$/, query: ['week'] },
   { method: 'GET', path: /^company$/ },
+  { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
   { method: 'POST', path: /^company\/routines\/[\w-]{1,64}$/, body: z.object({ enabled: z.boolean() }).strict() },
   { method: 'POST', path: /^company\/routines\/[\w-]{1,64}\/run$/, body: empty },
   { method: 'POST', path: /^company\/trust\/[\w-]{1,64}$/, body: z.object({ level: z.union([z.literal(0), z.literal(1)]) }).strict() },

@@ -174,11 +174,13 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
     { kind: 'ticket_reply', level: 0, locked: true, approvals: 9 },
   ]
   const playbooks: Row[] = [
-    { role: 'content-maker', updatedAt: ago(60 * 20), lines: 84 },
-    { role: 'prospector', updatedAt: ago(60 * 20), lines: 61 },
-    { role: 'seo-specialist', updatedAt: ago(60 * 20), lines: 72 },
-    { role: 'analyst', updatedAt: ago(60 * 20), lines: 40 },
+    { role: 'content-maker', updatedAt: ago(60 * 20), lines: 84, sourceSkills: ['copywriting', 'social'] },
+    { role: 'trend-scout', updatedAt: ago(60 * 20), lines: 61, sourceSkills: ['content-strategy'] },
+    { role: 'seo', updatedAt: ago(60 * 20), lines: 48, sourceSkills: ['seo-audit', 'ai-seo'] },
+    { role: 'analyst', updatedAt: ago(60 * 20), lines: 40, sourceSkills: [] },
   ]
+  const playbookText = (role: string) =>
+    `# Плейбук: ${role}\n\nИсточники: seo-audit, ai-seo\n\n## Правила\n\n- Один материал, одна мысль.\n- Цифры только из \`metrics/week\`, **без выдумок**.\n- Цены не пишем.\n\n## Порядок\n\n1. Прочитать задачу.\n2. Собрать черновик.\n3. Отправить на одобрение.\n\n## Площадки\n\n| Площадка | Длина | Формат |\n|---|---|---|\n| Instagram | 2200 | карусель |\n| YouTube | 100 | Shorts |\n\n\`\`\`\n/playbook ${role}\n\`\`\`\n\n<script>alert(1)</script>\n`
 
   const ok = (extra: Json = {}): Reply => ({ ok: true, ...extra })
   const bad = (error: string, extra: Json = {}): Reply => ({ ok: false, error, ...extra })
@@ -392,7 +394,14 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
         funnel: { leads: 11 + (s % 4), qualified: 7 + (s % 3), proposals: 4 + (s % 2), contracts: 2 + (s % 2), paid: 1 + (s % 2), projects: 1 },
         money: { invoicedUsd: 900 + (s % 5) * 150, paidUsd: 600 + (s % 4) * 150 },
       })
-      return ok({ week, ...block(seed), prevWeek: block(Number(shiftWeek(week, -1).slice(-2)) || 1) })
+      const cur = block(seed)
+      const dates = weekDates(week)
+      const days = dates.map((date, i) => {
+        const w = 0.4 + ((i * 5 + seed) % 7) / 7
+        const part = (n: number) => Math.round((n / 7) * w * (i === 6 ? 0.4 : 1))
+        return { date, site: Object.fromEntries(Object.entries(cur.site).map(([k, v]) => [k, part(v)])), blog: { hits: part(cur.blog.hits) }, leads: part(cur.funnel.leads) }
+      })
+      return ok({ week, ...cur, days, prevWeek: block(Number(shiftWeek(week, -1).slice(-2)) || 1) })
     }
 
     // ---- company
@@ -432,6 +441,9 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
             { id: 'project-manager', dept: 'production', title: 'Project Manager', state: 'paused' },
           ],
         })
+      }
+      if (method === 'GET' && seg[1] === 'playbooks' && seg.length === 3) {
+        return playbooks.some((x) => x.role === seg[2]) ? ok({ role: seg[2], text: playbookText(seg[2]!) }) : bad('not_found')
       }
       if (method === 'POST' && seg[1] === 'routines' && seg[2]) {
         const r = routines.find((x) => x.name === seg[2])

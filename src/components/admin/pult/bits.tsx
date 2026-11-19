@@ -52,3 +52,22 @@ export function TxLink({ inv }: { inv: Pick<Invoice, 'paidVia' | 'txId'> }) {
     </a>
   )
 }
+
+// Seven bars, one per day of the week (the «по дням» chart). Inline SVG, a zero day is a hairline.
+export function DayBars({ days, label, className }: { days: { date: string; value: number }[]; label: string; className?: string }) {
+  const width = 7 * 12 - 4
+  const height = 28
+  const max = Math.max(1, ...days.map((d) => d.value))
+  return (
+    <svg viewBox={`0 0 ${Math.max(width, days.length * 12 - 4)} ${height}`} role="img" aria-label={label} className={className ?? 'h-7 w-full'} preserveAspectRatio="none">
+      {days.map((d, i) => {
+        const h = d.value > 0 ? Math.max(3, (d.value / max) * (height - 2)) : 1
+        return (
+          <rect key={d.date} x={i * 12} y={height - h} width={8} height={h} rx={1.5} fill="var(--color-accent-text)" opacity={d.value > 0 ? 0.75 : 0.3}>
+            <title>{`${d.date}: ${d.value}`}</title>
+          </rect>
+        )
+      })}
+    </svg>
+  )
+}

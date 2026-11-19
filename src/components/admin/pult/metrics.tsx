@@ -6,8 +6,8 @@ import { fill } from '@/components/admin/control/api'
 import { Sparkline } from '@/components/admin/sparkline'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { delta, eventSeries, funnelShares, isoWeek, normalizeMetrics, shiftWeek, SITE_EVENTS } from '@/lib/pult'
-import { usd } from './bits'
+import { daySeries, delta, eventSeries, funnelShares, isoWeek, normalizeMetrics, shiftWeek, SITE_EVENTS } from '@/lib/pult'
+import { DayBars, usd } from './bits'
 import { Loading, Offline, useHqView, useHub } from '../hub/ui'
 
 const k = admin.pult.metrics
@@ -25,12 +25,18 @@ function Delta({ cur, prev, money = false }: { cur: number; prev: number | null 
   )
 }
 
-function Stat({ label, value, prev, money = false }: { label: string; value: number; prev?: number | null; money?: boolean }) {
+function Stat({ label, value, prev, money = false, bars }: { label: string; value: number; prev?: number | null; money?: boolean; bars?: { date: string; value: number }[] | null }) {
   return (
     <div className="rounded-xl border border-line bg-bg/50 p-3">
       <p className="text-xs text-faint">{label}</p>
       <p className="mt-1 font-mono text-xl tabular-nums">{money ? usd(value) : value.toLocaleString('ru-RU')}</p>
       <Delta cur={value} prev={prev} money={money} />
+      {bars ? (
+        <div className="mt-2">
+          <DayBars days={bars} label={`${fill(k.dailyFor, { e: label, n: value })}`} />
+          <p className="mt-0.5 text-[10px] leading-none text-faint">{k.daily}</p>
+        </div>
+      ) : null}
     </div>
   )
 }
@@ -39,9 +45,11 @@ function Stat({ label, value, prev, money = false }: { label: string; value: num
 function Trend({ m, e }: { m: NonNullable<ReturnType<typeof normalizeMetrics>>; e: (typeof SITE_EVENTS)[number] }) {
   const { values, daily } = eventSeries(m, e)
   const note = daily ? k.daily : k.weekToWeek
+  const bars = daySeries(m, e)
   return (
     <span className="flex flex-col items-end gap-0.5">
       <Sparkline className="h-auto w-16 sm:w-[120px]" values={values} label={`${fill(k.trendLabel, { e: k.events[e] })}, ${note}`} />
+      {bars ? <DayBars days={bars} label={fill(k.dailyFor, { e: k.events[e], n: m.site[e] })} className="h-5 w-16 sm:w-[120px]" /> : null}
       <span className="text-[10px] leading-none whitespace-nowrap text-faint">{note}</span>
     </span>
   )
@@ -134,7 +142,8 @@ export function MetricsTab() {
           </section>
 
           <section className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-            <Stat label={k.blogHits} value={m.blog.hits} prev={prev?.blog.hits} />
+            <Stat label={k.blogHits} value={m.blog.hits} prev={prev?.blog.hits} bars={daySeries(m, 'blogHits')} />
+            {m.days ? <Stat label={k.leadsDaily} value={m.funnel.leads} prev={prev?.funnel.leads} bars={daySeries(m, 'leads')} /> : null}
             <Stat label={k.blogPublished} value={m.blog.published} prev={prev?.blog.published} />
             <Stat label={k.ytShorts} value={m.youtube.shorts} prev={prev?.youtube.shorts} />
             <Stat label={k.ytViews} value={m.youtube.views} prev={prev?.youtube.views} />

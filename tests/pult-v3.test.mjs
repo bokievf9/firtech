@@ -550,3 +550,64 @@ test('mock: tools, a profile kit and a ticket with clientId are served', () => {
   const tickets = p.normalizeSupportTickets(mock('GET', 'crm/tickets', {}, {}, NOW)).items
   assert.ok(tickets.some((t) => t.clientId) && tickets.some((t) => !t.clientId))
 })
+
+// ---- playbooks, days (2026-11-20) ---------------------------------------------------------------
+
+test('playbooks: list with source skills, text body, role guard', async () => {
+  const c = p.normalizeCompany({ ok: true, playbooks: [{ role: 'seo', updatedAt: '2026-11-20T09:00:00.000Z', lines: 48, sourceSkills: ['seo-audit', 'ai-seo', 5, 'bad skill!'] }, { role: 'analyst', lines: 3 }, { lines: 2 }] })
+  assert.deepEqual(c.playbooks.map((x) => [x.role, x.lines, x.sourceSkills]), [['seo', 48, ['seo-audit', 'ai-seo']], ['analyst', 3, []]])
+  assert.deepEqual(p.normalizePlaybookText({ ok: true, role: 'seo', text: '# A' }), { role: 'seo', text: '# A' })
+  assert.equal(p.normalizePlaybookText({ ok: true, role: 'seo', text: '  ' }), null)
+  assert.equal(p.normalizePlaybookText({ ok: true, role: '../x', text: 'a' }), null)
+  assert.equal(p.normalizePlaybookText(null), null)
+})
+
+test('playbooks: proxy route allows GET of a role only', async () => {
+  const proxy = await import(new URL('lib/hq-admin.ts', src).href)
+  const q = new URLSearchParams()
+  assert.equal(proxy.resolveEndpoint('GET', ['company', 'playbooks', 'content-maker'], q, undefined).ok, true)
+  for (const bad of [['company', 'playbooks'], ['company', 'playbooks', 'A_b'], ['company', 'playbooks', '..'], ['company', 'playbooks', 'seo', 'x']]) {
+    assert.equal(proxy.resolveEndpoint('GET', bad, q, undefined).ok, false, bad.join('/'))
+  }
+  assert.equal(proxy.resolveEndpoint('POST', ['company', 'playbooks', 'seo'], q, {}).ok, false)
+})
+
+test('markdown-lite: blocks, tables, code and no raw HTML', async () => {
+  const { parseMarkdown } = await import(new URL('lib/markdown-lite.ts', src).href)
+  const b = parseMarkdown('# T\n\ntext **b** `c` <b>x</b>\n\n- a\n- b\n\n1. one\n2. two\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n```\ncode <i>\n```\n\n[l](javascript:alert(1))')
+  assert.deepEqual(b.map((x) => x.type), ['heading', 'p', 'ul', 'ol', 'table', 'code', 'p'])
+  assert.equal(b[2].items.length, 2)
+  assert.equal(b[4].rows[0].length, 2)
+  assert.equal(b[5].text, 'code <i>')
+  const para = b[1].spans
+  assert.ok(para.some((s) => s.kind === 'bold') && para.some((s) => s.kind === 'code'))
+  assert.ok(para.some((s) => s.kind === 'text' && s.text.includes('<b>x</b>')), 'tags stay plain text')
+  assert.equal(JSON.stringify(b[6]).includes('javascript'), false, 'link targets are dropped')
+})
+
+test('metrics days: blog hits and leads per day, bars', () => {
+  const base = { week: '2026-W47', site: { chat_open: 5 }, prevWeek: {} }
+  const days = [{ date: '2026-11-16', site: { chat_open: 1 }, blog: { hits: 4 }, leads: 2 }, { date: '2026-11-17', site: { chat_open: 3 }, blog: { hits: 0 }, leads: 0 }]
+  const m = p.normalizeMetrics({ ...base, days })
+  assert.deepEqual(p.daySeries(m, 'chat_open'), [{ date: '2026-11-16', value: 1 }, { date: '2026-11-17', value: 3 }])
+  assert.deepEqual(p.daySeries(m, 'blogHits').map((d) => d.value), [4, 0])
+  assert.deepEqual(p.daySeries(m, 'leads').map((d) => d.value), [2, 0])
+  assert.equal(p.daySeries(p.normalizeMetrics(base), 'leads'), null)
+})
+
+test('playbooks: mock serves list, text and 404; new copy is clean', async () => {
+  const mock = createHqMock(NOW)
+  const company = p.normalizeCompany(mock('GET', 'company', {}, {}, NOW))
+  assert.ok(company.playbooks.every((x) => p.playbookRoleOk(x.role)))
+  const role = company.playbooks[0].role
+  assert.equal(p.normalizePlaybookText(mock('GET', `company/playbooks/${role}`, {}, {}, NOW)).role, role)
+  assert.equal(mock('GET', 'company/playbooks/nope', {}, {}, NOW).error, 'not_found')
+  const weekDays = p.normalizeMetrics(mock('GET', 'metrics/week', {}, {}, NOW)).days
+  assert.equal(weekDays.length, 7)
+  for (const key of ['playbookHint', 'playbookUpdated', 'playbookSources', 'playbookOpen', 'dailyFor']) {
+    const text = admin.pult.company[key] ?? admin.pult.metrics[key]
+    assert.ok(text, key)
+    assert.doesNotMatch(text, /[–—]/, `${key}: no long dashes`)
+  }
+  assert.match(admin.pult.company.playbookHint, /строител/)
+})

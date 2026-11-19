@@ -732,8 +732,8 @@ type MetricsBlock = {
   funnel: Record<(typeof FUNNEL_KEYS)[number], number>
   money: { invoicedUsd: number; paidUsd: number }
 }
-export type MetricsDay = { date: string; site: Record<SiteEventName, number> }
-// `days` is the optional daily series (HQ does not send it yet); null while absent.
+export type MetricsDay = { date: string; site: Record<SiteEventName, number>; blogHits: number; leads: number }
+// `days` is the daily series (seven days, `site`, `blog.hits`, `leads` per day); null while absent.
 export type Metrics = MetricsBlock & { week: string; prev: MetricsBlock | null; days: MetricsDay[] | null }
 
 // Daily rows from `days`: each has a date and the event counts either under `site` or flat.
@@ -745,7 +745,12 @@ function metricsDays(raw: unknown): MetricsDay[] | null {
     const date = typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : null
     if (!date) continue
     const src = r.site && typeof r.site === 'object' ? rec(r.site) : r
-    out.push({ date, site: Object.fromEntries(SITE_EVENTS.map((k) => [k, Math.max(0, num(src[k]))])) as Record<SiteEventName, number> })
+    out.push({
+      date,
+      site: Object.fromEntries(SITE_EVENTS.map((k) => [k, Math.max(0, num(src[k]))])) as Record<SiteEventName, number>,
+      blogHits: Math.max(0, num(rec(r.blog).hits)),
+      leads: Math.max(0, num(r.leads)),
+    })
   }
   return out.length >= 2 ? out : null
 }
@@ -755,6 +760,13 @@ function metricsDays(raw: unknown): MetricsDay[] | null {
 export function eventSeries(m: Pick<Metrics, 'days' | 'site' | 'prev'>, e: SiteEventName): { values: number[]; daily: boolean } {
   if (m.days) return { values: m.days.map((d) => d.site[e]), daily: true }
   return { values: [m.prev?.site[e] ?? 0, m.site[e]], daily: false }
+}
+
+// The seven bars of the «по дням» chart for one metric: a site event, blog hits or leads.
+export type DayMetric = SiteEventName | 'blogHits' | 'leads'
+export function daySeries(m: Pick<Metrics, 'days'>, key: DayMetric): { date: string; value: number }[] | null {
+  if (!m.days) return null
+  return m.days.map((d) => ({ date: d.date, value: key === 'blogHits' ? d.blogHits : key === 'leads' ? d.leads : d.site[key] }))
 }
 
 function metricsBlock(raw: unknown): MetricsBlock {
@@ -813,7 +825,17 @@ export type Routine = {
 }
 export type DeptCost = { dept: string; todayUsd: number; monthUsd: number; limitUsd: number | null }
 export type TrustRow = { kind: string; level: 0 | 1; locked: boolean; approvals: number }
-export type Playbook = { role: string; updatedAt: string | null; lines: number }
+export type Playbook = { role: string; updatedAt: string | null; lines: number; sourceSkills: string[] }
+
+const PLAYBOOK_ROLE_RE = /^[a-z][a-z0-9-]{0,63}$/
+export const playbookRoleOk = (v: unknown): v is string => typeof v === 'string' && PLAYBOOK_ROLE_RE.test(v)
+
+// `GET /admin/company/playbooks/:role` -> the whole markdown text; null for a bad or empty body.
+export function normalizePlaybookText(body: unknown): { role: string; text: string } | null {
+  const b = rec(body)
+  if (!playbookRoleOk(b.role) || typeof b.text !== 'string' || !b.text.trim()) return null
+  return { role: b.role, text: b.text.slice(0, 200_000) }
+}
 export type Worker = { id: string; dept: string; title: string; state: string }
 export type CompanyTool = {
   name: string
@@ -941,7 +963,7 @@ export function normalizeCompany(body: unknown): Company | null {
     playbooks: arr(b.playbooks, 50)
       .map((p) => {
         const r = rec(p)
-        return nameOk(r.role) ? { role: r.role, updatedAt: when(r.updatedAt), lines: Math.max(0, num(r.lines)) } : null
+        return nameOk(r.role) ? { role: r.role, updatedAt: when(r.updatedAt), lines: Math.max(0, num(r.lines)), sourceSkills: arr(r.sourceSkills, 20).filter((x): x is string => typeof x === 'string' && /^[\w:.-]{1,64}$/.test(x)) } : null
       })
       .filter((x): x is Playbook => !!x),
     workers: arr(b.workers, 100)

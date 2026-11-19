@@ -1,17 +1,17 @@
 'use client'
 
 import { LockSimple, Play } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { errText, fill, hq } from '@/components/admin/control/api'
 import { CrmDrawer } from '@/components/admin/control/crm-hq-ui'
 import { Sparkline } from '@/components/admin/sparkline'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { plainBotText } from '@/lib/hq-admin-view'
 import { formatUntil } from '@/lib/office-view'
-import { limitShare, limitsText, normalizeCompany, routineRow, toolGroups, toolState, trustRow, type CompanyTool, type Routine, type TrustRow } from '@/lib/pult'
+import { limitShare, limitsText, normalizeCompany, normalizePlaybookText, routineRow, toolGroups, toolState, trustRow, type CompanyTool, type Routine, type TrustRow } from '@/lib/pult'
 import { Chip, shortTime, usd } from './bits'
-import { Empty, Loading, Offline, useConfirm, useHqView, useHub } from '../hub/ui'
+import { CopyButton, Empty, Loading, Offline, useConfirm, useHqView, useHub } from '../hub/ui'
+import { Markdown } from './markdown'
 
 const k = admin.pult.company
 const dept = (id: string) => (admin.hub.panels as Record<string, string>)[id.replace(/[^a-z]/g, '')] ?? id
@@ -113,7 +113,8 @@ export function CompanyTab() {
   const { now, notify } = useHub()
   const feed = useHqView('company', normalizeCompany, { visible: 60_000, hidden: 300_000 })
   const { ask, dialog } = useConfirm()
-  const [playbook, setPlaybook] = useState<{ role: string; text: string | null } | null>(null)
+  const [playbook, setPlaybook] = useState<{ role: string; text: string | null; error: string | null } | null>(null)
+  const asked = useRef('')
   const c = feed.view
 
   const setRoutine = async (r: Routine, enabled: boolean) => {
@@ -150,10 +151,16 @@ export function CompanyTab() {
     }
   }
   const openPlaybook = async (role: string) => {
-    setPlaybook({ role, text: null })
-    const res = await hq<{ replies?: string[] }>('command', { name: 'playbook', arg: role })
-    const text = res.ok && Array.isArray(res.replies) ? res.replies.map((r) => plainBotText(String(r))).join('\n\n') : null
-    setPlaybook({ role, text: text || (res.ok ? k.playbookEmpty : fill(k.failed, { e: errText(res.error) })) })
+    asked.current = role
+    setPlaybook({ role, text: null, error: null })
+    const res = await hq<{ role?: unknown; text?: unknown }>(`company/playbooks/${role}`)
+    if (asked.current !== role) return
+    const parsed = res.ok ? normalizePlaybookText(res) : null
+    setPlaybook({ role, text: parsed?.text ?? null, error: parsed ? null : res.ok ? k.playbookEmpty : fill(k.failed, { e: errText(res.error) }) })
+  }
+  const closePlaybook = () => {
+    asked.current = ''
+    setPlaybook(null)
   }
 
   if (!c) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading rows={4} />
@@ -242,11 +249,27 @@ export function CompanyTab() {
       <section className="grid gap-2">
         <h3 className="text-sm font-medium">{k.playbooks}</h3>
         {c.playbooks.length ? (
-          <ul className="flex flex-wrap gap-1.5">
+          <ul className="grid gap-1">
             {c.playbooks.map((p) => (
               <li key={p.role}>
-                <button type="button" onClick={() => void openPlaybook(p.role)} className="rounded-full border border-line-strong px-3 py-1.5 text-xs hover:border-accent">
-                  {p.role} <span className="text-faint">· {fill(k.lines, { n: p.lines })}</span>
+                <button
+                  type="button"
+                  onClick={() => void openPlaybook(p.role)}
+                  aria-label={fill(k.playbookOpen, { role: p.role })}
+                  className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-line bg-bg/50 px-3 py-2 text-left hover:border-accent"
+                >
+                  <span className="min-w-[8rem] flex-[1_1_8rem] font-mono text-sm">{p.role}</span>
+                  <span className="text-xs text-muted">
+                    {fill(k.lines, { n: p.lines })}
+                    {p.updatedAt ? ` · ${fill(k.playbookUpdated, { t: shortTime(p.updatedAt) })}` : ''}
+                  </span>
+                  {p.sourceSkills.length ? (
+                    <span className="flex basis-full flex-wrap gap-1 sm:basis-auto">
+                      {p.sourceSkills.map((sk) => (
+                        <Chip key={sk}>{sk}</Chip>
+                      ))}
+                    </span>
+                  ) : null}
                 </button>
               </li>
             ))}
@@ -275,8 +298,20 @@ export function CompanyTab() {
         )}
       </section>
       {dialog}
-      <CrmDrawer open={playbook !== null} title={playbook?.role ?? ''} subtitle={k.playbook} onClose={() => setPlaybook(null)}>
-        {playbook?.text ? <p className="text-sm whitespace-pre-wrap">{playbook.text}</p> : <Loading />}
+      <CrmDrawer open={playbook !== null} title={playbook?.role ?? ''} subtitle={k.playbook} onClose={closePlaybook}>
+        {playbook?.text ? (
+          <div className="grid gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="min-w-0 flex-1 text-xs text-faint">{k.playbookHint}</p>
+              <CopyButton text={playbook.text} />
+            </div>
+            <Markdown text={playbook.text} />
+          </div>
+        ) : playbook?.error ? (
+          <Empty>{playbook.error}</Empty>
+        ) : (
+          <Loading />
+        )}
       </CrmDrawer>
     </div>
   )
