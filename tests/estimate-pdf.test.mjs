@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import en from '../src/content/en.ts'
 import ru from '../src/content/ru.ts'
 import { decodeBuild, encodeBuild, quote } from '../src/lib/builder.ts'
-import { estimateDoc, formatDocDate, formatRange } from '../src/lib/estimate-doc.ts'
+import { estimateDoc, formatDocDate, leadSummary, scopeLine } from '../src/lib/estimate-doc.ts'
 import { siteUrl } from '../src/lib/site.ts'
 
 const code = 'websites.landing.telegram~bots.booking.payments~automation.crm~x.seo-support'
@@ -23,8 +23,8 @@ test('estimateDoc: rows, totals and link match the builder quote', () => {
     doc.extras.map((r) => r.id),
     ['seo'],
   )
-  assert.equal(doc.total, formatRange(q.total))
-  assert.equal(doc.subtotal, formatRange(q.subtotal))
+  assert.equal(doc.total, `$${q.total.toLocaleString('en-US')}`)
+  assert.equal(doc.subtotal, `$${q.subtotal.toLocaleString('en-US')}`)
   assert.equal(doc.discount, "-10%")
   assert.equal(doc.monthly, `$${q.monthly}${ru.builder.perMonth}`)
   assert.equal(doc.link, `${siteUrl}/ru/builder?b=${encodeBuild(build)}`)
@@ -44,4 +44,25 @@ test('formatDocDate: localized long date', () => {
   const date = new Date(2026, 9, 16)
   assert.match(formatDocDate(date, 'ru'), /16 октября 2026/)
   assert.equal(formatDocDate(date, 'en'), '16 October 2026')
+})
+
+test('no ranges: every price in the doc is one exact amount', () => {
+  const doc = estimateDoc(decodeBuild(code), ru, 'ru')
+  for (const price of [...doc.parts, ...doc.extras].map((r) => r.price).concat(doc.subtotal, doc.total))
+    assert.match(price, /^\$[\d,]+$/)
+})
+
+test('scope line: nothing, both, or one of domain and hosting', () => {
+  const base = decodeBuild('apps.pwa')
+  const withHas = (has) => ({ ...base, details: { has } })
+  for (const [dict, d] of [[ru, 'ru'], [en, 'en']]) {
+    const s = dict.builder.scope
+    assert.equal(scopeLine(base, dict), s.none, d)
+    assert.equal(scopeLine(withHas(['domain', 'hosting']), dict), s.both, d)
+    assert.equal(scopeLine(withHas(['domain']), dict), s.domain, d)
+    assert.equal(scopeLine(withHas(['hosting', 'logo']), dict), s.hosting, d)
+    assert.equal(estimateDoc(base, dict, d).scope, s.none)
+  }
+  assert.match(ru.builder.scope.none, /Домен, хостинг, сервер и платные сторонние сервисы \(SMS, API, платежи\) в сумму не входят/)
+  assert.match(leadSummary(base, ru, 'ru'), /в сумму не входят/)
 })

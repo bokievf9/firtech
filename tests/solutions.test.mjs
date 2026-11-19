@@ -58,7 +58,6 @@ test('solutions: the builder link decodes back to the preset', () => {
 test('solutions: every preset has a priced starting set', () => {
   for (const kind of allSolutionKinds) {
     const q = quote(presets[kind])
-    assert.ok(q.lines.length > 0 && q.total.min > 0, kind)
-    assert.ok(q.total.max >= q.total.min, kind)
+    assert.ok(q.lines.length > 0 && q.total > 0, kind)
   }
 })

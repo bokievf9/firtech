@@ -39,14 +39,26 @@ export type EstimateDoc = {
   monthly: string | null
   // The money-back guarantee sentence for the footer notes (dictionary `guarantee.line`).
   guarantee: string
+  // What is not in the price (domain, hosting, paid third-party services), per the brief.
+  scope: string
   link: string
   brief: Brief
 }
 
 type Variants = Record<string, { name: string; term: string }>
 
-export const formatRange = (r: { min: number; max: number }) =>
-  `${formatUsd(r.min)} - ${formatUsd(r.max)}`
+// What the price does not cover: domain, hosting, paid third-party services. Depends on what the
+// client already has (`has` in the brief); the strings live in the dictionaries (`builder.scope`).
+export function scopeLine(build: Build, dict: Dict) {
+  const has = build.details?.has ?? []
+  const domain = has.includes('domain')
+  const hosting = has.includes('hosting')
+  const s = dict.builder.scope
+  if (domain && hosting) return s.both
+  if (domain) return s.domain
+  if (hosting) return s.hosting
+  return s.none
+}
 
 const isService = (id: string): id is ServiceSlug =>
   (serviceSlugs as readonly string[]).includes(id)
@@ -66,7 +78,7 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
         name: dict.services.items[line.id].name,
         detail: [variant?.name, ...addons].filter(Boolean).join(' + '),
         term: variant?.term ?? '',
-        price: formatRange(line),
+        price: formatUsd(line.price),
       })
     } else {
       extras.push({
@@ -74,7 +86,7 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
         name: dict.extras.items[line.id].name,
         detail: '',
         term: '',
-        price: formatRange(line),
+        price: formatUsd(line.price),
       })
     }
   }
@@ -92,12 +104,13 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
     onRequest,
     parts,
     extras,
-    subtotal: formatRange(q.subtotal),
+    subtotal: formatUsd(q.subtotal),
     discount: q.discount ? `-${Math.round(bundleDiscount * 100)}%` : null,
     // No priced lines: nothing to sum, the quote says so instead of showing zero.
-    total: q.lines.length ? formatRange(q.total) : quoteWord,
+    total: q.lines.length ? formatUsd(q.total) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
     guarantee: dict.guarantee.line,
+    scope: scopeLine(build, dict),
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,
     brief: briefOf(build, dict, locale),
   }
@@ -212,6 +225,7 @@ export function leadSummary(build: Build, dict: Dict, locale: string) {
       `${pick(ui.onRequestLabel, locale)}: ${doc.onRequest.map((row) => row.name).join(', ')}`,
     )
   if (doc.monthly) lines.push(`${dict.extras.items.support.name}: ${doc.monthly}`)
+  lines.push(doc.scope)
   const { goals, style, details } = doc.brief
   for (const row of goals) lines.push(`${row.label}: ${row.value}`)
   if (style.length) lines.push(`${t.styleLabel}: ${style.map((row) => row.value).join(', ')}`)

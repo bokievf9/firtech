@@ -111,8 +111,7 @@ test('presets: every kind has a priced, decodable starting set carrying kind and
     assert.deepEqual(preset.products ?? [], kindCatalog[id].products)
     assert.deepEqual(decodeBuild(encodeBuild(preset)), preset, id)
     const q = quote(preset)
-    assert.ok(q.lines.length > 0 && q.total.min > 0, `${id}: priced`)
-    assert.ok(q.total.max >= q.total.min, id)
+    assert.ok(q.lines.length > 0 && q.total > 0, `${id}: priced`)
     // Every part is a real variant with real options: nothing is dropped on decode.
     const link = decodeBuild(encodeBuild(preset))
     assert.deepEqual(link.parts, preset.parts, `${id}: parts survive`)
@@ -175,7 +174,7 @@ test('products: the product line, prices only from pricing.ts', () => {
     const parts = productParts(id)
     if (p.priced) {
       assert.ok(Object.keys(parts).length > 0, `${id}: parts`)
-      assert.ok(quote({ parts, extras: [] }).total.min > 0, `${id}: priced`)
+      assert.ok(quote({ parts, extras: [] }).total > 0, `${id}: priced`)
     } else assert.deepEqual(parts, {}, `${id}: unpriced selects nothing`)
   }
   assert.deepEqual(
@@ -192,7 +191,7 @@ test('products: products without a price are listed apart and never summed', () 
   const only = { parts: {}, extras: [], products: ['content', 'agent'] }
   const q = quote(only)
   assert.deepEqual(q.lines, [])
-  assert.deepEqual(q.total, { min: 0, max: 0 })
+  assert.equal(q.total, 0)
   for (const [locale, dict] of locales) {
     const doc = estimateDoc(only, dict, locale)
     assert.equal(doc.onRequest.length, 2)
@@ -279,10 +278,10 @@ test('link: the kind and product chunks round trip, old links decode as before',
 })
 
 test('quote: estimate() and the old combinations are unchanged', () => {
-  assert.deepEqual(estimate('websites', 'landing', ['telegram']), { min: 170, max: 240 })
-  assert.deepEqual(estimate('bots', 'booking', ['payments']), { min: 310, max: 430 })
-  assert.deepEqual(estimate('websites', 'shop', ['payments', 'cms']), { min: 860, max: 1200 })
-  assert.deepEqual(quote(presets.cafe).total, { min: 480, max: 670 })
+  assert.equal(estimate('websites', 'landing', ['telegram']), 170)
+  assert.equal(estimate('bots', 'booking', ['payments']), 310)
+  assert.equal(estimate('websites', 'shop', ['payments', 'cms']), 860)
+  assert.equal(quote(presets.cafe).total, 480)
   // Kind, products and style never change a price.
   const bare = { parts: presets.cafe.parts, extras: presets.cafe.extras }
   assert.deepEqual(quote(presets.cafe), quote(bare))

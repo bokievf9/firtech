@@ -59,7 +59,7 @@ export function solutionCopy(kind: SolutionKind, locale: string, dict: Dict): So
   if (written) return written
   const entry = kindCatalog[kind]
   const [name, title, sub, pains, gets] = locale === 'ru' ? entry.ru : entry.en
-  const from = formatUsd(quote(presets[kind]).total.min)
+  const from = formatUsd(quote(presets[kind]).total)
   return {
     metaTitle: title,
     metaDescription: metaDescription(sub, locale),

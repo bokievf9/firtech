@@ -492,7 +492,15 @@ const en: Dict = {
     termsNote:
       'Timelines are per part. We will give the exact overall timeline in the quote: some work can run in parallel.',
     payNote: 'Payment: 50% before we start and 50% after acceptance. Projects longer than a month go in stages from the quote.',
-    note: 'This is a rough estimate. We fix the exact price in the quote after a short call.',
+    note: 'The price is exact for the selected options. We fix it in the quote when you confirm.',
+    scope: {
+      none: 'Domain, hosting, server and paid third-party services (SMS, APIs, payments) are not included: the client pays for them directly, and prices vary. For reference: a domain is $10-15 a year, hosting from $5 a month.',
+      both: 'You already have a domain and hosting, we will use them; paid third-party services (SMS, APIs, payments) are billed separately.',
+      domain:
+        'You already have a domain, we will use it. Hosting, server and paid third-party services (SMS, APIs, payments) are not included: the client pays for them directly. For reference: hosting from $5 a month.',
+      hosting:
+        'You already have hosting, we will use it. A domain and paid third-party services (SMS, APIs, payments) are not included: the client pays for them directly. For reference: a domain is $10-15 a year.',
+    },
     send: 'Send my build',
     copy: 'Copy link',
     copied: 'Link copied',
@@ -1062,9 +1070,9 @@ const en: Dict = {
     service: 'What we build',
     variant: 'Format',
     addons: 'Extras',
-    total: 'Approximate cost',
+    total: 'Cost',
     term: 'Timeline',
-    note: 'This is a rough estimate. We confirm the exact price after a short call and fix it in the quote.',
+    note: 'The price is exact for the selected options. We fix it in the quote when you confirm. Domain, hosting and paid third-party services are not included.',
     cta: 'Discuss a project',
     catalog: {
       websites: {
@@ -1853,7 +1861,7 @@ const en: Dict = {
         },
         {
           q: 'Who hosts the website?',
-          a: 'We do the setup. We help you buy the domain and hosting in your name and configure everything.',
+          a: 'We do the setup. We help you buy the domain and hosting in your name and configure everything. The domain, hosting and paid third-party services are not in the price of the site, the client pays for them directly, and their prices vary.',
         },
         {
           q: 'Can I add pages later?',

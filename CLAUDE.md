@@ -51,7 +51,10 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `HQ_STATUS_URL` optional, else the origin of `LEAD_INTAKE_URL` + `/status`; the site row comes from its own `/api/health`
   when HQ says `unknown`; dev mock). Both pages are in `localePages`, the sitemap and the footer «Студия». Tests: `tests/site-e.test.mjs`.
 - Builder (`/[locale]/builder`, logic in `src/lib/builder.ts`, tested): the visitor combines
-  services, options and extras into one quote. Prices come from `pricing.ts`; `bundleDiscount`
+  services, options and extras into one quote. Prices are exact (owner 2026-11-19: no ranges; `quote()` lines
+  are `price: number`, `estimate()` returns a number); domain, hosting, server and paid third-party services are
+  never included and the line saying so is `builder.scope` (`scopeLine()` in `estimate-doc.ts`, varies with the
+  brief's `has`), shown in the summary, the PDF notes and the lead text. Prices come from `pricing.ts`; `bundleDiscount`
   (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never
   summed. The build lives in `?b=` so it can be shared; the lead arrives as service `bundle` with
   the full list and the link.

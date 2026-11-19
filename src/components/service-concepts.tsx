@@ -50,7 +50,7 @@ export function ServiceConcepts({
       {conceptsFor[slug].map((id) => {
         const item = s.items[id]
         const c = cases[id]
-        const { min } = estimate(c.service, c.variant, c.addons)
+        const price = estimate(c.service, c.variant, c.addons)
         return (
           <Reveal key={id}>
             <article className="grid overflow-hidden rounded-card border border-line bg-surface lg:min-h-[520px] lg:grid-cols-[1.05fr_1fr]">
@@ -77,7 +77,7 @@ export function ServiceConcepts({
                 <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4 lg:mt-auto lg:pt-8">
                   <p className="font-mono text-2xl text-accent">
                     <span className="text-sm text-muted">{s.from} </span>
-                    {formatUsd(min)}
+                    {formatUsd(price)}
                   </p>
                   <p className="flex items-center gap-1.5 text-sm text-muted">
                     <Clock size={15} />

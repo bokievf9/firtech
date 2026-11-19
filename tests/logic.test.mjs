@@ -14,9 +14,9 @@ test('pickLocale: Russian and CIS languages get ru, English gets en', () => {
 })
 
 test('estimate: base price plus extras, upper bound 40% higher', () => {
-  assert.deepEqual(estimate('websites', 'landing', []), { min: 150, max: 210 })
-  assert.deepEqual(estimate('bots', 'faq', ['ai']), { min: 220, max: 310 })
-  assert.deepEqual(estimate('apps', 'unknown', ['nope']), { min: 0, max: 0 })
+  assert.equal(estimate('websites', 'landing', []), 150)
+  assert.equal(estimate('bots', 'faq', ['ai']), 220)
+  assert.equal(estimate('apps', 'unknown', ['nope']), 0)
 })
 
 test('lead schema: requires name and contact, defaults the rest', () => {
@@ -58,16 +58,17 @@ test('dictionaries: hero, showcase and products line up in both languages', asyn
 test('builder quote: parts add up, 10% off from two parts, support is monthly', async () => {
   const { quote } = await import('../src/lib/builder.ts')
   const single = quote({ parts: { websites: { variant: 'landing', addons: [] } }, extras: [] })
-  assert.deepEqual(single.total, { min: 150, max: 210 })
+  assert.equal(single.total, 150)
+  assert.deepEqual(single.lines, [{ id: 'websites', price: 150 }])
   assert.equal(single.discount, null)
 
   const combo = quote({
     parts: { websites: { variant: 'landing', addons: [] }, bots: { variant: 'faq', addons: [] } },
     extras: ['support'],
   })
-  assert.deepEqual(combo.subtotal, { min: 250, max: 350 })
-  assert.deepEqual(combo.discount, { min: 30, max: 40 })
-  assert.deepEqual(combo.total, { min: 220, max: 310 })
+  assert.equal(combo.subtotal, 250)
+  assert.equal(combo.discount, 30)
+  assert.equal(combo.total, 220)
   assert.equal(combo.monthly, 20)
   assert.equal(quote({ parts: {}, extras: ['support'] }).discount, null)
 })

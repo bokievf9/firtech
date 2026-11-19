@@ -63,12 +63,13 @@ export type Plan = (typeof agentPlans)[number] | (typeof contentPlans)[number]
 // Owner decision (2026-10-16): 10% off the one-time total when a build has two or more parts.
 export const bundleDiscount = 0.1
 
-// The estimate is a range: the base sum is the floor, complex details add up to 40% on top.
+// The price is exact (owner decision 2026-11-19): the variant plus its add-ons, no range.
+// Domain, hosting and paid third-party services are never included (see `builder.scope`).
 export function estimate(service: ServiceSlug, variant: string, addons: string[]) {
   const prices = catalog[service]
-  const base =
+  return (
     (prices.variants[variant] ?? 0) + addons.reduce((sum, id) => sum + (prices.addons[id] ?? 0), 0)
-  return { min: base, max: Math.round((base * 1.4) / 10) * 10 }
+  )
 }
 
 export function formatUsd(value: number) {

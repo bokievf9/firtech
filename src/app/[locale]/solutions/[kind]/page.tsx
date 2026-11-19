@@ -15,7 +15,7 @@ import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd, faqJsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
 import { RiseText } from '@/components/rise-text'
-import { SolutionSet, usdRange } from '@/components/solution-parts'
+import { SolutionSet } from '@/components/solution-parts'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
 import { kindCatalog, kindName } from '@/content/builder-catalog'
@@ -84,14 +84,8 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
     offers: {
       '@type': 'Offer',
       name: `${t.startSet}: ${kindName(kind, locale)}`,
-      price: q.total.min,
+      price: q.total,
       priceCurrency: 'USD',
-      priceSpecification: {
-        '@type': 'PriceSpecification',
-        minPrice: q.total.min,
-        maxPrice: q.total.max,
-        priceCurrency: 'USD',
-      },
     },
   }
 
@@ -140,9 +134,8 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
               {t.startSet} {t.from}
             </p>
             <p className="mt-1 font-mono text-5xl tracking-tight text-accent">
-              {formatUsd(q.total.min)}
+              {formatUsd(q.total)}
             </p>
-            <p className="mt-2 font-mono text-sm text-muted">{usdRange(q.total)}</p>
             {q.discount && <p className="mt-3 text-sm text-accent">{dict.builder.discount}</p>}
             {q.monthly !== null && (
               <p className="mt-1 font-mono text-sm text-muted">
@@ -243,7 +236,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                 <span className="min-w-0">
                   <span className="block font-medium">{kindName(other, locale)}</span>
                   <span className="font-mono text-sm text-muted">
-                    {t.from} {formatUsd(quote(presets[other]).total.min)}
+                    {t.from} {formatUsd(quote(presets[other]).total)}
                   </span>
                 </span>
                 <ArrowUpRight

@@ -107,7 +107,7 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
                           <div className="mt-8 flex items-end justify-between gap-4 pt-2 lg:mt-auto">
                             <p className="font-mono text-2xl text-accent">
                               <span className="text-sm text-muted">{t.from} </span>
-                              {formatUsd(q.total.min)}
+                              {formatUsd(q.total)}
                             </p>
                             <span className="inline-flex items-center gap-1.5 text-sm text-muted">
                               {t.more}

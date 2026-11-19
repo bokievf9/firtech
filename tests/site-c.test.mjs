@@ -68,8 +68,9 @@ test('copy: no AI tells (not X but Y, triads of "no/without")', () => {
 })
 
 test('copy: no hardcoded dollar amounts, prices come from pricing.ts', () => {
+  // `scope` quotes third-party domain and hosting prices for orientation, not ours.
   // Budget ranges of the form and mock-up demo content are not prices of ours.
-  const allowed = /(^|\.)(budget|budgets|botFaqAnswer|aiReply)(\.|\[|$)/
+  const allowed = /(^|\.)(budget|budgets|botFaqAnswer|aiReply|scope)(\.|\[|$)/
   // Article prices are filled from src/content/blog/prices.ts (see blog.test.mjs).
   for (const [name, value] of copy.filter(([n]) => n !== 'blog'))
     for (const [at, text] of strings(value))

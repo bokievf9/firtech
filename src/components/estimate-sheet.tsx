@@ -58,6 +58,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
     dict.builder.payNote,
     ...(doc.onRequest.length ? [pick(builderUi.onRequestNote, locale)] : []),
     ...(doc.monthly ? [dict.builder.monthlyNote] : []),
+    doc.scope,
     dict.builder.note,
     doc.guarantee,
   ]

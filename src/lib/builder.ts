@@ -243,12 +243,12 @@ export function applyKind(build: Build, id: BusinessKind): Build {
   return next
 }
 
-export type QuoteLine = { id: ServiceSlug | BuildExtra; min: number; max: number }
+export type QuoteLine = { id: ServiceSlug | BuildExtra; price: number }
 export type Quote = {
   lines: QuoteLine[]
-  subtotal: { min: number; max: number }
-  discount: { min: number; max: number } | null
-  total: { min: number; max: number }
+  subtotal: number
+  discount: number | null
+  total: number
   monthly: number | null
 }
 
@@ -258,7 +258,7 @@ export function quote(build: Build): Quote {
   const lines: QuoteLine[] = []
   for (const slug of serviceSlugs) {
     const part = build.parts[slug]
-    if (part) lines.push({ id: slug, ...estimate(slug, part.variant, part.addons) })
+    if (part) lines.push({ id: slug, price: estimate(slug, part.variant, part.addons) })
   }
   let monthly: number | null = null
   for (const id of buildExtras) {
@@ -266,19 +266,11 @@ export function quote(build: Build): Quote {
     const { from, monthly: perMonth } = extraPrice[id]
     if (from === null) continue
     if (perMonth) monthly = (monthly ?? 0) + from
-    else lines.push({ id, min: from, max: round10(from * 1.4) })
+    else lines.push({ id, price: from })
   }
-  const subtotal = {
-    min: lines.reduce((sum, l) => sum + l.min, 0),
-    max: lines.reduce((sum, l) => sum + l.max, 0),
-  }
-  const discount =
-    lines.length >= 2
-      ? { min: round10(subtotal.min * bundleDiscount), max: round10(subtotal.max * bundleDiscount) }
-      : null
-  const total = discount
-    ? { min: subtotal.min - discount.min, max: subtotal.max - discount.max }
-    : subtotal
+  const subtotal = lines.reduce((sum, l) => sum + l.price, 0)
+  const discount = lines.length >= 2 ? round10(subtotal * bundleDiscount) : null
+  const total = discount ? subtotal - discount : subtotal
   return { lines, subtotal, discount, total, monthly }
 }
 

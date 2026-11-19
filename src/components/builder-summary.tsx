@@ -129,6 +129,7 @@ export function SummaryStep({
             <li>{t.termsNote}</li>
             <li>{t.payNote}</li>
             {q.monthly !== null && <li>{t.monthlyNote}</li>}
+            <li>{doc.scope}</li>
             <li>{t.note}</li>
           </ul>
         </Panel>

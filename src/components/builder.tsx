@@ -21,7 +21,7 @@ import {
   type ProductId,
 } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
-import { formatRange, leadSummary } from '@/lib/estimate-doc'
+import { leadSummary } from '@/lib/estimate-doc'
 import { sendEstimate } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
 import { catalog, formatUsd } from '@/lib/pricing'
@@ -356,7 +356,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
               {!last && canGo && <span className="hidden lg:inline"> · {t.enterHint}</span>}
             </p>
             <p className="truncate font-mono text-sm text-accent md:text-base" aria-live="polite">
-              {hasParts ? formatRange(q.total) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
+              {hasParts ? formatUsd(q.total) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
               {hasParts && onRequest.length > 0 && (
                 <span className="hidden text-muted sm:inline">
                   {' '}

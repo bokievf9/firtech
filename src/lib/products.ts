@@ -42,7 +42,7 @@ export const productPrice: Record<ProductId, ProductPrice> = Object.fromEntries(
     if (id === 'content') return [id, { kind: 'plans', plans: contentPlans }]
     const entry = productCatalog[builderProduct[id]]
     if (!entry.priced) return [id, { kind: 'quote' }]
-    const min = quote({ parts: productParts(builderProduct[id]), extras: [] }).total.min
+    const min = quote({ parts: productParts(builderProduct[id]), extras: [] }).total
     return [id, min > 0 ? { kind: 'from', from: min } : { kind: 'quote' }]
   }),
 ) as Record<ProductId, ProductPrice>

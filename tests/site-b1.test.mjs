@@ -33,7 +33,7 @@ test('product prices come only from pricing.ts (as the builder counts them), or 
     const entry = productCatalog[builderProduct[id]]
     if (price.kind === 'from') {
       assert.ok(entry.priced, id)
-      assert.equal(price.from, quote({ parts: productParts(builderProduct[id]), extras: [] }).total.min, id)
+      assert.equal(price.from, quote({ parts: productParts(builderProduct[id]), extras: [] }).total, id)
     } else if (price.kind === 'plans') {
       assert.ok(price.plans === agentPlans || price.plans === contentPlans, id)
       assert.equal(entry.priced, false, id)

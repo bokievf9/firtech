@@ -8,9 +8,6 @@ import type { SolutionKind } from '@/lib/solutions'
 
 type Variants = Record<string, { name: string; term: string }>
 
-export const usdRange = (r: { min: number; max: number }) =>
-  `${formatUsd(r.min)} - ${formatUsd(r.max)}`
-
 function isService(id: string): id is ServiceSlug {
   return (serviceSlugs as readonly string[]).includes(id)
 }
@@ -57,7 +54,7 @@ export function SolutionSet({
             return (
               <li key={line.id} className="flex items-start justify-between gap-4 py-5">
                 <span className="font-medium">{dict.extras.items[line.id].name}</span>
-                <span className="shrink-0 font-mono text-sm">{usdRange(line)}</span>
+                <span className="shrink-0 font-mono text-sm">{formatUsd(line.price)}</span>
               </li>
             )
           }
@@ -86,7 +83,7 @@ export function SolutionSet({
                 )}
               </div>
               <div className="flex items-baseline justify-between gap-4 sm:block sm:text-right">
-                <p className="font-mono text-sm">{usdRange(line)}</p>
+                <p className="font-mono text-sm">{formatUsd(line.price)}</p>
                 {variant && (
                   <p className="text-xs text-faint sm:mt-1.5">
                     {t.term}: {variant.term}
@@ -109,7 +106,7 @@ export function SolutionSet({
       <dl className="mt-5 grid gap-2 text-sm">
         {q.discount && (
           <>
-            <Row label={b.subtotal} value={usdRange(q.subtotal)} className="text-muted" />
+            <Row label={b.subtotal} value={formatUsd(q.subtotal)} className="text-muted" />
             <Row
               label={b.discount}
               value={`-${Math.round(bundleDiscount * 100)}%`}
@@ -119,7 +116,7 @@ export function SolutionSet({
         )}
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <dt>{b.total}</dt>
-          <dd className="font-mono text-2xl text-accent">{usdRange(q.total)}</dd>
+          <dd className="font-mono text-2xl text-accent">{formatUsd(q.total)}</dd>
         </div>
       </dl>
       <ul className="mt-6 grid gap-2 text-[13px] leading-relaxed text-faint">

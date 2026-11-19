@@ -233,7 +233,7 @@ export function ProductsStep({
               const Glyph = productIcons[id]
               const on = picked.includes(id)
               const from = entry.priced
-                ? quote({ parts: productParts(id), extras: [] }).total.min
+                ? quote({ parts: productParts(id), extras: [] }).total
                 : null
               return (
                 <Choice key={id} on={on} onClick={() => onToggle(id)} className="flex gap-4 p-5">

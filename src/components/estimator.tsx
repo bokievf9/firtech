@@ -29,8 +29,7 @@ export function Estimator({
 
   const variants = t.catalog[service].variants as Record<string, { name: string; term: string }>
   const addonNames = t.catalog[service].addons as Record<string, string>
-  const { min, max } = estimate(service, variant, addons)
-  const range = `${formatUsd(min)} - ${formatUsd(max)}`
+  const price = formatUsd(estimate(service, variant, addons))
   const term = variants[variant]?.term ?? ''
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export function Estimator({
 
   function handOff() {
     const parts = [variants[variant]?.name, ...addons.map((id) => addonNames[id])].filter(Boolean)
-    sendEstimate({ service, summary: `${parts.join(' + ')}: ${range}, ${term}` })
+    sendEstimate({ service, summary: `${parts.join(' + ')}: ${price}, ${term}` })
     track('estimate_handoff', { service })
     document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
   }
@@ -118,7 +117,7 @@ export function Estimator({
           <div className="mt-2 h-[3.6rem] overflow-hidden">
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.p
-                key={range}
+                key={price}
                 initial={reduce ? false : { y: 28, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={reduce ? undefined : { y: -28, opacity: 0 }}
@@ -126,7 +125,7 @@ export function Estimator({
                 className="font-mono text-[clamp(1.6rem,7vw,2.75rem)] leading-[1.3] tracking-tight whitespace-nowrap text-accent lg:text-[clamp(1.6rem,3.2vw,2.75rem)]"
                 aria-live="polite"
               >
-                {range}
+                {price}
               </motion.p>
             </AnimatePresence>
           </div>
