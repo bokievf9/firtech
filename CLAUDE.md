@@ -129,8 +129,16 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `hq_unreachable|hq_timeout|hq_error|not_found`, dev mock). Env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   (both needed, else the pages say «Кабинет скоро откроется» and header/footer links hide; baked in at build) and optional
   `SUPABASE_SERVICE_ROLE_KEY` (account deletion; without it the button makes a ticket). `src/proxy.ts` refreshes the session on
-  cabinet routes only. Cabinet pages are `noindex`, not in the sitemap. Copy in `cabinet` of the dictionaries; the referral link
-  is `cabinetRefLink` (`/<locale>/?ref=<slug>`), the percent comes from `referralPercent`. Tests: `tests/cabinet.test.mjs`.
+  cabinet routes only (never on the auth callback). Cabinet pages are `noindex`, not in the sitemap. Copy in `cabinet` of the dictionaries; the referral link
+  is `cabinetRefLink` (`/<locale>/?ref=<slug>`), the percent comes from `referralPercent`. Tests: `tests/cabinet*.test.mjs`.
+  Since 2026-11-20 (owner: «вход не работает», «заявки только с аккаунтом», «после заявки в кабинет»): Google starts in the browser
+  (`oauth-button.tsx`), the callback passes `sb_flow_id`, accepts `token_hash`, writes cookies only on success and falls back to a
+  browser retry (`/cabinet/auth/confirm`); errors map to sentences, codes only in the log; `/cabinet/health` shows yes/no per setting.
+  Every lead path (contact form, builder hand-off, PDF estimate, audit, chat contact) needs a signed-in account: 401
+  `auth_required` from `/api/lead` and `/api/audit` (`leadGate`, open while the cabinet is off), inline sign-in step with a
+  24 h draft (`lead-draft.ts`, `draft=1`), identity `clientEmail/cabinetId/clientName` to HQ, redirect to
+  `/<locale>/cabinet?lead=<leadId>`. Cabinet home starts with «Заявки» (stage track, next step, timeline, messages, reply box,
+  30 s refresh). The cabinet link reads «Начать» / «Get started» while signed out. Details: `docs/cabinet.md`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass

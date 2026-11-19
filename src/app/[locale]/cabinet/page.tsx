@@ -2,22 +2,28 @@ import { notFound } from 'next/navigation'
 import { CabinetSoon } from '@/components/cabinet/cabinet-soon'
 import { ProfileForm, DeleteAccount, TicketsPanel } from '@/components/cabinet/cabinet-forms'
 import { DocumentsCard, InvoicesCard, ProjectsCard, ReferralsCard } from '@/components/cabinet/cabinet-cards'
+import { LeadsSection } from '@/components/cabinet/leads-section'
 import { Card, fill } from '@/components/cabinet/ui'
 import { HeroIntro } from '@/components/hero-intro'
 import { getDict } from '@/content'
 import { fetchClientByEmail } from '@/lib/cabinet-hq'
-import type { CabinetData } from '@/lib/cabinet-data'
+import { followLink, pickLead, type CabinetData } from '@/lib/cabinet-data'
 import { requireCabinetUser, syncAfterSignIn } from '@/lib/cabinet-session'
 import { isLocale } from '@/lib/i18n'
+import { defaultTelegramBot } from '@/lib/site'
 import { cabinetEnabled } from '@/lib/supabase/config'
 import { logoutAction } from './actions'
 
-// Cabinet home: signed-out visitors go to the login page; the client's projects, invoices,
-// documents, tickets and referrals come from HQ by the session's email.
+// Cabinet home: signed-out visitors go to the login page; the client's requests, projects,
+// invoices, documents, tickets and referrals come from HQ by the session's email. Order (owner
+// 2026-11-20): Заявки, Проекты, Счета, Документы, Обращения, Рекомендации, then the profile.
+// `?lead=<id>|new` arrives right after a request (the card is highlighted or a «принята» note
+// shows), `follow=` keeps the Telegram follow link, `password=updated` after a reset.
 export const dynamic = 'force-dynamic'
 
 const emptyData = (email: string, name: string): CabinetData => ({
   client: { id: 0, name, email, telegram: '', createdAt: null },
+  leads: null,
   projects: [],
   invoices: [],
   documents: [],
@@ -26,7 +32,7 @@ const emptyData = (email: string, name: string): CabinetData => ({
   referralSlug: null,
 })
 
-export default async function CabinetPage({ params }: PageProps<'/[locale]/cabinet'>) {
+export default async function CabinetPage({ params, searchParams }: PageProps<'/[locale]/cabinet'>) {
   const { locale } = await params
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
@@ -41,6 +47,10 @@ export default async function CabinetPage({ params }: PageProps<'/[locale]/cabin
   const data = result.ok ? result.data : emptyData(email, name)
   const hqProblem = !result.ok && result.error !== 'not_found' ? result.error : null
   const t = dict.cabinet
+  const query = await searchParams
+  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
+  const leadParam = one(query.lead)
+  const bot = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || defaultTelegramBot).replace(/^@/, '')
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
@@ -71,7 +81,21 @@ export default async function CabinetPage({ params }: PageProps<'/[locale]/cabin
         </p>
       )}
 
+      {one(query.password) === 'updated' && (
+        <p role="status" className="mt-8 rounded-xl border border-accent/40 px-4 py-3 text-sm text-fg">
+          {t.home.passwordUpdated}
+        </p>
+      )}
+
       <div className="mt-10 grid gap-gutter lg:grid-cols-2">
+        <LeadsSection
+          dict={dict}
+          locale={locale}
+          initial={data.leads}
+          focus={pickLead(data.leads, leadParam)}
+          fresh={Boolean(leadParam)}
+          follow={followLink(one(query.follow), bot)}
+        />
         <ProjectsCard data={data} dict={dict} locale={locale} />
         <InvoicesCard data={data} dict={dict} locale={locale} />
         <DocumentsCard data={data} dict={dict} locale={locale} />

@@ -61,8 +61,26 @@ export type CabinetClient = {
   telegram: string
   createdAt: string | null
 }
+// A request (lead) as HQ shows it to its client (by-email `leads`, agents b313a11).
+export type LeadEvent = { at: string | null; kind: string; title: string }
+export type LeadReply = { at: string | null; text: string; from: 'manager' | 'client' }
+export type CabinetLead = {
+  id: number
+  createdAt: string | null
+  service: string
+  summary: string
+  estimateUsd: number | null
+  hasDomain: boolean | null
+  hasHosting: boolean | null
+  stage: string
+  nextStep: string
+  timeline: LeadEvent[]
+  replies: LeadReply[]
+}
 export type CabinetData = {
   client: CabinetClient
+  // null = HQ did not send `leads` at all (older HQ): the page then shows a calm «принята» note.
+  leads: CabinetLead[] | null
   projects: CabinetProject[]
   invoices: CabinetInvoice[]
   documents: CabinetDocument[]
@@ -162,6 +180,43 @@ function parseReferral(r: Record<string, unknown>): CabinetReferral | null {
   }
 }
 
+const boolOrNull = (v: unknown) => (typeof v === 'boolean' ? v : null)
+
+function parseEvent(r: Record<string, unknown>): LeadEvent | null {
+  const title = str(r.title, 200)
+  return title ? { at: strOrNull(r.at), kind: str(r.kind, 20), title } : null
+}
+
+export function parseReply(r: Record<string, unknown>): LeadReply | null {
+  const text = str(r.text, 2000)
+  if (!text) return null
+  return { at: strOrNull(r.at), text, from: r.from === 'client' ? 'client' : 'manager' }
+}
+
+function parseLead(r: Record<string, unknown>): CabinetLead | null {
+  const id = idNum(r.id)
+  if (id === null) return null
+  const estimate = typeof r.estimateUsd === 'number' && Number.isFinite(r.estimateUsd) && r.estimateUsd > 0 ? r.estimateUsd : null
+  return {
+    id,
+    createdAt: strOrNull(r.createdAt),
+    service: str(r.service, 40),
+    summary: str(r.summary, 300),
+    estimateUsd: estimate,
+    hasDomain: boolOrNull(r.hasDomain),
+    hasHosting: boolOrNull(r.hasHosting),
+    stage: str(r.stage, 20) || 'new',
+    nextStep: str(r.nextStep, 300),
+    timeline: list(r.timeline, parseEvent).slice(0, 50),
+    replies: list(r.replies, parseReply).slice(-100),
+  }
+}
+
+// `leads` of a by-email body (or of GET /api/cabinet/leads): null when the field is missing.
+export function parseLeads(value: unknown): CabinetLead[] | null {
+  return Array.isArray(value) ? list(value, parseLead) : null
+}
+
 export function parseTicketItem(value: unknown): CabinetTicket | null {
   return isObj(value) ? parseTicket(value) : null
 }
@@ -180,6 +235,7 @@ export function parseClientBody(body: unknown): CabinetData | null {
       telegram: str(body.client.telegram, 40),
       createdAt: strOrNull(body.client.createdAt),
     },
+    leads: parseLeads(body.leads),
     projects: list(body.projects, parseProject),
     invoices: list(body.invoices, parseInvoice),
     documents: list(body.documents, parseDocument),
@@ -253,7 +309,7 @@ export function normalizeTelegram(input: string): string | null {
 }
 
 export const hasAnyData = (d: CabinetData) =>
-  d.projects.length + d.invoices.length + d.documents.length + d.tickets.length > 0
+  (d.leads?.length ?? 0) + d.projects.length + d.invoices.length + d.documents.length + d.tickets.length > 0
 
 // «19 нояб. 2026» / «Nov 19, 2026». UTC, so the server and the browser print the same day.
 export function formatDate(iso: string | null | undefined, locale: string): string {
@@ -271,4 +327,50 @@ export function formatDate(iso: string | null | undefined, locale: string): stri
 // A dictionary label for a value HQ sent; an unknown value is shown as it is.
 export function label(map: Record<string, string>, key: string): string {
   return map[key] ?? key
+}
+
+// The stage track of a request: Принято, Уточняем, КП, Договор, Оплата, В работе (HQ `stage`).
+// `lost` keeps the steps reached so far greyed and shows «Закрыто»; an unknown stage counts as new.
+export const leadStages = ['new', 'qualified', 'proposal', 'contract', 'paid', 'project'] as const
+export type LeadStage = (typeof leadStages)[number]
+export type TrackStep = { stage: LeadStage; state: 'done' | 'now' | 'next' }
+
+export function leadTrack(stage: string): { steps: TrackStep[]; lost: boolean } {
+  const lost = stage === 'lost'
+  const at = lost ? -1 : Math.max(0, leadStages.indexOf(stage as LeadStage))
+  return {
+    lost,
+    steps: leadStages.map((s, i): TrackStep => ({ stage: s, state: lost ? 'next' : i < at ? 'done' : i === at ? 'now' : 'next' })),
+  }
+}
+
+// «Что дальше»: HQ's sentence, else ours for the stage.
+export function leadNextStep(lead: Pick<CabinetLead, 'stage' | 'nextStep'>, defaults: Record<string, string>): string {
+  return lead.nextStep.trim() || defaults[lead.stage] || defaults.new || ''
+}
+
+// The timeline as the card shows it: oldest first, dated, the request itself always first.
+export function timelineRows(lead: Pick<CabinetLead, 'createdAt' | 'timeline'>, locale: string, receivedTitle: string) {
+  const rows = [...lead.timeline]
+  if (!rows.some((r) => r.kind === 'lead')) rows.unshift({ at: lead.createdAt, kind: 'lead', title: receivedTitle })
+  const time = (r: LeadEvent) => (r.at ? Date.parse(r.at) || 0 : 0)
+  return rows
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => time(a.r) - time(b.r) || a.i - b.i)
+    .map(({ r }) => ({ kind: r.kind, title: r.title, date: formatDate(r.at, locale) }))
+}
+
+// The request the address points at (`?lead=12`), else null; `new` or junk is null too.
+export function pickLead(leads: CabinetLead[] | null, param: unknown): number | null {
+  if (!leads || typeof param !== 'string' || !/^\d{1,12}$/.test(param)) return null
+  const id = Number(param)
+  return leads.some((l) => l.id === id) ? id : null
+}
+
+// The Telegram follow link carried as `follow=<siteLeadId>.<token>` after a lead (see
+// cabinetLeadPath); null when it does not look right.
+export function followLink(param: unknown, botUsername: string): string | null {
+  if (typeof param !== 'string' || !botUsername) return null
+  const m = /^(\d{1,10})\.([a-f0-9]{6,64})$/.exec(param)
+  return m ? `https://t.me/${botUsername}?start=lead_${m[1]}_${m[2]}` : null
 }

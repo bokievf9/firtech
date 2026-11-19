@@ -2,7 +2,9 @@ import 'server-only'
 import {
   clientSyncBody,
   parseClientBody,
+  parseReply,
   parseTicketItem,
+  type LeadReply,
   type CabinetData,
   type CabinetError,
   type CabinetTicket,
@@ -91,6 +93,45 @@ export async function createClientTicket(
   return item ? { ok: true, data: item } : { ok: false, error: 'hq_error' }
 }
 
+// The client writes about one request: POST /clients/:id/leads/:leadId/messages { text }. HQ keeps
+// it in the request's thread and opens a Support ticket; the approved answer comes back in
+// `replies`. A foreign or unknown lead is 404 (`not_found`), more than 10 an hour 429.
+export async function postLeadMessage(
+  clientId: number,
+  leadId: number,
+  text: string,
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<CabinetResult<LeadReply> | { ok: false; error: 'rate_limited' }> {
+  const clean = text.trim().slice(0, 2000)
+  if (!clean || !Number.isInteger(clientId) || !Number.isInteger(leadId) || leadId <= 0) return { ok: false, error: 'hq_error' }
+  if (setup(env) === 'mock') {
+    const item: LeadReply = { at: new Date().toISOString(), text: clean, from: 'client' }
+    mockMessages.push({ leadId, item })
+    return { ok: true, data: item }
+  }
+  const cfg = setup(env)
+  if (!cfg || cfg === 'mock') return { ok: false, error: 'hq_error' }
+  try {
+    const res = await fetcher(`${cfg.base}/clients/${clientId}/leads/${leadId}/messages`, {
+      method: 'POST',
+      headers: { 'x-admin-token': cfg.token, 'content-type': 'application/json' },
+      body: JSON.stringify({ text: clean }),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
+    if (res.status === 404) return { ok: false, error: 'not_found' }
+    if (res.status === 429) return { ok: false, error: 'rate_limited' }
+    if (!res.ok) return { ok: false, error: 'hq_error' }
+    const body = (await res.json().catch(() => null)) as { ok?: unknown; item?: unknown } | null
+    const item = body && body.ok === true && body.item && typeof body.item === 'object' ? parseReply(body.item as Record<string, unknown>) : null
+    return item ? { ok: true, data: item } : { ok: false, error: 'hq_error' }
+  } catch (error) {
+    const timeout = error instanceof Error && error.name === 'TimeoutError'
+    return { ok: false, error: timeout ? 'hq_timeout' : 'hq_unreachable' }
+  }
+}
+
 // POST /clients with the body from clientSyncBody(). Non-fatal for the caller.
 export async function syncClientToHq(
   userId: string,
@@ -105,12 +146,55 @@ export async function syncClientToHq(
   return body && body.ok === true ? { ok: true, data: true } : { ok: false, error: 'hq_error' }
 }
 
-// Development data so the cabinet renders without HQ.
+// Development data so the cabinet renders without HQ. Messages written in the cabinet stay in
+// memory, so the reply box can be tried locally.
+const mockMessages: { leadId: number; item: LeadReply }[] = []
+
 export function cabinetMock(email: string): CabinetData {
   const day = 86_400_000
   const iso = (offset: number) => new Date(Date.now() + offset * day).toISOString()
+  const mine = (leadId: number) => mockMessages.filter((m) => m.leadId === leadId).map((m) => m.item)
   return {
     client: { id: 1, name: 'Тестовый клиент', email, telegram: '@test_client', createdAt: iso(-20) },
+    leads: [
+      {
+        id: 12,
+        createdAt: iso(-1),
+        service: 'bundle',
+        summary: 'Бот для записи в салон и сайт-визитка',
+        estimateUsd: 640,
+        hasDomain: true,
+        hasHosting: false,
+        stage: 'proposal',
+        nextStep: 'КП отправлено, ждём вашего решения',
+        timeline: [
+          { at: iso(-1), kind: 'lead', title: 'Заявка получена' },
+          { at: iso(-0.8), kind: 'reply', title: 'Менеджер ответил' },
+          { at: iso(-0.2), kind: 'kp', title: 'Коммерческое предложение готово' },
+        ],
+        replies: [
+          { at: iso(-0.8), text: 'Здравствуйте! Посмотрели заявку, к вечеру пришлём КП.', from: 'manager' },
+          ...mine(12),
+        ],
+      },
+      {
+        id: 9,
+        createdAt: iso(-14),
+        service: 'websites',
+        summary: 'Сайт для барбершопа',
+        estimateUsd: 300,
+        hasDomain: null,
+        hasHosting: null,
+        stage: 'project',
+        nextStep: '',
+        timeline: [
+          { at: iso(-14), kind: 'lead', title: 'Заявка получена' },
+          { at: iso(-13), kind: 'paid', title: 'Предоплата получена' },
+          { at: iso(-13), kind: 'project', title: 'Проект запущен' },
+        ],
+        replies: mine(9),
+      },
+    ],
     projects: [
       {
         id: 1,

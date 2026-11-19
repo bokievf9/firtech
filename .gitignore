@@ -54,3 +54,6 @@ public/sw.js.map
 # Lead storage (DATA_DIR, see src/lib/store.ts)
 /data
 /release
+
+# Playwright smoke screenshots (scripts/smoke-cabinet.mjs)
+.smoke/
