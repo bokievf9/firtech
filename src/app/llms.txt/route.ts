@@ -7,11 +7,13 @@ import { serviceSlugs, siteUrl, telegramHandle } from '@/lib/site'
 // same dictionaries and price config as the page, so it never drifts from the site.
 export const dynamic = 'force-static'
 
-function priceText(id: ProductId, t: { from: string; perMonth: string; quote: string }) {
+function priceText(id: ProductId, t: { from: string; perMonth: string; quote: string; plans: Record<string, string> }) {
   const price = productPrice[id]
   if (price.kind === 'from') return `${t.from} ${formatUsd(price.from)}`
   if (price.kind === 'plans') {
-    return price.plans.map((p) => `${formatUsd(p.setup)} + ${formatUsd(p.monthly)}${t.perMonth}`).join(', ')
+    return price.plans
+      .map((p) => `${t.plans[p.id]}: ${formatUsd(p.setup)} + ${formatUsd(p.monthly)}${t.perMonth}`)
+      .join('; ')
   }
   return t.quote
 }

@@ -77,6 +77,12 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - Privacy (`/[locale]/privacy`, texts in `privacy`): a template pending a lawyer's review, linked
   from the form consent (`[brackets]` mark the link) and the footer. Update it with a new date
   whenever form fields, storage or analytics change.
+- Stage C (pre-client audit, 2026-11-19, `docs/pre-client-checklist.md`): `telegramUrl` falls back to
+  `@firtech_bot` (`defaultTelegramBot` in `src/lib/site.ts`); service-page meta texts hold a `{price}`
+  token filled by `fillServicePrice` (`src/lib/seo.ts`); meta descriptions must be 120-160 characters
+  and copy must have no long dashes, AI tells or dollar amounts (`tests/site-c.test.mjs`); `/terms`
+  (`terms` in the dictionaries, `components/legal-doc.tsx` shared with privacy) is a skeleton with
+  `[заполнит владелец]` placeholders; `llms.txt` comes from the products and `pricing.ts`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass

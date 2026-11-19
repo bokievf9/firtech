@@ -9,6 +9,7 @@ const en: Dict = {
       'AI agents for small business: client booking, lead intake 24/7, routine automation, plus websites and bots. Price and timeline are fixed before we start.',
   },
   nav: {
+    skip: 'Skip to content',
     products: 'Products',
     demo: 'Demo',
     pricing: 'Pricing',

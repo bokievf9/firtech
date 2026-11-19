@@ -181,3 +181,20 @@ test('telegram: the lead form success text names the bot', () => {
   assert.match(ru.contact.successText, /@firtech_bot/)
   assert.match(en.contact.successText, /@firtech_bot/)
 })
+
+test('manifest and icons: present, themed, referenced', async () => {
+  for (const f of ['src/app/icon.png', 'src/app/apple-icon.png', 'src/app/favicon.ico', 'src/app/manifest.ts'])
+    assert.ok(existsSync(f), f)
+  const manifest = (await import('../src/app/manifest.ts')).default()
+  assert.equal(manifest.theme_color, '#0a0d0b')
+  for (const icon of manifest.icons) assert.ok(existsSync(`src/app${icon.src}`), icon.src)
+  assert.match(readFileSync('src/app/[locale]/layout.tsx', 'utf8'), /themeColor: '#0a0d0b'/)
+})
+
+test('lead route keeps the honeypot, the rate limit and the Telegram + HQ forwarding', () => {
+  const route = readFileSync('src/app/api/lead/route.ts', 'utf8')
+  assert.match(route, /if \(lead\.website\) return NextResponse\.json\(\{ ok: true \}\)/)
+  assert.match(route, /MAX_PER_WINDOW = 5/)
+  assert.match(route, /forwardLead\(/)
+  assert.match(route, /notifyOwner\(/)
+})

@@ -1,5 +1,5 @@
 import type { Dict } from '@/content'
-import { genericFaq, kindCatalog, pick } from '../content/builder-catalog'
+import { genericFaq, kindCatalog } from '../content/builder-catalog'
 import { businessKinds, encodeBuild, presets, quote, type BusinessKind } from './builder'
 import { formatUsd } from './pricing'
 
