@@ -149,6 +149,14 @@ export type Scene = {
   toView(r: Rect): Rect
   // Called after the camera moved (pan, zoom, follow); overlays reposition themselves.
   onView(cb: (() => void) | null): void
+  // ---- Пульт v3 (office hub) ----
+  // Whole rooms become click targets ({ kind: 'room' } anywhere inside, after people and desks).
+  setZoneHits(on: boolean): void
+  // A soft lamp on the desks of a room while something waits: room id -> 0 (calm), 0.5, 1 (waits).
+  setZoneGlow(glow: Record<string, number>): void
+  // The rooms of the current layout and the interior rectangle of one (for badges over the scene).
+  rooms(): { id: string; kind: string }[]
+  zoneRect(roomId: string): Rect | null
 }
 
 type Actor = {
@@ -258,6 +266,8 @@ export function createScene(
   let cam: Camera = { zoom: 3, x: 0, y: 0 }
   let followId: string | null = null
   let viewCb: (() => void) | null = null
+  let zoneHits = false
+  let zoneGlow: Record<string, number> = {}
 
   // Visitors, approvals, errands, reactions.
   let visitors = new Map<string, VisitorMemo>()
@@ -888,8 +898,45 @@ export function createScene(
     text(c, l2, x + 2, y + 8, COLORS.lime)
   }
 
+  // Hub: the hovered room gets a faint frame; rooms where something waits for the owner get a
+  // slowly breathing lamp light on every desk (amber = waits, lime = work queued).
+  function drawZones(c: Ctx, now: number) {
+    for (const room of layout.rooms) {
+      const level = zoneGlow[room.id] ?? 0
+      const hovered = zoneHits && sameHit(hover, { kind: 'room', id: room.id })
+      if (hovered) {
+        const r = roomInterior(room)
+        c.globalAlpha = 0.5
+        c.strokeStyle = COLORS.lime
+        c.lineWidth = 1
+        c.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1)
+        c.globalAlpha = 1
+      }
+      if (level <= 0) continue
+      const color = level >= 1 ? '#ffb347' : COLORS.lime
+      const pulse = reduced ? 0.7 : 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 900 + hashId(room.id)))
+      const desks = layout.desks.filter((d) => d.roomId === room.id)
+      if (!desks.length) {
+        const r = roomInterior(room)
+        c.globalAlpha = (level >= 1 ? 0.16 : 0.1) * pulse
+        rect(c, r.x + 2, feetY(room.floor) - 2, r.w - 4, 2, color)
+        c.globalAlpha = 1
+        continue
+      }
+      for (const desk of desks) {
+        const t = deskTable(desk)
+        c.globalAlpha = (level >= 1 ? 0.2 : 0.12) * pulse
+        for (let row = 0; row < 4; row++) rect(c, t.x - 3 + row, t.y - 3 - row * 2, t.w + 6 - row * 2, 2, color)
+        c.globalAlpha = (level >= 1 ? 0.9 : 0.6) * pulse
+        rect(c, t.x + t.w - 3, t.y - 12, 2, 2, color)
+        c.globalAlpha = 1
+      }
+    }
+  }
+
   function drawRooms(c: Ctx, now: number, quiet: boolean) {
     const statusOf = (id: string) => byId.get(id)?.status
+    drawZones(c, now)
     for (const room of layout.rooms) {
       // Sign glows while someone in the room waits for the owner.
       const waiting = room.agentIds.some((id) => statusOf(id) === 'waiting')
@@ -1492,6 +1539,7 @@ export function createScene(
     const rc = anchorOf({ kind: 'reception' })
     if (rc && within(rc, x, y)) return { kind: 'reception' }
     for (const room of layout.rooms) if (within(signRect(room), x, y)) return { kind: 'room', id: room.id }
+    if (zoneHits) for (const room of layout.rooms) if (within(roomInterior(room), x, y)) return { kind: 'room', id: room.id }
     return null
   }
 
@@ -1649,6 +1697,19 @@ export function createScene(
     },
     onView(cb) {
       viewCb = cb
+    },
+    setZoneHits(on) {
+      zoneHits = on
+      poke()
+    },
+    setZoneGlow(next) {
+      zoneGlow = { ...next }
+      poke()
+    },
+    rooms: () => layout.rooms.map((r) => ({ id: r.id, kind: r.kind })),
+    zoneRect(roomId) {
+      const room = layout.rooms.find((r) => r.id === roomId)
+      return room ? roomInterior(room) : null
     },
   }
 }

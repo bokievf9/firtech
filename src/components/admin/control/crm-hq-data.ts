@@ -22,7 +22,7 @@ import {
 } from '@/lib/admin-crm-hq'
 import { usePoll } from './api'
 
-const POLL = { visible: 30_000, hidden: 120_000 }
+export const POLL = { visible: 30_000, hidden: 120_000 }
 const SLOW = { visible: 300_000, hidden: 600_000 }
 export const LIST_LIMIT = 200
 
@@ -37,7 +37,7 @@ export type CrmFeed<T> = {
 
 type Raw = Record<string, unknown>
 
-function useFeed<T>(path: string, normalize: (body: unknown) => CrmList<T> | null, opts = POLL): CrmFeed<T> {
+export function useFeed<T>(path: string, normalize: (body: unknown) => CrmList<T> | null, opts = POLL): CrmFeed<T> {
   const poll = usePoll<Raw>(path, opts)
   const { data, error, reload, mutate } = poll
   const list = useMemo(() => (data ? normalize(data) : null), [data, normalize])

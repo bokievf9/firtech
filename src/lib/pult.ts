@@ -1,0 +1,811 @@
+import {
+  normalizeDocuments,
+  normalizeProjects,
+  normalizeReferrals,
+  normalizeTickets,
+  type CrmDocument,
+  type Project,
+  type Referral,
+  type Ticket,
+} from './admin-crm-hq'
+
+// Пульт v3 (2026-11-20): view models of the office hub and the CRM panels with actions, fed by HQ's
+// /admin/hub, /admin/crm/*, /admin/content, /admin/metrics/week and /admin/company (contract
+// pult-v3, docs/pult.md). Pure: no I/O, no React. Nothing from HQ is trusted: unknown fields are
+// dropped, missing ones get defaults, URLs must be http(s), file paths must stay inside the renders.
+
+type Rec = Record<string, unknown>
+const rec = (v: unknown): Rec => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Rec) : {})
+const arr = (v: unknown, max = 500): unknown[] => (Array.isArray(v) ? v.slice(0, max) : [])
+const str = (v: unknown, max = 2000): string =>
+  typeof v === 'string' ? v.slice(0, max) : typeof v === 'number' && Number.isFinite(v) ? String(v) : ''
+const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0)
+const optNum = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null)
+const optBool = (v: unknown): boolean | null => (typeof v === 'boolean' ? v : null)
+const when = (v: unknown): string | null => (typeof v === 'string' && !Number.isNaN(Date.parse(v)) ? v : null)
+const idOf = (v: unknown): string | null =>
+  typeof v === 'number' && Number.isInteger(v) && v >= 0
+    ? String(v)
+    : typeof v === 'string' && /^[\w:.\-Ѐ-ӿ ]{1,80}$/.test(v)
+      ? v
+      : null
+const oneOf = <T extends string>(v: unknown, list: readonly T[], fallback: T): T =>
+  typeof v === 'string' && (list as readonly string[]).includes(v) ? (v as T) : fallback
+
+// A link HQ gives us is shown only when it is plain http(s); anything else (javascript:, data:) is dropped.
+export function safeUrl(v: unknown): string | null {
+  if (typeof v !== 'string' || v.length > 2000) return null
+  try {
+    const u = new URL(v)
+    return u.protocol === 'https:' || u.protocol === 'http:' ? u.href : null
+  } catch {
+    return null
+  }
+}
+
+// ---- departments, panels, links ----------------------------------------------------------------
+
+export const HUB_DEPTS = ['director', 'marketing', 'sales', 'support', 'production', 'backoffice'] as const
+export type HubDept = (typeof HUB_DEPTS)[number]
+export const PANELS = [...HUB_DEPTS, 'company'] as const
+export type PanelId = (typeof PANELS)[number]
+
+// Tabs of each panel, in order. The first one opens by default.
+export const PANEL_TABS: Record<PanelId, readonly string[]> = {
+  director: ['inbox', 'approvals', 'tasks', 'chat', 'feed', 'drill'],
+  marketing: ['content', 'metrics'],
+  sales: ['leads', 'clients', 'site', 'calls', 'prospects'],
+  support: ['tickets'],
+  production: ['projects'],
+  backoffice: ['invoices', 'documents', 'referrals', 'reviews'],
+  company: ['company'],
+}
+
+export const isPanel = (v: unknown): v is PanelId => typeof v === 'string' && (PANELS as readonly string[]).includes(v)
+
+// Keys 1-6 open the departments in this order (7 = the company).
+export const panelForKey = (key: string): PanelId | null => {
+  const n = Number(key)
+  return Number.isInteger(n) && n >= 1 && n <= PANELS.length && key.length === 1 ? PANELS[n - 1]! : null
+}
+
+// Room ids of the pixel office (layout.ts) to the panel a click opens. People stay clickable on their own.
+export function roomPanel(roomId: string): PanelId | null {
+  const k = roomId.toLowerCase().replace(/[^a-z]/g, '')
+  if (k === 'director' || k === 'meeting') return 'director'
+  if (k.startsWith('marketing')) return 'marketing'
+  if (k.startsWith('sales') || k === 'lobby' || k === 'reception') return 'sales'
+  if (k.startsWith('support')) return 'support'
+  if (k.startsWith('production') || k === 'builders') return 'production'
+  if (k.startsWith('backoffice')) return 'backoffice'
+  if (k === 'servers') return 'company'
+  return null
+}
+
+export type PanelLink = { panel: PanelId; tab: string; id: string | null }
+
+// HQ's inbox link `<panel>:<id>` (leads:12, clients:3, projects:2, invoices:5, content:item:77,
+// approvals:91, tickets:4) to the panel, tab and object it opens. Unknown kinds give null.
+export function parseLink(link: unknown): PanelLink | null {
+  if (typeof link !== 'string' || link.length > 120) return null
+  const m = /^([a-z]+):(?:item:)?(.{1,80})$/.exec(link.trim())
+  if (!m) return null
+  const id = idOf(m[2]) ?? null
+  if (!id) return null
+  switch (m[1]) {
+    case 'leads':
+      return { panel: 'sales', tab: 'leads', id }
+    case 'clients':
+      return { panel: 'sales', tab: 'clients', id }
+    case 'projects':
+      return { panel: 'production', tab: 'projects', id }
+    case 'invoices':
+      return { panel: 'backoffice', tab: 'invoices', id }
+    case 'content':
+      return { panel: 'marketing', tab: 'content', id }
+    case 'approvals':
+      return { panel: 'director', tab: 'approvals', id }
+    case 'tickets':
+      return { panel: 'support', tab: 'tickets', id }
+    case 'documents':
+      return { panel: 'backoffice', tab: 'documents', id }
+    default:
+      return null
+  }
+}
+
+// ---- hub ---------------------------------------------------------------------------------------
+
+export type DeptCounts = { pending: number; approvals: number; alerts: number; running: number; lastActivityAt: string | null }
+export const INBOX_KINDS = ['approval', 'alert', 'lead', 'payment', 'ticket', 'content', 'info'] as const
+export type HubInboxKind = (typeof INBOX_KINDS)[number]
+export type HubInboxItem = { id: string; at: string; dept: HubDept | null; kind: HubInboxKind; title: string; link: PanelLink | null }
+export type Hub = { generatedAt: string | null; departments: Record<HubDept, DeptCounts>; inbox: HubInboxItem[] }
+
+const zeroCounts = (): DeptCounts => ({ pending: 0, approvals: 0, alerts: 0, running: 0, lastActivityAt: null })
+
+export function hubDept(v: unknown): HubDept | null {
+  if (typeof v !== 'string') return null
+  const k = v.toLowerCase().replace(/[^a-z]/g, '')
+  return (HUB_DEPTS as readonly string[]).includes(k) ? (k as HubDept) : null
+}
+
+export function normalizeHub(body: unknown): Hub | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null
+  const b = body as Rec
+  const depts = rec(b.departments)
+  const departments = Object.fromEntries(HUB_DEPTS.map((d) => [d, zeroCounts()])) as Record<HubDept, DeptCounts>
+  for (const [key, raw] of Object.entries(depts)) {
+    const d = hubDept(key)
+    if (!d) continue
+    const r = rec(raw)
+    departments[d] = {
+      pending: Math.max(0, num(r.pending)),
+      approvals: Math.max(0, num(r.approvals)),
+      alerts: Math.max(0, num(r.alerts)),
+      running: Math.max(0, num(r.running)),
+      lastActivityAt: when(r.lastActivityAt),
+    }
+  }
+  const inbox: HubInboxItem[] = []
+  for (const raw of arr(b.inbox, 50)) {
+    const r = rec(raw)
+    const id = idOf(r.id)
+    const at = when(r.at)
+    if (!id || !at) continue
+    inbox.push({
+      id,
+      at,
+      dept: hubDept(r.dept),
+      kind: oneOf(r.kind, INBOX_KINDS, 'info'),
+      title: str(r.title, 300),
+      link: parseLink(r.link),
+    })
+  }
+  inbox.sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+  return { generatedAt: when(b.generatedAt), departments, inbox }
+}
+
+// How strongly a room's desks glow: 1 = something waits for the owner (approvals or alerts),
+// 0.5 = work is queued, 0 = calm. Keys are hub departments.
+export function zoneGlow(departments: Record<HubDept, DeptCounts> | null): Record<HubDept, number> {
+  const out = Object.fromEntries(HUB_DEPTS.map((d) => [d, 0])) as Record<HubDept, number>
+  if (!departments) return out
+  for (const d of HUB_DEPTS) {
+    const c = departments[d]
+    out[d] = c.approvals + c.alerts > 0 ? 1 : c.pending > 0 ? 0.5 : 0
+  }
+  return out
+}
+
+// ---- leads funnel ------------------------------------------------------------------------------
+
+export const LEAD_STAGES = ['new', 'qualified', 'proposal', 'contract', 'paid', 'project'] as const
+export const ALL_LEAD_STAGES = [...LEAD_STAGES, 'lost'] as const
+export type LeadStage = (typeof ALL_LEAD_STAGES)[number]
+
+export type LeadNote = { at: string | null; text: string }
+export type Lead = {
+  id: number
+  name: string
+  contact: string
+  service: string
+  niche: string
+  brief: string
+  budget: string
+  source: string
+  temperature: string
+  stage: LeadStage
+  nextAction: string | null
+  estimateUsd: number | null
+  hasDomain: boolean | null
+  hasHosting: boolean | null
+  notes: LeadNote[]
+  clientId: string | null
+  callAt: string | null
+  lostReason: string
+  createdAt: string | null
+}
+
+export function leadRow(raw: unknown): Lead | null {
+  const r = rec(raw)
+  if (typeof r.id !== 'number' || !Number.isInteger(r.id) || r.id < 0) return null
+  const notes: LeadNote[] =
+    typeof r.notes === 'string' && r.notes
+      ? [{ at: null, text: r.notes.slice(0, 2000) }]
+      : arr(r.notes, 50)
+          .map((n) => (typeof n === 'string' ? { at: null, text: n.slice(0, 2000) } : { at: when(rec(n).at), text: str(rec(n).text) }))
+          .filter((n) => n.text)
+  return {
+    id: r.id,
+    name: str(r.name, 200),
+    contact: str(r.contact, 200),
+    service: str(r.service, 100),
+    niche: str(r.niche, 100),
+    brief: str(r.brief ?? r.task, 2000),
+    budget: str(r.budget, 100),
+    source: str(r.source, 100),
+    temperature: str(r.temperature, 20),
+    stage: oneOf(r.stage, ALL_LEAD_STAGES, 'new'),
+    nextAction: typeof r.nextAction === 'string' && r.nextAction ? r.nextAction.slice(0, 300) : null,
+    estimateUsd: optNum(r.estimateUsd ?? r.estimate),
+    hasDomain: optBool(r.hasDomain),
+    hasHosting: optBool(r.hasHosting),
+    notes,
+    clientId: idOf(r.clientId),
+    callAt: when(r.callAt),
+    lostReason: str(r.lostReason ?? r.lost_reason, 300),
+    createdAt: when(r.createdAt),
+  }
+}
+
+export type Rows<T> = { available: boolean; items: T[]; nextCursor: string | null }
+
+function rows<T>(body: unknown, row: (r: unknown) => T | null): Rows<T> | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null
+  const b = body as Rec
+  const list = Array.isArray(b.items) ? b.items : null
+  const available = b.available === false ? false : list !== null
+  const items: T[] = []
+  if (available && list) for (const r of list.slice(0, 500)) {
+    const item = row(r)
+    if (item) items.push(item)
+  }
+  return { available, items, nextCursor: typeof b.nextCursor === 'string' && b.nextCursor ? b.nextCursor : null }
+}
+
+export const normalizeLeads = (body: unknown) => rows(body, leadRow)
+export const normalizeLeadItem = (body: unknown) => leadRow(rec(body).item)
+
+export type StageMove = { ok: true } | { ok: false; reason: 'same' | 'unknown' | 'illegal' }
+
+// The one move HQ refuses (409 illegal_transition) is paid back to new; the board refuses it before
+// asking. Any other stage may follow any other: the owner corrects the funnel by hand.
+export function stageMove(from: string, to: string): StageMove {
+  if (!(ALL_LEAD_STAGES as readonly string[]).includes(to) || !(ALL_LEAD_STAGES as readonly string[]).includes(from)) {
+    return { ok: false, reason: 'unknown' }
+  }
+  if (from === to) return { ok: false, reason: 'same' }
+  if (from === 'paid' && to === 'new') return { ok: false, reason: 'illegal' }
+  return { ok: true }
+}
+
+// Optimistic move on the board; the caller keeps the old array to roll back.
+export const moveLead = (items: Lead[], id: number, stage: LeadStage): Lead[] =>
+  items.map((l) => (l.id === id ? { ...l, stage } : l))
+
+export function leadColumns(items: Lead[]): Record<LeadStage, Lead[]> {
+  const out = Object.fromEntries(ALL_LEAD_STAGES.map((s) => [s, [] as Lead[]])) as Record<LeadStage, Lead[]>
+  for (const l of items) out[l.stage].push(l)
+  return out
+}
+
+const fold = (s: string) => s.toLowerCase().replace(/ё/g, 'е')
+export const matchesQuery = (q: string, ...fields: (string | null | undefined)[]) => {
+  const needle = fold(q.trim())
+  return !needle || fields.some((f) => !!f && fold(f).includes(needle))
+}
+
+export type ReplyResult = { sent: boolean; via: 'telegram' | 'web' | 'none' }
+export function normalizeReply(body: unknown): ReplyResult {
+  const b = rec(body)
+  return { sent: b.sent === true, via: oneOf(b.via, ['telegram', 'web', 'none'] as const, 'none') }
+}
+
+// ---- client 360 --------------------------------------------------------------------------------
+
+export type Touch = { at: string; kind: string; title: string }
+export type Client360 = {
+  client: { id: string; name: string; email: string; telegram: string; cabinet: boolean; createdAt: string | null }
+  leads: Lead[]
+  projects: Project[]
+  invoices: Invoice[]
+  documents: CrmDocument[]
+  tickets: (Ticket & { answer: string | null })[]
+  referrals: Referral[]
+  touches: Touch[]
+}
+
+const itemsOf = (v: unknown) => ({ available: true, items: arr(v, 200), nextCursor: null })
+
+export function normalizeClient360(body: unknown): Client360 | null {
+  const b = rec(body)
+  const c = rec(b.client)
+  const id = idOf(c.id)
+  if (!id) return null
+  const tickets = normalizeTickets(itemsOf(b.tickets))?.items ?? []
+  const answers = new Map(arr(b.tickets, 200).map((t) => [num(rec(t).id), rec(t).answer]))
+  return {
+    client: {
+      id,
+      name: str(c.name, 200),
+      email: str(c.email, 254),
+      telegram: str(c.telegram, 120),
+      cabinet: c.cabinet === true,
+      createdAt: when(c.createdAt),
+    },
+    leads: arr(b.leads, 200).map(leadRow).filter((x): x is Lead => !!x),
+    projects: normalizeProjects(itemsOf(b.projects))?.items ?? [],
+    invoices: arr(b.invoices, 200).map(invoiceRow).filter((x): x is Invoice => !!x),
+    documents: normalizeDocuments(itemsOf(b.documents))?.items ?? [],
+    tickets: tickets.map((t) => {
+      const a = answers.get(t.id)
+      return { ...t, answer: typeof a === 'string' && a ? a.slice(0, 2000) : null }
+    }),
+    referrals: normalizeReferrals(itemsOf(b.referrals))?.items ?? [],
+    touches: arr(b.touches, 30)
+      .map((t) => {
+        const r = rec(t)
+        const at = when(r.at)
+        return at ? { at, kind: str(r.kind, 40), title: str(r.title, 300) } : null
+      })
+      .filter((x): x is Touch => !!x)
+      .sort((a, b2) => Date.parse(b2.at) - Date.parse(a.at)),
+  }
+}
+
+// ---- projects ----------------------------------------------------------------------------------
+
+export const PROJECT_STATUSES = ['draft', 'active', 'paused', 'done'] as const
+export type ProjectStatus = (typeof PROJECT_STATUSES)[number]
+
+export type Milestone = { id: string; kind: string; title: string; dueAt: string | null; doneAt: string | null }
+export type ProjectTask = { id: string; title: string; status: string; assignee: string }
+export type BuilderIssue = { number: number; title: string; state: string; url: string | null }
+export type ProjectDetail = { item: Project; milestones: Milestone[]; tasks: ProjectTask[]; issues: BuilderIssue[] }
+
+export const normalizeProjectItem = (body: unknown): Project | null =>
+  normalizeProjects({ available: true, items: [rec(body).item] })?.items[0] ?? null
+
+export function normalizeProjectDetail(body: unknown): ProjectDetail | null {
+  const b = rec(body)
+  const item = normalizeProjectItem(b)
+  if (!item) return null
+  return {
+    item,
+    milestones: arr(b.milestones, 50)
+      .map((m) => {
+        const r = rec(m)
+        const id = idOf(r.id)
+        return id ? { id, kind: str(r.kind, 40), title: str(r.title, 200), dueAt: when(r.dueAt), doneAt: when(r.doneAt) } : null
+      })
+      .filter((x): x is Milestone => !!x),
+    tasks: arr(b.tasks, 100)
+      .map((t) => {
+        const r = rec(t)
+        const id = idOf(r.id)
+        return id ? { id, title: str(r.title, 300), status: str(r.status, 40), assignee: str(r.assignee, 100) } : null
+      })
+      .filter((x): x is ProjectTask => !!x),
+    issues: arr(b.issues, 50)
+      .map((i) => {
+        const r = rec(i)
+        return typeof r.number === 'number' && Number.isInteger(r.number)
+          ? { number: r.number, title: str(r.title, 300), state: str(r.state, 20), url: safeUrl(r.url) }
+          : null
+      })
+      .filter((x): x is BuilderIssue => !!x),
+  }
+}
+
+export const projectColumn = (p: Pick<Project, 'status'>): ProjectStatus => oneOf(p.status, PROJECT_STATUSES, 'draft')
+
+// ---- invoices ----------------------------------------------------------------------------------
+
+export const INVOICE_STATUSES = ['draft', 'issued', 'paid', 'void'] as const
+export type Invoice = {
+  id: string
+  number: string
+  client: string
+  title: string
+  amountUsd: number
+  payAmountUsd: number | null
+  status: string
+  dueDate: string | null
+  issuedAt: string | null
+  paidAt: string | null
+  paidVia: string
+  txId: string
+  payUrl: string | null
+  remindedAt: string | null
+}
+
+export function invoiceRow(raw: unknown): Invoice | null {
+  const r = rec(raw)
+  const id = idOf(r.id)
+  if (!id) return null
+  return {
+    id,
+    number: str(r.number, 40),
+    client: str(r.client, 200),
+    title: str(r.title, 300),
+    amountUsd: num(r.amountUsd),
+    payAmountUsd: optNum(r.payAmountUsd),
+    status: str(r.status, 20) || 'draft',
+    dueDate: when(r.dueDate),
+    issuedAt: when(r.issuedAt),
+    paidAt: when(r.paidAt),
+    paidVia: str(r.paidVia, 40),
+    txId: str(r.txId, 200),
+    payUrl: safeUrl(r.payUrl),
+    remindedAt: when(r.remindedAt),
+  }
+}
+export const normalizeInvoices = (body: unknown) => rows(body, invoiceRow)
+export const normalizeInvoiceItem = (body: unknown) => invoiceRow(rec(body).item)
+
+export const isOverdue = (inv: Pick<Invoice, 'status' | 'dueDate'>, now: number) =>
+  inv.status === 'issued' && !!inv.dueDate && Date.parse(inv.dueDate) < now
+
+// Base64 or base64url (TON's usual form) to lower-case hex; already hex passes as is. A transaction
+// hash is 32 bytes, anything else is null.
+export function tonTxHex(tx: string): string | null {
+  const s = tx.trim()
+  if (/^[0-9a-f]{64}$/i.test(s)) return s.toLowerCase()
+  if (!/^[A-Za-z0-9+/_-]{42,44}={0,2}$/.test(s)) return null
+  try {
+    const b64 = s.replace(/-/g, '+').replace(/_/g, '/')
+    const bin = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4))
+    if (bin.length !== 32) return null
+    let hex = ''
+    for (let i = 0; i < bin.length; i++) hex += bin.charCodeAt(i).toString(16).padStart(2, '0')
+    return hex
+  } catch {
+    return null
+  }
+}
+
+// Explorer link of a payment: TRON on tronscan, TON on tonviewer (hex hash). Unknown chain: null.
+export function txExplorerUrl(paidVia: string, txId: string): string | null {
+  const via = paidVia.toLowerCase()
+  const tx = txId.trim()
+  if (!tx) return null
+  if (/tron|trc20|trx/.test(via)) return /^[0-9a-f]{64}$/i.test(tx) ? `https://tronscan.org/#/transaction/${tx.toLowerCase()}` : null
+  if (/ton/.test(via)) {
+    const hex = tonTxHex(tx)
+    return hex ? `https://tonviewer.com/transaction/${hex}` : null
+  }
+  return null
+}
+
+// ---- content -----------------------------------------------------------------------------------
+
+export const CONTENT_KINDS = ['clip', 'post', 'carousel', 'story', 'article'] as const
+export const CONTENT_STATUSES = ['draft', 'pending', 'approved', 'rendering', 'ready', 'published', 'rejected'] as const
+export const CAPTION_PLATFORMS = ['instagram', 'tiktok', 'shorts', 'dzen'] as const
+export type ContentFile = { path: string; type: 'png' | 'mp4'; w: number; h: number }
+export type ContentItem = {
+  id: string
+  kind: (typeof CONTENT_KINDS)[number]
+  platform: string
+  status: (typeof CONTENT_STATUSES)[number]
+  title: string
+  hook: string
+  caption: Record<(typeof CAPTION_PLATFORMS)[number], string>
+  files: ContentFile[]
+  sourceSlug: string | null
+  approvalId: string | null
+  publishedUrl: string | null
+  error: string | null
+}
+export type ContentDay = { date: string; items: ContentItem[] }
+export type ContentWeek = {
+  week: string
+  days: ContentDay[]
+  summary: { pending: number; approved: number; published: number; rendering: number }
+}
+
+// A render path from HQ, relative to DATA_DIR/renders: plain segments, no dot segments, a known
+// extension. Shared with the file proxy (/api/admin/files/...).
+export const RENDER_EXT = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', mp4: 'video/mp4' } as const
+export function safeRenderPath(input: string | string[]): string | null {
+  const parts = Array.isArray(input) ? input : input.split('/')
+  if (!parts.length || parts.length > 6) return null
+  for (const p of parts) {
+    if (!/^[\w][\w.-]{0,127}$/.test(p) || p.includes('..')) return null
+  }
+  const ext = parts.at(-1)!.split('.').pop()!.toLowerCase()
+  if (!(ext in RENDER_EXT) || !parts.at(-1)!.includes('.')) return null
+  return parts.join('/')
+}
+export const renderType = (path: string): string | null => {
+  const ext = path.split('.').pop()?.toLowerCase() ?? ''
+  return (RENDER_EXT as Record<string, string>)[ext] ?? null
+}
+export const fileUrl = (path: string) => `/api/admin/files/${path.split('/').map(encodeURIComponent).join('/')}`
+
+function contentItem(raw: unknown): ContentItem | null {
+  const r = rec(raw)
+  const id = idOf(r.id)
+  if (!id) return null
+  const cap = rec(r.caption)
+  const files: ContentFile[] = []
+  for (const f of arr(r.files, 30)) {
+    const fr = rec(f)
+    const path = typeof fr.path === 'string' ? safeRenderPath(fr.path) : null
+    if (!path) continue
+    const type = fr.type === 'mp4' || path.endsWith('.mp4') ? 'mp4' : 'png'
+    files.push({ path, type, w: Math.max(0, num(fr.w)), h: Math.max(0, num(fr.h)) })
+  }
+  return {
+    id,
+    kind: oneOf(r.kind, CONTENT_KINDS, 'post'),
+    platform: str(r.platform, 40),
+    status: oneOf(r.status, CONTENT_STATUSES, 'draft'),
+    title: str(r.title, 300),
+    hook: str(r.hook, 500),
+    caption: Object.fromEntries(CAPTION_PLATFORMS.map((p) => [p, str(cap[p], 5000)])) as ContentItem['caption'],
+    files,
+    sourceSlug: typeof r.sourceSlug === 'string' && /^[a-z0-9-]{1,120}$/.test(r.sourceSlug) ? r.sourceSlug : null,
+    approvalId: idOf(r.approvalId),
+    publishedUrl: safeUrl(r.publishedUrl),
+    error: typeof r.error === 'string' && r.error ? r.error.slice(0, 500) : null,
+  }
+}
+
+export function normalizeContent(body: unknown): ContentWeek | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null
+  const b = body as Rec
+  const days: ContentDay[] = arr(b.days, 7)
+    .map((d) => {
+      const r = rec(d)
+      const date = typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : null
+      return date ? { date, items: arr(r.items, 50).map(contentItem).filter((x): x is ContentItem => !!x) } : null
+    })
+    .filter((x): x is ContentDay => !!x)
+  const s = rec(b.summary)
+  return {
+    week: typeof b.week === 'string' && /^\d{4}-W\d{2}$/.test(b.week) ? b.week : '',
+    days,
+    summary: { pending: num(s.pending), approved: num(s.approved), published: num(s.published), rendering: num(s.rendering) },
+  }
+}
+export const normalizeContentItem = (body: unknown) => contentItem(rec(body).item)
+
+export const replaceContentItem = (week: ContentWeek, item: ContentItem): ContentWeek => ({
+  ...week,
+  days: week.days.map((d) => ({ ...d, items: d.items.map((i) => (i.id === item.id ? item : i)) })),
+})
+
+// ---- weeks (ISO 8601, company calendar) --------------------------------------------------------
+
+export const COMPANY_TZ = 'Asia/Tashkent'
+
+function ymdIn(at: number, tz: string): [number, number, number] {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(at)
+  const [y, m, d] = parts.split('-').map(Number)
+  return [y!, m!, d!]
+}
+
+// The ISO week of a moment as YYYY-Www, in the company's time zone.
+export function isoWeek(at: number, tz = COMPANY_TZ): string {
+  const [y, m, d] = ymdIn(at, tz)
+  const date = new Date(Date.UTC(y, m - 1, d))
+  const day = date.getUTCDay() || 7
+  date.setUTCDate(date.getUTCDate() + 4 - day)
+  const year = date.getUTCFullYear()
+  const week = Math.ceil(((date.getTime() - Date.UTC(year, 0, 1)) / 86_400_000 + 1) / 7)
+  return `${year}-W${String(week).padStart(2, '0')}`
+}
+
+// Monday (UTC midnight) of an ISO week; null for a malformed week.
+export function weekMonday(week: string): Date | null {
+  const m = /^(\d{4})-W(\d{2})$/.exec(week)
+  if (!m) return null
+  const year = Number(m[1])
+  const w = Number(m[2])
+  if (w < 1 || w > 53) return null
+  const jan4 = new Date(Date.UTC(year, 0, 4))
+  const monday = new Date(jan4)
+  monday.setUTCDate(jan4.getUTCDate() - ((jan4.getUTCDay() || 7) - 1) + (w - 1) * 7)
+  return monday
+}
+
+export function shiftWeek(week: string, by: number): string {
+  const monday = weekMonday(week)
+  if (!monday) return week
+  monday.setUTCDate(monday.getUTCDate() + by * 7)
+  return isoWeek(monday.getTime() + 12 * 3_600_000, 'UTC')
+}
+
+// The seven dates (YYYY-MM-DD) of a week, Monday first.
+export function weekDates(week: string): string[] {
+  const monday = weekMonday(week)
+  if (!monday) return []
+  return Array.from({ length: 7 }, (_, i) => new Date(monday.getTime() + i * 86_400_000).toISOString().slice(0, 10))
+}
+
+// ---- metrics -----------------------------------------------------------------------------------
+
+export const SITE_EVENTS = [
+  'chat_open',
+  'builder_done',
+  'estimate_pdf',
+  'lead_sent',
+  'audit_sent',
+  'ref_click',
+  'cabinet_signup',
+  'pay_view',
+  'blog_view',
+] as const
+export type SiteEventName = (typeof SITE_EVENTS)[number]
+export const FUNNEL_KEYS = ['leads', 'qualified', 'proposals', 'contracts', 'paid', 'projects'] as const
+
+type MetricsBlock = {
+  site: Record<SiteEventName, number>
+  blog: { hits: number; published: number }
+  youtube: { shorts: number; views: number; subscribers: number; delta: number }
+  funnel: Record<(typeof FUNNEL_KEYS)[number], number>
+  money: { invoicedUsd: number; paidUsd: number }
+}
+export type Metrics = MetricsBlock & { week: string; prev: MetricsBlock | null }
+
+function metricsBlock(raw: unknown): MetricsBlock {
+  const r = rec(raw)
+  const site = rec(r.site)
+  const blog = rec(r.blog)
+  const yt = rec(r.youtube)
+  const funnel = rec(r.funnel)
+  const money = rec(r.money)
+  return {
+    site: Object.fromEntries(SITE_EVENTS.map((k) => [k, Math.max(0, num(site[k]))])) as Record<SiteEventName, number>,
+    blog: { hits: num(blog.hits), published: num(blog.published) },
+    youtube: { shorts: num(yt.shorts), views: num(yt.views), subscribers: num(yt.subscribers), delta: num(yt.delta) },
+    funnel: Object.fromEntries(FUNNEL_KEYS.map((k) => [k, Math.max(0, num(funnel[k]))])) as MetricsBlock['funnel'],
+    money: { invoicedUsd: num(money.invoicedUsd), paidUsd: num(money.paidUsd) },
+  }
+}
+
+export function normalizeMetrics(body: unknown): Metrics | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null
+  const b = body as Rec
+  const prevRaw = b.prevWeek
+  return {
+    week: typeof b.week === 'string' && /^\d{4}-W\d{2}$/.test(b.week) ? b.week : '',
+    ...metricsBlock(b),
+    prev: prevRaw && typeof prevRaw === 'object' ? metricsBlock(prevRaw) : null,
+  }
+}
+
+// Change against the previous week: the difference and the percentage (null when it was zero).
+export function delta(current: number, previous: number | null | undefined): { diff: number; pct: number | null } | null {
+  if (previous === null || previous === undefined) return null
+  const diff = current - previous
+  return { diff, pct: previous === 0 ? null : Math.round((diff / previous) * 100) }
+}
+
+// Funnel step shares for the bars: each step against the first one (0..1).
+export function funnelShares(f: Record<(typeof FUNNEL_KEYS)[number], number>): { key: string; n: number; share: number }[] {
+  const top = Math.max(1, f.leads, ...FUNNEL_KEYS.map((k) => f[k]))
+  return FUNNEL_KEYS.map((k) => ({ key: k, n: f[k], share: f[k] / top }))
+}
+
+// ---- company -----------------------------------------------------------------------------------
+
+export type Routine = {
+  name: string
+  dept: string
+  title: string
+  cron: string
+  tz: string
+  enabled: boolean
+  lastRunAt: string | null
+  lastStatus: string
+  nextRunAt: string | null
+}
+export type DeptCost = { dept: string; todayUsd: number; monthUsd: number; limitUsd: number | null }
+export type TrustRow = { kind: string; level: 0 | 1; locked: boolean; approvals: number }
+export type Playbook = { role: string; updatedAt: string | null; lines: number }
+export type Worker = { id: string; dept: string; title: string; state: string }
+export type Company = {
+  routines: Routine[]
+  costs: { byDept: DeptCost[]; byDay: { date: string; usd: number }[] }
+  trust: TrustRow[]
+  playbooks: Playbook[]
+  workers: Worker[]
+}
+
+const nameOk = (v: unknown): v is string => typeof v === 'string' && /^[\w.-]{1,64}$/.test(v)
+
+export function routineRow(raw: unknown): Routine | null {
+  const r = rec(raw)
+  if (!nameOk(r.name)) return null
+  return {
+    name: r.name,
+    dept: str(r.dept, 40),
+    title: str(r.title, 200),
+    cron: str(r.cron, 60),
+    tz: str(r.tz, 60),
+    enabled: r.enabled !== false,
+    lastRunAt: when(r.lastRunAt),
+    lastStatus: str(r.lastStatus, 40),
+    nextRunAt: when(r.nextRunAt),
+  }
+}
+
+export function trustRow(raw: unknown): TrustRow | null {
+  const r = rec(raw)
+  if (!nameOk(r.kind)) return null
+  return { kind: r.kind, level: r.level === 1 || r.level === '1' ? 1 : 0, locked: r.locked === true, approvals: Math.max(0, num(r.approvals)) }
+}
+
+export function normalizeCompany(body: unknown): Company | null {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) return null
+  const b = body as Rec
+  const costs = rec(b.costs)
+  return {
+    routines: arr(b.routines, 200).map(routineRow).filter((x): x is Routine => !!x),
+    costs: {
+      byDept: Object.entries(rec(costs.byDept))
+        .slice(0, 20)
+        .map(([dept, v]) => {
+          const r = rec(v)
+          return { dept: dept.slice(0, 40), todayUsd: num(r.todayUsd), monthUsd: num(r.monthUsd), limitUsd: optNum(r.limitUsd) }
+        }),
+      byDay: arr(costs.byDay, 62)
+        .map((d) => {
+          const r = rec(d)
+          return typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? { date: r.date, usd: num(r.usd) } : null
+        })
+        .filter((x): x is { date: string; usd: number } => !!x),
+    },
+    trust: arr(b.trust, 100).map(trustRow).filter((x): x is TrustRow => !!x),
+    playbooks: arr(b.playbooks, 50)
+      .map((p) => {
+        const r = rec(p)
+        return nameOk(r.role) ? { role: r.role, updatedAt: when(r.updatedAt), lines: Math.max(0, num(r.lines)) } : null
+      })
+      .filter((x): x is Playbook => !!x),
+    workers: arr(b.workers, 100)
+      .map((w) => {
+        const r = rec(w)
+        const id = idOf(r.id)
+        return id ? { id, dept: str(r.dept, 40), title: str(r.title, 120), state: str(r.state, 40) } : null
+      })
+      .filter((x): x is Worker => !!x),
+  }
+}
+
+// Share of the department's limit spent this month (0..1+), null without a limit.
+export const limitShare = (c: DeptCost): number | null => (c.limitUsd && c.limitUsd > 0 ? c.monthUsd / c.limitUsd : null)
+
+// ---- support SLA -------------------------------------------------------------------------------
+
+export const SLA_HOURS = 4
+
+// Milliseconds left until the ticket breaks its SLA (negative once late); null when answered or
+// without a creation time.
+export function slaLeft(t: Pick<Ticket, 'status' | 'createdAt'>, now: number, hours = SLA_HOURS): number | null {
+  if (t.status !== 'open' || !t.createdAt) return null
+  return Date.parse(t.createdAt) + hours * 3_600_000 - now
+}
+
+export function slaText(ms: number): string {
+  const late = ms < 0
+  const min = Math.floor(Math.abs(ms) / 60_000)
+  const text = min >= 60 ? `${Math.floor(min / 60)} ч ${String(min % 60).padStart(2, '0')} мин` : `${min} мин`
+  return late ? `просрочен на ${text}` : `осталось ${text}`
+}
+
+// ---- command palette ---------------------------------------------------------------------------
+
+export type PaletteEntry = { id: string; group: string; title: string; hint?: string; keywords?: string }
+
+// Entries matching every word of the query (title, hint and keywords; ё = е), best first: a title
+// that starts with the query, then a title containing it, then the rest. Empty query = all.
+export function searchPalette<T extends PaletteEntry>(entries: T[], q: string, limit = 40): T[] {
+  const words = fold(q.trim()).split(/\s+/).filter(Boolean)
+  if (!words.length) return entries.slice(0, limit)
+  const scored: { e: T; score: number }[] = []
+  for (const e of entries) {
+    const title = fold(e.title)
+    const hay = `${title} ${fold(e.hint ?? '')} ${fold(e.keywords ?? '')}`
+    if (!words.every((w) => hay.includes(w))) continue
+    const first = words[0]!
+    scored.push({ e, score: title.startsWith(first) ? 0 : title.includes(first) ? 1 : 2 })
+  }
+  return scored
+    .sort((a, b) => a.score - b.score)
+    .slice(0, limit)
+    .map((s) => s.e)
+}

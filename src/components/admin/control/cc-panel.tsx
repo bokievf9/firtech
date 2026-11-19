@@ -2,7 +2,7 @@
 
 import { CaretDown } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useSyncExternalStore } from 'react'
+import { createContext, useContext, useSyncExternalStore } from 'react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { storedValue } from './api'
@@ -25,6 +25,9 @@ export function useFolded(id: string, byDefault = false) {
   const value = map[id] ?? byDefault
   return [value, (next: boolean) => folded.set({ ...folded.get(), [id]: next })] as const
 }
+
+// Inside a hub panel tab (пульт v3) a panel drops its own title row and fold: the tab is the title.
+export const BarePanel = createContext(false)
 
 // One bento panel of the пульт: a title row with an icon, an optional badge and controls, and a
 // body that folds away. The body fades in (opacity and a 4 px rise, 220 ms), never animates height.
@@ -50,7 +53,18 @@ export function CcPanel({
   children: React.ReactNode
 }) {
   const [isFolded, setFolded] = useFolded(id, defaultFolded)
+  const bare = useContext(BarePanel)
   const bodyId = `cc-${id}-body`
+  if (bare) {
+    return (
+      <section id={`cc-${id}`} aria-label={title} className={cn('flex min-w-0 flex-col', bodyClassName)}>
+        {aside || badge ? (
+          <div className="flex min-h-12 items-center justify-end gap-1 px-3 pt-2">{aside}</div>
+        ) : null}
+        {children}
+      </section>
+    )
+  }
   return (
     <section
       id={`cc-${id}`}

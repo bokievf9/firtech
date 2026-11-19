@@ -172,11 +172,10 @@ test('the admin nav shows only the office; removed components and models are gon
   }
 })
 
-test('the control center mounts both panels and the tab bar lists them', () => {
-  const cc = readFileSync(path.join(root, 'src/components/admin/control/control-center.tsx'), 'utf8')
-  assert.match(cc, /<CrmPanels crm=\{crm\} \/>/)
-  assert.match(cc, /id: 'leads'/)
-  assert.match(cc, /id: 'calls'/)
-  assert.match(cc, /leads: crm\.leads/)
-  assert.match(cc, /calls: crm\.leads/)
+test('the hub mounts both site panels in the Sales panel (tabs site and calls)', () => {
+  const panels = readFileSync(path.join(root, 'src/components/admin/hub/panels.tsx'), 'utf8')
+  assert.match(panels, /<LeadsPanel crm=\{crm\}/)
+  assert.match(panels, /<CallsPanel crm=\{crm\}/)
+  assert.match(panels, /tab === 'site'/)
+  assert.match(panels, /tab === 'calls'/)
 })

@@ -1,0 +1,196 @@
+'use client'
+
+import { useState } from 'react'
+import { LeadDrawer } from '@/components/admin/lead-drawer'
+import { ApprovalsPanel } from '@/components/admin/control/approvals-panel'
+import { CallsPanel } from '@/components/admin/control/calls-panel'
+import { BarePanel } from '@/components/admin/control/cc-panel'
+import { ClientsPanel } from '@/components/admin/control/clients-panel'
+import { useCrmLeads } from '@/components/admin/control/crm-data'
+import { LIST_LIMIT, useFeed } from '@/components/admin/control/crm-hq-data'
+import { DirectorChat } from '@/components/admin/control/director-chat'
+import { DocumentsPanel } from '@/components/admin/control/documents-panel'
+import { DrillPanel } from '@/components/admin/control/drill-panel'
+import { LeadsPanel } from '@/components/admin/control/leads-panel'
+import { ProjectsPanel } from '@/components/admin/control/projects-panel'
+import { ProspectsPanel } from '@/components/admin/control/prospects-panel'
+import { ReferralsPanel } from '@/components/admin/control/referrals-panel'
+import { ReviewsPanel } from '@/components/admin/control/reviews-panel'
+import { TasksPanel, type BoardFilter } from '@/components/admin/control/tasks-panel'
+import { TicketsPanel } from '@/components/admin/control/tickets-panel'
+import { admin } from '@/content/admin'
+import {
+  normalizeClients,
+  normalizeDocuments,
+  normalizeProjects,
+  normalizeProspects,
+  normalizeReferrals,
+  normalizeReviews,
+  normalizeTickets,
+} from '@/lib/admin-crm-hq'
+import type { Approval, HqDepartment, HqTask, Id } from '@/lib/hq-admin-view'
+import type { OfficeData } from '@/lib/office-view'
+import type { HubInboxItem, PanelId, PanelLink } from '@/lib/pult'
+import { Feed } from './feed'
+import { Notifications } from './notifications'
+import { Empty, Offline, useHub } from './ui'
+
+const h = admin.hub
+const q = `?limit=${LIST_LIMIT}`
+
+// Everything the Director panel needs from the hub (it owns the polls and the optimistic updates).
+export type DirectorProps = {
+  inbox: HubInboxItem[] | null
+  inboxError: string | null
+  reloadHub: () => void
+  approvals: Approval[] | null
+  approvalsError: string | null
+  queued: number
+  focusApproval: { id: Id; key: number } | null
+  onAct: (a: Approval, action: 'approve' | 'reject', part?: Id) => void
+  onEdit: (a: Approval, text: string, part?: Id) => Promise<boolean>
+  onRelease: () => Promise<void>
+  tasks: HqTask[] | null
+  tasksError: string | null
+  tz: string
+  filter: BoardFilter
+  onFilter: (f: BoardFilter) => void
+  departments: HqDepartment[]
+  onOpenTask: (id: Id) => void
+  onRetry: (task: HqTask) => Promise<void>
+  onSent: () => void
+  office: OfficeData | null
+  fresh: ReadonlySet<string>
+  onLink: (link: PanelLink) => void
+}
+
+export type Badges = Partial<Record<string, string | null>>
+
+function Soon() {
+  return (
+    <div className="p-3 sm:p-4">
+      <Empty>{h.tabs.soon}</Empty>
+    </div>
+  )
+}
+
+// Site-form leads and calls (leads.json), as in the stage 1 panels; one lead drawer for both tabs.
+function SiteLeads({ calls }: { calls: boolean }) {
+  const crm = useCrmLeads()
+  const [openId, setOpenId] = useState<number | null>(null)
+  if (calls) {
+    const open = crm.leads?.find((l) => l.id === openId) ?? null
+    return (
+      <>
+        <CallsPanel crm={crm} onOpen={setOpenId} />
+        <LeadDrawer lead={open} onClose={() => setOpenId(null)} onChange={crm.replace} />
+      </>
+    )
+  }
+  return <LeadsPanel crm={crm} openId={openId} onOpen={setOpenId} />
+}
+
+function Prospects({ badge }: { badge: string | null }) {
+  const { now } = useHub()
+  return <ProspectsPanel feed={useFeed(`crm/prospects${q}`, normalizeProspects)} badge={badge} now={now} />
+}
+function Clients() {
+  const { now } = useHub()
+  return <ClientsPanel feed={useFeed(`crm/clients${q}`, normalizeClients)} now={now} />
+}
+function Tickets({ badge, onSent }: { badge: string | null; onSent: () => void }) {
+  const { now } = useHub()
+  return <TicketsPanel feed={useFeed(`crm/tickets${q}`, normalizeTickets)} badge={badge} now={now} onSent={onSent} />
+}
+function Projects({ badge }: { badge: string | null }) {
+  return <ProjectsPanel feed={useFeed(`crm/projects${q}`, normalizeProjects)} badge={badge} />
+}
+function Documents({ badge }: { badge: string | null }) {
+  const { now } = useHub()
+  return <DocumentsPanel feed={useFeed(`crm/documents${q}`, normalizeDocuments)} badge={badge} now={now} />
+}
+function Referrals({ badge }: { badge: string | null }) {
+  const { now } = useHub()
+  return <ReferralsPanel feed={useFeed(`crm/referrals${q}`, normalizeReferrals)} badge={badge} now={now} />
+}
+function Reviews({ badge }: { badge: string | null }) {
+  return <ReviewsPanel feed={useFeed('crm/reviews', normalizeReviews)} badge={badge} />
+}
+
+function DirectorTab({ tab, d }: { tab: string; d: DirectorProps }) {
+  const { now } = useHub()
+  switch (tab) {
+    case 'inbox':
+      if (!d.inbox) return d.inboxError ? <Offline error={d.inboxError} onRetry={d.reloadHub} /> : null
+      return <Notifications items={d.inbox} now={now} onOpen={d.onLink} />
+    case 'approvals':
+      return (
+        <ApprovalsPanel
+          items={d.approvals}
+          error={d.approvalsError}
+          now={now}
+          badge={null}
+          focus={d.focusApproval}
+          queued={d.queued}
+          onAct={d.onAct}
+          onEdit={d.onEdit}
+          onRelease={d.onRelease}
+        />
+      )
+    case 'tasks':
+      return (
+        <TasksPanel
+          items={d.tasks}
+          error={d.tasksError}
+          now={now}
+          tz={d.tz}
+          filter={d.filter}
+          departments={d.departments}
+          onFilter={d.onFilter}
+          onOpen={d.onOpenTask}
+          onRetry={d.onRetry}
+        />
+      )
+    case 'chat':
+      return <DirectorChat onOpenTask={d.onOpenTask} onSent={d.onSent} />
+    case 'feed':
+      return <Feed data={d.office} fresh={d.fresh} now={now} />
+    case 'drill':
+      return <DrillPanel departments={d.departments} />
+    default:
+      return null
+  }
+}
+
+// The body of one panel tab. Old panels (stage 1 and 2) render bare inside the tab.
+export function PanelContent({
+  panel,
+  tab,
+  director,
+  badges,
+}: {
+  panel: PanelId
+  tab: string
+  focus: string | null
+  director: DirectorProps
+  badges: Badges
+}) {
+  const b = (k: string) => badges[k] ?? null
+  let body: React.ReactNode = null
+  if (panel === 'director') body = <DirectorTab tab={tab} d={director} />
+  else if (panel === 'sales') {
+    if (tab === 'site') body = <SiteLeads calls={false} />
+    else if (tab === 'calls') body = <SiteLeads calls />
+    else if (tab === 'prospects') body = <Prospects badge={b('prospects')} />
+    else if (tab === 'clients') body = <Clients />
+    else body = <Soon />
+  } else if (panel === 'support') body = <Tickets badge={b('tickets')} onSent={director.onSent} />
+  else if (panel === 'production') body = <Projects badge={b('projects')} />
+  else if (panel === 'backoffice') {
+    if (tab === 'documents') body = <Documents badge={b('documents')} />
+    else if (tab === 'referrals') body = <Referrals badge={b('referrals')} />
+    else if (tab === 'reviews') body = <Reviews badge={b('reviews')} />
+    else body = <Soon />
+  } else body = <Soon />
+  return <BarePanel.Provider value>{body}</BarePanel.Provider>
+}

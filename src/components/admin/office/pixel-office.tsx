@@ -1,6 +1,6 @@
 'use client'
 
-import { CornersIn, CornersOut, Crosshair, MagnifyingGlassMinus, MagnifyingGlassPlus, Tag, X } from '@phosphor-icons/react'
+import { CornersIn, CornersOut, Crosshair, Lightning, MagnifyingGlassMinus, MagnifyingGlassPlus, SealCheck, Tag, WarningCircle, X } from '@phosphor-icons/react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -31,6 +31,17 @@ export const sameTarget = (a: HitTarget | null, b: HitTarget | null) =>
   (!!a && !!b && a.kind === b.kind && ('id' in a ? a.id : '') === ('id' in b ? (b as { id: string }).id : ''))
 
 type Hover = { target: HitTarget; left: number; top: number }
+
+// Пульт v3: rooms as clickable zones with counters over them and a lamp glow on their desks.
+export type ZoneBadge = { approvals: number; alerts: number; running: number }
+export type OfficeZones = {
+  // Room id (layout.ts) -> 0 calm, 0.5 work queued, 1 something waits for the owner.
+  glow: Record<string, number>
+  badges: Record<string, ZoneBadge | undefined>
+  // Name shown on hover; rooms without a name are not zones.
+  names: Record<string, string | undefined>
+  onZone: (roomId: string) => void
+}
 
 type Info = { title: string; rows: [string, string][]; status?: string; followId?: string }
 
@@ -108,6 +119,9 @@ export function PixelOffice({
   selected,
   onSelect,
   onDept,
+  zones,
+  fill: fillBox = false,
+  personAction,
 }: {
   data: OfficeData
   now: number
@@ -115,6 +129,11 @@ export function PixelOffice({
   onSelect: (target: HitTarget | null) => void
   // Clicking a room sign: filter the board by that department.
   onDept?: (id: string) => void
+  zones?: OfficeZones
+  // Fill the parent box (the hub) instead of sizing to the building.
+  fill?: boolean
+  // One extra button on a person's card (the hub: «Задачи»).
+  personAction?: { label: string; run: (agentId: string) => void }
 }) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -135,10 +154,34 @@ export function PixelOffice({
   const flagsRef = useRef(flags)
   const weather = useMemo(() => (flags.weather ? weatherMock(flags.weather) : fetched), [flags.weather, fetched])
   const selectedRef = useRef(selected)
+  const zonesRef = useRef(zones)
   useLayoutEffect(() => {
     selectedRef.current = selected
     flagsRef.current = flags
+    zonesRef.current = zones
   })
+
+  // Counters over the rooms follow the camera without React: each badge is moved to the top
+  // centre of its room's interior.
+  const placeBadges = useCallback(() => {
+    const scene = sceneRef.current
+    const wrap = wrapRef.current
+    if (!scene || !wrap) return
+    for (const el of wrap.querySelectorAll<HTMLElement>('[data-zone-badge]')) {
+      const r = scene.zoneRect(el.dataset.zoneBadge ?? '')
+      if (!r) {
+        el.style.display = 'none'
+        continue
+      }
+      const v = scene.toView(r)
+      const x = v.x + v.w / 2
+      const y = v.y + 4
+      const off = x < 0 || x > wrap.clientWidth || y < -10 || y > wrap.clientHeight
+      el.style.display = off ? 'none' : ''
+      el.style.left = `${Math.round(x)}px`
+      el.style.top = `${Math.round(Math.max(4, y))}px`
+    }
+  }, [])
 
   // Places the card next to the selected thing, inside the view; hides it when off screen.
   const placePanel = useCallback(() => {
@@ -170,12 +213,16 @@ export function PixelOffice({
     const { width, height } = scene.size()
     const fs = document.fullscreenElement === wrap
     const w = wrap.clientWidth
+    if (fillBox) {
+      scene.setViewport(w, Math.max(200, wrap.clientHeight))
+      return
+    }
     const z = fitZoom({ w, h: 0 }, { w: width, h: height })
     const h = fs ? window.innerHeight : Math.min(Math.max(300, Math.round(window.innerHeight * 0.85)), height * z)
     if (!fs) wrap.style.height = `${h}px`
     else wrap.style.height = ''
     scene.setViewport(w, h)
-  }, [])
+  }, [fillBox])
 
   const onViewChange = useCallback(() => {
     const scene = sceneRef.current
@@ -184,13 +231,14 @@ export function PixelOffice({
     const cam = scene.camera()
     setZoom(cam.zoom)
     placePanel()
+    placeBadges()
     if (bubbleRef.current) bubbleRef.current.style.display = 'none'
     const { width, height } = scene.size()
     // One finger pans the office only when there is somewhere to pan to vertically; otherwise
     // vertical swipes scroll the page.
     wrap.style.touchAction = height * cam.zoom > wrap.clientHeight + 1 ? 'none' : 'pan-y'
     void width
-  }, [placePanel])
+  }, [placePanel, placeBadges])
 
   useEffect(() => {
     latest.current = data
@@ -210,6 +258,10 @@ export function PixelOffice({
     const f = flagsRef.current
     const scene = createScene(canvas, latest.current, { reducedMotion: reducedRef.current, stats: f.stats })
     sceneRef.current = scene
+    if (zonesRef.current) {
+      scene.setZoneHits(true)
+      scene.setZoneGlow(zonesRef.current.glow)
+    }
     scene.onView(onViewChange)
     if (f.hour !== null) scene.setHour(f.hour)
     measure()
@@ -280,6 +332,18 @@ export function PixelOffice({
   useLayoutEffect(() => {
     placePanel()
   }, [selected, data, placePanel])
+
+  const zoneOn = !!zones
+  const glow = zones?.glow
+  useEffect(() => {
+    sceneRef.current?.setZoneHits(zoneOn)
+  }, [zoneOn])
+  useEffect(() => {
+    sceneRef.current?.setZoneGlow(glow ?? {})
+  }, [glow])
+  useLayoutEffect(() => {
+    placeBadges()
+  })
 
   // ---- Camera input ---------------------------------------------------------------------------
 
@@ -380,6 +444,12 @@ export function PixelOffice({
     const hit = hitAt(e)
     if (sameTarget(hit, hover?.target ?? null)) return
     scene.setHover(hit)
+    if (hit?.kind === 'room' && zones?.names[hit.id]) {
+      const zr = scene.zoneRect(hit.id)
+      const r = zr ? scene.toView(zr) : null
+      setHover(r ? { target: hit, left: r.x + r.w / 2, top: r.y + 26 } : null)
+      return
+    }
     if (!hit || hit.kind === 'room') {
       setHover(hit ? { target: hit, left: -999, top: -999 } : null)
       return
@@ -408,6 +478,14 @@ export function PixelOffice({
       return
     }
     const hit = hitAt(e)
+    if (zones && hit && (hit.kind === 'room' || hit.kind === 'reception' || hit.kind === 'builders')) {
+      const room = hit.kind === 'room' ? hit.id : hit.kind === 'reception' ? 'lobby' : 'builders'
+      if (zones.names[room]) {
+        onSelect(null)
+        zones.onZone(room)
+        return
+      }
+    }
     if (hit?.kind === 'room') {
       if (hit.id === 'director') onSelect({ kind: 'agent', id: data.director.id })
       else if (onDept && data.departments.some((d) => d.id === hit.id)) onDept(hit.id)
@@ -463,12 +541,25 @@ export function PixelOffice({
     blocked: count('blocked'),
   })
 
+  const zoneHover = hover?.target.kind === 'room' ? (zones?.names[hover.target.id] ?? null) : null
+  const zoneHoverBadge = hover?.target.kind === 'room' ? zones?.badges[hover.target.id] : undefined
   const hoverInfo = hover && hover.target.kind !== 'room' && !sameTarget(hover.target, selected) ? describe(data, hover.target, now) : null
   const selectedInfo = selected ? describe(data, selected, now) : null
   const statusText = (s?: string) => (s ? ((t.status as Record<string, string>)[s] ?? s) : '')
   const followName = follow ? (people.find((p) => p.id === follow)?.title ?? t.scene.visitor) : null
 
   const bubbleText = (() => {
+    if (zoneHover) {
+      const b = zoneHoverBadge
+      const parts = b
+        ? [
+            b.approvals ? fill(t.zones.approvals, { n: b.approvals }) : '',
+            b.alerts ? fill(t.zones.alerts, { n: b.alerts }) : '',
+            b.running ? fill(t.zones.running, { n: b.running }) : '',
+          ].filter(Boolean)
+        : []
+      return { title: zoneHover, line: parts.length ? parts.join(' · ') : t.zones.open }
+    }
     if (!hover || !hoverInfo) return null
     if (hover.target.kind === 'agent') {
       const id = hover.target.id
@@ -498,11 +589,56 @@ export function PixelOffice({
       onKeyDown={onKeyDown}
       className={cn(
         'office-scene relative min-w-0 max-w-full select-none overflow-hidden rounded-card border border-line bg-[#0b1030] outline-none focus-visible:ring-2 focus-visible:ring-accent',
-        full && 'rounded-none border-0',
+        (full || fillBox) && 'rounded-none border-0',
+        fillBox && 'h-full',
       )}
       style={{ cursor: hover && hover.target.kind !== 'room' ? 'pointer' : hover ? 'pointer' : 'grab' }}
     >
       <canvas ref={canvasRef} role="img" aria-label={label} className="block [image-rendering:pixelated]" />
+
+      {zones
+        ? Object.entries(zones.names).map(([room, name]) => {
+            const b = zones.badges[room]
+            if (!name || !b || b.approvals + b.alerts + b.running === 0) return null
+            return (
+              <button
+                key={room}
+                type="button"
+                data-office-ui
+                data-zone-badge={room}
+                onClick={() => zones.onZone(room)}
+                aria-label={`${name}: ${[
+                  b.approvals ? fill(t.zones.approvals, { n: b.approvals }) : '',
+                  b.alerts ? fill(t.zones.alerts, { n: b.alerts }) : '',
+                  b.running ? fill(t.zones.running, { n: b.running }) : '',
+                ]
+                  .filter(Boolean)
+                  .join(', ')}`}
+                className="absolute z-10 flex -translate-x-1/2 items-center gap-1 border-2 border-[#1a1626] bg-[#f4f1ea] px-1.5 py-0.5 font-mono text-[11px] leading-none text-[#1a1626] shadow-[2px_2px_0_#1a1626] transition-transform hover:-translate-y-0.5"
+                style={{ display: 'none' }}
+              >
+                {b.approvals ? (
+                  <span className="inline-flex items-center gap-0.5 text-[#9a5b00]">
+                    <SealCheck size={11} weight="fill" aria-hidden="true" />
+                    {b.approvals}
+                  </span>
+                ) : null}
+                {b.alerts ? (
+                  <span className="inline-flex items-center gap-0.5 text-[#b3261e]">
+                    <WarningCircle size={11} weight="fill" aria-hidden="true" />
+                    {b.alerts}
+                  </span>
+                ) : null}
+                {b.running ? (
+                  <span className="inline-flex items-center gap-0.5 text-[#3c6e00]">
+                    <Lightning size={11} weight="fill" aria-hidden="true" />
+                    {b.running}
+                  </span>
+                ) : null}
+              </button>
+            )
+          })
+        : null}
 
       <div
         data-office-ui
@@ -585,6 +721,15 @@ export function PixelOffice({
               </div>
             ))}
           </dl>
+          {personAction && selected.kind === 'agent' ? (
+            <button
+              type="button"
+              onClick={() => personAction.run(selected.id)}
+              className="mt-3 mr-2 inline-flex min-h-9 items-center gap-1.5 rounded-full border-2 border-[#1a1626] bg-[#1a1626] px-3 text-xs font-medium text-[#f4f1ea] hover:opacity-90"
+            >
+              {personAction.label}
+            </button>
+          ) : null}
           {selectedInfo.followId ? (
             <button
               type="button"

@@ -1,4 +1,5 @@
 import { officeMock } from './office-mock'
+import { createPultMock } from './pult-mock'
 import {
   effectivePresence,
   sameId,
@@ -288,8 +289,8 @@ export function createCrmMock(start = Date.now()) {
   ]
   const notes = new Map<string, string>(prospects.map((p) => [`p${p.id}`, String(p.note)]))
   const tickets: Row[] = [
-    { id: 3, clientName: 'Алиса', contact: '@alice', text: 'Бот не отвечает с утра, клиенты жалуются.', status: 'open', money: true, slaAlerted: true, note: '', createdAt: ago(95), answeredAt: null },
-    { id: 2, clientName: 'Боб', contact: '@bob', text: 'Можно поменять цвет кнопки на сайте?', status: 'open', money: false, slaAlerted: false, note: '', createdAt: ago(60 * 7), answeredAt: null },
+    { id: 3, clientName: 'Алиса', contact: '@alice', text: 'Бот не отвечает с утра, клиенты жалуются.', status: 'open', money: true, slaAlerted: true, note: '', answer: null, createdAt: ago(95), answeredAt: null },
+    { id: 2, clientName: 'Боб', contact: '@bob', text: 'Можно поменять цвет кнопки на сайте?', status: 'open', money: false, slaAlerted: false, note: '', answer: null, createdAt: ago(60 * 7), answeredAt: null },
   ]
   const documents: Row[] = [
     { id: 'bl:5', source: 'billing', kind: 'invoice', status: 'issued', client: 'Алиса', title: 'Сайт, этап 1', excerpt: 'Сайт, этап 1', amountUsd: 300, number: 'FT-2026-001', createdAt: ago(60 * 20), link: null },
@@ -412,6 +413,7 @@ export function createHqMock(start = Date.now()) {
   const state = seed(start)
   const office = () => officeMock()
   const crm = createCrmMock(start)
+  const pult = createPultMock(start, { approvals: () => state.approvals })
 
   const addInbox = (now: number, kind: InboxKind, text: string, extra: Partial<InboxItem> = {}) => {
     state.inbox.push({
@@ -604,6 +606,8 @@ export function createHqMock(start = Date.now()) {
   return function handle(method: 'GET' | 'POST', path: string, query: Query = {}, body: Json = {}, now = Date.now()): MockReply {
     advance(now)
     const seg = path.split('/').filter(Boolean)
+    const v3 = pult(method, seg, query, body, now)
+    if (v3) return v3 as MockReply
     if (seg[0] === 'crm') return crm(method, seg, query, body, now)
     const key = `${method} ${seg[0] ?? ''}`
     switch (key) {
