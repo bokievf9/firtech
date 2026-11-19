@@ -25,7 +25,7 @@ registerHooks({
 
 const { officeMock, mockScene, weatherMock, MOCK_REACTIONS } = await import('../src/lib/office-mock.ts')
 const { normalizeScene } = await import('../src/lib/office-view.ts')
-const { withScene, fetchOffice } = await import('../src/lib/office-hq.ts')
+const { withScene, fetchOffice, fetchAdminOffice } = await import('../src/lib/office-hq.ts')
 const W = await import('../src/lib/office-weather.ts')
 const pub = await import('../src/lib/office-public.ts')
 const L = await import('../src/components/pixel-office/layout.ts')
@@ -96,6 +96,25 @@ test('office-hq passes the scene block and visitorsActive through, cleaned', asy
   const got = await fetchOffice({ HQ_OFFICE_URL: 'http://hq/office', NODE_ENV: 'production' }, fetcher)
   assert.equal(got.ok, true)
   assert.equal(got.visitorsActive, 4)
+})
+
+test('admin office goes to HQ /admin/office with the admin token, falls back to the public one', async () => {
+  const calls = []
+  const body = { ...officeMock(NOW), visitorsActive: 4 }
+  const fetcher = async (url, init) => {
+    calls.push({ url, headers: init.headers })
+    return new Response(JSON.stringify(body), { status: 200 })
+  }
+  const env = { HQ_ADMIN_URL: 'http://hq/admin/', HQ_ADMIN_TOKEN: 'a-token', HQ_OFFICE_URL: 'http://hq/office', HQ_OFFICE_TOKEN: 'o-token', NODE_ENV: 'production' }
+  const got = await fetchAdminOffice(env, fetcher)
+  assert.equal(got.ok, true)
+  assert.equal(calls[0].url, 'http://hq/admin/office')
+  assert.deepEqual(calls[0].headers, { 'x-admin-token': 'a-token' })
+  await fetchAdminOffice({ ...env, HQ_ADMIN_TOKEN: '' }, fetcher)
+  assert.equal(calls[1].url, 'http://hq/office')
+  assert.deepEqual(calls[1].headers, { 'x-office-token': 'o-token' })
+  const denied = await fetchAdminOffice(env, async () => new Response('no', { status: 401 }))
+  assert.deepEqual(denied, { ok: false, error: 'hq_unauthorized' })
 })
 
 test('the mock exercises every mechanic: visitor states, reactions, approvals, notice', () => {
