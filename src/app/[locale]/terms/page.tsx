@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { LegalDoc } from '@/components/legal-doc'
 import { getDict } from '@/content'
 import { isLocale } from '@/lib/i18n'
+import { fillStageTokens } from '@/lib/payment-stages'
 import { shareBase } from '@/lib/share'
 
 // Terms of service (оферта): a skeleton. The owner's requisites and legal choices are marked with
@@ -40,7 +41,10 @@ export default async function TermsPage({ params }: PageProps<'/[locale]/terms'>
     <LegalDoc
       t={t}
       idPrefix="terms"
-      sections={t.sections}
+      sections={t.sections.map((section) => ({
+        ...section,
+        text: section.text.map(fillStageTokens),
+      }))}
       extra={(section) =>
         section.id === 'data' ? (
           <p>

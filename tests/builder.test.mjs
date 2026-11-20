@@ -164,3 +164,43 @@ test('starting sets (card links) are told apart from a configured build', () => 
   assert.equal(isStartingSet(withDetails(presets.salon, { pages: 5 })), false)
   assert.equal(isStartingSet(decodeBuild('websites.shop~bots.faq')), false)
 })
+
+test('estimate doc: stage rows with amounts that sum to the total, the rule sentence in the copy', () => {
+  const usd = (s) => Number(s.replace(/[^\d]/g, ''))
+  const doc = estimateDoc(full, ru, 'ru')
+  assert.equal(doc.stages.length, 4) // the mobile app is the most expensive part: the app template
+  assert.equal(doc.stages.reduce((sum, s) => sum + usd(s.amount), 0), quote(full).total)
+  assert.deepEqual(doc.stages.map((s) => s.n), [1, 2, 3, 4])
+  assert.deepEqual(doc.stages.map((s) => s.share), ['25%', '25%', '25%', '25%'])
+  assert.equal(doc.stages[0].name, 'Дизайн и прототип')
+  assert.equal(estimateDoc(full, en, 'en').stages[0].name, 'Design and prototype')
+  assert.deepEqual(Object.keys(ru.builder.stageCols), ['stage', 'what', 'share', 'amount'])
+  assert.equal(ru.builder.stageCols.what, 'Что входит')
+  assert.equal(ru.builder.stageRule, 'Каждый этап оплачивается до его начала, последний до передачи.')
+  assert.match(en.builder.stageRule, /before it starts/)
+})
+
+test('estimate doc: a 290 bot is two stages, a 1200 site is three, nothing priced has none', () => {
+  const usd = (s) => Number(s.replace(/[^\d]/g, ''))
+  // A booking bot (250) with broadcasts (40) is 290, under the 300 limit.
+  const bot = { parts: { bots: { variant: 'booking', addons: ['broadcasts'] } }, extras: [] }
+  assert.equal(quote(bot).total, 290)
+  const small = estimateDoc(bot, ru, 'ru')
+  assert.deepEqual(small.stages.map((s) => [s.name, s.share, usd(s.amount)]), [['Старт', '50%', 145], ['Запуск', '50%', 145]])
+  // A shop with every add-on (920) plus two extras: over the limit, the site template.
+  const big = { parts: { websites: { variant: 'shop', addons: ['language', 'telegram', 'payments', 'cms'] } }, extras: ['seo', 'design'] }
+  assert.equal(estimateDoc(big, ru, 'ru').stages.length, 3)
+  assert.equal(estimateDoc({ parts: {}, extras: [] }, ru, 'ru').stages.length, 0)
+})
+
+test('lead summary: a compact stage line, the limit still holds', () => {
+  for (const [dict, locale] of [[ru, 'ru'], [en, 'en']]) {
+    const text = leadSummary(full, dict, locale)
+    assert.match(text, new RegExp(`${dict.builder.stageLead}: 1\\. \\$[\\d,]+ \\(25%\\), 2\\.`))
+    assert.ok(text.length <= leadLimit)
+  }
+  const plain = leadSummary(presets.cafe, ru, 'ru')
+  assert.match(plain, /Оплата по этапам: 1\. \$[\d,]+/)
+  // The scope line stays after the stage line.
+  assert.ok(plain.indexOf('Оплата по этапам') < plain.indexOf(estimateDoc(presets.cafe, ru, 'ru').scope))
+})

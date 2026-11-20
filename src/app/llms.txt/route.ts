@@ -43,6 +43,8 @@ export function GET() {
       '',
       `${dict.region.title}. ${dict.region.payTitle}: ${dict.region.pay.join(', ')}.`,
       '',
+      dict.builder.payNote,
+      '',
       dict.guarantee.llms,
     ].join('\n')
   })

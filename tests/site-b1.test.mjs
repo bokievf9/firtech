@@ -96,7 +96,7 @@ test('footer: products lead, every link points to an existing route, labels exis
   for (const locale of ['ru', 'en']) {
     const cols = footerColumns(locale)
     assert.equal(cols[0].id, 'products')
-    assert.equal(cols[0].links.length, 7)
+    assert.equal(cols[0].links.length, 8) // seven products + the AI-team page (2026-11-21)
     for (const col of cols)
       for (const link of col.links) {
         assert.ok(resolves(link.href, locale), link.href)

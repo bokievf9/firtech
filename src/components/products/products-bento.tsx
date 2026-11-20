@@ -54,6 +54,22 @@ export function ProductsBento({ locale, dict }: { locale: Locale; dict: Dict }) 
       </ul>
 
       <Reveal className="mt-gutter">
+        <Link
+          href={`/${locale}/ai-team`}
+          className="group flex flex-col gap-4 rounded-card border border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 transition-colors hover:border-accent-text/50 sm:flex-row sm:items-center sm:justify-between md:p-8"
+        >
+          <span>
+            <span className="block font-display text-2xl font-semibold tracking-tight">{dict.aiTeams.nav}</span>
+            <span className="mt-2 block max-w-[60ch] text-muted">{dict.aiTeams.sub}</span>
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium">
+            {dict.aiTeams.deptsTitle}
+            <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
+          </span>
+        </Link>
+      </Reveal>
+
+      <Reveal className="mt-gutter">
         <div className="grid gap-6 rounded-card border border-line p-6 md:p-8 lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-4">
             <p className="font-display text-2xl font-semibold tracking-tight">{t.classicTitle}</p>
