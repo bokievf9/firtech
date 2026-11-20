@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Check } from '@phosphor-icons/reac
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { AgentRow } from '@/components/ai-team/agent-list'
 import { QuoteLine, TeamGlyph, TrustChip } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { ContactSection } from '@/components/contact-section'
@@ -16,6 +17,7 @@ import {
   aiTeamBuilderHref,
   aiTeamCopy,
   aiTeamIds,
+  agentsOfDept,
   aiTeamPath,
   isAiTeamId,
 } from '@/lib/ai-teams'
@@ -147,6 +149,22 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
             </div>
           </Reveal>
         </div>
+      </section>
+
+      <section id="agents" className="mx-auto max-w-7xl px-4 pt-section md:px-8">
+        <Reveal>
+          <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{t.agents.page.listTitle}</h2>
+          <p className="mt-4 max-w-[56ch] text-lg leading-relaxed text-muted">{t.agents.page.listSub}</p>
+        </Reveal>
+        <ul className="mt-8 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
+          {agentsOfDept(id).map((agent, i) => (
+            <li key={agent.id}>
+              <Reveal delay={(i % 3) * 0.05} className="h-full">
+                <AgentRow id={agent.id} locale={locale} dict={dict} />
+              </Reveal>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-12 px-4 py-section md:px-8 lg:grid-cols-12">

@@ -99,6 +99,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   the receptionist chat (`ChatOpenButton`, source `aiteam*`) and `#contact` («Обсудить»). In `localePages`, the sitemap
   (`aiTeamPaths`), one footer link in «Продукты» (`footer.pages['ai-team']`) and a strip under the products bento (the seven cards
   stay seven). Tests: `tests/ai-teams.test.mjs`. Changing a price later = a new line from `pricing.ts`, never typed copy.
+  Every agent is also a product (owner 2026-11-21: «каждого агента можно продавать отдельно»): `agentOffers` in `lib/ai-teams.ts` (19 roles, `standalone: false` only for the Director) with copy in `aiTeams.agents`, pages `/[locale]/ai-team/agent/[id]`, an «Агенты отдела» list on each department page and an «Или один агент» strip plus `#agents` section on the index; the agent CTA sends the lead `source` `agent-<id>` (`AgentDiscuss`), the pages are in the sitemap, the 404 list and `llms.txt`.
 - Blog (`/[locale]/blog`): articles are typed data in `src/content/blog/` (one file each, ru + en).
   Only `published: true` reaches production and the sitemap; drafts show in `next dev` with a
   "Черновик" badge. Publish = set `published: true` and the date. Since 2026-11-19 HQ also publishes

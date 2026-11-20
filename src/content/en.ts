@@ -2510,6 +2510,683 @@ const en: Dict = {
       finalTitle: 'Let us talk about your team',
       finalText: 'Tell us about the business. We will say which roles you need, what to connect and what it costs.',
     },
+    agents: {
+      stripTitle: 'Or a single agent',
+      stripText: 'Do not need the whole department? Take one role: every agent has its own page with its tasks and terms.',
+      stripCta: 'See all agents',
+      sectionTitle: 'Every agent on its own',
+      sectionSub: 'Any role can be taken without the rest of the department. What the agent needs on input is written on its page.',
+      more: 'Details',
+      standaloneYes: 'Available on its own',
+      standaloneNo: 'Only with a department',
+      page: {
+        back: 'All agents',
+        deptLabel: 'Department',
+        whatTitle: 'What it does',
+        needsTitle: 'What we need from you',
+        worksTitle: 'Works with',
+        worksAlone: 'Works on its own',
+        trustTitle: 'What it does alone and what waits for you',
+        aloneLabel: 'Does alone',
+        waitsLabel: 'Waits for your decision',
+        requiresTitle: 'Only with a department',
+        requiresText: 'This agent needs at least one department. Choose a department and the agent plugs into it.',
+        finalTitle: 'Let us talk about this agent',
+        finalText: 'Tell us about the business. We will say what needs connecting and what it will cost.',
+        othersTitle: 'Other agents of the department',
+        listTitle: 'Agents of the department',
+        listSub: 'Each has its own page: what it does, what we need from you and what waits for your decision.',
+      },
+      items: {
+        'trend-scout': {
+          title: 'Trend scout',
+          promise: 'Brings the rising topics and formats of your niche every day, so you stop guessing what to write about.',
+          does: [
+            'Scans social networks and search trends in your niche',
+            'Picks rising topics, formats and hooks',
+            'Sends a short digest every day',
+            'Compiles a weekly summary of niche trends',
+          ],
+          needs: [
+            'A description of your niche and a few of your competitors',
+            'The platforms that matter to you',
+            'A Telegram chat for the digest',
+          ],
+          worksNote: 'The content maker uses the digest, but you can read it yourself as a source of post ideas.',
+          alone: 'Collects trends and sends the digest without waiting for your approval.',
+          waits: 'Publishes nothing and writes to nobody, it only suggests topics.',
+          faq: [
+            {
+              q: 'Where does the agent get the trends?',
+              a: 'From public social networks and search trends in the niches you choose. The exact list of sources goes into the quote.',
+            },
+            {
+              q: 'Do I need the content maker?',
+              a: 'No. You can use the digest as ideas for your own content. With the content maker it turns into ready materials.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of niches and platforms.',
+            },
+          ],
+          metaTitle: 'Trend scout: an AI agent for niche trends | Fir Tech',
+          metaDescription: 'The Trend scout AI agent sends the rising topics and formats of your niche every day. Available on its own, without the whole department. Priced by quote.',
+        },
+        'content-maker': {
+          title: 'Content maker',
+          promise: 'Turns topics, trends and case studies into reels, carousels and posts in Russian and English.',
+          does: [
+            'Makes reels, carousels and posts on your topics',
+            'Writes in two languages when you need both',
+            'Takes trends from the trend scout and your case studies',
+            'Sends the materials in a batch for approval',
+          ],
+          needs: [
+            'A description of the business and your tone of voice',
+            'Posts you like and a list of forbidden topics',
+            'Case studies, photos and facts you are happy to show',
+          ],
+          worksNote: 'Takes topics from the trend scout or from your own list. Hands the result to the publisher or to you.',
+          alone: 'Prepares materials and puts them in the queue.',
+          waits: 'Each batch moves on only after your approval, until you switch the task to autonomous mode.',
+          faq: [
+            {
+              q: 'Does the agent make video too?',
+              a: 'Reels are included. Complex videos are built by our developers as a separate task, and the quote marks it.',
+            },
+            {
+              q: 'Can I use it without the publisher?',
+              a: 'Yes. Ready materials arrive in your Telegram and you post them yourself.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the languages and the volume of materials.',
+            },
+          ],
+          metaTitle: 'Content maker: an AI agent for reels and posts | Fir Tech',
+          metaDescription: 'The Content maker AI agent makes reels, carousels and posts in two languages and sends them in a batch for approval. Available on its own. Priced by quote.',
+        },
+        publisher: {
+          title: 'Publisher',
+          promise: 'Schedules ready materials and posts them in your channels after you approve.',
+          does: [
+            'Builds the publishing schedule',
+            'Posts to Telegram, Instagram, YouTube Shorts and VK',
+            'Reports what went out and when',
+            'Moves a post when you ask',
+          ],
+          needs: [
+            'Access to the channels you choose',
+            'Ready content: from the content maker or your own',
+            'Rules: the best time and how often to post',
+          ],
+          worksNote: 'Takes materials from the content maker. If the content is yours, you only need to load it into the queue.',
+          alone: 'Watches the schedule and reports every post.',
+          waits: 'Going live waits for your approval.',
+          faq: [
+            {
+              q: 'Which channels can be connected?',
+              a: 'Telegram, Instagram, YouTube Shorts and VK. The exact list for you goes into the quote.',
+            },
+            {
+              q: 'Where does the content come from?',
+              a: 'From the content maker or from you. The publisher does not care who made the material.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of channels.',
+            },
+          ],
+          metaTitle: 'Publisher: an AI agent for social media posting | Fir Tech',
+          metaDescription: 'The Publisher AI agent keeps the schedule and posts your content to Telegram, Instagram, YouTube Shorts and VK after approval. Priced by quote.',
+        },
+        analyst: {
+          title: 'Analyst',
+          promise: 'Sends the numbers for your channels and leads once a week, with a plan for the next week.',
+          does: [
+            'Collects channel and lead metrics',
+            'Compares the week with the previous one',
+            'Sends a weekly report in Telegram',
+            'Suggests what to repeat and what to drop',
+          ],
+          needs: [
+            'Access to channel and site statistics',
+            'The list of leads or the sheet where they live',
+            'Your definition of success: what counts as a good result',
+          ],
+          worksNote: 'Reads the numbers wherever they are. The picture is fuller next to the publisher and the lead handler, but it works without them too.',
+          alone: 'Collects the numbers and sends the report.',
+          waits: 'Does not change the schedule or budgets, it only suggests.',
+          faq: [
+            {
+              q: 'Which numbers does it see?',
+              a: 'The ones you give access to: channel and site statistics and the list of leads. Nothing else.',
+            },
+            {
+              q: 'Do I need other agents?',
+              a: 'No. The report is built from whatever sources you connect.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of data sources.',
+            },
+          ],
+          metaTitle: 'Analyst: an AI agent with a weekly report | Fir Tech',
+          metaDescription: 'The Analyst AI agent collects numbers from your channels and leads and sends a weekly report with a plan. Available without the department. Priced by quote.',
+        },
+        seo: {
+          title: 'SEO specialist',
+          promise: 'Prepares articles and pages in Russian and English for the search queries of your niche.',
+          does: [
+            'Collects the keywords for your niche',
+            'Writes articles and page texts in two languages',
+            'Prepares entries for directories and Google Business',
+            'Keeps the llms.txt file up to date for AI assistants',
+          ],
+          needs: [
+            'A description of your services and audience',
+            'Access to the site or blog to publish on',
+            'Competitors and topics to avoid',
+          ],
+          worksNote: 'Works on its own. Finished articles can go to the content maker to be cut into posts.',
+          alone: 'Collects queries and writes article drafts.',
+          waits: 'Publishing on the site goes ahead after your approval.',
+          faq: [
+            {
+              q: 'Does the agent edit my site by itself?',
+              a: 'It prepares the texts. How they reach the site is agreed at the start: through you or through access to the blog.',
+            },
+            {
+              q: 'What is llms.txt?',
+              a: 'A file that describes your business for AI assistants. The agent keeps it current.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the languages and the volume of texts.',
+            },
+          ],
+          metaTitle: 'SEO specialist: an AI agent for articles and search | Fir Tech',
+          metaDescription: 'The SEO specialist AI agent collects keywords, writes articles in two languages and prepares directory entries. You approve before publishing. Priced by quote.',
+        },
+        'lead-handler': {
+          title: 'Lead handler',
+          promise: 'Answers the first customer message within a minute, asks the questions and books a call.',
+          does: [
+            'Answers the first message in the messenger',
+            'Asks clarifying questions from your list',
+            'Offers free slots for a call',
+            'Creates a lead card and sends it to you',
+            'Nudges the people who went quiet',
+          ],
+          needs: [
+            'A bot or account where customers write',
+            'A description of your services and answers to common questions',
+            'Your working slots for calls',
+          ],
+          worksNote: 'The lead card can go to the presales agent, who builds the proposal. Without it the card comes to you.',
+          alone: 'Holds the conversation with the customer and reports to you.',
+          waits: 'Prices, discounts and promises about deadlines stay with you.',
+          faq: [
+            {
+              q: 'Does the agent quote prices to customers?',
+              a: 'No. Prices, quotes and contracts always sit at the level where you decide.',
+            },
+            {
+              q: 'What if the agent does not know the answer?',
+              a: 'It passes the question to you. The rules for when to do that are agreed at the start.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the channels and the volume of leads.',
+            },
+          ],
+          metaTitle: 'Lead handler: an AI agent for chat leads | Fir Tech',
+          metaDescription: 'The Lead handler AI agent answers customers within a minute, asks questions, offers a call slot and creates a lead card. You keep the prices. Priced by quote.',
+        },
+        prospector: {
+          title: 'Prospector',
+          promise: 'Finds suitable businesses in your niches and cities and prepares a personal offer for each.',
+          does: [
+            'Collects businesses by niche and city from open sources',
+            'Checks what each one does',
+            'Writes a personal text of the offer',
+            'Sends the list for approval once a day',
+          ],
+          needs: [
+            'The niches and cities where you look for customers',
+            'A description of your offer and examples of good customers',
+            'Rules: who must never be contacted',
+          ],
+          worksNote: 'The lead handler picks up the people who respond. Without it the replies come to you.',
+          alone: 'Collects the list and prepares the offer texts.',
+          waits: 'Every offer goes out only after your approval.',
+          faq: [
+            {
+              q: 'Does the prospector write to people by itself?',
+              a: 'It prepares the list and the text. Sending waits for your approval.',
+            },
+            {
+              q: 'Where do the businesses come from?',
+              a: 'From open sources: maps, directories, sites and social networks. The list of sources goes into the quote.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of niches and cities.',
+            },
+          ],
+          metaTitle: 'Prospector: an AI agent for finding customers | Fir Tech',
+          metaDescription: 'The Prospector AI agent finds suitable businesses in your niches and cities and prepares personal offers for your approval. Priced by quote.',
+        },
+        presales: {
+          title: 'Presales: proposals and quotes',
+          promise: 'Turns a lead card into a commercial proposal, a quote and a draft contract.',
+          does: [
+            'Reads the lead card and the conversation',
+            'Builds the proposal from your template',
+            'Calculates the quote from your price list',
+            'Prepares a draft contract',
+          ],
+          needs: [
+            'Templates for proposals and contracts',
+            'Your price list and discount rules',
+            'A lead card: from the lead handler or from you',
+          ],
+          worksNote: 'Takes the card from the lead handler or from you. The Documents agent can keep the contract templates.',
+          alone: 'Prepares drafts of the proposal, quote and contract.',
+          waits: 'The price, quote and contract reach the customer only after your decision.',
+          faq: [
+            {
+              q: 'Does the agent set the price itself?',
+              a: 'No. It calculates from your price list and rules, and you send the result.',
+            },
+            {
+              q: 'Do I need the lead handler?',
+              a: 'No. You can pass the lead card by hand.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of templates and the complexity of quotes.',
+            },
+          ],
+          metaTitle: 'Presales: an AI agent for proposals and quotes | Fir Tech',
+          metaDescription: 'The Presales AI agent turns a lead card into a proposal, a quote and a draft contract from your templates. You keep prices and contracts. Priced by quote.',
+        },
+        referral: {
+          title: 'Referral agent',
+          promise: 'Runs a referral program: personal links, the leads that came through them and a list of rewards for your approval.',
+          does: [
+            'Gives partners personal links',
+            'Marks the leads that arrived through a link',
+            'Compiles the list of rewards by your rules',
+            'Tells the partner the status of their leads',
+          ],
+          needs: [
+            'The program rules: the size of the reward and when it is earned',
+            'A way to reach your partners',
+            'The payout method you use',
+          ],
+          worksNote: 'Takes the source of a lead from the lead handler card. Without it the link mark has to come from your own form.',
+          alone: 'Keeps the record of links and leads.',
+          waits: 'The program terms and payouts follow only your decision.',
+          faq: [
+            {
+              q: 'Does the agent pay partners?',
+              a: 'No. It prepares the list of rewards, and you confirm and make the payout.',
+            },
+            {
+              q: 'Does it fit if I have no program yet?',
+              a: 'Yes. We design the rules with you at the start.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of partners and the complexity of the rules.',
+            },
+          ],
+          metaTitle: 'Referral agent: an AI agent for referral programs | Fir Tech',
+          metaDescription: 'The Referral agent runs your referral program: personal links, leads that came through them and rewards for your approval. Payouts stay with you. By quote.',
+        },
+        support: {
+          title: 'Support desk',
+          promise: 'Answers customers from your base of answers, tracks tickets against deadlines and hands the hard ones to you.',
+          does: [
+            'Answers questions from the answer base',
+            'Opens a ticket when the base has no answer',
+            'Watches the response deadlines (SLA)',
+            'Sends a morning summary of tickets',
+          ],
+          needs: [
+            'The channel where customers ask questions',
+            'Your answers to common questions and your policies',
+            'Rules: what goes to you straight away',
+          ],
+          worksNote: 'Takes answers from the knowledge base. The base can be kept by the Knowledge base agent or by hand.',
+          alone: 'Tracks tickets and reminds you of deadlines.',
+          waits: 'Answers outside the base and anything about money go through you.',
+          faq: [
+            {
+              q: 'Does the agent answer any question?',
+              a: 'It answers from your base of answers. If the base has no answer, it opens a ticket and passes it to you.',
+            },
+            {
+              q: 'Where does the base of answers come from?',
+              a: 'From your documents and conversations. We collect it together at the start, and it grows as the work goes on.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the channels and the volume of requests.',
+            },
+          ],
+          metaTitle: 'Support desk: an AI agent that answers customers | Fir Tech',
+          metaDescription: 'The Support desk AI agent answers from your base of answers, tracks tickets against deadlines and hands the hard ones to you. Available on its own.',
+        },
+        monitoring: {
+          title: 'Monitoring',
+          promise: 'Watches that your sites and bots keep working and sends an alert the moment something fails.',
+          does: [
+            'Checks the availability of sites and bots from a list',
+            'Notices errors in how they run',
+            'Sends an alert to Telegram',
+            'Reports when the service is back',
+          ],
+          needs: [
+            'A list of site and bot addresses',
+            'A Telegram chat for alerts',
+            'Who should be told when something fails',
+          ],
+          worksNote: 'Works on its own and depends on nobody.',
+          alone: 'Checks and sends alerts without waiting for your approval.',
+          waits: 'Restarts and fixes nothing. The decision stays with you or your developer.',
+          faq: [
+            {
+              q: 'Does the agent fix failures itself?',
+              a: 'No. It notices a failure and tells you. A person fixes it.',
+            },
+            {
+              q: 'What can be checked?',
+              a: 'Sites and bots from a list of addresses. The exact scope goes into the quote.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of sites and bots.',
+            },
+          ],
+          metaTitle: 'Monitoring: an AI agent that watches your sites | Fir Tech',
+          metaDescription: 'The Monitoring AI agent checks that your sites and bots are available and sends a Telegram alert the moment something fails. Available on its own.',
+        },
+        billing: {
+          title: 'Billing',
+          promise: 'Prepares invoices and payment reminders for your subscriptions, and sends them after you approve.',
+          does: [
+            'Keeps the list of subscriptions and due dates',
+            'Prepares an invoice for the right date',
+            'Prepares a polite reminder when payment is missing',
+            'Sends a summary of payments',
+          ],
+          needs: [
+            'A sheet or service with subscriptions and amounts',
+            'Your payment details and methods',
+            'An invoice template and the tone of reminders',
+          ],
+          worksNote: 'The Documents agent can keep the invoice templates. Without it your own templates are used.',
+          alone: 'Watches the dates and prepares drafts.',
+          waits: 'Amounts, sending and anything about money wait for your approval.',
+          faq: [
+            {
+              q: 'Do invoices go out by themselves?',
+              a: 'The agent prepares the invoice and the reminder, and you approve. Amounts and money always stay on your side.',
+            },
+            {
+              q: 'Do I need a payment system?',
+              a: 'Not necessarily. The agent works from your sheet. Connecting payment services is discussed separately.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of subscriptions.',
+            },
+          ],
+          metaTitle: 'Billing: an AI agent for invoices and reminders | Fir Tech',
+          metaDescription: 'The Billing AI agent prepares invoices and payment reminders for your subscriptions. Amounts and sending wait for your approval. Priced by quote.',
+        },
+        onboarding: {
+          title: 'Onboarding',
+          promise: 'Welcomes a new customer: collects the access you need and guides them through the first week by your instructions.',
+          does: [
+            'Sends the customer a questionnaire and a list of the access you need',
+            'Reminds them what is still missing',
+            'Guides the customer through the steps of the first week',
+            'Tells you when the customer is ready or stuck',
+          ],
+          needs: [
+            'Your instructions for a new customer',
+            'The list of access and materials you need from the customer',
+            'A way to reach the customer',
+          ],
+          worksNote: 'When the customer is ready, passes the project to the project manager. Later questions go to the support desk.',
+          alone: 'Collects materials and reminds the customer.',
+          waits: 'Messages to the customer outside the instructions go through you.',
+          faq: [
+            {
+              q: 'What does it do with the customer access?',
+              a: 'Collects it by your list and hands it to you. How it is stored is agreed at the start.',
+            },
+            {
+              q: 'Do I need other agents?',
+              a: 'No. It can follow your instructions and hand the result to you.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the complexity of the instructions and the number of steps.',
+            },
+          ],
+          metaTitle: 'Onboarding: an AI agent for welcoming new customers | Fir Tech',
+          metaDescription: 'The Onboarding AI agent collects a new customer access and guides them through the first week by your instructions. Available on its own. Priced by quote.',
+        },
+        'project-manager': {
+          title: 'Project manager',
+          promise: 'Turns a signed proposal into a brief, a plan and tasks, and sends the client a status at each stage.',
+          does: [
+            'Builds the brief from the signed proposal',
+            'Splits the work into stages and tasks',
+            'Sends the client a status on the days you choose',
+            'Sends you a weekly summary: what is in progress and what is late',
+          ],
+          needs: [
+            'The signed proposal or a description of the order',
+            'A tracker or a sheet of tasks',
+            'A way to reach the client',
+          ],
+          worksNote: 'Does not replace the people who do the work: tasks go to your team. Can call the reviewer before a stage is handed over.',
+          alone: 'Keeps the tasks and deadlines.',
+          waits: 'A status to the client and handing over a stage follow your approval.',
+          faq: [
+            {
+              q: 'Does the agent write code or design?',
+              a: 'No, it organises the work. The people doing it stay yours, or we discuss them as a separate task.',
+            },
+            {
+              q: 'Does the client talk to the agent?',
+              a: 'The client receives statuses and questions by stage. What the agent writes itself and what goes through you is set up together.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of stages and connected systems.',
+            },
+          ],
+          metaTitle: 'Project manager: an AI agent for tasks and statuses | Fir Tech',
+          metaDescription: 'The Project manager AI agent turns a proposal into a brief and a plan and sends the client a status at each stage. Available on its own. Priced by quote.',
+        },
+        'reviewer-qa': {
+          title: 'Reviewer and QA',
+          promise: 'Checks the result of a stage and prepares remarks on quality and security before it goes to the client.',
+          does: [
+            'Compares the result with the brief',
+            'Checks it against the acceptance checklist',
+            'Reads the code changes and looks for errors and risks',
+            'Prepares the list of remarks',
+          ],
+          needs: [
+            'Access to the repository or the materials of the stage',
+            'The brief and the acceptance rules',
+            'A quality checklist, if you have one',
+          ],
+          worksNote: 'Receives a stage from the project manager or straight from you.',
+          alone: 'Reads, checks and writes the remarks.',
+          waits: 'Fixes and handing over the stage stay with you.',
+          faq: [
+            {
+              q: 'Does it fix what it finds?',
+              a: 'No. It writes the list of remarks, and the person doing the work fixes them.',
+            },
+            {
+              q: 'Does it suit projects without code?',
+              a: 'Yes, the checklist review works with any materials. Code review applies only where there is code.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the size of the projects and the number of checks.',
+            },
+          ],
+          metaTitle: 'Reviewer and QA: an AI agent that checks the work | Fir Tech',
+          metaDescription: 'The Reviewer and QA AI agent checks a stage against the checklist, reads the code and prepares remarks before handover. Available on its own. Priced by quote.',
+        },
+        deployer: {
+          title: 'Deployer',
+          promise: 'Puts a finished build on the server from templates and scripts and sends a report of the release.',
+          does: [
+            'Builds the application image from a template',
+            'Releases it to your server or ours',
+            'Reports the result of the release',
+            'Keeps the templates and scripts so every release runs the same way',
+          ],
+          needs: [
+            'Access to the server or hosting',
+            'The repository with the finished code',
+            'Rules: when a release is allowed',
+          ],
+          worksNote: 'Releases what has passed review. After a release, monitoring can keep an eye on the service.',
+          alone: 'Prepares the release and the report.',
+          waits: 'A release to the production server happens only on your command.',
+          faq: [
+            {
+              q: 'Does the agent get full access to the server?',
+              a: 'Only the access a release needs, and only if you choose to give it. The list of access goes into the quote.',
+            },
+            {
+              q: 'Where can it release to?',
+              a: 'Your server or ours. We pick the suitable one together.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of services and servers.',
+            },
+          ],
+          metaTitle: 'Deployer: an AI agent for server releases | Fir Tech',
+          metaDescription: 'The Deployer AI agent releases a finished build to your server or ours from templates and sends a report. Releases happen on your command. Priced by quote.',
+        },
+        documents: {
+          title: 'Documents',
+          promise: 'Prepares contracts, offers, policies and proposal templates from your samples.',
+          does: [
+            'Drafts contracts and offers from your template',
+            'Fills the customer details into the document',
+            'Prepares policies and consent texts',
+            'Updates the proposal templates',
+          ],
+          needs: [
+            'Your templates and samples',
+            'Your company details',
+            'Rules: which documents it may prepare',
+          ],
+          worksNote: 'Presales and billing use the templates, but the agent is useful on its own too.',
+          alone: 'Prepares draft documents.',
+          waits: 'Signing, sending and legal review stay with you.',
+          faq: [
+            {
+              q: 'Does the agent sign contracts?',
+              a: 'No. It prepares a draft from your template. Signing and sending are on your side.',
+            },
+            {
+              q: 'Does it replace a lawyer?',
+              a: 'No. The agent prepares drafts, and a specialist does the legal review.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of templates and kinds of documents.',
+            },
+          ],
+          metaTitle: 'Documents: an AI agent for contracts and templates | Fir Tech',
+          metaDescription: 'The Documents AI agent prepares contracts, offers, policies and proposal templates from your samples. You keep the signing. Available on its own.',
+        },
+        'knowledge-base': {
+          title: 'Knowledge base',
+          promise: 'Keeps playbooks, templates and lessons from projects so the team and the agents take answers from one place.',
+          does: [
+            'Gathers policies, instructions and conversations into one base',
+            'Sorts the materials by topic',
+            'Adds lessons from finished projects',
+            'Hands answers to the other agents and to your team',
+          ],
+          needs: [
+            'Materials: policies, instructions, conversations',
+            'Rules: what must never go into the base',
+            'A person who reviews new entries',
+          ],
+          worksNote: 'The support desk takes its answers from it. It also works as a shared knowledge folder for your team.',
+          alone: 'Collects and sorts the materials.',
+          waits: 'Sensitive materials enter the base only with your permission.',
+          faq: [
+            {
+              q: 'What can go into the base?',
+              a: 'Policies, instructions, templates and lessons from projects. You decide what is off limits.',
+            },
+            {
+              q: 'Do I need the support desk?',
+              a: 'No. You and your team can use the base without other agents.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the volume of materials.',
+            },
+          ],
+          metaTitle: 'Knowledge base: an AI agent for policies and lessons | Fir Tech',
+          metaDescription: 'The Knowledge base AI agent gathers policies, templates and lessons from projects in one place for your team and other agents. Available on its own.',
+        },
+        director: {
+          title: 'Director: the managing agent',
+          promise: 'The one bot you talk to: hands tasks to the departments and collects the approvals and the morning summary.',
+          does: [
+            'Takes your tasks in one chat',
+            'Hands them to the department heads',
+            'Collects the queue of approvals in one place',
+            'Sends a morning summary across all departments',
+          ],
+          needs: [
+            'At least one department or a few agents',
+            'The Director Telegram bot (we create it together)',
+            'Rules: what only you decide',
+          ],
+          worksNote: 'The Director needs at least one department. Without working agents there is nothing to assign. It plugs into what already runs.',
+          alone: 'Assigns tasks and compiles the summary.',
+          waits: 'Money, prices and contracts stay with you. The Director makes no decisions about them.',
+          faq: [
+            {
+              q: 'Can I take the Director alone?',
+              a: 'No. It needs at least one department or a few agents, otherwise there is nothing to manage.',
+            },
+            {
+              q: 'How does it differ from the whole company?',
+              a: 'The whole company includes every department and the control panel. The Director plugs into the departments you choose.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the set of departments and connected systems.',
+            },
+          ],
+          metaTitle: 'Director: the managing AI agent for departments | Fir Tech',
+          metaDescription: 'The Director hands tasks to AI agent departments, collects the approval queue and the morning summary. It plugs into the departments you choose.',
+        },
+      },
+    },
     items: {
       marketing: {
         title: 'Marketing team',

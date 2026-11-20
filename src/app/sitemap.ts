@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { allArticles } from '@/lib/blog-hq'
 import { locales } from '@/lib/i18n'
 import { serviceSlugs, siteUrl } from '@/lib/site'
-import { aiTeamPaths } from '@/lib/ai-teams'
+import { allAiTeamPaths } from '@/lib/ai-teams'
 import { allSolutionKinds } from '@/lib/solutions'
 
 const legal = ['/privacy', '/terms']
@@ -19,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/referral',
     '/audit',
     '/status',
-    ...aiTeamPaths,
+    ...allAiTeamPaths,
     ...serviceSlugs.map((slug) => `/services/${slug}`),
     '/solutions',
     ...allSolutionKinds.map((kind) => `/solutions/${kind}`),

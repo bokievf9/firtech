@@ -2,6 +2,7 @@ import { ArrowRight, ArrowUpRight, Check, PaperPlaneTilt, ShieldCheck, UserCheck
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { AgentRow } from '@/components/ai-team/agent-list'
 import { TeamGlyph } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { ContactSection } from '@/components/contact-section'
@@ -11,7 +12,17 @@ import { ProofLive } from '@/components/proof/proof-live'
 import { Reveal } from '@/components/reveal'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
-import { aiTeamBuilderHref, aiTeamIds, aiTeamPath, aiTeamAccent, type AiTeamId } from '@/lib/ai-teams'
+import {
+  agentPath,
+  agentsAnchor,
+  agentsOfDept,
+  aiTeamAccent,
+  aiTeamBuilderHref,
+  aiTeamIds,
+  aiTeamPath,
+  agentOffers,
+  type AiTeamId,
+} from '@/lib/ai-teams'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
@@ -67,10 +78,22 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       url: `${siteUrl}/${locale}${aiTeamPath(id)}`,
     })),
   }
+  const agentList = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: t.agents.sectionTitle,
+    itemListElement: agentOffers.map((agent, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: t.agents.items[agent.id].title,
+      url: `${siteUrl}/${locale}${agentPath(agent.id)}`,
+    })),
+  }
 
   return (
     <>
       <JsonLd data={list} />
+      <JsonLd data={agentList} />
 
       <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-7">
@@ -189,6 +212,53 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
             )
           })}
         </ul>
+        <Reveal className="mt-gutter">
+          <div className="flex flex-col gap-4 rounded-card border border-dashed border-line-strong p-6 md:flex-row md:items-center md:justify-between md:p-8">
+            <div>
+              <p className="font-display text-xl font-semibold tracking-tight">{t.agents.stripTitle}</p>
+              <p className="mt-2 max-w-[56ch] leading-relaxed text-muted">{t.agents.stripText}</p>
+            </div>
+            <Link href={agentsAnchor} data-cta="aiteam_agents" className={cn(buttonStyles.secondary, 'shrink-0')}>
+              {t.agents.stripCta}
+              <ArrowRight size={16} aria-hidden="true" />
+            </Link>
+          </div>
+        </Reveal>
+      </section>
+
+      <section id="agents" className="mx-auto max-w-7xl scroll-mt-24 px-4 pb-24 md:px-8">
+        <Reveal>
+          <h2 className="font-display text-title font-semibold">{t.agents.sectionTitle}</h2>
+          <p className="mt-4 max-w-[56ch] text-lead text-muted">{t.agents.sectionSub}</p>
+        </Reveal>
+        <div className="mt-12 grid gap-14">
+          {aiTeamIds.map((dept) => {
+            const accent = aiTeamAccent[dept]
+            return (
+              <div key={dept} className="grid gap-6 lg:grid-cols-12">
+                <Reveal className="lg:col-span-3">
+                  <div className="flex items-center gap-3 lg:flex-col lg:items-start">
+                    <TeamGlyph id={dept} />
+                    <h3 className="font-display text-xl font-semibold tracking-tight">
+                      <Link href={`/${locale}${aiTeamPath(dept)}`} className={cn('hover:underline', accent.text)}>
+                        {t.items[dept].title}
+                      </Link>
+                    </h3>
+                  </div>
+                </Reveal>
+                <ul className="grid gap-gutter sm:grid-cols-2 lg:col-span-9 xl:grid-cols-3">
+                  {agentsOfDept(dept).map((agent, i) => (
+                    <li key={agent.id}>
+                      <Reveal delay={(i % 3) * 0.05} className="h-full">
+                        <AgentRow id={agent.id} locale={locale} dict={dict} />
+                      </Reveal>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
       </section>
 
       <section className="border-y border-line bg-surface/40">

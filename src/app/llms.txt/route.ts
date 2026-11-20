@@ -1,4 +1,5 @@
 import { getDict } from '@/content'
+import { agentOffers, agentPath, aiTeamIds, aiTeamPath, aiTeamsPath } from '@/lib/ai-teams'
 import { formatUsd, startingPrice } from '@/lib/pricing'
 import { productIds, productPrice, type ProductId } from '@/lib/products'
 import { serviceSlugs, siteUrl, telegramHandle } from '@/lib/site'
@@ -26,6 +27,12 @@ export function GET() {
       const item = t.items[id]
       return `- ${item.name} (${priceText(id, t)}): ${item.benefit}. ${t.forWhom}: ${item.forWhom}.`
     })
+    // AI-team pages: the index, each department and each agent, one line each (prices by quote).
+    const aiTeam = [
+      `- ${dict.aiTeams.nav}: ${siteUrl}/${locale}${aiTeamsPath}`,
+      ...aiTeamIds.map((id) => `- ${dict.aiTeams.items[id].title}: ${siteUrl}/${locale}${aiTeamPath(id)}`),
+      ...agentOffers.map((a) => `- ${dict.aiTeams.agents.items[a.id].title}: ${siteUrl}/${locale}${agentPath(a.id)}`),
+    ]
     const services = serviceSlugs.map(
       (slug) =>
         `- ${dict.services.items[slug].name} (${t.from} ${formatUsd(startingPrice[slug])}): ${siteUrl}/${locale}/services/${slug}`,
@@ -40,6 +47,10 @@ export function GET() {
       `## ${locale === 'en' ? 'Services' : 'Услуги'}`,
       '',
       ...services,
+      '',
+      `## ${dict.aiTeams.nav}`,
+      '',
+      ...aiTeam,
       '',
       `${dict.region.title}. ${dict.region.payTitle}: ${dict.region.pay.join(', ')}.`,
       '',
