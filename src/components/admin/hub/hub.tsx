@@ -53,6 +53,8 @@ import {
 } from '@/lib/pult'
 import { loadedContent } from '@/components/admin/pult/content'
 import { deptTheme } from '@/lib/pult-theme'
+import { goliveText } from '@/content/golive'
+import { GolivePanel, GoliveChip, useGolive } from './golive'
 import { CommandPalette, type PaletteItem } from './command-palette'
 import { PanelContent, type DirectorProps } from './panels'
 import { SidePanel, type PanelSize } from './side-panel'
@@ -155,17 +157,25 @@ export function Hub() {
     setToast({ id: Date.now() + Math.random(), text, tone })
   }, [])
   const closeToast = useCallback(() => setToast(null), [])
+  const golive = useGolive(notify)
 
   // ---- panel state ----
   const [open, setOpen] = useState<Open | null>(null)
+  // The go-live plan is its own panel (key 8); it and a department panel never show together.
+  const [goliveOpen, setGoliveOpen] = useState(false)
   const [paletteOpen, setPaletteOpen] = useState(false)
   const size = useSyncExternalStore(panelSize.subscribe, panelSize.get, panelSize.server)
   const openPanel = useCallback((panel: string, tab?: string, focus: string | null = null) => {
     if (!isPanel(panel)) return
+    setGoliveOpen(false)
     const tabs = PANEL_TABS[panel]
     setOpen({ panel, tab: tab && tabs.includes(tab) ? tab : tabs[0]!, focus, key: Date.now() })
   }, [])
   const closePanel = useCallback(() => setOpen(null), [])
+  const openGolive = useCallback(() => {
+    setOpen(null)
+    setGoliveOpen(true)
+  }, [])
 
   // ---- presence (kept by pinging while the page is visible) ----
   const lastPresence = useRef<PresenceView | null>(null)
@@ -348,11 +358,17 @@ export function Hub() {
         return
       }
       if (paletteOpen || modalOpen() || e.defaultPrevented) return
-      if (e.key === 'Escape' && open) {
+      if (e.key === 'Escape' && (open || goliveOpen)) {
         setOpen(null)
+        setGoliveOpen(false)
         return
       }
       if (e.metaKey || e.ctrlKey || e.altKey || typingIn(e.target)) return
+      if (e.key === '8') {
+        e.preventDefault()
+        openGolive()
+        return
+      }
       const panel = panelForKey(e.key)
       if (panel) {
         e.preventDefault()
@@ -361,7 +377,7 @@ export function Hub() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, paletteOpen, openPanel])
+  }, [open, goliveOpen, paletteOpen, openPanel, openGolive])
 
   // ---- palette entries ----
   const paletteEntries = useMemo<PaletteItem[]>(() => {
@@ -400,8 +416,9 @@ export function Hub() {
       { id: 'cmd:costs', group: p.groups.commands, title: p.commands.costs, hint: p.commands.costsHint, dept: 'company', run: () => void command('costs') },
       { id: 'cmd:release', group: p.groups.commands, title: p.commands.release, hint: p.commands.releaseHint, dept: 'director', run: () => void command('approve') },
     ]
-    return [...panels, ...commands, ...tabs]
-  }, [openPanel, command, notify, refreshAll])
+    const goliveEntry: PaletteItem = { id: 'panel:golive', group: p.groups.panels, title: goliveText.title, hint: '8', dept: 'company', keywords: 'запуск таймер чеклист 72 часа', run: openGolive }
+    return [...panels, goliveEntry, ...commands, ...tabs]
+  }, [openPanel, openGolive, command, notify, refreshAll])
 
   const contentEntries = useCallback(
     (): PaletteItem[] =>
@@ -467,6 +484,7 @@ export function Hub() {
               <span className="hidden shrink-0 rounded-full border border-dashed border-line-strong px-2 py-0.5 text-xs text-faint xl:inline">{cc.link.mock}</span>
             ) : null}
             <Presence view={view} busy={presenceBusy} onChange={setPresence} />
+            <GoliveChip state={golive.data?.state ?? null} onOpen={() => (goliveOpen ? setGoliveOpen(false) : openGolive())} active={goliveOpen} />
             <nav aria-label={h.counters.label} className="order-last grid w-full grid-cols-4 gap-1.5 lg:order-none lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-1">
               {counters.map(({ id, dept, icon: CIcon, n, label, go }) => (
                 <button
@@ -537,6 +555,19 @@ export function Hub() {
               {open ? (
                 <PanelContent key={`${open.panel}:${open.tab}:${open.key}`} panel={open.panel} tab={open.tab} focus={open.focus} director={director} badges={tabBadges} />
               ) : null}
+            </SidePanel>
+            <SidePanel
+              open={goliveOpen}
+              dept="company"
+              title={goliveText.title}
+              tabs={[]}
+              tab=""
+              onTab={() => {}}
+              size={size}
+              onSize={panelSize.set}
+              onClose={() => setGoliveOpen(false)}
+            >
+              <GolivePanel golive={golive} />
             </SidePanel>
           </main>
         </div>
