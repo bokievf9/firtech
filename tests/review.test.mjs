@@ -1,0 +1,274 @@
+import assert from 'node:assert/strict'
+import { registerHooks } from 'node:module'
+import path from 'node:path'
+import { test } from 'node:test'
+import { pathToFileURL } from 'node:url'
+
+// Ревью-центр (docs/pult.md): view models, keyboard map, proxy whitelist, error pass-through, mock.
+const src = pathToFileURL(path.resolve('src') + '/').href
+registerHooks({
+  resolve(specifier, context, next) {
+    if (specifier === 'server-only') return { url: 'data:text/javascript,export{}', shortCircuit: true }
+    if (specifier === 'next/server') return next('next/server.js', context)
+    if (specifier.startsWith('@/')) {
+      const base = new URL(specifier.slice(2), src).href
+      for (const candidate of [`${base}.ts`, `${base}.tsx`, `${base}/index.ts`]) {
+        try {
+          return next(candidate, context)
+        } catch {}
+      }
+    }
+    return next(specifier, context)
+  },
+})
+
+const r = await import('../src/lib/review.ts')
+const proxy = await import('../src/lib/hq-admin.ts')
+const { createHqMock } = await import('../src/lib/hq-admin-mock.ts')
+
+const T0 = Date.parse('2026-11-21T10:00:00Z')
+const get = (mock, p, q = {}) => mock('GET', p, q, {}, T0)
+const post = (mock, p, b) => mock('POST', p, {}, b, T0)
+const view = (mock, q = { status: 'all' }) => r.normalizeReview(get(mock, 'review', q))
+
+test('normalizeReview reads the mock: counts, media proxied, versions, bad ids dropped', () => {
+  const v = view(createHqMock(T0))
+  assert.ok(v)
+  assert.equal(v.items.length, 9)
+  assert.deepEqual(v.counts, { marketing: 4, sales: 2, support: 1, production: 0, backoffice: 1, director: 0 })
+  assert.equal(r.pendingTotal(v.counts), 8)
+  const reel = v.items.find((i) => i.id === 'ap_201')
+  assert.equal(reel.media[0].src, '/api/admin/files/41/reel.mp4')
+  assert.equal(reel.media[0].poster, '/api/admin/files/41/cover.png')
+  assert.equal(reel.versions.length, 2)
+  assert.equal(v.items.find((i) => i.id === 'ap_202').media.length, 3)
+  assert.equal(v.items.find((i) => i.id === 'ap_203').media.length, 0)
+  assert.equal(r.normalizeItem({ id: 'x1' }), null)
+  assert.equal(r.normalizeReview({ ok: true }), null)
+  assert.equal(r.mediaSrc('/admin/files/../etc/passwd.png'), null)
+  assert.equal(r.mediaSrc('https://evil.example/a.png'), null)
+})
+
+test('groupByDept and railItems: all keeps history, departments and director are pending only', () => {
+  const v = view(createHqMock(T0))
+  const g = r.groupByDept(v.items)
+  assert.equal(g.sales.length, 2)
+  assert.equal(r.railItems(v.items, 'all').length, 9)
+  assert.equal(r.railItems(v.items, 'director').length, 8)
+  assert.equal(r.railItems(v.items, 'marketing').length, 4)
+  assert.equal(r.railItems(v.items, 'production').length, 0)
+  assert.equal(r.railCount(v.counts, 'support'), 1)
+  assert.equal(r.railCount(v.counts, 'director'), 8)
+})
+
+test('actionButtons follow the allowed actions in the contract order', () => {
+  const v = view(createHqMock(T0))
+  const by = (id) => r.actionButtons(v.items.find((i) => i.id === id)).map((b) => b.action)
+  assert.deepEqual(by('ap_201'), ['approve', 'edit', 'revise', 'reject', 'reschedule'])
+  assert.deepEqual(by('ap_202'), ['approve', 'edit', 'revise', 'reject', 'publish_now', 'reschedule'])
+  assert.deepEqual(by('ap_204'), ['approve', 'edit', 'reject', 'send', 'call'])
+  assert.deepEqual(by('ap_208'), ['approve', 'revise', 'reject', 'publish_now'])
+  assert.deepEqual(by('ap_199'), [])
+  const keys = r.actionButtons({ actions: [...r.ACTIONS] })
+  assert.deepEqual(keys.map((b) => b.key), ['A', 'E', 'R', 'X', 'P', 'T', 'S', 'C'])
+  assert.equal(keys.find((b) => b.action === 'reject').confirm, true)
+  assert.equal(keys.find((b) => b.action === 'publish_now').confirm, true)
+  assert.equal(keys.find((b) => b.action === 'approve').confirm, false)
+})
+
+test('navigation: J/K stop at the ends, removal picks the neighbour', () => {
+  const list = [{ id: 'ap_3' }, { id: 'ap_2' }, { id: 'ap_1' }]
+  assert.equal(r.stepItem(list, null, 1), 'ap_3')
+  assert.equal(r.stepItem(list, 'ap_3', 1), 'ap_2')
+  assert.equal(r.stepItem(list, 'ap_1', 1), 'ap_1')
+  assert.equal(r.stepItem(list, 'ap_3', -1), 'ap_3')
+  assert.equal(r.stepItem([], 'ap_3', 1), null)
+  assert.equal(r.pickAfterRemoval(list, 'ap_2'), 'ap_1')
+  assert.equal(r.pickAfterRemoval(list, 'ap_1'), 'ap_2')
+  assert.equal(r.pickAfterRemoval([{ id: 'ap_9' }], 'ap_9'), null)
+})
+
+test('keyCommand: the whole keyboard map, by physical key so the Russian layout works', () => {
+  const k = (code, key = '', extra = {}) => r.keyCommand({ code, key, ...extra })
+  assert.deepEqual(k('KeyA', 'ф'), { type: 'action', action: 'approve' })
+  assert.deepEqual(k('KeyE'), { type: 'action', action: 'edit' })
+  assert.deepEqual(k('KeyR'), { type: 'action', action: 'revise' })
+  assert.deepEqual(k('KeyX'), { type: 'action', action: 'reject' })
+  assert.deepEqual(k('KeyP'), { type: 'action', action: 'publish_now' })
+  assert.deepEqual(k('KeyJ'), { type: 'step', dir: 1 })
+  assert.deepEqual(k('KeyK'), { type: 'step', dir: -1 })
+  assert.deepEqual(k('Space', ' '), { type: 'play' })
+  assert.deepEqual(k('Escape', 'Escape'), { type: 'back' })
+  assert.deepEqual(k('Digit1'), { type: 'rail', rail: 'all' })
+  assert.deepEqual(k('Digit2'), { type: 'rail', rail: 'marketing' })
+  assert.deepEqual(k('Digit7'), { type: 'rail', rail: 'director' })
+  assert.equal(k('Digit8'), null)
+  assert.equal(k('KeyA', 'a', { metaKey: true }), null)
+  assert.equal(k('KeyZ'), null)
+})
+
+test('fields and edit payload: only changed fields, hashtags parsed, captions grouped', () => {
+  const v = view(createHqMock(T0))
+  const reel = v.items.find((i) => i.id === 'ap_201')
+  const f = r.fieldsOf(reel)
+  assert.deepEqual(f.map((x) => x.key), ['caption', 'hashtags', 'body', 'tiktok', 'shorts'])
+  assert.ok(f.every((x) => x.editable))
+  assert.equal(r.editPayload(reel, {}), null)
+  assert.equal(r.editPayload(reel, { caption: reel.text.caption }), null)
+  assert.deepEqual(r.editPayload(reel, { caption: 'Новая', hashtags: 'fir, #бот', tiktok: 'tt' }), {
+    text: { caption: 'Новая', hashtags: ['#fir', '#бот'], captions: { tiktok: 'tt' } },
+  })
+  const article = v.items.find((i) => i.id === 'ap_208')
+  assert.ok(r.fieldsOf(article).every((x) => !x.editable), 'article has no edit action')
+  const reply = v.items.find((i) => i.id === 'ap_204')
+  assert.deepEqual(Object.keys(r.editPayload(reply, { draft: 'Привет' }).text), ['draft'])
+  assert.deepEqual(r.parseHashtags(' a  #b,c '), ['#a', '#b', '#c'])
+})
+
+test('version diff summary and compare pair', () => {
+  const v = view(createHqMock(T0))
+  const reel = v.items.find((i) => i.id === 'ap_201')
+  const [a, b] = r.comparePair(reel)
+  assert.equal([a.v, b.v].join(), '1,2')
+  const ch = r.versionChanges(a, b)
+  assert.ok(ch.find((c) => c.key === 'caption' && c.delta > 0))
+  assert.match(r.versionSummary(a, b), /^Изменено: .*Подпись \(\+\d+ зн\.\)/)
+  assert.equal(r.versionSummary(a, a), 'Без изменений в тексте')
+  assert.equal(r.versionSummary(undefined, b), '')
+  assert.equal(r.comparePair(v.items.find((i) => i.id === 'ap_204')), null)
+})
+
+test('meta cards link to the Пульт panels; empty media explains itself', () => {
+  const v = view(createHqMock(T0))
+  const lead = r.metaCards(v.items.find((i) => i.id === 'ap_204')).find((c) => c.id === 'lead')
+  assert.equal(lead.href, '/admin/office?panel=sales&tab=leads&focus=7')
+  const inv = r.metaCards(v.items.find((i) => i.id === 'ap_207')).find((c) => c.id === 'invoice')
+  assert.equal(inv.href, '/admin/office?panel=backoffice&tab=invoices&focus=7')
+  const tk = r.metaCards(v.items.find((i) => i.id === 'ap_206')).find((c) => c.id === 'ticket')
+  assert.equal(tk.href, '/admin/office?panel=support&tab=tickets&focus=4')
+  const owner = v.items.find((i) => i.id === 'ap_203')
+  assert.ok(r.metaCards(owner).some((c) => c.id === 'link'))
+  assert.match(r.emptyMediaReason(owner), /после одобрения/)
+  assert.equal(r.renderState(owner), 'none')
+})
+
+test('optimistic helpers', () => {
+  const v = view(createHqMock(T0))
+  const next = r.withStatus(v.items, 'ap_204', 'approve')
+  assert.equal(next.find((i) => i.id === 'ap_204').status, 'approved')
+  assert.deepEqual(next.find((i) => i.id === 'ap_204').actions, ['call'])
+  assert.equal(r.withoutItem(v.items, 'ap_204').length, 8)
+  assert.equal(r.dropCount(v.counts, 'sales').sales, 1)
+  assert.equal(r.dropCount(v.counts, 'production').production, 0)
+  const edited = r.withText(v.items.find((i) => i.id === 'ap_204'), { draft: 'Новый' })
+  assert.equal(edited.text.draft, 'Новый')
+  assert.equal(edited.text.body, 'Новый')
+})
+
+test('trend link checks mirror HQ and the list normalizes', () => {
+  assert.equal(r.trendUrlProblem('https://www.youtube.com/shorts/xyz'), null)
+  assert.equal(r.trendUrlProblem('https://youtu.be/abc'), null)
+  assert.ok(r.trendUrlProblem('http://www.youtube.com/x'))
+  assert.ok(r.trendUrlProblem('https://evil.example/x'))
+  assert.ok(r.trendUrlProblem('https://user:pw@www.tiktok.com/x'))
+  assert.ok(r.trendUrlProblem('не ссылка'))
+  assert.ok(r.trendUrlProblem(''))
+  const t = r.normalizeTrends(get(createHqMock(T0), 'trends'))
+  assert.deepEqual(t.items.map((i) => i.status), ['proposed', 'analysing'])
+  assert.equal(t.items[0].reviewId, 'ap_203')
+  assert.deepEqual(r.TREND_STATUSES, ['analysing', 'proposed', 'done', 'failed'])
+})
+
+test('proxy whitelist: review, chats, trends', () => {
+  const q = new URLSearchParams('dept=sales&status=all&limit=50&cursor=9&evil=1')
+  const ok = proxy.resolveEndpoint('GET', ['review'], q, undefined)
+  assert.equal(ok.ok, true)
+  assert.deepEqual(ok.query, { dept: 'sales', status: 'all', limit: '50', cursor: '9' })
+  const act = (id, body) => proxy.resolveEndpoint('POST', ['review', id], new URLSearchParams(), body).ok
+  assert.equal(act('ap_12', { action: 'approve' }), true)
+  assert.equal(act('ap_12', { action: 'edit', text: { caption: 'x', hashtags: ['#a'], captions: { tiktok: 'y' } } }), true)
+  assert.equal(act('ap_12', { action: 'edit' }), false)
+  assert.equal(act('ap_12', { action: 'edit', text: { evil: 'x' } }), false)
+  assert.equal(act('ap_12', { action: 'revise' }), false)
+  assert.equal(act('ap_12', { action: 'revise', note: 'короче' }), true)
+  assert.equal(act('ap_12', { action: 'reschedule' }), false)
+  assert.equal(act('ap_12', { action: 'reschedule', slot: '2026-11-25' }), true)
+  assert.equal(act('ap_12', { action: 'call', slot: '2026-11-24T10:00:00Z' }), true)
+  assert.equal(act('ap_12', { action: 'publish_now', platform: 'youtube' }), true)
+  assert.equal(act('ap_12', { action: 'publish_now', platform: 'x' }), false)
+  assert.equal(act('ap_12', { action: 'send', text: { draft: 'ok' } }), true)
+  assert.equal(act('ap_12', { action: 'approve', extra: 1 }), false)
+  assert.equal(act('12', { action: 'approve' }), false)
+  assert.equal(act('ap_x', { action: 'approve' }), false)
+  assert.equal(proxy.resolveEndpoint('GET', ['chats'], new URLSearchParams('status=open'), undefined).ok, true)
+  assert.equal(proxy.resolveEndpoint('GET', ['chats', 'c3'], q, undefined).ok, true)
+  assert.equal(proxy.resolveEndpoint('GET', ['chats', 'g-100123'], q, undefined).ok, true)
+  assert.equal(proxy.resolveEndpoint('POST', ['chats', 'c3', 'reply'], q, { text: 'Привет' }).ok, true)
+  assert.equal(proxy.resolveEndpoint('POST', ['chats', 'c3', 'reply'], q, { text: '' }).ok, false)
+  assert.equal(proxy.resolveEndpoint('POST', ['chats', 'c3', 'reply'], q, { text: 'a'.repeat(2001) }).ok, false)
+  assert.equal(proxy.resolveEndpoint('POST', ['chats', 'c3', 'reply'], q, { text: 'a', x: 1 }).ok, false)
+  assert.equal(proxy.resolveEndpoint('GET', ['trends'], q, undefined).ok, true)
+  assert.equal(proxy.resolveEndpoint('POST', ['trends'], q, { url: 'https://youtu.be/a', note: 'x' }).ok, true)
+  assert.equal(proxy.resolveEndpoint('POST', ['trends'], q, { url: '' }).ok, false)
+  assert.equal(proxy.resolveEndpoint('POST', ['trends'], q, { url: 'https://youtu.be/a', extra: 1 }).ok, false)
+  assert.equal(proxy.resolveEndpoint('POST', ['chats'], q, {}).ok, false)
+  assert.equal(proxy.resolveEndpoint('POST', ['review'], q, { action: 'approve' }).ok, false)
+})
+
+test('proxy keeps the item, results and message of a failed decision', async () => {
+  const body = { ok: false, error: 'publish_failed', state: 'failed', message: 'нет квоты', results: [{ platform: 'shorts', state: 'failed' }], item: { id: 'ap_1' }, token: 'secret' }
+  const res = await proxy.callHqAdmin('POST', 'review/ap_1', { body: { action: 'publish_now' } }, {
+    env: { HQ_ADMIN_URL: 'http://hq.test/admin', HQ_ADMIN_TOKEN: 't' },
+    fetcher: async (url, init) => {
+      assert.equal(url, 'http://hq.test/admin/review/ap_1')
+      assert.equal(init.method, 'POST')
+      return new Response(JSON.stringify(body), { status: 200 })
+    },
+  })
+  assert.equal(res.ok, false)
+  assert.equal(res.error, 'publish_failed')
+  assert.equal(res.results[0].platform, 'shorts')
+  assert.equal(res.message, 'нет квоты')
+  assert.equal('token' in res, false)
+  assert.equal(r.resultText(r.normalizeResults(res.results)[0]), 'shorts: не получилось')
+})
+
+test('chat ids are encoded toward HQ', async () => {
+  let seen = ''
+  await proxy.callHqAdmin('GET', 'chats/g-100%2F1', {}, {
+    env: { HQ_ADMIN_URL: 'http://hq.test/admin' },
+    fetcher: async (url) => {
+      seen = url
+      return new Response(JSON.stringify({ ok: true }), { status: 200 })
+    },
+  })
+  assert.equal(seen, 'http://hq.test/admin/chats/g-100%252F1')
+})
+
+test('mock decisions: approve, reject, edit versions, revise, reschedule, send, call, publish_now', () => {
+  const m = createHqMock(T0)
+  assert.equal(post(m, 'review/ap_204', { action: 'approve' }).item.status, 'approved')
+  assert.equal(post(m, 'review/ap_204', { action: 'approve' }).ok, true, 'repeat is safe')
+  assert.equal(post(m, 'review/ap_204', { action: 'reject' }).error, 'already_decided')
+  assert.equal(post(m, 'review/ap_204', { action: 'edit', text: { draft: 'x' } }).error, 'not_pending')
+  assert.equal(get(m, 'review', { status: 'pending' }).counts.sales, 1)
+  const e = post(m, 'review/ap_201', { action: 'edit', text: { caption: 'Новая подпись' } })
+  assert.equal(e.item.currentVersion, 3)
+  assert.equal(e.item.versions.at(-1).author, 'owner')
+  assert.equal(post(m, 'review/ap_201', { action: 'edit', text: { caption: 'Новая подпись' } }).error, 'not_applied')
+  assert.equal(post(m, 'review/ap_201', { action: 'revise' }).error, 'invalid')
+  assert.equal(post(m, 'review/ap_201', { action: 'revise', note: 'короче' }).state, 'revising')
+  assert.equal(post(m, 'review/ap_201', { action: 'reschedule', slot: '2026-12-01' }).item.meta.slot, '2026-12-01')
+  assert.equal(post(m, 'review/ap_205', { action: 'send' }).error, 'placeholder')
+  assert.equal(post(m, 'review/ap_205', { action: 'send', text: { draft: 'Цена $650, предоплата 50%.' } }).state, 'handed_off')
+  assert.equal(post(m, 'review/ap_206', { action: 'call', slot: '2026-11-24' }).error, 'not_applicable')
+  assert.equal(post(m, 'review/ap_207', { action: 'call', slot: '2026-11-24' }).error, 'invalid')
+  assert.equal(post(m, 'review/ap_207', { action: 'call', slot: '2026-11-24T10:00:00Z' }).callAt, '2026-11-24T10:00:00Z')
+  const p = post(m, 'review/ap_202', { action: 'publish_now' })
+  assert.equal(p.state, 'queued')
+  assert.equal(p.item.status, 'approved')
+  assert.equal(post(m, 'review/ap_208', { action: 'publish_now' }).state, 'published')
+  assert.equal(post(m, 'review/ap_999', { action: 'approve' }).error, 'not_found')
+  assert.equal(get(m, 'review', { dept: 'zzz' }).error, 'invalid')
+  assert.equal(post(m, 'review/ap_203', { action: 'send' }).error, 'not_applicable')
+})

@@ -12,7 +12,7 @@ export const HQ_ADMIN_TIMEOUT_MS = 5000
 
 type Method = 'GET' | 'POST'
 type Env = Record<string, string | undefined>
-export type Proxied = { ok: true; [k: string]: unknown } | { ok: false; error: string; reason?: string }
+export type Proxied = { ok: true; [k: string]: unknown } | { ok: false; error: string; reason?: string; [k: string]: unknown }
 
 const segment = /^[\w-]{1,64}$/
 const id = z.union([z.string().regex(segment), z.number().int().nonnegative()])
@@ -135,6 +135,46 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'POST', path: /^company\/trust\/[\w-]{1,64}$/, body: z.object({ level: z.union([z.literal(0), z.literal(1)]) }).strict() },
 ]
 
+// Ревью-центр, чаты и ссылки Трендвотчера (contract «Ревью-центр», 2026-11-21): the review queue with its
+// decisions, client chats with owner replies, and the owner's trend links. Review ids are `ap_<n>`, chat
+// ids `c|l|t|w|g<...>` (aliases, so any plain segment); the proxy encodes them again toward HQ.
+export const REVIEW_DEPTS = ['marketing', 'sales', 'support', 'production', 'backoffice', 'director'] as const
+export const REVIEW_ACTIONS = ['approve', 'edit', 'revise', 'reject', 'publish_now', 'reschedule', 'send', 'call'] as const
+const reviewText = z
+  .object({
+    draft: z.string().max(8000),
+    body: z.string().max(8000),
+    caption: z.string().max(4000),
+    hashtags: z.array(z.string().max(80)).max(40),
+    captions: z
+      .object({ instagram: z.string().max(5000), tiktok: z.string().max(5000), shorts: z.string().max(5000) })
+      .partial()
+      .strict(),
+  })
+  .partial()
+  .strict()
+export const REVIEW_BODY = z
+  .object({
+    action: z.enum(REVIEW_ACTIONS),
+    text: reviewText.optional(),
+    note: z.string().trim().min(1).max(4000).optional(),
+    slot: z.string().max(40).optional(),
+    platform: z.enum(['instagram', 'tiktok', 'shorts', 'youtube']).optional(),
+  })
+  .strict()
+  .refine((b) => b.action !== 'edit' || (b.text !== undefined && Object.keys(b.text).length > 0), 'edit needs text')
+  .refine((b) => b.action !== 'revise' || b.note !== undefined, 'revise needs a note')
+  .refine((b) => (b.action !== 'reschedule' && b.action !== 'call') || (b.slot !== undefined && b.slot.trim().length > 0), 'slot needed')
+export const REVIEW_ENDPOINTS: readonly Endpoint[] = [
+  { method: 'GET', path: /^review$/, query: ['dept', 'status', 'limit', 'cursor'] },
+  { method: 'POST', path: /^review\/ap_\d{1,12}$/, body: REVIEW_BODY },
+  { method: 'GET', path: /^chats$/, query: ['status', 'limit', 'cursor'] },
+  { method: 'GET', path: /^chats\/[\w-]{1,64}$/ },
+  { method: 'POST', path: /^chats\/[\w-]{1,64}\/reply$/, body: z.object({ text: z.string().trim().min(1).max(2000) }).strict() },
+  { method: 'GET', path: /^trends$/, query: ['limit', 'cursor'] },
+  { method: 'POST', path: /^trends$/, body: z.object({ url: z.string().trim().min(1).max(600), note: z.string().max(500).optional() }).strict() },
+]
+
 // A client id may be `c:<name>` (clients without an account); the browser sends it URL-encoded.
 function clientSegment(segments: string[]): string[] | null {
   if (segments.length !== 3 || segments[0] !== 'crm' || segments[1] !== 'clients') return null
@@ -162,7 +202,7 @@ export function resolveEndpoint(method: string, segments: string[], search: URLS
     return { ok: false, status: 404, error: 'not_found' }
   }
   const path = segments.join('/')
-  const endpoint = [...ENDPOINTS, ...CRM_ENDPOINTS, ...PULT_ENDPOINTS].find((e) => e.method === method && e.path.test(path))
+  const endpoint = [...ENDPOINTS, ...CRM_ENDPOINTS, ...PULT_ENDPOINTS, ...REVIEW_ENDPOINTS].find((e) => e.method === method && e.path.test(path))
   if (!endpoint) return { ok: false, status: 404, error: 'not_found' }
   const query: Record<string, string> = {}
   for (const key of endpoint.query ?? []) {
@@ -174,6 +214,8 @@ export function resolveEndpoint(method: string, segments: string[], search: URLS
   if (!parsed.success) return { ok: false, status: 400, error: 'invalid' }
   return { ok: true, path, query, body: parsed.data }
 }
+
+const ERROR_EXTRAS = ['item', 'results', 'message', 'state', 'status', 'via', 'actions', 'allowed', 'hint', 'placeholders'] as const
 
 export type CallDeps = { env?: Env; fetcher?: typeof fetch; timeoutMs?: number; now?: number }
 
@@ -210,7 +252,12 @@ export async function callHqAdmin(
     const data: unknown = await res.json().catch(() => undefined)
     if (data && typeof data === 'object' && (data as { ok?: unknown }).ok === false) {
       const { error, reason } = data as { error?: unknown; reason?: unknown }
+      // Review actions answer 200/409 with the item, the per-platform `results` and the allowed list:
+      // pass those on (only these keys) so the page can show why a decision did not go through.
+      const extra: Record<string, unknown> = {}
+      for (const key of ERROR_EXTRAS) if (key in data) extra[key] = (data as Record<string, unknown>)[key]
       return {
+        ...extra,
         ok: false,
         error: typeof error === 'string' && error ? error.slice(0, 200) : 'hq_error',
         // Why an action did not start (e.g. a routine run: 'disabled' | 'busy'); a short code only.
