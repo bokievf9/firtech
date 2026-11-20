@@ -1,6 +1,6 @@
 // Public site theme (owner 2026-11-21): light on white by default, dark behind a switch. The
 // choice lives in localStorage under `fir-theme`; the inline script below applies it to <html>
-// before the first paint (no flash). prefers-color-scheme is deliberately NOT used: white is the
+// before the first paint (no flash). the system colour scheme is deliberately NOT used: white is the
 // default whatever the visitor's system says.
 
 export const THEME_KEY = 'fir-theme'

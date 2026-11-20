@@ -9,8 +9,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'AI agents, Telegram bots and websites for small business',
     start_url: '/',
     display: 'standalone',
-    background_color: '#0a0d0b',
-    theme_color: '#0a0d0b',
+    background_color: '#ffffff',
+    theme_color: '#ffffff',
     icons: [
       { src: '/icon.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
       { src: '/apple-icon.png', sizes: '180x180', type: 'image/png' },

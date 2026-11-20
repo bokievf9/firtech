@@ -27,13 +27,23 @@ const { deptTheme, deptOf } = await import('../src/lib/pult-theme.ts')
 const { PANELS } = await import('../src/lib/pult.ts')
 
 const css = readFileSync('src/app/globals.css', 'utf8')
-const lightAt = css.indexOf(":root[data-theme='light'] {")
-const dark = css.slice(css.indexOf('@theme'), lightAt)
-const light = css.slice(lightAt, css.indexOf('@layer base'))
+const blockOf = (start) => {
+  const open = css.indexOf('{', css.indexOf(start))
+  let depth = 0
+  for (let i = open; i < css.length; i++) {
+    if (css[i] === '{') depth++
+    if (css[i] === '}' && --depth === 0) return css.slice(open + 1, i)
+  }
+  throw new Error(`unclosed ${start}`)
+}
+// Since 2026-11-21 @theme holds the public LIGHT values, :root[data-theme='dark'] is the dark theme
+// (the panel's default) and the panel's own light tokens live in :root[data-theme='light']:not(.site).
+const base = blockOf('@theme static')
+const dark = blockOf(":root[data-theme='dark'] {")
+const light = blockOf(":root[data-theme='light']:not(.site) {")
 const vars = (block) => Object.fromEntries([...block.matchAll(/--([\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]))
-const DARK = vars(dark)
-const LIGHT = { ...DARK, ...vars(light) }
-
+const DARK = { ...vars(base), ...vars(dark) }
+const LIGHT = { ...vars(base), ...vars(light) }
 const rgba = (v) => {
   let m = v.match(/^#([0-9a-f]{6})$/i)
   if (m) {
@@ -56,7 +66,7 @@ const ratio = (a, b) => (Math.max(lum(a), lum(b)) + 0.05) / (Math.min(lum(a), lu
 
 test('every department has fill, soft and text tokens in both theme blocks', () => {
   assert.equal(PANELS.length, 7)
-  for (const [name, own] of [['dark', vars(dark)], ['light', vars(light)]]) {
+  for (const [name, own] of [['dark', DARK], ['light', LIGHT]]) {
     for (const id of PANELS) {
       const t = deptTheme(id)
       for (const v of Object.values(t.vars)) assert.ok(own[v.slice(2)], `${name} block lacks ${v}`)
@@ -97,9 +107,9 @@ test('light theme layers are visibly different and borders carry controls', () =
   assert.ok(ratio(over(L('line-strong'), L('surface')), L('surface')) >= 3, 'control border on panel')
   assert.ok(ratio(over(L('line-strong'), L('field')), L('field')) >= 3, 'control border on field')
   for (const k of ['scrim', 'surface-3', 'elevated']) assert.ok(LIGHT[`color-${k}`], k)
-  for (const k of ['shadow-panel', 'shadow-dialog']) assert.ok(vars(light)[k], `light block lacks --${k}`)
-  assert.ok(vars(light)['color-scrim'] && vars(dark)['color-scrim'])
-  assert.ok(lum(rgba(vars(light)['color-scrim'])) > lum(rgba(vars(dark)['color-scrim'])), 'scrim is light on light')
+  for (const k of ['shadow-panel', 'shadow-dialog']) assert.ok(LIGHT[k], `light block lacks --${k}`)
+  assert.ok(LIGHT['color-scrim'] && DARK['color-scrim'])
+  assert.ok(lum(rgba(LIGHT['color-scrim'])) > lum(rgba(DARK['color-scrim'])), 'scrim is light on light')
 })
 
 test('deptTheme names classes and variables; deptOf maps HQ names', () => {

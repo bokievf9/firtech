@@ -194,9 +194,10 @@ test('manifest and icons: present, themed, referenced', async () => {
   for (const f of ['src/app/icon.png', 'src/app/apple-icon.png', 'src/app/favicon.ico', 'src/app/manifest.ts'])
     assert.ok(existsSync(f), f)
   const manifest = (await import('../src/app/manifest.ts')).default()
-  assert.equal(manifest.theme_color, '#0a0d0b')
+  assert.equal(manifest.theme_color, '#ffffff')
   for (const icon of manifest.icons) assert.ok(existsSync(`src/app${icon.src}`), icon.src)
-  assert.match(readFileSync('src/app/[locale]/layout.tsx', 'utf8'), /themeColor: '#0a0d0b'/)
+  // White by default since 2026-11-21 (the dark value is set by the theme script).
+  assert.match(readFileSync('src/app/[locale]/layout.tsx', 'utf8'), /themeColor: '#ffffff'/)
 })
 
 test('lead route keeps the honeypot, the rate limit and the Telegram + HQ forwarding', () => {
