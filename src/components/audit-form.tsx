@@ -19,7 +19,7 @@ type Errors = Partial<Record<'url' | 'contact', string>>
 
 // Same field look as the contact form: 16px on phones (no iOS zoom), Metrika never records typing.
 const inputClass =
-  'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg md:text-[15px] placeholder:text-faint transition-colors focus:border-accent focus:outline-none aria-[invalid=true]:border-danger'
+  'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg md:text-[15px] placeholder:text-faint transition-colors focus:border-accent-text focus:outline-none aria-[invalid=true]:border-danger'
 
 export function AuditForm({
   dict,
@@ -170,7 +170,7 @@ export function AuditForm({
         role="status"
         className="flex min-h-[380px] flex-col items-start justify-center rounded-card border border-line bg-surface p-8 md:p-10"
       >
-        <CheckCircle size={44} weight="light" className="text-accent" />
+        <CheckCircle size={44} weight="light" className="text-accent-text" />
         <h2 className="mt-6 text-3xl font-semibold tracking-tight">
           {dup ? t.duplicateTitle : t.successTitle}
         </h2>
@@ -271,7 +271,7 @@ export function AuditForm({
       )}
 
       {restored && me.status === 'in' && (
-        <p role="status" className="rounded-xl border border-accent/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
+        <p role="status" className="rounded-xl border border-accent-text/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
           {dict.leadAuth.draftRestored}
         </p>
       )}

@@ -34,7 +34,7 @@ export function ContactSection({
             <ol className="relative mt-5 grid gap-5 before:absolute before:top-3 before:bottom-3 before:left-[13px] before:w-px before:bg-line">
               {t.next.map((step, i) => (
                 <li key={step} className="relative flex gap-4">
-                  <span className="relative flex size-7 shrink-0 items-center justify-center rounded-full border border-accent/40 bg-bg font-mono text-xs text-accent">
+                  <span className="relative flex size-7 shrink-0 items-center justify-center rounded-full border border-accent-text/40 bg-bg font-mono text-xs text-accent-text">
                     {i + 1}
                   </span>
                   <span className="pt-0.5 leading-snug">{step}</span>
@@ -53,7 +53,7 @@ export function ContactSection({
                 rel="noopener noreferrer"
                 className={cn(buttonStyles.secondary, 'mt-5 w-full sm:w-auto')}
               >
-                <TelegramLogo size={18} weight="fill" className="text-[#5cc4f5]" />
+                <TelegramLogo size={18} weight="fill" className="text-tg" />
                 {telegramHandle}
               </a>
             </div>

@@ -43,7 +43,7 @@ export default async function AuditPage({ params }: PageProps<'/[locale]/audit'>
     <section className="mx-auto grid max-w-7xl gap-12 px-4 pt-32 pb-28 md:px-8 md:pt-40 lg:grid-cols-12 lg:gap-10">
       <div className="lg:col-span-5">
         <HeroIntro>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.eyebrow}</p>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
           <h1 className="mt-5 text-[2.2rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">
             {t.title}
           </h1>
@@ -54,7 +54,7 @@ export default async function AuditPage({ params }: PageProps<'/[locale]/audit'>
           <ul className="mt-4 grid gap-3 text-[15px] text-muted">
             {t.points.map((p) => (
               <li key={p} className="flex gap-3">
-                <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-accent/15 text-accent">
+                <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-accent/15 text-accent-text">
                   <Check size={13} weight="bold" aria-hidden="true" />
                 </span>
                 {p}

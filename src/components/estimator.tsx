@@ -85,7 +85,7 @@ export function Estimator({
                 className={cn(
                   'rounded-xl border px-4 py-3.5 text-left transition-colors duration-200',
                   id === variant
-                    ? 'border-accent bg-accent/[0.07]'
+                    ? 'border-accent-text bg-accent/[0.07]'
                     : 'border-line hover:border-line-strong',
                 )}
               >
@@ -122,7 +122,7 @@ export function Estimator({
                 animate={{ y: 0, opacity: 1 }}
                 exit={reduce ? undefined : { y: -28, opacity: 0 }}
                 transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                className="font-mono text-[clamp(1.6rem,7vw,2.75rem)] leading-[1.3] tracking-tight whitespace-nowrap text-accent lg:text-[clamp(1.6rem,3.2vw,2.75rem)]"
+                className="font-mono text-[clamp(1.6rem,7vw,2.75rem)] leading-[1.3] tracking-tight whitespace-nowrap text-accent-text lg:text-[clamp(1.6rem,3.2vw,2.75rem)]"
                 aria-live="polite"
               >
                 {price}
@@ -134,7 +134,7 @@ export function Estimator({
           <p className="mt-8 max-w-[40ch] text-[13px] leading-relaxed text-faint">{t.note}</p>
           <Link
             href={`/${locale}/builder`}
-            className="mt-5 inline-flex max-w-[40ch] items-center gap-1.5 text-sm font-medium text-fg underline decoration-accent/50 underline-offset-4 transition-colors hover:text-accent"
+            className="mt-5 inline-flex max-w-[40ch] items-center gap-1.5 text-sm font-medium text-fg underline decoration-accent-text/50 underline-offset-4 transition-colors hover:text-accent-text"
           >
             {dict.builder.entry}
           </Link>
@@ -179,7 +179,7 @@ function Pill({
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm transition-colors duration-200 active:scale-[0.98]',
         active
-          ? 'border-accent bg-accent text-accent-ink'
+          ? 'border-accent-text bg-accent text-accent-ink'
           : 'border-line-strong text-fg hover:border-fg/40',
       )}
     >

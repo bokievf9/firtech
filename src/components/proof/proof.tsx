@@ -32,7 +32,7 @@ export function Proof({ dict }: { dict: Dict }) {
 
       <div className="mt-14 grid gap-gutter lg:grid-cols-12">
         <Reveal className="lg:col-span-5 lg:row-span-2">
-          <article className="flex h-full flex-col justify-between gap-8 rounded-card border border-accent/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 md:p-8">
+          <article className="flex h-full flex-col justify-between gap-8 rounded-card border border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 md:p-8">
             <div>
               <p className="font-mono text-[11px] tracking-[0.14em] text-accent-text uppercase">
                 {t.items.hq.role}

@@ -87,7 +87,7 @@ export function WorkTimeline({ dict }: { dict: Dict }) {
                   )}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="grid size-11 place-items-center rounded-full border border-accent/40 text-accent-text">
+                    <span className="grid size-11 place-items-center rounded-full border border-accent-text/40 text-accent-text">
                       <Icon size={20} aria-hidden="true" />
                     </span>
                     <span className="font-display text-6xl font-semibold tracking-tight text-fg/10">
@@ -106,7 +106,7 @@ export function WorkTimeline({ dict }: { dict: Dict }) {
             })}
             <li
               className={cn(
-                'rounded-card border border-accent/30 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_70%)] p-6 md:p-8',
+                'rounded-card border border-accent-text/30 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_70%)] p-6 md:p-8',
                 pinned && 'h-[23rem] w-[38rem] shrink-0 min-[1920px]:w-[44rem]',
               )}
             >

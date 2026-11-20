@@ -65,7 +65,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
       <HeroIntro>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.home.eyebrow}</p>
+            <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.home.eyebrow}</p>
             <h1 className="mt-5 text-[2.2rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">
               {name ? fill(t.home.greeting, { name }) : t.home.greetingNoName}
             </h1>
@@ -90,7 +90,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
       )}
 
       {one(query.password) === 'updated' && (
-        <p role="status" className="mt-8 rounded-xl border border-accent/40 px-4 py-3 text-sm text-fg">
+        <p role="status" className="mt-8 rounded-xl border border-accent-text/40 px-4 py-3 text-sm text-fg">
           {t.home.passwordUpdated}
         </p>
       )}

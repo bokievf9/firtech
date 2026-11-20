@@ -24,6 +24,7 @@ const ru = {
     cabinetStart: 'Личный кабинет',
     home: 'На главную',
   },
+  theme: { light: 'Светлая тема', dark: 'Тёмная тема', toggle: 'Сменить тему' },
   hero: {
     title: 'ИИ-агенты, которые работают вместо сотрудника 24/7',
     // The h1 in three lines; the middle one is the accent.

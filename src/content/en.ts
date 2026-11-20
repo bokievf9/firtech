@@ -24,6 +24,7 @@ const en: Dict = {
     cabinetStart: 'Get started',
     home: 'Home',
   },
+  theme: { light: 'Light theme', dark: 'Dark theme', toggle: 'Switch theme' },
   hero: {
     title: 'AI agents that work 24/7 in place of an employee',
     // The h1 in three lines; the middle one is the accent.

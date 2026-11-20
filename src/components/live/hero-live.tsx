@@ -31,7 +31,7 @@ export function HeroLive({ locale, copy }: { locale: Locale; copy: Dict['hero'][
         {data ? (
           <span
             className={`ml-auto rounded-full border px-2.5 py-0.5 font-mono text-micro uppercase ${
-              data.demo ? 'border-[#e8b33f]/40 text-[#e8b33f]' : 'border-accent/40 text-accent'
+              data.demo ? 'border-[#e8b33f]/40 text-[#e8b33f]' : 'border-accent-text/40 text-accent-text'
             }`}
           >
             {data.demo ? copy.demoBadge : copy.badge}

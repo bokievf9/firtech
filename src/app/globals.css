@@ -1,36 +1,42 @@
 @import 'tailwindcss';
 
 /*
-  Fir Tech design tokens. One theme (dark, owner's choice), one accent ("fir lime").
+  Fir Tech design tokens. Two public themes (owner 2026-11-21): LIGHT on a white page is the
+  default, DARK is the choice behind the header switch (data-theme on <html>, key `fir-theme`).
+  One accent ("fir lime"): lime is a FILL under dark text (--color-accent-ink), never text on
+  white; text and thin lines use --color-accent-text (dark green on light, the lime on dark).
+  The @theme block holds the light values; `:root[data-theme='dark']` below redefines them.
   Shape rule: interactive controls (buttons, pills, chips) are full pills, surfaces are 20px
   (rounded-card), inputs are 12px (rounded-xl). Keep to it everywhere.
 */
 @theme static {
-  --color-bg: #0a0d0b;
-  --color-surface: #111512;
-  --color-surface-2: #171c18;
+  --color-bg: #ffffff;
+  --color-surface: #f6f7f4;
+  --color-surface-2: #eceee7;
   /* Third layer (hover, active tab, inset wells) and the topmost one (dialogs, palette, menus). */
-  --color-surface-3: #1e2420;
-  --color-elevated: #1a201c;
+  --color-surface-3: #e3e7dc;
+  --color-elevated: #ffffff;
   /* Cards inside a panel (rows, kanban cards, stat tiles) and form fields. */
-  --color-inset: rgb(10 13 11 / 0.55);
-  --color-field: #0a0d0b;
+  --color-inset: rgb(255 255 255 / 0.8);
+  --color-field: #ffffff;
   /* Backdrop behind drawers, dialogs and the palette. */
-  --color-scrim: rgb(0 0 0 / 0.6);
-  --color-line: rgb(232 240 230 / 0.09);
-  --color-line-strong: rgb(232 240 230 / 0.16);
-  --color-fg: #edf2ea;
-  --color-muted: #9ba79d;
-  --color-faint: #8b978d;
-  --color-accent: #b5eb6a;
-  /* Accent as text or a thin line: the same lime on the dark theme, dark green on the light one. */
-  --color-accent-text: #b5eb6a;
-  --color-accent-strong: #c9f58c;
+  --color-scrim: rgb(14 18 15 / 0.45);
+  --color-line: rgb(14 18 15 / 0.1);
+  --color-line-strong: rgb(14 18 15 / 0.2);
+  --color-fg: #0e120f;
+  --color-muted: #4a564d;
+  --color-faint: #5a665d;
+  /* Fill only: buttons, dots, bars. Text on it is --color-accent-ink. */
+  --color-accent: #c6ff3d;
+  /* Accent as text or a thin line: dark green here, the lime itself on the dark theme. */
+  --color-accent-text: #2b6410;
+  --color-accent-strong: #b4f021;
   --color-accent-ink: #0d1408;
-  --color-pine: #1d3a2a;
-  --color-danger: #ff9a8a;
-  --color-danger-ink: #2a0a05;
-  --color-warn: #f2c14e;
+  /* Tinted green wash (avatars, highlighted cards): pale lime on light, deep pine on dark. */
+  --color-pine: #e1f3bd;
+  --color-danger: #b3261e;
+  --color-danger-ink: #ffffff;
+  --color-warn: #8a5a00;
 
   /*
     Pixel-art paper (speech bubbles, person card, zone badges over the office canvas): the canvas
@@ -43,40 +49,42 @@
   --color-paper-red: #b3261e;
   --color-paper-green: #3c6e00;
   --color-office-night: #0b1030;
+  /* Telegram brand blue as an icon colour: deeper on white, light on dark. */
+  --color-tg: #1b86c9;
 
   /*
     Department colours (owner panel). fill = solid dot/line/stripe, soft = tinted surface, text =
     text and icons (AA on the theme surfaces). Lime stays the global accent; only accents are tinted.
     The fill is the same in both themes (mid-tone, at least 3:1 on both surface sets, so it also suits the
-    pixel canvas); soft and text are redefined in the light block below.
+    pixel canvas); soft and text are redefined per theme.
   */
   --color-dept-director: #6571b4;
-  --color-dept-director-soft: rgb(111 123 184 / 0.18);
-  --color-dept-director-text: #b3bcf2;
+  --color-dept-director-soft: #e3e6f6;
+  --color-dept-director-text: #3a4590;
   --color-dept-marketing: #d0467f;
-  --color-dept-marketing-soft: rgb(217 88 143 / 0.17);
-  --color-dept-marketing-text: #ff9dc4;
+  --color-dept-marketing-soft: #f9e1ec;
+  --color-dept-marketing-text: #a3205f;
   --color-dept-sales: #dd6a22;
-  --color-dept-sales-soft: rgb(232 116 45 / 0.17);
-  --color-dept-sales-text: #ffb27a;
+  --color-dept-sales-soft: #fae7d6;
+  --color-dept-sales-text: #8f4700;
   --color-dept-support: #1b9d8c;
-  --color-dept-support-soft: rgb(43 181 164 / 0.17);
-  --color-dept-support-text: #6fe0d1;
+  --color-dept-support-soft: #d8f1ec;
+  --color-dept-support-text: #0b6358;
   --color-dept-production: #3484d2;
-  --color-dept-production-soft: rgb(63 143 224 / 0.18);
-  --color-dept-production-text: #8cc2ff;
+  --color-dept-production-soft: #dceaf8;
+  --color-dept-production-text: #195a9f;
   --color-dept-backoffice: #8657d0;
-  --color-dept-backoffice-soft: rgb(154 107 224 / 0.18);
-  --color-dept-backoffice-text: #c7a8ff;
+  --color-dept-backoffice-soft: #eae1f8;
+  --color-dept-backoffice-text: #6030ae;
   --color-dept-company: #718093;
-  --color-dept-company-soft: rgb(138 149 166 / 0.18);
-  --color-dept-company-text: #bcc5d3;
+  --color-dept-company-soft: #e1e6ec;
+  --color-dept-company-text: #3c4859;
 
-  /* Glass surfaces (header, live window, chat): see .glass below. */
-  --color-glass: rgb(16 20 17 / 0.62);
-  --color-glass-strong: rgb(16 20 17 / 0.86);
-  --color-glass-line: rgb(232 240 230 / 0.1);
-  --color-glass-highlight: rgb(255 255 255 / 0.07);
+/* Glass surfaces (header, live window, chat): see .glass below. */
+  --color-glass: rgb(255 255 255 / 0.74);
+  --color-glass-strong: rgb(255 255 255 / 0.94);
+  --color-glass-line: rgb(14 18 15 / 0.09);
+  --color-glass-highlight: rgb(255 255 255 / 0.9);
 
   /* Radii: pills for controls, 12px inputs (rounded-xl), 20px cards, 28px windows and sheets. */
   --radius-card: 20px;
@@ -106,22 +114,133 @@
   --spacing-section: clamp(5rem, 3.2rem + 6vw, 9rem);
   --spacing-gutter: clamp(1rem, 0.6rem + 1.2vw, 1.75rem);
 
-  --shadow-glass: inset 0 1px 0 var(--color-glass-highlight), 0 30px 80px -30px rgb(0 0 0 / 0.7);
-  --shadow-float: 0 18px 50px -18px rgb(0 0 0 / 0.75), 0 0 0 1px var(--color-glass-line);
-
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 /*
-  Panel and dialog shadows live outside @theme on purpose: Tailwind inlines @theme shadows into
-  its utility, which would freeze the dark value; here the light block can override the variable.
-  Side panel, drawers, dialogs over the office: a soft edge shadow, never a halo.
+  Shadows live outside @theme on purpose: Tailwind inlines @theme shadows into its utility, which
+  would freeze one theme's value; here each theme block can override the variable. Light = faint
+  green-tinted lift instead of a glow, dark = deep soft shadow. Side panel, drawers, dialogs: a
+  soft edge shadow, never a halo. --shadow-card is the resting card, --shadow-card-hover its lift.
 */
 :root {
+  --shadow-glass: inset 0 1px 0 var(--color-glass-highlight), 0 14px 40px -18px rgb(24 40 22 / 0.28),
+    0 0 0 1px rgb(14 18 15 / 0.03);
+  --shadow-float: 0 18px 44px -20px rgb(24 40 22 / 0.35), 0 0 0 1px var(--color-glass-line);
+  --shadow-card: 0 1px 2px rgb(24 40 22 / 0.05), 0 10px 28px -16px rgb(24 40 22 / 0.18);
+  --shadow-card-hover: 0 2px 4px rgb(24 40 22 / 0.06), 0 18px 40px -18px rgb(24 40 22 / 0.28);
+  --shadow-panel: -14px 0 36px -20px rgb(30 45 25 / 0.35), -1px 0 0 rgb(14 18 15 / 0.1);
+  --shadow-dialog: 0 24px 56px -24px rgb(30 45 25 / 0.45), 0 0 0 1px var(--color-line-strong);
+  /* Page decoration, per theme: hero lights, bento glow, wordmark, dotted grid. */
+  --deco-pine: rgb(29 58 42 / 0);
+  --deco-lime: rgb(198 255 61 / 0.35);
+  --deco-grid: rgb(14 18 15 / 0.08);
+  --wordmark-top: rgb(14 18 15 / 0.72);
+  --wordmark-bottom: rgb(14 18 15 / 0.06);
+  --outline-stroke: rgb(14 18 15 / 0.16);
+  --arrow-stroke: #5a665d;
+  --noise-opacity: 0.025;
+  --spot-line: rgb(90 150 20 / 0.5);
+  --spot-fill: rgb(150 220 40 / 0.1);
+  --sweep: #6fb02a;
+  --aurora-a: rgb(198 255 61 / 0.28);
+  --aurora-b: rgb(120 190 60 / 0.1);
+  --aurora-c: rgb(198 255 61 / 0.16);
+  --skeleton-hi: rgb(14 18 15 / 0.06);
+  --card-sweep: rgb(255 255 255 / 0.7);
+  --hero-card-bg: linear-gradient(160deg, rgb(236 245 220 / 0.9), rgb(255 255 255 / 0.96) 55%);
+  --hero-glow: rgb(198 255 61 / 0.35);
+  --demo-glow: rgb(198 255 61 / 0.22);
+}
+
+@utility shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+@utility shadow-card-hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+@utility shadow-float {
+  box-shadow: var(--shadow-float);
+}
+
+@utility shadow-glass {
+  box-shadow: var(--shadow-glass);
+}
+
+/* Dark theme of the public site and the default of /admin: the original palette. */
+:root[data-theme='dark'] {
+  --color-bg: #0a0d0b;
+  --color-surface: #111512;
+  --color-surface-2: #171c18;
+  --color-surface-3: #1e2420;
+  --color-elevated: #1a201c;
+  --color-inset: rgb(10 13 11 / 0.55);
+  --color-field: #0a0d0b;
+  --color-scrim: rgb(0 0 0 / 0.6);
+  --color-line: rgb(232 240 230 / 0.09);
+  --color-line-strong: rgb(232 240 230 / 0.16);
+  --color-fg: #edf2ea;
+  --color-muted: #9ba79d;
+  --color-faint: #8b978d;
+  --color-accent: #b5eb6a;
+  --color-accent-text: #b5eb6a;
+  --color-accent-strong: #c9f58c;
+  --color-accent-ink: #0d1408;
+  --color-pine: #1d3a2a;
+  --color-danger: #ff9a8a;
+  --color-danger-ink: #2a0a05;
+  --color-warn: #f2c14e;
+
+  --color-dept-director-soft: rgb(111 123 184 / 0.18);
+  --color-dept-director-text: #b3bcf2;
+  --color-dept-marketing-soft: rgb(217 88 143 / 0.17);
+  --color-dept-marketing-text: #ff9dc4;
+  --color-dept-sales-soft: rgb(232 116 45 / 0.17);
+  --color-dept-sales-text: #ffb27a;
+  --color-dept-support-soft: rgb(43 181 164 / 0.17);
+  --color-dept-support-text: #6fe0d1;
+  --color-dept-production-soft: rgb(63 143 224 / 0.18);
+  --color-dept-production-text: #8cc2ff;
+  --color-dept-backoffice-soft: rgb(154 107 224 / 0.18);
+  --color-dept-backoffice-text: #c7a8ff;
+  --color-dept-company-soft: rgb(138 149 166 / 0.18);
+  --color-dept-company-text: #bcc5d3;
+
+  --color-tg: #5cc4f5;
+  --color-glass: rgb(16 20 17 / 0.62);
+  --color-glass-strong: rgb(16 20 17 / 0.86);
+  --color-glass-line: rgb(232 240 230 / 0.1);
+  --color-glass-highlight: rgb(255 255 255 / 0.07);
+
+  --shadow-glass: inset 0 1px 0 var(--color-glass-highlight), 0 30px 80px -30px rgb(0 0 0 / 0.7);
+  --shadow-float: 0 18px 50px -18px rgb(0 0 0 / 0.75), 0 0 0 1px var(--color-glass-line);
+  --shadow-card: none;
+  --shadow-card-hover: none;
   --shadow-panel: -18px 0 48px -24px rgb(0 0 0 / 0.55);
   --shadow-dialog: 0 24px 64px -24px rgb(0 0 0 / 0.7), 0 0 0 1px var(--color-line-strong);
+  --deco-pine: rgb(29 58 42 / 0.9);
+  --deco-lime: rgb(181 235 106 / 0.07);
+  --deco-grid: rgb(232 240 230 / 0.09);
+  --wordmark-top: rgb(237 242 234 / 0.95);
+  --wordmark-bottom: rgb(237 242 234 / 0.08);
+  --outline-stroke: rgb(232 240 230 / 0.14);
+  --arrow-stroke: #9ba79d;
+  --noise-opacity: 0.05;
+  --spot-line: rgb(181 235 106 / 0.55);
+  --spot-fill: rgb(181 235 106 / 0.06);
+  --sweep: #f1ffd9;
+  --aurora-a: rgb(29 58 42 / 0.95);
+  --aurora-b: rgb(181 235 106 / 0.07);
+  --aurora-c: rgb(29 58 42 / 0.45);
+  --skeleton-hi: rgb(232 240 230 / 0.08);
+  --card-sweep: rgb(241 255 217 / 0.08);
+  --hero-card-bg: linear-gradient(160deg, rgb(29 58 42 / 0.55), rgb(17 21 18 / 0.92) 55%);
+  --hero-glow: rgb(29 58 42 / 0.9);
+  --demo-glow: rgb(29 58 42 / 0.55);
 }
 
 @utility shadow-panel {
@@ -138,11 +257,12 @@
 */
 
 /*
-  Light theme of the owner panel (/admin only; the public site stays dark). The admin layout sets
-  data-theme="light" on <html> before the first paint when the owner chose it. Same hues, inverted
-  lightness; lime stays the fill colour (buttons, dots), text and lines use --color-accent-text.
+  Light theme of the owner panel (/admin only, html without .site: the public light theme is the
+  root default above). The admin layout sets data-theme="dark" or "light" on <html> before the
+  first paint (default dark). Same hues, inverted lightness; lime stays the fill colour (buttons,
+  dots), text and lines use --color-accent-text.
 */
-:root[data-theme='light'] {
+:root[data-theme='light']:not(.site) {
   /* Layers, darkest to lightest: page < inset card < panel < elevated; surface-3 = hover/active. */
   --color-bg: #d9dfd0;
   --color-surface: #f7f9f3;
@@ -164,6 +284,8 @@
 
   --shadow-panel: -14px 0 36px -20px rgb(30 45 25 / 0.45), -1px 0 0 rgb(20 30 20 / 0.12);
   --shadow-dialog: 0 24px 56px -24px rgb(30 45 25 / 0.5), 0 0 0 1px var(--color-line-strong);
+  --color-accent: #b5eb6a;
+  --color-accent-strong: #c9f58c;
 
   --color-dept-director: #6571b4;
   --color-dept-director-soft: #e3e6f6;
@@ -190,7 +312,7 @@
 
 @layer base {
   html {
-    color-scheme: dark;
+    color-scheme: light;
     scroll-behavior: smooth;
     scroll-padding-top: 88px;
     -webkit-text-size-adjust: 100%;
@@ -209,8 +331,8 @@
     color: var(--color-accent-ink);
   }
 
-  :root[data-theme='light'] {
-    color-scheme: light;
+  :root[data-theme='dark'] {
+    color-scheme: dark;
   }
 
   /*
@@ -228,7 +350,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-accent-text);
     outline-offset: 3px;
   }
 
@@ -246,13 +368,13 @@
   inset: 0;
   z-index: 60;
   pointer-events: none;
-  opacity: 0.05;
+  opacity: var(--noise-opacity, 0.05);
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 }
 
 /* Fine dot grid used behind a few surfaces as texture. */
 .dot-grid {
-  background-image: radial-gradient(rgb(232 240 230 / 0.09) 1px, transparent 1px);
+  background-image: radial-gradient(var(--deco-grid) 1px, transparent 1px);
   background-size: 18px 18px;
 }
 
@@ -260,7 +382,7 @@
 .select-arrow {
   appearance: none;
   padding-right: 2.5rem;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'><path d='M1 1.5l5 5 5-5' stroke='%239ba79d' stroke-width='1.5'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'><path d='M1 1.5l5 5 5-5' stroke='%235a665d' stroke-width='1.5'/></svg>");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 12px 8px;
@@ -303,7 +425,7 @@
   padding: 1px;
   background: radial-gradient(
     420px circle at var(--mx, 50%) var(--my, -40%),
-    rgb(181 235 106 / 0.55),
+    var(--spot-line, rgb(181 235 106 / 0.55)),
     transparent 45%
   );
   mask:
@@ -323,7 +445,7 @@
   border-radius: inherit;
   background: radial-gradient(
     560px circle at var(--mx, 50%) var(--my, -40%),
-    rgb(181 235 106 / 0.06),
+    var(--spot-fill, rgb(181 235 106 / 0.06)),
     transparent 50%
   );
   opacity: var(--spot, 0);
@@ -344,7 +466,7 @@
 /* Outlined giant wordmark in the footer. */
 .text-outline {
   color: transparent;
-  -webkit-text-stroke: 1px rgb(232 240 230 / 0.14);
+  -webkit-text-stroke: 1px var(--outline-stroke);
 }
 
 /*
@@ -554,7 +676,7 @@
 }
 
 /* The hologram screen stays a dark screen on the light theme: its lime light needs a dark ground. */
-:root[data-theme='light'] .hud-stage {
+:root[data-theme='light']:not(.site) .hud-stage {
   --color-bg: #0a0d0b;
   --color-fg: #edf2ea;
   --color-muted: #9ba79d;
@@ -655,13 +777,14 @@
   }
 }
 
+/* The accent line is text: dark green on white, lime on dark (--color-accent-text). */
 .kinetic-accent {
-  color: var(--color-accent);
+  color: var(--color-accent-text);
 }
 
 @supports (background-clip: text) or (-webkit-background-clip: text) {
   .kinetic-accent .kinetic-word {
-    background: linear-gradient(100deg, var(--color-accent) 0 40%, #f1ffd9 50%, var(--color-accent) 60% 100%) 0 0 /
+    background: linear-gradient(100deg, var(--color-accent-text) 0 40%, var(--sweep, #f1ffd9) 50%, var(--color-accent-text) 60% 100%) 0 0 /
       300% 100% repeat-x;
     -webkit-background-clip: text;
     background-clip: text;
@@ -714,9 +837,9 @@
 /* Hero background fallback (and the base under the WebGL field): pine and lime light, still. */
 .hero-aurora {
   background:
-    radial-gradient(60% 55% at 78% 12%, rgb(29 58 42 / 0.95), transparent 70%),
-    radial-gradient(40% 40% at 8% 90%, rgb(181 235 106 / 0.07), transparent 70%),
-    radial-gradient(35% 30% at 55% 60%, rgb(29 58 42 / 0.45), transparent 75%);
+    radial-gradient(60% 55% at 78% 12%, var(--aurora-a), transparent 70%),
+    radial-gradient(40% 40% at 8% 90%, var(--aurora-b), transparent 70%),
+    radial-gradient(35% 30% at 55% 60%, var(--aurora-c), transparent 75%);
 }
 
 /* Fades the hero's bottom edge into the page so the next section starts calmly. */
@@ -749,7 +872,7 @@
 
 .skeleton {
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--color-surface-2) 25%, rgb(232 240 230 / 0.08) 50%, var(--color-surface-2) 75%)
+  background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--skeleton-hi) 50%, var(--color-surface-2) 75%)
     0 0 / 200% 100%;
   animation: shimmer 1.6s linear infinite;
 }
@@ -810,7 +933,7 @@
 
   .kinetic-accent .kinetic-word {
     background: none;
-    color: var(--color-accent);
+    color: var(--color-accent-text);
   }
 }
 
@@ -848,7 +971,7 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: linear-gradient(105deg, transparent 35%, rgb(241 255 217 / 0.08) 50%, transparent 65%);
+  background: linear-gradient(105deg, transparent 35%, var(--card-sweep) 50%, transparent 65%);
   transform: translateX(-130%);
 }
 .hero-card[data-active='true']::after {
@@ -919,7 +1042,7 @@
 
 /* Footer wordmark: a soft lime light follows the scroll position of the footer. */
 .wordmark-fill {
-  background: linear-gradient(180deg, rgb(237 242 234 / 0.95), rgb(237 242 234 / 0.08) 78%);
+  background: linear-gradient(180deg, var(--wordmark-top), var(--wordmark-bottom) 78%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

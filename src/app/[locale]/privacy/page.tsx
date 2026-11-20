@@ -43,7 +43,7 @@ export async function generateMetadata({
 }
 
 const linkClass =
-  'text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent'
+  'text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text'
 
 export default async function PrivacyPage({ params }: PageProps<'/[locale]/privacy'>) {
   const { locale } = await params

@@ -79,7 +79,7 @@ export function LeadsSection({
       </div>
 
       {(pending || (leads === null && fresh)) && (
-        <div role="status" className="mt-5 rounded-card border border-accent/40 bg-accent/[0.06] p-5" data-lead-pending>
+        <div role="status" className="mt-5 rounded-card border border-accent-text/40 bg-accent/[0.06] p-5" data-lead-pending>
           <p className="font-medium">{t.pending}</p>
           <p className="mt-1 text-sm text-muted">{t.pendingText}</p>
           {follow && <FollowLink href={follow} label={t.follow} />}
@@ -171,7 +171,7 @@ function LeadCard({
       data-lead={lead.id}
       className={cn(
         'scroll-mt-32 rounded-card border bg-surface p-6 md:p-8',
-        focused ? 'border-accent/60' : 'border-line',
+        focused ? 'border-accent-text/60' : 'border-line',
       )}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -192,7 +192,7 @@ function LeadCard({
             aria-current={step.state === 'now' ? 'step' : undefined}
             className={cn(
               'rounded-full border px-3 py-1.5 text-center',
-              step.state === 'now' && 'border-accent bg-accent/10 text-accent-text',
+              step.state === 'now' && 'border-accent-text bg-accent/10 text-accent-text',
               step.state === 'done' && 'border-line-strong text-fg',
               step.state === 'next' && 'border-line text-faint',
             )}
@@ -214,7 +214,7 @@ function LeadCard({
             ))}
         </dl>
         <div className="grid content-start gap-4">
-          <div className="rounded-xl border border-accent/30 bg-accent/[0.06] p-4">
+          <div className="rounded-xl border border-accent-text/30 bg-accent/[0.06] p-4">
             <p className="text-[13px] text-muted">{t.nextTitle}</p>
             <p className="mt-1 text-sm text-fg">{leadNextStep(lead, t.defaultNext)}</p>
           </div>
@@ -246,7 +246,7 @@ function LeadCard({
                 key={`${r.at}-${i}`}
                 className={cn(
                   'max-w-[85%] rounded-[18px] px-3.5 py-2.5 text-sm leading-snug whitespace-pre-line',
-                  r.from === 'client' ? 'justify-self-end rounded-br-md bg-accent text-accent-ink' : 'rounded-bl-md border border-accent/40 bg-surface-2',
+                  r.from === 'client' ? 'justify-self-end rounded-br-md bg-accent text-accent-ink' : 'rounded-bl-md border border-accent-text/40 bg-surface-2',
                 )}
               >
                 <span className={cn('mb-1 block text-xs font-medium', r.from === 'client' ? 'text-accent-ink/80' : 'text-accent-text')}>

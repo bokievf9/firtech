@@ -47,7 +47,7 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
     <>
       <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
         <HeroIntro>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.eyebrow}</p>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
           <h1 className="mt-5 max-w-[18ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {t.title}
           </h1>
@@ -59,7 +59,7 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
         {list.length === 0 ? (
           <Reveal>
             <div className="dot-grid flex flex-col items-start gap-5 rounded-card border border-line bg-surface p-8 md:p-12">
-              <Notebook size={32} weight="duotone" className="text-accent" />
+              <Notebook size={32} weight="duotone" className="text-accent-text" />
               <p className="text-2xl font-semibold tracking-tight md:text-3xl">{t.empty}</p>
               <p className="max-w-[52ch] leading-relaxed text-muted">{t.emptyText}</p>
               <div className="mt-2 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
@@ -97,7 +97,7 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
                         {content.title}
                       </h2>
                       <p className="mt-3 leading-relaxed text-muted">{content.description}</p>
-                      <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-medium text-accent">
+                      <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-medium text-accent-text">
                         {t.read}
                         <ArrowUpRight
                           size={16}

@@ -3,7 +3,7 @@ import { cn } from '@/lib/cn'
 
 // Shared bits of the cabinet, in the look of the contact form: 12px inputs, 20px cards, lime accent.
 export const inputClass =
-  'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg md:text-[15px] placeholder:text-faint transition-colors focus:border-accent focus:outline-none aria-[invalid=true]:border-danger'
+  'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg md:text-[15px] placeholder:text-faint transition-colors focus:border-accent-text focus:outline-none aria-[invalid=true]:border-danger'
 
 export function Field({
   id,
@@ -72,7 +72,7 @@ export function Chip({ children, tone = 'muted' }: { children: ReactNode; tone?:
     <span
       className={cn(
         'inline-flex items-center rounded-full border px-2.5 py-0.5 font-mono text-[11px] whitespace-nowrap',
-        tone === 'accent' && 'border-accent/40 text-accent-text',
+        tone === 'accent' && 'border-accent-text/40 text-accent-text',
         tone === 'warn' && 'border-warn/50 text-warn',
         tone === 'muted' && 'border-line-strong text-muted',
       )}

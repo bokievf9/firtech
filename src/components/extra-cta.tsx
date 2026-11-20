@@ -20,7 +20,7 @@ export function ExtraCta({ service, label }: { service: LeadService; label: stri
           .getElementById('contact')
           ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
       }}
-      className="relative z-10 inline-flex items-center gap-1.5 text-sm font-medium text-fg transition-colors hover:text-accent"
+      className="relative z-10 inline-flex items-center gap-1.5 text-sm font-medium text-fg transition-colors hover:text-accent-text"
     >
       {label}
       <ArrowRight size={14} />

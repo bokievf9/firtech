@@ -29,7 +29,7 @@ export function StepBar({
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-2.5 md:px-8 md:pt-4">
         <div className="flex items-baseline justify-between gap-4">
           <h1 className="truncate text-sm font-medium">
-            <span className="mr-2 font-mono text-[11px] tracking-[0.14em] text-accent uppercase">
+            <span className="mr-2 font-mono text-[11px] tracking-[0.14em] text-accent-text uppercase">
               {eyebrow}
             </span>
             <span className="text-muted">{title}</span>
@@ -187,7 +187,7 @@ export function PreviewSheet({
             aria-label={closeLabel}
             tabIndex={-1}
             onClick={onClose}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-scrim backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

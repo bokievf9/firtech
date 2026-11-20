@@ -178,7 +178,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                 <Reveal delay={(i % 3) * 0.07} className="h-full">
                   <SpotlightCard className="group flex h-full items-center gap-4 rounded-card border border-line bg-surface p-5 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong sm:flex-col sm:items-stretch sm:gap-10 sm:p-6 md:p-7">
                     <div className="flex shrink-0 items-center justify-between">
-                      <span className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent transition-colors duration-300 group-hover:bg-accent group-hover:text-accent-ink">
+                      <span className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent-text transition-colors duration-300 group-hover:bg-accent group-hover:text-accent-ink">
                         <Check size={18} weight="bold" />
                       </span>
                       <span className="hidden font-mono text-sm text-faint sm:block">
@@ -240,10 +240,10 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                 <Reveal key={other} delay={i * 0.07} className="h-full">
                   <SpotlightCard className="group relative flex h-full flex-col gap-8 rounded-card border border-line bg-surface p-6 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong">
                     <div className="flex items-center justify-between">
-                      <Icon size={26} weight="light" className="text-accent" />
+                      <Icon size={26} weight="light" className="text-accent-text" />
                       <ArrowUpRight
                         size={18}
-                        className="text-muted transition-[color,transform] duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent"
+                        className="text-muted transition-[color,transform] duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent-text"
                       />
                     </div>
                     <div>
@@ -261,7 +261,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                     </div>
                     <p className="mt-auto font-mono text-sm text-muted">
                       {dict.services.from}{' '}
-                      <span className="text-lg text-accent">{formatUsd(startingPrice[other])}</span>
+                      <span className="text-lg text-accent-text">{formatUsd(startingPrice[other])}</span>
                     </p>
                   </SpotlightCard>
                 </Reveal>
@@ -302,15 +302,15 @@ function HeroCard({ slug, dict }: { slug: ServiceSlug; dict: Dict }) {
   }
 
   return (
-    <div className="rounded-card border border-line-strong bg-surface/85 p-5 shadow-[0_40px_120px_-40px_rgb(0_0_0/0.9)] backdrop-blur md:p-7">
+    <div className="rounded-card border border-line-strong bg-surface/85 p-5 shadow-float backdrop-blur md:p-7">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm text-muted">{dict.services.from}</p>
-          <p className="mt-1 font-mono text-5xl tracking-tight text-accent md:text-6xl">
+          <p className="mt-1 font-mono text-5xl tracking-tight text-accent-text md:text-6xl">
             {formatUsd(startingPrice[slug])}
           </p>
         </div>
-        <span className="flex size-12 items-center justify-center rounded-full border border-line-strong text-accent">
+        <span className="flex size-12 items-center justify-center rounded-full border border-line-strong text-accent-text">
           <Icon size={22} />
         </span>
       </div>
@@ -320,7 +320,7 @@ function HeroCard({ slug, dict }: { slug: ServiceSlug; dict: Dict }) {
             key={tag}
             className="flex items-center gap-1.5 rounded-full border border-line-strong px-3 py-1.5 text-sm text-muted"
           >
-            <Check size={13} weight="bold" className="text-accent" />
+            <Check size={13} weight="bold" className="text-accent-text" />
             {tag}
           </li>
         ))}

@@ -133,10 +133,10 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
             <p className="mt-6 text-sm text-muted">
               {t.startSet} {t.from}
             </p>
-            <p className="mt-1 font-mono text-5xl tracking-tight text-accent">
+            <p className="mt-1 font-mono text-5xl tracking-tight text-accent-text">
               {formatUsd(q.total)}
             </p>
-            {q.discount && <p className="mt-3 text-sm text-accent">{dict.builder.discount}</p>}
+            {q.discount && <p className="mt-3 text-sm text-accent-text">{dict.builder.discount}</p>}
             {q.monthly !== null && (
               <p className="mt-1 font-mono text-sm text-muted">
                 + {formatUsd(q.monthly)}
@@ -168,7 +168,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                       </h3>
                     </div>
                     <div className="border-t border-line pt-6">
-                      <p className="flex items-center gap-2 text-xs tracking-[0.12em] text-accent uppercase">
+                      <p className="flex items-center gap-2 text-xs tracking-[0.12em] text-accent-text uppercase">
                         <CheckCircle size={16} />
                         {t.fixLabel}
                       </p>
@@ -241,7 +241,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                 </span>
                 <ArrowUpRight
                   size={18}
-                  className="shrink-0 text-accent transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  className="shrink-0 text-accent-text transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 />
               </Link>
             ))}

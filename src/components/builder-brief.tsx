@@ -137,7 +137,7 @@ export function StyleStep({
           onClick={() => setOpen((v) => !v)}
           className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong px-5 text-sm font-medium transition-colors hover:border-fg/40"
         >
-          <SlidersHorizontal size={16} className="text-accent" />
+          <SlidersHorizontal size={16} className="text-accent-text" />
           {open ? pick(ui.tuneHide, locale) : pick(ui.tune, locale)}
         </button>
         {style && (
@@ -246,7 +246,7 @@ export function StyleStep({
                     >
                       <span
                         style={styleVars({ ...axes, shape: id })}
-                        className="mb-2 block h-8 rounded-[var(--radius-lg)] border-2 border-accent bg-transparent"
+                        className="mb-2 block h-8 rounded-[var(--radius-lg)] border-2 border-accent-text bg-transparent"
                       />
                       <span className="block text-[13px] font-medium">
                         {pick(shapeNames[id], locale)}
@@ -360,7 +360,7 @@ export function DetailsStep({
           <span
             className={cn(
               'w-24 shrink-0 text-right font-mono text-lg',
-              d.pages ? 'text-accent' : 'text-faint',
+              d.pages ? 'text-accent-text' : 'text-faint',
             )}
           >
             {d.pages ? `${pages} ${t.pagesUnit}` : t.pagesUnset}
@@ -382,7 +382,7 @@ export function DetailsStep({
           ))}
         </div>
         <p className="mt-4 flex gap-2.5 rounded-xl border border-line bg-surface px-4 py-3 text-[13px] leading-relaxed text-muted">
-          <Info size={16} className="mt-0.5 shrink-0 text-accent" />
+          <Info size={16} className="mt-0.5 shrink-0 text-accent-text" />
           <span>
             {hasSite ? (
               <>
@@ -430,7 +430,7 @@ export function DetailsStep({
                   aria-invalid={invalid || undefined}
                   onChange={(e) => setExample(i, e.target.value)}
                   className={cn(
-                    'ym-disable-keys w-full rounded-xl border bg-surface px-4 py-3.5 font-mono text-base text-fg md:text-sm placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent',
+                    'ym-disable-keys w-full rounded-xl border bg-surface px-4 py-3.5 font-mono text-base text-fg md:text-sm placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text',
                     invalid ? 'border-danger/70' : 'border-line-strong',
                   )}
                 />
@@ -458,7 +458,7 @@ export function DetailsStep({
                 }
                 className="flex items-center gap-3 rounded-xl p-4"
               >
-                <Glyph size={20} className={on ? 'text-accent' : 'text-muted'} />
+                <Glyph size={20} className={on ? 'text-accent-text' : 'text-muted'} />
                 <span className="text-[15px] font-medium">{t.deadlines[id]}</span>
               </Choice>
             )
@@ -475,7 +475,7 @@ export function DetailsStep({
           placeholder={t.wishPlaceholder}
           aria-label={t.wishTitle}
           onChange={(e) => setBuild((b) => withDetails(b, { wish: e.target.value }))}
-          className="ym-disable-keys w-full resize-y rounded-xl border border-line-strong bg-surface px-4 py-3.5 text-base leading-relaxed text-fg md:text-[15px] placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          className="ym-disable-keys w-full resize-y rounded-xl border border-line-strong bg-surface px-4 py-3.5 text-base leading-relaxed text-fg md:text-[15px] placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text"
         />
       </Group>
     </div>

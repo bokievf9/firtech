@@ -92,14 +92,14 @@ const demos: Record<ProductId, (t: DemoCopy) => ReactNode> = {
             className={cn(
               chip,
               'flex-1 text-center',
-              i === 1 && 'pd-pick border-accent bg-accent/15 text-accent-text',
+              i === 1 && 'pd-pick border-accent-text bg-accent/15 text-accent-text',
             )}
           >
             {slot}
           </Step>
         ))}
       </div>
-      <Step ms={900} className={cn(ok, 'pd-pop rounded-xl border border-accent/30 bg-accent/10 px-3 py-2')}>
+      <Step ms={900} className={cn(ok, 'pd-pop rounded-xl border border-accent-text/30 bg-accent/10 px-3 py-2')}>
         <Tick />
         {t.admin.confirmed}
       </Step>
@@ -112,7 +112,7 @@ const demos: Record<ProductId, (t: DemoCopy) => ReactNode> = {
     <div className="grid gap-2">
       <div className="flex gap-1.5">
         {t.receptionist.channels.map((c, i) => (
-          <span key={c} className={cn(chip, i === 1 && 'border-accent/50 text-accent-text')}>
+          <span key={c} className={cn(chip, i === 1 && 'border-accent-text/50 text-accent-text')}>
             {c}
           </span>
         ))}
@@ -164,7 +164,7 @@ const demos: Record<ProductId, (t: DemoCopy) => ReactNode> = {
             ms={120 + i * 110}
             className={cn(
               'grid aspect-square place-items-end rounded-lg border border-line p-1.5 font-mono text-[10px] text-faint',
-              i === 1 && 'border-accent/50 bg-[linear-gradient(150deg,var(--color-pine),transparent)]',
+              i === 1 && 'border-accent-text/50 bg-[linear-gradient(150deg,var(--color-pine),transparent)]',
             )}
           >
             {day}
@@ -180,7 +180,7 @@ const demos: Record<ProductId, (t: DemoCopy) => ReactNode> = {
           <Step
             as="span"
             ms={1000}
-            className="absolute inset-0 flex items-center justify-center rounded-full border border-accent/50 bg-bg text-[11px] text-accent-text"
+            className="absolute inset-0 flex items-center justify-center rounded-full border border-accent-text/50 bg-bg text-[11px] text-accent-text"
           >
             {t.content.approved}
           </Step>
@@ -221,7 +221,7 @@ const demos: Record<ProductId, (t: DemoCopy) => ReactNode> = {
   agent: (t) => (
     <div className="grid gap-2">
       <div className="flex items-center gap-2 text-[12px]">
-        <span className="grid size-6 place-items-center rounded-full bg-pine font-brand text-[10px] text-accent">
+        <span className="grid size-6 place-items-center rounded-full bg-pine font-brand text-[10px] text-accent-text">
           D
         </span>
         <span className="font-medium">{t.agent.name}</span>

@@ -46,7 +46,7 @@ export default async function TermsPage({ params }: PageProps<'/[locale]/terms'>
           <p>
             <Link
               href={`/${locale}/privacy`}
-              className="text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+              className="text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
             >
               {t.privacyLink}
             </Link>

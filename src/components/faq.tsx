@@ -60,7 +60,7 @@ export function FaqList({ items, compact = false }: { items: { q: string; a: str
                 <Plus
                   size={18}
                   className={cn(
-                    'shrink-0 text-accent transition-transform duration-300 ease-out-expo',
+                    'shrink-0 text-accent-text transition-transform duration-300 ease-out-expo',
                     isOpen && 'rotate-45',
                   )}
                 />

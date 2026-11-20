@@ -55,7 +55,7 @@ export function ReferralLink({
         autoComplete="off"
         autoCapitalize="none"
         spellCheck={false}
-        className="ym-disable-keys mt-2 w-full rounded-2xl border border-line-strong bg-transparent px-4 py-3 text-base outline-none transition-colors focus:border-accent"
+        className="ym-disable-keys mt-2 w-full rounded-2xl border border-line-strong bg-transparent px-4 py-3 text-base outline-none transition-colors focus:border-accent-text"
       />
       <p className="mt-2 text-[13px] text-faint">{t.hint}</p>
       <p className="mt-6 text-sm text-faint">{t.linkLabel}</p>

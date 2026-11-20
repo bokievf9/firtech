@@ -38,7 +38,7 @@ export function PricingSection({
           <GuaranteeLine dict={dict} locale={locale} className="mt-5 max-w-[52ch]" />
           <Link
             href={`/${locale}/compare`}
-            className="mt-4 inline-flex items-center gap-1.5 text-sm text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+            className="mt-4 inline-flex items-center gap-1.5 text-sm text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
           >
             {h.compareLink}
             <ArrowRight size={14} aria-hidden="true" />
@@ -46,7 +46,7 @@ export function PricingSection({
         </Reveal>
         {teaser && (
           <Reveal delay={0.08} className="lg:col-span-5">
-            <div className="relative h-full overflow-hidden rounded-card border border-accent/30 bg-[linear-gradient(150deg,var(--color-pine),var(--color-surface)_70%)] p-6 md:p-8">
+            <div className="relative h-full overflow-hidden rounded-card border border-accent-text/30 bg-[linear-gradient(150deg,var(--color-pine),var(--color-surface)_70%)] p-6 md:p-8">
               <div aria-hidden="true" className="dot-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
               <div className="relative">
                 <p className="font-mono text-[11px] tracking-[0.14em] text-accent-text uppercase">

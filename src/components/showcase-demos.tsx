@@ -45,7 +45,7 @@ function Phone({ children, className }: { children: ReactNode; className?: strin
   return (
     <div
       className={cn(
-        'relative mx-auto flex h-[400px] w-[220px] flex-col overflow-hidden rounded-[34px] border border-line-strong bg-bg p-2.5 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.8)]',
+        'relative mx-auto flex h-[400px] w-[220px] flex-col overflow-hidden rounded-[34px] border border-line-strong bg-bg p-2.5 shadow-float',
         className,
       )}
     >
@@ -77,7 +77,7 @@ function Toast({
           exit={{ opacity: 0, y: -10, transition: { duration: 0.25 } }}
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
           className={cn(
-            'absolute z-20 flex w-[230px] items-start gap-2.5 rounded-2xl border border-line-strong bg-surface-2/95 p-3 text-[12px] leading-snug shadow-[0_20px_50px_-20px_rgb(0_0_0/0.9)] backdrop-blur',
+            'absolute z-20 flex w-[230px] items-start gap-2.5 rounded-2xl border border-line-strong bg-surface-2/95 p-3 text-[12px] leading-snug shadow-float backdrop-blur',
             className,
           )}
         >
@@ -103,7 +103,7 @@ export function CafeDemo({ t, business }: { t: T; business: string }) {
     <div ref={ref} className="relative py-6">
       <Phone>
         <div className="bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface))] px-4 pt-4 pb-4">
-          <Coffee size={22} weight="duotone" className="text-accent" />
+          <Coffee size={22} weight="duotone" className="text-accent-text" />
           <p className="mt-2 text-[15px] font-semibold">{business}</p>
           <p className="text-[11px] text-muted">{t.menu}</p>
         </div>
@@ -138,7 +138,7 @@ export function CafeDemo({ t, business }: { t: T; business: string }) {
             animate={step === 3 ? { scale: [1, 0.95, 1] } : { scale: 1 }}
             className={cn(
               'flex h-10 items-center justify-between rounded-full px-4 text-[12px] font-medium transition-colors duration-300',
-              step >= 3 ? 'bg-pine text-accent' : 'bg-accent text-accent-ink',
+              step >= 3 ? 'bg-pine text-accent-text' : 'bg-accent text-accent-ink',
             )}
           >
             <span>{step >= 3 ? <Check size={14} weight="bold" /> : t.order}</span>
@@ -152,7 +152,7 @@ export function CafeDemo({ t, business }: { t: T; business: string }) {
         show={step >= 3}
         className="top-0 right-0 sm:-right-6"
         icon={
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#2aabee]/15 text-[#5cc4f5]">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#2aabee]/15 text-tg">
             <TelegramLogo size={14} weight="fill" />
           </span>
         }
@@ -177,7 +177,7 @@ export function SalonDemo({ t }: { t: T }) {
     <div ref={ref} className="relative py-6">
       <Phone>
         <div className="flex items-center gap-2.5 border-b border-line px-3.5 py-3">
-          <span className="flex size-8 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <span className="flex size-8 items-center justify-center rounded-full bg-accent/15 text-accent-text">
             <Scissors size={15} />
           </span>
           <span className="text-[13px] font-medium">Beauty Bot</span>
@@ -231,7 +231,7 @@ export function SalonDemo({ t }: { t: T }) {
           {step >= 4 && (
             <motion.p
               {...enter}
-              className="flex max-w-[90%] items-center gap-2 rounded-2xl rounded-bl-md bg-pine px-3 py-2 text-accent"
+              className="flex max-w-[90%] items-center gap-2 rounded-2xl rounded-bl-md bg-pine px-3 py-2 text-accent-text"
             >
               <Check size={13} weight="bold" className="shrink-0" />
               {t.booked}
@@ -243,7 +243,7 @@ export function SalonDemo({ t }: { t: T }) {
         show={step >= 5}
         className="bottom-2 left-0 sm:-left-6"
         icon={
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-text">
             <Bell size={14} weight="fill" />
           </span>
         }
@@ -295,14 +295,14 @@ export function DeliveryDemo({ t }: { t: T }) {
                 key={item.name}
                 className={cn(
                   'rounded-xl border p-2 text-[11px] transition-colors duration-300',
-                  added ? 'border-accent/50 bg-accent/[0.06]' : 'border-line bg-bg/50',
+                  added ? 'border-accent-text/50 bg-accent/[0.06]' : 'border-line bg-bg/50',
                 )}
               >
                 <span className="mb-2 block h-12 rounded-lg bg-[linear-gradient(150deg,var(--color-pine),var(--color-surface-2))]" />
                 <span className="block font-medium">{item.name}</span>
                 <span className="flex items-center justify-between font-mono text-faint">
                   ${item.price}
-                  {added ? <Minus size={11} className="text-accent" /> : <Plus size={11} />}
+                  {added ? <Minus size={11} className="text-accent-text" /> : <Plus size={11} />}
                 </span>
               </li>
             )
@@ -312,7 +312,7 @@ export function DeliveryDemo({ t }: { t: T }) {
           <div
             className={cn(
               'flex h-10 items-center justify-center gap-2 rounded-full text-[12px] font-medium transition-colors duration-300',
-              step >= 4 ? 'bg-pine text-accent' : 'bg-accent text-accent-ink',
+              step >= 4 ? 'bg-pine text-accent-text' : 'bg-accent text-accent-ink',
             )}
           >
             {step >= 4 ? (
@@ -353,9 +353,9 @@ export function SalesDemo({ t }: { t: T }) {
 
   return (
     <div ref={ref} className="relative w-full max-w-[460px] py-6">
-      <div className="rounded-[22px] border border-line-strong bg-bg p-3 shadow-[0_30px_80px_-30px_rgb(0_0_0/0.8)]">
+      <div className="rounded-[22px] border border-line-strong bg-bg p-3 shadow-float">
         <div className="mb-3 flex items-center gap-2 px-1 text-[12px] text-muted">
-          <Robot size={15} className="text-accent" />
+          <Robot size={15} className="text-accent-text" />
           CRM
         </div>
         <LayoutGroup>
@@ -376,13 +376,13 @@ export function SalesDemo({ t }: { t: T }) {
                         className={cn(
                           'rounded-lg border p-2 text-[11px] leading-tight',
                           col.id === 'done'
-                            ? 'border-accent/50 bg-accent/[0.08]'
+                            ? 'border-accent-text/50 bg-accent/[0.08]'
                             : 'border-line bg-surface-2',
                         )}
                       >
                         <Icon
                           size={13}
-                          className={col.id === 'done' ? 'text-accent' : 'text-muted'}
+                          className={col.id === 'done' ? 'text-accent-text' : 'text-muted'}
                         />
                         <span className="mt-1.5 block">{label}</span>
                       </motion.div>
@@ -397,7 +397,7 @@ export function SalesDemo({ t }: { t: T }) {
         show={step >= 3 && step < 6}
         className="right-0 -bottom-2 sm:-right-4"
         icon={
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent">
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent/15 text-accent-text">
             <Sparkle size={14} weight="fill" />
           </span>
         }

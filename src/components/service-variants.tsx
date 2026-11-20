@@ -46,7 +46,7 @@ export function ServiceVariants({
             <h3 className="mt-6 text-2xl font-semibold tracking-tight md:mt-10 md:text-[1.7rem]">
               {v.name}
             </h3>
-            <p className="mt-3 font-mono text-4xl tracking-tight text-accent">
+            <p className="mt-3 font-mono text-4xl tracking-tight text-accent-text">
               <span className="text-sm text-muted">{labels.from} </span>
               {formatUsd(v.price)}
             </p>
@@ -55,7 +55,7 @@ export function ServiceVariants({
               type="button"
               onClick={() => openCalculator(v.id)}
               aria-label={`${labels.calcLabel} ${v.name}`}
-              className="inline-flex w-fit items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm font-medium transition-[border-color,background-color,color] duration-300 group-hover:border-accent/60 hover:bg-accent hover:text-accent-ink active:scale-[0.98]"
+              className="inline-flex w-fit items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm font-medium transition-[border-color,background-color,color] duration-300 group-hover:border-accent-text/60 hover:bg-accent hover:text-accent-ink active:scale-[0.98]"
             >
               <Calculator size={16} />
               {labels.calc}

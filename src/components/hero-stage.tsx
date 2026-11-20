@@ -55,7 +55,7 @@ export function HeroStage({
       {/* Slow pine aurora in the corner: depth without a neon glow. */}
       <motion.div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-48 right-[-14%] h-[720px] w-[820px] rounded-full bg-[radial-gradient(closest-side,rgb(29_58_42/0.9),transparent)] blur-2xl"
+        className="pointer-events-none absolute -top-48 right-[-14%] h-[720px] w-[820px] rounded-full bg-[radial-gradient(closest-side,var(--hero-glow),transparent)] blur-2xl"
         animate={reduce ? undefined : { x: [0, -40, 0], y: [0, 30, 0], scale: [1, 1.08, 1] }}
         transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
       />

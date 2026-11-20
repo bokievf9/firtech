@@ -28,7 +28,7 @@ export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
                 <li key={page}>
                   <Link
                     href={`/${locale}/${page}`}
-                    className="inline-flex items-center gap-1.5 text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                    className="inline-flex items-center gap-1.5 text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
                   >
                     {dict.faqLinks[page]}
                     <ArrowRight size={14} aria-hidden="true" />
@@ -50,7 +50,7 @@ export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
                 rel="noopener noreferrer"
                 className={cn(buttonStyles.secondary, 'px-5 py-2.5')}
               >
-                <TelegramLogo size={18} weight="fill" className="text-[#5cc4f5]" />
+                <TelegramLogo size={18} weight="fill" className="text-tg" />
                 {telegramHandle}
               </a>
             </div>

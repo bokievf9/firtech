@@ -104,7 +104,7 @@ export function PhoneFan() {
           }
           className={cn(
             'flex h-28 w-16 flex-col gap-1.5 rounded-[16px] border bg-bg/60 p-2',
-            i === 1 ? 'z-10 border-accent/50' : 'border-line-strong',
+            i === 1 ? 'z-10 border-accent-text/50' : 'border-line-strong',
           )}
         >
           <span className="mx-auto h-1 w-5 rounded-full bg-line-strong" />
@@ -114,7 +114,7 @@ export function PhoneFan() {
               <span className="h-1.5 w-4/5 rounded-full bg-fg/30" />
               <span className="h-1.5 w-3/5 rounded-full bg-fg/20" />
               <span className="mt-auto flex justify-center">
-                <DeviceMobile size={14} className="text-accent" />
+                <DeviceMobile size={14} className="text-accent-text" />
               </span>
             </>
           ) : (
@@ -159,12 +159,12 @@ export function FlowChain({ site }: { site: string }) {
             <span
               className={cn(
                 'inline-flex items-center gap-2 rounded-full border bg-bg/50 px-3.5 py-2 text-sm transition-[border-color,color,background-color] duration-300',
-                lit ? 'border-accent/70 bg-accent/[0.08] text-fg' : 'border-line-strong text-muted',
+                lit ? 'border-accent-text/70 bg-accent/[0.08] text-fg' : 'border-line-strong text-muted',
               )}
             >
               <Icon
                 size={16}
-                className={cn('transition-colors duration-300', lit ? 'text-accent' : 'text-faint')}
+                className={cn('transition-colors duration-300', lit ? 'text-accent-text' : 'text-faint')}
               />
               {label}
             </span>
@@ -174,7 +174,7 @@ export function FlowChain({ site }: { site: string }) {
                 weight="fill"
                 className={cn(
                   'transition-colors duration-300',
-                  lit && active > i ? 'text-accent' : 'text-faint',
+                  lit && active > i ? 'text-accent-text' : 'text-faint',
                 )}
               />
             )}

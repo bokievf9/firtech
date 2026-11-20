@@ -16,7 +16,7 @@ export function DemoSection({ dict }: { dict: Dict }) {
     <section id="demo" className="relative isolate overflow-hidden py-section">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_60%_at_75%_50%,rgb(29_58_42/0.55),transparent_70%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_60%_at_75%_50%,var(--demo-glow),transparent_70%)]"
       />
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 md:px-8 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-6">
@@ -26,7 +26,7 @@ export function DemoSection({ dict }: { dict: Dict }) {
           <ul className="mt-8 grid gap-3 text-[15px]">
             {d.points.map((p) => (
               <li key={p} className="flex items-center gap-3">
-                <span className="grid size-6 place-items-center rounded-full bg-accent/15 text-accent">
+                <span className="grid size-6 place-items-center rounded-full bg-accent/15 text-accent-text">
                   <Check size={13} weight="bold" aria-hidden="true" />
                 </span>
                 {p}
@@ -77,7 +77,7 @@ export function DemoSection({ dict }: { dict: Dict }) {
           <div aria-hidden="true" className="relative">
             <div className="glass grid gap-3 rounded-panel p-5 md:p-6">
               <div className="flex items-center gap-3 pb-1">
-                <span className="grid size-9 place-items-center rounded-full bg-pine font-brand text-xs text-accent">
+                <span className="grid size-9 place-items-center rounded-full bg-pine font-brand text-xs text-accent-text">
                   ft
                 </span>
                 <div>
@@ -95,7 +95,7 @@ export function DemoSection({ dict }: { dict: Dict }) {
                     key={label}
                     className={cn(
                       'rounded-full border px-3.5 py-2 text-sm',
-                      i === 2 ? 'border-accent bg-accent/10' : 'border-accent/30 text-muted',
+                      i === 2 ? 'border-accent-text bg-accent/10' : 'border-accent-text/30 text-muted',
                     )}
                   >
                     {label}

@@ -12,7 +12,7 @@ export const Screen = forwardRef<
 >(function Screen({ index, total, label, title, sub, children }, ref) {
   return (
     <div>
-      <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">
+      <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">
         {label} {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
       </p>
       <h2
@@ -57,7 +57,7 @@ export function Tick({ on, round = true }: { on: boolean; round?: boolean }) {
       className={cn(
         'grid size-6 shrink-0 place-items-center border transition-colors duration-200',
         round ? 'rounded-full' : 'rounded-md',
-        on ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-transparent',
+        on ? 'border-accent-text bg-accent text-accent-ink' : 'border-line-strong text-transparent',
       )}
     >
       <Check size={12} weight="bold" />
@@ -88,7 +88,7 @@ export function Choice({
       className={cn(
         'group relative rounded-card border text-left transition-[border-color,background-color,transform] duration-200 ease-out-expo active:scale-[0.985]',
         on
-          ? 'border-accent/70 bg-accent/[0.06]'
+          ? 'border-accent-text/70 bg-accent/[0.06]'
           : 'border-line bg-surface hover:border-line-strong hover:bg-surface-2',
         className,
       )}
@@ -120,7 +120,7 @@ export function Pill({
       className={cn(
         'inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm transition-colors duration-200 active:scale-[0.98]',
         on
-          ? 'border-accent bg-accent text-accent-ink'
+          ? 'border-accent-text bg-accent text-accent-ink'
           : 'border-line-strong text-fg hover:border-fg/40',
       )}
     >

@@ -70,7 +70,7 @@ export default async function PayPage({ params, searchParams }: PageProps<'/[loc
         <p className="mt-6">
           <a
             href={`/${locale}/pay/${number}?k=${encodeURIComponent(key)}`}
-            className="inline-flex rounded-full border border-line-strong px-5 py-2.5 text-sm hover:border-accent"
+            className="inline-flex rounded-full border border-line-strong px-5 py-2.5 text-sm hover:border-accent-text"
           >
             {t.retry}
           </a>

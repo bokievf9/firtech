@@ -33,7 +33,7 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
           >
             4
             <span className="relative mx-[0.04em] inline-grid size-[0.78em] place-items-center">
-              <span className="nf-spin absolute inset-0 rounded-full border-[0.09em] border-dashed border-accent/70" />
+              <span className="nf-spin absolute inset-0 rounded-full border-[0.09em] border-dashed border-accent-text/70" />
               <span className="size-[0.22em] rounded-full bg-accent" />
             </span>
             4
@@ -66,7 +66,7 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t.placeholder}
                 autoComplete="off"
-                className="ym-disable-keys w-full rounded-xl border border-line-strong bg-bg/70 py-3.5 pr-4 pl-11 text-[15px] placeholder:text-faint focus:border-accent/60 focus:outline-none"
+                className="ym-disable-keys w-full rounded-xl border border-line-strong bg-bg/70 py-3.5 pr-4 pl-11 text-[15px] placeholder:text-faint focus:border-accent-text/60 focus:outline-none"
               />
             </div>
             {query.trim() ? (
@@ -76,7 +76,7 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
                     <li key={r.path}>
                       <Link
                         href={`/${locale}${r.path}`}
-                        className="group flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-2.5 text-sm transition-colors hover:border-accent/40"
+                        className="group flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-2.5 text-sm transition-colors hover:border-accent-text/40"
                       >
                         {r.label}
                         <ArrowUpRight size={14} aria-hidden="true" className="shrink-0 text-faint group-hover:text-accent-text" />
@@ -98,8 +98,8 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
                       className={cn(
                         'inline-flex rounded-full border px-3.5 py-2 text-sm transition-colors',
                         link.id === 'home'
-                          ? 'border-accent bg-accent/10 text-fg'
-                          : 'border-accent/30 text-muted hover:border-accent/60 hover:text-fg',
+                          ? 'border-accent-text bg-accent/10 text-fg'
+                          : 'border-accent-text/30 text-muted hover:border-accent-text/60 hover:text-fg',
                       )}
                     >
                       {t.links[link.id]}
@@ -115,7 +115,7 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
             </Link>
             {withChat && (
               <button type="button" onClick={() => openChat('404')} className={buttonStyles.secondary}>
-                <ChatCircleDots size={18} weight="fill" aria-hidden="true" className="text-accent" />
+                <ChatCircleDots size={18} weight="fill" aria-hidden="true" className="text-accent-text" />
                 {t.chat}
               </button>
             )}

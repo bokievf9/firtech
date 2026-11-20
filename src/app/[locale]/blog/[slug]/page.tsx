@@ -137,7 +137,7 @@ export default async function ArticlePage({ params }: PageProps<'/[locale]/blog/
                 <span className="font-medium">{other[locale].title}</span>
                 <ArrowUpRight
                   size={18}
-                  className="shrink-0 text-accent transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  className="shrink-0 text-accent-text transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                 />
               </Link>
             ))}

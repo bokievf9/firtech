@@ -44,7 +44,7 @@ export function StatusLine({
           <span className="font-mono text-[15px] font-medium text-fg">
             <TickNumber value={s.n} />
           </span>
-          <span className={s.key === 'waiting' && s.n > 0 ? 'text-accent' : undefined}>
+          <span className={s.key === 'waiting' && s.n > 0 ? 'text-accent-text' : undefined}>
             {s.label}
           </span>
         </span>

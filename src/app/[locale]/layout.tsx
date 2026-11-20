@@ -5,6 +5,7 @@ import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { MobileCta } from '@/components/mobile-cta'
 import { MotionProvider } from '@/components/motion-provider'
+import { ThemeInit } from '@/components/theme-init'
 import { RefLinks } from '@/components/ref-links'
 import { YandexMetrika } from '@/components/yandex-metrika'
 import { getDict } from '@/content'
@@ -20,7 +21,7 @@ export function generateStaticParams() {
 
 export const dynamicParams = false
 
-export const viewport: Viewport = { themeColor: '#0a0d0b', colorScheme: 'dark' }
+export const viewport: Viewport = { themeColor: '#ffffff', colorScheme: 'light' }
 
 export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params
@@ -55,8 +56,13 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   const cabinet = cabinetEnabled()
 
   return (
-    <html lang={locale} className={`site ${onest.variable} ${jetbrains.variable} ${unbounded.variable} ${geologica.variable}`}>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={`site ${onest.variable} ${jetbrains.variable} ${unbounded.variable} ${geologica.variable}`}
+    >
       <head>
+        <ThemeInit />
         <link rel="alternate" type="application/rss+xml" title="Fir Tech" href="/rss.xml" />
       </head>
       <body className="grain min-h-[100dvh]">

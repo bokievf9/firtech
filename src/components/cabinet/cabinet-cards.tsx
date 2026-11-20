@@ -126,7 +126,7 @@ export function InvoicesCard({ data, dict, locale }: { data: CabinetData; dict: 
                   {c.payHint}{' '}
                   <Link
                     href={`/${locale}/terms#terms-payment`}
-                    className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent"
+                    className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
                   >
                     {c.payTerms}
                   </Link>

@@ -114,7 +114,7 @@ function ProductCard({
             wide && 'lg:order-2 lg:mb-2 lg:min-h-0',
           )}
         >
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_0%,rgb(29_58_42/0.7),transparent)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_0%,var(--hero-glow),transparent)]" />
           <ProductDemo id={id} copy={t.demo} className="relative w-full max-w-[20rem]" />
           <span className="absolute right-3 bottom-2 font-mono text-[10px] text-faint">{t.concept}</span>
         </div>

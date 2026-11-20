@@ -18,7 +18,7 @@ export function Logo({ className }: { className?: string }) {
     >
       <span className="sr-only">Fir Tech</span>
       <span aria-hidden="true">
-        fir<span className="mr-[0.035em] ml-[0.02em] text-accent">.</span>tech
+        fir<span className="mr-[0.035em] ml-[0.02em] text-accent-text">.</span>tech
       </span>
     </span>
   )

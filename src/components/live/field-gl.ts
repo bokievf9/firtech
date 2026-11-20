@@ -7,7 +7,7 @@
 const VERT = `attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`
 
 const FRAG = `precision mediump float;
-uniform vec2 r;uniform float t;uniform vec2 m;uniform float e;
+uniform vec2 r;uniform float t;uniform vec2 m;uniform float e;uniform float l;
 float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
 float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);
 return mix(mix(h(i),h(i+vec2(1,0)),u.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),u.x),u.y);}
@@ -17,13 +17,13 @@ vec2 uv=gl_FragCoord.xy/r;vec2 q=uv;q.x*=r.x/r.y;
 float s=t*.035;
 vec2 w=vec2(fbm(q*1.6+s),fbm(q*1.6-s+4.1));
 float f=fbm(q*1.2+w*1.8+vec2(s*.6,-s*.4));
-vec3 bg=vec3(.039,.051,.043);vec3 pine=vec3(.114,.227,.165);vec3 lime=vec3(.71,.92,.416);
-vec3 c=mix(bg,pine,smoothstep(.35,.95,f)*.85);
+vec3 bg=mix(vec3(.039,.051,.043),vec3(1.),l);vec3 pine=mix(vec3(.114,.227,.165),vec3(.82,.95,.55),l);vec3 lime=vec3(.71,.92,.416);
+vec3 c=mix(bg,pine,smoothstep(.35,.95,f)*mix(.85,.62,l));
 float ridge=smoothstep(.62,.7,f)-smoothstep(.7,.8,f);
-c+=lime*ridge*.05;
+c+=mix(lime*.05,vec3(-.035,-.012,-.05),l)*ridge;
 vec2 mp=m;mp.x*=r.x/r.y;float d=distance(q,mp);
-c+=lime*.07*e*exp(-d*d*7.);
-c=mix(c,pine*1.2,.18*exp(-d*d*2.5)*e);
+c+=mix(lime*.07,vec3(-.015,0.,-.03),l)*e*exp(-d*d*7.);
+c=mix(c,mix(pine*1.2,pine,l),.18*exp(-d*d*2.5)*e);
 float vig=smoothstep(1.25,.25,distance(uv,vec2(.62,.42)));
 c=mix(bg,c,vig);
 c+=(h(gl_FragCoord.xy+t)-.5)*.012;
@@ -76,6 +76,7 @@ export function createField(canvas: HTMLCanvasElement, onFirstFrame?: () => void
   const uT = gl.getUniformLocation(prog, 't')
   const uM = gl.getUniformLocation(prog, 'm')
   const uE = gl.getUniformLocation(prog, 'e')
+  const uL = gl.getUniformLocation(prog, 'l')
 
   // Pointer target and its eased value (0..1, y up); `energy` fades the light in when the pointer
   // moves and out when it rests, so a still mouse leaves a still picture.
@@ -118,6 +119,8 @@ export function createField(canvas: HTMLCanvasElement, onFirstFrame?: () => void
     gl.uniform1f(uT, (now - start) / 1000)
     gl.uniform2f(uM, eased.x, eased.y)
     gl.uniform1f(uE, energy)
+    // 1 on the light theme (white field with a pale lime tint), 0 on the dark one.
+    gl.uniform1f(uL, document.documentElement.dataset.theme === 'dark' ? 0 : 1)
     gl.drawArrays(gl.TRIANGLES, 0, 3)
     if (first) {
       first = false

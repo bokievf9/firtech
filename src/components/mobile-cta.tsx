@@ -68,7 +68,7 @@ export function MobileCta({
               target="_blank"
               rel="noopener noreferrer"
               aria-label={telegramLabel}
-              className="flex size-12 shrink-0 items-center justify-center rounded-full border border-line-strong text-[#5cc4f5]"
+              className="flex size-12 shrink-0 items-center justify-center rounded-full border border-line-strong text-tg"
             >
               <TelegramLogo size={20} weight="fill" />
             </a>

@@ -361,7 +361,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
               {t.stepLabel} {step + 1} {t.of} {total}
               {!last && canGo && <span className="hidden lg:inline"> · {t.enterHint}</span>}
             </p>
-            <p className="truncate font-mono text-sm text-accent md:text-base" aria-live="polite">
+            <p className="truncate font-mono text-sm text-accent-text md:text-base" aria-live="polite">
               {hasParts ? formatUsd(q.total) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
               {hasParts && onRequest.length > 0 && (
                 <span className="hidden text-muted sm:inline">

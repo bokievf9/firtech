@@ -127,7 +127,7 @@ export function KindStep({
             className={cn(
               'min-h-10 shrink-0 rounded-full border px-4 text-sm whitespace-nowrap transition-colors duration-200',
               filter === id
-                ? 'border-accent bg-accent text-accent-ink'
+                ? 'border-accent-text bg-accent text-accent-ink'
                 : 'border-line-strong text-muted hover:border-fg/40 hover:text-fg',
             )}
           >
@@ -162,7 +162,7 @@ export function KindStep({
                       aria-hidden="true"
                       className={cn(
                         'grid size-10 place-items-center rounded-full border text-xl leading-none transition-colors',
-                        on ? 'border-accent bg-accent/15' : 'border-line-strong',
+                        on ? 'border-accent-text bg-accent/15' : 'border-line-strong',
                       )}
                     >
                       {entry.emoji}
@@ -187,7 +187,7 @@ export function KindStep({
         className="mt-9 inline-flex items-center gap-1.5 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
       >
         {pick(ui.solutionsLinkAll, locale)}
-        <ArrowRight size={14} className="shrink-0 text-accent" />
+        <ArrowRight size={14} className="shrink-0 text-accent-text" />
       </Link>
     </>
   )
@@ -240,7 +240,7 @@ export function ProductsStep({
                   <span
                     className={cn(
                       'grid size-11 shrink-0 place-items-center rounded-full border transition-colors',
-                      on ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-accent',
+                      on ? 'border-accent-text bg-accent text-accent-ink' : 'border-line-strong text-accent-text',
                     )}
                   >
                     <Glyph size={20} />
@@ -251,7 +251,7 @@ export function ProductsStep({
                       <span
                         className={cn(
                           'font-mono text-xs',
-                          from === null ? 'text-muted' : 'text-accent',
+                          from === null ? 'text-muted' : 'text-accent-text',
                         )}
                       >
                         {from === null
@@ -305,7 +305,7 @@ export function GoalsStep({
               }
               className="flex gap-4 p-5"
             >
-              <Glyph size={24} className={cn('mt-0.5 shrink-0', on ? 'text-accent' : 'text-muted')} />
+              <Glyph size={24} className={cn('mt-0.5 shrink-0', on ? 'text-accent-text' : 'text-muted')} />
               <span className="min-w-0 flex-1">
                 <span className="block font-medium">{t.goals[id].name}</span>
                 <span className="mt-1 block text-sm leading-snug text-muted">
@@ -374,7 +374,7 @@ export function PartsStep({
               key={slug}
               className={cn(
                 'rounded-card border transition-colors duration-300',
-                part ? 'border-accent/60 bg-accent/[0.04]' : 'border-line bg-surface',
+                part ? 'border-accent-text/60 bg-accent/[0.04]' : 'border-line bg-surface',
               )}
             >
               <button
@@ -387,7 +387,7 @@ export function PartsStep({
                 <span
                   className={cn(
                     'grid size-12 shrink-0 place-items-center rounded-full border transition-colors',
-                    part ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-muted',
+                    part ? 'border-accent-text bg-accent text-accent-ink' : 'border-line-strong text-muted',
                   )}
                 >
                   <Glyph size={22} />
@@ -395,7 +395,7 @@ export function PartsStep({
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <span className="text-lg font-medium">{dict.services.items[slug].name}</span>
-                    <span className="font-mono text-sm text-accent">
+                    <span className="font-mono text-sm text-accent-text">
                       {dict.services.from} {formatUsd(startingPrice[slug])}
                     </span>
                   </span>
@@ -440,7 +440,7 @@ export function PartsStep({
                             className={cn(
                               'flex flex-col rounded-xl border p-3.5 text-left transition-colors duration-200',
                               part.variant === id
-                                ? 'border-accent bg-accent/[0.08]'
+                                ? 'border-accent-text bg-accent/[0.08]'
                                 : 'border-line hover:border-line-strong',
                             )}
                           >
@@ -450,7 +450,7 @@ export function PartsStep({
                                 className={cn(
                                   'mt-0.5 size-3.5 shrink-0 rounded-full border',
                                   part.variant === id
-                                    ? 'border-accent bg-accent shadow-[inset_0_0_0_3px_var(--color-bg)]'
+                                    ? 'border-accent-text bg-accent shadow-[inset_0_0_0_3px_var(--color-bg)]'
                                     : 'border-line-strong',
                                 )}
                               />
@@ -565,7 +565,7 @@ function Option({
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-3">
           <span className="text-[15px] font-medium">{name}</span>
-          <span className={cn('shrink-0 font-mono text-xs', on ? 'text-accent' : 'text-faint')}>
+          <span className={cn('shrink-0 font-mono text-xs', on ? 'text-accent-text' : 'text-faint')}>
             {price}
           </span>
         </span>

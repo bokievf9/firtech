@@ -10,7 +10,7 @@ export function CabinetSoon({ locale, dict }: { locale: Locale; dict: Dict }) {
   return (
     <section className="mx-auto max-w-3xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <HeroIntro>
-        <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.eyebrow}</p>
+        <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
         <h1 className="mt-5 text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
           {t.title}
         </h1>

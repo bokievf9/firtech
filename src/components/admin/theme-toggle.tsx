@@ -21,8 +21,7 @@ export function ThemeToggle() {
 
   function toggle() {
     const next = light ? 'dark' : 'light'
-    if (next === 'light') document.documentElement.dataset.theme = 'light'
-    else delete document.documentElement.dataset.theme
+    document.documentElement.dataset.theme = next
     try {
       localStorage.setItem(KEY, next)
     } catch {}

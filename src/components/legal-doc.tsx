@@ -18,7 +18,7 @@ export function LegalDoc({
   return (
     <article className="mx-auto max-w-3xl px-4 pt-32 pb-24 md:px-8 md:pt-40 md:pb-36">
       <header>
-        <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.eyebrow}</p>
+        <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
         {/* "конфиденциальности" is one long word: smaller on phones, hyphenated if still too wide. */}
         <h1 className="mt-5 text-[2.1rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance hyphens-auto sm:text-[2.6rem] md:text-6xl">
           {t.title}
@@ -40,7 +40,7 @@ export function LegalDoc({
               id={`${idPrefix}-${section.id}`}
               className="flex items-baseline gap-4 text-2xl font-semibold tracking-[-0.02em] md:text-[1.75rem]"
             >
-              <span className="font-mono text-sm font-normal text-accent">
+              <span className="font-mono text-sm font-normal text-accent-text">
                 {String(i + 1).padStart(2, '0')}
               </span>
               {section.title}
@@ -50,7 +50,7 @@ export function LegalDoc({
                 <p key={p}>{p}</p>
               ))}
               {section.list.length > 0 && (
-                <ul className="grid gap-2 pl-5 marker:text-accent [list-style:disc]">
+                <ul className="grid gap-2 pl-5 marker:text-accent-text [list-style:disc]">
                   {section.list.map((item) => (
                     <li key={item}>{item}</li>
                   ))}

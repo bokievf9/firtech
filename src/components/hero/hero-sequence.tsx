@@ -372,8 +372,8 @@ function StageCard({
     >
       <div
         className={cn(
-          'hero-card relative overflow-hidden rounded-panel border bg-[linear-gradient(160deg,rgb(29_58_42/0.55),rgb(17_21_18/0.92)_55%)] p-5 shadow-[var(--shadow-float)] backdrop-blur-md transition-[border-color] duration-500 sm:p-6',
-          active ? 'border-accent/35' : 'border-line',
+          'hero-card relative overflow-hidden rounded-panel border bg-[image:var(--hero-card-bg)] p-5 shadow-float backdrop-blur-md transition-[border-color] duration-500 sm:p-6',
+          active ? 'border-accent-text/35' : 'border-line',
         )}
         data-active={active}
       >

@@ -110,7 +110,7 @@ export function Overview({
                 <Link
                   href={withTab('', item.tab)}
                   scroll={false}
-                  className="inline-flex rounded-full border border-line-strong px-4 py-2 text-sm text-fg transition-colors hover:border-accent hover:text-accent-text"
+                  className="inline-flex rounded-full border border-line-strong px-4 py-2 text-sm text-fg transition-colors hover:border-accent-text hover:text-accent-text"
                 >
                   {item.text}
                 </Link>

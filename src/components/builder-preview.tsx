@@ -183,8 +183,8 @@ export function BuilderPreview({
                 show={Boolean(site?.addons.includes('telegram'))}
                 className="absolute right-2 bottom-2"
               >
-                <span className="flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-[10px] shadow-lg shadow-black/30">
-                  <TelegramLogo size={12} weight="fill" className="text-[#5cc4f5]" />
+                <span className="flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-[10px] shadow-card">
+                  <TelegramLogo size={12} weight="fill" className="text-tg" />
                   {p.toTelegram}
                 </span>
               </Flag>
@@ -211,7 +211,7 @@ export function BuilderPreview({
                       </Flag>
                     </div>
                     <Flag show={bot.addons.includes('broadcasts')}>
-                      <span className="mt-2 flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-1 text-[9px] text-accent">
+                      <span className="mt-2 flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-1 text-[9px] text-accent-text">
                         <Bell size={9} weight="fill" />
                         {p.broadcast}
                       </span>
@@ -234,7 +234,7 @@ export function BuilderPreview({
                                   className={cn(
                                     'rounded-md border px-1.5 py-1 font-mono text-[9px]',
                                     i === 1
-                                      ? 'border-accent text-accent'
+                                      ? 'border-accent-text text-accent-text'
                                       : 'border-line text-muted',
                                   )}
                                 >
@@ -277,14 +277,14 @@ export function BuilderPreview({
                   <Phone>
                     <Flag show={app.addons.includes('push')}>
                       <span className="mb-2 flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-1.5 py-1.5 text-[9px]">
-                        <Bell size={10} weight="fill" className="text-accent" />
+                        <Bell size={10} weight="fill" className="text-accent-text" />
                         {p.push}
                       </span>
                     </Flag>
                     <div className="flex items-center justify-between border-b border-line pb-2">
                       <span className={cn(HEAD, 'text-[10px]')}>{p.app}</span>
                       <Flag show={app.addons.includes('accounts')}>
-                        <UserCircle size={14} className="text-accent" />
+                        <UserCircle size={14} className="text-accent-text" />
                       </Flag>
                     </div>
                     <div className="mt-2 grid gap-1.5">
@@ -359,7 +359,7 @@ export function BuilderPreview({
                             key={k}
                             className={cn(
                               'h-3.5 rounded-sm border border-line',
-                              i === 1 && k === 0 && 'border-accent/60 bg-accent/10',
+                              i === 1 && k === 0 && 'border-accent-text/60 bg-accent/10',
                             )}
                           />
                         ))}
@@ -368,7 +368,7 @@ export function BuilderPreview({
                   </Item>
                 ) : auto.variant === 'assistant' ? (
                   <Item key="assistant" className="flex items-center gap-2 text-[11px]">
-                    <Sparkle size={14} weight="fill" className="text-accent" />
+                    <Sparkle size={14} weight="fill" className="text-accent-text" />
                     {p.assistant}
                   </Item>
                 ) : (
@@ -376,7 +376,7 @@ export function BuilderPreview({
                     <Chip>{dict.hero.demo.site}</Chip>
                     <Flow />
                     <Chip>
-                      <TelegramLogo size={10} weight="fill" className="text-[#5cc4f5]" />
+                      <TelegramLogo size={10} weight="fill" className="text-tg" />
                       Telegram
                     </Chip>
                     <Flow />
@@ -413,7 +413,7 @@ export function BuilderPreview({
           <Item key="chips" className="mt-3 flex flex-wrap gap-1.5">
             {products.map((id) => (
               <Chip key={id}>
-                <CheckCircle size={11} weight="fill" className="text-accent" />
+                <CheckCircle size={11} weight="fill" className="text-accent-text" />
                 {pick(productCatalog[id].name, locale)}
                 {!productCatalog[id].priced && (
                   <span className="text-faint">· {pick(builderUi.onRequestShort, locale)}</span>
@@ -429,7 +429,7 @@ export function BuilderPreview({
               {build.extras.includes('seo') && (
                 <Item key="seo">
                   <Chip>
-                    <MapPin size={11} weight="fill" className="text-accent" />
+                    <MapPin size={11} weight="fill" className="text-accent-text" />
                     {p.seo}
                   </Chip>
                 </Item>
@@ -449,7 +449,7 @@ export function BuilderPreview({
               {build.extras.includes('support') && (
                 <Item key="support">
                   <Chip>
-                    <Lifebuoy size={11} className="text-accent" />
+                    <Lifebuoy size={11} className="text-accent-text" />
                     {p.support}
                   </Chip>
                 </Item>
@@ -533,7 +533,7 @@ function Bubble({ children, mine }: { children: ReactNode; mine?: boolean }) {
 
 function Badge({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-[var(--pv-button)] border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-[9px] whitespace-nowrap text-accent">
+    <span className="inline-flex items-center gap-1 rounded-[var(--pv-button)] border border-accent-text/40 bg-accent/10 px-1.5 py-0.5 text-[9px] whitespace-nowrap text-accent-text">
       {children}
     </span>
   )
@@ -666,7 +666,7 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
             <span key={name} className="flex items-baseline gap-1 text-[9px]">
               <span className="truncate">{name}</span>
               <span className="min-w-2 flex-1 border-b border-dotted border-line-strong" />
-              <span className="font-mono text-accent">{price}</span>
+              <span className="font-mono text-accent-text">{price}</span>
             </span>
           ))}
         </div>
@@ -675,7 +675,7 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
       return (
         <div className={cn('grid gap-1.5', card)}>
           <span className="flex items-center gap-1 text-[10px]">
-            <CalendarCheck size={11} weight="fill" className="text-accent" />
+            <CalendarCheck size={11} weight="fill" className="text-accent-text" />
             <span className={HEAD}>{c.book}</span>
           </span>
           <span className="grid grid-cols-5 gap-1">
@@ -697,7 +697,7 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
                 key={t}
                 className={cn(
                   'rounded-md border px-1.5 py-1 font-mono text-[9px]',
-                  i === 1 ? 'border-accent text-accent' : 'border-line text-muted',
+                  i === 1 ? 'border-accent-text text-accent-text' : 'border-line text-muted',
                 )}
               >
                 {t}
@@ -724,7 +724,7 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
       return (
         <div className={cn('grid gap-1.5', card)}>
           <span className="flex items-center gap-1 text-[10px]">
-            <BookOpen size={11} weight="fill" className="text-accent" />
+            <BookOpen size={11} weight="fill" className="text-accent-text" />
             <span className={HEAD}>{c.lesson[0]}</span>
           </span>
           <span className="text-[9px] text-muted">{c.lesson[1]}</span>
@@ -741,7 +741,7 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
               <span className={cn(tile, 'h-8')} />
               <span className="grid gap-1">
                 <span className="truncate text-[9px]">{name}</span>
-                <span className="font-mono text-[9px] text-accent">{i ? '$78k' : '$52k'}</span>
+                <span className="font-mono text-[9px] text-accent-text">{i ? '$78k' : '$52k'}</span>
               </span>
             </span>
           ))}
@@ -754,7 +754,7 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
             <span key={name} className={cn('grid gap-1', card)}>
               <span className={tile} />
               <span className="truncate text-[9px]">{name}</span>
-              <span className="font-mono text-[9px] text-accent">{i ? '$540' : '$820'}</span>
+              <span className="font-mono text-[9px] text-accent-text">{i ? '$540' : '$820'}</span>
             </span>
           ))}
         </div>
@@ -769,7 +769,7 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
           </span>
           <span className="flex items-center justify-between text-[9px]">
             <span className="text-muted">{c.quote[1]}</span>
-            <span className="font-mono text-accent">$120</span>
+            <span className="font-mono text-accent-text">$120</span>
           </span>
         </div>
       )
@@ -803,7 +803,7 @@ function ProductCard({ id, c }: { id: 'content' | 'agent' | 'aiteam'; c: Copy })
     return (
       <div className={wrap}>
         <span className="flex items-center gap-1 text-[10px]">
-          <Sparkle size={11} weight="fill" className="text-accent" />
+          <Sparkle size={11} weight="fill" className="text-accent-text" />
           <span className={HEAD}>{c.contentTitle}</span>
         </span>
         <span className="grid grid-cols-4 gap-1.5">
@@ -838,7 +838,7 @@ function ProductCard({ id, c }: { id: 'content' | 'agent' | 'aiteam'; c: Copy })
             <span
               className={cn(
                 'size-2.5 rounded-sm border',
-                i === 0 ? 'border-accent bg-accent' : 'border-line-strong',
+                i === 0 ? 'border-accent-text bg-accent' : 'border-line-strong',
               )}
             />
             {task}
@@ -849,12 +849,12 @@ function ProductCard({ id, c }: { id: 'content' | 'agent' | 'aiteam'; c: Copy })
   return (
     <div className={wrap}>
       <span className="flex items-center gap-1.5 text-[10px]">
-        <Brain size={12} weight="fill" className="text-accent" />
+        <Brain size={12} weight="fill" className="text-accent-text" />
         <span className={HEAD}>{c.teamTitle}</span>
       </span>
       <Bubble mine>{c.teamQ}</Bubble>
       <Bubble>{c.teamA}</Bubble>
-      <span className="w-fit rounded-full border border-accent/40 px-1.5 py-0.5 font-mono text-[8px] text-accent">
+      <span className="w-fit rounded-full border border-accent-text/40 px-1.5 py-0.5 font-mono text-[8px] text-accent-text">
         doc.pdf
       </span>
     </div>

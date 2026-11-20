@@ -80,7 +80,7 @@ function withLinks(text: string): React.ReactNode {
         data-place={`chat_${demoPlace}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="break-all text-accent underline underline-offset-2"
+        className="break-all text-accent-text underline underline-offset-2"
       >
         {part}
       </a>
@@ -280,7 +280,7 @@ export default function ChatPanel({
           className="print-hidden glass bg-glass-strong fixed inset-x-2 top-[max(0.5rem,env(safe-area-inset-top))] bottom-2 z-50 flex flex-col overflow-hidden rounded-panel sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:h-[min(600px,calc(100dvh-3rem))] sm:w-[400px]"
         >
           <header className="flex items-center gap-3 px-5 pt-4 pb-3">
-            <span className="relative grid size-10 shrink-0 place-items-center rounded-full bg-pine font-display text-sm font-bold text-accent">
+            <span className="relative grid size-10 shrink-0 place-items-center rounded-full bg-pine font-display text-sm font-bold text-accent-text">
               AI
               <span
                 className="live-dot absolute -right-0.5 -bottom-0.5 border-2 border-bg"
@@ -331,11 +331,11 @@ export default function ChatPanel({
                     m.from === 'me'
                       ? 'max-w-[85%] rounded-[18px] rounded-br-md bg-accent px-3.5 py-2.5 text-[15px] leading-snug text-accent-ink'
                       : m.cabinet
-                        ? 'max-w-[90%] rounded-[18px] border border-accent/40 bg-accent/[0.06] px-3.5 py-2.5 text-sm leading-snug text-fg'
+                        ? 'max-w-[90%] rounded-[18px] border border-accent-text/40 bg-accent/[0.06] px-3.5 py-2.5 text-sm leading-snug text-fg'
                       : m.from === 'sys'
                         ? 'max-w-[90%] rounded-[18px] border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm leading-snug text-fg'
                         : m.from === 'owner'
-                          ? 'max-w-[85%] rounded-[18px] rounded-bl-md border border-accent/40 bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line text-fg'
+                          ? 'max-w-[85%] rounded-[18px] rounded-bl-md border border-accent-text/40 bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line text-fg'
                         : 'max-w-[85%] rounded-[18px] rounded-bl-md bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line text-fg'
                   }
                 >
@@ -348,7 +348,7 @@ export default function ChatPanel({
                   {m.cabinet ? (
                     <a
                       href={`/${locale}/cabinet?lead=new`}
-                      className="mt-2 block font-medium text-accent underline-offset-4 hover:underline"
+                      className="mt-2 block font-medium text-accent-text underline-offset-4 hover:underline"
                     >
                       {copy.toCabinet}
                     </a>
@@ -357,7 +357,7 @@ export default function ChatPanel({
                     <a
                       href={contactHref}
                       onClick={onClose}
-                      className="mt-2 block font-medium text-accent underline-offset-4 hover:underline"
+                      className="mt-2 block font-medium text-accent-text underline-offset-4 hover:underline"
                     >
                       {copy.contact}
                     </a>
@@ -379,7 +379,7 @@ export default function ChatPanel({
                 <button
                   type="button"
                   onClick={() => void send(sendAs, sendAs)}
-                  className="rounded-full border border-accent bg-accent/10 px-3.5 py-2 text-sm text-fg transition-[background-color,transform] duration-200 hover:bg-accent/20 active:scale-[0.97]"
+                  className="rounded-full border border-accent-text bg-accent/10 px-3.5 py-2 text-sm text-fg transition-[background-color,transform] duration-200 hover:bg-accent/20 active:scale-[0.97]"
                 >
                   {fill(copy.sendAs, { email: sendAs })}
                 </button>
@@ -405,7 +405,7 @@ export default function ChatPanel({
                     key={b.id}
                     type="button"
                     onClick={() => void send(btnMessage(b.id), b.label)}
-                    className="rounded-full border border-accent/40 px-3.5 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent hover:bg-accent/10 active:scale-[0.97]"
+                    className="rounded-full border border-accent-text/40 px-3.5 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent-text hover:bg-accent/10 active:scale-[0.97]"
                   >
                     {b.label}
                   </button>
@@ -425,12 +425,12 @@ export default function ChatPanel({
                 type="button"
                 disabled={pending}
                 onClick={() => void send(demoChatMessage, copy.demoChip)}
-                className="rounded-full border border-accent/40 px-3 py-1 text-[13px] text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent hover:bg-accent/10 active:scale-[0.97] disabled:opacity-40"
+                className="rounded-full border border-accent-text/40 px-3 py-1 text-[13px] text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent-text hover:bg-accent/10 active:scale-[0.97] disabled:opacity-40"
               >
                 {copy.demoChip}
               </button>
             </div>
-            <div className="flex items-end gap-2 rounded-[22px] border border-line-strong bg-bg/60 p-1.5 pl-4 focus-within:border-accent/60">
+            <div className="flex items-end gap-2 rounded-[22px] border border-line-strong bg-bg/60 p-1.5 pl-4 focus-within:border-accent-text/60">
               <label htmlFor={`${titleId}-input`} className="sr-only">
                 {copy.input}
               </label>

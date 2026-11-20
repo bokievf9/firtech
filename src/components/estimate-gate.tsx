@@ -159,7 +159,7 @@ export function EstimateGate({
   }
 
   const field =
-    'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg placeholder:text-faint focus:border-accent focus:outline-none aria-[invalid=true]:border-danger md:text-[15px]'
+    'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg placeholder:text-faint focus:border-accent-text focus:outline-none aria-[invalid=true]:border-danger md:text-[15px]'
 
   return (
     <div className="col-span-full rounded-card border border-line-strong bg-surface-2 p-5">

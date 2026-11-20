@@ -12,7 +12,7 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 type Load = 'idle' | 'loading' | 'ready' | 'error'
 
 const chip =
-  'cursor-pointer select-none whitespace-nowrap rounded-full border border-line-strong px-3.5 py-2 text-sm text-muted transition-colors hover:border-fg/40 hover:text-fg peer-checked:border-accent peer-checked:bg-accent peer-checked:text-accent-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent'
+  'cursor-pointer select-none whitespace-nowrap rounded-full border border-line-strong px-3.5 py-2 text-sm text-muted transition-colors hover:border-fg/40 hover:text-fg peer-checked:border-accent-text peer-checked:bg-accent peer-checked:text-accent-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent-text'
 
 // Optional call time for the contact form. Slots load only when the visitor opens the picker;
 // `taken` lists times the server refused because someone booked them first; they are hidden.
@@ -75,7 +75,7 @@ export function SlotPicker({
         className="flex w-full items-center justify-between gap-3 rounded-xl border border-line-strong bg-bg px-4 py-3 text-left transition-colors hover:border-fg/40"
       >
         <span className="flex min-w-0 items-center gap-3">
-          <CalendarBlank size={20} className="shrink-0 text-accent" />
+          <CalendarBlank size={20} className="shrink-0 text-accent-text" />
           <span className="min-w-0">
             <span className="block text-[15px] text-fg">
               {value ? `${t.selected}: ${formatSlot(value, locale)}` : t.toggle}
@@ -109,7 +109,7 @@ export function SlotPicker({
                   <button
                     type="button"
                     onClick={() => void fetchSlots()}
-                    className="text-accent underline underline-offset-4"
+                    className="text-accent-text underline underline-offset-4"
                   >
                     {t.retry}
                   </button>

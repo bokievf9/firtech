@@ -49,7 +49,7 @@ export function CopyButton({ value, label, done }: { value: string; label: strin
     <button
       type="button"
       onClick={copy}
-      className="rounded-full border border-line-strong px-4 py-2 text-sm text-fg transition-colors hover:border-accent hover:text-accent-text focus-visible:outline-2 focus-visible:outline-accent"
+      className="rounded-full border border-line-strong px-4 py-2 text-sm text-fg transition-colors hover:border-accent-text hover:text-accent-text focus-visible:outline-2 focus-visible:outline-accent-text"
     >
       <span aria-live="polite">{copied ? done : label}</span>
     </button>
@@ -123,7 +123,7 @@ export function PayView({
 
   const header = (
     <header>
-      <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.eyebrow}</p>
+      <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
       <h1 className="mt-5 text-[2.1rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">
         {heading}
       </h1>
@@ -138,7 +138,7 @@ export function PayView({
         {header}
         <section
           role="status"
-          className="mt-8 rounded-card border border-accent/40 bg-accent/10 p-6 md:p-8"
+          className="mt-8 rounded-card border border-accent-text/40 bg-accent/10 p-6 md:p-8"
         >
           <p className="text-2xl font-semibold text-accent-text">
             {invoice.paidAt ? fill(t.paidOn, { date: formatPayDate(invoice.paidAt, locale) }) : t.paidTitle}
@@ -228,9 +228,9 @@ export function PayView({
                 aria-controls="pay-panel"
                 onClick={() => setTab(m.id)}
                 className={cn(
-                  'rounded-full border px-4 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent',
+                  'rounded-full border px-4 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent-text',
                   m.id === method?.id
-                    ? 'border-accent bg-accent/10 text-accent-text'
+                    ? 'border-accent-text bg-accent/10 text-accent-text'
                     : 'border-line-strong text-muted hover:text-fg',
                 )}
               >

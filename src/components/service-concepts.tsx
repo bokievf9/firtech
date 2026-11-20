@@ -57,7 +57,7 @@ export function ServiceConcepts({
               <div className="flex flex-col p-6 md:p-10">
                 <div className="flex items-center gap-3 text-sm">
                   <span className="text-muted">{item.business}</span>
-                  <span className="ml-auto rounded-full border border-accent/40 px-2.5 py-0.5 text-xs text-accent">
+                  <span className="ml-auto rounded-full border border-accent-text/40 px-2.5 py-0.5 text-xs text-accent-text">
                     {s.concept}
                   </span>
                 </div>
@@ -75,7 +75,7 @@ export function ServiceConcepts({
                   </div>
                 </dl>
                 <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4 lg:mt-auto lg:pt-8">
-                  <p className="font-mono text-2xl text-accent">
+                  <p className="font-mono text-2xl text-accent-text">
                     <span className="text-sm text-muted">{s.from} </span>
                     {formatUsd(price)}
                   </p>
@@ -98,7 +98,7 @@ export function ServiceConcepts({
               <div className="dot-grid relative flex items-center justify-center overflow-hidden border-t border-line bg-bg/40 px-4 py-10 lg:border-t-0 lg:border-l">
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(closest-side,rgb(29_58_42/0.7),transparent)]"
+                  className="pointer-events-none absolute inset-0 bg-[radial-gradient(closest-side,var(--hero-glow),transparent)]"
                 />
                 <div className="relative">{demos[id]}</div>
               </div>

@@ -1,0 +1,50 @@
+'use client'
+
+import { Moon, Sun } from '@phosphor-icons/react'
+import { useSyncExternalStore } from 'react'
+import { cn } from '@/lib/cn'
+import { THEME_KEY, themeColor, type SiteTheme } from '@/lib/site-theme'
+
+const listeners = new Set<() => void>()
+const read = (): SiteTheme => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
+
+function subscribe(onChange: () => void) {
+  listeners.add(onChange)
+  return () => void listeners.delete(onChange)
+}
+
+export type ThemeSwitchCopy = { light: string; dark: string; toggle: string }
+
+// Sun/moon button. The inline script in the locale layout applies the stored choice before the
+// first paint; this only changes it afterwards. The label names the theme the click switches to.
+export function ThemeSwitch({ copy, className }: { copy: ThemeSwitchCopy; className?: string }) {
+  const theme = useSyncExternalStore(subscribe, read, () => 'light' as SiteTheme)
+  const dark = theme === 'dark'
+  const label = `${copy.toggle}: ${dark ? copy.light : copy.dark}`
+
+  function toggle() {
+    const next: SiteTheme = dark ? 'light' : 'dark'
+    document.documentElement.dataset.theme = next
+    try {
+      localStorage.setItem(THEME_KEY, next)
+    } catch {}
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor[next])
+    listeners.forEach((l) => l())
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={label}
+      title={label}
+      data-theme-switch
+      className={cn(
+        'inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-line-strong hover:text-fg',
+        className,
+      )}
+    >
+      {dark ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+    </button>
+  )
+}

@@ -34,7 +34,7 @@ type Sent = { id?: number; token?: string; slot?: string | null; cabinet?: strin
 // 16px on phones: iOS Safari zooms into any field with smaller text when it gets focus.
 // ym-disable-keys: Metrika's Webvisor never records what is typed here.
 const inputClass =
-  'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg md:text-[15px] placeholder:text-faint transition-colors focus:border-accent focus:outline-none aria-[invalid=true]:border-danger'
+  'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg md:text-[15px] placeholder:text-faint transition-colors focus:border-accent-text focus:outline-none aria-[invalid=true]:border-danger'
 
 export function ContactForm({
   dict,
@@ -235,7 +235,7 @@ export function ContactForm({
             className="flex min-h-[420px] flex-col items-start justify-center rounded-card border border-line bg-surface p-8 md:p-10"
             role="status"
           >
-            <CheckCircle size={44} weight="light" className="text-accent" />
+            <CheckCircle size={44} weight="light" className="text-accent-text" />
             <h3 className="mt-6 text-3xl font-semibold tracking-tight">{t.successTitle}</h3>
             <p className="mt-3 max-w-[40ch] leading-relaxed text-muted">
               {sent.cabinet ? dict.leadAuth.redirecting : t.successText}
@@ -362,7 +362,7 @@ export function ContactForm({
             </div>
 
             {estimate && (
-              <div className="flex items-start justify-between gap-3 rounded-xl border border-accent/30 bg-accent/[0.06] px-4 py-3">
+              <div className="flex items-start justify-between gap-3 rounded-xl border border-accent-text/30 bg-accent/[0.06] px-4 py-3">
                 <div>
                   <p className="text-[13px] text-muted">{t.estimateLabel}</p>
                   <p className="mt-0.5 text-[15px]">{estimate}</p>
@@ -422,7 +422,7 @@ export function ContactForm({
             )}
 
             {restored && me.status === 'in' && (
-              <p role="status" className="rounded-xl border border-accent/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
+              <p role="status" className="rounded-xl border border-accent-text/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
                 {dict.leadAuth.draftRestored}
               </p>
             )}

@@ -224,7 +224,7 @@ export function TicketsPanel({
                 <span className="font-mono text-[12px] text-faint">{formatDate(ticket.createdAt, locale)}</span>
                 <span
                   className={`rounded-full border px-2.5 py-0.5 font-mono text-[11px] ${
-                    ticket.status === 'answered' ? 'border-accent/40 text-accent-text' : 'border-line-strong text-muted'
+                    ticket.status === 'answered' ? 'border-accent-text/40 text-accent-text' : 'border-line-strong text-muted'
                   }`}
                 >
                   {label(c.ticketStatus, ticket.status)}

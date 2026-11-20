@@ -45,7 +45,7 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
     <>
       <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
         <HeroIntro>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.eyebrow}</p>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
           <h1 className="mt-5 max-w-[18ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {fill(t.title)}
           </h1>
@@ -73,7 +73,7 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
       <section className="mx-auto grid max-w-7xl gap-10 px-4 pb-16 md:px-8 lg:grid-cols-2">
         <div>
           <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.rulesTitle}</h2>
-          <ul className="mt-5 grid max-w-[60ch] gap-3 pl-5 leading-relaxed text-muted marker:text-accent [list-style:disc]">
+          <ul className="mt-5 grid max-w-[60ch] gap-3 pl-5 leading-relaxed text-muted marker:text-accent-text [list-style:disc]">
             {t.rules.map((rule) => (
               <li key={rule}>{fill(rule)}</li>
             ))}
@@ -83,7 +83,7 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-28 md:px-8">
-        <div className="flex flex-col items-start gap-6 rounded-card border border-accent/30 p-6 md:flex-row md:items-center md:justify-between md:p-10">
+        <div className="flex flex-col items-start gap-6 rounded-card border border-accent-text/30 p-6 md:flex-row md:items-center md:justify-between md:p-10">
           <p className="font-display text-2xl font-semibold md:text-3xl">{t.ctaTitle}</p>
           <div className="flex flex-wrap gap-3">
             <Link href={`/${locale}/builder`} data-cta="referral_builder" className={cn(buttonStyles.primary, 'group')}>

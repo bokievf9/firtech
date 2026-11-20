@@ -74,7 +74,7 @@ export function AuthForms({
       {compact && <input type="hidden" name="stay" value="1" />}
     </>
   )
-  const box = compact ? 'rounded-card border border-accent/30 bg-surface-2 p-5' : 'rounded-card border border-line bg-surface p-6 md:p-8'
+  const box = compact ? 'rounded-card border border-accent-text/30 bg-surface-2 p-5' : 'rounded-card border border-line bg-surface p-6 md:p-8'
 
   const tabs: { id: 'in' | 'up'; label: string }[] = [
     { id: 'in', label: t.tabIn },

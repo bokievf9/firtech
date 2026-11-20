@@ -50,7 +50,7 @@ export function ArticleBody({
               <ol key={i} className="mt-6 grid gap-4">
                 {block.items.map((item, n) => (
                   <li key={n} className="flex gap-4">
-                    <span className="mt-[0.2em] flex size-7 shrink-0 items-center justify-center rounded-full border border-accent/40 font-mono text-xs text-accent">
+                    <span className="mt-[0.2em] flex size-7 shrink-0 items-center justify-center rounded-full border border-accent-text/40 font-mono text-xs text-accent-text">
                       {n + 1}
                     </span>
                     <span className="min-w-0">
@@ -78,9 +78,9 @@ export function ArticleBody({
             return (
               <aside
                 key={i}
-                className="mt-8 flex gap-4 rounded-card border border-accent/25 bg-accent/[0.06] p-6"
+                className="mt-8 flex gap-4 rounded-card border border-accent-text/25 bg-accent/[0.06] p-6"
               >
-                <Lightbulb size={22} weight="duotone" className="mt-1 shrink-0 text-accent" />
+                <Lightbulb size={22} weight="duotone" className="mt-1 shrink-0 text-accent-text" />
                 <div className="min-w-0">
                   {block.title && <p className="font-medium text-fg">{block.title}</p>}
                   <p className={cn(block.title && 'mt-1', 'text-fg/80')}>{block.text}</p>
@@ -93,7 +93,7 @@ export function ArticleBody({
                 key={i}
                 className="dot-grid mt-10 overflow-hidden rounded-card border border-line-strong bg-surface p-6 md:p-8"
               >
-                <SquaresFour size={26} weight="duotone" className="text-accent" />
+                <SquaresFour size={26} weight="duotone" className="text-accent-text" />
                 <p className="mt-4 text-xl leading-snug font-semibold tracking-tight text-fg md:text-2xl">
                   {block.title ?? t.ctaTitle}
                 </p>

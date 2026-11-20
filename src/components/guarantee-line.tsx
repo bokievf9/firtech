@@ -21,7 +21,7 @@ export function GuaranteeLine({
         {dict.guarantee.line}{' '}
         <Link
           href={`/${locale}/terms#terms-guarantee`}
-          className="text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+          className="text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
         >
           {dict.guarantee.more}
         </Link>

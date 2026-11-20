@@ -87,10 +87,10 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
         initial={reduce ? false : { opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease }}
-        className="estimate-paper rounded-card bg-[#fbfcf9] px-5 py-7 text-[#14170f] shadow-[0_30px_80px_-20px_rgb(0_0_0/0.6)] sm:px-10 sm:py-10 md:px-14 md:py-12 print:rounded-none print:bg-white print:p-0 print:text-black print:shadow-none"
+        className="estimate-paper rounded-card bg-[#fbfcf9] px-5 py-7 text-[#14170f] border border-line-strong shadow-float print:border-0 print:shadow-none sm:px-10 sm:py-10 md:px-14 md:py-12 print:rounded-none print:bg-white print:p-0 print:text-black print:shadow-none"
       >
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[#14170f] pb-5">
-          <Logo className="[&_.text-accent]:text-[#5e9a1c]" />
+          <Logo className="[&_.text-accent-text]:text-[#5e9a1c]" />
           <div className="text-right text-[13px] leading-snug text-[#5b6459]">
             <p>{siteUrl.replace(/^https?:\/\//, '')}</p>
             {telegramHandle && <p>{telegramHandle}</p>}

@@ -18,12 +18,13 @@ export const viewport: Viewport = { themeColor: '#0a0d0b', colorScheme: 'light d
 
 // Runs before the first paint so a light-theme owner never sees a dark flash. The choice lives in
 // localStorage (see ThemeToggle); dark is the default and any failure keeps it.
-const themeScript = `try{if(localStorage.getItem('firtech-admin-theme')==='light'){document.documentElement.dataset.theme='light'}}catch(e){}`
+const themeScript = `try{document.documentElement.dataset.theme=localStorage.getItem('firtech-admin-theme')==='light'?'light':'dark'}catch(e){}`
 
 export default function AdminLayout({ children }: LayoutProps<'/admin'>) {
   return (
     <html
       lang="ru"
+      data-theme="dark"
       suppressHydrationWarning
       className={`${onest.variable} ${jetbrains.variable} ${unbounded.variable}`}
     >

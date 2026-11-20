@@ -92,8 +92,8 @@ export function CabinetTabs({
                 onKeyDown={onKeyDown}
                 data-cabinet-tab={id}
                 className={cn(
-                  '-mb-px inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-3 text-[15px] whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent md:px-4',
-                  active ? 'border-accent text-fg' : 'border-transparent text-muted hover:text-fg',
+                  '-mb-px inline-flex shrink-0 items-center gap-2 border-b-2 px-3.5 py-3 text-[15px] whitespace-nowrap transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent-text md:px-4',
+                  active ? 'border-accent-text text-fg' : 'border-transparent text-muted hover:text-fg',
                 )}
               >
                 {labels[id]}

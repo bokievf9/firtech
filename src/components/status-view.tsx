@@ -18,7 +18,7 @@ import {
 const REFRESH_MS = 60_000
 
 const chip: Record<ServiceState, string> = {
-  up: 'border-accent/40 bg-accent/10 text-accent-text',
+  up: 'border-accent-text/40 bg-accent/10 text-accent-text',
   degraded: 'border-warn/40 bg-warn/10 text-warn',
   down: 'border-danger/40 bg-danger/10 text-danger',
   unknown: 'border-line-strong text-muted',

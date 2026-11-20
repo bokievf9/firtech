@@ -40,7 +40,7 @@ export function SolutionSet({
             {build.products.map((id) => (
               <li
                 key={id}
-                className="rounded-full border border-accent/50 bg-accent/[0.06] px-3 py-1 text-sm"
+                className="rounded-full border border-accent-text/50 bg-accent/[0.06] px-3 py-1 text-sm"
               >
                 {pick(productCatalog[id].name, locale)}
               </li>
@@ -110,13 +110,13 @@ export function SolutionSet({
             <Row
               label={b.discount}
               value={`-${Math.round(bundleDiscount * 100)}%`}
-              className="text-accent"
+              className="text-accent-text"
             />
           </>
         )}
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <dt>{b.total}</dt>
-          <dd className="font-mono text-2xl text-accent">{formatUsd(q.total)}</dd>
+          <dd className="font-mono text-2xl text-accent-text">{formatUsd(q.total)}</dd>
         </div>
       </dl>
       <ul className="mt-6 grid gap-2 text-[13px] leading-relaxed text-faint">

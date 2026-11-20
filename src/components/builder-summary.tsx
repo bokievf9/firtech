@@ -112,13 +112,13 @@ export function SummaryStep({
                 <Row
                   label={t.discount}
                   value={`-${Math.round(bundleDiscount * 100)}%`}
-                  className="text-accent"
+                  className="text-accent-text"
                 />
               </>
             )}
             <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <dt>{t.total}</dt>
-              <dd className="font-mono text-[clamp(1.4rem,3vw,2rem)] tracking-tight text-accent">
+              <dd className="font-mono text-[clamp(1.4rem,3vw,2rem)] tracking-tight text-accent-text">
                 {doc.total}
               </dd>
             </div>

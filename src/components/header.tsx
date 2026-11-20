@@ -13,6 +13,7 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { openChat } from './chat/chat-events'
 import { Logo } from './logo'
 import { ScrollProgress } from './scroll-progress'
+import { ThemeSwitch } from './theme-switch'
 
 // Site header (stage A, navbar.gallery patterns): a full-width transparent bar on top of the page
 // that condenses into a floating glass pill once the page scrolls; a hover highlight slides
@@ -153,6 +154,7 @@ export function Header({
               </span>
             </Link>
           )}
+          <ThemeSwitch copy={dict.theme} className="hidden sm:inline-flex" />
           <div className="hidden sm:block">{localeSwitch}</div>
           <Link
             href={homeAnchor(locale, 'contact')}
@@ -221,7 +223,7 @@ export function Header({
                       <ArrowUpRight
                         size={22}
                         aria-hidden="true"
-                        className="text-faint transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent"
+                        className="text-faint transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent-text"
                       />
                     </Link>
                   </motion.li>
@@ -243,7 +245,7 @@ export function Header({
                   onClick={() => setOpen(false)}
                   className={cn(buttonStyles.secondary, 'w-full')}
                 >
-                  <UserCircle size={18} aria-hidden="true" className="text-accent" />
+                  <UserCircle size={18} aria-hidden="true" className="text-accent-text" />
                   <CabinetNavLabel signedIn={dict.nav.cabinet} start={dict.nav.cabinetStart} />
                 </Link>
               )}
@@ -259,11 +261,14 @@ export function Header({
                   size={18}
                   weight="fill"
                   aria-hidden="true"
-                  className="text-accent"
+                  className="text-accent-text"
                 />
                 {dict.hero.chatCta}
               </button>
-              <div className="flex justify-center pt-2">{localeSwitch}</div>
+              <div className="flex items-center justify-center gap-3 pt-2">
+                <ThemeSwitch copy={dict.theme} />
+                {localeSwitch}
+              </div>
             </div>
           </motion.div>
         )}

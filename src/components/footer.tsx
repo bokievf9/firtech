@@ -157,7 +157,7 @@ export function Footer({
           aria-hidden="true"
           className="wordmark-fill font-brand -mb-[0.18em] text-center text-[18.5vw] leading-none font-bold tracking-[-0.06em] whitespace-nowrap"
         >
-          fir<span className="text-accent [-webkit-text-fill-color:var(--color-accent)]">.</span>tech
+          fir<span className="text-accent-text [-webkit-text-fill-color:var(--color-accent)]">.</span>tech
         </p>
       </Reveal>
     </footer>

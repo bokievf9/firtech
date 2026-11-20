@@ -64,7 +64,7 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
       <JsonLd data={list} />
       <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
         <HeroIntro>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent uppercase">{t.eyebrow}</p>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
           <h1 className="mt-5 max-w-[16ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {t.title}
           </h1>
@@ -105,13 +105,13 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
                           </h3>
                           <p className="mt-3 leading-relaxed text-muted">{copy.card}</p>
                           <div className="mt-8 flex items-end justify-between gap-4 pt-2 lg:mt-auto">
-                            <p className="font-mono text-2xl text-accent">
+                            <p className="font-mono text-2xl text-accent-text">
                               <span className="text-sm text-muted">{t.from} </span>
                               {formatUsd(q.total)}
                             </p>
                             <span className="inline-flex items-center gap-1.5 text-sm text-muted">
                               {t.more}
-                              <ArrowUpRight size={16} className="text-accent" />
+                              <ArrowUpRight size={16} className="text-accent-text" />
                             </span>
                           </div>
                         </SpotlightCard>

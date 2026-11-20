@@ -78,13 +78,13 @@ function StepDot({
   children: React.ReactNode
 }) {
   const range = [Math.max(0, at - 0.02), at + 0.06]
-  const background = useTransform(progress, range, ['#0a0d0b', '#b5eb6a'])
-  const color = useTransform(progress, range, ['#b5eb6a', '#0d1408'])
+  // The fill amount (0..1) is a CSS variable; the colours mix in CSS so they follow the theme.
+  const fill = useTransform(progress, range, [0, 1])
   const scale = useTransform(progress, [at - 0.02, at + 0.03, at + 0.1], [1, 1.18, 1])
   return (
     <motion.span
-      className="absolute top-0 left-0 flex size-10 items-center justify-center rounded-full border border-line-strong md:relative"
-      style={reduce ? { background: '#b5eb6a', color: '#0d1408' } : { background, color, scale }}
+      className="absolute top-0 left-0 flex size-10 items-center justify-center rounded-full border border-line-strong bg-[color-mix(in_oklab,var(--color-accent)_calc(var(--p)*100%),var(--color-bg))] text-[color-mix(in_oklab,var(--color-accent-ink)_calc(var(--p)*100%),var(--color-accent-text))] md:relative"
+      style={reduce ? ({ '--p': 1 } as object) : ({ '--p': fill, scale } as object)}
     >
       {children}
     </motion.span>
