@@ -1,7 +1,7 @@
 # Client cabinet (2026-11-19)
 
 Owner decision: all client work goes through the site. A client signs up at `/<locale>/cabinet/login`
-(email + password with email confirmation, or Google / Apple) and sees projects, invoices, documents,
+(email + password with email confirmation, or Google; Apple sign-in was dropped, owner 2026-11-21) and sees projects, invoices, documents,
 support tickets and the referral link. Accounts live in Supabase (`public.profiles`); projects, invoices,
 documents, tickets and referrals live in HQ and are read by the account's email.
 
@@ -20,7 +20,7 @@ the header link is prerendered, so changing them needs a rebuild to show or hide
 3. Authentication -> URL configuration: Site URL `https://firtech.pro`; Redirect URLs `https://firtech.pro/**`
    (add `http://localhost:3001/**` for development).
 4. Authentication -> Providers: Email on with "Confirm email" (default). Enable Google (client id and
-   secret from Google Cloud, callback = the URL Supabase shows) and Apple (Services ID, team id, key).
+   secret from Google Cloud, callback = the URL Supabase shows); no Apple provider.
 5. Authentication -> Email templates: translate "Confirm signup" and "Reset password" if wanted; keep
    `{{ .ConfirmationURL }}`.
 6. Put the project URL and anon key into the env above. `SUPABASE_SERVICE_ROLE_KEY` is optional (server
@@ -162,5 +162,5 @@ Supabase or HQ). Browser smoke (not in `npm test`): `node scripts/smoke-cabinet.
   own zone `firtech_admin` (600r/m, burst 100) because the owner panel polling hit the 10r/m limit with 503 bursts.
 
 ## Not done yet
-- Apple and Google credentials, the Supabase project and the HQ endpoints are the owner's and the HQ builder's.
+- Google credentials, the Supabase project and the HQ endpoints are the owner's and the HQ builder's.
 - The privacy policy says account data sits in Singapore: confirm the project region when creating it.

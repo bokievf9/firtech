@@ -27,7 +27,7 @@ Minimum for the first client: `lead_sent`, `telegram_click`, `chat_open`, `chat_
 
 ## Owner's to-do
 1. Metrika: create the goals above in counter 113665084.
-2. Terms page (rewritten 2026-11-19 on the owner's word: no legal entity, crypto or online wallet, 50% prepayment, two rounds of revisions, 7-day acceptance, liability capped at the paid amount): filled the same day: contractor «Fir Tech», contact `hello@firtech.pro` (the mailbox must exist: Cloudflare Email Routing to the owner's Gmail), governing law of Tajikistan. No placeholders left; payment wallets are not public and go into each estimate.
+2. Terms page (rewritten 2026-11-19 on the owner's word: no legal entity, crypto or online wallet, payment by stages since 2026-11-21 (each stage before it starts, the last before handover; a small project in two stages 50/50), two rounds of revisions, 7-day acceptance, liability capped at the paid amount): filled the same day: contractor «Fir Tech», contact `hello@firtech.pro` (the mailbox must exist: Cloudflare Email Routing to the owner's Gmail), governing law of Tajikistan. No placeholders left; payment wallets are not public and go into each estimate.
 3. Lawyer: review privacy and terms (both say "черновик до проверки юристом"); confirm the AI model providers wording and the 1-year retention.
 4. Prices (owner 2026-11-19: below the RU/CIS freelance market, extras about half): done in pricing.ts. Content on autopilot = `contentPlans` ($90 setup + $60 a month), AI in your company = `automation.assistant.training`. Products now: admin bot $290, intake $220, automation $230, Mini App $660, AI implementation $550, site $150, bot $100, app $800.
 5. Search Console and Yandex Webmaster: add firtech.pro, submit `https://firtech.pro/sitemap.xml`, check hreflang report.
@@ -37,13 +37,13 @@ Minimum for the first client: `lead_sent`, `telegram_click`, `chat_open`, `chat_
 
 ## Аудит 2026-11-19 (сторона сайта, ветка `fix/audit-2026-11-19`)
 - Способы оплаты: везде USDT (TRC20 или TON) и онлайн-кошелёк из сметы; Kaspi, Payme, Click и карты как наши способы убраны (`region`, `llms.txt`, FAQ). «Оплата в боте» для клиентов клиента осталась как функция продукта.
-- Оплата: «50% до старта, 50% после приёмки, проекты дольше месяца этапами из сметы» в шести местах, в блоге и в метаописании оферты; тест запрещает «за каждый этап отдельно».
+- Оплата (правило этапов с 2026-11-21, раньше было 50/50): «каждый этап оплачивается до его начала, последний до передачи», проекты до порога `smallProjectMaxUsd` двумя этапами 50/50; «50%» только в оферте; тест запрещает «за каждый этап отдельно» и «50%» вне оферты.
 - Аудит: «в течение рабочего дня после заявки, обычно быстрее» (страница, FAQ, ссылка в hero, успех); результат «в Telegram от @firtech_bot» только для @username, иначе «напишем по указанному контакту».
 - `x-visitor-ip` уходит в HQ из `/api/chat`, `/api/audit`, `/api/lead` (источник как у лимитера сайта).
 - `ref`: `fir-ref` в localStorage на 30 дней (запасной sessionStorage), читают форма заявки, форма аудита и чат; ссылки `t.me/firtech_bot` получают `?start=ref_<slug>` (`demo_salon` не трогаем). `ref` уходит и в тело чата (схема HQ не строгая, поле пока игнорируется).
 - Оферта: условия действуют с подтверждения сметы, строка про проверку юристом оставлена; гарантия названа по каждому продукту; «30 дней после сдачи исправляем ошибки бесплатно».
 - Политика: раздел про обработку текстов провайдерами моделей ИИ (имя и контакты не передаём, если их не написал сам посетитель), localStorage для `ref`, дата 19 ноября 2026.
-- `GET /api/prices` (статический JSON из `pricing.ts` и `products.ts`) для агентов.
+- `GET /api/prices` для агентов: динамический, кэш 60 с (`force-dynamic`, `max-age=60`), живые цены из Пульта (умолчания из `pricing.ts` плюс правки владельца) и `products.ts`.
 - Заголовки безопасности уже были в `next.config.ts` (nosniff, Referrer-Policy, XFO DENY, Permissions-Policy, HSTS в проде); nginx HSTS не шлёт, дубля нет; тест закрепляет их. CSP не добавлялась.
 - «Принимаем заказы из Ташкента, Алматы, Душанбе, Бишкека и других городов СНГ» вместо «Работаем с бизнесом в ...» (сайт и `llms.txt`).
 - Публичный офис: статус `blocked` отдаётся как `waiting`.

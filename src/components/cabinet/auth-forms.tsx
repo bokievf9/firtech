@@ -162,7 +162,7 @@ export function AuthForms({
       )}
 
       <div className={compact ? 'mt-5 grid gap-3' : 'mt-6 grid gap-3'}>
-        {/* Apple sign-in is off (owner 2026-11-20: no Apple Developer account); add 'apple' back here to show it. */}
+        {/* Google is the only OAuth provider (owner: no Apple sign-in). */}
         {(['google'] as const).map((provider) => (
           <OAuthButton
             key={provider}

@@ -169,7 +169,8 @@ export function appOrigin(
   return `${proto}://${host}`
 }
 
-export const oauthProviders = ['google', 'apple'] as const
+// Google only (owner 2026-11-21: «с Apple вход не нужен»).
+export const oauthProviders = ['google'] as const
 export type OAuthProvider = (typeof oauthProviders)[number]
 export const isOAuthProvider = (v: unknown): v is OAuthProvider =>
   typeof v === 'string' && (oauthProviders as readonly string[]).includes(v)

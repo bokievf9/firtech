@@ -64,8 +64,8 @@ export function OAuthButton({
         data-provider={provider}
         className={cn(buttonStyles.secondary, 'w-full')}
       >
-        {provider === 'google' && <GoogleMark />}
-        {pending ? t.redirecting : provider === 'google' ? t.google : t.apple}
+        <GoogleMark />
+        {pending ? t.redirecting : t.google}
       </button>
       {error && <FormMessage kind="error">{error}</FormMessage>}
     </div>

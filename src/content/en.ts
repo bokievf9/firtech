@@ -1427,7 +1427,7 @@ const en: Dict = {
         title: 'Account in the client cabinet',
         text: [
           'If you create an account in the cabinet, we store your email, name, Telegram handle (if you gave one), language and your answer about news and offers. We never see your password: the Supabase authentication service stores only its protected hash. Account data sits on Supabase servers in Singapore.',
-          'If you sign in with Google or Apple, those services give us only your name and email. We do not receive your password or other account data from them.',
+          'If you sign in with Google, it gives us only your name and email. We do not receive your password or other account data from it.',
           'Projects, invoices, documents and requests shown in the cabinet are kept in our internal system and tied to your email.',
           'A request, an audit or an estimate can be sent only from an account: the email, name and account number go with it. While you sign in or confirm your email, the fields you typed stay in your browser (localStorage) for up to 24 hours and are removed once sent.',
           'You can delete the account with the "Delete account" button in the cabinet profile or by asking support. If automatic deletion is switched off, the button sends us a "delete account" request and we do it by hand.',
@@ -2038,7 +2038,6 @@ const en: Dict = {
       sending: 'One second...',
       forgot: 'Forgot your password?',
       google: 'Continue with Google',
-      apple: 'Continue with Apple',
       or: 'or',
       checkEmailTitle: 'Check your email',
       checkEmailText: 'We sent a message to {email}. Follow the link in it to finish signing in. Nothing there? Check the spam folder.',

@@ -152,7 +152,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   passes `source` to HQ only when not empty (HQ rejects an empty one). HQ's `chatSchema` is not strict, so the chat payload now carries `ref` (ignored by HQ until it reads
   it: TODO in `chat-hq.ts`). Tests: `tests/site-d.test.mjs`.
 - Client cabinet (`/[locale]/cabinet`, owner decision 2026-11-19, full notes `docs/cabinet.md`): Supabase Auth (email +
-  password with confirmation, Google, Apple) and `public.profiles` (`supabase/migrations/0001_profiles.sql`, RLS own row,
+  password with confirmation, Google only: no Apple sign-in, owner 2026-11-21) and `public.profiles` (`supabase/migrations/0001_profiles.sql`, RLS own row,
   `hq_synced_at`); projects, invoices, documents, tickets and referrals come from HQ by email through `src/lib/cabinet-hq.ts`
   (`fetchClientByEmail`, `createClientTicket`, `syncClientToHq`; `HQ_ADMIN_URL` + `HQ_ADMIN_TOKEN`, 4 s, short codes
   `hq_unreachable|hq_timeout|hq_error|not_found`, dev mock). Env: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -194,7 +194,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (starting prices, catalog, extras, plans, referral percent, `bundleDiscountPercent`, products); the agents read it
   instead of copies; since 2026-11-21 it also carries `stages` (templates: id, ru/en title, share) and `smallProjectMaxUsd`.
   `updatedAt` is the last edit in the Пульт (ISO), else `PRICES_UPDATED_AT` (the date of the defaults, 2026-11-21).
-  HQ reloads it every 6 hours, so agents see an edit with that delay (the site cannot push to HQ).
+  HQ reloads it every 15 minutes (`PRICES_RELOAD_MS`) and at once on `POST /admin/prices/reload` (same `x-admin-token`; `agents/docs/admin-crm-api.md`), so agents see an edit within 15 minutes (the site cannot push to HQ).
 - `/api/admin/prices` (session + Origin, JSON only): `GET` = defaults, overrides, merged, overridden paths, history (last 50),
   field list (path, ru label, group, unit, min/max/step); `POST {path, value}`, `{ops:[{path,value}|{reset}]}` (atomic) or
   `{action:'reset', path?}`; refusals are 422 with a key (`out_of_range:<path>`, `not_integer`, `stage_sum:<template>`...).

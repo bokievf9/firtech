@@ -169,7 +169,9 @@ test('auth: error mapping, validation, redirect origin', () => {
   assert.equal(auth.resetSchema.safeParse({ password: '1234567' }).success, false)
   assert.equal(auth.appOrigin(new Headers({ host: 'evil.com' }), { NODE_ENV: 'production' }), 'https://firtech.pro')
   assert.equal(auth.appOrigin(new Headers({ host: 'localhost:3001' }), { NODE_ENV: 'development' }), 'http://localhost:3001')
-  assert.equal(auth.isOAuthProvider('google') && auth.isOAuthProvider('apple'), true)
+  assert.equal(auth.isOAuthProvider('google'), true)
+  assert.equal(auth.isOAuthProvider('apple'), false)
+  assert.deepEqual(auth.oauthProviders, ['google'])
   assert.equal(auth.isOAuthProvider('github'), false)
 })
 
