@@ -11,6 +11,7 @@ import {
   type FormState,
 } from '@/app/[locale]/cabinet/actions'
 import type { Dict } from '@/content'
+import { clearVerifierCookies } from '@/lib/auth-cookies'
 import type { AuthErrorKey } from '@/lib/cabinet-auth'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
@@ -91,7 +92,7 @@ export function AuthForms({
             <p className="text-[13px] leading-relaxed text-faint">{t.mailLimit}</p>
           </div>
         ) : (
-          <form action={forgotFormAction} className="mt-6 grid gap-5">
+          <form action={forgotFormAction} onSubmit={() => clearVerifierCookies()} className="mt-6 grid gap-5">
             {hidden}
             <Field id={id('f-email')} label={t.email}>
               <input
@@ -234,6 +235,7 @@ export function AuthForms({
       ) : (
         <form
           action={upAction}
+          onSubmit={() => clearVerifierCookies()}
           role="tabpanel"
           id={id('panel-up')}
           aria-labelledby={id('tab-up')}
@@ -320,7 +322,7 @@ export function ResendBox({ dict, locale, email, next }: { dict: Dict; locale: L
   const errors = t.errors as Record<string, string>
   const [state, action, pending] = useActionState(resendAction, initial)
   return (
-    <form action={action} className="grid gap-2 rounded-xl border border-line p-4" data-resend>
+    <form action={action} onSubmit={() => clearVerifierCookies()} className="grid gap-2 rounded-xl border border-line p-4" data-resend>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="next" value={next} />
       <input type="hidden" name="email" value={email} />

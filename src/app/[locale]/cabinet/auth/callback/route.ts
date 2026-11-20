@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
+import { staleVerifierNames } from '@/lib/auth-cookies'
 import { appOrigin, authErrorKey, authLogFields, callbackFailureKey, safeNextPath } from '@/lib/cabinet-auth'
 import { syncAfterSignIn } from '@/lib/cabinet-session'
 import { isLocale } from '@/lib/i18n'
@@ -15,6 +16,10 @@ import { serverCookieOptions, supabaseConfig } from '@/lib/supabase/config'
 //   a confirmation link works in any browser or device.
 // Cookies are buffered and written only onto the answer of a successful exchange: a failed attempt
 // never deletes the verifier, so the browser retry (/cabinet/auth/confirm) still has it.
+// Stale `*-code-verifier` cookies (one per earlier sign-in attempt, never removed by Supabase) are
+// expired on every answer except the redirect to /confirm. Left alone they swelled the headers
+// until nginx answered 502 «upstream sent too big header» (2026-11-21); see docs/cabinet.md and
+// the proxy buffers in infra/nginx. `cookieBytes` in the log is the incoming cookie header size.
 // The proxy does not touch this path. Logs carry codes and booleans, never tokens.
 export const dynamic = 'force-dynamic'
 
@@ -28,8 +33,19 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/[locale]/cab
   const params = request.nextUrl.searchParams
   const flow = params.get('flow')
   const next = safeNextPath(params.get('next'), lang)
-  const login = (error: string) => noStore(NextResponse.redirect(`${origin}/${lang}/cabinet/login?error=${error}`))
+  // Expire the verifier cookies this request brought and the exchange did not just write.
+  const dropStale = (res: NextResponse) => {
+    const keep = pending.map((c) => c.name)
+    const opts = serverCookieOptions()
+    for (const name of staleVerifierNames(request.cookies.getAll().map((c) => c.name), keep)) {
+      res.cookies.set(name, '', { ...opts, maxAge: 0 })
+    }
+    return res
+  }
+  const login = (error: string) =>
+    noStore(dropStale(NextResponse.redirect(`${origin}/${lang}/cabinet/login?error=${error}`)))
 
+  const pending: Pending[] = []
   const config = supabaseConfig()
   if (!config) return noStore(NextResponse.redirect(`${origin}/${lang}/cabinet`))
 
@@ -40,7 +56,6 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/[locale]/cab
     return login(callbackFailureKey(providerError, flow))
   }
 
-  const pending: Pending[] = []
   const supabase = createServerClient(config.url, config.anonKey, {
     cookieOptions: serverCookieOptions(),
     cookies: {
@@ -54,7 +69,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/[locale]/cab
     await syncAfterSignIn(supabase, user, lang, visitorIp(request.headers))
     const res = NextResponse.redirect(`${origin}${next}`)
     for (const c of pending) res.cookies.set(c.name, c.value, c.options)
-    return noStore(res)
+    return noStore(dropStale(res))
   }
 
   const code = params.get('code')
@@ -67,6 +82,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/[locale]/cab
     flow: flow ?? '',
     hasFlowId: Boolean(flowId),
     verifierCookies,
+    cookieBytes: (request.headers.get('cookie') ?? '').length,
     ua: request.headers.get('user-agent')?.slice(0, 60),
   })
 

@@ -207,3 +207,26 @@ test('health: booleans only, never a value; noindex and out of the sitemap', asy
   assert.ok(!urls.some((u) => u.includes('/cabinet')))
   for (const d of [ru, en]) for (const v of Object.values(d.cabinet.health)) assert.doesNotMatch(v, /[–—]/)
 })
+
+test('auth-cookies: stale verifier names from a cookie header', async () => {
+  const { cookieNamesFromHeader, staleVerifierNames, clearVerifierCookies } = await import('@/lib/auth-cookies')
+  const header = 'a=1; sb-x-code-verifier=abc; sb-x-code-verifier.1=z; sb-y-auth-token=t; sb-x-code-verifier=dup; ; =bad'
+  const names = cookieNamesFromHeader(header)
+  assert.deepEqual(names, ['a', 'sb-x-code-verifier', 'sb-x-code-verifier.1', 'sb-y-auth-token', 'sb-x-code-verifier'])
+  assert.deepEqual(staleVerifierNames(names), ['sb-x-code-verifier'])
+  assert.deepEqual(staleVerifierNames(names, ['sb-x-code-verifier']), [])
+  assert.deepEqual(staleVerifierNames([]), [])
+  const doc = { cookie: 'k=1; sb-a-code-verifier=v; sb-b-code-verifier=w' }
+  const writes = []
+  const proxy = { get cookie() { return doc.cookie }, set cookie(v) { writes.push(v) } }
+  assert.equal(clearVerifierCookies(proxy), 2)
+  assert.ok(writes.every((w) => w.includes('Path=/') && w.includes('Max-Age=0')))
+  assert.equal(clearVerifierCookies(undefined), 0)
+})
+
+test('callback expires stale verifiers and logs cookieBytes', () => {
+  const src = readFileSync('src/app/[locale]/cabinet/auth/callback/route.ts', 'utf8')
+  assert.match(src, /staleVerifierNames/)
+  assert.match(src, /maxAge: 0/)
+  assert.match(src, /cookieBytes/)
+})

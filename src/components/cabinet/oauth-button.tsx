@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Dict } from '@/content'
+import { clearVerifierCookies } from '@/lib/auth-cookies'
 import { authErrorKey, oauthOptions, type OAuthProvider } from '@/lib/cabinet-auth'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
@@ -37,6 +38,7 @@ export function OAuthButton({
       setError(errors.unavailable ?? errors.generic ?? '')
       return
     }
+    clearVerifierCookies()
     setPending(true)
     onBeforeRedirect?.()
     const { error: failure } = await supabase.auth.signInWithOAuth({

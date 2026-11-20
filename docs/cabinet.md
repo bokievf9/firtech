@@ -112,6 +112,19 @@ Plus `lead-identity.ts`, `lead-session.ts`, `lead-draft.ts`, `cabinet-client.ts`
 Tests: `tests/cabinet.test.mjs`, `cabinet-auth.test.mjs`, `cabinet-leads.test.mjs`, `cabinet-process.test.mjs` (no real
 Supabase or HQ). Browser smoke (not in `npm test`): `node scripts/smoke-cabinet.mjs` (see the script head).
 
+## 2026-11-21: Google sign-in 502 on the callback
+- Cause (from production logs): nginx answered 502 «upstream sent too big header» on `/cabinet/auth/callback`. The request
+  already carried 7 stale `*-code-verifier` cookies (one per sign-in attempt, `appendPkceFlowIdToRedirects`; nothing removed
+  them), and the successful exchange added the chunked session cookies (several KB for Google), over nginx's 4k
+  `proxy_buffer_size`. The exchange itself worked.
+- Cookie cleanup: the callback expires every `*-code-verifier` cookie the exchange did not just write (success, and terminal
+  failures; not the redirect to `/cabinet/auth/confirm`, which needs the current one). The browser removes old verifiers
+  before `signInWithOAuth` and before sign-up, resend and reset-request forms (`src/lib/auth-cookies.ts`). The callback log
+  has `cookieBytes` (size of the Cookie header, never values).
+- nginx (`infra/nginx`, must be copied to the server, see its README): `proxy_buffer_size 32k; proxy_buffers 8 32k;
+  proxy_busy_buffers_size 64k;` in the snippet, `large_client_header_buffers 4 32k;` in the site. Also `/api/admin/` got its
+  own zone `firtech_admin` (600r/m, burst 100) because the owner panel polling hit the 10r/m limit with 503 bursts.
+
 ## Not done yet
 - Apple and Google credentials, the Supabase project and the HQ endpoints are the owner's and the HQ builder's.
 - The privacy policy says account data sits in Singapore: confirm the project region when creating it.
