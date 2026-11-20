@@ -200,6 +200,144 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
+  test('keys 9 and 0 open the review centre and the chats', async ({ page }) => {
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('9')
+    await expect(page).toHaveURL(/\/admin\/review$/)
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('0')
+    await expect(page).toHaveURL(/\/admin\/chats$/)
+  })
+
+  test('review centre: rail with counts, queue, J/K step, the revise composer and the trend link dialog', async ({ page }) => {
+    const errors = watchErrors(page, [/WebGL|GPU stall|swiftshader|Failed to load resource/i])
+    await open(page, '/admin/review')
+    await expect(page.getByRole('heading', { name: 'Ревью', level: 1 })).toBeVisible()
+    const rail = page.getByRole('navigation', { name: 'Отделы' })
+    await expect(rail.getByRole('button', { name: /^Директор/ })).toHaveAttribute('aria-pressed', 'true')
+    // The rail has seven entries, each with a count.
+    await expect(rail.getByRole('button')).toHaveCount(7)
+    await expect(rail.getByRole('button', { name: /^Маркетинг \d+/ })).toBeVisible()
+    const queue = page.getByRole('list', { name: 'Очередь' })
+    await expect(queue.getByRole('button').first()).toBeVisible()
+
+    // J and K step through the queue; the position counter follows.
+    const position = page.getByText(/^\d+ \/ \d+$/)
+    await expect(position).toHaveText(/^1 \/ \d+$/)
+    const total = Number((await position.textContent())!.split('/')[1])
+    expect(total).toBeGreaterThan(1)
+    await page.keyboard.press('j')
+    await expect(position).toHaveText(new RegExp(`^2 / ${total}$`))
+    await page.keyboard.press('k')
+    await expect(position).toHaveText(new RegExp(`^1 / ${total}$`))
+
+    // Another department narrows the queue; the first key goes back to «Все».
+    await rail.getByRole('button', { name: /^Маркетинг/ }).click()
+    await expect(rail.getByRole('button', { name: /^Маркетинг/ })).toHaveAttribute('aria-pressed', 'true')
+    await expect(queue.getByRole('button').first()).toBeVisible()
+
+    // «Правки» opens the revise composer, Esc closes it again (and stays on the page).
+    await page.getByRole('button', { name: /^Правки/ }).first().click()
+    const note = page.locator('#revise-note')
+    await expect(note).toBeVisible()
+    await note.fill('хук короче')
+    await page.keyboard.press('Escape')
+    await expect(note).toBeHidden()
+    await expect(page).toHaveURL(/\/admin\/review$/)
+
+    // «Скинуть ссылку»: the dialog opens with a URL field, rejects junk and closes with Esc.
+    await page.getByRole('button', { name: 'Скинуть ссылку' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Скинуть ссылку Трендвотчеру' })
+    await expect(dialog).toBeVisible()
+    await dialog.locator('input[type=url]').fill('https://example.com/some-video')
+    await dialog.getByRole('button', { name: 'Отправить' }).click()
+    await expect(dialog.getByRole('alert')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    // A supported link goes to the Trendwatcher (mock) and the dialog closes with a toast.
+    await page.getByRole('button', { name: 'Скинуть ссылку' }).click()
+    await dialog.locator('input[type=url]').fill('https://www.youtube.com/shorts/e2e12345678')
+    await dialog.getByRole('button', { name: 'Отправить' }).click()
+    await expect(dialog).toBeHidden()
+    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Ссылка принята|уже в работе/ }).first()).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('chats: a thread opens, the reply box sends with Enter and the answer joins the thread', async ({ page }) => {
+    const errors = watchErrors(page, [/Failed to load resource/i])
+    await open(page, '/admin/chats')
+    await expect(page.getByRole('heading', { name: /Чаты/, level: 1 }).or(page.getByRole('heading', { level: 1 })).first()).toBeVisible()
+    const list = page.getByRole('complementary', { name: 'Чаты' })
+    await expect(list.getByRole('button').first()).toBeVisible()
+    await list.getByRole('button').first().click()
+    const thread = page.getByRole('region', { name: 'Переписка' })
+    await expect(thread).toBeVisible()
+    const box = thread.locator('textarea')
+    await expect(box).toBeVisible()
+    await expect(box).toHaveAttribute('placeholder', /^Ответ клиенту/)
+    await box.fill('e2e: ответ владельца')
+    await box.press('Enter')
+    await expect(thread.getByText('e2e: ответ владельца').first()).toBeVisible()
+    await expect(box).toHaveValue('')
+    expect(errors).toEqual([])
+  })
+
+  test('Company / Цены: edit one price in the panel, see it saved, reset it through the API', async ({ page, request, baseURL }) => {
+    const headers = { origin: baseURL!, cookie: (await page.context().cookies()).map((c) => `${c.name}=${c.value}`).join('; ') }
+    const state = async () => (await request.get('/api/admin/prices', { headers })).json()
+    // Start clean (the throwaway data dir may hold an edit from a retried run).
+    expect((await request.post('/api/admin/prices', { data: { action: 'reset' }, headers })).status()).toBe(200)
+    expect((await state()).overridden).toEqual([])
+
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('7')
+    await page.getByRole('tab', { name: /^Цены/ }).click()
+    // The referral reward is the one price no other test asserts.
+    const cell = page.getByRole('button', { name: /^Изменить цену: Награда за приведённого клиента/ })
+    await cell.scrollIntoViewIfNeeded()
+    const before = (await state()).merged.referralPercent as number
+    const next = before === 12 ? 13 : 12
+    await cell.click()
+    const input = page.getByRole('textbox', { name: /^Новая цена: Награда за приведённого клиента/ })
+    await input.fill(String(next))
+    await input.press('Enter')
+    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Сохранено/ }).first()).toBeVisible()
+    await expect.poll(async () => (await state()).merged.referralPercent).toBe(next)
+    expect((await state()).overridden).toContain('referralPercent')
+    await expect(page.getByRole('button', { name: /^Вернуть по умолчанию: Награда за приведённого клиента/ })).toBeVisible()
+
+    // Out of range is refused by the API with a key, the stored value stays.
+    const bad = await request.post('/api/admin/prices', { data: { path: 'referralPercent', value: 5000 }, headers })
+    expect(bad.status()).toBe(422)
+    expect((await bad.json()).error).toMatch(/^out_of_range/)
+
+    // Reset through the API: no overrides left, the default is back.
+    expect((await request.post('/api/admin/prices', { data: { action: 'reset', path: 'referralPercent' }, headers })).status()).toBe(200)
+    const after = await state()
+    expect(after.overridden).toEqual([])
+    expect(after.merged.referralPercent).toBe(after.defaults.referralPercent)
+    expect((await request.post('/api/admin/prices', { data: { action: 'reset' }, headers: { ...headers, origin: 'https://evil.example' } })).status()).toBe(403)
+  })
+
+  test('Production: the project drawer accepts a paid, delivered stage for the client', async ({ page }) => {
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('5')
+    await page.locator('aside').getByText('Сайт студии').first().click()
+    const drawer = page.getByRole('dialog').or(page.locator('aside').last())
+    const accept = drawer.getByRole('button', { name: 'Принять этап' })
+    await expect(accept).toHaveCount(1)
+    await expect(drawer.getByText('ждёт приёмки')).toBeVisible()
+    await expect(drawer.getByText('ждёт оплаты')).toBeVisible()
+    await accept.click()
+    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Этап 1 (уже был )?принят/ }).first()).toBeVisible()
+    await expect(drawer.getByRole('button', { name: 'Принять этап' })).toHaveCount(0)
+    await expect(drawer.getByText('принят', { exact: true })).toBeVisible()
+  })
+
   test('CSV export answers with a csv for the owner', async ({ request, page }) => {
     const cookie = (await page.context().cookies()).map((c) => `${c.name}=${c.value}`).join('; ')
     const res = await request.get('/api/admin/export', { headers: { cookie } })

@@ -81,12 +81,24 @@ Legend of `E:` tags (file : test title):
 | `E:golive-fit` | admin.spec : «go-live page fits both themes and a phone» |
 | `E:csv` | admin.spec : «CSV export answers with a csv for the owner» |
 | `E:logout` | admin.spec : «logout ends the session» |
+| `E:ai-team` | public.spec : «AI team: the index lists six departments and every card opens its page» |
+| `E:ai-agent` | public.spec : «AI team: a department page lists its agents and an agent page opens the builder or the chat» |
+| `E:pay-how` | public.spec : «pay-how: the three steps of paying in USDT are on the page and no local currency is quoted» |
+| `E:bare` | public.spec : «bare paths of known pages redirect to a language» (307, then 200) |
+| `E:keys-9-0` | admin.spec : «keys 9 and 0 open the review centre and the chats» |
+| `E:review` | admin.spec : «review centre: rail with counts, queue, J/K step, the revise composer and the trend link dialog» |
+| `E:chats` | admin.spec : «chats: a thread opens, the reply box sends with Enter and the answer joins the thread» |
+| `E:prices` | admin.spec : «Company / Цены: edit one price in the panel, see it saved, reset it through the API» (throwaway data dir) |
+| `E:accept-pult` | admin.spec : «Production: the project drawer accepts a paid, delivered stage for the client» |
+| `U:cabinet-milestones` | node:test `tests/cabinet-milestones.test.mjs`: milestone parsing, track rows, the accept call and its 409 codes, mock, route, Пульт whitelist and drawer helpers |
+| `U:cabinet-stage-render` | node:test `tests/cabinet-stage-render.test.mjs`: the real `ProjectsCard` and `LeadsSection` rendered to markup with the dev mock (the cabinet needs a Supabase session, which e2e does not have) |
+| `U:bare-paths` | node:test `tests/bare-paths.test.mjs`: the proxy redirect for every bare page |
 
 ## 1. Public site: every page
 
 | Page | Element | What it does | Leads to / calls | Verified by | Status |
 |---|---|---|---|---|---|
-| all pages (24 routes x ru/en) | the page itself | renders | `/{ru,en}` home, builder, estimate, 4 services, solutions list + cafe, blog list + 3 articles, audit, status, compare, referral, terms, privacy, pay (valid and unknown), cabinet, cabinet/login, cabinet/reset | `E:matrix` (390 and 1440, both themes) | pass |
+| all pages (35 routes x ru/en) | the page itself | renders | `/{ru,en}` home, builder, estimate, 4 services, solutions list + cafe, blog list + 3 articles, audit, status, compare, referral, pay-how, ai-team index, 6 department pages, 3 agent pages (trend-scout, lead-handler, billing), terms, privacy, pay (valid and unknown), cabinet, cabinet/login, cabinet/reset | `E:matrix` (390 and 1440, both themes) | pass |
 | all pages | 404 | branded 404 with search | `[locale]/not-found`, `global-not-found` | `E:404`, `E:404-search` | pass |
 | `/ru/pay/<unknown>` | not-found state | showed the light page for a dark visitor (no `data-theme` on `<html>`) | `ThemeInit` | `E:matrix` (pay FT-2026-999) | pass (bug fixed, see Bugs) |
 
@@ -205,6 +217,10 @@ Legend of `E:` tags (file : test title):
 | referral | «Собрать проект в конструкторе», «Написать в Telegram» | links | builder, `t.me` | `E:matrix` | untested (click) |
 | terms | «Политика конфиденциальности» | link | privacy | `E:matrix`, `U:site-c` | pass (render) |
 | privacy | text, consent link target | render | - | `E:matrix` | pass |
+| ai-team index | 6 department cards, agent strip, «Собрать в конструкторе», «Обсудить» | department pages, builder with `p.aiteam`, chat, `#contact` | `E:matrix`, `E:ai-team` (cards open the pages, «По смете» shown), `U:ai-teams` | pass (cards), untested (CTA clicks) |
+| ai-team department and agent pages | «Агенты отдела» links, agent CTA, other departments | `/{locale}/ai-team/agent/<id>`, builder, lead `source` `agent-<id>` | `E:matrix`, `E:ai-agent`, `U:ai-teams` | pass (navigation), untested (lead send) |
+| pay-how | the three steps of paying in USDT | render, links from the pay page, terms, cabinet | `E:matrix`, `E:pay-how`, `U:golive-copy` | pass |
+| bare paths `/terms`, `/privacy`, `/pay-how`, `/services/*`... | redirect to the visitor's language (contracts and offers link them without one) | `src/proxy.ts` | `E:bare`, `U:bare-paths` | pass |
 | `?ref=<slug>` | stores the slug 30 days, adds `start=ref_<slug>` to bot links | `RefCapture`, `RefLinks` | `U:site-d` | pass (unit), untested (browser) |
 
 ## 8. Pay page `/{locale}/pay/<number>?k=<key>`
@@ -233,6 +249,9 @@ Legend of `E:` tags (file : test title):
 | confirm / callback retry | `/cabinet/auth/confirm`, `/cabinet/auth/callback` | Supabase | `U:cabinet-auth` | untested (browser) |
 | `/cabinet/health` | yes/no per setting | - | none (not in the page list) | untested |
 | signed in: tabs «Обзор», «Заявки», projects, invoices, documents (`?tab=`) | tab switch, 30 s refresh only on Заявки | `/api/cabinet/leads` | `U:cabinet-tabs`, `U:cabinet-process` | untested (browser) |
+| Проекты: stage track | per stage «оплата» (with «Оплатить этап»), «в работе», «приёмка», «принят» with the date | `milestones[]` of by-email | `U:cabinet-milestones`, `U:cabinet-stage-render` (real component, mock project with three stages) | pass (render, unit), untested (browser: needs a session) |
+| Проекты: «Принять этап» | `POST /api/cabinet/projects/<pid>/milestones/<no>/accept` -> HQ accept; 409 `not_ready` / `not_paid` become sentences | HQ `POST /clients/<id>/projects/<pid>/milestones/<no>/accept` | `U:cabinet-milestones` (call, codes, route source, mock), `U:cabinet-stage-render` (button shown only on the awaiting stage) | pass (unit), untested (browser click) |
+| Заявки: «Сейчас: Этап N: ...» | current stage line on a request that is a project | `stageLineFor` | `U:cabinet-milestones`, `U:cabinet-stage-render` | pass (unit) |
 | offers (in Обзор and under the other tabs) | state-based offers, `cabinet_offer_click` | `lib/cabinet-offers.ts` | `U:cabinet-offers` | pass (unit), untested (browser) |
 | ticket form «Написать менеджеру» | `POST /api/cabinet/tickets` -> HQ `createClientTicket` | HQ | `U:cabinet`, `U:cabinet-hq` | untested (browser) |
 | lead reply box (Заявки) | reply to a request | `/api/cabinet/leads/[id]` | `U:cabinet-leads` | untested (browser) |
@@ -269,6 +288,7 @@ Legend of `E:` tags (file : test title):
 | hub | counters «Одобрения», «Новые лиды», «Ждут оплаты», «Открытые тикеты» | open Director/approvals, Sales/leads, Back office/invoices, Support/tickets | - | `E:hub` (visible), `E:tabs` («Ждут оплаты») | pass (payments), untested (other 3 clicks) |
 | hub | ⌘K / Ctrl+K | command palette with HQ search | `GET /api/admin/hq/...` | `E:palette`, `U:pult-v3` | pass |
 | hub | keys 1-7 | open the 7 panels (1 Director ... 7 Company), Esc closes | - | `E:keys` | pass |
+| hub | keys 9 and 0, chips «Ревью N» and «Чаты N» | `/admin/review`, `/admin/chats` | `E:keys-9-0` | pass (keys), untested (chips) |
 | hub | key 8 and the go-live chip | `/admin/golive` | - | `E:keys` | pass |
 | hub | theme button | admin light/dark | localStorage | `E:adm-theme`, `U:pult-theme` | pass |
 | hub | «Ещё» menu: «Скачать заявки в CSV» | `GET /api/admin/export` | `/api/admin/export` | `E:csv` | pass |
@@ -303,11 +323,13 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 | Продажи / Разведка | status and niche chips, search, prospect rows, status moves | prospect writes | `POST crm/prospects/<id>` | `E:panels`, `U:admin-crm-hq` | untested (moves) |
 | Поддержка / Тикеты | filters «Открытые/Просрочены/Отвечены/Все», search, ticket drawer: reply, «Отвечен», «Открыт», note | ticket writes | `POST crm/tickets/<id>` | `E:panels`, `U:pult-v3` | untested (writes) |
 | Производство / Проекты | kanban, search, drawer: milestone toggle, deadline, status move, note, issues | project writes | `POST crm/projects/<id>` | `E:panels`, `U:pult-v3` | untested (writes) |
+| Производство / Проекты | drawer: «Принять этап» on a stage awaiting acceptance (client found by name, then HQ accept; 409 reasons shown) | `GET crm/clients?q=`, `POST clients/<id>/projects/<pid>/milestones/<no>/accept` (whitelist) | `E:accept-pult`, `U:cabinet-milestones` | pass |
 | Бэк-офис / Счета | status filters, search, «Ссылка» (pay link), «Транзакция» (explorer), «Напомнить клиенту», «Оплачено вручную», «Аннулировать» | invoice writes | `POST crm/invoices/<id>` | `E:backoffice` (buttons present, «Напомнить» answers), `U:pult-v3` | pass (remind), untested (mark paid, void, link copy) |
 | Бэк-офис / Документы | kind and status chips, search | render | `GET crm/documents` | `E:panels`, `U:admin-crm-hq` | pass (render) |
 | Бэк-офис / Рекомендации | status chips, search | render | `GET crm/referrals` | `E:panels` | pass (render) |
 | Бэк-офис / Отзывы | list | render | `GET crm/reviews` | `E:panels` | pass (render) |
 | Компания | routine toggles and «Запустить сейчас: <routine>» (5), trust level switches (5), playbook rows (open drawer), costs, workers | company controls | `GET company`, `POST company/...` | `E:panels` (renders), `U:pult-v3` | untested (writes) |
+| Компания / Цены | every price editable in place (Enter saves, Esc cancels), «Вернуть по умолчанию», history, API range refusal 422 | `GET/POST /api/admin/prices` | `E:prices` (edit in the panel, API reset, 422 and 403), `U:pricing-store` | pass (one price edited), untested (stage shares, «Сбросить всё») |
 | every panel | «Шире» / «Уже», «Закрыть панель», Esc | resize, close | - | `E:keys` (Esc, open), `E:tabs` | pass (open/close), untested (resize) |
 
 ## 13. Go-live `/admin/golive`
@@ -325,6 +347,20 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 | API guard | 401 without session, 403 bad Origin, 400 unknown action | `/api/admin/golive` | `E:golive`, `U:golive` | pass |
 | top-bar chip | countdown text | - | `U:golive` (`chipText`) | pass |
 
+## 14. Review centre `/admin/review` and chats `/admin/chats`
+
+| Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|
+| review: department rail (7, with counts) | switches the queue | `GET review?status=all` | `E:review` (seven entries, counts, one switch), `U:review` | pass |
+| review: queue, J / K, position counter, «Предыдущий» / «Следующий» | steps through the items | - | `E:review` (J then K), `U:review` | pass (keys), untested (arrow buttons) |
+| review: «Правки» (R) composer | opens the revise note, Esc closes it | `POST review/<id>` (revise) | `E:review` (opens, fills, Esc), `U:review` | pass (open and close), untested (send) |
+| review: «Одобрить» (A), «Править» (E), «Отклонить» (X), «Выложить сейчас» (P), «Перенести» (T), «Отправить» (S), «Позвонить» (C) | decisions, optimistic with rollback | `POST review/<id>` | `U:review`, `U:hq-admin` | untested (browser) |
+| review: «Скинуть ссылку» | dialog with the link and a note, host check, Esc closes | `POST trends` | `E:review` (rejects a foreign host, accepts a YouTube link, toast) | pass |
+| review: versions, media stage, details sheet | v1/v2, video, carousel | - | `U:review` | untested (browser) |
+| chats: list, thread opens | threads with channels and unread | `GET chats`, `GET chats/<id>` | `E:chats`, `U:chats` | pass |
+| chats: reply box (Enter sends, Shift+Enter new line) | owner reply joins the thread | `POST chats/<id>/reply` | `E:chats` (Enter), `U:chats` | pass (Enter), untested (Shift+Enter) |
+| chats: filters, links «Открыть лид / тикет / клиента» | filter, jump to the Пульт panel | - | `U:chats` | untested (browser) |
+
 ## Totals
 
 Counted as rows of the tables above (one row can stand for a group of identical controls, as written). A row is `pass` when everything it names is covered, `untested` when nothing is, and «pass in part» when the Status cell names both (for example the first card clicked, the other six not).
@@ -337,14 +373,17 @@ Counted as rows of the tables above (one row can stand for a group of identical 
 | 4 contact form | 5 | 1 | 0 | 2 |
 | 5 builder | 9 | 5 | 0 | 3 |
 | 6 estimate, services, solutions | 7 | 1 | 0 | 5 |
-| 7 other pages | 9 | 2 | 0 | 4 |
+| 7 other pages | 11 | 4 | 0 | 4 |
 | 8 pay | 6 | 1 | 0 | 1 |
-| 9 cabinet | 2 | 3 | 0 | 12 |
-| 10 404 and chat | 5 | 2 | 0 | 4 |
-| 11 owner login and hub | 10 | 2 | 0 | 3 |
-| 12 department panels | 4 | 7 | 0 | 12 |
+| 9 cabinet | 3 | 5 | 0 | 12 |
+| 10 404 and chat | 6 | 2 | 0 | 3 |
+| 11 owner login and hub | 10 | 3 | 0 | 3 |
+| 12 department panels | 5 | 8 | 0 | 12 |
 | 13 go-live | 6 | 2 | 0 | 2 |
-| **all** | **88** | **28** | **0** | **58** |
+| 14 review centre and chats | 3 | 3 | 0 | 3 |
+| **all** | **96** | **37** | **0** | **60** |
+
+The totals were recounted from the tables on 2026-11-21 (section 10 holds 6 pass, 2 in part, 3 untested rows; the earlier table had it one row off) and section 14 was added with the review centre and the chats.
 
 `fail` is 0 because the two bugs the suite found were small and are fixed (below); they stay in the tables as
 `pass` with the test that now guards them. `untested` is mostly three groups: everything behind a real Supabase

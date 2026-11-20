@@ -148,3 +148,49 @@ test('header and footer anchors on the home page point at sections that exist', 
   expect(anchors.length).toBeGreaterThan(5)
   for (const id of anchors) await expect(page.locator(`[id="${id}"]`), `#${id}`).toHaveCount(1)
 })
+
+const departments = ['marketing', 'sales', 'support', 'production', 'backoffice', 'company']
+
+test('AI team: the index lists six departments and every card opens its page', async ({ page }) => {
+  await open(page, '/ru/ai-team')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  for (const id of departments) await expect(page.locator(`main a[href="/ru/ai-team/${id}"]`).first(), id).toBeAttached()
+  await expect(page.locator('main a[href^="/ru/ai-team/agent/"]').first()).toBeAttached()
+  await page.locator('main a[href="/ru/ai-team/support"]').first().click()
+  await expect(page).toHaveURL(/\/ru\/ai-team\/support$/)
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  // The page names no price for the department, only «По смете» (the contact form's budget chips are not prices of it).
+  await expect(page.locator('main')).toContainText('По смете')
+})
+
+test('AI team: a department page lists its agents and an agent page opens the builder or the chat', async ({ page }) => {
+  await open(page, '/ru/ai-team/marketing')
+  const agent = page.locator('main a[href="/ru/ai-team/agent/trend-scout"]').first()
+  await expect(agent).toBeAttached()
+  await agent.click()
+  await expect(page).toHaveURL(/\/ru\/ai-team\/agent\/trend-scout$/)
+  await expect(page.locator('main a[href*="/ru/builder"]').first()).toBeAttached()
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+})
+
+test('pay-how: the three steps of paying in USDT are on the page and no local currency is quoted', async ({ page }) => {
+  await open(page, '/ru/pay-how')
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
+  await expect(page.locator('main')).toContainText('USDT')
+  await expect(page.locator('main')).toContainText('TRC20')
+  await expect(page.locator('main')).toContainText('TON')
+})
+
+test('bare paths of known pages redirect to a language (contracts link /terms and /privacy)', async ({ request }) => {
+  for (const [path, accept, to] of [
+    ['/terms', 'ru-RU,ru;q=0.9', '/ru/terms'],
+    ['/privacy', 'en-US,en;q=0.9', '/en/privacy'],
+    ['/pay-how', 'ru', '/ru/pay-how'],
+    ['/services/websites', 'en', '/en/services/websites'],
+  ] as const) {
+    const res = await request.get(path, { maxRedirects: 0, headers: { 'accept-language': accept } })
+    expect(res.status(), path).toBe(307)
+    expect(new URL(res.headers().location!, 'http://localhost').pathname, path).toBe(to)
+    expect((await request.get(to)).status(), to).toBe(200)
+  }
+})
