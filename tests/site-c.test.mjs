@@ -142,9 +142,19 @@ test('terms: page, both dictionaries, filled on the owner\'s word, footer link',
     assert.match(text, /Fir Tech/)
     assert.match(text, /hello@firtech\.pro/)
     assert.match(text, /USDT/)
-    assert.match(text, /50%/)
+    // Payment by stages (owner 2026-11-21): each stage before it starts, the last before handover,
+    // small projects 50% and 50% (the `{small}` limit token), subscriptions monthly in advance.
+    const payment = dict.terms.sections.find((s) => s.id === 'payment').text.join(' ')
+    assert.match(payment, /{small}/)
+    assert.match(payment, /50%/)
+    assert.doesNotMatch(payment, /предоплат|prepayment/i)
+    assert.ok(dict.terms.sections.find((s) => s.id === 'guarantee').title.length > 0)
     assert.ok(dict.privacy.draftNote)
   }
+  assert.match(ru.terms.sections.find((s) => s.id === 'payment').text.join(' '), /до его начала.*последний этап до передачи/)
+  assert.match(en.terms.sections.find((s) => s.id === 'payment').text.join(' '), /before it starts.*last stage before/)
+  assert.match(ru.terms.sections.find((s) => s.id === 'guarantee').text.join(' '), /оплата первого этапа/)
+  assert.match(en.terms.sections.find((s) => s.id === 'guarantee').text.join(' '), /first stage payment/)
   assert.equal(ru.terms.placeholder, '[заполнит владелец]')
   assert.match(readFileSync('src/components/footer.tsx', 'utf8'), /\/terms/)
 })
@@ -206,4 +216,23 @@ test('lead route keeps the honeypot, the rate limit and the Telegram + HQ forwar
   assert.match(route, /MAX_PER_WINDOW = 5/)
   assert.match(route, /forwardLeadDetailed\(/)
   assert.match(route, /notifyOwner\(/)
+})
+
+test('payment copy: no 50% outside the terms, the rule is stated once per surface', async () => {
+  const { fillStageTokens } = await import('../src/lib/payment-stages.ts')
+  for (const [name, dict] of [['ru', ru], ['en', en]]) {
+    for (const [at, text] of strings(dict)) {
+      if (at.startsWith('terms.sections')) continue
+      assert.doesNotMatch(text, /50\s?%|50\/50|prepayment|предоплат/i, `${name} ${at}`)
+    }
+    assert.equal(fillStageTokens(dict.terms.sections.find((s) => s.id === 'payment').text[0]).includes('{'), false)
+    assert.match(dict.pricingHome.stages, /./)
+    assert.match(dict.builder.stageRule, /./)
+    const track = dict.cabinet.cards.stageTrack
+    assert.deepEqual(Object.keys(track), ['pay', 'work', 'accept'])
+    for (const label of Object.values(track)) assert.match(label, /\{n\}/)
+  }
+  assert.equal(ru.builder.stageRule, 'Каждый этап оплачивается до его начала, последний до передачи.')
+  assert.match(ru.builder.payNote, /по этапам/)
+  assert.match(en.builder.payNote, /stages/)
 })

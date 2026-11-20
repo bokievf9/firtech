@@ -166,7 +166,7 @@ test('guarantee: pricing, builder summary, estimate notes, FAQ, terms, llms.txt'
   assert.equal(doc.guarantee, ru.guarantee.line)
   assert.match(readFileSync('src/components/estimate-sheet.tsx', 'utf8'), /doc\.guarantee/)
   for (const [name, dict] of dicts) {
-    assert.ok(dict.faq.items.some((i) => /guarantee|prepayment/i.test(i.a) || /предоплат/.test(i.a)), `faq ${name}`)
+    assert.ok(dict.faq.items.some((i) => /first stage payment/i.test(i.a) || /оплату первого этапа/.test(i.a)), `faq ${name}`)
     const ids = dict.terms.sections.map((s) => s.id)
     assert.equal(ids[ids.indexOf('payment') + 1], 'guarantee', name)
     const sec = dict.terms.sections.find((s) => s.id === 'guarantee')
