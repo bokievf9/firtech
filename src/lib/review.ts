@@ -556,3 +556,29 @@ export function trendUrlProblem(input: string): string | null {
   if (!TREND_HOSTS.includes(u.hostname.toLowerCase())) return 'Подходят Instagram, TikTok и YouTube'
   return null
 }
+
+// ---- errors ---------------------------------------------------------------------------------------
+
+const ERROR_TEXT: Record<string, string> = {
+  already_decided: 'Это уже решено другим способом',
+  not_pending: 'Материал уже не ждёт решения',
+  not_applicable: 'Это действие сейчас недоступно',
+  not_applied: 'Текст не изменился',
+  placeholder: 'В тексте остались места в квадратных скобках, заполните их в режиме правки',
+  not_ready: 'Материал ещё не готов к публикации',
+  not_configured: 'Автопубликация для этой площадки не настроена',
+  publish_failed: 'Публикация не удалась, можно нажать ещё раз',
+  failed: 'Одобрение не выполнилось',
+  not_delivered: 'Не доставлено клиенту, отправьте вручную',
+  invalid: 'Неверные данные',
+  invalid_link: 'Ссылка не подходит',
+  unavailable: 'Отдел маркетинга сейчас недоступен',
+  rate_limited: 'Слишком много запросов, подождите минуту',
+  not_found: 'Материал не найден, возможно уже убран',
+}
+// A short Russian sentence for a failed call: HQ's code, plus what it said (reason, placeholders).
+export function reviewError(res: { error: string; reason?: string; message?: unknown; placeholders?: unknown }, fallback: (code: string) => string): string {
+  const base = ERROR_TEXT[res.error] ?? fallback(res.error)
+  const extra = Array.isArray(res.placeholders) ? ` (${res.placeholders.slice(0, 4).join(' ')})` : typeof res.reason === 'string' ? `. ${res.reason}` : typeof res.message === 'string' && res.message ? `. ${res.message}` : ''
+  return `${base}${extra}`
+}
