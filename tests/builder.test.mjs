@@ -133,3 +133,10 @@ test('leadServiceOf: one main service is itself, anything more is a bundle', asy
   const two = { ...one, parts: { ...one.parts, websites: { variant: 'landing', addons: [] } } }
   assert.equal(leadServiceOf(two), 'bundle')
 })
+
+test('builder link: prototype names are not formats', () => {
+  assert.equal(decodeBuild('websites.constructor~bots.toString'), null)
+  const build = decodeBuild('websites.landing~bots.valueOf.payments')
+  assert.deepEqual(Object.keys(build.parts), ['websites'])
+  assert.equal(typeof quote(build).total, 'number')
+})

@@ -401,7 +401,7 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       continue
     }
     const slug = serviceSlugs.find((s) => s === head)
-    if (!slug || !(second in catalog[slug].variants)) continue
+    if (!slug || !Object.hasOwn(catalog[slug].variants, second)) continue
     build.parts[slug] = {
       variant: second,
       addons: keepKnown(third, Object.keys(catalog[slug].addons)),
