@@ -189,7 +189,7 @@ export function cabinetMock(email: string): CabinetData {
         nextStep: '',
         timeline: [
           { at: iso(-14), kind: 'lead', title: 'Заявка получена' },
-          { at: iso(-13), kind: 'paid', title: 'Предоплата получена' },
+          { at: iso(-13), kind: 'paid', title: 'Оплата этапа 1 получена' },
           { at: iso(-13), kind: 'project', title: 'Проект запущен' },
         ],
         replies: mine(9),
@@ -210,7 +210,7 @@ export function cabinetMock(email: string): CabinetData {
       },
     ],
     invoices: [
-      { id: 'bl:1', kind: 'invoice', status: 'issued', title: 'Сайт, предоплата', amountUsd: 150, number: 'FT-2026-001', createdAt: iso(-13) },
+      { id: 'bl:1', kind: 'invoice', status: 'issued', title: 'Сайт, этап 1', amountUsd: 150, number: 'FT-2026-001', createdAt: iso(-13) },
       { id: 'bl:2', kind: 'invoice', status: 'paid', title: 'Домен и настройка', amountUsd: 40, number: 'FT-2026-002', createdAt: iso(-30) },
     ],
     documents: [

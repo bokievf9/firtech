@@ -30,10 +30,10 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   ]
 
   const invoices: Row[] = [
-    { id: 5, number: 'FT-2026-005', client: 'Алиса', title: 'Сайт, предоплата 50%', amountUsd: 300, payAmountUsd: 300.01, status: 'paid', dueDate: ago(60 * 24), issuedAt: ago(60 * 24 * 3), paidAt: ago(60 * 20), paidVia: 'usdt_ton', txId: 'vQ5Dkc0z9xV7S8q6A1n8Kp3wJ2gYH0dQx1iZp9lXc4E=', payUrl: 'https://firtech.pro/ru/pay/FT-2026-005?k=demo', remindedAt: null },
-    { id: 6, number: 'FT-2026-006', client: 'Sadaf Clinic', title: 'Сайт и бот, предоплата 50%', amountUsd: 600, payAmountUsd: 600, status: 'issued', dueDate: ahead(2), issuedAt: ago(60 * 10), paidAt: null, paidVia: '', txId: '', payUrl: 'https://firtech.pro/ru/pay/FT-2026-006?k=demo', remindedAt: null },
+    { id: 5, number: 'FT-2026-005', client: 'Алиса', title: 'Сайт, этап 1', amountUsd: 300, payAmountUsd: 300.01, status: 'paid', dueDate: ago(60 * 24), issuedAt: ago(60 * 24 * 3), paidAt: ago(60 * 20), paidVia: 'usdt_ton', txId: 'vQ5Dkc0z9xV7S8q6A1n8Kp3wJ2gYH0dQx1iZp9lXc4E=', payUrl: 'https://firtech.pro/ru/pay/FT-2026-005?k=demo', remindedAt: null },
+    { id: 6, number: 'FT-2026-006', client: 'Sadaf Clinic', title: 'Сайт и бот, этап 1', amountUsd: 600, payAmountUsd: 600, status: 'issued', dueDate: ahead(2), issuedAt: ago(60 * 10), paidAt: null, paidVia: '', txId: '', payUrl: 'https://firtech.pro/ru/pay/FT-2026-006?k=demo', remindedAt: null },
     { id: 4, number: 'FT-2026-004', client: 'Pulse Gym', title: 'Автоматизация, финальный платёж', amountUsd: 450, payAmountUsd: 450, status: 'issued', dueDate: ago(60 * 24 * 2), issuedAt: ago(60 * 24 * 9), paidAt: null, paidVia: '', txId: '', payUrl: 'https://firtech.pro/ru/pay/FT-2026-004?k=demo', remindedAt: ago(60 * 24) },
-    { id: 3, number: 'FT-2026-003', client: 'Pulse Gym', title: 'Автоматизация, предоплата', amountUsd: 450, payAmountUsd: 450, status: 'paid', dueDate: ago(60 * 24 * 12), issuedAt: ago(60 * 24 * 14), paidAt: ago(60 * 24 * 12), paidVia: 'usdt_trc20', txId: '4f1c2b0a9e8d7c6b5a49382716051f2e3d4c5b6a79881726354a5b6c7d8e9f00', payUrl: null, remindedAt: null },
+    { id: 3, number: 'FT-2026-003', client: 'Pulse Gym', title: 'Автоматизация, этап 1', amountUsd: 450, payAmountUsd: 450, status: 'paid', dueDate: ago(60 * 24 * 12), issuedAt: ago(60 * 24 * 14), paidAt: ago(60 * 24 * 12), paidVia: 'usdt_trc20', txId: '4f1c2b0a9e8d7c6b5a49382716051f2e3d4c5b6a79881726354a5b6c7d8e9f00', payUrl: null, remindedAt: null },
     { id: 2, number: 'FT-2026-002', client: 'Old Cafe', title: 'Меню', amountUsd: 50, payAmountUsd: null, status: 'void', dueDate: null, issuedAt: ago(60 * 24 * 20), paidAt: null, paidVia: '', txId: '', payUrl: null, remindedAt: null },
   ]
 
