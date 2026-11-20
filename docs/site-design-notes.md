@@ -34,8 +34,8 @@ Components: `.glass` (in `@layer components`, so utilities override it; solid fi
 (real state only: lime breathing = HQ answering, amber still = demo), `.hero-aurora` (CSS fallback
 background), `.office-pan`, `.skeleton`, `.chat-in`, `.typing-dot`. Focus: 2px lime outline, 3px
 offset, on every focusable. Grain: the existing fixed `.grain::after` layer (5%), never on a
-scrolling element. Themes: the public site is dark only (owner's choice); the light theme stays for
-/admin, untouched. Every animation added here moves only transform and opacity and stops under
+scrolling element. Themes: since 2026-11-21 the public site is light by default with a dark switch (see the section
+below); /admin keeps its own light and dark. Every animation added here moves only transform and opacity and stops under
 `prefers-reduced-motion` (a block at the end of `globals.css`); Motion components use
 `useReducedMotion` from `@/lib/use-reduced-motion`.
 
@@ -251,3 +251,29 @@ two-segment path with an unknown locale (`/xx/yy`) still gets Next's plain 404 b
   тексты, заметки, URL и порты отбрасываются, названия сервисов и подписи свои. Кэш 60 с на сервере (сбой
   HQ кэшируется 15 с), таймаут 3 с, одновременные запросы делят один. Строка «Сайт» при `unknown` берётся из
   собственной проверки `/api/health`. Страница индексируется, есть в карте сайта и футере.
+
+
+## Light theme (owner, 2026-11-21: «все страницы, нужно полностью адаптировать сайт под белый фон»)
+- Public site: white page (`#ffffff`) is the DEFAULT, dark is the old palette behind a sun/moon switch
+  (header, and the mobile menu). Storage key `fir-theme` = `light` | `dark`; an inline script from
+  `ThemeInit` sets `data-theme` on <html> before the first paint (also the `theme-color` meta); with
+  nothing stored the page is light. `prefers-color-scheme` is not used on purpose.
+- Tokens keep their names. `@theme static` = light values: bg `#fff`, surface `#f6f7f4`, surface-2
+  `#eceee7`, line `rgb(14 18 15 / .10)`, fg `#0e120f`, muted `#4a564d`, faint `#5a665d`, accent
+  `#c6ff3d` (FILL only), accent-text `#2b6410`, pine `#e1f3bd` (a pale lime wash; deep pine on dark).
+  `:root[data-theme='dark']` = the previous dark tokens. Contrast (AA 4.5:1 for fg, muted, faint,
+  accent-text on bg, surface, surface-2 in both themes) is a test: `tests/site-theme.test.mjs`.
+- Lime rule: a lime fill always carries `text-accent-ink`; text and thin lines on any theme use
+  `text-accent-text`, `border-accent-text`, `decoration-accent-text`. All former `text-accent` in
+  public components became `text-accent-text`.
+- Light look: softer lines, resting cards get `--shadow-card` (a faint green-tinted lift) instead of
+  glow, `.glass` becomes a white frosted pill, hero gets a pale lime aurora (CSS `--aurora-*`) and the
+  WebGL field a `l` uniform (white ground, pale lime tint, no glow; read from `data-theme` each frame),
+  the giant footer wordmark fades from 72% ink, the kinetic accent line is dark green.
+- The /admin shell sets `data-theme` explicitly (`dark` default, `light` stored in
+  `firtech-admin-theme`); its light tokens are scoped to `:root[data-theme='light']:not(.site)`, so
+  the public light theme is not touched by them.
+- Not themed on purpose: the pixel-office artwork keeps its own night sky and palette (its frame, the
+  glass window and the page around it are light), the Google and Telegram brand marks, the payment QR
+  (white), the product mini-demo food colours, the A4 estimate paper (own colours, white in print).
+  The OG image route (`opengraph-image.tsx`) stays dark.
