@@ -24,6 +24,19 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   change them only on the owner's word (current set decided 2026-11-19: below the RU/CIS freelance
   market, extras about half the old prices; `contentPlans` = content subscription, `agentPlans` =
   Dono and Polly).
+  **Editable prices (owner 2026-11-21: «правка всех цен в админке»)**: the numbers in `pricing.ts` are only the
+  DEFAULTS (`defaultPricing`, type `Pricing`: starting prices, `catalog`, `extras`, plans, `bundleDiscount` percent,
+  `referralPercent`, `smallProjectMaxUsd`, `stageShares`). The owner edits every price in the Пульт (Компания, tab «Цены»,
+  ⌘K «Цены»); overrides live in `$DATA_DIR/prices.json` (`pricing-store.ts`: `{overrides, updatedAt, history[200]}`, atomic
+  writes like `golive.json`; **back it up together with `leads.json`**, the daily backup script copies only `leads.json`;
+  delete the file to go back to the defaults). `getPricing()` (server, per-request cached) = defaults + overrides, validated
+  by zod (`pricing-edit.ts`; an invalid override is ignored with a server warning). Every pure helper (`quote`, `estimate`,
+  `stagesFor`, `estimateDoc`, `leadSummary`, `productPrices`, `fillReferralPercent`...) takes a `pricing: Pricing` argument,
+  default `defaultPricing` for tests. Components never import the constants: client code uses `usePricing()`
+  (`PricingProvider` in the locale layout), server code `await getPricing()` (a test greps for this). Blog articles write
+  `{price:...}` tokens (`content/blog/prices.ts`), filled by `allArticles()` from the live pricing. Pages revalidate every
+  300 s (`revalidate` in the locale layout, `/llms.txt`); the save handler calls `revalidatePath('/', 'layout')`. Changing a
+  default in `pricing.ts` still needs the owner's word and a deploy; live edits do not.
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
 - Home page order (stage B1, products lead; `homeSections` in `src/lib/home.ts`, tested): hero
   (`#top`, kinetic headline over a 3D product stage; on lg a 250vh scroll track brings the seven
@@ -175,10 +188,16 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `content-type: application/json` (415) and, when `Origin` is present, the site origin (`NEXT_PUBLIC_SITE_URL`, or
   localhost outside production; 403). The visitor IP (`visitorIp`: `x-real-ip`, else first `x-forwarded-for` hop, like the
   limiters) goes to HQ in header `x-visitor-ip` on every forward (not sent when 'local'). Tests: `tests/audit-2026-11-19.test.mjs`.
-- `GET /api/prices` (`force-static`, `cache-control: public, max-age=600`): `pricesJson()` in `src/lib/prices-json.ts`
-  from `pricing.ts` and `products.ts` (starting prices, catalog, extras, plans, referral percent, products); the agents read it
+- `GET /api/prices` (`force-dynamic`, `cache-control: public, max-age=60`): `pricesJson(pricing, updatedAt)` in
+  `src/lib/prices-json.ts` from the LIVE pricing (defaults + the owner's overrides from the Пульт) and `products.ts`
+  (starting prices, catalog, extras, plans, referral percent, `bundleDiscountPercent`, products); the agents read it
   instead of copies; since 2026-11-21 it also carries `stages` (templates: id, ru/en title, share) and `smallProjectMaxUsd`.
-  Bump `PRICES_UPDATED_AT` when prices change (now 2026-11-21).
+  `updatedAt` is the last edit in the Пульт (ISO), else `PRICES_UPDATED_AT` (the date of the defaults, 2026-11-21).
+  HQ reloads it every 6 hours, so agents see an edit with that delay (the site cannot push to HQ).
+- `/api/admin/prices` (session + Origin, JSON only): `GET` = defaults, overrides, merged, overridden paths, history (last 50),
+  field list (path, ru label, group, unit, min/max/step); `POST {path, value}`, `{ops:[{path,value}|{reset}]}` (atomic) or
+  `{action:'reset', path?}`; refusals are 422 with a key (`out_of_range:<path>`, `not_integer`, `stage_sum:<template>`...).
+  Tests: `tests/pricing-store.test.mjs`.
 - Security headers (`next.config.ts`, all paths): nosniff, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
   `Permissions-Policy` (microphone only on `/admin/echo`), HSTS in production (nginx sends none, so no duplicate). No CSP yet.
 - Payment copy (owner 2026-11-19, stages 2026-11-21): USDT (TRC20/TON) or an online wallet named in the estimate; payment by
