@@ -26,7 +26,7 @@ export const goliveBlocks = [
 export const goliveItems: GoliveItem[] = [
   { id: 'site-theme-review', block: 'site', title: 'Белая и тёмная тема проверены на всех страницах', hint: 'Переключатель в шапке, главная, услуги, конструктор, блог, кабинет.', owner: 'owner' },
   { id: 'site-copy', block: 'site', title: 'Тексты, цены и условия вычитаны', hint: 'Цены только из конструктора, без опечаток, RU и EN.', owner: 'owner' },
-  { id: 'site-seo', block: 'site', title: 'Sitemap, robots, Search Console и Яндекс Вебмастер подключены', hint: 'Сайт добавлен в обе консоли, sitemap принят без ошибок.', owner: 'claude', link: 'https://search.google.com/search-console' },
+  { id: 'site-seo', block: 'site', title: 'Sitemap, robots, Search Console и Яндекс Вебмастер подключены', hint: 'Сайт добавлен в обе консоли, sitemap принят без ошибок.', owner: 'owner', link: 'https://search.google.com/search-console' },
   { id: 'site-speed', block: 'site', title: 'Главная и конструктор: Lighthouse 90+ на мобильном', hint: 'Замер на проде, не на локальной сборке.', owner: 'claude' },
   { id: 'site-legal', block: 'site', title: 'Политика и условия в финальной редакции', hint: 'Условия и политика конфиденциальности прочитаны владельцем.', owner: 'owner', link: '/ru/terms' },
 
@@ -43,12 +43,12 @@ export const goliveItems: GoliveItem[] = [
   { id: 'hq-routines', block: 'hq', title: 'Все рутины отработали по расписанию без ошибок 24 ч', hint: 'Панель Компания, вкладка рутин.', owner: 'claude' },
   { id: 'hq-approvals', block: 'hq', title: 'Карточки одобрений в Telegram и Пульте работают', hint: 'Одобрить, править, отклонить: результат виден в обоих местах.', owner: 'owner' },
   { id: 'hq-backup', block: 'hq', title: 'Ночной бэкап пришёл в Telegram', hint: 'Файл пришёл и открывается.', owner: 'claude' },
-  { id: 'hq-monitoring', block: 'hq', title: 'Внешний монитор (UptimeRobot) и алерты', hint: 'Сайт и HQ под наблюдением, алерт приходит владельцу.', owner: 'claude' },
+  { id: 'hq-monitoring', block: 'hq', title: 'Внешний монитор (UptimeRobot) и алерты', hint: 'Сайт и HQ под наблюдением, алерт приходит владельцу.', owner: 'owner' },
   { id: 'hq-instructions', block: 'hq', title: 'Инструкции голов перезагружены, плейбуки на месте', hint: 'Панель Компания, плейбуки: у каждой роли свежая дата.', owner: 'claude' },
 
-  { id: 'mk-profiles', block: 'mk', title: 'Профили YouTube, Instagram, TikTok, Дзен оформлены (/profile all)', hint: 'Аватар, шапка, описание и ссылка на сайт везде.', owner: 'owner' },
+  { id: 'mk-profiles', block: 'mk', title: 'Профили: YouTube, Instagram, TikTok (/profile all), Дзен руками', hint: 'Аватар, шапка, описание и ссылка на сайт везде.', owner: 'owner' },
   { id: 'mk-week', block: 'mk', title: 'Пакет недели одобрен', hint: 'Панель Маркетинг, вкладка Контент.', owner: 'owner' },
-  { id: 'mk-youtube', block: 'mk', title: 'Первый Short загружен на YouTube', hint: 'Видео опубликовано, ссылка в профиле работает.', owner: 'claude' },
+  { id: 'mk-youtube', block: 'mk', title: 'Первый Short загружен (unlisted до слова владельца)', hint: 'Видео загружено как unlisted, публикуется только после слова владельца; ссылка в профиле работает.', owner: 'claude' },
   { id: 'mk-instagram', block: 'mk', title: 'Публикатор на Маке: вход, проба, launchd', hint: 'Пробная публикация прошла, агент запускается сам.', owner: 'owner' },
   { id: 'mk-blog', block: 'mk', title: 'Блог: 7+ статей, RSS подключён к Дзену', hint: 'Лента /rss.xml принята Дзеном.', owner: 'owner' },
   { id: 'mk-analytics', block: 'mk', title: 'Цифры недели в Пульте показывают сайт, блог, YouTube', hint: 'Панель Маркетинг, вкладка Цифры.', owner: 'claude' },
@@ -60,18 +60,18 @@ export const goliveItems: GoliveItem[] = [
 
   { id: 'launch-first-clients', block: 'launch', title: 'План первых 10 клиентов: 100 бизнесов от Разведчика, 10 знакомых, 2GIS и Google Карты, партнёры 10%', hint: 'Список составлен, первые контакты назначены.', owner: 'owner' },
   { id: 'launch-demo-client', block: 'launch', title: 'Демо-клиент с полным проектом в кабинете для показов', hint: 'Тестовый клиент с заявкой, проектом, счётом и документами, помечен как демо.', owner: 'claude' },
-  { id: 'launch-sla', block: 'launch', title: 'SLA на сайте: первый ответ за 5 минут круглосуточно, цены после владельца', hint: 'Обещание на сайте совпадает с тем, что реально делает чат и HQ.', owner: 'claude' },
+  { id: 'launch-sla', block: 'launch', title: 'SLA на сайте: первый ответ за 5 минут круглосуточно, цены после владельца', hint: 'На сайте, в чате и в боте одно обещание.', owner: 'claude' },
   { id: 'launch-film', block: 'launch', title: 'Launch-фильм и серия постов запуска', hint: 'Ролик и посты готовы и одобрены.', owner: 'claude' },
   { id: 'launch-stoplist', block: 'launch', title: 'Стоп-лист соблюдён: без TikTok API, Telegram-канала, Meta API, валют', hint: 'Нигде не подключены и не обещаны.', owner: 'owner' },
 
   { id: 'proof-pilot-case', block: 'market', title: 'Сделать 1-2 пилота и опубликовать кейс с цифрами', hint: 'Бесплатно или по себестоимости под письменный отзыв; у конкурентов есть кейсы и отзывы, у нас нет ни одного', owner: 'owner' },
   { id: 'proof-reviews-platforms', block: 'market', title: 'Завести профили на FL.ru, Kwork, Upwork и собрать первые отзывы', hint: 'Независимые рейтинги есть у ближайших конкурентов (FL.ru, 2ГИС, Upwork)', owner: 'owner' },
-  { id: 'offer-demo-24h', block: 'market', title: 'Добавить предложение: демо на ваших данных за 24 часа до оплаты', hint: 'Крючок у PapAI Soft; формулировка и форма на сайте на стороне claude, обещание на стороне владельца', owner: 'claude' },
-  { id: 'guarantee-first-screen', block: 'market', title: 'Вынести гарантию возврата предоплаты в первый экран главной', hint: 'У большинства конкурентов гарантии не найдено; ссылка на оферту /terms', owner: 'claude' },
+  { id: 'offer-demo-24h', block: 'market', title: 'Добавить предложение: демо на ваших данных за 24 часа до оплаты', hint: 'Крючок у PapAI Soft; формулировка и форма на сайте на стороне claude, обещание на стороне владельца', owner: 'owner' },
+  { id: 'guarantee-first-screen', block: 'market', title: 'Вынести гарантию «возвращаем оплату первого этапа» в первый экран главной', hint: 'У большинства конкурентов гарантии не найдено; ссылка на оферту /terms', owner: 'claude' },
   { id: 'legal-executor-data', block: 'market', title: 'Опубликовать данные исполнителя и вычитанную юристом оферту', hint: 'У конкурентов видны адрес, телефон, ИНН ИП; у нас на /terms оговорка про проверку юристом', owner: 'owner' },
   { id: 'channels-whatsapp-phone', block: 'market', title: 'Добавить WhatsApp и телефон как каналы ответа', hint: 'У большинства студий СНГ есть WhatsApp и телефон; у нас Telegram и Instagram', owner: 'owner' },
   { id: 'seo-city-niche-pages', block: 'market', title: 'Сделать страницы по городам и нишам с демо под нишу', hint: 'Душанбе, Ташкент, Алматы, Бишкек; салон, клиника, автосервис', owner: 'claude' },
-  { id: 'howto-usdt-pay', block: 'market', title: 'Добавить страницу как оплатить USDT за 3 шага и цены справочно в местной валюте', hint: 'USDT не найдена ни у одного конкурента; снимает страх первой оплаты', owner: 'claude' },
+  { id: 'howto-usdt-pay', block: 'market', title: 'Страница «Как оплатить» USDT за 3 шага', hint: 'Построена на /pay-how: проверь тексты и шаги, отметь пункт сам. USDT не найдена ни у одного конкурента; снимает страх первой оплаты', owner: 'owner', link: '/ru/pay-how' },
 ]
 
 export const goliveText = {

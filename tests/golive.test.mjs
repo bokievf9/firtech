@@ -152,3 +152,17 @@ test('the shader is capped (dpr 1.5, 30 fps) and the loops stop on hidden tabs',
   assert.match(field, /visibilitychange/)
   assert.match(field, /IntersectionObserver/)
 })
+
+test('go-live items after the 2026-11-21 audit: wording, executors, no local currency', () => {
+  const by = Object.fromEntries(goliveItems.map((i) => [i.id, i]))
+  assert.equal(by['howto-usdt-pay'].title, 'Страница «Как оплатить» USDT за 3 шага')
+  assert.doesNotMatch(by['howto-usdt-pay'].title + by['howto-usdt-pay'].hint, /местной валют|local currenc/i)
+  assert.equal(by['howto-usdt-pay'].link, '/ru/pay-how')
+  assert.match(by['guarantee-first-screen'].title, /возвращаем оплату первого этапа/)
+  assert.doesNotMatch(by['guarantee-first-screen'].title, /предоплат/)
+  assert.match(by['mk-profiles'].title, /YouTube, Instagram, TikTok \(\/profile all\), Дзен руками/)
+  assert.equal(by['mk-youtube'].title, 'Первый Short загружен (unlisted до слова владельца)')
+  assert.match(by['launch-sla'].hint, /На сайте, в чате и в боте одно обещание/)
+  for (const id of ['site-seo', 'hq-monitoring', 'offer-demo-24h', 'legal-executor-data', 'howto-usdt-pay']) assert.equal(by[id].owner, 'owner', id)
+  assert.equal(goliveItems.filter((i) => i.owner === 'owner').length, 25)
+})
