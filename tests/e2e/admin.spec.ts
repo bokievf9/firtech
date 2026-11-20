@@ -91,6 +91,34 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
+  test('Director: approving a card lowers the counter; the chat answers a command; the task filter narrows the board', async ({ page }) => {
+    await open(page, '/admin/office')
+    await expect(page.getByRole('button', { name: 'Одобрения: 3' })).toBeVisible()
+    await page.keyboard.press('1')
+    await page.getByRole('tab', { name: /^Одобрения/ }).click()
+    await page.getByRole('button', { name: /^Одобрить/ }).first().click()
+    await expect(page.getByRole('button', { name: /^Одобрения: [0-2]$/ })).toBeVisible()
+
+    await page.getByRole('tab', { name: 'Чат' }).click()
+    await page.getByRole('button', { name: '/status' }).click()
+    await expect(page.locator('aside').getByText('/status').first()).toBeVisible()
+
+    await page.getByRole('tab', { name: 'Задачи' }).click()
+    const before = await page.locator('aside button', { hasText: /#\d+/ }).count()
+    await page.getByRole('button', { name: 'Маркетинг', exact: true }).first().click()
+    await expect.poll(() => page.locator('aside button', { hasText: /#\d+/ }).count()).toBeLessThan(before)
+  })
+
+  test('Back office: invoice actions are there and «Напомнить» answers with a toast', async ({ page }) => {
+    await open(page, '/admin/office')
+    await page.keyboard.press('6')
+    await expect(page.getByRole('button', { name: 'Напомнить клиенту' }).first()).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Оплачено вручную' }).first()).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Аннулировать' }).first()).toBeVisible()
+    await page.getByRole('button', { name: 'Напомнить клиенту' }).first().click()
+    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /\S/ }).first()).toBeVisible()
+  })
+
   test('⌘K opens the palette, filters and closes with Esc', async ({ page }) => {
     await open(page, '/admin/office')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()

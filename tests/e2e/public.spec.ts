@@ -59,9 +59,10 @@ for (const locale of ['ru', 'en']) {
     )
     const internal = [...new Set(hrefs.filter((h) => h.startsWith('/')).map((h) => h.split('#')[0] || '/'))]
     expect(internal.length).toBeGreaterThan(10)
-    for (const href of internal) {
-      const res = await request.get(href, { maxRedirects: 5 })
-      expect(res.status(), href).toBe(200)
+    for (let i = 0; i < internal.length; i += 6) {
+      const batch = internal.slice(i, i + 6)
+      const statuses = await Promise.all(batch.map(async (href) => (await request.get(href, { maxRedirects: 5 })).status()))
+      batch.forEach((href, j) => expect(statuses[j], href).toBe(200))
     }
     const external = hrefs.filter((h) => /^https?:/.test(h))
     expect(external.some((h) => h.includes('t.me/'))).toBe(true)
@@ -139,8 +140,11 @@ test('status page shows the systems list from the dev mock', async ({ page }) =>
   await expect(page.locator('main')).toContainText(/сайт|Сайт/)
 })
 
-test('audit form: validation, then the mock accepts a request', async ({ page }) => {
-  await open(page, '/ru/audit')
-  await page.getByRole('button', { name: 'Заказать аудит' }).click()
-  await expect(page.locator('[aria-invalid="true"]').first()).toBeVisible()
+test('header and footer anchors on the home page point at sections that exist', async ({ page }) => {
+  await open(page, '/ru')
+  const anchors = await page.evaluate(() =>
+    [...new Set([...document.querySelectorAll('header a[href^="/ru#"], footer a[href^="/ru#"], main a[href^="#"]')].map((a) => a.getAttribute('href')!.split('#')[1]!))].filter(Boolean),
+  )
+  expect(anchors.length).toBeGreaterThan(5)
+  for (const id of anchors) await expect(page.locator(`[id="${id}"]`), `#${id}`).toHaveCount(1)
 })

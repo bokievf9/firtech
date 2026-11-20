@@ -300,6 +300,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 ## Commands
 - `npm run dev` (http://localhost:3001), `npm run typecheck`, `npm run lint`, `npm test`,
   `npm run build`.
+- `npm run test:e2e` (2026-11-21, Playwright, `tests/e2e/`, config `playwright.config.ts`): runs against `next dev` on port 3417
+  (the dev mocks need `NODE_ENV !== 'production'`) with a throwaway `DATA_DIR` (hand-written admin session), a dummy Supabase pair
+  and every HQ/Telegram variable empty; Playwright's cached chromium, about 3 minutes. Never part of the deploy workflow; the
+  manual `.github/workflows/e2e.yml` (`workflow_dispatch`) runs it. Every button and its status: `docs/button-census.md`
+  (keep it current when adding a control).
 
 ## Infrastructure
 - Domain `firtech.pro`: bought 2026-10-16 at Cloudflare (registrar and DNS). Records: `A @` and
