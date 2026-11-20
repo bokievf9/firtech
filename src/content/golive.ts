@@ -87,4 +87,13 @@ export const goliveText = {
   retry: 'Повторить',
   loading: 'Загружаем план',
   allDone: 'Всё готово к первому заказчику',
+  back: 'Офис',
+  backLabel: 'Назад в офис',
+  tz: 'Куала-Лумпур',
+  checklist: 'Чеклист запуска',
+  blocksNav: 'Блоки чеклиста',
+  top: 'Наверх',
+  openNote: 'Показать заметку',
+  hasNote: 'Есть заметка',
+  labels: ['дней', 'часов', 'минут', 'секунд'],
 } as const

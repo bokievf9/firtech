@@ -842,6 +842,35 @@
     radial-gradient(35% 30% at 55% 60%, var(--aurora-c), transparent 75%);
 }
 
+/* Go-live stage fallback (and the base under its shader): lime and department hues, still. */
+.golive-aurora {
+  background:
+    radial-gradient(55% 50% at 20% 25%, color-mix(in srgb, var(--color-dept-support) 26%, transparent), transparent 70%),
+    radial-gradient(50% 45% at 80% 30%, color-mix(in srgb, var(--color-dept-director) 30%, transparent), transparent 70%),
+    radial-gradient(45% 40% at 60% 85%, color-mix(in srgb, var(--color-dept-marketing) 20%, transparent), transparent 70%),
+    radial-gradient(40% 35% at 40% 55%, color-mix(in srgb, var(--color-accent) 16%, transparent), transparent 75%);
+}
+
+/* Go-live clock: the colon blinks once per second (steady under reduced motion). */
+@keyframes golive-blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  75%,
+  100% {
+    opacity: 0.25;
+  }
+}
+.golive-colon {
+  animation: golive-blink 1s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .golive-colon {
+    animation: none;
+  }
+}
+
 /* Fades the hero's bottom edge into the page so the next section starts calmly. */
 .hero-fade {
   background: linear-gradient(to bottom, transparent, var(--color-bg));

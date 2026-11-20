@@ -101,3 +101,45 @@ test('checklist data: unique ids, known blocks, no long dashes', () => {
   const text = JSON.stringify([goliveItems, goliveText])
   assert.ok(!/[–—]/.test(text))
 })
+
+// ---- full-screen page (2026-11-21) ----
+import { existsSync, readFileSync } from 'node:fs'
+
+const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
+
+test('go-live list is still 28 items in 6 blocks, every item in a known block', () => {
+  assert.equal(goliveItems.length, 28)
+  assert.equal(goliveBlocks.length, 6)
+  const blocks = new Set(goliveBlocks.map((b) => b.id))
+  for (const i of goliveItems) assert.ok(blocks.has(i.block), i.id)
+  assert.equal(new Set(goliveItems.map((i) => i.id)).size, 28)
+})
+
+test('/admin/golive exists, checks the admin session and renders the stage', () => {
+  assert.ok(existsSync(new URL('../src/app/admin/golive/page.tsx', import.meta.url)))
+  const page = src('src/app/admin/golive/page.tsx')
+  assert.match(page, /requireAdmin\(\)/)
+  assert.match(page, /GolivePage/)
+  const stage = src('src/components/admin/golive/golive-page.tsx')
+  assert.match(stage, /href="\/admin\/office"/)
+  assert.match(stage, /ThemeToggle/)
+  assert.match(stage, /useReducedMotion/)
+})
+
+test('the chip, key 8 and the palette open the page; the old side panel is gone', () => {
+  const hub = src('src/components/admin/hub/hub.tsx')
+  assert.match(hub, /router\.push\('\/admin\/golive'\)/)
+  assert.doesNotMatch(hub, /goliveOpen|GolivePanel/)
+  const chip = src('src/components/admin/hub/golive.tsx')
+  assert.match(chip, /href="\/admin\/golive"/)
+  assert.doesNotMatch(chip, /GolivePanel/)
+})
+
+test('the shader is capped (dpr 1.5, 30 fps) and the loops stop on hidden tabs', () => {
+  const gl = src('src/components/admin/golive/golive-gl.ts')
+  assert.match(gl, /MAX_DPR = 1\.5/)
+  assert.match(gl, /FRAME_MS = 1000 \/ 30/)
+  const field = src('src/components/admin/golive/stage-field.tsx')
+  assert.match(field, /visibilitychange/)
+  assert.match(field, /IntersectionObserver/)
+})
