@@ -143,7 +143,11 @@ export function KindStep({
                 {pick(categoryNames[group.category], locale)}
               </h3>
             )}
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+            <div
+              role="radiogroup"
+              aria-label={pick(categoryNames[group.category], locale)}
+              className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4"
+            >
               {group.kinds.map((id) => {
                 const entry = kindCatalog[id]
                 const on = kind === id
