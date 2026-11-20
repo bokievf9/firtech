@@ -5,18 +5,19 @@ import { useSyncExternalStore } from 'react'
 import { cn } from '@/lib/cn'
 import { THEME_KEY, themeColor, type SiteTheme } from '@/lib/site-theme'
 
-const listeners = new Set<() => void>()
 const read = (): SiteTheme => (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light')
 
 function subscribe(onChange: () => void) {
-  listeners.add(onChange)
-  return () => void listeners.delete(onChange)
+  // <html data-theme> changes from the switch and from the init script following the system.
+  const obs = new MutationObserver(onChange)
+  obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  return () => obs.disconnect()
 }
 
 export type ThemeSwitchCopy = { light: string; dark: string; toggle: string }
 
-// Sun/moon button. The inline script in the locale layout applies the stored choice before the
-// first paint; this only changes it afterwards. The label names the theme the click switches to.
+// Sun/moon button. The inline script in the locale layout applies the stored choice (else the system
+// scheme) before the first paint; this only changes it afterwards. The label names the theme the click switches to.
 export function ThemeSwitch({ copy, className }: { copy: ThemeSwitchCopy; className?: string }) {
   const theme = useSyncExternalStore(subscribe, read, () => 'light' as SiteTheme)
   const dark = theme === 'dark'
@@ -29,7 +30,6 @@ export function ThemeSwitch({ copy, className }: { copy: ThemeSwitchCopy; classN
       localStorage.setItem(THEME_KEY, next)
     } catch {}
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor[next])
-    listeners.forEach((l) => l())
   }
 
   return (

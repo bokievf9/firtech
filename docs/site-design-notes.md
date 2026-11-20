@@ -256,8 +256,10 @@ two-segment path with an unknown locale (`/xx/yy`) still gets Next's plain 404 b
 ## Light theme (owner, 2026-11-21: «все страницы, нужно полностью адаптировать сайт под белый фон»)
 - Public site: white page (`#ffffff`) is the DEFAULT, dark is the old palette behind a sun/moon switch
   (header, and the mobile menu). Storage key `fir-theme` = `light` | `dark`; an inline script from
-  `ThemeInit` sets `data-theme` on <html> before the first paint (also the `theme-color` meta); with
-  nothing stored the page is light. `prefers-color-scheme` is not used on purpose.
+  `ThemeInit` sets `data-theme` on <html> before the first paint (also the `theme-color` meta). Update
+  (owner 2026-11-21, «под пользователя»): with nothing stored the default is the visitor's system scheme
+  (`prefers-color-scheme`, read only in `theme-init.tsx`, followed live) and a stored switch choice wins
+  (`resolveTheme` in `lib/theme.ts`).
 - Tokens keep their names. `@theme static` = light values: bg `#fff`, surface `#f6f7f4`, surface-2
   `#eceee7`, line `rgb(14 18 15 / .10)`, fg `#0e120f`, muted `#4a564d`, faint `#5a665d`, accent
   `#c6ff3d` (FILL only), accent-text `#2b6410`, pine `#e1f3bd` (a pale lime wash; deep pine on dark).

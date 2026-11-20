@@ -1,5 +1,5 @@
-// Public site themes (owner 2026-11-21): light on white is the default, dark is a switch. Checks the
-// token sets in globals.css for WCAG contrast, that the theme never follows prefers-color-scheme,
+// Public site themes (owner 2026-11-21): light/dark follows the system until the switch is used. Checks the
+// token sets in globals.css for WCAG contrast, where prefers-color-scheme may appear,
 // and that no raw white/black utilities are left in public components.
 import assert from 'node:assert/strict'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
@@ -90,25 +90,71 @@ test('danger and warn text read on the light and dark pages', () => {
   }
 })
 
-test('the theme is chosen by data-theme and localStorage, never by prefers-color-scheme', () => {
+test('prefers-color-scheme is read only by theme-init.tsx, never in CSS', () => {
   const files = []
   const walk = (dir) => {
     for (const f of readdirSync(dir)) {
       const p = path.join(dir, f)
       if (statSync(p).isDirectory()) walk(p)
-      else if (/\.(tsx?|css)$/.test(f)) files.push(p)
+      else if (/\.(tsx?|css)$/.test(f)) files.push(p.split(path.sep).join('/'))
     }
   }
   walk('src')
   for (const f of files) {
-    assert.ok(!/prefers-color-scheme/.test(readFileSync(f, 'utf8')), `${f} uses prefers-color-scheme`)
+    const has = /prefers-color-scheme/.test(readFileSync(f, 'utf8'))
+    assert.equal(has, f === 'src/components/theme-init.tsx', `${f}: prefers-color-scheme usage`)
   }
-  const theme = readFileSync('src/lib/site-theme.ts', 'utf8')
-  assert.match(theme, /fir-theme/)
-  assert.match(theme, /'light'/)
+  const init = readFileSync('src/components/theme-init.tsx', 'utf8')
+  assert.ok(init.indexOf('localStorage.getItem') < init.indexOf('matchMedia'), 'stored choice is read before matchMedia')
+  assert.match(readFileSync('src/lib/site-theme.ts', 'utf8'), /fir-theme/)
   const layout = readFileSync('src/app/[locale]/layout.tsx', 'utf8')
   assert.match(layout, /ThemeInit/)
   assert.match(layout, /themeColor: '#ffffff'/)
+})
+
+test('the public init script is not part of the admin layout', () => {
+  const admin = readFileSync('src/app/admin/layout.tsx', 'utf8')
+  assert.doesNotMatch(admin, /ThemeInit|theme-init|fir-theme/)
+})
+
+test('resolveTheme: stored wins, else the system scheme', async () => {
+  const { resolveTheme: fn } = await import('../src/lib/theme.ts')
+  assert.equal(fn('light', true), 'light')
+  assert.equal(fn('dark', false), 'dark')
+  assert.equal(fn(null, true), 'dark')
+  assert.equal(fn(undefined, false), 'light')
+  assert.equal(fn('junk', true), 'dark')
+})
+
+test('the init script agrees with resolveTheme and follows system changes until a choice is stored', () => {
+  const src = readFileSync('src/components/theme-init.tsx', 'utf8')
+  const lit = src.match(/themeScript = `([^`]*)`/)[1].replace(/\$\{THEME_KEY\}/g, 'fir-theme')
+    .replace('${themeColor.dark}', '#0a0d0b').replace('${themeColor.light}', '#ffffff')
+  const run = (stored, dark) => {
+    let handler
+    const meta = { v: '', setAttribute(_, v) { this.v = v } }
+    const html = { dataset: {} }
+    const store = { fir: stored }
+    const mq = { matches: dark, addEventListener: (_, h) => (handler = h) }
+    new Function('document', 'window', 'localStorage', lit)(
+      { documentElement: html, querySelector: () => meta },
+      { matchMedia: () => mq },
+      { getItem: () => store.fir },
+    )
+    return { html, meta, store, mq, fire: () => handler() }
+  }
+  assert.equal(run(null, true).html.dataset.theme, 'dark')
+  assert.equal(run(null, false).html.dataset.theme, 'light')
+  assert.equal(run('light', true).html.dataset.theme, 'light')
+  assert.equal(run('dark', false).html.dataset.theme, 'dark')
+  const r = run(null, false)
+  r.mq.matches = true
+  r.fire()
+  assert.equal(r.html.dataset.theme, 'dark')
+  assert.equal(r.meta.v, '#0a0d0b')
+  r.store.fir = 'light'
+  r.fire()
+  assert.equal(r.html.dataset.theme, 'dark', 'a stored choice stops following')
 })
 
 test('admin sets its theme explicitly (dark default, light stored)', () => {
