@@ -29,6 +29,7 @@ export function LeadsSection({
   focus,
   fresh,
   follow,
+  stageLine,
 }: {
   dict: Dict
   locale: Locale
@@ -36,6 +37,8 @@ export function LeadsSection({
   focus: number | null
   fresh: boolean
   follow: string | null
+  // «Этап 2: приёмка» of the client's running project, already filled (shown on requests that are projects).
+  stageLine?: string | null
 }) {
   const t = dict.cabinet.leads
   const [leads, setLeads] = useState(initial)
@@ -111,6 +114,7 @@ export function LeadsSection({
               locale={locale}
               focused={lead.id === focus}
               follow={lead.id === focus ? follow : null}
+              stageLine={lead.stage === 'project' ? (stageLine ?? null) : null}
               onReply={(item) =>
                 setLeads((all) => (all ?? []).map((l) => (l.id === lead.id ? { ...l, replies: [...l.replies, item] } : l)))
               }
@@ -145,6 +149,7 @@ function LeadCard({
   locale,
   focused,
   follow,
+  stageLine,
   onReply,
 }: {
   lead: CabinetLead
@@ -152,6 +157,7 @@ function LeadCard({
   locale: Locale
   focused: boolean
   follow: string | null
+  stageLine: string | null
   onReply: (item: LeadReply) => void
 }) {
   const t = dict.cabinet.leads
@@ -201,6 +207,12 @@ function LeadCard({
           </li>
         ))}
       </ol>
+
+      {stageLine && (
+        <p className="mt-3 text-sm text-accent-text" data-stage-line>
+          {fill(t.stageNow, { stage: stageLine })}
+        </p>
+      )}
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <dl className="grid content-start gap-3 text-sm">

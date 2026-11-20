@@ -10,7 +10,11 @@ import { cn } from '@/lib/cn'
 import {
   matchesQuery,
   normalizeProjectDetail,
+  normalizeClientRows,
   normalizeProjectItem,
+  acceptStagePath,
+  canAcceptStage,
+  pickProjectClient,
   PROJECT_STATUSES,
   projectColumn,
   type Milestone,
@@ -145,9 +149,32 @@ function ProjectBody({
   onMilestone: (m: Milestone, change: Partial<Milestone>) => void
   onMove: (to: string) => Promise<void>
 }) {
+  const { notify } = useHub()
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+  const [accepting, setAccepting] = useState<string | null>(null)
   const p = data.item
+  // «Принять этап»: the client's numeric id comes from a search by the project's client name, then
+  // HQ's accept call (the same one the cabinet button makes).
+  const accept = async (m: Milestone) => {
+    if (m.stageNo === null) return
+    setAccepting(m.id)
+    const found = await hq<Record<string, unknown>>(`crm/clients?q=${encodeURIComponent(p.client.slice(0, 64))}&limit=20`)
+    const clientId = found.ok ? pickProjectClient(normalizeClientRows(found)?.items ?? [], p.client) : null
+    const path = clientId ? acceptStagePath(clientId, p.id, m.stageNo) : null
+    if (!path) {
+      notify(k.acceptNoClient, 'error')
+    } else {
+      const res = await hq<{ already?: boolean }>(path, {})
+      if (res.ok) {
+        onMilestone(m, { state: 'accepted', doneAt: m.doneAt ?? new Date().toISOString() })
+        notify(fill(res.already ? k.acceptedAlready : k.accepted, { n: m.stageNo }))
+      } else {
+        notify(fill(k.failed, { e: errText(res.error) }), 'error')
+      }
+    }
+    setAccepting(null)
+  }
   const toggle = async (m: Milestone) => {
     const before = m.doneAt
     onMilestone(m, { doneAt: before ? null : new Date().toISOString() })
@@ -189,6 +216,12 @@ function ProjectBody({
                   {m.doneAt ? <CheckSquare size={20} weight="fill" className="shrink-0 text-accent-text" aria-hidden="true" /> : <Square size={20} className="shrink-0 text-muted" aria-hidden="true" />}
                   <span className={cn('truncate', m.doneAt && 'text-muted line-through')}>{m.title || m.kind}</span>
                 </button>
+                {m.state ? <Chip tone={m.state === 'accepted' ? 'accent' : m.state === 'awaiting_acceptance' ? 'warn' : 'plain'}>{k.stageState[m.state]}</Chip> : null}
+                {canAcceptStage(m) ? (
+                  <button type="button" className={btn} disabled={accepting !== null} title={k.acceptHint} onClick={() => void accept(m)}>
+                    {accepting === m.id ? k.accepting : k.accept}
+                  </button>
+                ) : null}
                 <label className="flex items-center gap-1.5 text-xs text-faint">
                   {k.due}
                   <input type="date" defaultValue={dateInput(m.dueAt)} onChange={(e) => void deadline(m, e.target.value)} className="h-9 rounded-lg border border-line-strong bg-field px-2 text-sm text-fg" />

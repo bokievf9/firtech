@@ -7,6 +7,20 @@ import { siteUrl } from './site'
 
 export type CabinetError = 'hq_unreachable' | 'hq_timeout' | 'hq_error' | 'not_found'
 
+// A payment stage of a project (HQ `projects[].milestones[]`): paid before it starts, accepted
+// by the client when done. `payUrl` exists only while the stage invoice is issued.
+export type MilestoneState = 'awaiting_payment' | 'in_progress' | 'awaiting_acceptance' | 'accepted'
+export type CabinetMilestone = {
+  stageNo: number
+  title: string
+  amountUsd: number | null
+  invoiceNumber: string | null
+  payUrl: string | null
+  paidAt: string | null
+  acceptedAt: string | null
+  state: MilestoneState
+}
+
 export type CabinetProject = {
   id: number
   what: string
@@ -18,6 +32,7 @@ export type CabinetProject = {
   tasksTotal: number
   tasksDone: number
   createdAt: string | null
+  milestones: CabinetMilestone[]
 }
 export type CabinetInvoice = {
   id: string
@@ -106,6 +121,31 @@ function list<T>(value: unknown, parse: (row: Record<string, unknown>) => T | nu
   return out
 }
 
+const milestoneStates: MilestoneState[] = ['awaiting_payment', 'in_progress', 'awaiting_acceptance', 'accepted']
+
+// A stage row; anything without a stage number or a known state is dropped. The pay link is kept
+// only when it is an https address (it becomes a plain <a href>).
+function parseMilestone(r: Record<string, unknown>): CabinetMilestone | null {
+  const stageNo = typeof r.stageNo === 'number' && Number.isInteger(r.stageNo) && r.stageNo > 0 ? r.stageNo : null
+  const state = milestoneStates.find((s) => s === r.state)
+  if (stageNo === null || !state) return null
+  const payUrl = typeof r.payUrl === 'string' && /^https:\/\/[^\s]+$/.test(r.payUrl) ? r.payUrl.slice(0, 500) : null
+  return {
+    stageNo,
+    title: str(r.title, 120),
+    amountUsd: typeof r.amountUsd === 'number' && Number.isFinite(r.amountUsd) ? r.amountUsd : null,
+    invoiceNumber: typeof r.invoiceNumber === 'string' && r.invoiceNumber ? r.invoiceNumber.slice(0, 40) : null,
+    payUrl: state === 'awaiting_payment' ? payUrl : null,
+    paidAt: strOrNull(r.paidAt),
+    acceptedAt: strOrNull(r.acceptedAt),
+    state,
+  }
+}
+
+export function parseMilestoneItem(value: unknown): CabinetMilestone | null {
+  return isObj(value) ? parseMilestone(value) : null
+}
+
 function parseProject(r: Record<string, unknown>): CabinetProject | null {
   const id = idNum(r.id)
   if (id === null) return null
@@ -121,6 +161,7 @@ function parseProject(r: Record<string, unknown>): CabinetProject | null {
     tasksTotal: count(r.tasksTotal),
     tasksDone: count(r.tasksDone),
     createdAt: strOrNull(r.createdAt),
+    milestones: list(r.milestones, parseMilestone).sort((a, b) => a.stageNo - b.stageNo),
   }
 }
 
@@ -284,6 +325,69 @@ export function projectProgress(p: Pick<CabinetProject, 'stage' | 'status' | 'ta
       ? Math.min(100, Math.round((p.tasksDone / p.tasksTotal) * 100))
       : 0
   return { stageIndex: done ? projectStages.length - 1 : stageIndex, percent }
+}
+
+// What the stage track shows for a stage: payment, work, acceptance or accepted.
+export type StageStep = 'pay' | 'work' | 'accept' | 'accepted'
+export function milestoneStep(m: Pick<CabinetMilestone, 'state'>): StageStep {
+  return m.state === 'awaiting_payment' ? 'pay' : m.state === 'in_progress' ? 'work' : m.state === 'awaiting_acceptance' ? 'accept' : 'accepted'
+}
+
+// The stage a project is at now: the first one not accepted yet (null when all are accepted or none).
+export function currentMilestone(milestones: CabinetMilestone[]): CabinetMilestone | null {
+  return milestones.find((m) => m.state !== 'accepted') ?? null
+}
+
+// The one line shown on a request that is already a project: the current stage of the client's
+// only running project. With several running projects the card does not guess which one it is.
+export function stageLineFor(projects: Pick<CabinetProject, 'status' | 'milestones'>[]): { n: number; step: StageStep } | null {
+  const running = projects.filter((p) => p.status !== 'done' && currentMilestone(p.milestones))
+  if (running.length !== 1) return null
+  const m = currentMilestone(running[0]!.milestones)
+  return m ? { n: m.stageNo, step: milestoneStep(m) } : null
+}
+
+// The dictionary template of a step: `cabinet.cards.stageTrack` for pay/work/accept, the
+// `milestones.accepted` one for an accepted stage.
+export const stageTemplate = (
+  step: StageStep,
+  track: { pay: string; work: string; accept: string },
+  accepted: string,
+): string => (step === 'accepted' ? accepted : track[step])
+
+// The rows of the stage track under a project: pay (with the pay link), work, acceptance (the
+// accept button), accepted with its date. The label template is picked by `stageTemplate` and
+// filled with `stageTrackLabel` (payment-stages.ts) where it is shown.
+export type StageRow = {
+  n: number
+  step: StageStep
+  title: string
+  amount: string
+  date: string
+  payUrl: string | null
+  canAccept: boolean
+}
+export function stageRows(milestones: CabinetMilestone[], locale: string): StageRow[] {
+  return milestones.map((m) => {
+    const step = milestoneStep(m)
+    return {
+      n: m.stageNo,
+      step,
+      title: m.title,
+      amount: m.amountUsd !== null ? `${m.amountUsd.toLocaleString('en-US')} USD` : '',
+      date: step === 'accepted' ? formatDate(m.acceptedAt, locale) : '',
+      payUrl: step === 'pay' ? m.payUrl : null,
+      canAccept: step === 'accept',
+    }
+  })
+}
+
+// POST /api/cabinet/projects/<pid>/milestones/<no>/accept answers; HQ's 409 codes become sentences.
+export type AcceptErrorKey = 'not_ready' | 'not_paid' | 'not_found' | 'unauthorized' | 'rate_limited' | 'hq'
+export function acceptErrorKey(code: unknown): AcceptErrorKey {
+  return code === 'not_ready' || code === 'not_paid' || code === 'not_found' || code === 'unauthorized' || code === 'rate_limited'
+    ? code
+    : 'hq'
 }
 
 // A paid-by-USDT hint is shown for issued invoices only.

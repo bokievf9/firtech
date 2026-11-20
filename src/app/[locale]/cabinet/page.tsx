@@ -12,7 +12,8 @@ import { allArticles } from '@/lib/blog-hq'
 import { latestArticles, offerState, pickOffers } from '@/lib/cabinet-offers'
 import { defaultTab, tabCounts } from '@/lib/cabinet-tabs'
 import { fetchClientByEmail } from '@/lib/cabinet-hq'
-import { followLink, pickLead, type CabinetData } from '@/lib/cabinet-data'
+import { followLink, pickLead, stageLineFor, stageTemplate, type CabinetData } from '@/lib/cabinet-data'
+import { stageTrackLabel } from '@/lib/payment-stages'
 import { requireCabinetUser, syncAfterSignIn } from '@/lib/cabinet-session'
 import { isLocale } from '@/lib/i18n'
 import { defaultTelegramBot } from '@/lib/site'
@@ -58,6 +59,10 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
   const leadParam = one(query.lead)
   const plan = pickOffers(offerState(data), locale)
   const articles = latestArticles(await allArticles(), locale)
+  const line = stageLineFor(data.projects)
+  const stageLine = line
+    ? stageTrackLabel(stageTemplate(line.step, t.cards.stageTrack, t.cards.milestones.accepted), line.n)
+    : null
   const bot = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || defaultTelegramBot).replace(/^@/, '')
 
   return (
@@ -110,6 +115,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
               focus={pickLead(data.leads, leadParam)}
               fresh={Boolean(leadParam)}
               follow={followLink(one(query.follow), bot)}
+              stageLine={stageLine}
             />
           ),
           projects: <ProjectsCard data={data} dict={dict} locale={locale} />,

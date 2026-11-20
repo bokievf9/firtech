@@ -2201,6 +2201,7 @@ const en: Dict = {
         lost: 'The request is closed. If the task is still open, write to us.',
       },
       received: 'Request received',
+      stageNow: 'Now: {stage}',
       timelineTitle: 'Progress',
       repliesTitle: 'Messages',
       manager: 'Manager',
@@ -2260,6 +2261,25 @@ const en: Dict = {
       },
       // Stage track of a project: payment before the stage, work, then acceptance (`{n}` = stage number).
       stageTrack: { pay: 'Stage {n}: payment', work: 'Stage {n}: in progress', accept: 'Stage {n}: acceptance' },
+      milestones: {
+        title: 'Payment stages',
+        accepted: 'Stage {n}: accepted',
+        acceptedOn: 'accepted {date}',
+        pay: 'Pay the stage',
+        accept: 'Accept the stage',
+        accepting: 'Accepting...',
+        acceptHint: 'The stage is delivered and paid. After you accept it we send the next stage invoice.',
+        acceptDone: 'Stage accepted. The next stage invoice comes as a link.',
+        errors: {
+          not_ready: 'The stage is still in progress, it cannot be accepted yet.',
+          not_paid: 'The stage is not paid yet, it cannot be accepted.',
+          not_found: 'We could not find this stage. Refresh the page.',
+          unauthorized: 'Your session has ended. Sign in again.',
+          rate_limited: 'Too many requests. Wait a minute.',
+          hq: 'Could not accept the stage. Try again later or write to us.',
+          network: 'No connection. Check your internet and try again.',
+        },
+      },
       projectStatus: { draft: 'Draft', active: 'In progress', done: 'Finished' },
       invoiceStatus: { draft: 'Draft', issued: 'Awaiting payment', paid: 'Paid', void: 'Cancelled' },
       documentStatus: {

@@ -104,15 +104,21 @@ from HQ = «Заявка принята, менеджер скоро ответ�
 Owner decision: payment by stages (each stage before it starts, the last before handover; referral 10% of each paid stage).
 Copy for the project stage track is `cabinet.cards.stageTrack` (`pay` «Этап {n}: оплата», `work` «Этап {n}: в работе», `accept`
 «Этап {n}: приёмка»; `stageTrackLabel()` in `lib/payment-stages.ts` fills `{n}`); `cabinet.leads.defaultNext.contract` now says the
-invoice is for the first stage. The track is not drawn yet: it waits for HQ to send `stage`, `amountUsd`, `invoiceNumber`,
-`paidAt`, `acceptedAt` on project milestones (see the contract file `payment-stages-contract.md`).
+invoice is for the first stage. The track is drawn (2026-11-21) on the «Проекты» tab from `projects[].milestones[]` (`parseMilestone` in `cabinet-data.ts`: `stageNo`,
+`title`, `amountUsd`, `invoiceNumber`, `payUrl` only while `awaiting_payment` and https, `paidAt`, `acceptedAt`, `state`): per stage
+«оплата» with the «Оплатить этап» link, «в работе», «приёмка» with the button «Принять этап» (`accept-stage.tsx`), «принят» with the
+date (`cabinet.cards.milestones`). A request in the stage `project` shows «Сейчас: Этап N: ...» when the client has exactly one running
+project (`stageLineFor`; HQ does not link a project to a request, so with several projects the line is left out).
+`POST /api/cabinet/projects/<pid>/milestones/<no>/accept` (session, JSON, same origin) finds the client by the session email and calls
+HQ `POST /clients/<id>/projects/<pid>/milestones/<no>/accept`; 404 `not_found`, 409 `not_ready` / `not_paid` become sentences,
+`already: true` is a success. The dev mock has a 3-stage project (accepted, awaiting acceptance, awaiting payment).
 
 ## Routes
 - `/[locale]/cabinet` home, `/cabinet/login` (tabs, Google, forgot password; `?next=`, `?error=<key>`),
   `/cabinet/reset` (new password), `/cabinet/auth/callback`, `/cabinet/auth/confirm` (browser retry), `/cabinet/health`.
   Logout is a server action (`logoutAction`). All are `noindex` and not in the sitemap.
 - `POST /api/cabinet/tickets` `{ text }`, `GET /api/cabinet/leads`, `POST /api/cabinet/leads/<id>/messages` `{ text }`,
-  `GET /api/cabinet/me`, `POST /api/cabinet/auth-log` (session required where it matters, JSON, same origin).
+  `POST /api/cabinet/projects/<pid>/milestones/<no>/accept`, `GET /api/cabinet/me`, `POST /api/cabinet/auth-log` (session required where it matters, JSON, same origin).
 - `src/proxy.ts` refreshes the Supabase session on `/(ru|en)/cabinet/*` except the callback; the `/` language redirect is unchanged.
 
 ## HQ contract (header `x-admin-token: HQ_ADMIN_TOKEN`, base `HQ_ADMIN_URL`, default `http://127.0.0.1:8787/admin`)
@@ -123,6 +129,7 @@ invoice is for the first stage. The track is not drawn yet: it waits for HQ to s
   projects, invoices, documents, tickets, referrals, referralSlug }` or 404 `{ ok: false, error: 'not_found' }`.
   Item shapes: `agents/docs/admin-crm-api.md`. Invoices are documents with `source: 'billing'`.
 - `POST /clients/<id>/tickets` body `{ text }` -> `{ ok: true, item }`.
+- `POST /clients/<id>/projects/<pid>/milestones/<no>/accept` -> `{ ok, already, milestone }` or 404 / 409 `not_ready` / 409 `not_paid`.
 - `by-email` also returns `leads: [{ id, createdAt, service, summary, estimateUsd, hasDomain, hasHosting, stage, nextStep,
   timeline: [{ at, kind, title }], replies: [{ at, text, from: 'manager'|'client' }] }]` (agents b313a11); the site tolerates
   its absence.

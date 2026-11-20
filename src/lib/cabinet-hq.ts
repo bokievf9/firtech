@@ -2,11 +2,13 @@ import 'server-only'
 import {
   clientSyncBody,
   parseClientBody,
+  parseMilestoneItem,
   parseReply,
   parseTicketItem,
   type LeadReply,
   type CabinetData,
   type CabinetError,
+  type CabinetMilestone,
   type CabinetTicket,
   type ClientSyncProfile,
 } from './cabinet-data'
@@ -132,6 +134,41 @@ export async function postLeadMessage(
   }
 }
 
+// The client accepts a finished stage: POST /clients/:id/projects/:pid/milestones/:no/accept.
+// HQ answers 404 (foreign or unknown), 409 `not_ready` (still in work) or `not_paid`, and on
+// success `{ ok, already, milestone }`; repeating is safe (`already: true`).
+export type AcceptError = CabinetError | 'not_ready' | 'not_paid'
+export async function acceptMilestone(
+  clientId: number,
+  projectId: number,
+  stageNo: number,
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<CabinetResult<{ already: boolean; milestone: CabinetMilestone | null }> | { ok: false; error: AcceptError }> {
+  if (![clientId, projectId, stageNo].every((n) => Number.isInteger(n) && n > 0)) return { ok: false, error: 'not_found' }
+  const cfg = setup(env)
+  if (cfg === 'mock') return acceptMock(projectId, stageNo)
+  if (!cfg) return { ok: false, error: 'hq_error' }
+  try {
+    const res = await fetcher(`${cfg.base}/clients/${clientId}/projects/${projectId}/milestones/${stageNo}/accept`, {
+      method: 'POST',
+      headers: { 'x-admin-token': cfg.token },
+      cache: 'no-store',
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    })
+    if (res.status === 404) return { ok: false, error: 'not_found' }
+    const body = (await res.json().catch(() => null)) as { ok?: unknown; already?: unknown; milestone?: unknown; error?: unknown } | null
+    if (res.status === 409) {
+      return { ok: false, error: body?.error === 'not_paid' ? 'not_paid' : body?.error === 'not_ready' ? 'not_ready' : 'hq_error' }
+    }
+    if (!res.ok || !body || body.ok !== true) return { ok: false, error: 'hq_error' }
+    return { ok: true, data: { already: body.already === true, milestone: parseMilestoneItem(body.milestone) } }
+  } catch (error) {
+    const timeout = error instanceof Error && error.name === 'TimeoutError'
+    return { ok: false, error: timeout ? 'hq_timeout' : 'hq_unreachable' }
+  }
+}
+
 // POST /clients with the body from clientSyncBody(). Non-fatal for the caller.
 export async function syncClientToHq(
   userId: string,
@@ -149,6 +186,45 @@ export async function syncClientToHq(
 // Development data so the cabinet renders without HQ. Messages written in the cabinet stay in
 // memory, so the reply box can be tried locally.
 const mockMessages: { leadId: number; item: LeadReply }[] = []
+// Mock stages accepted in this process ("<project>:<stage>"), so «Принять этап» can be tried locally.
+const mockAccepted = new Map<string, string>()
+
+// The mock project 1 has three stages in mixed states: 1 accepted, 2 done and waiting for the
+// client's acceptance, 3 waiting for payment (with a pay link).
+function mockMilestones(projectId: number, iso: (offset: number) => string): CabinetMilestone[] {
+  const stage = (stageNo: number, title: string, amountUsd: number, base: CabinetMilestone): CabinetMilestone => ({
+    ...base,
+    stageNo,
+    title,
+    amountUsd,
+    acceptedAt: mockAccepted.get(`${projectId}:${stageNo}`) ?? base.acceptedAt,
+  })
+  const blank: CabinetMilestone = {
+    stageNo: 0, title: '', amountUsd: null, invoiceNumber: null, payUrl: null, paidAt: null, acceptedAt: null, state: 'in_progress',
+  }
+  const list = [
+    stage(1, 'Дизайн и прототип', 150, { ...blank, invoiceNumber: 'FT-2026-001', paidAt: iso(-13), acceptedAt: iso(-8), state: 'accepted' }),
+    stage(2, 'Вёрстка и страницы', 150, { ...blank, invoiceNumber: 'FT-2026-003', paidAt: iso(-7), state: 'awaiting_acceptance' }),
+    stage(3, 'Запуск и передача', 100, {
+      ...blank,
+      invoiceNumber: 'FT-2026-004',
+      payUrl: 'https://firtech.pro/ru/pay/FT-2026-004?k=mock',
+      state: 'awaiting_payment',
+    }),
+  ]
+  // Accepting stage 2 in the mock moves stage 3 on to payment as HQ would.
+  return list.map((m) => (m.acceptedAt && m.state !== 'accepted' ? { ...m, state: 'accepted' as const } : m))
+}
+
+function acceptMock(projectId: number, stageNo: number): CabinetResult<{ already: boolean; milestone: CabinetMilestone | null }> | { ok: false; error: AcceptError } {
+  const m = mockMilestones(projectId, () => new Date().toISOString()).find((x) => x.stageNo === stageNo)
+  if (projectId !== 1 || !m) return { ok: false, error: 'not_found' }
+  if (m.state === 'accepted') return { ok: true, data: { already: true, milestone: m } }
+  if (m.state === 'awaiting_payment') return { ok: false, error: 'not_paid' }
+  if (m.state === 'in_progress') return { ok: false, error: 'not_ready' }
+  mockAccepted.set(`${projectId}:${stageNo}`, new Date().toISOString())
+  return { ok: true, data: { already: false, milestone: { ...m, state: 'accepted', acceptedAt: mockAccepted.get(`${projectId}:${stageNo}`) ?? null } } }
+}
 
 export function cabinetMock(email: string): CabinetData {
   const day = 86_400_000
@@ -207,6 +283,7 @@ export function cabinetMock(email: string): CabinetData {
         tasksTotal: 4,
         tasksDone: 2,
         createdAt: iso(-14),
+        milestones: mockMilestones(1, iso),
       },
     ],
     invoices: [

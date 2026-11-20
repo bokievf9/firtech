@@ -7,12 +7,16 @@ import {
   label,
   projectProgress,
   projectStages,
+  stageRows,
+  stageTemplate,
   type CabinetData,
 } from '@/lib/cabinet-data'
 import { buttonStyles } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
+import { stageTrackLabel } from '@/lib/payment-stages'
 import { getPricing } from '@/lib/pricing-store'
 import { fillReferralPercent } from '@/lib/referral'
+import { AcceptStageButton } from './accept-stage'
 import { CopyLink } from './cabinet-forms'
 import { Card, Chip, Empty } from './ui'
 
@@ -57,6 +61,47 @@ export function ProjectsCard({ data, dict, locale }: { data: CabinetData; dict: 
                     )
                   })}
                 </ol>
+                {p.milestones.length > 0 && (
+                  <div className="mt-4" data-stage-track>
+                    <p className="text-[13px] text-faint">{c.milestones.title}</p>
+                    <ol className="mt-2 grid gap-2">
+                      {stageRows(p.milestones, locale).map((row) => (
+                        <li
+                          key={row.n}
+                          data-stage={row.n}
+                          data-step={row.step}
+                          className={`rounded-xl border p-3 text-sm ${row.step === 'accept' ? 'border-accent-text/50 bg-accent/[0.06]' : 'border-line'}`}
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className={row.step === 'accepted' ? 'text-fg' : row.step === 'work' ? 'text-accent-text' : 'text-muted'}>
+                              <span aria-hidden="true">{row.step === 'accepted' ? '● ' : row.step === 'work' || row.step === 'accept' ? '◉ ' : '○ '}</span>
+                              {stageTrackLabel(stageTemplate(row.step, c.stageTrack, c.milestones.accepted), row.n)}
+                              {row.date ? `, ${c.milestones.acceptedOn.replace('{date}', row.date)}` : ''}
+                            </span>
+                            {row.amount && <span className="font-mono text-[12px] text-faint">{row.amount}</span>}
+                          </div>
+                          {row.title && <p className="mt-1 text-[13px] text-muted">{row.title}</p>}
+                          {row.payUrl && (
+                            <a
+                              href={row.payUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              data-pay-stage={row.n}
+                              className={`${buttonStyles.secondary} mt-3`}
+                            >
+                              {c.milestones.pay}
+                            </a>
+                          )}
+                          {row.canAccept && (
+                            <div className="mt-3">
+                              <AcceptStageButton dict={dict} projectId={p.id} stageNo={row.n} />
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
                 {p.tasksTotal > 0 && (
                   <div className="mt-4">
                     <div

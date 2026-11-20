@@ -128,6 +128,9 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
       .refine((b) => b.action !== 'revise' || (b.note !== undefined && b.note.trim().length > 0), 'revise needs a note'),
   },
   { method: 'GET', path: /^metrics\/week$/, query: ['week'] },
+  // The owner accepts a client's finished stage from the project drawer (same call as the cabinet button).
+  // Numeric client id only (a client without an account has no cabinet to accept in).
+  { method: 'POST', path: /^clients\/\d{1,12}\/projects\/\d{1,12}\/milestones\/\d{1,3}\/accept$/, body: empty },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
   { method: 'POST', path: /^company\/routines\/[\w-]{1,64}$/, body: z.object({ enabled: z.boolean() }).strict() },
@@ -198,7 +201,7 @@ export type Resolved =
 export function resolveEndpoint(method: string, segments: string[], search: URLSearchParams, body: unknown): Resolved {
   const client = method === 'GET' ? clientSegment(segments) : null
   if (client) segments = client
-  else if (!segments.length || segments.length > 4 || !segments.every((s) => segment.test(s))) {
+  else if (!segments.length || segments.length > (segments[0] === 'clients' ? 7 : 4) || !segments.every((s) => segment.test(s))) {
     return { ok: false, status: 404, error: 'not_found' }
   }
   const path = segments.join('/')

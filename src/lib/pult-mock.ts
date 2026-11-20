@@ -49,6 +49,8 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       { id: 22, kind: 'prototype', title: 'Прототип', dueAt: ahead(3), doneAt: null },
       { id: 23, kind: 'delivery', title: 'Сдача', dueAt: ahead(10), doneAt: null },
       { id: 24, kind: 'payment', title: 'Финальный платёж', dueAt: ahead(12), doneAt: null },
+      { id: 25, kind: 'stage', title: 'Этап 1: дизайн и прототип', dueAt: ahead(3), doneAt: null, stageNo: 1, amountUsd: 300, state: 'awaiting_acceptance', paidAt: ago(60 * 20), acceptedAt: null },
+      { id: 26, kind: 'stage', title: 'Этап 2: запуск и передача', dueAt: ahead(12), doneAt: null, stageNo: 2, amountUsd: 300, state: 'awaiting_payment', paidAt: null, acceptedAt: null },
     ]],
     ['3', [
       { id: 31, kind: 'brief', title: 'Бриф', dueAt: ago(60 * 24 * 5), doneAt: ago(60 * 24 * 5) },
@@ -290,6 +292,18 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
         })
       }
       return null
+    }
+
+    // ---- accept a client's stage (clients/:id/projects/:pid/milestones/:no/accept)
+    if (method === 'POST' && seg[0] === 'clients' && seg[2] === 'projects' && seg[4] === 'milestones' && seg[6] === 'accept') {
+      const m = (milestones.get(seg[3] ?? '') ?? []).find((x) => String(x.stageNo) === seg[5])
+      if (!m) return bad('not_found')
+      if (m.state === 'accepted') return ok({ already: true, milestone: m })
+      if (m.state === 'awaiting_payment') return bad('not_paid')
+      if (m.state === 'in_progress') return bad('not_ready')
+      m.state = 'accepted'
+      m.acceptedAt = iso(now)
+      return ok({ already: false, milestone: m })
     }
 
     // ---- projects

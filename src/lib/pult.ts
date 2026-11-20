@@ -427,7 +427,37 @@ export function normalizeClient360(body: unknown): Client360 | null {
 export const PROJECT_STATUSES = ['draft', 'active', 'paused', 'done'] as const
 export type ProjectStatus = (typeof PROJECT_STATUSES)[number]
 
-export type Milestone = { id: string; kind: string; title: string; dueAt: string | null; doneAt: string | null }
+// A payment stage (`kind: 'stage'`) also carries its number, amount and `state`; older plans have null there.
+export type Milestone = {
+  id: string
+  kind: string
+  title: string
+  dueAt: string | null
+  doneAt: string | null
+  stageNo: number | null
+  amountUsd: number | null
+  state: 'awaiting_payment' | 'in_progress' | 'awaiting_acceptance' | 'accepted' | null
+}
+
+// The owner can accept a stage only when the client's side is ready: paid and done, not accepted yet.
+export const canAcceptStage = (m: Pick<Milestone, 'stageNo' | 'state'>): boolean => m.stageNo !== null && m.state === 'awaiting_acceptance'
+
+// HQ path of the accept call (numeric client id only).
+export const acceptStagePath = (clientId: string, projectId: number, stageNo: number): string | null =>
+  /^\d{1,12}$/.test(clientId) && Number.isInteger(projectId) && projectId >= 0 && Number.isInteger(stageNo) && stageNo > 0
+    ? `clients/${clientId}/projects/${projectId}/milestones/${stageNo}/accept`
+    : null
+
+// The project's client as a numeric id from `GET /admin/crm/clients?q=<name>` rows: the name matches
+// exactly (case-insensitive), else the only row; null when it is ambiguous, empty or has no account id.
+export function pickProjectClient(rowsFound: Pick<ClientRow, 'id' | 'name'>[], clientName: string): string | null {
+  const numeric = rowsFound.filter((r) => /^\d{1,12}$/.test(r.id))
+  const name = clientName.trim().toLowerCase()
+  const exact = numeric.find((r) => r.name.trim().toLowerCase() === name)
+  if (exact) return exact.id
+  return numeric.length === 1 && rowsFound.length === 1 ? numeric[0]!.id : null
+}
+
 export type ProjectTask = { id: string; title: string; status: string; assignee: string }
 export type BuilderIssue = { number: number; title: string; state: string; url: string | null }
 export type ProjectDetail = { item: Project; milestones: Milestone[]; tasks: ProjectTask[]; issues: BuilderIssue[] }
@@ -445,7 +475,11 @@ export function normalizeProjectDetail(body: unknown): ProjectDetail | null {
       .map((m) => {
         const r = rec(m)
         const id = idOf(r.id)
-        return id ? { id, kind: str(r.kind, 40), title: str(r.title, 200), dueAt: when(r.dueAt), doneAt: when(r.doneAt) } : null
+        const state = (['awaiting_payment', 'in_progress', 'awaiting_acceptance', 'accepted'] as const).find((s) => s === r.state) ?? null
+        const stageNo = typeof r.stageNo === 'number' && Number.isInteger(r.stageNo) && r.stageNo > 0 ? r.stageNo : null
+        return id
+          ? { id, kind: str(r.kind, 40), title: str(r.title, 200), dueAt: when(r.dueAt), doneAt: when(r.doneAt), stageNo, amountUsd: optNum(r.amountUsd), state }
+          : null
       })
       .filter((x): x is Milestone => !!x),
     tasks: arr(b.tasks, 100)

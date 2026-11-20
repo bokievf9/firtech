@@ -2216,6 +2216,7 @@ const ru = {
         lost: 'Заявка закрыта. Если задача ещё актуальна, напишите нам.',
       },
       received: 'Заявка получена',
+      stageNow: 'Сейчас: {stage}',
       timelineTitle: 'Как идёт',
       repliesTitle: 'Переписка',
       manager: 'Менеджер',
@@ -2275,6 +2276,25 @@ const ru = {
       },
       // Stage track of a project: payment before the stage, work, then acceptance (`{n}` = stage number).
       stageTrack: { pay: 'Этап {n}: оплата', work: 'Этап {n}: в работе', accept: 'Этап {n}: приёмка' },
+      milestones: {
+        title: 'Этапы оплаты',
+        accepted: 'Этап {n}: принят',
+        acceptedOn: 'принято {date}',
+        pay: 'Оплатить этап',
+        accept: 'Принять этап',
+        accepting: 'Принимаем...',
+        acceptHint: 'Этап сдан и оплачен. После приёмки пришлём счёт следующего этапа.',
+        acceptDone: 'Этап принят. Счёт следующего этапа пришлём ссылкой.',
+        errors: {
+          not_ready: 'Этап ещё в работе, принять его пока нельзя.',
+          not_paid: 'Этап ещё не оплачен, принять его нельзя.',
+          not_found: 'Не нашли этот этап. Обновите страницу.',
+          unauthorized: 'Сессия закончилась. Войдите снова.',
+          rate_limited: 'Слишком много запросов. Подождите минуту.',
+          hq: 'Не получилось принять этап. Попробуйте позже или напишите нам.',
+          network: 'Нет связи. Проверьте интернет и попробуйте снова.',
+        },
+      },
       projectStatus: { draft: 'Черновик', active: 'В работе', done: 'Завершён' },
       invoiceStatus: { draft: 'Черновик', issued: 'Ждёт оплаты', paid: 'Оплачен', void: 'Отменён' },
       documentStatus: {
