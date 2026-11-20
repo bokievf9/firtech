@@ -13,6 +13,7 @@ import {
 } from '../content/builder-catalog'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
 import { usesAxes } from './builder-style'
+import { stagesFor } from './payment-stages'
 import { bundleDiscount, formatUsd } from './pricing'
 import { serviceSlugs, siteUrl, type ServiceSlug } from './site'
 
@@ -20,6 +21,8 @@ import { serviceSlugs, siteUrl, type ServiceSlug } from './site'
 // summary, turned into labelled rows. Pure, so the numbers can be tested without a browser.
 
 export type EstimateRow = { id: string; name: string; detail: string; term: string; price: string }
+
+export type StageRow = { id: string; n: number; name: string; share: string; amount: string }
 
 export type BriefRow = { id: string; label: string; value: string }
 export type Brief = { goals: BriefRow[]; style: BriefRow[]; details: BriefRow[] }
@@ -37,6 +40,8 @@ export type EstimateDoc = {
   discount: string | null
   total: string
   monthly: string | null
+  // Payment stages with amounts (owner decision 2026-11-21); empty when nothing is priced.
+  stages: StageRow[]
   // The money-back guarantee sentence for the footer notes (dictionary `guarantee.line`).
   guarantee: string
   // What is not in the price (domain, hosting, paid third-party services), per the brief.
@@ -109,6 +114,13 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
     // No priced lines: nothing to sum, the quote says so instead of showing zero.
     total: q.lines.length ? formatUsd(q.total) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
+    stages: stagesFor(build, q.total).map((stage, i) => ({
+      id: stage.id,
+      n: i + 1,
+      name: stage.title[locale === 'ru' ? 'ru' : 'en'],
+      share: `${stage.share}%`,
+      amount: formatUsd(stage.amountUsd),
+    })),
     guarantee: dict.guarantee.line,
     scope: scopeLine(build, dict),
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,
@@ -225,6 +237,10 @@ export function leadSummary(build: Build, dict: Dict, locale: string) {
       `${pick(ui.onRequestLabel, locale)}: ${doc.onRequest.map((row) => row.name).join(', ')}`,
     )
   if (doc.monthly) lines.push(`${dict.extras.items.support.name}: ${doc.monthly}`)
+  if (doc.stages.length)
+    lines.push(
+      `${t.stageLead}: ${doc.stages.map((s) => `${s.n}. ${s.amount} (${s.share})`).join(', ')}`,
+    )
   lines.push(doc.scope)
   const { goals, style, details } = doc.brief
   for (const row of goals) lines.push(`${row.label}: ${row.value}`)

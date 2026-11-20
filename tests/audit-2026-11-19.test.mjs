@@ -55,16 +55,21 @@ test('payment copy: only USDT and the wallet from the estimate, no Kaspi, Payme,
   assert.doesNotMatch(body, /Working with companies/)
 })
 
-test('staged payment copy matches the terms: 50/50, stages only from the estimate', () => {
-  const ruBad = /за каждый[^.]{0,30}этап|каждый этап отдельно|за каждый отдельно|оплата по этапам/i
-  const enBad = /for each (stage|one) separately|pay in stages|paid in stages/i
+test('staged payment copy matches the terms: stages, each before it starts (owner 2026-11-21)', () => {
+  // «Оплата по этапам» is the rule since 2026-11-21; the old «за каждый этап отдельно» phrasing stays out.
+  const ruBad = /за каждый[^.]{0,30}этап|каждый этап отдельно|за каждый отдельно/i
+  const enBad = /for each (stage|one) separately/i
   for (const [at, text] of strings(ru)) assert.doesNotMatch(text, ruBad, `ru ${at}`)
   for (const [at, text] of strings(en)) assert.doesNotMatch(text, enBad, `en ${at}`)
   for (const [at, text] of strings(articles.map((a) => ({ ru: a.ru, en: a.en })))) {
     assert.doesNotMatch(text, ruBad, `blog ${at}`)
     assert.doesNotMatch(text, enBad, `blog ${at}`)
   }
-  assert.match(ru.faq.items.find((i) => i.q === 'Как проходит оплата?').a, /50|половину/i)
+  const ruFaq = ru.faq.items.find((i) => i.q === 'Как проходит оплата?').a
+  assert.match(ruFaq, /по этапам/)
+  assert.match(ruFaq, /до его начала/)
+  assert.match(ruFaq, /последний до передачи/)
+  assert.doesNotMatch(ruFaq, /50|половин/i)
 })
 
 test('audit promise: a working day, no hard 24 hours, no automation promise', () => {
@@ -217,4 +222,16 @@ test('security headers are set for every path', async () => {
   assert.equal(map['Referrer-Policy'], 'strict-origin-when-cross-origin')
   assert.equal(map['X-Frame-Options'], 'DENY')
   assert.equal(map['Permissions-Policy'], 'camera=(), geolocation=(), microphone=()')
+})
+
+test('/api/prices carries the payment stages and the small-project limit (2026-11-21)', async () => {
+  const body = await (await import('../src/app/api/prices/route.ts')).GET().json()
+  assert.equal(body.smallProjectMaxUsd, 300)
+  assert.equal(body.updatedAt, '2026-11-21')
+  assert.deepEqual(Object.keys(body.stages), ['site', 'bot', 'automation', 'app', 'small'])
+  for (const stages of Object.values(body.stages)) {
+    assert.equal(stages.reduce((s, x) => s + x.share, 0), 100)
+    for (const st of stages) assert.ok(st.id && st.title.ru && st.title.en && st.share > 0)
+  }
+  assert.deepEqual(body.stages, JSON.parse(JSON.stringify(pricing.paymentStages)))
 })

@@ -55,7 +55,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
   const doc = estimateDoc(state.build, dict, locale)
   const notes = [
     dict.builder.termsNote,
-    dict.builder.payNote,
+    ...(doc.stages.length ? [] : [dict.builder.payNote]),
     ...(doc.onRequest.length ? [pick(builderUi.onRequestNote, locale)] : []),
     ...(doc.monthly ? [dict.builder.monthlyNote] : []),
     doc.scope,
@@ -184,6 +184,39 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
           </div>
           {doc.monthly && <Sum label={t.support} value={`+ ${doc.monthly}`} muted />}
         </dl>
+
+        {doc.stages.length > 0 && (
+          <section className="mt-9 break-inside-avoid">
+            <Heading>{dict.builder.stagesTitle}</Heading>
+            <table className="mt-3 w-full border-collapse text-left text-[13.5px] leading-snug">
+              <thead>
+                <tr className="border-b border-[#d9ded4] text-[11px] tracking-[0.08em] text-[#5b6459] uppercase">
+                  <th className="py-2 pr-3 font-medium">{dict.builder.stageCols.stage}</th>
+                  <th className="py-2 pr-3 font-medium">{dict.builder.stageCols.what}</th>
+                  <th className="py-2 pr-3 text-right font-medium">{dict.builder.stageCols.share}</th>
+                  <th className="py-2 text-right font-medium">{dict.builder.stageCols.amount}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {doc.stages.map((stage) => (
+                  <tr key={stage.id} className="break-inside-avoid border-b border-[#e6e9e2] align-top">
+                    <td className="py-2.5 pr-3 whitespace-nowrap text-[#3d443b]">
+                      {dict.builder.stageWord} {stage.n}
+                    </td>
+                    <td className="py-2.5 pr-3">{stage.name}</td>
+                    <td className="py-2.5 pr-3 text-right font-mono text-[13px] whitespace-nowrap">
+                      {stage.share}
+                    </td>
+                    <td className="py-2.5 text-right font-mono text-[13px] whitespace-nowrap">
+                      {stage.amount}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="mt-2 text-[13px] text-[#3d443b]">{dict.builder.stageRule}</p>
+          </section>
+        )}
 
         {(doc.brief.goals.length > 0 ||
           doc.brief.style.length > 0 ||

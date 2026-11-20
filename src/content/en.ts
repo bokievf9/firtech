@@ -40,7 +40,7 @@ const en: Dict = {
     },
     primary: 'Build it in the builder',
     telegram: 'Message on Telegram',
-    trust: ['Price fixed in the quote', '50% upfront', 'Code and access are yours'],
+    trust: ['Price fixed in the quote', 'Pay before each stage', 'Code and access are yours'],
     scroll: 'Scroll',
     chatCta: 'Talk to the receptionist',
     auditLink: 'A free website audit: we reply within a working day',
@@ -349,8 +349,8 @@ const en: Dict = {
         text: 'Domain, accounts and code are registered to you. If you leave, you take the whole project.',
       },
       {
-        title: 'Pay 50% and 50%',
-        text: 'Half before we start, the rest after acceptance. Large projects go in stages from the quote.',
+        title: 'Payment by stages',
+        text: 'You pay each stage before it starts and the last one before handover. The stages and amounts are written in the quote.',
       },
       {
         title: 'A month of fixes',
@@ -369,7 +369,8 @@ const en: Dict = {
     pdf: 'Quote as PDF',
     link: 'Shareable link',
     payTitle: 'Payment',
-    currency: 'Prices in US dollars, 50% prepayment',
+    currency: 'Prices in US dollars',
+    stages: 'Payment by stages: each stage before it starts, the last before handover.',
   },
   faqContact: {
     title: 'Questions and a request',
@@ -512,7 +513,12 @@ const en: Dict = {
     monthlyNote: 'Support is paid separately, every month.',
     termsNote:
       'Timelines are per part. We will give the exact overall timeline in the quote: some work can run in parallel.',
-    payNote: 'Payment: 50% before we start and 50% after acceptance. Projects longer than a month go in stages from the quote.',
+    payNote: 'Payment by stages from the quote: each stage before it starts, the last before handover. Small projects go in two equal stages.',
+    stagesTitle: 'Payment by stages',
+    stageCols: { stage: 'Stage', what: 'What is included', share: 'Share', amount: 'Amount' },
+    stageRule: 'Each stage is paid before it starts, the last one before handover.',
+    stageWord: 'Stage',
+    stageLead: 'Payment by stages',
     note: 'The price is exact for the selected options. We fix it in the quote when you confirm.',
     scope: {
       none: 'Domain, hosting, server and paid third-party services (SMS, APIs, payments) are not included: the client pays for them directly, and prices vary. For reference: a domain is $10-15 a year, hosting from $5 a month.',
@@ -1163,7 +1169,7 @@ const en: Dict = {
       },
       {
         title: 'Build',
-        text: 'You see progress every week. Payment: 50% before we start, 50% after acceptance.',
+        text: 'You see progress every week. Payment by stages, each stage before it starts.',
       },
       {
         title: 'Launch',
@@ -1200,7 +1206,7 @@ const en: Dict = {
       },
       {
         q: 'What if I do not like it?',
-        a: 'If you do not like the first screen of the website or the first bot scenario, we return the prepayment in full, minus network fees. Tell us in writing within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
+        a: 'If you do not like the first screen of the website or the first bot scenario, we return the first stage payment in full, minus network fees. Tell us in writing within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
       },
       {
         q: 'Can I see first what is wrong?',
@@ -1216,7 +1222,7 @@ const en: Dict = {
       },
       {
         q: 'How do payments work?',
-        a: 'Half of the amount before we start, the other half after acceptance. Projects longer than a month are split into stages, and the quote lists the stages and their payments. You can pay in USDT (TRC20 or TON) or through an online wallet named in the quote.',
+        a: 'Payment goes by stages. We split the quote into stages, and the quote shows what each includes and what it costs. You pay each stage before it starts and the last one before access and source files are handed over. Small projects go in two equal stages. Subscriptions are paid a month in advance. You can pay in USDT (TRC20 or TON) or through an online wallet named in the quote.',
       },
       {
         q: 'Do you work with clients abroad?',
@@ -1490,8 +1496,8 @@ const en: Dict = {
         id: 'payment',
         title: 'Payment',
         text: [
-          'A prepayment of 50% of the estimate before the work starts, the rest after acceptance and before access and source files are handed over. For projects longer than a month the stages and their payments are written in the estimate.',
-          'Subscriptions (support, content on autopilot, personal agents) are paid a month in advance. A subscription can be stopped at any time; the paid month is served to its end.',
+          'Payment by stages. The estimate is split into stages, and their content, shares and amounts are written in the estimate. Each stage is paid before it starts, the last stage before access and source files are handed over. Projects cheaper than {small} go in two stages, 50% and 50%: before the start and before the launch.',
+          'Subscriptions (support, content on autopilot, personal agents) are paid monthly in advance. A subscription can be stopped at any time; the paid month is served to its end.',
         ],
         list: [
           'Cryptocurrency: USDT on the TRC20 or TON network, address in the estimate',
@@ -1503,10 +1509,10 @@ const en: Dict = {
       },
       {
         id: 'guarantee',
-        title: 'Prepayment guarantee',
+        title: 'First stage payment guarantee',
         text: [
           'The guarantee covers the first delivered result. What counts as the first result depends on the product, see the list below. If the client does not like it, they say so in writing, for example in Telegram, within 7 days of receiving it.',
-          'The prepayment is then returned in full, minus network and payment service fees. This rule applies instead of the charge for completed work in the termination section.',
+          'The first stage payment is then returned in full, minus network and payment service fees. This rule applies instead of the charge for completed work in the termination section.',
           'If the client approved the first result, the guarantee for that stage is closed and the work continues on the usual terms.',
         ],
         list: [
@@ -1522,7 +1528,7 @@ const en: Dict = {
         id: 'delivery',
         title: 'Timelines and acceptance',
         text: [
-          'Timelines run from the prepayment and from receiving everything the client has to provide: texts, photos, access. A delay in materials moves the deadline by the same time.',
+          'Timelines run from the first stage payment and from receiving everything the client has to provide: texts, photos, access. A delay in materials moves the deadline by the same time.',
           'The estimate includes two rounds of revisions: the client sends remarks as a list and the contractor applies them. New features and a change of task beyond the estimate are priced separately. If no remarks arrive within 7 days of delivery, the work counts as accepted.',
           'For 30 days after delivery we fix bugs in the delivered work for free.',
         ],
@@ -1558,7 +1564,7 @@ const en: Dict = {
         title: 'Liability and termination',
         text: [
           'The contractor\'s liability is limited to the amount the client has paid under this estimate. The contractor is not liable for lost profit, for failures of third-party services (Telegram, hosting, payment services, AI models) or for the consequences of changes made by the client\'s side.',
-          'Either party may terminate in writing. If the client terminates, the prepayment is refunded minus the cost of the work done under the estimate, and the finished part is handed over. If the contractor terminates, the unearned part of the prepayment is refunded in full.',
+          'Either party may terminate in writing. If the client terminates, the amount paid is refunded minus the cost of the work done under the estimate, and the finished part is handed over. If the contractor terminates, the unearned part of the payment is refunded in full.',
         ],
         list: [],
       },
@@ -1577,18 +1583,18 @@ const en: Dict = {
   // Money-back guarantee (owner decision 2026-11-19). One sentence reused in the pricing section,
   // the builder summary, the estimate notes, the FAQ and llms.txt; the exact rule is in `terms`.
   guarantee: {
-    line: 'If you do not like the first screen of the website or the first bot scenario, we return the prepayment.',
+    line: 'If you do not like the first screen of the website or the first bot scenario, we return the first stage payment.',
     more: 'Guarantee terms',
-    llms: 'Guarantee: if you do not like the first screen of the website or the first bot scenario, the prepayment is returned.',
+    llms: 'Guarantee: if you do not like the first screen of the website or the first bot scenario, the first stage payment is returned.',
   },
   // Referral page /[locale]/referral. `{percent}` is filled from `referralPercent` (pricing.ts).
   referral: {
-    metaTitle: 'Referral program: {percent} of the estimate | Fir Tech',
+    metaTitle: 'Referral program: {percent} of each stage | Fir Tech',
     metaDescription:
-      'Recommend Fir Tech to a friend and get {percent} of their estimate as a USDT or online wallet transfer, or as a discount on your own project. Rules and link.',
+      'Recommend Fir Tech to a friend and get {percent} of each stage they pay as a USDT or online wallet transfer, or as a discount on your own project. Rules and link.',
     eyebrow: 'Referral program',
-    title: 'Recommend us and get {percent} of the estimate',
-    sub: 'A friend needs a website, a bot or automation? Send them our way, and after their first payment you get a reward.',
+    title: 'Recommend us and get {percent} of each stage',
+    sub: 'A friend needs a website, a bot or automation? Send them our way, and once they start paying you get a reward.',
     stepsTitle: 'How it works',
     steps: [
       {
@@ -1601,16 +1607,16 @@ const en: Dict = {
       },
       {
         title: 'You get the reward',
-        text: 'After the client\'s first payment you get {percent} of their estimate: as a USDT transfer, to an online wallet, or as a discount on your own project.',
+        text: 'For each stage the client pays you get {percent}: as a USDT transfer, to an online wallet, or as a discount on your own project.',
       },
     ],
     rulesTitle: 'Rules',
     rules: [
-      'The reward is paid once for each new client.',
-      'It arrives within 7 days of the client\'s first payment.',
+      'The reward is paid for each stage a new client pays.',
+      'It arrives within 7 days of the client paying a stage.',
       'There is no reward for yourself or for a client who has already written to us.',
       'We may refuse the reward if a recommendation looks like spam.',
-      'The reward is counted from the estimate the client confirmed.',
+      'The reward is counted from the amount of the paid stage.',
     ],
     generatorTitle: 'Your link',
     generatorText: 'Enter a name or a username, get a link and send it to friends. Nothing is saved on a server.',
@@ -2012,7 +2018,7 @@ const en: Dict = {
       allClear: 'Nothing urgent.',
       referral: {
         title: 'Recommend us',
-        text: 'If a client comes through your link and pays for the work, you get {percent} of their estimate.',
+        text: 'If a client comes through your link and pays for the work, you get {percent} of each stage they pay.',
         cta: 'More about referrals',
       },
       blogTitle: 'From the blog',
@@ -2041,8 +2047,8 @@ const en: Dict = {
         new: 'A manager will clarify the details within a working day.',
         qualified: 'We are preparing a commercial proposal.',
         proposal: 'The proposal is ready and waits for your decision.',
-        contract: 'The contract and the 50% invoice are ready.',
-        paid: 'Payment received, we are starting the project.',
+        contract: 'The contract and the first stage invoice are ready.',
+        paid: 'Stage payment received, we are starting it.',
         project: 'The project is in progress, stages are in the project card.',
         lost: 'The request is closed. If the task is still open, write to us.',
       },
@@ -2103,6 +2109,8 @@ const en: Dict = {
         payment: 'Payment',
         done: 'Done',
       },
+      // Stage track of a project: payment before the stage, work, then acceptance (`{n}` = stage number).
+      stageTrack: { pay: 'Stage {n}: payment', work: 'Stage {n}: in progress', accept: 'Stage {n}: acceptance' },
       projectStatus: { draft: 'Draft', active: 'In progress', done: 'Finished' },
       invoiceStatus: { draft: 'Draft', issued: 'Awaiting payment', paid: 'Paid', void: 'Cancelled' },
       documentStatus: {
@@ -2140,7 +2148,7 @@ const en: Dict = {
     },
     referral: {
       title: 'Your link',
-      rule: 'When a client comes through your link and pays for the work, you get {percent} of the amount of their estimate.',
+      rule: 'When a client comes through your link and pays for the work, you get {percent} of each stage they pay.',
       copy: 'Copy',
       copied: 'Copied',
       pending: 'Your link appears once we add you to the referral system. We do it ourselves after your first project.',

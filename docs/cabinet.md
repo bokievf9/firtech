@@ -100,6 +100,13 @@ from HQ = «Заявка принята, менеджер скоро ответ�
 - **Label**: `nav.cabinetStart` is «Личный кабинет» (RU) and «Get started» (EN) while signed out. In the header the text shows from
   `xl`; at `lg` only the icon shows (the text stays for screen readers) so the bar never crowds; the mobile menu and footer show it whole.
 
+## 2026-11-21: payment stages in the cabinet
+Owner decision: payment by stages (each stage before it starts, the last before handover; referral 10% of each paid stage).
+Copy for the project stage track is `cabinet.cards.stageTrack` (`pay` «Этап {n}: оплата», `work` «Этап {n}: в работе», `accept`
+«Этап {n}: приёмка»; `stageTrackLabel()` in `lib/payment-stages.ts` fills `{n}`); `cabinet.leads.defaultNext.contract` now says the
+invoice is for the first stage. The track is not drawn yet: it waits for HQ to send `stage`, `amountUsd`, `invoiceNumber`,
+`paidAt`, `acceptedAt` on project milestones (see the contract file `payment-stages-contract.md`).
+
 ## Routes
 - `/[locale]/cabinet` home, `/cabinet/login` (tabs, Google, forgot password; `?next=`, `?error=<key>`),
   `/cabinet/reset` (new password), `/cabinet/auth/callback`, `/cabinet/auth/confirm` (browser retry), `/cabinet/health`.

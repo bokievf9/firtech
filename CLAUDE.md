@@ -58,6 +58,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never
   summed. The build lives in `?b=` so it can be shared; the lead arrives as service `bundle` with
   the full list and the link.
+  Payment stages (owner 2026-11-21, replaces 50/50): `paymentStages` and `smallProjectMaxUsd` (300) in `pricing.ts`,
+  pure helpers in `src/lib/payment-stages.ts` (`stagesFor`, `stageTemplateForProduct`; the template of the most
+  expensive part, a total under the limit = two stages 50/50, rounding to whole USD with the remainder on the last
+  stage). `estimateDoc().stages` feeds the stage table (`Этап / Что входит / Доля / Сумма` plus `builder.stageRule`) in
+  the summary and the A4 estimate, and one compact line in `leadSummary` (still within `leadLimit`).
   Eight full-screen steps (business, products, goal, parts, features, style, details, summary); the
   step is in `?step=` (1-based; old `?s=` links map to the new order) with history entries.
   Catalogue: `src/content/builder-catalog.ts` holds every kind (56, in 10 categories; row = emoji,
@@ -110,18 +115,18 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   token filled by `fillServicePrice` (`src/lib/seo.ts`); meta descriptions must be 120-160 characters
   and copy must have no long dashes, AI tells or dollar amounts (`tests/site-c.test.mjs`); `/terms`
   (`terms` in the dictionaries, `components/legal-doc.tsx` shared with privacy) is a full draft
-  (2026-11-19: individual contractor without a legal entity, 50% prepayment, USDT TRC20/TON or an
+  (2026-11-19: individual contractor without a legal entity, payment by stages since 2026-11-21, USDT TRC20/TON or an
   online wallet named in the estimate, two rounds of revisions, 7-day acceptance, liability capped
   at the paid amount; contractor «Fir Tech», contact `hello@firtech.pro`, law of Tajikistan, filled
   on the owner's word 2026-11-19; `placeholder` stays in the dictionary for future gaps); `llms.txt`
   comes from the products and `pricing.ts`.
 - Guarantee, referral, comparison (owner decisions 2026-11-19): the money-back sentence («первый экран
-  или первый сценарий не понравился, возвращаем предоплату») is `guarantee.line` in the dictionaries,
+  или первый сценарий не понравился, возвращаем оплату первого этапа») is `guarantee.line` in the dictionaries,
   shown by `components/guarantee-line.tsx` in `#pricing` and the builder summary, in the estimate notes
   (`estimateDoc().guarantee`), in the FAQ, in `llms.txt` (`guarantee.llms`); the rule is the `guarantee`
   section of `terms` (after `payment`, 7 days, full return minus network fees). `/[locale]/referral`
   (`referral` dictionary, link generator `components/referral-link.tsx`) pays `referralPercent`
-  (`pricing.ts`, number 10) of the referred client's estimate; copy carries the `{percent}` token
+  (`pricing.ts`, number 10) of EACH paid stage of the referred client (owner 2026-11-21); copy carries the `{percent}` token
   (`fillReferralPercent` in `src/lib/referral.ts`), never a typed percent. `/[locale]/compare`
   (`comparePage` dictionary, words only, no figures or named competitors). Both are in `localePages`,
   the sitemap and the footer «Студия» column; links from `#pricing` and under the home FAQ.
@@ -172,12 +177,15 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   limiters) goes to HQ in header `x-visitor-ip` on every forward (not sent when 'local'). Tests: `tests/audit-2026-11-19.test.mjs`.
 - `GET /api/prices` (`force-static`, `cache-control: public, max-age=600`): `pricesJson()` in `src/lib/prices-json.ts`
   from `pricing.ts` and `products.ts` (starting prices, catalog, extras, plans, referral percent, products); the agents read it
-  instead of copies. Bump `PRICES_UPDATED_AT` when prices change.
+  instead of copies; since 2026-11-21 it also carries `stages` (templates: id, ru/en title, share) and `smallProjectMaxUsd`.
+  Bump `PRICES_UPDATED_AT` when prices change (now 2026-11-21).
 - Security headers (`next.config.ts`, all paths): nosniff, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
   `Permissions-Policy` (microphone only on `/admin/echo`), HSTS in production (nginx sends none, so no duplicate). No CSP yet.
-- Payment copy (owner 2026-11-19): USDT (TRC20/TON) or an online wallet named in the estimate, 50% before the start and 50%
-  after acceptance, stages from the estimate for projects over a month; never cards, Kaspi, Payme, Click as our own methods
-  and never «за каждый этап отдельно». The free audit is promised «в течение рабочего дня после заявки, обычно быстрее».
+- Payment copy (owner 2026-11-19, stages 2026-11-21): USDT (TRC20/TON) or an online wallet named in the estimate; payment by
+  stages, each stage BEFORE it starts and the last before handover (rule sentence `builder.stageRule`), projects under
+  `smallProjectMaxUsd` in two stages 50/50, subscriptions monthly in advance; «50%» appears only in the terms
+  (`{small}` token filled by `fillStageTokens`); the guarantee returns the first stage payment; never cards, Kaspi, Payme,
+  Click as our own methods and never «за каждый этап отдельно». The free audit is promised «в течение рабочего дня после заявки, обычно быстрее».
   The public office maps `blocked` to `waiting`.
 - Env (in `.env.local`, see `.env.example`): `TELEGRAM_BOT_TOKEN` (bot from @BotFather),
   `TELEGRAM_CHAT_ID` (the owner's user id or a group id: send the bot a message, then read

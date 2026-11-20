@@ -32,7 +32,7 @@ export function PricingSection({
           <p className="mt-5 max-w-[48ch] text-lead text-muted">{t.sub}</p>
           {teaser && (
             <p className="mt-6 text-sm text-faint">
-              {h.currency}. {dict.region.payTitle}: {dict.region.pay.join(', ')}.
+              {h.currency}. {h.stages} {dict.region.payTitle}: {dict.region.pay.join(', ')}.
             </p>
           )}
           <GuaranteeLine dict={dict} locale={locale} className="mt-5 max-w-[52ch]" />
