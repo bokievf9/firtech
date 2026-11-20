@@ -107,12 +107,12 @@ import { existsSync, readFileSync } from 'node:fs'
 
 const src = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
-test('go-live list is still 28 items in 6 blocks, every item in a known block', () => {
-  assert.equal(goliveItems.length, 28)
-  assert.equal(goliveBlocks.length, 6)
+test('go-live list is 33 items in 7 blocks, every item in a known block', () => {
+  assert.equal(goliveItems.length, 33)
+  assert.equal(goliveBlocks.length, 7)
   const blocks = new Set(goliveBlocks.map((b) => b.id))
   for (const i of goliveItems) assert.ok(blocks.has(i.block), i.id)
-  assert.equal(new Set(goliveItems.map((i) => i.id)).size, 28)
+  assert.equal(new Set(goliveItems.map((i) => i.id)).size, 33)
 })
 
 test('/admin/golive exists, checks the admin session and renders the stage', () => {

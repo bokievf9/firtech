@@ -19,6 +19,7 @@ export const goliveBlocks = [
   { id: 'hq', title: 'HQ и процессы' },
   { id: 'mk', title: 'Маркетинг' },
   { id: 'ops', title: 'Связь и ops' },
+  { id: 'launch', title: 'Запуск' },
 ] as const
 
 export const goliveItems: GoliveItem[] = [
@@ -55,6 +56,12 @@ export const goliveItems: GoliveItem[] = [
   { id: 'ops-telegram', block: 'ops', title: '@firtech_bot: анкета, демо, «позвать человека» проверены', hint: 'Все три сценария пройдены с телефона.', owner: 'owner' },
   { id: 'ops-cron', block: 'ops', title: 'Cron watch и backup сайта на новом сервере', hint: 'Задания есть в crontab пользователя deploy и срабатывают.', owner: 'claude' },
   { id: 'ops-rollback', block: 'ops', title: 'Откат деплоя проверен', hint: 'Откат на прошлый релиз и возврат вперёд без потери данных.', owner: 'claude' },
+
+  { id: 'launch-first-clients', block: 'launch', title: 'План первых 10 клиентов: 100 бизнесов от Разведчика, 10 знакомых, 2GIS и Google Карты, партнёры 10%', hint: 'Список составлен, первые контакты назначены.', owner: 'owner' },
+  { id: 'launch-demo-client', block: 'launch', title: 'Демо-клиент с полным проектом в кабинете для показов', hint: 'Тестовый клиент с заявкой, проектом, счётом и документами, помечен как демо.', owner: 'claude' },
+  { id: 'launch-sla', block: 'launch', title: 'SLA на сайте: первый ответ за 5 минут круглосуточно, цены после владельца', hint: 'Обещание на сайте совпадает с тем, что реально делает чат и HQ.', owner: 'claude' },
+  { id: 'launch-film', block: 'launch', title: 'Launch-фильм и серия постов запуска', hint: 'Ролик и посты готовы и одобрены.', owner: 'claude' },
+  { id: 'launch-stoplist', block: 'launch', title: 'Стоп-лист соблюдён: без TikTok API, Telegram-канала, Meta API, валют', hint: 'Нигде не подключены и не обещаны.', owner: 'owner' },
 ]
 
 export const goliveText = {
