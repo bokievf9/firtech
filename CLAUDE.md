@@ -138,8 +138,10 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   Every lead path (contact form, builder hand-off, PDF estimate, audit, chat contact) needs a signed-in account: 401
   `auth_required` from `/api/lead` and `/api/audit` (`leadGate`, open while the cabinet is off), inline sign-in step with a
   24 h draft (`lead-draft.ts`, `draft=1`), identity `clientEmail/cabinetId/clientName` to HQ, redirect to
-  `/<locale>/cabinet?lead=<leadId>`. Cabinet home starts with «Заявки» (stage track, next step, timeline, messages, reply box,
-  30 s refresh). The cabinet link reads «Начать» / «Get started» while signed out. Details: `docs/cabinet.md`.
+  `/<locale>/cabinet?lead=<leadId>`. Cabinet home is tabs (2026-11-21, `?tab=`, `lib/cabinet-tabs.ts`; default «Заявки» with requests or `?lead=`, else «Обзор»; the
+  30 s refresh of Заявки runs only on its tab) with offers picked from the client's state in `lib/cabinet-offers.ts` (Обзор and a strip under
+  the other tabs; clicks `cabinet_offer_click`). The Google button has the «G» mark. The cabinet link reads «Личный кабинет» / «Get started»
+  while signed out. Details: `docs/cabinet.md`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass

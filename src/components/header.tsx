@@ -144,10 +144,13 @@ export function Header({
             <Link
               href={`/${locale}/cabinet`}
               data-place="header-cabinet"
-              className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm text-muted transition-colors hover:text-fg lg:inline-flex"
+              className="hidden items-center gap-1.5 rounded-full px-3 py-2 text-sm whitespace-nowrap text-muted transition-colors hover:text-fg lg:inline-flex"
             >
               <UserCircle size={18} aria-hidden="true" />
-              <CabinetNavLabel signedIn={dict.nav.cabinet} start={dict.nav.cabinetStart} />
+              {/* The longer label only from xl, so the bar never crowds at 1024px; it stays for screen readers. */}
+              <span className="sr-only xl:not-sr-only">
+                <CabinetNavLabel signedIn={dict.nav.cabinet} start={dict.nav.cabinetStart} />
+              </span>
             </Link>
           )}
           <div className="hidden sm:block">{localeSwitch}</div>

@@ -22,6 +22,8 @@ export type GoalParams = {
   chat_state: [params: { state: string }]
   // Free audit ordered (the form got ok from HQ, also for a repeat order).
   audit_sent: []
+  // A click on an offer card in the cabinet (id of the offer, e.g. product-admin, audit, second).
+  cabinet_offer: [params: { offer: string }]
 }
 export type Goal = keyof GoalParams
 

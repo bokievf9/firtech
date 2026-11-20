@@ -650,6 +650,7 @@ export const admin = {
         cabinet_signup: 'Создали кабинет',
         pay_view: 'Открыли страницу оплаты',
         blog_view: 'Читали блог',
+        cabinet_offer_click: 'Нажали на предложение в кабинете',
       },
       blogHits: 'Просмотры блога',
       blogPublished: 'Статей вышло',

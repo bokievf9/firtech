@@ -13,6 +13,7 @@ export const SITE_EVENTS = [
   'cabinet_signup',
   'pay_view',
   'blog_view',
+  'cabinet_offer_click',
 ] as const
 export type SiteEventName = (typeof SITE_EVENTS)[number]
 export type SiteEvent = { name: SiteEventName; path?: string; ref?: string; locale?: 'ru' | 'en' }

@@ -8,6 +8,7 @@ import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
 import { reportAuthError } from './auth-log'
+import { GoogleMark } from './google-mark'
 import { FormMessage } from './ui'
 
 // «Продолжить с Google»: the OAuth flow starts in the browser with the browser client, so the PKCE
@@ -63,6 +64,7 @@ export function OAuthButton({
         data-provider={provider}
         className={cn(buttonStyles.secondary, 'w-full')}
       >
+        {provider === 'google' && <GoogleMark />}
         {pending ? t.redirecting : provider === 'google' ? t.google : t.apple}
       </button>
       {error && <FormMessage kind="error">{error}</FormMessage>}

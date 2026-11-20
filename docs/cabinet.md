@@ -72,11 +72,33 @@ status: 404, hasVerifier: true }`. OAuth used to start in a server action. Now:
 - `GET /api/cabinet/me` (`{enabled, signedIn, email, name, telegram}`) feeds the forms.
 
 ## Cabinet home
-Order: Заявки, Проекты, Счета, Документы, Обращения, Рекомендации, Профиль. «Заявки» (`components/cabinet/leads-section.tsx`):
+Since 2026-11-21 it is tabs (see the dated section below). Sections: Заявки, Проекты, Счета, Документы, Обращения, Рекомендации, Профиль. «Заявки» (`components/cabinet/leads-section.tsx`):
 stage track Принято, Уточняем, КП, Договор, Оплата, В работе (`leadTrack`, `lost` = «Закрыто»), service, summary, estimate,
 domain and hosting, «Что дальше» (HQ `nextStep`, else `cabinet.leads.defaultNext`), the timeline (`timelineRows`), the
 manager's and client's messages and a reply box. Polls `GET /api/cabinet/leads` every 30 s while the tab is visible. No `leads`
 from HQ = «Заявка принята, менеджер скоро ответит»; none yet = «Собрать проект в конструкторе» and «Заказать бесплатный аудит».
+
+## 2026-11-21: tabs, offers, Google mark, label (owner: «удобный интерфейс с табами», «значок гугла», «больше промоушена»)
+- **Tabs** (`components/cabinet/cabinet-tabs.tsx`, helpers `lib/cabinet-tabs.ts`): Обзор, Заявки, Проекты, Счета, Документы,
+  Поддержка, Рекомендации, Профиль. State is `?tab=` (History API `pushState`, which Next keeps in step with `useSearchParams`,
+  so the server page is not refetched); an unknown value falls back to the default. Default = Заявки when the client has
+  requests or `?lead=` is present, else Обзор, so `/cabinet?lead=<id>` still opens that request. Badges: open requests (stage
+  not `lost` and not `project`), unpaid invoices (`issued`), open tickets. Only the active panel is mounted, so the 30 s refresh of
+  Заявки runs only while that tab is open. The bar scrolls sideways on phones with fading edges; `role="tablist"`, arrow keys,
+  Home and End, `aria-selected`, `aria-controls`, active tab underlined in lime. Existing sections moved into the panels unchanged.
+- **Offers** (`lib/cabinet-offers.ts`, `components/cabinet/offers.tsx`, copy `cabinet.offers`): picked from the state. No requests
+  and no projects: three product cards (admin bot, receptionist, automation; price through `ProductPriceTag`, CTA opens the builder
+  with the product picked) plus the free audit. A request only: audit, content subscription, automation. A project exists: content
+  subscription, AI implementation, automation, and «Вторая часть проекта» while one is in work. `bundleDiscount` (pricing.ts) is 10%
+  off ONE estimate from two parts, so a second project gets no discount promise: the card only says to build the second part in
+  the builder. Always in Обзор: «Требует внимания» links, the referral link (`cabinetRefLink`, percent through
+  `fillReferralPercent`), the guarantee line, the three newest articles (`allArticles()`, only slug, title, date go to the page),
+  the status page link. Other tabs end with a slim «Предложения для вас» strip. Clicks: `OfferLink` sends Metrika goal
+  `cabinet_offer` `{offer}` and the site event `cabinet_offer_click` (added to `SITE_EVENTS`; HQ's `POST /events` must learn the
+  name, until then it ignores or rejects it and the site does not care).
+- **Google mark** (`components/cabinet/google-mark.tsx`): inline four-colour «G», 18 px, `aria-hidden`, left of «Продолжить с Google».
+- **Label**: `nav.cabinetStart` is «Личный кабинет» (RU) and «Get started» (EN) while signed out. In the header the text shows from
+  `xl`; at `lg` only the icon shows (the text stays for screen readers) so the bar never crowds; the mobile menu and footer show it whole.
 
 ## Routes
 - `/[locale]/cabinet` home, `/cabinet/login` (tabs, Google, forgot password; `?next=`, `?error=<key>`),

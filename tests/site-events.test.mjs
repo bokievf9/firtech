@@ -48,7 +48,7 @@ test('sanitize: only known names; path without query; slug and locale checked', 
   assert.deepEqual(ev.sanitizeEvent({ name: 'chat_open', path: '//evil.example/x', ref: 'Bad Slug!', locale: 'de' }), { name: 'chat_open' })
   assert.equal(ev.cleanPath('/a'.repeat(200)).length, 200)
   assert.equal(ev.cleanPath('/<script>'), undefined)
-  assert.equal(ev.SITE_EVENTS.length, 9)
+  assert.equal(ev.SITE_EVENTS.length, 10)
 })
 
 test('dedupe per page view, Do Not Track and GPC, the per-IP limiter', () => {
@@ -160,6 +160,7 @@ test('call sites: every contract event is fired somewhere, the server one in the
     ref_click: 'src/components/ref-capture.tsx',
     pay_view: 'src/app/[locale]/pay/[number]/page.tsx',
     blog_view: 'src/app/[locale]/blog/[slug]/page.tsx',
+    cabinet_offer_click: 'src/components/cabinet/offer-link.tsx',
   }
   for (const [name, file] of Object.entries(where)) {
     assert.match(read(file), new RegExp(`trackEvent\\('${name}'|TrackView name="${name}"`), `${name} in ${file}`)

@@ -2,10 +2,15 @@ import { notFound } from 'next/navigation'
 import { CabinetSoon } from '@/components/cabinet/cabinet-soon'
 import { ProfileForm, DeleteAccount, TicketsPanel } from '@/components/cabinet/cabinet-forms'
 import { DocumentsCard, InvoicesCard, ProjectsCard, ReferralsCard } from '@/components/cabinet/cabinet-cards'
+import { CabinetTabs } from '@/components/cabinet/cabinet-tabs'
+import { OffersStrip, Overview } from '@/components/cabinet/offers'
 import { LeadsSection } from '@/components/cabinet/leads-section'
 import { Card, fill } from '@/components/cabinet/ui'
 import { HeroIntro } from '@/components/hero-intro'
 import { getDict } from '@/content'
+import { allArticles } from '@/lib/blog-hq'
+import { latestArticles, offerState, pickOffers } from '@/lib/cabinet-offers'
+import { defaultTab, tabCounts } from '@/lib/cabinet-tabs'
 import { fetchClientByEmail } from '@/lib/cabinet-hq'
 import { followLink, pickLead, type CabinetData } from '@/lib/cabinet-data'
 import { requireCabinetUser, syncAfterSignIn } from '@/lib/cabinet-session'
@@ -15,8 +20,9 @@ import { cabinetEnabled } from '@/lib/supabase/config'
 import { logoutAction } from './actions'
 
 // Cabinet home: signed-out visitors go to the login page; the client's requests, projects,
-// invoices, documents, tickets and referrals come from HQ by the session's email. Order (owner
-// 2026-11-20): Заявки, Проекты, Счета, Документы, Обращения, Рекомендации, then the profile.
+// invoices, documents, tickets and referrals come from HQ by the session's email. Since 2026-11-21
+// it is tabs (`?tab=`, cabinet-tabs.ts): Обзор with offers (cabinet-offers.ts), Заявки, Проекты,
+// Счета, Документы, Поддержка, Рекомендации, Профиль; the default is Заявки when there are any.
 // `?lead=<id>|new` arrives right after a request (the card is highlighted or a «принята» note
 // shows), `follow=` keeps the Telegram follow link, `password=updated` after a reset.
 export const dynamic = 'force-dynamic'
@@ -50,6 +56,8 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
   const query = await searchParams
   const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
   const leadParam = one(query.lead)
+  const plan = pickOffers(offerState(data), locale)
+  const articles = latestArticles(await allArticles(), locale)
   const bot = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || defaultTelegramBot).replace(/^@/, '')
 
   return (
@@ -87,37 +95,50 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
         </p>
       )}
 
-      <div className="mt-10 grid gap-gutter lg:grid-cols-2">
-        <LeadsSection
-          dict={dict}
-          locale={locale}
-          initial={data.leads}
-          focus={pickLead(data.leads, leadParam)}
-          fresh={Boolean(leadParam)}
-          follow={followLink(one(query.follow), bot)}
-        />
-        <ProjectsCard data={data} dict={dict} locale={locale} />
-        <InvoicesCard data={data} dict={dict} locale={locale} />
-        <DocumentsCard data={data} dict={dict} locale={locale} />
-        <Card title={t.cards.tickets} id="cabinet-tickets">
-          <TicketsPanel dict={dict} locale={locale} initial={data.tickets} />
-        </Card>
-        <ReferralsCard data={data} dict={dict} locale={locale} />
-        <Card title={t.cards.profile} id="cabinet-profile">
-          <ProfileForm
-            dict={dict}
-            locale={locale}
-            profile={{
-              name,
-              email,
-              telegram: profile?.telegram ?? '',
-              locale: profile?.locale === 'en' ? 'en' : 'ru',
-              marketing: profile?.marketing_consent === true,
-            }}
-          />
-          <DeleteAccount dict={dict} locale={locale} />
-        </Card>
-      </div>
+      <CabinetTabs
+        labels={t.tabs}
+        counts={tabCounts(data)}
+        defaultTab={defaultTab({ leadCount: data.leads?.length ?? 0, leadParam })}
+        strip={<OffersStrip plan={plan} dict={dict} />}
+        panels={{
+          overview: <Overview data={data} plan={plan} dict={dict} locale={locale} articles={articles} />,
+          leads: (
+            <LeadsSection
+              dict={dict}
+              locale={locale}
+              initial={data.leads}
+              focus={pickLead(data.leads, leadParam)}
+              fresh={Boolean(leadParam)}
+              follow={followLink(one(query.follow), bot)}
+            />
+          ),
+          projects: <ProjectsCard data={data} dict={dict} locale={locale} />,
+          invoices: <InvoicesCard data={data} dict={dict} locale={locale} />,
+          documents: <DocumentsCard data={data} dict={dict} locale={locale} />,
+          support: (
+            <Card title={t.cards.tickets} id="cabinet-tickets">
+              <TicketsPanel dict={dict} locale={locale} initial={data.tickets} />
+            </Card>
+          ),
+          referrals: <ReferralsCard data={data} dict={dict} locale={locale} />,
+          profile: (
+            <Card title={t.cards.profile} id="cabinet-profile">
+              <ProfileForm
+                dict={dict}
+                locale={locale}
+                profile={{
+                  name,
+                  email,
+                  telegram: profile?.telegram ?? '',
+                  locale: profile?.locale === 'en' ? 'en' : 'ru',
+                  marketing: profile?.marketing_consent === true,
+                }}
+              />
+              <DeleteAccount dict={dict} locale={locale} />
+            </Card>
+          ),
+        }}
+      />
     </section>
   )
 }
