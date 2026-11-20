@@ -60,6 +60,10 @@ export async function GET() {
       dict.builder.payNote,
       '',
       dict.guarantee.llms,
+      '',
+      dict.sla.llms,
+      '',
+      `${dict.faqLinks['pay-how']}: ${siteUrl}/${locale}/pay-how`,
     ].join('\n')
   })
   const body = [
