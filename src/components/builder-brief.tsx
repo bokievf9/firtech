@@ -53,7 +53,8 @@ import {
   type StyleAxes,
 } from '@/lib/builder-style'
 import { cn } from '@/lib/cn'
-import { catalog, formatUsd } from '@/lib/pricing'
+import { formatUsd } from '@/lib/pricing'
+import { usePricing } from './pricing-provider'
 import { StyleSample } from './builder-preview'
 import { Choice, Group, Pill, Tick } from './builder-ui'
 
@@ -327,13 +328,14 @@ export function DetailsStep({
   setBuild: SetBuild
 }) {
   const t = dict.builder
+  const pricing = usePricing()
   const d = build.details ?? {}
   const [drafts, setDrafts] = useState<string[]>(() => [d.examples?.[0] ?? '', d.examples?.[1] ?? ''])
   const pages = d.pages ?? 5
   const fill = ((pages - pagesRange.min) / (pagesRange.max - pagesRange.min)) * 100
   const hasSite = Boolean(build.parts.websites)
   const langs = d.langs ?? []
-  const languagePrice = formatUsd(catalog.websites.addons.language ?? 0)
+  const languagePrice = formatUsd(pricing.catalog.websites.addons.language ?? 0)
 
   function setExample(index: number, value: string) {
     const next = drafts.map((draft, i) => (i === index ? value : draft))

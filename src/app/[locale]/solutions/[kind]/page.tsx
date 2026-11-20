@@ -23,6 +23,7 @@ import { presets, quote } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale, locales } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
+import { getPricing } from '@/lib/pricing-store'
 import { siteUrl } from '@/lib/site'
 import {
   allSolutionKinds,
@@ -44,7 +45,7 @@ export async function generateMetadata({
   const { locale, kind } = await params
   if (!isLocale(locale) || !isSolutionKind(kind)) return {}
   const dict = getDict(locale)
-  const page = solutionCopy(kind, locale, dict)
+  const page = solutionCopy(kind, locale, dict, await getPricing())
   const path = `/solutions/${kind}`
   return {
     title: page.metaTitle,
@@ -68,10 +69,11 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
   if (!isLocale(locale) || !isSolutionKind(kind)) notFound()
   const dict = getDict(locale)
   const t = dict.solutions
-  const page = solutionCopy(kind, locale, dict)
+  const pricing = await getPricing()
+  const page = solutionCopy(kind, locale, dict, pricing)
   const entry = kindCatalog[kind]
   const build = presets[kind]
-  const q = quote(build)
+  const q = quote(build, pricing)
   const builderHref = solutionBuilderHref(locale, kind)
 
   const service = {
@@ -236,7 +238,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                 <span className="min-w-0">
                   <span className="block font-medium">{kindName(other, locale)}</span>
                   <span className="font-mono text-sm text-muted">
-                    {t.from} {formatUsd(quote(presets[other]).total)}
+                    {t.from} {formatUsd(quote(presets[other], pricing).total)}
                   </span>
                 </span>
                 <ArrowUpRight

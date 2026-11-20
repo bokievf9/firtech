@@ -2,9 +2,14 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { registerHooks } from 'node:module'
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
+
+// The live prices read $DATA_DIR/prices.json: point it at an empty folder so the defaults apply.
+process.env.DATA_DIR = mkdtempSync(path.join(tmpdir(), 'prices-'))
 
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
@@ -49,7 +54,7 @@ test('payment copy: only USDT and the wallet from the estimate, no Kaspi, Payme,
     for (const [at, text] of strings(dict)) assert.doesNotMatch(text, /Kaspi|\bPayme\b|\bClick\b/, `${name} ${at}`)
   assert.match(ru.region.pay.join(' '), /USDT/)
   assert.match(en.region.pay.join(' '), /USDT/)
-  const body = await llms.GET().text()
+  const body = await (await llms.GET()).text()
   assert.doesNotMatch(body, /Kaspi|\bPayme\b|\bClick\b|Bank cards/)
   assert.match(body, /USDT/)
   assert.doesNotMatch(body, /Working with companies/)
@@ -150,8 +155,8 @@ test('referral: 30-day storage, expiry, old format, bot links', () => {
 
 test('/api/prices returns the numbers of pricing.ts and productPrice', async () => {
   const route = await import('../src/app/api/prices/route.ts')
-  const res = route.GET()
-  assert.equal(res.headers.get('cache-control'), 'public, max-age=600')
+  const res = await route.GET()
+  assert.equal(res.headers.get('cache-control'), 'public, max-age=60')
   const body = await res.json()
   assert.equal(body.currency, 'USD')
   assert.match(body.updatedAt, /^\d{4}-\d{2}-\d{2}$/)
@@ -163,8 +168,10 @@ test('/api/prices returns the numbers of pricing.ts and productPrice', async () 
   assert.equal(body.referralPercent, pricing.referralPercent)
   assert.deepEqual(body.products, JSON.parse(JSON.stringify(productPrice)))
   assert.deepEqual(Object.keys(body.products), Object.keys(productPrice))
-  assert.equal(JSON.stringify(pricesJson()), JSON.stringify(body))
-  assert.match(readFileSync('src/app/api/prices/route.ts', 'utf8'), /force-static/)
+  assert.equal(JSON.stringify(pricesJson(pricing.defaultPricing)), JSON.stringify(body))
+  // The prices are live (owner edits in the Пульт): the route is dynamic, never force-static.
+  assert.match(readFileSync('src/app/api/prices/route.ts', 'utf8'), /force-dynamic/)
+  assert.doesNotMatch(readFileSync('src/app/api/prices/route.ts', 'utf8'), /force-static/)
 })
 
 test('public office never shows blocked', () => {
@@ -225,7 +232,7 @@ test('security headers are set for every path', async () => {
 })
 
 test('/api/prices carries the payment stages and the small-project limit (2026-11-21)', async () => {
-  const body = await (await import('../src/app/api/prices/route.ts')).GET().json()
+  const body = await (await (await import('../src/app/api/prices/route.ts')).GET()).json()
   assert.equal(body.smallProjectMaxUsd, 300)
   assert.equal(body.updatedAt, '2026-11-21')
   assert.deepEqual(Object.keys(body.stages), ['site', 'bot', 'automation', 'app', 'small'])

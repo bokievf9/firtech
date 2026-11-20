@@ -7,6 +7,7 @@ import { tabCounts, withTab } from '@/lib/cabinet-tabs'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Offer, OfferArticle, OfferPlan } from '@/lib/cabinet-offers'
 import type { Locale } from '@/lib/i18n'
+import { getPricing } from '@/lib/pricing-store'
 import { fillReferralPercent } from '@/lib/referral'
 import { CopyLink } from './cabinet-forms'
 import { OfferLink } from './offer-link'
@@ -71,7 +72,7 @@ export function OffersStrip({ plan, dict }: { plan: OfferPlan; dict: Dict }) {
 
 // The «Обзор» tab: what needs attention, the offers for the visitor's state, the referral link,
 // the guarantee, the latest articles and the status page.
-export function Overview({
+export async function Overview({
   data,
   plan,
   dict,
@@ -85,6 +86,7 @@ export function Overview({
   articles: OfferArticle[]
 }) {
   const o = dict.cabinet.offers
+  const pricing = await getPricing()
   const counts = tabCounts(data)
   const items = [
     counts.leads ? { tab: 'leads' as const, text: fill(o.openLeads, { n: String(counts.leads) }) } : null,
@@ -136,7 +138,7 @@ export function Overview({
           <h2 id="cabinet-ref-title" className="mt-3 font-display text-lg font-semibold tracking-tight">
             {o.referral.title}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted">{fillReferralPercent(o.referral.text)}</p>
+          <p className="mt-2 text-sm leading-relaxed text-muted">{fillReferralPercent(o.referral.text, pricing)}</p>
           {link && (
             <div className="mt-4">
               <CopyLink link={link} dict={dict} />

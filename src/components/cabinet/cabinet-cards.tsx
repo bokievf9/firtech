@@ -11,6 +11,7 @@ import {
 } from '@/lib/cabinet-data'
 import { buttonStyles } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
+import { getPricing } from '@/lib/pricing-store'
 import { fillReferralPercent } from '@/lib/referral'
 import { CopyLink } from './cabinet-forms'
 import { Card, Chip, Empty } from './ui'
@@ -168,15 +169,16 @@ export function DocumentsCard({ data, dict, locale }: { data: CabinetData; dict:
   )
 }
 
-export function ReferralsCard({ data, dict, locale }: { data: CabinetData; dict: Dict; locale: Locale }) {
+export async function ReferralsCard({ data, dict, locale }: { data: CabinetData; dict: Dict; locale: Locale }) {
   const t = dict.cabinet.referral
   const c = dict.cabinet.cards
+  const pricing = await getPricing()
   const link = cabinetRefLink(locale, data.referralSlug)
   return (
     <Card title={c.referrals} id="cabinet-referrals">
       <div className="grid gap-5">
         <p className="text-sm leading-relaxed text-muted">
-          {fillReferralPercent(t.rule)}
+          {fillReferralPercent(t.rule, pricing)}
         </p>
         {link ? (
           <div className="grid gap-2">

@@ -27,7 +27,8 @@ import { buttonStyles, cn } from '@/lib/cn'
 import { leadSummary } from '@/lib/estimate-doc'
 import { sendEstimate } from '@/lib/estimate-event'
 import type { Locale } from '@/lib/i18n'
-import { catalog, formatUsd } from '@/lib/pricing'
+import { formatUsd } from '@/lib/pricing'
+import { usePricing } from './pricing-provider'
 import type { ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { DetailsStep, StyleStep } from './builder-brief'
@@ -56,6 +57,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const steps = pick(builderUi.steps, locale)
   const total = steps.length
   const reduce = useReducedMotion()
+  const pricing = usePricing()
   const pathname = usePathname()
   const [step, setStep] = useState(0)
   const [dir, setDir] = useState(1)
@@ -195,7 +197,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     setBuildState((b) => {
       const parts = { ...b.parts }
       if (parts[slug]) delete parts[slug]
-      else parts[slug] = { variant: Object.keys(catalog[slug].variants)[0] ?? '', addons: [] }
+      else parts[slug] = { variant: Object.keys(pricing.catalog[slug].variants)[0] ?? '', addons: [] }
       return withSiteLanguage({ ...b, parts })
     })
   }
@@ -227,7 +229,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
 
   function handOff() {
     const service = leadServiceOf(build)
-    sendEstimate({ service, summary: leadSummary(build, dict, locale) })
+    sendEstimate({ service, summary: leadSummary(build, dict, locale, pricing) })
     track('builder_sent', { service })
     document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
   }
@@ -259,7 +261,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [canGo, go, last, sheet, step])
 
-  const q = quote(build)
+  const q = quote(build, pricing)
   const preview = withPreview.has(step)
   const ui = builderUi
   const titles = [

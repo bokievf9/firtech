@@ -1,7 +1,7 @@
 import { Check } from '@phosphor-icons/react/ssr'
 import type { Dict } from '@/content'
-import { formatUsd } from '@/lib/pricing'
-import { agentPlans } from '@/lib/products'
+import { agentPlanList, formatUsd } from '@/lib/pricing'
+import { getPricing } from '@/lib/pricing-store'
 import { ProductDemo } from '../products/product-demo'
 import { Reveal } from '../reveal'
 import { ProofLive } from './proof-live'
@@ -9,10 +9,11 @@ import { ProofLive } from './proof-live'
 // «Мы сами работаем на этом» (#proof): Dono, Polly and Fir Tech HQ as proof that the products
 // work. HQ's card shows live counts only (ProofLive); the personal agents show their approved
 // plans. No personal data, no task titles.
-export function Proof({ dict }: { dict: Dict }) {
+export async function Proof({ dict }: { dict: Dict }) {
+  const agentPlans = agentPlanList(await getPricing())
   const t = dict.proof
   const p = dict.products
-  const plan = (id: (typeof agentPlans)[number]['id']) => {
+  const plan = (id: 'dono' | 'polly') => {
     const found = agentPlans.find((a) => a.id === id)!
     return (
       <p className="font-mono text-xs text-muted">

@@ -1,10 +1,11 @@
 import { productCatalog } from '../content/builder-catalog'
 import { productParts, type Build, type ProductId } from './builder'
 import {
+  defaultPricing,
   estimate,
   formatUsd,
-  paymentStages,
-  smallProjectMaxUsd,
+  stageDefs,
+  type Pricing,
   type StageTemplateId,
 } from './pricing'
 import { builderProduct, isProductId, type ProductId as HomeProductId } from './products'
@@ -33,12 +34,15 @@ function templateOfPart(slug: ServiceSlug, variant: string): Exclude<StageTempla
 }
 
 // The template of the most expensive part (ties: the first in service order). null = no parts.
-export function templateForParts(parts: Parts): Exclude<StageTemplateId, 'small'> | null {
+export function templateForParts(
+  parts: Parts,
+  pricing: Pricing = defaultPricing,
+): Exclude<StageTemplateId, 'small'> | null {
   let best: { id: Exclude<StageTemplateId, 'small'>; price: number } | null = null
   for (const slug of serviceSlugs) {
     const part = parts[slug]
     if (!part) continue
-    const price = estimate(slug, part.variant, part.addons)
+    const price = estimate(slug, part.variant, part.addons, pricing)
     if (!best || price > best.price) best = { id: templateOfPart(slug, part.variant), price }
   }
   return best?.id ?? null
@@ -46,31 +50,39 @@ export function templateForParts(parts: Parts): Exclude<StageTemplateId, 'small'
 
 // The template for a total: under the small-project limit two stages 50/50, else the parts'
 // template (a total without parts, e.g. extras only, uses `site`).
-export function stageTemplateId(parts: Parts, totalUsd: number): StageTemplateId {
-  if (totalUsd < smallProjectMaxUsd) return 'small'
-  return templateForParts(parts) ?? 'site'
+export function stageTemplateId(
+  parts: Parts,
+  totalUsd: number,
+  pricing: Pricing = defaultPricing,
+): StageTemplateId {
+  if (totalUsd < pricing.smallProjectMaxUsd) return 'small'
+  return templateForParts(parts, pricing) ?? 'site'
 }
 
 // A catalogue product (builder id, or a home product id) to its template at its own price.
 // Subscriptions (content, personal agents) and unpriced products have no stages: null.
-export function stageTemplateForProduct(id: ProductId | HomeProductId): StageTemplateId | null {
+export function stageTemplateForProduct(
+  id: ProductId | HomeProductId,
+  pricing: Pricing = defaultPricing,
+): StageTemplateId | null {
   const key = (isProductId(id) ? builderProduct[id] : id) as ProductId
   if (!productCatalog[key]?.priced) return null
   const parts = productParts(key)
-  const template = templateForParts(parts)
+  const template = templateForParts(parts, pricing)
   if (!template) return null
   let total = 0
   for (const slug of serviceSlugs) {
     const part = parts[slug]
-    if (part) total += estimate(slug, part.variant, part.addons)
+    if (part) total += estimate(slug, part.variant, part.addons, pricing)
   }
-  return total < smallProjectMaxUsd ? 'small' : template
+  return total < pricing.smallProjectMaxUsd ? 'small' : template
 }
 
 // Stages for a total. `source` is a build (or its parts) that picks the template, or a template id.
 export function stagesFor(
   source: Pick<Build, 'parts'> | Parts | StageTemplateId,
   totalUsd: number,
+  pricing: Pricing = defaultPricing,
 ): PaymentStage[] {
   const total = Math.round(totalUsd)
   if (!(total > 0)) return []
@@ -78,9 +90,9 @@ export function stagesFor(
   if (typeof source === 'string') id = source
   else {
     const parts = ('parts' in source ? source.parts : source) as Parts
-    id = stageTemplateId(parts, total)
+    id = stageTemplateId(parts, total, pricing)
   }
-  const template = paymentStages[id]
+  const template = stageDefs(id, pricing)
   let paid = 0
   return template.map((stage, i) => {
     const last = i === template.length - 1
@@ -96,6 +108,6 @@ export function stageTrackLabel(template: string, n: number) {
 }
 
 // Copy carries `{small}` (the small-project limit); the amount comes from pricing.ts.
-export function fillStageTokens(text: string) {
-  return text.replaceAll('{small}', formatUsd(smallProjectMaxUsd))
+export function fillStageTokens(text: string, pricing: Pricing = defaultPricing) {
+  return text.replaceAll('{small}', formatUsd(pricing.smallProjectMaxUsd))
 }

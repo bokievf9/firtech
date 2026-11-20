@@ -1,4 +1,4 @@
-import { referralPercent } from './pricing'
+import { defaultPricing, type Pricing } from './pricing'
 
 // Referral links (`/ru?ref=<slug>`). No backend: the slug travels in localStorage for 30 days (`fir-ref`) and
 // then in the lead as `source: 'ref:<slug>'`, which HQ already reads as the referrer.
@@ -7,8 +7,8 @@ export const REF_PARAM = 'ref'
 export const REF_MAX = 32
 
 // Copy carries `{percent}`; the number comes from pricing.ts.
-export function fillReferralPercent(text: string) {
-  return text.replaceAll('{percent}', `${referralPercent}%`)
+export function fillReferralPercent(text: string, pricing: Pricing = defaultPricing) {
+  return text.replaceAll('{percent}', `${pricing.referralPercent}%`)
 }
 
 const CYRILLIC: Record<string, string> = {

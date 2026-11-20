@@ -1,11 +1,12 @@
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
 import { formatUsd } from '@/lib/pricing'
-import { productPrice, type ProductId } from '@/lib/products'
+import { getPricing } from '@/lib/pricing-store'
+import { productPrices, type ProductId } from '@/lib/products'
 
 // The price line of a product: «от $300», the two agent plans (setup + monthly), or «По смете».
-// Numbers come from productPrice (pricing.ts and the approved agent plans), never from copy.
-export function ProductPriceTag({
+// Numbers come from the live pricing (productPrices), never from copy.
+export async function ProductPriceTag({
   id,
   copy,
   className,
@@ -14,7 +15,7 @@ export function ProductPriceTag({
   copy: Dict['products']
   className?: string
 }) {
-  const price = productPrice[id]
+  const price = productPrices(await getPricing())[id]
   if (price.kind === 'from')
     return (
       <p className={cn('font-mono text-sm text-muted', className)}>

@@ -7,7 +7,7 @@ import { builderUi, kitNames, pick } from '@/content/builder-catalog'
 import { resolveLook, resolveStyle, usesAxes } from '@/lib/builder-style'
 import { buttonStyles, cn } from '@/lib/cn'
 import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
-import { bundleDiscount } from '@/lib/pricing'
+import { usePricing } from './pricing-provider'
 import { BuilderPreview } from './builder-preview'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
@@ -34,8 +34,9 @@ export function SummaryStep({
   onEdit: (step: number) => void
 }) {
   const t = dict.builder
-  const q = quote(build)
-  const doc = estimateDoc(build, dict, locale)
+  const pricing = usePricing()
+  const q = quote(build, pricing)
+  const doc = estimateDoc(build, dict, locale, pricing)
   const brief = briefOf(build, dict, locale)
   const look = resolveLook(build.style)
   const ui = builderUi
@@ -111,7 +112,7 @@ export function SummaryStep({
                 <Row label={t.subtotal} value={doc.subtotal} className="text-muted" />
                 <Row
                   label={t.discount}
-                  value={`-${Math.round(bundleDiscount * 100)}%`}
+                  value={`-${Math.round(pricing.bundleDiscount)}%`}
                   className="text-accent-text"
                 />
               </>

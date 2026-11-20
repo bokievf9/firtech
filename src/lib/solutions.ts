@@ -1,7 +1,7 @@
 import type { Dict } from '@/content'
 import { genericFaq, kindCatalog } from '../content/builder-catalog'
 import { businessKinds, encodeBuild, presets, quote, type BusinessKind } from './builder'
-import { formatUsd } from './pricing'
+import { defaultPricing, formatUsd, type Pricing } from './pricing'
 
 // Niche landing pages ("solutions"): one per business kind from the builder, except "other". Each
 // page shows the kind's builder preset, so its price and contents always match the builder.
@@ -54,12 +54,17 @@ function metaDescription(sub: string, locale: string) {
 // A kind's page text: the hand-written copy in the dictionary when there is some, otherwise built
 // from the kind's row in the catalogue (headline, lead, three pains answered by three gets) and the
 // shared FAQ. Every kind resolves to a complete page in both languages.
-export function solutionCopy(kind: SolutionKind, locale: string, dict: Dict): SolutionCopy {
+export function solutionCopy(
+  kind: SolutionKind,
+  locale: string,
+  dict: Dict,
+  pricing: Pricing = defaultPricing,
+): SolutionCopy {
   const written = (dict.solutions.items as Record<string, SolutionCopy | undefined>)[kind]
   if (written) return written
   const entry = kindCatalog[kind]
   const [name, title, sub, pains, gets] = locale === 'ru' ? entry.ru : entry.en
-  const from = formatUsd(quote(presets[kind]).total)
+  const from = formatUsd(quote(presets[kind], pricing).total)
   return {
     metaTitle: title,
     metaDescription: metaDescription(sub, locale),

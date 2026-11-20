@@ -18,6 +18,7 @@ import {
 import { siteUrl, telegramHandle, telegramUrl } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { Logo } from './logo'
+import { usePricing } from './pricing-provider'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -26,6 +27,7 @@ const ease = [0.16, 1, 0.3, 1] as const
 export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) {
   const t = dict.builder.estimate
   const reduce = useReducedMotion()
+  const pricing = usePricing()
   const [state, setState] = useState<{ build: Build | null; date: string } | null>(null)
 
   useEffect(() => {
@@ -52,7 +54,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
     )
   }
 
-  const doc = estimateDoc(state.build, dict, locale)
+  const doc = estimateDoc(state.build, dict, locale, pricing)
   const notes = [
     dict.builder.termsNote,
     ...(doc.stages.length ? [] : [dict.builder.payNote]),

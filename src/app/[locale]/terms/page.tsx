@@ -5,6 +5,7 @@ import { LegalDoc } from '@/components/legal-doc'
 import { getDict } from '@/content'
 import { isLocale } from '@/lib/i18n'
 import { fillStageTokens } from '@/lib/payment-stages'
+import { getPricing } from '@/lib/pricing-store'
 import { shareBase } from '@/lib/share'
 
 // Terms of service (оферта): a skeleton. The owner's requisites and legal choices are marked with
@@ -37,13 +38,14 @@ export default async function TermsPage({ params }: PageProps<'/[locale]/terms'>
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
   const t = dict.terms
+  const pricing = await getPricing()
   return (
     <LegalDoc
       t={t}
       idPrefix="terms"
       sections={t.sections.map((section) => ({
         ...section,
-        text: section.text.map(fillStageTokens),
+        text: section.text.map((text) => fillStageTokens(text, pricing)),
       }))}
       extra={(section) =>
         section.id === 'data' ? (

@@ -8,7 +8,8 @@ import {
   visibleArticles,
   wordCount,
 } from '../src/content/blog/index.ts'
-import { bundleDiscount, catalog, extraPrice, formatUsd } from '../src/lib/pricing.ts'
+import { fillArticlePrices } from '../src/content/blog/prices.ts'
+import { bundleDiscount, catalog, defaultPricing, extraPrice, formatUsd } from '../src/lib/pricing.ts'
 
 test('blog: slugs are unique and URL-safe, dates are ISO', () => {
   const slugs = articles.map((a) => a.slug)
@@ -62,9 +63,10 @@ test('blog copy: no em or en dashes, prices only from pricing.ts', () => {
   known.add(formatUsd(w.variants.landing + w.addons.language + w.addons.telegram))
   known.add(formatUsd(b.variants.faq + b.addons.ai))
 
-  for (const a of articles) {
+  for (const a of articles.map((x) => fillArticlePrices(x, defaultPricing))) {
     for (const locale of ['ru', 'en']) {
       const text = articleText(a[locale])
+      assert.doesNotMatch(text, /\{price:/, `${a.slug} ${locale} has an unfilled price token`)
       assert.doesNotMatch(text, /[\u2013\u2014]/, `${a.slug} ${locale} has a long dash`)
       for (const amount of text.match(/\$\d+(?:,\d{3})*/g) ?? []) {
         assert.ok(known.has(amount), `${a.slug} ${locale}: ${amount} is not in pricing.ts`)
@@ -74,4 +76,18 @@ test('blog copy: no em or en dashes, prices only from pricing.ts', () => {
       }
     }
   }
+})
+
+test('blog: articles carry price tokens, the live pricing fills them', () => {
+  for (const a of articles)
+    for (const locale of ['ru', 'en'])
+      assert.doesNotMatch(articleText(a[locale]), /\$\d/, `${a.slug} ${locale} types a price`)
+  const cost = articles.find((a) => a.slug === 'website-cost-2026')
+  const pricing = structuredClone(defaultPricing)
+  pricing.catalog.websites.variants.landing = 199
+  pricing.bundleDiscount = 15
+  const text = articleText(fillArticlePrices(cost, pricing).en)
+  assert.match(text, /\$199/)
+  assert.match(text, /15%/)
+  assert.doesNotMatch(text, /\$150\b/)
 })

@@ -14,7 +14,7 @@ import {
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
 import { usesAxes } from './builder-style'
 import { stagesFor } from './payment-stages'
-import { bundleDiscount, formatUsd } from './pricing'
+import { defaultPricing, formatUsd, type Pricing } from './pricing'
 import { serviceSlugs, siteUrl, type ServiceSlug } from './site'
 
 // The printable estimate (`/[locale]/builder/estimate?b=...`): the same quote as the builder's
@@ -68,8 +68,13 @@ export function scopeLine(build: Build, dict: Dict) {
 const isService = (id: string): id is ServiceSlug =>
   (serviceSlugs as readonly string[]).includes(id)
 
-export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateDoc {
-  const q = quote(build)
+export function estimateDoc(
+  build: Build,
+  dict: Dict,
+  locale: string,
+  pricing: Pricing = defaultPricing,
+): EstimateDoc {
+  const q = quote(build, pricing)
   const parts: EstimateRow[] = []
   const extras: EstimateRow[] = []
   for (const line of q.lines) {
@@ -110,11 +115,11 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
     parts,
     extras,
     subtotal: formatUsd(q.subtotal),
-    discount: q.discount ? `-${Math.round(bundleDiscount * 100)}%` : null,
+    discount: q.discount ? `-${Math.round(pricing.bundleDiscount)}%` : null,
     // No priced lines: nothing to sum, the quote says so instead of showing zero.
     total: q.lines.length ? formatUsd(q.total) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
-    stages: stagesFor(build, q.total).map((stage, i) => ({
+    stages: stagesFor(build, q.total, pricing).map((stage, i) => ({
       id: stage.id,
       n: i + 1,
       name: stage.title[locale === 'ru' ? 'ru' : 'en'],
@@ -217,10 +222,15 @@ export const leadLimit = 1500
 
 // What the contact form receives from the builder: the quote line by line, then the brief in a few
 // compact lines. The wish goes last and is the part shortened if the whole would not fit.
-export function leadSummary(build: Build, dict: Dict, locale: string) {
+export function leadSummary(
+  build: Build,
+  dict: Dict,
+  locale: string,
+  pricing: Pricing = defaultPricing,
+) {
   const t = dict.builder
-  const doc = estimateDoc(build, dict, locale)
-  const q = quote(build)
+  const doc = estimateDoc(build, dict, locale, pricing)
+  const q = quote(build, pricing)
   const ui = builderUi
   const lines: string[] = []
   if (doc.kind) lines.push(`${pick(ui.kindLabel, locale)}: ${doc.kind}`)

@@ -2,7 +2,7 @@ import { ArrowRight, Check } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
-import { bundleDiscount } from '@/lib/pricing'
+import { getPricing } from '@/lib/pricing-store'
 import type { ServiceSlug } from '@/lib/site'
 import { Estimator } from './estimator'
 import { GuaranteeLine } from './guarantee-line'
@@ -10,7 +10,7 @@ import { Reveal } from './reveal'
 
 // Prices (#pricing): the calculator; on the home page (`teaser`) also the builder teaser and the
 // payment line (folded in from the old regions block). The bundle discount comes from pricing.ts.
-export function PricingSection({
+export async function PricingSection({
   dict,
   locale,
   initialService,
@@ -23,6 +23,7 @@ export function PricingSection({
 }) {
   const t = dict.estimator
   const h = dict.pricingHome
+  const pricing = await getPricing()
   return (
     <section id="pricing" className="mx-auto max-w-7xl px-4 py-section md:px-8">
       <div className={cn('grid gap-gutter', teaser && 'lg:grid-cols-12 lg:items-stretch')}>
@@ -55,7 +56,7 @@ export function PricingSection({
                 <p className="mt-3 font-display text-3xl font-semibold tracking-tight">{h.builderTitle}</p>
                 <p className="mt-3 leading-relaxed text-muted">{h.builderText}</p>
                 <ul className="mt-5 grid gap-2 text-sm">
-                  {[h.bundle.replace('{n}', String(Math.round(bundleDiscount * 100))), h.pdf, h.link].map((line) => (
+                  {[h.bundle.replace('{n}', String(Math.round(pricing.bundleDiscount))), h.pdf, h.link].map((line) => (
                     <li key={line} className="flex items-center gap-2">
                       <Check size={14} weight="bold" aria-hidden="true" className="text-accent-text" />
                       {line}

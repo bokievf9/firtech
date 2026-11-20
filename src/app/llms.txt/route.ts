@@ -1,14 +1,16 @@
 import { getDict } from '@/content'
-import { formatUsd, startingPrice } from '@/lib/pricing'
-import { productIds, productPrice, type ProductId } from '@/lib/products'
+import { formatUsd, type Pricing } from '@/lib/pricing'
+import { getPricing } from '@/lib/pricing-store'
+import { productIds, productPrices, type ProductId } from '@/lib/products'
 import { serviceSlugs, siteUrl, telegramHandle } from '@/lib/site'
 
 // llms.txt: a plain description of the studio and its products for AI assistants. Built from the
 // same dictionaries and price config as the page, so it never drifts from the site.
-export const dynamic = 'force-static'
+// The prices are the live ones (owner edits in the Пульт), so it is rebuilt at most every 5 minutes.
+export const revalidate = 300
 
-function priceText(id: ProductId, t: { from: string; perMonth: string; quote: string; plans: Record<string, string> }) {
-  const price = productPrice[id]
+function priceText(pricing: Pricing, id: ProductId, t: { from: string; perMonth: string; quote: string; plans: Record<string, string> }) {
+  const price = productPrices(pricing)[id]
   if (price.kind === 'from') return `${t.from} ${formatUsd(price.from)}`
   if (price.kind === 'plans') {
     return price.plans
@@ -18,17 +20,18 @@ function priceText(id: ProductId, t: { from: string; perMonth: string; quote: st
   return t.quote
 }
 
-export function GET() {
+export async function GET() {
+  const pricing = await getPricing()
   const blocks = (['en', 'ru'] as const).map((locale) => {
     const dict = getDict(locale)
     const t = dict.products
     const items = productIds.map((id) => {
       const item = t.items[id]
-      return `- ${item.name} (${priceText(id, t)}): ${item.benefit}. ${t.forWhom}: ${item.forWhom}.`
+      return `- ${item.name} (${priceText(pricing, id, t)}): ${item.benefit}. ${t.forWhom}: ${item.forWhom}.`
     })
     const services = serviceSlugs.map(
       (slug) =>
-        `- ${dict.services.items[slug].name} (${t.from} ${formatUsd(startingPrice[slug])}): ${siteUrl}/${locale}/services/${slug}`,
+        `- ${dict.services.items[slug].name} (${t.from} ${formatUsd(pricing.startingPrice[slug])}): ${siteUrl}/${locale}/services/${slug}`,
     )
     return [
       `## ${locale === 'en' ? 'Products' : 'Продукты'} (${siteUrl}/${locale})`,
