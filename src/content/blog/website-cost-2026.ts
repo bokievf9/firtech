@@ -137,7 +137,7 @@ export const websiteCost2026: Article = {
       { type: 'h2', text: 'Коротко' },
       {
         type: 'p',
-        text: `Цена сайта зависит от типа, количества страниц, языков, оплаты и панели для правок. У нас лендинг стоит от ${p.landing}, сайт компании от ${p.company}, интернет-магазин от ${p.shop}. Цену и срок фиксируем в смете до старта, а платите вы половину до старта и половину после приёмки. Если вместе с сайтом нужен Telegram-бот или автоматизация, на комплекс из двух частей и больше действует скидка ${p.bundle}.`,
+        text: `Цена сайта зависит от типа, количества страниц, языков, оплаты и панели для правок. У нас лендинг стоит от ${p.landing}, сайт компании от ${p.company}, интернет-магазин от ${p.shop}. Цену и срок фиксируем в смете до старта, а платите по этапам: каждый этап до его начала, последний до передачи доступов и исходников. Если вместе с сайтом нужен Telegram-бот или автоматизация, на комплекс из двух частей и больше действует скидка ${p.bundle}.`,
       },
       {
         type: 'p',
@@ -272,7 +272,7 @@ export const websiteCost2026: Article = {
       { type: 'h2', text: 'In short' },
       {
         type: 'p',
-        text: `The price of a website depends on its type, the number of pages, languages, payments and an editing panel. With us a landing page starts from ${p.landing}, a company website from ${p.company} and an online store from ${p.shop}. We fix the price and timeline in the quote before we start, and you pay half before we start and half after acceptance. If you need a Telegram bot or automation along with the site, a bundle of two parts or more gets ${p.bundle} off.`,
+        text: `The price of a website depends on its type, the number of pages, languages, payments and an editing panel. With us a landing page starts from ${p.landing}, a company website from ${p.company} and an online store from ${p.shop}. We fix the price and timeline in the quote before we start, and you pay by stages: each stage before it starts and the last one before access and source files are handed over. If you need a Telegram bot or automation along with the site, a bundle of two parts or more gets ${p.bundle} off.`,
       },
       {
         type: 'p',
