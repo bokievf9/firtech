@@ -374,7 +374,7 @@ const en: Dict = {
   },
   faqContact: {
     title: 'Questions and a request',
-    sub: 'No answer here? Describe your task and we reply within a working day.',
+    sub: 'No answer here? Describe your task. First reply within 5 minutes, around the clock.',
   },
   demoSection: {
     eyebrow: 'Product 02, live',
@@ -1222,7 +1222,11 @@ const en: Dict = {
       },
       {
         q: 'How do payments work?',
-        a: 'Payment goes by stages. We split the quote into stages, and the quote shows what each includes and what it costs. You pay each stage before it starts and the last one before access and source files are handed over. Small projects go in two equal stages. Subscriptions are paid a month in advance. You can pay in USDT (TRC20 or TON) or through an online wallet named in the quote.',
+        a: 'Payment goes by stages. We split the quote into stages, and the quote shows what each includes and what it costs. You pay each stage before it starts and the last one before access and source files are handed over. Small projects go in two equal stages. Subscriptions are paid a month in advance. You can pay in USDT (TRC20 or TON) or through an online wallet named in the quote. A step-by-step guide is on the "How to pay" page.',
+      },
+      {
+        q: 'How fast do you reply?',
+        a: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder, so the final price and timeline are always written in the quote.',
       },
       {
         q: 'Do you work with clients abroad?',
@@ -1266,7 +1270,7 @@ const en: Dict = {
   },
   contact: {
     title: 'Tell us about your project',
-    sub: "We'll reply within one working day with a solution and a price.",
+    sub: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
     name: 'Name',
     namePlaceholder: 'What should we call you',
     contactField: 'Telegram or phone',
@@ -1285,7 +1289,7 @@ const en: Dict = {
       'By sending this form you agree that we use these details only to reply to your request, as described in the [privacy policy].',
     successTitle: 'Request received',
     successText:
-      "We'll get back to you within one working day. If it's urgent, message our bot @firtech_bot on Telegram.",
+      "Your first reply arrives within 5 minutes, around the clock. If it's urgent, message our bot @firtech_bot on Telegram.",
     again: 'Send another one',
     error: "Couldn't send the form. Try again or message us on Telegram.",
     errors: {
@@ -1294,7 +1298,7 @@ const en: Dict = {
     },
     nextTitle: 'What happens after you send it',
     next: [
-      'We reply in Telegram or call you within one business day',
+      'First reply in Telegram within 5 minutes, around the clock',
       'A 30-minute call to go through your task',
       'You get a quote with the price and timeline. The decision is yours',
     ],
@@ -1582,6 +1586,11 @@ const en: Dict = {
   },
   // Money-back guarantee (owner decision 2026-11-19). One sentence reused in the pricing section,
   // the builder summary, the estimate notes, the FAQ and llms.txt; the exact rule is in `terms`.
+  sla: {
+    line: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
+    short: 'First reply within 5 minutes, around the clock',
+    llms: 'Response: first reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
+  },
   guarantee: {
     line: 'If you do not like the first screen of the website or the first bot scenario, we return the first stage payment.',
     more: 'Guarantee terms',
@@ -1713,6 +1722,58 @@ const en: Dict = {
         fir: 'The work is split into agent roles, and the sources and access are yours.',
       },
     ],
+    // Words-only contrast (go-live 2026-11-21): what the market usually offers against what we do. No names, no numbers.
+    contrast: {
+      title: 'What the market usually offers and what we do',
+      sub: 'Seven points where we work differently. This is typical practice, and some providers do it otherwise.',
+      marketLabel: 'What the market usually offers',
+      usLabel: 'What we do',
+      rows: [
+        {
+          id: 'price',
+          label: 'Price',
+          market: 'A "from" price: the total becomes clear as the work goes on.',
+          us: 'A fixed price in the quote before we start, line by line.',
+        },
+        {
+          id: 'code',
+          label: 'Code',
+          market: 'The code stays with the provider, and the site or bot lives on their platform.',
+          us: 'The source files, the domain and the access pass to you.',
+        },
+        {
+          id: 'payment',
+          label: 'Payment',
+          market: 'The whole sum upfront, before the work begins.',
+          us: 'Payment by stages: you pay each stage before it starts.',
+        },
+        {
+          id: 'guarantee',
+          label: 'Guarantee',
+          market: 'The guarantee is not written down or stays in general words.',
+          us: 'If you do not like the first screen or scenario, we return the first stage payment. The terms are in the offer.',
+        },
+        {
+          id: 'demo',
+          label: 'Demo',
+          market: 'The result is shown after payment.',
+          us: 'You can see a demo before paying: the demo bot works in Telegram, and the site has interface examples.',
+        },
+        {
+          id: 'entity',
+          label: 'Legal entity',
+          market: 'A company with a contract and registration details.',
+          us: 'We have no legal entity: we work as an individual contractor. The terms are in the offer, and the quote is confirmed in writing.',
+        },
+        {
+          id: 'usdt',
+          label: 'How you pay',
+          market: 'Bank accounts and transfers, sometimes with currency conversion.',
+          us: 'Payment in USDT: one transfer, and only the network takes a fee.',
+        },
+      ],
+      payLink: 'How to pay in USDT',
+    },
     officeLink: 'See our HQ',
     note: 'The table describes typical cases. A good freelancer and a good agency may work differently.',
     ctaTitle: 'Price your project',
@@ -1777,6 +1838,92 @@ const en: Dict = {
     again: 'Order for another site',
     mockNote: 'Demo mode: the request was not sent anywhere',
   },
+  // Page "How to pay" /[locale]/pay-how: USDT for a first-time payer. Words only, no amounts or fees.
+  payHow: {
+    metaTitle: 'How to pay in USDT: a step-by-step guide | Fir Tech',
+    metaDescription:
+      'How to pay for a project in USDT: what it is, TRC20 or TON, where to buy it, how the payment page with a QR code works and what happens after you pay.',
+    eyebrow: 'Payment',
+    title: 'How to pay in USDT',
+    sub: 'Paying in crypto for the first time? Here it is step by step, from buying to the start of the stage.',
+    sections: [
+      {
+        id: 'what',
+        title: 'What USDT is',
+        text: [
+          'USDT is a digital dollar: one coin is pegged to one US dollar, so the amount in the quote and the amount you send match.',
+          'It sits in a wallet on your phone, and a transfer takes a few minutes.',
+        ],
+        list: [],
+      },
+      {
+        id: 'network',
+        title: 'TRC20 or TON',
+        text: [
+          'We accept USDT on two networks: TRC20 (the TRON network) and TON. Pick the one your wallet or exchange supports.',
+          'Choose the network carefully. A transfer on another network does not arrive and is not returned. Your wallet or exchange charges the network fee, and it depends on the network.',
+        ],
+        list: [],
+      },
+      {
+        id: 'buy',
+        title: 'Where to buy USDT',
+        text: ['Availability depends on your country, so check each option in your own app.'],
+        list: [
+          'Telegram: the @wallet bot, where it is available',
+          'Crypto exchanges: buy USDT and withdraw it to the right network',
+          'Tonkeeper: a wallet for the TON network, where you can send USDT from an exchange or from @wallet',
+        ],
+      },
+      {
+        id: 'page',
+        title: 'How the payment page works',
+        text: [
+          'When a stage is ready to be paid, we send you a link to the invoice. On the page choose a network, open your wallet and scan the QR code, or copy the address with the button.',
+          'The link is personal: do not forward it to strangers.',
+        ],
+        list: [],
+      },
+      {
+        id: 'cents',
+        title: 'The exact amount, with cents',
+        text: [
+          'The invoice shows the amount with cents. Send it exactly, to the last digit: that is how we recognize your transfer among others automatically.',
+          'If the amount came out different, message us and we will sort it out by hand.',
+        ],
+        list: [],
+      },
+      {
+        id: 'after',
+        title: 'What happens after you pay',
+        text: [
+          'You do not need to press anything: the confirmation arrives automatically, usually within 1-5 minutes, and the page shows by itself that the invoice is paid.',
+          'The paid stage then starts, and the invoice and the stage status are visible in your cabinet.',
+        ],
+        list: [],
+      },
+      {
+        id: 'other',
+        title: 'If USDT does not suit you',
+        text: [
+          'Message us before paying. We name an alternative, for example an online wallet, right in the quote.',
+        ],
+        list: [],
+      },
+      {
+        id: 'fees',
+        title: 'Fees and cards',
+        text: [
+          'We add no fees: you pay the stage amount and the network fee. We have no bank card payments of our own.',
+        ],
+        list: [],
+      },
+    ],
+    termsLink: 'Payment terms in the offer',
+    ctaTitle: 'Still have questions about paying?',
+    ctaBuilder: 'Build a quote',
+    ctaTelegram: 'Message us on Telegram',
+  },
   // Payment page /[locale]/pay/[number]?k=<key> (HQ GET /pay/<number>). Amounts come from data;
   // {number}, {name}, {date}, {via}, {tx} are filled by the page.
   pay: {
@@ -1806,6 +1953,7 @@ const en: Dict = {
     transaction: 'Transaction',
     explorer: 'Open in explorer',
     paidNext: 'The project starts, and your manager will message you on Telegram.',
+    howLink: 'How to pay: a step-by-step guide',
     cabinet: 'Open the cabinet',
     expiredTitle: 'The invoice has expired',
     expiredText: 'Write to us and we will issue a new invoice.',
@@ -2087,7 +2235,8 @@ const en: Dict = {
       referrals: 'Referrals',
       profile: 'Profile',
       noProjects: 'No projects yet. Put one together in the builder.',
-      noInvoices: 'No invoices yet.',
+      noInvoices: 'No invoices yet. An invoice arrives as a link to the payment page.',
+      payHow: 'How to pay in USDT',
       noDocuments: 'No documents yet.',
       noTickets: 'No requests yet.',
       noReferrals: 'Nobody has come through your link yet.',
@@ -2175,6 +2324,7 @@ const en: Dict = {
     },
   },
   faqLinks: {
+    'pay-how': 'How to pay in USDT, step by step',
     compare: 'Comparison: freelancer, agency or us',
     referral: 'Recommend us and get a reward',
     audit: 'A free audit of your website',
@@ -2197,6 +2347,7 @@ const en: Dict = {
       process: 'Process',
       blog: 'Blog',
       contact: 'Discuss a project',
+      'pay-how': 'How to pay',
       compare: 'Comparison',
       referral: 'Referrals',
       audit: 'Free audit',
