@@ -10,6 +10,7 @@ import {
   SlidersHorizontal,
   type Icon,
 } from '@phosphor-icons/react'
+import { useSiteTheme } from '@/lib/use-site-theme'
 import { useState } from 'react'
 import type { Dict } from '@/content'
 import {
@@ -85,8 +86,9 @@ export function StyleStep({
   const ui = builderUi
   const t = dict.builder
   const style = build.style
-  const axes = currentAxes(style)
-  const look = resolveLook(style)
+  const siteTheme = useSiteTheme()
+  const axes = currentAxes(style, siteTheme)
+  const look = resolveLook(style, siteTheme)
   const [open, setOpen] = useState(() => Boolean(style && usesAxes(style) && !style.kit))
   const cta = pick(ui.sampleCta, locale)
   const setAxes = (patch: Partial<StyleAxes>) => setBuild((b) => setAxis(b, patch))

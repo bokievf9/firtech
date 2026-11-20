@@ -219,8 +219,11 @@ function pickLegacy(style: BuildStyle | undefined): BuildStyle {
 }
 
 // Order: defaults, then the old fields, then the ready look, then the axes set one by one.
-export function resolveLook(style: BuildStyle | undefined): ResolvedStyle {
+// `siteTheme` is the page's own theme: with no palette, kit or old `theme` picked, the mockup follows it
+// (light page, light mockup) instead of the dark studio default. It is never part of the encoded build.
+export function resolveLook(style: BuildStyle | undefined, siteTheme?: 'light' | 'dark'): ResolvedStyle {
   const legacy = resolveStyle(style)
+  if (!style?.theme && siteTheme) legacy.theme = siteTheme
   const kit = style?.kit ? kits[style.kit] : undefined
   const paletteId = style?.palette ?? kit?.palette ?? null
   let colors: Palette
@@ -251,8 +254,8 @@ export function accentOf(style: BuildStyle | undefined) {
   return resolveLook(style).colors.accent
 }
 
-export function styleVars(style: BuildStyle | undefined): CSSProperties {
-  const s = resolveLook(style)
+export function styleVars(style: BuildStyle | undefined, siteTheme?: 'light' | 'dark'): CSSProperties {
+  const s = resolveLook(style, siteTheme)
   const c = s.colors
   const type = typeTokens[s.type]
   const shape = shapeTokens[s.shape]
@@ -296,10 +299,10 @@ export function styleVars(style: BuildStyle | undefined): CSSProperties {
 // ------------------------------------------------------------ build helpers
 
 // The axes as currently shown (a ready look, old fields or defaults), all five filled.
-export function currentAxes(style: BuildStyle | undefined): StyleAxes {
-  const s = resolveLook(style)
+export function currentAxes(style: BuildStyle | undefined, siteTheme?: 'light' | 'dark'): StyleAxes {
+  const s = resolveLook(style, siteTheme)
   return {
-    palette: s.palette ?? 'fir',
+    palette: s.palette ?? (s.colors.mode === 'light' ? 'paper' : 'fir'),
     type: s.type,
     shape: s.shape,
     density: s.density ?? 'compact',

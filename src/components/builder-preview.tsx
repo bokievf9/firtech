@@ -33,6 +33,7 @@ import type { Build, BuildStyle } from '@/lib/builder'
 import { styleVars } from '@/lib/builder-style'
 import { cn } from '@/lib/cn'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { useSiteTheme } from '@/lib/use-site-theme'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -56,6 +57,7 @@ export function BuilderPreview({
   locale?: string
   className?: string
 }) {
+  const siteTheme = useSiteTheme()
   const p = dict.builder.preview
   const c = pick(previewCopy, locale)
   const site = build.parts.websites
@@ -75,7 +77,7 @@ export function BuilderPreview({
   return (
     <div
       aria-hidden="true"
-      style={styleVars(build.style)}
+      style={styleVars(build.style, siteTheme)}
       className={cn(
         'pv-root relative min-h-[420px] overflow-hidden rounded-card border border-line bg-surface-2 p-4 transition-[background-color,border-color] duration-500 md:p-5',
         className,
@@ -601,10 +603,11 @@ export function StyleSample({
   cta: string
   className?: string
 }) {
+  const siteTheme = useSiteTheme()
   return (
     <span
       aria-hidden="true"
-      style={styleVars(style)}
+      style={styleVars(style, siteTheme)}
       className={cn(
         'pv-root block overflow-hidden rounded-xl border border-line bg-surface-2 p-2 transition-colors duration-300',
         className,
