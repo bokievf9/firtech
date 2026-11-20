@@ -40,7 +40,7 @@ export const homeAnchors: string[] = [
 ]
 
 // Pages under /[locale] besides the home page (directories in src/app/[locale]).
-export const localePages = ['builder', 'blog', 'privacy', 'solutions', 'referral', 'compare', 'audit', 'status'] as const
+export const localePages = ['builder', 'blog', 'privacy', 'solutions', 'referral', 'compare', 'audit', 'status', 'ai-team'] as const
 
 export type FooterLink =
   | { kind: 'product'; id: ProductId; href: string }
@@ -55,7 +55,10 @@ export function footerColumns(locale: string): FooterColumn[] {
   return [
     {
       id: 'products',
-      links: productIds.map((id) => ({ kind: 'product', id, href: `/${locale}#${productAnchor(id)}` })),
+      links: [
+        ...productIds.map((id): FooterLink => ({ kind: 'product', id, href: `/${locale}#${productAnchor(id)}` })),
+        { kind: 'page', id: 'ai-team', href: `/${locale}/ai-team` },
+      ],
     },
     {
       id: 'services',

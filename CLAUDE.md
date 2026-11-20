@@ -84,6 +84,16 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   builder `businessKinds` without `other`; `allSolutionKinds`, copy via `solutionCopy`, the footer lists only the original five): niche pages for search built on `presets[kind]`
   (price from `quote()`, CTA opens the builder with that preset, mockup `BuilderPreview` labelled
   as a concept). Changing a preset changes its page.
+- AI-team pages (2026-11-21, owner: each agent department can be a product on its own or the whole company; pages first,
+  delivery to clients later): `/[locale]/ai-team` (index: flow card, bento of six offers, how it works, live proof block with
+  `ProofLive` from `/api/office/public` labelled «это наш собственный офис», contact) and `/[locale]/ai-team/[id]` (`marketing sales
+  support production backoffice company`; inside agents with a trust chip, routines, how it works, what we need from the client,
+  delivery note, FAQ, others). Ids, department colours and links are in `src/lib/ai-teams.ts`; all text is the `aiTeams` section at the
+  END of `ru.ts`/`en.ts` (same shape). Roles follow COMPANY.md, so a page says the scope goes into the quote. **No prices:**
+  the pages show «По смете» (`aiTeams.quote`) and never a number; CTAs open the builder with `p.aiteam` (`aiTeamBuilderHref`),
+  the receptionist chat (`ChatOpenButton`, source `aiteam*`) and `#contact` («Обсудить»). In `localePages`, the sitemap
+  (`aiTeamPaths`), one footer link in «Продукты» (`footer.pages['ai-team']`) and a strip under the products bento (the seven cards
+  stay seven). Tests: `tests/ai-teams.test.mjs`. Changing a price later = a new line from `pricing.ts`, never typed copy.
 - Blog (`/[locale]/blog`): articles are typed data in `src/content/blog/` (one file each, ru + en).
   Only `published: true` reaches production and the sitemap; drafts show in `next dev` with a
   "Черновик" badge. Publish = set `published: true` and the date. Since 2026-11-19 HQ also publishes
