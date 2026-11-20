@@ -21,6 +21,7 @@ import type { OfficeData } from '@/lib/office-view'
 import type { HubInboxItem, PanelId, PanelLink } from '@/lib/pult'
 import { ClientsTab } from '@/components/admin/pult/clients'
 import { CompanyTab } from '@/components/admin/pult/company'
+import { PricesTab } from '@/components/admin/pult/company-prices'
 import { ContentTab } from '@/components/admin/pult/content'
 import { InvoicesTab } from '@/components/admin/pult/invoices'
 import { LeadsBoard } from '@/components/admin/pult/leads-funnel'
@@ -169,6 +170,6 @@ export function PanelContent({
     else if (tab === 'referrals') body = <Referrals badge={b('referrals')} />
     else if (tab === 'reviews') body = <Reviews badge={b('reviews')} />
     else body = <InvoicesTab focus={focus} />
-  } else body = <CompanyTab />
+  } else body = tab === 'prices' ? <PricesTab /> : <CompanyTab />
   return <BarePanel.Provider value>{body}</BarePanel.Provider>
 }

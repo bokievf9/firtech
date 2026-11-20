@@ -10,44 +10,21 @@ import {
   type Pricing,
   type StageTemplateId,
 } from './pricing'
+import { getAt, groupTitles, type HistoryEntry, type PriceField, type PriceGroup, type PriceUnit } from './pricing-types'
 import { serviceSlugs } from './site'
+
+export { getAt, groupTitles }
+export type { HistoryEntry, PriceField, PriceGroup, PriceUnit }
 
 // Pure logic of the price editor (no I/O, tested in tests/pricing-store.test.mjs): the list of
 // editable prices with their labels and limits, merging the owner's overrides into the defaults,
 // validation, and the edit operations with their history. The store (pricing-store.ts) persists it.
 
-export type PriceUnit = 'usd' | 'usd_month' | 'percent'
-export type PriceGroup = 'start' | 'kinds' | 'options' | 'extras' | 'plans' | 'discounts' | 'stages'
-
-export type PriceField = {
-  path: string
-  label: string
-  group: PriceGroup
-  // Sub-heading inside a group (a service, a template), for the tables.
-  section: string
-  unit: PriceUnit
-  min: number
-  max: number
-  step: number
-  def: number
-}
-
 export type Overrides = Record<string, unknown>
-export type HistoryEntry = { at: string; path: string; from: number; to: number; by: string }
 export type PricesState = { overrides: Overrides; updatedAt: string | null; history: HistoryEntry[] }
 
 export const HISTORY_MAX = 200
 export const emptyPrices = (): PricesState => ({ overrides: {}, updatedAt: null, history: [] })
-
-export const groupTitles: Record<PriceGroup, string> = {
-  start: 'Старт-цены',
-  kinds: 'Конструктор по видам',
-  options: 'Опции',
-  extras: 'Допы',
-  plans: 'Подписки',
-  discounts: 'Скидки и реферал',
-  stages: 'Этапы оплаты',
-}
 
 const serviceNames: Record<string, string> = Object.fromEntries(
   serviceSlugs.map((s) => [s, ru.services.items[s].name]),
@@ -144,15 +121,6 @@ export function valueError(path: string, value: unknown): string | null {
   if (!Number.isInteger(value)) return 'not_integer'
   if (value < f.min || value > f.max) return 'out_of_range'
   return null
-}
-
-export function getAt(obj: unknown, path: string): unknown {
-  let node = obj
-  for (const key of path.split('.')) {
-    if (!node || typeof node !== 'object' || !Object.hasOwn(node, key)) return undefined
-    node = (node as Record<string, unknown>)[key]
-  }
-  return node
 }
 
 function setAt(obj: Overrides, path: string, value: number) {

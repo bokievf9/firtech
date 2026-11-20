@@ -411,3 +411,19 @@ test('no component or page computes with the default price constants; client cod
     if (/^'use client'/.test(readFileSync(file, 'utf8')))
       assert.doesNotMatch(readFileSync(file, 'utf8'), /pricing-store/, file)
 })
+
+test('Пульт: the «Цены» tab belongs to the Компания panel, has a label and strings, and is wired in', async () => {
+  const pult = await import('../src/lib/pult.ts')
+  const { admin } = await import('../src/content/admin.ts')
+  assert.deepEqual(pult.PANEL_TABS.company, ['company', 'prices'])
+  assert.equal(admin.hub.tabs.prices, 'Цены')
+  assert.match(readFileSync('src/components/admin/hub/panels.tsx', 'utf8'), /tab === 'prices' \? <PricesTab \/>/)
+  const ui = readFileSync('src/components/admin/pult/company-prices.tsx', 'utf8')
+  // Inline edit: Enter saves, Escape cancels; the stage sum blocks saving.
+  assert.match(ui, /e\.key === 'Enter'/)
+  assert.match(ui, /e\.key === 'Escape'/)
+  assert.match(ui, /disabled=\{!valid\}/)
+  for (const key of ['defaultHint', 'resetAll', 'resetAllConfirm', 'history', 'stageSumBad', 'previewBot']) assert.ok(admin.pult.prices[key], key)
+  for (const [code, text] of Object.entries(admin.pult.prices.errors)) assert.ok(text, code)
+  assert.doesNotMatch(JSON.stringify(admin.pult.prices), /\$\d/, 'no typed prices in the tab copy')
+})
