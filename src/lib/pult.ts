@@ -999,7 +999,7 @@ export function slaText(ms: number): string {
 
 // ---- command palette ---------------------------------------------------------------------------
 
-export type PaletteEntry = { id: string; group: string; title: string; hint?: string; keywords?: string }
+export type PaletteEntry = { id: string; group: string; title: string; hint?: string; keywords?: string; dept?: PanelId }
 
 // Entries matching every word of the query (title, hint and keywords; ё = е), best first: a title
 // that starts with the query, then a title containing it, then the rest. Empty query = all.

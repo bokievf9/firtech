@@ -5,15 +5,23 @@
   Shape rule: interactive controls (buttons, pills, chips) are full pills, surfaces are 20px
   (rounded-card), inputs are 12px (rounded-xl). Keep to it everywhere.
 */
-@theme {
+@theme static {
   --color-bg: #0a0d0b;
   --color-surface: #111512;
   --color-surface-2: #171c18;
+  /* Third layer (hover, active tab, inset wells) and the topmost one (dialogs, palette, menus). */
+  --color-surface-3: #1e2420;
+  --color-elevated: #1a201c;
+  /* Cards inside a panel (rows, kanban cards, stat tiles) and form fields. */
+  --color-inset: rgb(10 13 11 / 0.55);
+  --color-field: #0a0d0b;
+  /* Backdrop behind drawers, dialogs and the palette. */
+  --color-scrim: rgb(0 0 0 / 0.6);
   --color-line: rgb(232 240 230 / 0.09);
   --color-line-strong: rgb(232 240 230 / 0.16);
   --color-fg: #edf2ea;
   --color-muted: #9ba79d;
-  --color-faint: #7a867c;
+  --color-faint: #8b978d;
   --color-accent: #b5eb6a;
   /* Accent as text or a thin line: the same lime on the dark theme, dark green on the light one. */
   --color-accent-text: #b5eb6a;
@@ -21,7 +29,48 @@
   --color-accent-ink: #0d1408;
   --color-pine: #1d3a2a;
   --color-danger: #ff9a8a;
+  --color-danger-ink: #2a0a05;
   --color-warn: #f2c14e;
+
+  /*
+    Pixel-art paper (speech bubbles, person card, zone badges over the office canvas): the canvas
+    is the same artwork in both themes, so these do not change with the theme.
+  */
+  --color-paper: #f4f1ea;
+  --color-paper-ink: #1a1626;
+  --color-paper-muted: #5a5068;
+  --color-paper-amber: #9a5b00;
+  --color-paper-red: #b3261e;
+  --color-paper-green: #3c6e00;
+  --color-office-night: #0b1030;
+
+  /*
+    Department colours (owner panel). fill = solid dot/line/stripe, soft = tinted surface, text =
+    text and icons (AA on the theme surfaces). Lime stays the global accent; only accents are tinted.
+    The fill is the same in both themes (mid-tone, at least 3:1 on both surface sets, so it also suits the
+    pixel canvas); soft and text are redefined in the light block below.
+  */
+  --color-dept-director: #6571b4;
+  --color-dept-director-soft: rgb(111 123 184 / 0.18);
+  --color-dept-director-text: #b3bcf2;
+  --color-dept-marketing: #d0467f;
+  --color-dept-marketing-soft: rgb(217 88 143 / 0.17);
+  --color-dept-marketing-text: #ff9dc4;
+  --color-dept-sales: #dd6a22;
+  --color-dept-sales-soft: rgb(232 116 45 / 0.17);
+  --color-dept-sales-text: #ffb27a;
+  --color-dept-support: #1b9d8c;
+  --color-dept-support-soft: rgb(43 181 164 / 0.17);
+  --color-dept-support-text: #6fe0d1;
+  --color-dept-production: #3484d2;
+  --color-dept-production-soft: rgb(63 143 224 / 0.18);
+  --color-dept-production-text: #8cc2ff;
+  --color-dept-backoffice: #8657d0;
+  --color-dept-backoffice-soft: rgb(154 107 224 / 0.18);
+  --color-dept-backoffice-text: #c7a8ff;
+  --color-dept-company: #718093;
+  --color-dept-company-soft: rgb(138 149 166 / 0.18);
+  --color-dept-company-text: #bcc5d3;
 
   /* Glass surfaces (header, live window, chat): see .glass below. */
   --color-glass: rgb(16 20 17 / 0.62);
@@ -59,6 +108,9 @@
 
   --shadow-glass: inset 0 1px 0 var(--color-glass-highlight), 0 30px 80px -30px rgb(0 0 0 / 0.7);
   --shadow-float: 0 18px 50px -18px rgb(0 0 0 / 0.75), 0 0 0 1px var(--color-glass-line);
+  /* Side panel, drawers, dialogs over the office: a soft edge shadow, never a halo. */
+  --shadow-panel: -18px 0 48px -24px rgb(0 0 0 / 0.55);
+  --shadow-dialog: 0 24px 64px -24px rgb(0 0 0 / 0.7), 0 0 0 1px var(--color-line-strong);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
@@ -76,17 +128,49 @@
   lightness; lime stays the fill colour (buttons, dots), text and lines use --color-accent-text.
 */
 :root[data-theme='light'] {
-  --color-bg: #eef1ea;
-  --color-surface: #f8f9f5;
-  --color-surface-2: #e3e8dd;
-  --color-line: rgb(20 30 20 / 0.11);
-  --color-line-strong: rgb(20 30 20 / 0.22);
+  /* Layers, darkest to lightest: page < inset card < panel < elevated; surface-3 = hover/active. */
+  --color-bg: #d9dfd0;
+  --color-surface: #f7f9f3;
+  --color-surface-2: #ebefe4;
+  --color-surface-3: #dde4d3;
+  --color-elevated: #ffffff;
+  --color-inset: #e9eee1;
+  --color-field: #ffffff;
+  --color-scrim: rgb(214 221 204 / 0.72);
+  --color-line: rgb(20 30 20 / 0.2);
+  --color-line-strong: rgb(20 30 20 / 0.55);
   --color-fg: #141a14;
   --color-muted: #46524a;
-  --color-faint: #586458;
+  --color-faint: #546052;
   --color-accent-text: #2c6410;
   --color-danger: #b3261e;
-  --color-warn: #8a5a00;
+  --color-danger-ink: #ffffff;
+  --color-warn: #7a4f00;
+
+  --shadow-panel: -14px 0 36px -20px rgb(30 45 25 / 0.45), -1px 0 0 rgb(20 30 20 / 0.12);
+  --shadow-dialog: 0 24px 56px -24px rgb(30 45 25 / 0.5), 0 0 0 1px var(--color-line-strong);
+
+  --color-dept-director: #6571b4;
+  --color-dept-director-soft: #e3e6f6;
+  --color-dept-director-text: #3a4590;
+  --color-dept-marketing: #d0467f;
+  --color-dept-marketing-soft: #f9e1ec;
+  --color-dept-marketing-text: #a3205f;
+  --color-dept-sales: #dd6a22;
+  --color-dept-sales-soft: #fae7d6;
+  --color-dept-sales-text: #8f4700;
+  --color-dept-support: #1b9d8c;
+  --color-dept-support-soft: #d8f1ec;
+  --color-dept-support-text: #0b6358;
+  --color-dept-production: #3484d2;
+  --color-dept-production-soft: #dceaf8;
+  --color-dept-production-text: #195a9f;
+  --color-dept-backoffice: #8657d0;
+  --color-dept-backoffice-soft: #eae1f8;
+  --color-dept-backoffice-text: #6030ae;
+  --color-dept-company: #718093;
+  --color-dept-company-soft: #e1e6ec;
+  --color-dept-company-text: #3c4859;
 }
 
 @layer base {
@@ -459,7 +543,7 @@
   --color-bg: #0a0d0b;
   --color-fg: #edf2ea;
   --color-muted: #9ba79d;
-  --color-faint: #7a867c;
+  --color-faint: #8b978d;
   --color-accent-text: #b5eb6a;
   background-color: #0a0d0b;
   color: #edf2ea;

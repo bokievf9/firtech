@@ -42,7 +42,7 @@ export function ClientsTab({ focus }: { focus: string | null }) {
           const ago = minutesSince(x.lastTouchAt, now)
           return (
             <li key={x.id}>
-              <button type="button" onClick={() => setOpenId(x.id)} className="w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-2 focus-visible:bg-surface-2">
+              <button type="button" onClick={() => setOpenId(x.id)} className="w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-3 focus-visible:bg-surface-2">
                 <span className="flex items-center gap-2">
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">{x.name || x.contact}</span>
                   {x.cabinet ? <Chip tone="accent">{c.cabinet}</Chip> : null}
@@ -205,5 +205,5 @@ function Client360Body({ data }: { data: Client360 }) {
   )
 }
 
-const row = 'flex w-full items-center gap-2 rounded-xl border border-line bg-bg/50 px-3 py-2 text-sm transition-colors hover:border-line-strong'
+const row = 'flex w-full items-center gap-2 rounded-xl border border-line bg-inset px-3 py-2 text-sm transition-colors hover:border-line-strong'
 const fillSince = (iso: string) => `${c.since} ${shortDate(iso)}`

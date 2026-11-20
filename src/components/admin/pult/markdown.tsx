@@ -45,7 +45,7 @@ function Block({ b }: { b: MdBlock }) {
       )
     }
     case 'code':
-      return <pre className="overflow-x-auto rounded-xl border border-line bg-bg/60 p-3 font-mono text-xs">{b.text}</pre>
+      return <pre className="overflow-x-auto rounded-xl border border-line bg-inset p-3 font-mono text-xs">{b.text}</pre>
     case 'hr':
       return <hr className="border-line" />
     case 'table':

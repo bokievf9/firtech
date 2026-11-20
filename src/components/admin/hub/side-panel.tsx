@@ -5,6 +5,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
+import type { PanelId } from '@/lib/pult'
+import { deptTheme } from '@/lib/pult-theme'
 
 const h = admin.hub
 
@@ -15,6 +17,7 @@ export type PanelSize = 'md' | 'lg'
 // phone. Tabs follow the WAI tabs pattern: arrows move between them.
 export function SidePanel({
   open,
+  dept,
   title,
   tabs,
   tab,
@@ -25,6 +28,7 @@ export function SidePanel({
   children,
 }: {
   open: boolean
+  dept: PanelId
   title: string
   tabs: { id: string; label: string; badge?: string | null }[]
   tab: string
@@ -54,6 +58,7 @@ export function SidePanel({
     tabRefs.current.get(id)?.focus()
   }
 
+  const theme = deptTheme(dept)
   return (
     <AnimatePresence>
       {open ? (
@@ -67,18 +72,20 @@ export function SidePanel({
           exit={{ x: '100%', opacity: 0.6, transition: { duration: 0.2, ease: [0.4, 0, 1, 1] } }}
           transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
           className={cn(
-            'absolute inset-y-0 right-0 z-40 flex w-full flex-col border-l border-line-strong bg-surface/97 shadow-2xl outline-none backdrop-blur',
+            'absolute inset-y-0 right-0 z-40 flex w-full flex-col border-l border-line-strong bg-surface/97 shadow-panel outline-none backdrop-blur',
             size === 'lg' ? 'md:w-[min(62vw,1180px)]' : 'md:w-[max(440px,min(44vw,820px))]',
           )}
         >
+          <span aria-hidden="true" data-dept={dept} className={cn('pointer-events-none absolute inset-x-0 top-0 h-[3px]', theme.cls.bg)} />
           <div className="flex items-center gap-2 border-b border-line px-4 pt-3 pb-2 sm:px-5">
+            <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', theme.cls.bg)} />
             <h2 className="min-w-0 flex-1 truncate font-brand text-lg">{title}</h2>
             <button
               type="button"
               onClick={() => onSize(size === 'md' ? 'lg' : 'md')}
               aria-label={size === 'md' ? h.wider : h.narrower}
               title={size === 'md' ? h.wider : h.narrower}
-              className="hidden size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-fg md:grid"
+              className="hidden size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg md:grid"
             >
               {size === 'md' ? <ArrowsOutLineHorizontal size={18} aria-hidden="true" /> : <ArrowsInLineHorizontal size={18} aria-hidden="true" />}
             </button>
@@ -87,7 +94,7 @@ export function SidePanel({
               onClick={onClose}
               aria-label={h.close}
               title={`${h.close} (Esc)`}
-              className="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+              className="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg"
             >
               <X size={18} aria-hidden="true" />
             </button>
@@ -115,11 +122,11 @@ export function SidePanel({
                 >
                   {t.label}
                   {t.badge ? (
-                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[11px] font-semibold text-accent-ink tabular-nums">
+                    <span className={cn('inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-semibold tabular-nums', theme.cls.chip)}>
                       {t.badge}
                     </span>
                   ) : null}
-                  {t.id === tab ? <motion.span layoutId="hub-tab-line" className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-accent" /> : null}
+                  {t.id === tab ? <motion.span layoutId="hub-tab-line" className={cn('absolute inset-x-2 -bottom-px h-0.5 rounded-full', theme.cls.bg)} /> : null}
                 </button>
               ))}
             </div>

@@ -9,12 +9,25 @@ import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { formatUntil } from '@/lib/office-view'
 import { limitShare, limitsText, normalizeCompany, normalizePlaybookText, routineRow, toolGroups, toolState, trustRow, type CompanyTool, type Routine, type TrustRow } from '@/lib/pult'
+import { deptOf, deptTheme } from '@/lib/pult-theme'
 import { Chip, shortTime, usd } from './bits'
 import { CopyButton, Empty, Loading, Offline, useConfirm, useHqView, useHub } from '../hub/ui'
 import { Markdown } from './markdown'
 
 const k = admin.pult.company
 const dept = (id: string) => (admin.hub.panels as Record<string, string>)[id.replace(/[^a-z]/g, '')] ?? id
+
+// A department name in its own colour (unknown names stay neutral); `dot` adds the solid dot.
+function DeptTag({ raw, dot = false }: { raw: string; dot?: boolean }) {
+  const id = deptOf(raw)
+  const t = id ? deptTheme(id) : null
+  return (
+    <span data-dept={id ?? undefined} className={t?.cls.text}>
+      {dot ? <span aria-hidden="true" className={cn('mr-1.5 inline-block size-2 rounded-full align-baseline', t ? t.cls.bg : 'bg-line-strong')} /> : null}
+      {dept(raw)}
+    </span>
+  )
+}
 
 function Toggle({ on, label, disabled, onChange }: { on: boolean; label: string; disabled?: boolean; onChange: (on: boolean) => void }) {
   return (
@@ -41,7 +54,7 @@ function ToolRow({ t }: { t: CompanyTool }) {
   const limits = limitsText(t.limits)
   const why = state === 'missing' ? fill(k.toolMissing, { keys: t.env.join(', ') }) : state === 'off' ? k.toolOff : ''
   return (
-    <li className={cn('grid gap-1 rounded-xl border border-line bg-bg/50 px-3 py-2', toolCols)}>
+    <li className={cn('grid gap-1 rounded-xl border border-line bg-inset px-3 py-2', toolCols)}>
       <span className="flex min-w-0 items-center gap-2">
         <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', state === 'ok' ? 'bg-accent' : state === 'missing' ? 'bg-danger' : 'bg-line-strong')} />
         <span className="min-w-0 truncate font-mono text-xs">{t.name}</span>
@@ -172,12 +185,12 @@ export function CompanyTab() {
         {c.routines.length ? (
           <ul className="grid gap-1">
             {c.routines.map((r) => (
-              <li key={r.name} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-line bg-bg/50 px-3 py-2">
+              <li key={r.name} className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-line bg-inset px-3 py-2">
                 <Toggle on={r.enabled} label={fill(k.routineToggle, { t: r.title || r.name })} onChange={(on) => void setRoutine(r, on)} />
                 <span className="min-w-[9rem] flex-[1_1_9rem]">
                   <span className="block truncate text-sm">{r.title || r.name}</span>
                   <span className="block truncate font-mono text-xs text-faint">
-                    {dept(r.dept)} · {r.cron} {r.tz ? `· ${r.tz}` : ''}
+                    <DeptTag raw={r.dept} /> · {r.cron} {r.tz ? `· ${r.tz}` : ''}
                   </span>
                 </span>
                 <span className="order-last basis-full pl-14 text-xs text-muted sm:order-none sm:basis-auto sm:pl-0">
@@ -206,13 +219,15 @@ export function CompanyTab() {
             return (
               <li key={d.dept} className="text-sm">
                 <div className="flex justify-between gap-2">
-                  <span>{dept(d.dept)}</span>
+                  <span>
+                    <DeptTag raw={d.dept} dot />
+                  </span>
                   <span className="text-xs text-muted tabular-nums">
                     {fill(k.today, { usd: usd(d.todayUsd) })} · {d.limitUsd ? fill(k.month, { usd: usd(d.monthUsd), limit: usd(d.limitUsd) }) : fill(k.monthNoLimit, { usd: usd(d.monthUsd) })}
                   </span>
                 </div>
                 {share !== null ? (
-                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={Math.round(share * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={dept(d.dept)}>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3" role="progressbar" aria-valuenow={Math.round(share * 100)} aria-valuemin={0} aria-valuemax={100} aria-label={dept(d.dept)}>
                     <div className={cn('h-full rounded-full', share >= 1 ? 'bg-danger' : share >= 0.8 ? 'bg-warn' : 'bg-accent')} style={{ width: `${Math.min(100, share * 100)}%` }} />
                   </div>
                 ) : null}
@@ -227,7 +242,7 @@ export function CompanyTab() {
         <p className="text-xs text-faint">{k.trustHint}</p>
         <ul className="grid gap-1">
           {c.trust.map((t) => (
-            <li key={t.kind} className="flex items-center gap-3 rounded-xl border border-line bg-bg/50 px-3 py-2">
+            <li key={t.kind} className="flex items-center gap-3 rounded-xl border border-line bg-inset px-3 py-2">
               <Toggle on={t.level === 1} label={fill(k.trustToggle, { kind: t.kind })} onChange={(on) => void setTrust(t, on ? 1 : 0)} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-mono text-xs">{t.kind}</span>
@@ -256,7 +271,7 @@ export function CompanyTab() {
                   type="button"
                   onClick={() => void openPlaybook(p.role)}
                   aria-label={fill(k.playbookOpen, { role: p.role })}
-                  className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-line bg-bg/50 px-3 py-2 text-left hover:border-accent"
+                  className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-line bg-inset px-3 py-2 text-left hover:border-accent"
                 >
                   <span className="min-w-[8rem] flex-[1_1_8rem] font-mono text-sm">{p.role}</span>
                   <span className="text-xs text-muted">

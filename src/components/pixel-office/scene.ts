@@ -153,7 +153,9 @@ export type Scene = {
   // Whole rooms become click targets ({ kind: 'room' } anywhere inside, after people and desks).
   setZoneHits(on: boolean): void
   // A soft lamp on the desks of a room while something waits: room id -> 0 (calm), 0.5, 1 (waits).
-  setZoneGlow(glow: Record<string, number>): void
+  // Lamp levels per room and, optionally, a CSS colour per room (the department hue); without one
+  // the lamp is lime (work queued) or amber (waits for the owner).
+  setZoneGlow(glow: Record<string, number>, colors?: Record<string, string>): void
   // The rooms of the current layout and the interior rectangle of one (for badges over the scene).
   rooms(): { id: string; kind: string }[]
   zoneRect(roomId: string): Rect | null
@@ -268,6 +270,7 @@ export function createScene(
   let viewCb: (() => void) | null = null
   let zoneHits = false
   let zoneGlow: Record<string, number> = {}
+  let zoneColors: Record<string, string> = {}
 
   // Visitors, approvals, errands, reactions.
   let visitors = new Map<string, VisitorMemo>()
@@ -907,13 +910,14 @@ export function createScene(
       if (hovered) {
         const r = roomInterior(room)
         c.globalAlpha = 0.5
-        c.strokeStyle = COLORS.lime
+        c.strokeStyle = zoneColors[room.id] ?? COLORS.lime
         c.lineWidth = 1
         c.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1)
         c.globalAlpha = 1
       }
       if (level <= 0) continue
-      const color = level >= 1 ? '#ffb347' : COLORS.lime
+      const lamp = level >= 1 ? '#ffb347' : COLORS.lime
+      const color = zoneColors[room.id] ?? lamp
       const pulse = reduced ? 0.7 : 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(now / 900 + hashId(room.id)))
       const desks = layout.desks.filter((d) => d.roomId === room.id)
       if (!desks.length) {
@@ -928,7 +932,7 @@ export function createScene(
         c.globalAlpha = (level >= 1 ? 0.2 : 0.12) * pulse
         for (let row = 0; row < 4; row++) rect(c, t.x - 3 + row, t.y - 3 - row * 2, t.w + 6 - row * 2, 2, color)
         c.globalAlpha = (level >= 1 ? 0.9 : 0.6) * pulse
-        rect(c, t.x + t.w - 3, t.y - 12, 2, 2, color)
+        rect(c, t.x + t.w - 3, t.y - 12, 2, 2, lamp)
         c.globalAlpha = 1
       }
     }
@@ -1702,8 +1706,9 @@ export function createScene(
       zoneHits = on
       poke()
     },
-    setZoneGlow(next) {
+    setZoneGlow(next, colors) {
       zoneGlow = { ...next }
+      zoneColors = { ...colors }
       poke()
     },
     rooms: () => layout.rooms.map((r) => ({ id: r.id, kind: r.kind })),

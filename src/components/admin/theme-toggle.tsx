@@ -28,7 +28,7 @@ export function ThemeToggle() {
     } catch {}
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', next === 'light' ? '#eef1ea' : '#0a0d0b')
+      ?.setAttribute('content', next === 'light' ? '#d9dfd0' : '#0a0d0b')
     listeners.forEach((l) => l())
   }
 

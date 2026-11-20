@@ -97,7 +97,7 @@ function Body({
       {task.result ? (
         <section>
           <h3 className="mb-1.5 text-sm font-medium text-muted">{t.result}</h3>
-          <p className="rounded-xl bg-bg/60 p-3 text-sm leading-relaxed whitespace-pre-wrap break-words">{task.result}</p>
+          <p className="rounded-xl bg-inset p-3 text-sm leading-relaxed whitespace-pre-wrap break-words">{task.result}</p>
         </section>
       ) : null}
       {task.parentId !== null && task.parentId !== undefined ? (
@@ -124,7 +124,7 @@ function Body({
           <h3 className="mb-2 text-sm font-medium text-muted">{t.approvals}</h3>
           <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
             {approvals.map((a) => (
-              <li key={String(a.id)} className="rounded-xl border border-line bg-bg/40 p-3 text-sm">
+              <li key={String(a.id)} className="rounded-xl border border-line bg-inset p-3 text-sm">
                 <p className="font-medium">{a.summary}</p>
                 <p className="mt-1 line-clamp-3 text-xs text-muted">{a.parts?.join(' / ') || a.text}</p>
               </li>
@@ -142,7 +142,7 @@ function Body({
                 <button
                   type="button"
                   onClick={() => onOpen(c.id)}
-                  className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm hover:bg-surface-2"
+                  className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm hover:bg-surface-3"
                 >
                   <span className="font-mono text-xs text-faint">#{c.id}</span>
                   <span className="min-w-0 flex-1 truncate">{c.title}</span>
@@ -227,7 +227,7 @@ export function TaskDrawer({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/40"
+            className="fixed inset-0 z-50 bg-scrim"
           />
           <motion.aside
             key="drawer"
@@ -238,7 +238,7 @@ export function TaskDrawer({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 420, damping: 42 }}
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[34rem] flex-col border-l border-line-strong bg-surface shadow-2xl"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[34rem] flex-col border-l border-line-strong bg-surface shadow-panel"
           >
             <div className="flex min-h-14 items-center gap-2 border-b border-line py-2 pr-2 pl-5">
               <p className="font-mono text-sm text-muted">{fill(t.title, { id: id })}</p>
@@ -247,7 +247,7 @@ export function TaskDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label={t.close}
-                className="ml-auto grid size-11 place-items-center rounded-full text-muted hover:bg-surface-2 hover:text-fg"
+                className="ml-auto grid size-11 place-items-center rounded-full text-muted hover:bg-surface-3 hover:text-fg"
               >
                 <X size={18} weight="bold" aria-hidden="true" />
               </button>

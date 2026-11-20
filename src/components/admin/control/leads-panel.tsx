@@ -60,7 +60,7 @@ export function LeadsPanel({
             disabled={!shown.length}
             onClick={() => download(shown)}
             title={t.exportNote}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-40"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-3 text-xs whitespace-nowrap text-muted transition-colors hover:bg-surface-3 hover:text-fg disabled:opacity-40"
           >
             <DownloadSimple size={14} aria-hidden="true" />
             {t.export}
@@ -100,7 +100,7 @@ export function LeadsPanel({
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={t.search}
-              className="h-11 w-full rounded-xl border border-line-strong bg-bg pl-10 pr-3.5 text-base text-fg outline-none focus:border-accent md:text-sm"
+              className="h-11 w-full rounded-xl border border-line-strong bg-field pl-10 pr-3.5 text-base text-fg outline-none focus:border-accent md:text-sm"
             />
           </label>
 
@@ -129,7 +129,7 @@ export function LeadsPanel({
                         onClick={() => onOpen(lead.id)}
                         aria-label={fill(t.openLead, { id: lead.id })}
                         className={cn(
-                          'w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-2',
+                          'w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-3',
                           lead.id === openId && 'bg-surface-2',
                         )}
                       >

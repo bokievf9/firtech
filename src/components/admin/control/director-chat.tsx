@@ -80,7 +80,7 @@ export function DirectorChat({
             onClick={() => chat.set([])}
             aria-label={t.clear}
             title={t.clear}
-            className="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+            className="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg"
           >
             <Trash size={16} aria-hidden="true" />
           </button>
@@ -123,7 +123,7 @@ export function DirectorChat({
                     <button
                       type="button"
                       onClick={() => onOpenTask(m.taskId as Id)}
-                      className="mt-1.5 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-accent/60 px-3 text-xs text-accent-text transition-colors hover:bg-surface-2"
+                      className="mt-1.5 inline-flex min-h-8 items-center gap-1.5 rounded-full border border-accent/60 px-3 text-xs text-accent-text transition-colors hover:bg-surface-3"
                     >
                       <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
                       {fill(t.task, { id: m.taskId })}
@@ -183,7 +183,7 @@ export function DirectorChat({
                   void send(text)
                 }
               }}
-              className="ym-disable-keys max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-line-strong bg-bg px-3.5 py-2.5 text-sm outline-none [field-sizing:content] focus:border-accent"
+              className="ym-disable-keys max-h-32 min-h-11 flex-1 resize-none rounded-xl border border-line-strong bg-field px-3.5 py-2.5 text-sm outline-none [field-sizing:content] focus:border-accent"
             />
             <button
               type="submit"

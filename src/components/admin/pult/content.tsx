@@ -142,7 +142,7 @@ export function ContentTab({ focus }: { focus: string | null }) {
 function ContentCard({ item, onOpen }: { item: ContentItem; onOpen: () => void }) {
   const thumb = item.files.find((f) => f.type === 'png')
   return (
-    <button type="button" onClick={onOpen} className="block w-full overflow-hidden rounded-xl border border-line bg-bg/70 text-left transition-colors hover:border-line-strong focus-visible:border-accent">
+    <button type="button" onClick={onOpen} className="block w-full overflow-hidden rounded-xl border border-line bg-inset text-left transition-colors hover:border-line-strong focus-visible:border-accent">
       {thumb ? (
         // eslint-disable-next-line @next/next/no-img-element -- a private render behind the session proxy
         <img src={fileUrl(thumb.path)} alt="" loading="lazy" className="aspect-[4/5] w-full bg-surface-2 object-cover" />
@@ -167,7 +167,7 @@ function KitCard({ kit }: { kit: ProfileKit }) {
   const [tab, setTab] = useState<KitSection>(sections[0] ?? 'instagram')
   const blocks = kitBlocks(kit[tab])
   return (
-    <section className="grid gap-2 rounded-xl border border-line bg-bg/50 p-3" aria-label={k.kitTitle}>
+    <section className="grid gap-2 rounded-xl border border-line bg-inset p-3" aria-label={k.kitTitle}>
       <h3 className="text-sm font-medium">{k.kitTitle}</h3>
       <div role="tablist" aria-label={k.kitTitle} className="flex flex-wrap gap-1.5">
         {sections.map((s) => (
@@ -241,7 +241,7 @@ function ContentBody({ item, onAct }: { item: ContentItem; onAct: (item: Content
       {item.hook ? <p className="text-sm text-muted">{item.hook}</p> : null}
 
       {video ? (
-        <video key={video.path} controls preload="metadata" playsInline poster={slides[0] ? fileUrl(slides[0].path) : undefined} className="max-h-[60vh] w-full rounded-xl bg-black">
+        <video key={video.path} controls preload="metadata" playsInline poster={slides[0] ? fileUrl(slides[0].path) : undefined} className="max-h-[60vh] w-full rounded-xl bg-surface-3">
           <source src={fileUrl(video.path)} type="video/mp4" />
         </video>
       ) : null}
@@ -270,7 +270,7 @@ function ContentBody({ item, onAct }: { item: ContentItem; onAct: (item: Content
       <section className={cn('grid gap-2', item.kit && !CAPTION_PLATFORMS.some((p) => item.caption[p]) && 'hidden')}>
         <h3 className="text-sm font-medium">{k.captions}</h3>
         {CAPTION_PLATFORMS.filter((p) => item.caption[p]).map((p) => (
-          <div key={p} className="rounded-xl border border-line bg-bg/50 p-3">
+          <div key={p} className="rounded-xl border border-line bg-inset p-3">
             <div className="mb-1.5 flex items-center justify-between gap-2">
               <span className="text-xs text-faint">{k.platforms[p]}</span>
               <CopyButton text={item.caption[p]} />

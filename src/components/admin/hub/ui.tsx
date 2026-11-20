@@ -177,8 +177,8 @@ export function useConfirm() {
     return () => window.removeEventListener('keydown', onKey, true)
   }, [state, done])
   const dialog = state ? (
-    <div className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4">
-      <div role="alertdialog" aria-modal="true" aria-label={state.text} className="w-full max-w-sm rounded-card border border-line-strong bg-surface p-5 shadow-2xl">
+    <div className="fixed inset-0 z-[80] grid place-items-center bg-scrim p-4">
+      <div role="alertdialog" aria-modal="true" aria-label={state.text} className="w-full max-w-sm rounded-card border border-line-strong bg-elevated p-5 shadow-dialog">
         <p className="text-sm leading-relaxed">{state.text}</p>
         <div className="mt-4 flex justify-end gap-2">
           <button type="button" onClick={() => done(false)} className="inline-flex min-h-10 items-center rounded-full px-4 text-sm text-muted hover:text-fg">
@@ -190,7 +190,7 @@ export function useConfirm() {
             onClick={() => done(true)}
             className={cn(
               'inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium',
-              state.danger ? 'bg-danger text-white' : 'bg-accent text-accent-ink',
+              state.danger ? 'bg-danger text-danger-ink' : 'bg-accent text-accent-ink',
             )}
           >
             {state.yes}
@@ -259,4 +259,4 @@ export const btnPrimary =
 export const btnDanger =
   'inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-danger/50 px-4 text-sm text-danger transition-colors hover:bg-danger/10 disabled:opacity-50'
 export const inputClass =
-  'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-3 py-2 text-base text-fg outline-none focus:border-accent md:text-sm'
+  'ym-disable-keys w-full rounded-xl border border-line-strong bg-field px-3 py-2 text-base text-fg outline-none focus:border-accent md:text-sm'

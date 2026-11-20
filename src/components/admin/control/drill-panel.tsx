@@ -66,7 +66,7 @@ export function DrillPanel({ departments, className }: { departments: HqDepartme
             <select
               value={dept}
               onChange={(e) => setDept(e.target.value)}
-              className="min-h-11 rounded-xl border border-line-strong bg-bg px-3 text-sm text-fg outline-none focus:border-accent"
+              className="min-h-11 rounded-xl border border-line-strong bg-field px-3 text-sm text-fg outline-none focus:border-accent"
             >
               <option value="">{t.all}</option>
               {departments.map((d) => (
@@ -104,7 +104,7 @@ export function DrillPanel({ departments, className }: { departments: HqDepartme
         {error ? <p className="text-sm text-danger">{errText(error)}</p> : null}
         <pre
           aria-live="polite"
-          className="min-h-24 overflow-x-auto rounded-xl bg-bg/70 p-3 font-mono text-xs leading-relaxed whitespace-pre"
+          className="min-h-24 overflow-x-auto rounded-xl bg-inset p-3 font-mono text-xs leading-relaxed whitespace-pre"
         >
           {text ?? <span className="text-faint">{t.empty}</span>}
         </pre>

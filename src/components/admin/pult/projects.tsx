@@ -33,7 +33,7 @@ function ProjectCard({ p, now }: { p: Project; now: number }) {
       <span className="block truncate font-medium">{p.client || '-'}</span>
       <span className="block truncate text-xs text-muted">{p.what || p.product}</span>
       {pct !== null ? (
-        <span className="mt-2 block h-1 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+        <span className="mt-2 block h-1 overflow-hidden rounded-full bg-surface-3" aria-hidden="true">
           <span className="block h-full rounded-full bg-accent" style={{ width: `${pct}%` }} />
         </span>
       ) : null}
@@ -178,7 +178,7 @@ function ProjectBody({
         {data.milestones.length ? (
           <ul className="grid gap-1.5">
             {data.milestones.map((m) => (
-              <li key={m.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-bg/50 px-2 py-1.5">
+              <li key={m.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-line bg-inset px-2 py-1.5">
                 <button
                   type="button"
                   role="checkbox"
@@ -191,7 +191,7 @@ function ProjectBody({
                 </button>
                 <label className="flex items-center gap-1.5 text-xs text-faint">
                   {k.due}
-                  <input type="date" defaultValue={dateInput(m.dueAt)} onChange={(e) => void deadline(m, e.target.value)} className="h-9 rounded-lg border border-line-strong bg-bg px-2 text-sm text-fg" />
+                  <input type="date" defaultValue={dateInput(m.dueAt)} onChange={(e) => void deadline(m, e.target.value)} className="h-9 rounded-lg border border-line-strong bg-field px-2 text-sm text-fg" />
                 </label>
               </li>
             ))}

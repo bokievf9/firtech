@@ -89,7 +89,7 @@ export function CcPanel({
             aria-expanded={!isFolded}
             aria-controls={bodyId}
             aria-label={`${isFolded ? t.expand : t.collapse}: ${title}`}
-            className="grid size-10 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+            className="grid size-10 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg"
           >
             <CaretDown
               size={16}

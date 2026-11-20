@@ -77,7 +77,7 @@ export function LeadDrawer({
         aria-label={t.close}
         onClick={onClose}
         className={cn(
-          'absolute inset-0 bg-black/60 transition-opacity duration-300',
+          'absolute inset-0 bg-scrim transition-opacity duration-300',
           lead ? 'opacity-100' : 'opacity-0',
         )}
       />
@@ -88,7 +88,7 @@ export function LeadDrawer({
         aria-label={lead ? fillAdmin(t.title, { id: lead.id }) : undefined}
         tabIndex={-1}
         className={cn(
-          'absolute inset-y-0 right-0 flex w-full max-w-[560px] flex-col border-l border-line-strong bg-surface shadow-2xl outline-none transition-transform duration-300 ease-out-expo',
+          'absolute inset-y-0 right-0 flex w-full max-w-[560px] flex-col border-l border-line-strong bg-surface shadow-panel outline-none transition-transform duration-300 ease-out-expo',
           lead ? 'translate-x-0' : 'translate-x-full',
         )}
       >
@@ -230,7 +230,7 @@ function DrawerBody({
           </p>
         </section>
 
-        <section className="rounded-card border border-line bg-bg/50 p-4">
+        <section className="rounded-card border border-line bg-inset p-4">
           <h3 className="mb-2 text-xs text-faint">{t.booking}</h3>
           {booking ? (
             <>
@@ -284,7 +284,7 @@ function DrawerBody({
             <h3 className="mb-2 text-xs text-faint">
               {lead.service === 'bundle' ? t.fields.bundle : t.fields.estimate}
             </h3>
-            <pre className="rounded-xl border border-line bg-bg p-4 font-mono text-xs leading-relaxed break-words whitespace-pre-wrap text-muted">
+            <pre className="rounded-xl border border-line bg-field p-4 font-mono text-xs leading-relaxed break-words whitespace-pre-wrap text-muted">
               {lead.estimate}
             </pre>
           </section>
@@ -301,7 +301,7 @@ function DrawerBody({
             rows={4}
             onChange={(e) => setNotes(e.target.value)}
             placeholder={t.notesPlaceholder}
-            className="w-full resize-y rounded-xl border border-line-strong bg-bg px-3.5 py-3 text-base text-fg outline-none md:text-sm focus:border-accent"
+            className="w-full resize-y rounded-xl border border-line-strong bg-field px-3.5 py-3 text-base text-fg outline-none md:text-sm focus:border-accent"
           />
           <button
             type="button"

@@ -94,7 +94,7 @@ export function Kanban<T>({
         }}
         onClick={() => onOpen(item)}
         onKeyDown={(e) => onKey(e, item, col, row)}
-        className="cursor-pointer rounded-xl border border-line bg-bg/70 p-2.5 text-sm transition-colors outline-none hover:border-line-strong focus-visible:border-accent active:cursor-grabbing"
+        className="cursor-pointer rounded-xl border border-line bg-inset p-2.5 text-sm transition-colors outline-none hover:border-line-strong focus-visible:border-accent active:cursor-grabbing"
       >
         {render(item)}
       </div>
@@ -112,7 +112,7 @@ export function Kanban<T>({
               </h3>
               <ul className="grid gap-1.5">
                 {c.items.map((item) => (
-                  <li key={idOf(item)} className="rounded-xl border border-line bg-bg/70 p-2.5 text-sm">
+                  <li key={idOf(item)} className="rounded-xl border border-line bg-inset p-2.5 text-sm">
                     <button type="button" onClick={() => onOpen(item)} className="block w-full text-left">
                       {render(item)}
                     </button>
@@ -121,7 +121,7 @@ export function Kanban<T>({
                       <select
                         value={c.key}
                         onChange={(e) => onMove(item, e.target.value)}
-                        className="h-9 min-w-0 flex-1 rounded-lg border border-line-strong bg-bg px-2 text-sm text-fg"
+                        className="h-9 min-w-0 flex-1 rounded-lg border border-line-strong bg-field px-2 text-sm text-fg"
                       >
                         {columns.map((o) => (
                           <option key={o.key} value={o.key}>

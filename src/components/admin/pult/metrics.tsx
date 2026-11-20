@@ -27,7 +27,7 @@ function Delta({ cur, prev, money = false }: { cur: number; prev: number | null 
 
 function Stat({ label, value, prev, money = false, bars }: { label: string; value: number; prev?: number | null; money?: boolean; bars?: { date: string; value: number }[] | null }) {
   return (
-    <div className="rounded-xl border border-line bg-bg/50 p-3">
+    <div className="rounded-xl border border-line bg-inset p-3">
       <p className="text-xs text-faint">{label}</p>
       <p className="mt-1 font-mono text-xl tabular-nums">{money ? usd(value) : value.toLocaleString('ru-RU')}</p>
       <Delta cur={value} prev={prev} money={money} />
@@ -92,7 +92,7 @@ export function MetricsTab() {
               {funnelShares(m.funnel).map(({ key, n, share }) => (
                 <li key={key} className="grid grid-cols-[7rem_minmax(0,1fr)_auto] items-center gap-2 text-sm">
                   <span className="truncate text-muted">{(k.funnelSteps as Record<string, string>)[key] ?? key}</span>
-                  <span className="h-2.5 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
+                  <span className="h-2.5 overflow-hidden rounded-full bg-surface-3" aria-hidden="true">
                     <span className="block h-full rounded-full bg-accent" style={{ width: `${Math.max(2, share * 100)}%` }} />
                   </span>
                   <span className="flex items-baseline gap-2 tabular-nums">

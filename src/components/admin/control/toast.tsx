@@ -35,7 +35,7 @@ export function Toast({ message, onClose }: { message: ToastMessage | null; onCl
       {message ? (
         <p
           className={cn(
-            'pointer-events-auto flex max-w-md items-center gap-2 rounded-card border bg-surface-2 py-1.5 pr-1.5 pl-4 text-sm shadow-2xl',
+            'pointer-events-auto flex max-w-md items-center gap-2 rounded-card border bg-elevated py-1.5 pr-1.5 pl-4 text-sm shadow-dialog',
             message.tone === 'error'
               ? 'border-danger/50 text-danger'
               : 'border-line-strong text-fg',
@@ -49,7 +49,7 @@ export function Toast({ message, onClose }: { message: ToastMessage | null; onCl
                 message.action?.run()
                 onClose()
               }}
-              className="inline-flex h-11 shrink-0 items-center rounded-full px-4 font-medium text-accent-text transition-colors hover:bg-surface"
+              className="inline-flex h-11 shrink-0 items-center rounded-full px-4 font-medium text-accent-text transition-colors hover:bg-surface-3"
             >
               {message.action.label}
             </button>

@@ -84,12 +84,12 @@ export function AdminMenu() {
       >
         <DotsThree size={20} weight="bold" aria-hidden="true" />
       </summary>
-      <div className="absolute right-0 z-40 mt-2 w-72 rounded-card border border-line-strong bg-surface-2 p-2 shadow-2xl">
+      <div className="absolute right-0 z-40 mt-2 w-72 rounded-card border border-line-strong bg-elevated p-2 shadow-dialog">
         {/* A file download from a route handler, not a page, so a plain link. */}
         <a
           href="/api/admin/export"
           download
-          className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm hover:bg-surface"
+          className="flex min-h-11 w-full items-center gap-2 rounded-xl px-3 text-left text-sm hover:bg-surface-3"
         >
           <DownloadSimple size={16} aria-hidden="true" />
           {admin.nav.export}
@@ -98,7 +98,7 @@ export function AdminMenu() {
           type="button"
           disabled={busy}
           onClick={() => logout(false)}
-          className="min-h-11 w-full rounded-xl px-3 text-left text-sm hover:bg-surface"
+          className="min-h-11 w-full rounded-xl px-3 text-left text-sm hover:bg-surface-3"
         >
           {admin.nav.logout}
         </button>
@@ -106,7 +106,7 @@ export function AdminMenu() {
           type="button"
           disabled={busy}
           onClick={() => logout(true)}
-          className="min-h-11 w-full rounded-xl px-3 text-left text-sm text-danger hover:bg-surface"
+          className="min-h-11 w-full rounded-xl px-3 text-left text-sm text-danger hover:bg-surface-3"
         >
           {admin.nav.logoutAll}
         </button>

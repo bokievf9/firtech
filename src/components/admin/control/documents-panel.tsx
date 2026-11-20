@@ -49,7 +49,7 @@ export function DocumentsPanel({ feed, badge, now, className }: { feed: CrmFeed<
                         <h3 className="mb-1 px-3 text-xs text-faint">{label(k.kinds, g.kind)}</h3>
                         <ul className="grid grid-cols-[minmax(0,1fr)] gap-0.5">
                           {g.items.map((d) => (
-                            <li key={d.id} className="rounded-xl px-3 py-2.5 hover:bg-surface-2">
+                            <li key={d.id} className="rounded-xl px-3 py-2.5 hover:bg-surface-3">
                               <span className="flex items-center justify-between gap-3">
                                 <span className="min-w-0 truncate text-sm font-medium">{d.title || label(k.kindOne, d.kind)}</span>
                                 <Pill tone={d.status === 'pending' || d.status === 'draft' || d.status === 'issued' ? 'accent' : 'plain'}>

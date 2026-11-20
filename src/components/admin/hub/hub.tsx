@@ -52,6 +52,7 @@ import {
   type PanelLink,
 } from '@/lib/pult'
 import { loadedContent } from '@/components/admin/pult/content'
+import { deptTheme } from '@/lib/pult-theme'
 import { CommandPalette, type PaletteItem } from './command-palette'
 import { PanelContent, type DirectorProps } from './panels'
 import { SidePanel, type PanelSize } from './side-panel'
@@ -91,10 +92,12 @@ function buildZones(
   const names: OfficeZones['names'] = {}
   const badges: OfficeZones['badges'] = {}
   const glow: OfficeZones['glow'] = {}
+  const depts: OfficeZones['depts'] = {}
   for (const room of roomIds(data.departments.map((d) => d.id))) {
     const panel = roomPanel(room)
     if (!panel) continue
     const key = room.toLowerCase().replace(/[^a-z]/g, '')
+    depts[room] = panel
     names[room] = (h.zones as Record<string, string>)[key] ?? h.panels[panel]
     if (!homeRoom(room, panel)) continue
     const dept = panel as HubDept
@@ -106,6 +109,7 @@ function buildZones(
     names,
     badges,
     glow,
+    depts,
     onZone: (room) => {
       const panel = roomPanel(room)
       if (panel) openPanel(panel)
@@ -117,7 +121,7 @@ function Presence({ view, busy, onChange }: { view: PresenceView | null; busy: b
   const t = cc.presence
   const note = !view ? '' : view.autoAway ? t.autoNote : view.telegram ? t.awayNote : t.deskNote
   return (
-    <div role="radiogroup" aria-label={t.label} aria-busy={busy} title={note} className="grid shrink-0 grid-cols-2 rounded-full border border-line-strong bg-bg p-0.5">
+    <div role="radiogroup" aria-label={t.label} aria-busy={busy} title={note} className="grid shrink-0 grid-cols-2 rounded-full border border-line-strong bg-field p-0.5">
       {(['desk', 'away'] as const).map((m) => {
         const active = view?.mode === m
         const ModeIcon = m === 'desk' ? Desktop : PaperPlaneTilt
@@ -322,10 +326,10 @@ export function Hub() {
   const openTickets = summary.view?.tickets.available ? summary.view.tickets.open : null
   const crmBadges = summaryBadges(summary.view)
   const counters = [
-    { id: 'approvals', icon: SealCheck, n: pendingApprovals, label: h.counters.approvals, go: () => openPanel('director', 'approvals') },
-    { id: 'leads', icon: UserPlus, n: newLeads, label: h.counters.leads, go: () => openPanel('sales', 'leads') },
-    { id: 'payments', icon: Wallet, n: waitingPay, label: h.counters.payments, go: () => openPanel('backoffice', 'invoices') },
-    { id: 'tickets', icon: Lifebuoy, n: openTickets, label: h.counters.tickets, go: () => openPanel('support', 'tickets') },
+    { id: 'approvals', dept: 'director' as PanelId, icon: SealCheck, n: pendingApprovals, label: h.counters.approvals, go: () => openPanel('director', 'approvals') },
+    { id: 'leads', dept: 'sales' as PanelId, icon: UserPlus, n: newLeads, label: h.counters.leads, go: () => openPanel('sales', 'leads') },
+    { id: 'payments', dept: 'backoffice' as PanelId, icon: Wallet, n: waitingPay, label: h.counters.payments, go: () => openPanel('backoffice', 'invoices') },
+    { id: 'tickets', dept: 'support' as PanelId, icon: Lifebuoy, n: openTickets, label: h.counters.tickets, go: () => openPanel('support', 'tickets') },
   ]
   const tabBadges: Record<string, string | null> = {
     approvals: badgeText(pendingApprovals),
@@ -367,6 +371,7 @@ export function Hub() {
       group: p.groups.panels,
       title: h.panels[id],
       hint: String(i + 1),
+      dept: id,
       keywords: PANEL_TABS[id].map((t) => (h.tabs as Record<string, string>)[t] ?? t).join(' '),
       run: () => openPanel(id),
     }))
@@ -377,6 +382,7 @@ export function Hub() {
             group: p.groups.panels,
             title: `${(h.tabs as Record<string, string>)[t] ?? t}`,
             hint: h.panels[id],
+            dept: id,
             run: () => openPanel(id, t),
           }))
         : [],
@@ -388,11 +394,11 @@ export function Hub() {
       refreshAll()
     }
     const commands: PaletteItem[] = [
-      { id: 'cmd:pack', group: p.groups.commands, title: p.commands.pack, hint: p.commands.packHint, keywords: 'контент неделя', run: () => void say(p.commands.packSay) },
-      { id: 'cmd:report', group: p.groups.commands, title: p.commands.report, hint: p.commands.reportHint, keywords: 'статус сводка', run: () => void command('status') },
-      { id: 'cmd:drill', group: p.groups.commands, title: p.commands.drill, hint: p.commands.drillHint, run: () => openPanel('director', 'drill') },
-      { id: 'cmd:costs', group: p.groups.commands, title: p.commands.costs, hint: p.commands.costsHint, run: () => void command('costs') },
-      { id: 'cmd:release', group: p.groups.commands, title: p.commands.release, hint: p.commands.releaseHint, run: () => void command('approve') },
+      { id: 'cmd:pack', group: p.groups.commands, title: p.commands.pack, hint: p.commands.packHint, dept: 'marketing', keywords: 'контент неделя', run: () => void say(p.commands.packSay) },
+      { id: 'cmd:report', group: p.groups.commands, title: p.commands.report, hint: p.commands.reportHint, dept: 'director', keywords: 'статус сводка', run: () => void command('status') },
+      { id: 'cmd:drill', group: p.groups.commands, title: p.commands.drill, hint: p.commands.drillHint, dept: 'director', run: () => openPanel('director', 'drill') },
+      { id: 'cmd:costs', group: p.groups.commands, title: p.commands.costs, hint: p.commands.costsHint, dept: 'company', run: () => void command('costs') },
+      { id: 'cmd:release', group: p.groups.commands, title: p.commands.release, hint: p.commands.releaseHint, dept: 'director', run: () => void command('approve') },
     ]
     return [...panels, ...commands, ...tabs]
   }, [openPanel, command, notify, refreshAll])
@@ -404,6 +410,7 @@ export function Hub() {
         group: h.palette.groups.content,
         title: item.title || item.hook || item.id,
         hint: admin.pult.content.statuses[item.status],
+        dept: 'marketing',
         keywords: `${item.kind} ${item.platform}`,
         run: () => openPanel('marketing', 'content', item.id),
       })),
@@ -461,7 +468,7 @@ export function Hub() {
             ) : null}
             <Presence view={view} busy={presenceBusy} onChange={setPresence} />
             <nav aria-label={h.counters.label} className="order-last grid w-full grid-cols-4 gap-1.5 lg:order-none lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-1">
-              {counters.map(({ id, icon: CIcon, n, label, go }) => (
+              {counters.map(({ id, dept, icon: CIcon, n, label, go }) => (
                 <button
                   key={id}
                   type="button"
@@ -470,10 +477,10 @@ export function Hub() {
                   aria-label={`${label}: ${n ?? '?'}`}
                   className={cn(
                     'inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-full border px-2.5 text-sm tabular-nums transition-colors lg:shrink-0',
-                    n ? 'border-accent/50 text-fg' : 'border-line text-muted hover:text-fg',
+                    n ? cn(deptTheme(dept).cls.soft, deptTheme(dept).cls.border, 'text-fg') : 'border-line bg-surface/80 text-muted hover:text-fg',
                   )}
                 >
-                  <CIcon size={16} weight={n ? 'fill' : 'regular'} aria-hidden="true" className={n ? 'text-accent-text' : ''} />
+                  <CIcon size={16} weight={n ? 'fill' : 'regular'} aria-hidden="true" className={n ? deptTheme(dept).cls.text : ''} />
                   {n === null ? '·' : (badgeText(n) ?? 0)}
                 </button>
               ))}
@@ -518,6 +525,7 @@ export function Hub() {
             )}
             <SidePanel
               open={open !== null}
+              dept={open?.panel ?? 'director'}
               title={open ? h.panels[open.panel] : ''}
               tabs={tabs}
               tab={open?.tab ?? ''}

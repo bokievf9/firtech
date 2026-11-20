@@ -7,6 +7,7 @@ import { hq } from '@/components/admin/control/api'
 import { admin } from '@/content/admin'
 import { normalizeProjects } from '@/lib/admin-crm-hq'
 import { cn } from '@/lib/cn'
+import { deptTheme } from '@/lib/pult-theme'
 import { normalizeInvoices, normalizeLeads, searchPalette, type PaletteEntry } from '@/lib/pult'
 
 const p = admin.hub.palette
@@ -28,21 +29,21 @@ async function remote(q: string, open: (panel: string, tab: string, focus: strin
   const out: PaletteItem[] = []
   if (leads.ok)
     for (const l of normalizeLeads(leads)?.items ?? [])
-      out.push({ id: `lead:${l.id}`, group: p.groups.leads, title: l.name || l.contact, hint: [l.service, l.contact].filter(Boolean).join(' · '), keywords: q, run: () => open('sales', 'leads', String(l.id)) })
+      out.push({ id: `lead:${l.id}`, group: p.groups.leads, title: l.name || l.contact, dept: 'sales', hint: [l.service, l.contact].filter(Boolean).join(' · '), keywords: q, run: () => open('sales', 'leads', String(l.id)) })
   if (clients.ok && Array.isArray(clients.items))
     for (const raw of clients.items.slice(0, 8)) {
       const r = (raw && typeof raw === 'object' ? raw : {}) as Raw
       const id = typeof r.id === 'string' || typeof r.id === 'number' ? String(r.id) : null
       const name = typeof r.name === 'string' ? r.name.slice(0, 120) : ''
       if (!id || !name) continue
-      out.push({ id: `client:${id}`, group: p.groups.clients, title: name, hint: typeof r.contact === 'string' ? r.contact.slice(0, 80) : '', keywords: q, run: () => open('sales', 'clients', id) })
+      out.push({ id: `client:${id}`, group: p.groups.clients, title: name, dept: 'sales', hint: typeof r.contact === 'string' ? r.contact.slice(0, 80) : '', keywords: q, run: () => open('sales', 'clients', id) })
     }
   if (projects.ok)
     for (const pr of normalizeProjects(projects)?.items ?? [])
-      out.push({ id: `project:${pr.id}`, group: p.groups.projects, title: [pr.client, pr.what].filter(Boolean).join(' · '), hint: pr.status, keywords: q, run: () => open('production', 'projects', String(pr.id)) })
+      out.push({ id: `project:${pr.id}`, group: p.groups.projects, title: [pr.client, pr.what].filter(Boolean).join(' · '), dept: 'production', hint: pr.status, keywords: q, run: () => open('production', 'projects', String(pr.id)) })
   if (invoices.ok)
     for (const inv of normalizeInvoices(invoices)?.items ?? [])
-      out.push({ id: `invoice:${inv.id}`, group: p.groups.invoices, title: `${inv.number} · ${inv.client}`, hint: inv.title, keywords: q, run: () => open('backoffice', 'invoices', inv.id) })
+      out.push({ id: `invoice:${inv.id}`, group: p.groups.invoices, title: `${inv.number} · ${inv.client}`, dept: 'backoffice', hint: inv.title, keywords: q, run: () => open('backoffice', 'invoices', inv.id) })
   return out
 }
 
@@ -154,7 +155,7 @@ function PaletteBody({
   let lastGroup = ''
   return (
         <motion.div
-          className="fixed inset-0 z-[75] flex items-start justify-center bg-black/50 p-3 pt-[12vh] sm:p-6 sm:pt-[14vh]"
+          className="fixed inset-0 z-[75] flex items-start justify-center bg-scrim p-3 pt-[12vh] sm:p-6 sm:pt-[14vh]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0, transition: { duration: 0.12 } }}
@@ -169,7 +170,7 @@ function PaletteBody({
             initial={{ y: -8, scale: 0.98 }}
             animate={{ y: 0, scale: 1 }}
             transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-            className="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-card border border-line-strong bg-surface shadow-2xl"
+            className="flex max-h-[70vh] w-full max-w-xl flex-col overflow-hidden rounded-card border border-line-strong bg-elevated shadow-dialog"
           >
             <label className="flex items-center gap-3 border-b border-line px-4">
               <MagnifyingGlass size={18} aria-hidden="true" className="shrink-0 text-muted" />
@@ -206,8 +207,13 @@ function PaletteBody({
                       aria-selected={i === current}
                       onMouseMove={() => setActive(i)}
                       onClick={() => run(r)}
-                      className={cn('flex w-full items-baseline gap-3 rounded-xl px-3 py-2 text-left text-sm', i === current && 'bg-surface-2')}
+                      className={cn('flex w-full items-baseline gap-3 rounded-xl px-3 py-2 text-left text-sm', i === current && 'bg-surface-3')}
                     >
+                      <span
+                        aria-hidden="true"
+                        data-dept={r.dept}
+                        className={cn('size-2 shrink-0 translate-y-px rounded-full', r.dept ? deptTheme(r.dept).cls.bg : 'bg-line-strong')}
+                      />
                       <span className="min-w-0 flex-1 truncate">{r.title}</span>
                       {r.hint ? <span className="max-w-[45%] shrink-0 truncate text-xs text-faint">{r.hint}</span> : null}
                     </button>

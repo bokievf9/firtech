@@ -46,7 +46,7 @@ function EditableText({
               if (e.key === 'Escape') setDraft(null)
             }}
             rows={Math.min(10, Math.max(3, Math.ceil(draft.length / 60)))}
-            className="ym-disable-keys w-full resize-y rounded-xl border border-line-strong bg-bg p-3 text-sm leading-relaxed outline-none focus:border-accent"
+            className="ym-disable-keys w-full resize-y rounded-xl border border-line-strong bg-field p-3 text-sm leading-relaxed outline-none focus:border-accent"
           />
           <div className="flex flex-wrap gap-2">
             <button
@@ -73,7 +73,7 @@ function EditableText({
         </>
       ) : (
         <div className="group/text relative">
-          <p className="rounded-xl bg-bg/60 p-3 pr-12 text-sm leading-relaxed whitespace-pre-wrap break-words">
+          <p className="rounded-xl bg-inset p-3 pr-12 text-sm leading-relaxed whitespace-pre-wrap break-words">
             {value || <span className="text-faint">{t.emptyText}</span>}
           </p>
           <button
@@ -81,7 +81,7 @@ function EditableText({
             onClick={() => setDraft(value)}
             aria-label={label ? `${t.edit}: ${label}` : t.edit}
             title={t.edit}
-            className="absolute top-1.5 right-1.5 grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-2 hover:text-fg"
+            className="absolute top-1.5 right-1.5 grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg"
           >
             <PencilSimple size={16} aria-hidden="true" />
           </button>
@@ -145,7 +145,7 @@ function ApprovalCard({
         }
       }}
       className={cn(
-        'grid gap-3 rounded-2xl border bg-bg/40 p-4 outline-none transition-colors focus-visible:border-accent',
+        'grid gap-3 rounded-2xl border bg-inset p-4 outline-none transition-colors focus-visible:border-accent',
         a.locked ? 'border-danger/40' : 'border-line',
       )}
     >

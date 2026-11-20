@@ -31,7 +31,7 @@ export function PresenceSwitch({
         role="radiogroup"
         aria-label={t.label}
         aria-busy={busy}
-        className="relative grid grid-cols-2 rounded-full border border-line-strong bg-bg p-1"
+        className="relative grid grid-cols-2 rounded-full border border-line-strong bg-field p-1"
       >
         {(['desk', 'away'] as const).map((m) => {
           const active = mode === m
@@ -88,7 +88,7 @@ export function PresenceSwitch({
           <span
             id="cc-presence-help"
             role="tooltip"
-            className="invisible absolute top-full right-0 z-40 mt-2 w-72 rounded-xl border border-line-strong bg-surface-2 p-3 text-xs leading-relaxed text-fg opacity-0 shadow-2xl transition-opacity duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
+            className="invisible absolute top-full right-0 z-40 mt-2 w-72 rounded-xl border border-line-strong bg-elevated p-3 text-xs leading-relaxed text-fg opacity-0 shadow-dialog transition-opacity duration-150 group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100"
           >
             {fill(t.help, { min: awayAfterMin })}
           </span>

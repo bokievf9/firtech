@@ -280,7 +280,7 @@ function LeadBody({ lead, onMove, onWrite, onClient, onDocuments }: DrawerProps 
             {lead.notes.length ? (
               <ul className="grid gap-1.5">
                 {lead.notes.map((n, i) => (
-                  <li key={i} className="rounded-xl bg-bg/60 p-2.5 text-sm whitespace-pre-wrap">
+                  <li key={i} className="rounded-xl bg-inset p-2.5 text-sm whitespace-pre-wrap">
                     {n.text}
                     {n.at ? <span className="mt-1 block text-xs text-faint">{new Date(n.at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</span> : null}
                   </li>

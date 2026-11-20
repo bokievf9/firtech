@@ -57,7 +57,7 @@ export function Search({ value, onChange, placeholder }: { value: string; onChan
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl border border-line-strong bg-bg px-3.5 text-base text-fg outline-none focus:border-accent md:text-sm"
+        className="h-11 w-full rounded-xl border border-line-strong bg-field px-3.5 text-base text-fg outline-none focus:border-accent md:text-sm"
       />
     </label>
   )
@@ -124,7 +124,7 @@ export function Count({ shown, list }: { shown: number; list: CrmList<unknown> }
 }
 
 export const rowClass = (active: boolean) =>
-  cn('w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-2', active && 'bg-surface-2')
+  cn('w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-3', active && 'bg-surface-2')
 
 export const listClass = 'grid max-h-[34rem] grid-cols-[minmax(0,1fr)] gap-0.5 overflow-y-auto overscroll-contain'
 
@@ -180,7 +180,7 @@ export function NoteEditor({ value, onSave }: { value: string; onSave: (note: st
         rows={3}
         onChange={(e) => setText(e.target.value)}
         placeholder={t.notePlaceholder}
-        className="w-full resize-y rounded-xl border border-line-strong bg-bg p-3 text-base text-fg outline-none focus:border-accent md:text-sm"
+        className="w-full resize-y rounded-xl border border-line-strong bg-field p-3 text-base text-fg outline-none focus:border-accent md:text-sm"
       />
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <button
@@ -230,7 +230,7 @@ export function CrmDrawer({
         tabIndex={-1}
         aria-label={t.close}
         onClick={onClose}
-        className={cn('absolute inset-0 bg-black/60 transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0')}
+        className={cn('absolute inset-0 bg-scrim transition-opacity duration-300', open ? 'opacity-100' : 'opacity-0')}
       />
       <div
         ref={panel}
@@ -239,7 +239,7 @@ export function CrmDrawer({
         aria-label={open ? title : undefined}
         tabIndex={-1}
         className={cn(
-          'absolute inset-y-0 right-0 flex w-full max-w-[560px] flex-col border-l border-line-strong bg-surface shadow-2xl outline-none transition-transform duration-300 ease-out-expo',
+          'absolute inset-y-0 right-0 flex w-full max-w-[560px] flex-col border-l border-line-strong bg-surface shadow-panel outline-none transition-transform duration-300 ease-out-expo',
           open ? 'translate-x-0' : 'translate-x-full',
         )}
       >

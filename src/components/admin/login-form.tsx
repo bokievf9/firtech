@@ -113,7 +113,7 @@ export function LoginForm() {
             maxLength={6}
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            className="mt-2 w-full rounded-xl border border-line-strong bg-bg px-4 py-3.5 text-center font-mono text-2xl tracking-[0.5em] text-fg outline-none focus:border-accent"
+            className="mt-2 w-full rounded-xl border border-line-strong bg-field px-4 py-3.5 text-center font-mono text-2xl tracking-[0.5em] text-fg outline-none focus:border-accent"
             placeholder="000000"
           />
           <button

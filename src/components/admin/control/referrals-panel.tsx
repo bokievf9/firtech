@@ -42,7 +42,7 @@ export function ReferralsPanel({ feed, badge, now, className }: { feed: CrmFeed<
                   <Count shown={shown.length} list={list} />
                   <ul className={listClass}>
                     {shown.map((r) => (
-                      <li key={r.id} className="rounded-xl px-3 py-2.5 hover:bg-surface-2">
+                      <li key={r.id} className="rounded-xl px-3 py-2.5 hover:bg-surface-3">
                         <span className="flex items-center justify-between gap-3">
                           <span className="min-w-0 truncate text-sm font-medium">{r.referrer || '-'}</span>
                           <Pill tone={r.status === 'proposed' ? 'accent' : 'plain'}>{label(k.statuses, r.status)}</Pill>

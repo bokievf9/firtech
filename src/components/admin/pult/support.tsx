@@ -78,7 +78,7 @@ export function SupportTab({ focus }: { focus: string | null }) {
               <button
                 type="button"
                 onClick={() => setOpenId(t.id)}
-                className={cn('w-full rounded-xl border px-3 py-2.5 text-left transition-colors hover:bg-surface-2', t.id === openId ? 'border-accent/50' : 'border-transparent')}
+                className={cn('w-full rounded-xl border px-3 py-2.5 text-left transition-colors hover:bg-surface-3', t.id === openId ? 'border-accent/50' : 'border-transparent')}
               >
                 <span className="flex items-center gap-2">
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">{t.clientName || t.contact}</span>
@@ -141,7 +141,7 @@ function TicketBody({
           <Timer size={16} aria-hidden="true" /> {k.sla}: {slaText(left)}
         </p>
       ) : null}
-      <p className="rounded-xl bg-bg/60 p-3 text-sm whitespace-pre-wrap">{t.text}</p>
+      <p className="rounded-xl bg-inset p-3 text-sm whitespace-pre-wrap">{t.text}</p>
       {t.answer ? (
         <div className="grid gap-1">
           <p className="text-xs text-faint">{k.answer}</p>

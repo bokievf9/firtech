@@ -59,7 +59,7 @@ function TaskCard({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className={cn(
-        'min-w-0 rounded-xl border bg-bg/40 transition-colors hover:border-line-strong',
+        'min-w-0 rounded-xl border bg-inset transition-colors hover:border-line-strong',
         column === 'blocked' ? 'border-danger/40' : 'border-line',
       )}
     >
@@ -167,7 +167,7 @@ export function TasksPanel({
                 type="button"
                 onClick={() => onFilter({ dept: filter.dept, assigneeId: null })}
                 aria-label={t.clear}
-                className="grid size-7 place-items-center rounded-full hover:bg-surface"
+                className="grid size-7 place-items-center rounded-full hover:bg-surface-3"
               >
                 <X size={12} weight="bold" aria-hidden="true" />
               </button>
