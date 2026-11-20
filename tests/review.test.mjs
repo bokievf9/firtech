@@ -152,6 +152,12 @@ test('meta cards link to the Пульт panels; empty media explains itself', ()
   assert.equal(r.renderState(owner), 'none')
 })
 
+test('document text: articles show the markdown body, replies the draft', () => {
+  const v = view(createHqMock(T0))
+  assert.match(r.documentText(v.items.find((i) => i.id === 'ap_208')), /^## Зачем салону бот/)
+  assert.match(r.documentText(v.items.find((i) => i.id === 'ap_204')), /^Здравствуйте, Нигина/)
+})
+
 test('optimistic helpers', () => {
   const v = view(createHqMock(T0))
   const next = r.withStatus(v.items, 'ap_204', 'approve')

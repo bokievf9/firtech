@@ -44,7 +44,8 @@ const VideoPlayer = forwardRef<StageHandle, { media: ReviewMedia }>(function Vid
 
   return (
     <div className="flex h-full min-h-0 flex-col items-center gap-3">
-      <div className="relative aspect-[9/16] h-full max-h-full min-h-0 max-w-full overflow-hidden rounded-2xl border border-line-strong bg-surface-3">
+      <div className="flex min-h-0 w-full flex-1 justify-center">
+      <div className="relative aspect-[9/16] h-full max-w-full overflow-hidden rounded-2xl border border-line-strong bg-surface-3">
         {failed ? (
           <>
             {media.poster ? (
@@ -74,6 +75,7 @@ const VideoPlayer = forwardRef<StageHandle, { media: ReviewMedia }>(function Vid
           />
         )}
       </div>
+      </div>
       <div className="flex w-full max-w-[26rem] items-center gap-2">
         <button type="button" onClick={toggle} disabled={failed} aria-label={playing ? 'Пауза (Пробел)' : 'Играть (Пробел)'} className={cn(iconBtn, 'disabled:opacity-40')}>
           {playing ? <Pause size={18} weight="fill" aria-hidden="true" /> : <Play size={18} weight="fill" aria-hidden="true" />}
@@ -93,7 +95,7 @@ const VideoPlayer = forwardRef<StageHandle, { media: ReviewMedia }>(function Vid
           }}
           className="h-11 min-w-0 flex-1 accent-accent disabled:opacity-40"
         />
-        <span className="w-[4.5rem] shrink-0 text-right font-mono text-xs tabular-nums text-muted">
+        <span className="w-[5.5rem] shrink-0 text-right font-mono text-xs whitespace-nowrap tabular-nums text-muted">
           {clock(time)} / {clock(dur)}
         </span>
         <button type="button" onClick={() => setMuted((m) => !m)} aria-pressed={muted} aria-label={muted ? 'Включить звук (M)' : 'Выключить звук (M)'} className={iconBtn}>

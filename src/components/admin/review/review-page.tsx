@@ -326,9 +326,9 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
 
   const trendBlock = (
     <section aria-label="Ссылки для Трендвотчера" className="grid gap-2">
-      <div className="flex items-center justify-between gap-2">
+      <div className="grid gap-1.5">
         <h3 className="text-xs text-faint">Ссылки Трендвотчеру</h3>
-        <button type="button" onClick={() => setModal({ type: 'trend' })} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-xs hover:border-accent hover:text-accent-text">
+        <button type="button" onClick={() => setModal({ type: 'trend' })} className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-line-strong px-3 text-xs hover:border-accent hover:text-accent-text">
           <LinkIcon size={14} aria-hidden="true" />
           Скинуть ссылку
         </button>
@@ -385,7 +385,7 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
           </nav>
         ) : null}
 
-        <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[16rem_minmax(0,1fr)_25rem] min-[1440px]:grid-cols-[17rem_minmax(0,1fr)_36rem]">
+        <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[16rem_minmax(0,1fr)_25rem] min-[1440px]:grid-cols-[17rem_minmax(0,1fr)_36rem]">
           {desktop ? (
             <aside aria-label="Отделы и очередь" className="flex min-h-0 flex-col border-r border-line">
               <nav aria-label="Отделы" className="grid gap-0.5 p-2">
@@ -400,7 +400,7 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
                     <span aria-hidden="true" className={cn('size-2 rounded-full', t ? t.cls.bg : 'bg-faint')} />
                     <span className="min-w-0 flex-1 truncate text-left">{RAIL_LABEL[id]}</span>
                     <span className={cn('font-mono text-xs tabular-nums', n ? (t ? t.cls.text : 'text-fg') : 'text-faint')}>{n ?? '·'}</span>
-                    <kbd className="hidden w-4 text-center font-mono text-xs text-faint xl:block">{i + 1}</kbd>
+                    <kbd className="hidden w-5 rounded border border-line text-center font-mono text-[0.7rem] text-faint xl:block">{i + 1}</kbd>
                   </button>
                 ))}
               </nav>
@@ -431,7 +431,7 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
             </aside>
           ) : null}
 
-          <main className="relative flex min-h-0 flex-col bg-surface-2/40" aria-label="Материал">
+          <main className="relative flex min-h-0 flex-1 flex-col bg-surface-2/40" aria-label="Материал">
             <div className="min-h-0 flex-1 p-3 sm:p-5">
               {data.error && !data.view ? (
                 <Offline error={data.error} onRetry={() => void data.reload()} />

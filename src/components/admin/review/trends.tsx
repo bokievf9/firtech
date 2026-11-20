@@ -67,8 +67,8 @@ export function TrendList({ view, error, onOpen }: { view: ReturnType<typeof use
     <ul className="grid gap-1.5">
       {view.items.slice(0, 6).map((t) => (
         <li key={t.id} className="grid gap-1 rounded-xl border border-line bg-inset p-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="truncate text-xs text-muted" title={t.url}>{t.host.replace(/^www\./, '')}{t.note ? `: ${t.note}` : ''}</span>
+          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+            <span className="min-w-0 flex-1 truncate text-xs text-muted" title={t.url}>{t.host.replace(/^www\./, '')}{t.note ? `: ${t.note}` : ''}</span>
             <Chip tone={TONE[t.status]}>{TREND_LABELS[t.status]}</Chip>
           </div>
           {t.status === 'proposed' && t.reviewId ? (

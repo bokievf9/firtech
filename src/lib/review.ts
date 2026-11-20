@@ -310,7 +310,7 @@ export function editPayload(item: ReviewItem, values: Partial<Record<FieldKey, s
 }
 
 // What the centre shows for an item without media: the document text (articles, replies, invoices).
-export const documentText = (item: ReviewItem): string => item.text.draft ?? item.text.body ?? ''
+export const documentText = (item: ReviewItem): string => (item.kind === 'article' ? (item.text.body ?? item.text.draft) : (item.text.draft ?? item.text.body)) ?? ''
 
 // ---- versions ------------------------------------------------------------------------------------
 
