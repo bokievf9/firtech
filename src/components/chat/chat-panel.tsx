@@ -248,12 +248,30 @@ export default function ChatPanel({
     if (list) list.scrollTo({ top: list.scrollHeight, behavior: reduce ? 'auto' : 'smooth' })
   }, [chat.messages.length, pending, reduce])
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  // Enter (or the button) while the greeting or a reply is still coming used to do nothing and keep
+  // the text; now the message waits and goes out as soon as the chat is free.
+  const [queued, setQueued] = useState(false)
+  const sendTyped = async () => {
     const value = text.trim().slice(0, MESSAGE_MAX)
-    if (!value || pending) return
+    if (!value) return
     if (await send(value, value)) setText('')
   }
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!text.trim()) return
+    if (pending) {
+      setQueued(true)
+      return
+    }
+    await sendTyped()
+  }
+  useEffect(() => {
+    if (!queued || pending) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-shot release of the queued message
+    setQueued(false)
+    void sendTyped()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queued, pending])
 
   const lastBot = [...chat.messages].reverse().find((m) => m.from !== 'me')
   const chips = !pending && lastBot?.from === 'bot' ? (lastBot.buttons ?? []) : []
@@ -452,7 +470,7 @@ export default function ChatPanel({
               />
               <button
                 type="submit"
-                disabled={pending || !text.trim()}
+                disabled={!text.trim() || queued}
                 aria-label={copy.send}
                 className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-[background-color,transform,opacity] duration-200 hover:bg-accent-strong active:scale-[0.94] disabled:opacity-40"
               >

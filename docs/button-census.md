@@ -63,6 +63,7 @@ Legend of `E:` tags (file : test title):
 | `E:cab-noindex` | flows.spec : «cabinet pages are noindex» |
 | `E:chat` | flows.spec : «chat widget opens, sends and answers in mock mode, then closes» |
 | `E:chat-open` | flows.spec : «chat opens from the hero button and from the #demo link» |
+| `E:chat-enter` | flows.spec : «chat: Enter sends right after opening (queued behind the greeting), Shift+Enter makes a new line» |
 | `E:chat-api` | flows.spec : «chat API: validation (400) and mock answer (200)» |
 | `E:service` | flows.spec : «service page: «Посчитать» picks the format in the calculator» |
 | `E:solution` | flows.spec : «solution page opens the builder with its preset» |
@@ -255,7 +256,7 @@ Legend of `E:` tags (file : test title):
 | chat contact step | asks for contact; mock never creates a lead | `/api/chat` | `E:chat` (input shown) | pass (shown), untested (send) |
 | chat «Закрыть чат» | closes the panel | - | `E:chat` | pass |
 | `POST /api/chat` validation | 400 on bad session/message | `/api/chat` | `E:chat-api` | pass |
-| Enter in the textarea | sends | - | typed text with Enter right after opening was not sent in one manual run; clicking «Отправить» always worked | untested (timing, not reproduced) |
+| Enter in the textarea (Shift+Enter = new line) | sends; while the greeting is still in flight the message is queued and goes out when the chat is free (before the fix Enter did nothing and kept the text) | - | `E:chat-enter` | pass (bug fixed, see Bugs) |
 
 ## 11. Owner panel: login and hub
 
@@ -360,3 +361,5 @@ whose target page already has its own render test.
 
 Observed, not a bug: the 404 pages answer with `<html id="__next_error__">` in `next dev` (Next's shell for
 `notFound()` after data fetching).
+
+| 3 | chat textarea | Enter pressed while the greeting request was in flight returned silently (`submit` bailed on `pending`) and kept the text; reproduced with a delayed first `/api/chat` answer | fixed: the message is queued and sent when the chat is free (`chat-panel.tsx`); `E:chat-enter` |

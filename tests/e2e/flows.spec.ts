@@ -221,3 +221,28 @@ test('solution page opens the builder with its preset', async ({ page }) => {
   await page.getByRole('link', { name: 'Собрать такой проект' }).first().click()
   await expect(page).toHaveURL(/\/ru\/builder\?b=.*k\.cafe/)
 })
+
+test('chat: Enter sends right after opening (queued behind the greeting), Shift+Enter makes a new line', async ({ page }) => {
+  // A slow first answer keeps the greeting in flight while the visitor already types and presses Enter.
+  let first = true
+  await page.route('**/api/chat', async (route) => {
+    if (first) {
+      first = false
+      await new Promise((r) => setTimeout(r, 2500))
+    }
+    await route.continue()
+  })
+  await open(page, '/ru')
+  await page.getByRole('button', { name: 'Чат с ИИ-приёмщиком' }).click()
+  const dialog = page.locator('[role=dialog]')
+  const box = dialog.locator('textarea')
+  await box.focus()
+  await box.pressSequentially('первая строка')
+  await box.press('Shift+Enter')
+  await box.pressSequentially('вторая')
+  await expect(box).toHaveValue('первая строка\nвторая')
+  await box.press('Enter')
+  await expect(dialog).toContainText('первая строка')
+  await expect(box).toHaveValue('')
+  await expect(dialog).toContainText('Когда хотите запуститься?')
+})
