@@ -313,7 +313,7 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 
 | Element | What it does | Calls | Verified by | Status |
 |---|---|---|---|---|
-| page | 100svh shader stage, odometer, 33 checklist items in 7 blocks | `GET /api/admin/golive` | `E:golive`, `E:golive-fit`, `U:golive` | pass |
+| page | 100svh shader stage, odometer, 41 checklist items in 8 blocks | `GET /api/admin/golive` | `E:golive`, `E:golive-fit`, `U:golive` | pass |
 | «Запустить 72 часа» (+ confirm «Да») | starts the 72 h timer | `POST {action:'start'}` | `E:golive` | pass |
 | «Перезапустить» | restart | `POST {action:'start'}` | `U:golive` | untested (browser) |
 | «Сбросить» (+ confirm «Сбросить») | clears the timer, keeps ticks | `POST {action:'reset'}` | `E:golive` (UI and API, ticks kept) | pass |

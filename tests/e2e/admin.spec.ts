@@ -166,9 +166,9 @@ test.describe('with a session', () => {
     expect((await post({ action: 'nonsense' })).status()).toBe(400)
     expect((await request.post('/api/admin/golive', { data: { action: 'reset' }, headers: { ...headers, origin: 'https://evil.example' } })).status()).toBe(403)
 
-    // The page shows the odometer and the 33 items; the reset button clears the timer, keeps the ticks.
+    // The page shows the odometer and the 41 items; the reset button clears the timer, keeps the ticks.
     await open(page, '/admin/golive')
-    await expect(page.getByText(/Готово 1 из 33/)).toBeVisible()
+    await expect(page.getByText(/Готово 1 из 41/)).toBeVisible()
     await page.getByRole('button', { name: 'Сбросить' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Сбросить' }).click()
     await expect(page.getByRole('button', { name: 'Запустить 72 часа' })).toBeVisible()

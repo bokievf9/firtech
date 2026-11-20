@@ -20,6 +20,7 @@ export const goliveBlocks = [
   { id: 'mk', title: 'Маркетинг' },
   { id: 'ops', title: 'Связь и ops' },
   { id: 'launch', title: 'Запуск' },
+  { id: 'market', title: 'Рынок' },
 ] as const
 
 export const goliveItems: GoliveItem[] = [
@@ -37,7 +38,7 @@ export const goliveItems: GoliveItem[] = [
 
   { id: 'pay-wallets', block: 'pay', title: 'Кошельки USDT TRC20 и TON проверены переводом на 1 USDT', hint: 'Перевод дошёл, сеть и адрес совпадают со счётом.', owner: 'owner' },
   { id: 'pay-watch', block: 'pay', title: 'Сторож оплат засёк тестовый перевод и провёл счёт', hint: 'Счёт сменил статус сам, без ручной отметки.', owner: 'claude' },
-  { id: 'pay-docs', block: 'pay', title: 'КП, договор, счёт, смета: шаблоны проверены', hint: 'Реквизиты, сроки, предоплата 50%, гарантия.', owner: 'owner' },
+  { id: 'pay-docs', block: 'pay', title: 'КП, договор, счёт, смета: шаблоны проверены', hint: 'Реквизиты, сроки, счёт за этап 1, следующие после приёмки, гарантия.', owner: 'owner' },
 
   { id: 'hq-routines', block: 'hq', title: 'Все рутины отработали по расписанию без ошибок 24 ч', hint: 'Панель Компания, вкладка рутин.', owner: 'claude' },
   { id: 'hq-approvals', block: 'hq', title: 'Карточки одобрений в Telegram и Пульте работают', hint: 'Одобрить, править, отклонить: результат виден в обоих местах.', owner: 'owner' },
@@ -62,6 +63,15 @@ export const goliveItems: GoliveItem[] = [
   { id: 'launch-sla', block: 'launch', title: 'SLA на сайте: первый ответ за 5 минут круглосуточно, цены после владельца', hint: 'Обещание на сайте совпадает с тем, что реально делает чат и HQ.', owner: 'claude' },
   { id: 'launch-film', block: 'launch', title: 'Launch-фильм и серия постов запуска', hint: 'Ролик и посты готовы и одобрены.', owner: 'claude' },
   { id: 'launch-stoplist', block: 'launch', title: 'Стоп-лист соблюдён: без TikTok API, Telegram-канала, Meta API, валют', hint: 'Нигде не подключены и не обещаны.', owner: 'owner' },
+
+  { id: 'proof-pilot-case', block: 'market', title: 'Сделать 1-2 пилота и опубликовать кейс с цифрами', hint: 'Бесплатно или по себестоимости под письменный отзыв; у конкурентов есть кейсы и отзывы, у нас нет ни одного', owner: 'owner' },
+  { id: 'proof-reviews-platforms', block: 'market', title: 'Завести профили на FL.ru, Kwork, Upwork и собрать первые отзывы', hint: 'Независимые рейтинги есть у ближайших конкурентов (FL.ru, 2ГИС, Upwork)', owner: 'owner' },
+  { id: 'offer-demo-24h', block: 'market', title: 'Добавить предложение: демо на ваших данных за 24 часа до оплаты', hint: 'Крючок у PapAI Soft; формулировка и форма на сайте на стороне claude, обещание на стороне владельца', owner: 'claude' },
+  { id: 'guarantee-first-screen', block: 'market', title: 'Вынести гарантию возврата предоплаты в первый экран главной', hint: 'У большинства конкурентов гарантии не найдено; ссылка на оферту /terms', owner: 'claude' },
+  { id: 'legal-executor-data', block: 'market', title: 'Опубликовать данные исполнителя и вычитанную юристом оферту', hint: 'У конкурентов видны адрес, телефон, ИНН ИП; у нас на /terms оговорка про проверку юристом', owner: 'owner' },
+  { id: 'channels-whatsapp-phone', block: 'market', title: 'Добавить WhatsApp и телефон как каналы ответа', hint: 'У большинства студий СНГ есть WhatsApp и телефон; у нас Telegram и Instagram', owner: 'owner' },
+  { id: 'seo-city-niche-pages', block: 'market', title: 'Сделать страницы по городам и нишам с демо под нишу', hint: 'Душанбе, Ташкент, Алматы, Бишкек; салон, клиника, автосервис', owner: 'claude' },
+  { id: 'howto-usdt-pay', block: 'market', title: 'Добавить страницу как оплатить USDT за 3 шага и цены справочно в местной валюте', hint: 'USDT не найдена ни у одного конкурента; снимает страх первой оплаты', owner: 'claude' },
 ]
 
 export const goliveText = {
