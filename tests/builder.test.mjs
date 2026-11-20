@@ -3,9 +3,13 @@ import { test } from 'node:test'
 import en from '../src/content/en.ts'
 import ru from '../src/content/ru.ts'
 import {
+  applyKind,
   decodeBuild,
+  emptyBuild,
   encodeBuild,
+  isStartingSet,
   presets,
+  toggleProduct,
   quote,
   withDetails,
   withLangs,
@@ -139,4 +143,24 @@ test('builder link: prototype names are not formats', () => {
   const build = decodeBuild('websites.landing~bots.valueOf.payments')
   assert.deepEqual(Object.keys(build.parts), ['websites'])
   assert.equal(typeof quote(build).total, 'number')
+})
+
+test('languages chosen earlier keep the second-language option when a website joins later', () => {
+  const two = withLangs({ parts: { bots: { variant: 'faq', addons: [] } }, extras: [] }, ['ru', 'en'])
+  assert.equal(two.parts.websites, undefined)
+  const withSite = toggleProduct(two, 'site')
+  assert.ok(withSite.parts.websites.addons.includes('language'))
+  const other = applyKind(two, 'salon')
+  assert.ok(other.parts.websites.addons.includes('language'))
+  // One language does not add it.
+  const one = withLangs({ parts: {}, extras: [] }, ['ru'])
+  assert.deepEqual(toggleProduct(one, 'site').parts.websites.addons, [])
+})
+
+test('starting sets (card links) are told apart from a configured build', () => {
+  assert.equal(isStartingSet(presets.salon), true)
+  assert.equal(isStartingSet(toggleProduct(emptyBuild, 'adminbot')), true)
+  assert.equal(isStartingSet(toggleProduct(emptyBuild, 'content')), true)
+  assert.equal(isStartingSet(withDetails(presets.salon, { pages: 5 })), false)
+  assert.equal(isStartingSet(decodeBuild('websites.shop~bots.faq')), false)
 })

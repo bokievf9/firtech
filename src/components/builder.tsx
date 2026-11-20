@@ -12,10 +12,12 @@ import {
   decodeBuild,
   emptyBuild,
   encodeBuild,
+  isStartingSet,
   leadServiceOf,
   productsOnRequest,
   quote,
   toggleProduct,
+  withSiteLanguage,
   type Build,
   type BuildExtra,
   type BusinessKind,
@@ -88,7 +90,10 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     const shared = decodeBuild(params.get('b'))
     const asked = stepFromQuery(params)
     const parts = shared ? Object.keys(shared.parts).length > 0 || Boolean(shared.products) : false
-    let next = asked !== null && asked < total ? asked : shared ? SUMMARY : 0
+    // A card's starting set (kind preset or product, no step) opens on the products step, a
+    // shared finished build on the summary.
+    const fallback = shared ? (isStartingSet(shared) ? PRODUCTS : SUMMARY) : 0
+    let next = asked !== null && asked < total ? asked : fallback
     if (next > PARTS && !parts) next = shared ? PARTS : 0
     /* eslint-disable react-hooks/set-state-in-effect -- one-time sync from the URL */
     if (shared) setBuildState(shared)
@@ -176,7 +181,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
       const parts = { ...b.parts }
       if (parts[slug]) delete parts[slug]
       else parts[slug] = { variant: Object.keys(catalog[slug].variants)[0] ?? '', addons: [] }
-      return { ...b, parts }
+      return withSiteLanguage({ ...b, parts })
     })
   }
 
