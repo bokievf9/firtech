@@ -125,6 +125,39 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
         <p className="mt-6 max-w-[70ch] text-sm leading-relaxed text-faint">{t.note}</p>
       </section>
 
+      <section id="contrast" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-16 md:px-8">
+        <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.contrast.title}</h2>
+        <p className="mt-3 max-w-[60ch] leading-relaxed text-muted">{t.contrast.sub}</p>
+        <ul className="mt-8 grid gap-4">
+          {t.contrast.rows.map((row) => (
+            <li key={row.id} className="rounded-card border border-line p-5 md:p-6">
+              <p className="text-lg font-medium">{row.label}</p>
+              <div className="mt-3 grid gap-3 text-[15px] leading-relaxed md:grid-cols-2">
+                <div>
+                  <p className="text-xs tracking-[0.1em] text-faint uppercase">{t.contrast.marketLabel}</p>
+                  <p className="mt-1 text-muted">{row.market}</p>
+                </div>
+                <div className="rounded-2xl bg-accent/10 p-3">
+                  <p className="text-xs tracking-[0.1em] text-accent-text uppercase">{t.contrast.usLabel}</p>
+                  <p className="mt-1 text-fg">
+                    {row.us}
+                    {row.id === 'usdt' && (
+                      <Link
+                        href={`/${locale}/pay-how`}
+                        className="mt-2 flex items-center gap-1 text-accent-text underline underline-offset-4"
+                      >
+                        {t.contrast.payLink}
+                        <ArrowRight size={13} aria-hidden="true" />
+                      </Link>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 pb-28 md:px-8">
         <div className="flex flex-col items-start gap-6 rounded-card border border-accent-text/30 p-6 md:flex-row md:items-center md:justify-between md:p-10">
           <p className="font-display text-2xl font-semibold md:text-3xl">{t.ctaTitle}</p>
