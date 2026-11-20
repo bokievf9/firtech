@@ -362,7 +362,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   removed after setup). Telegram webhook is set.
 - Cron (user `deploy`, UTC): `*/5` `scripts/ops/watch.mjs` (public + local health, SSL expiry;
   Telegram on down/up changes only; cannot report a dead server, an external monitor would) and
-  daily 03:15 `scripts/ops/backup.mjs` (14 dated copies in `shared/backups`, `leads.json` to the
+  daily 03:15 `scripts/ops/backup.mjs` (14 dated copies in `shared/backups`, `leads.json` (plus dated copies of `prices.json` and `golive.json`) to the
   owner's Telegram when it changed). Log: `shared/ops.log`.
 - GitHub (since 2026-10-19): private repo `bokievf9/firtech`, remote `origin`, over HTTPS (the SSH
   config maps github.com to Vibely's deploy key, so SSH would use the wrong key). **Pushing to
