@@ -57,3 +57,7 @@ public/sw.js.map
 
 # Playwright smoke screenshots (scripts/smoke-cabinet.mjs)
 .smoke/
+
+# playwright
+/test-results/
+/playwright-report/

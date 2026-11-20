@@ -1,0 +1,223 @@
+import { expect, test } from '@playwright/test'
+import { watchErrors, open } from './helpers'
+
+// ---- builder: all 8 steps in one scenario -------------------------------------------------------
+
+test('builder: walk through all 8 steps to the summary, estimate and PDF page', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  const errors = watchErrors(page)
+  await open(page, '/ru/builder')
+  const step = () => page.locator('[aria-current="step"]')
+  const next = () => page.locator('button', { hasText: /^Дальше/ }).first()
+
+  // 1. Business: pick a niche (a category filter first), it moves on to step 2.
+  await expect(step()).toHaveAttribute('aria-label', /^1\./)
+  await page.getByRole('tab', { name: 'Еда', exact: true }).click()
+  await page.locator('button', { hasText: 'Кафе и ресторан' }).first().click()
+  await expect(page).toHaveURL(/k\.cafe/)
+  await expect(step()).toHaveAttribute('aria-label', /^2\./)
+
+  // 2. Products: toggle one off and on again.
+  const product = page.locator('button', { hasText: 'ИИ-приёмщик заявок 24/7' }).first()
+  await product.click()
+  await product.click()
+  await next().click()
+
+  // 3. Goal: pick a goal and a channel.
+  await expect(step()).toHaveAttribute('aria-label', /^3\./)
+  await page.locator('button', { hasText: 'Запись клиентов' }).first().click()
+  await page.locator('button', { hasText: /^Instagram$/ }).click()
+  await next().click()
+
+  // 4. Parts: open a service group and add a part.
+  await expect(step()).toHaveAttribute('aria-label', /^4\./)
+  await page.locator('button', { hasText: 'Интернет-магазин' }).first().click()
+  await next().click()
+
+  // 5. Features: the total moves with an extra.
+  await expect(step()).toHaveAttribute('aria-label', /^5\./)
+  await page.locator('main button', { hasText: /\+\$\d+/ }).first().click()
+  await next().click()
+
+  // 6. Style: a ready look, then the custom panel opens.
+  await expect(step()).toHaveAttribute('aria-label', /^6\./)
+  await page.locator('button', { hasText: 'Люкс' }).first().click()
+  await page.getByRole('button', { name: 'Настроить' }).click()
+  await next().click()
+
+  // 7. Details: pages, language, assets, deadline, notes.
+  await expect(step()).toHaveAttribute('aria-label', /^7\./)
+  await page.locator('input[type=range]').fill('5')
+  await page.locator('main button', { hasText: 'Как можно скорее' }).click()
+  await page.getByLabel('Пожелания').fill('Тест сквозной проверки')
+  await page.locator('button', { hasText: /^(К итогу|Дальше)/ }).first().click()
+
+  // 8. Summary: the quote, share link, PDF.
+  await expect(step()).toHaveAttribute('aria-label', /^8\./)
+  await expect(page.getByRole('button', { name: 'Скачать смету (PDF)' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Отправить сборку' }).first()).toBeVisible()
+  await page.getByRole('button', { name: 'Скопировать ссылку' }).click()
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('/ru/builder?b=')
+
+  // «Изменить» goes back to the step it belongs to, Back walks one step.
+  await page.getByRole('button', { name: 'Изменить' }).first().click()
+  await expect(step()).not.toHaveAttribute('aria-label', /^8\./)
+  expect(errors).toEqual([])
+})
+
+test('builder: a build link opens on the right step with the quote', async ({ page }) => {
+  await open(page, '/ru/builder?b=websites.landing.telegram~k.cafe&step=8')
+  await expect(page.getByRole('button', { name: 'Скачать смету (PDF)' })).toBeVisible()
+})
+
+test('builder: the PDF button asks for a sign-in before the estimate (cabinet on)', async ({ page }) => {
+  await open(page, '/ru/builder?b=websites.landing.telegram~k.cafe&step=8')
+  await page.getByRole('button', { name: 'Скачать смету (PDF)' }).click()
+  await page.locator('input[name=name]').last().fill('E2E Test')
+  await page.locator('input[name=contact]').last().fill('e2e@example.com')
+  await page.locator('form:has(input[name=contact]) button[type=submit]').last().click()
+  await expect(page.locator('[data-lead-auth]')).toBeVisible()
+})
+
+test('estimate page lists the build as rows and offers print', async ({ page }) => {
+  await open(page, '/ru/builder/estimate?b=websites.landing.telegram~bots.booking.payments~k.cafe')
+  const rows = page.locator('table tbody tr')
+  await expect(rows.first()).toBeVisible()
+  expect(await rows.count()).toBeGreaterThanOrEqual(2)
+  await expect(page.getByRole('button', { name: 'Сохранить как PDF' })).toBeVisible()
+  await expect(page.locator('a[href^="/ru/builder?b="]').first()).toBeVisible()
+  expect(await page.locator('meta[name=robots]').getAttribute('content')).toContain('noindex')
+})
+
+// ---- contact form with the sign-in gate ---------------------------------------------------------
+
+test('contact form: empty submit shows field errors, a filled one asks to sign in', async ({ page }) => {
+  await open(page, '/ru#contact')
+  const form = page.locator('#contact form').first()
+  await form.scrollIntoViewIfNeeded()
+  await form.locator('button[type=submit]').click()
+  await expect(form.locator('[aria-invalid="true"]').first()).toBeVisible()
+  await form.locator('input[name=name]').fill('E2E Test')
+  await form.locator('input[name=contact]').fill('e2e@example.com')
+  await form.locator('button[type=submit]').click()
+  await expect(page.locator('[data-lead-auth]')).toBeVisible()
+  await expect(page.locator('[data-lead-auth]')).toContainText('войдите или создайте аккаунт')
+})
+
+test('API: a lead without an account is refused (401 auth_required), bad origin is 403', async ({ request, baseURL }) => {
+  const body = { name: 'E2E', contact: 'e2e@example.com', service: 'bots', budget: '', message: 'test', locale: 'ru', page: '/ru', estimate: '', slot: '', source: '' }
+  const res = await request.post('/api/lead', { data: body, headers: { origin: baseURL! } })
+  expect(res.status()).toBe(401)
+  expect((await res.json()).error).toBe('auth_required')
+  const bad = await request.post('/api/lead', { data: body, headers: { origin: 'https://evil.example' } })
+  expect(bad.status()).toBe(403)
+})
+
+test('audit form: validation, then the sign-in gate', async ({ page }) => {
+  await open(page, '/ru/audit')
+  await page.getByRole('button', { name: 'Заказать аудит' }).click()
+  await expect(page.locator('[aria-invalid="true"]').first()).toBeVisible()
+  await page.locator('input[name=url]').fill('https://example.com')
+  await page.locator('input[name=contact]').fill('@e2e_test')
+  await page.getByRole('button', { name: 'Заказать аудит' }).click()
+  await expect(page.locator('[data-lead-auth]')).toBeVisible()
+})
+
+// ---- pay page -----------------------------------------------------------------------------------
+
+test('pay page: mock invoice shows methods, QR and copy', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+  await open(page, '/ru/pay/FT-2026-001?k=demo')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('FT-2026-001')
+  await expect(page.getByRole('tab', { name: 'TON' })).toBeVisible()
+  await expect(page.locator('svg[aria-label*="QR"], img[aria-label*="QR"], canvas[aria-label*="QR"], [aria-label*="QR"]').first()).toBeVisible()
+  await page.getByRole('tab', { name: 'TON' }).click()
+  await page.getByRole('button', { name: 'Скопировать' }).first().click()
+  expect((await page.evaluate(() => navigator.clipboard.readText())).length).toBeGreaterThan(10)
+})
+
+test('pay page: wrong key and unknown number show the not-found state', async ({ page }) => {
+  for (const url of ['/ru/pay/FT-2026-001?k=wrong', '/ru/pay/FT-2026-999?k=demo', '/ru/pay/garbage?k=demo']) {
+    const response = await open(page, url)
+    expect(response?.status(), url).toBe(404)
+  }
+  const api = await page.request.get('/api/pay/FT-2026-001?k=demo')
+  expect(api.status()).toBe(200)
+  expect((await page.request.get('/api/pay/FT-2026-001?k=nope')).status()).toBe(404)
+})
+
+// ---- cabinet login ------------------------------------------------------------------------------
+
+test('cabinet login: Google button with the G mark, email form, sign-up and forgot tabs', async ({ page }) => {
+  await open(page, '/ru/cabinet/login')
+  const google = page.getByRole('button', { name: 'Продолжить с Google' })
+  await expect(google).toBeVisible()
+  await expect(google.locator('svg')).toHaveCount(1)
+  await expect(page.locator('input[type=email]')).toBeVisible()
+  await expect(page.locator('input[type=password]')).toBeVisible()
+  await page.getByRole('tab', { name: 'Создать аккаунт' }).click()
+  await expect(page.getByRole('tab', { name: 'Создать аккаунт' })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.locator('input[type=password]').first()).toBeVisible()
+  await page.getByRole('tab', { name: 'Войти' }).click()
+  await page.getByRole('button', { name: 'Забыли пароль?' }).click()
+  await expect(page.locator('input[type=email]')).toBeVisible()
+})
+
+test('cabinet pages are noindex', async ({ page }) => {
+  await open(page, '/ru/cabinet/login')
+  expect(await page.locator('meta[name=robots]').getAttribute('content')).toContain('noindex')
+})
+
+// ---- chat widget --------------------------------------------------------------------------------
+
+test('chat widget opens, sends and answers in mock mode, then closes', async ({ page }) => {
+  const errors = watchErrors(page)
+  await open(page, '/ru')
+  await page.getByRole('button', { name: 'Чат с ИИ-приёмщиком' }).click()
+  const dialog = page.locator('[role=dialog]')
+  await expect(dialog).toContainText('Демо-режим')
+  const box = dialog.locator('textarea')
+  await expect(dialog.getByRole('button', { name: 'Сайт', exact: true })).toBeVisible()
+  await box.fill('Привет, сколько стоит сайт?')
+  await dialog.getByLabel('Отправить').click()
+  await expect(dialog).toContainText('Привет, сколько стоит сайт?')
+  await expect(dialog).toContainText('Когда хотите запуститься?')
+  // A quick-reply chip sends too, and the third step asks for contacts.
+  await dialog.getByRole('button', { name: 'За неделю' }).click()
+  await expect(dialog.locator('textarea, input').first()).toBeVisible()
+  await dialog.getByRole('button', { name: 'Закрыть чат' }).click()
+  await expect(dialog).toBeHidden()
+  expect(errors).toEqual([])
+})
+
+test('chat opens from the hero button and from the #demo link', async ({ page }) => {
+  await open(page, '/ru')
+  await page.getByRole('link', { name: 'Поговорить с приёмщиком' }).click()
+  await expect(page.locator('[role=dialog]')).toBeVisible()
+})
+
+test('chat API: validation (400) and mock answer (200)', async ({ request, baseURL }) => {
+  const ok = await request.post('/api/chat', {
+    data: { sessionId: '3f1c3c9e-6c1f-4f0a-9a43-0f1c5f7a9d11', locale: 'ru', message: 'Привет', page: '/ru' },
+    headers: { origin: baseURL! },
+  })
+  expect(ok.status()).toBe(200)
+  expect(ok.headers()['x-chat-mode']).toBe('mock')
+  const bad = await request.post('/api/chat', { data: { sessionId: 'x', locale: 'ru', message: '' }, headers: { origin: baseURL! } })
+  expect(bad.status()).toBe(400)
+})
+
+// ---- services ------------------------------------------------------------------------------------
+
+test('service page: «Посчитать» picks the format in the calculator', async ({ page }) => {
+  await open(page, '/ru/services/websites')
+  await page.getByRole('button', { name: /Посчитать в калькуляторе: Сайт компании/ }).click()
+  const picked = page.locator('#pricing [role=radio][aria-checked=true]').first()
+  await expect(picked).toContainText('Сайт компании')
+})
+
+test('solution page opens the builder with its preset', async ({ page }) => {
+  await open(page, '/ru/solutions/cafe')
+  await page.getByRole('link', { name: 'Собрать такой проект' }).first().click()
+  await expect(page).toHaveURL(/\/ru\/builder\?b=.*k\.cafe/)
+})

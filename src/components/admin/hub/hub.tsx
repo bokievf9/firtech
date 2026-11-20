@@ -134,6 +134,7 @@ function Presence({ view, busy, onChange }: { view: PresenceView | null; busy: b
             type="button"
             role="radio"
             aria-checked={active}
+            aria-label={m === 'desk' ? t.desk : t.away}
             disabled={!view}
             onClick={() => onChange(m)}
             className={cn(

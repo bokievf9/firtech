@@ -1,0 +1,31 @@
+name: E2E
+
+# Manual only (owner 2026-11-21): never part of the deploy. Runs the Playwright suite in tests/e2e
+# against `next dev` with the dev mocks and a throwaway data dir (see playwright.config.ts and
+# docs/button-census.md). Needs no secrets.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npx next typegen
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
