@@ -108,13 +108,28 @@
 
   --shadow-glass: inset 0 1px 0 var(--color-glass-highlight), 0 30px 80px -30px rgb(0 0 0 / 0.7);
   --shadow-float: 0 18px 50px -18px rgb(0 0 0 / 0.75), 0 0 0 1px var(--color-glass-line);
-  /* Side panel, drawers, dialogs over the office: a soft edge shadow, never a halo. */
-  --shadow-panel: -18px 0 48px -24px rgb(0 0 0 / 0.55);
-  --shadow-dialog: 0 24px 64px -24px rgb(0 0 0 / 0.7), 0 0 0 1px var(--color-line-strong);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/*
+  Panel and dialog shadows live outside @theme on purpose: Tailwind inlines @theme shadows into
+  its utility, which would freeze the dark value; here the light block can override the variable.
+  Side panel, drawers, dialogs over the office: a soft edge shadow, never a halo.
+*/
+:root {
+  --shadow-panel: -18px 0 48px -24px rgb(0 0 0 / 0.55);
+  --shadow-dialog: 0 24px 64px -24px rgb(0 0 0 / 0.7), 0 0 0 1px var(--color-line-strong);
+}
+
+@utility shadow-panel {
+  box-shadow: var(--shadow-panel);
+}
+
+@utility shadow-dialog {
+  box-shadow: var(--shadow-dialog);
 }
 
 /*
