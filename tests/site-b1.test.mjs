@@ -11,6 +11,7 @@ import { agentPlans, contentPlans } from '../src/lib/pricing.ts'
 import { builderProduct, productBuild, productBuilderHref, productIds, productPrice } from '../src/lib/products.ts'
 import { serviceSlugs } from '../src/lib/site.ts'
 import { isSolutionKind } from '../src/lib/solutions.ts'
+import { isAgentId, isAiTeamId } from '../src/lib/ai-teams.ts'
 
 const dicts = { ru, en }
 
@@ -35,7 +36,7 @@ test('product prices come only from pricing.ts (as the builder counts them), or 
       assert.ok(entry.priced, id)
       assert.equal(price.from, quote({ parts: productParts(builderProduct[id]), extras: [] }).total, id)
     } else if (price.kind === 'plans') {
-      assert.ok(price.plans === agentPlans || price.plans === contentPlans, id)
+      assert.deepEqual(price.plans, id === 'agent' ? agentPlans : contentPlans, id)
       assert.equal(entry.priced, false, id)
     } else assert.equal(entry.priced, false, id)
   }
@@ -88,6 +89,10 @@ function resolves(href, locale) {
   const rest = path.replace(`/${locale}/`, '').split('/')
   if (rest[0] === 'services') return serviceSlugs.includes(rest[1]) && rest.length === 2
   if (rest[0] === 'solutions') return rest.length === 1 || (rest.length === 2 && isSolutionKind(rest[1]))
+  if (rest[0] === 'ai-team') {
+    if (rest.length === 2) return isAiTeamId(rest[1])
+    if (rest.length === 3) return rest[1] === 'agent' && isAgentId(rest[2])
+  }
   if (!localePages.includes(rest[0]) || rest.length !== 1) return false
   return existsSync(new URL(`../src/app/[locale]/${rest[0]}/page.tsx`, import.meta.url))
 }
@@ -96,7 +101,7 @@ test('footer: products lead, every link points to an existing route, labels exis
   for (const locale of ['ru', 'en']) {
     const cols = footerColumns(locale)
     assert.equal(cols[0].id, 'products')
-    assert.equal(cols[0].links.length, 7)
+    assert.equal(cols[0].links.length, 8) // seven products + the AI-team page (2026-11-21)
     for (const col of cols)
       for (const link of col.links) {
         assert.ok(resolves(link.href, locale), link.href)

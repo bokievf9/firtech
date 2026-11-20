@@ -1,4 +1,3 @@
-import { referralPercent } from './pricing'
 import { sanitizeRefSlug } from './referral'
 import { siteUrl } from './site'
 
@@ -270,7 +269,6 @@ export function cabinetRefLink(locale: string, slug: string | null | undefined, 
   return clean ? `${origin.replace(/\/$/, '')}/${locale}/?ref=${clean}` : null
 }
 
-export { referralPercent }
 
 // Milestone stages in order; `spec` = a draft waiting for the owner, `done` = everything closed.
 export const projectStages = ['spec', 'brief', 'prototype', 'delivery', 'payment', 'done'] as const

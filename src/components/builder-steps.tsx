@@ -51,7 +51,8 @@ import {
   type BusinessKind,
 } from '@/lib/builder'
 import { cn } from '@/lib/cn'
-import { catalog, extraPrice, formatUsd, startingPrice } from '@/lib/pricing'
+import { extraPrices, formatUsd } from '@/lib/pricing'
+import { usePricing } from './pricing-provider'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { Choice, Group, Pill, Tick } from './builder-ui'
@@ -209,6 +210,7 @@ export function ProductsStep({
   onToggle: (id: ProductId) => void
 }) {
   const ui = builderUi
+  const pricing = usePricing()
   const picked = build.products ?? []
   const usual = build.kind ? kindCatalog[build.kind].products : []
   const rest = productIds.filter((id) => !usual.includes(id))
@@ -237,7 +239,7 @@ export function ProductsStep({
               const Glyph = productIcons[id]
               const on = picked.includes(id)
               const from = entry.priced
-                ? quote({ parts: productParts(id), extras: [] }).total
+                ? quote({ parts: productParts(id), extras: [] }, pricing).total
                 : null
               return (
                 <Choice key={id} on={on} onClick={() => onToggle(id)} className="flex gap-4 p-5">
@@ -363,6 +365,7 @@ export function PartsStep({
 }) {
   const t = dict.builder
   const reduce = useReducedMotion()
+  const pricing = usePricing()
   const hasParts = Object.keys(build.parts).length > 0
   return (
     <>
@@ -400,7 +403,7 @@ export function PartsStep({
                   <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                     <span className="text-lg font-medium">{dict.services.items[slug].name}</span>
                     <span className="font-mono text-sm text-accent-text">
-                      {dict.services.from} {formatUsd(startingPrice[slug])}
+                      {dict.services.from} {formatUsd(pricing.startingPrice[slug])}
                     </span>
                   </span>
                   <span className="mt-1.5 block text-sm leading-relaxed text-muted">
@@ -465,7 +468,7 @@ export function PartsStep({
                             <span className="mt-auto flex justify-between gap-2 text-xs text-faint">
                               {v.term}
                               <span className="font-mono text-fg">
-                                {dict.services.from} {formatUsd(catalog[slug].variants[id] ?? 0)}
+                                {dict.services.from} {formatUsd(pricing.catalog[slug].variants[id] ?? 0)}
                               </span>
                             </span>
                           </button>
@@ -496,6 +499,8 @@ export function FeaturesStep({
   onExtra: (id: BuildExtra) => void
 }) {
   const t = dict.builder
+  const pricing = usePricing()
+  const extraPrice = extraPrices(pricing)
   return (
     <div className="grid gap-10">
       {serviceSlugs.map((slug) => {
@@ -518,7 +523,7 @@ export function FeaturesStep({
                   onClick={() => onAddon(slug, id)}
                   name={name}
                   hint={hints[id] ?? ''}
-                  price={`+${formatUsd(catalog[slug].addons[id] ?? 0)}`}
+                  price={`+${formatUsd(pricing.catalog[slug].addons[id] ?? 0)}`}
                 />
               ))}
             </div>

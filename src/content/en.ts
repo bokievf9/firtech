@@ -40,7 +40,7 @@ const en: Dict = {
     },
     primary: 'Build it in the builder',
     telegram: 'Message on Telegram',
-    trust: ['Price fixed in the quote', '50% upfront', 'Code and access are yours'],
+    trust: ['Price fixed in the quote', 'Pay before each stage', 'Code and access are yours'],
     scroll: 'Scroll',
     chatCta: 'Talk to the receptionist',
     auditLink: 'A free website audit: we reply within a working day',
@@ -349,8 +349,8 @@ const en: Dict = {
         text: 'Domain, accounts and code are registered to you. If you leave, you take the whole project.',
       },
       {
-        title: 'Pay 50% and 50%',
-        text: 'Half before we start, the rest after acceptance. Large projects go in stages from the quote.',
+        title: 'Payment by stages',
+        text: 'You pay each stage before it starts and the last one before handover. The stages and amounts are written in the quote.',
       },
       {
         title: 'A month of fixes',
@@ -369,11 +369,12 @@ const en: Dict = {
     pdf: 'Quote as PDF',
     link: 'Shareable link',
     payTitle: 'Payment',
-    currency: 'Prices in US dollars, 50% prepayment',
+    currency: 'Prices in US dollars',
+    stages: 'Payment by stages: each stage before it starts, the last before handover.',
   },
   faqContact: {
     title: 'Questions and a request',
-    sub: 'No answer here? Describe your task and we reply within a working day.',
+    sub: 'No answer here? Describe your task. First reply within 5 minutes, around the clock.',
   },
   demoSection: {
     eyebrow: 'Product 02, live',
@@ -512,7 +513,12 @@ const en: Dict = {
     monthlyNote: 'Support is paid separately, every month.',
     termsNote:
       'Timelines are per part. We will give the exact overall timeline in the quote: some work can run in parallel.',
-    payNote: 'Payment: 50% before we start and 50% after acceptance. Projects longer than a month go in stages from the quote.',
+    payNote: 'Payment by stages from the quote: each stage before it starts, the last before handover. Small projects go in two equal stages.',
+    stagesTitle: 'Payment by stages',
+    stageCols: { stage: 'Stage', what: 'What is included', share: 'Share', amount: 'Amount' },
+    stageRule: 'Each stage is paid before it starts, the last one before handover.',
+    stageWord: 'Stage',
+    stageLead: 'Payment by stages',
     note: 'The price is exact for the selected options. We fix it in the quote when you confirm.',
     scope: {
       none: 'Domain, hosting, server and paid third-party services (SMS, APIs, payments) are not included: the client pays for them directly, and prices vary. For reference: a domain is $10-15 a year, hosting from $5 a month.',
@@ -1163,7 +1169,7 @@ const en: Dict = {
       },
       {
         title: 'Build',
-        text: 'You see progress every week. Payment: 50% before we start, 50% after acceptance.',
+        text: 'You see progress every week. Payment by stages, each stage before it starts.',
       },
       {
         title: 'Launch',
@@ -1200,7 +1206,7 @@ const en: Dict = {
       },
       {
         q: 'What if I do not like it?',
-        a: 'If you do not like the first screen of the website or the first bot scenario, we return the prepayment in full, minus network fees. Tell us in writing within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
+        a: 'If you do not like the first screen of the website or the first bot scenario, we return the first stage payment in full, minus network fees. Tell us in writing within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
       },
       {
         q: 'Can I see first what is wrong?',
@@ -1216,7 +1222,11 @@ const en: Dict = {
       },
       {
         q: 'How do payments work?',
-        a: 'Half of the amount before we start, the other half after acceptance. Projects longer than a month are split into stages, and the quote lists the stages and their payments. You can pay in USDT (TRC20 or TON) or through an online wallet named in the quote.',
+        a: 'Payment goes by stages. We split the quote into stages, and the quote shows what each includes and what it costs. You pay each stage before it starts and the last one before access and source files are handed over. Small projects go in two equal stages. Subscriptions are paid a month in advance. You can pay in USDT (TRC20 or TON) or through an online wallet named in the quote. A step-by-step guide is on the "How to pay" page.',
+      },
+      {
+        q: 'How fast do you reply?',
+        a: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder, so the final price and timeline are always written in the quote.',
       },
       {
         q: 'Do you work with clients abroad?',
@@ -1260,7 +1270,7 @@ const en: Dict = {
   },
   contact: {
     title: 'Tell us about your project',
-    sub: "We'll reply within one working day with a solution and a price.",
+    sub: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
     name: 'Name',
     namePlaceholder: 'What should we call you',
     contactField: 'Telegram or phone',
@@ -1279,7 +1289,7 @@ const en: Dict = {
       'By sending this form you agree that we use these details only to reply to your request, as described in the [privacy policy].',
     successTitle: 'Request received',
     successText:
-      "We'll get back to you within one working day. If it's urgent, message our bot @firtech_bot on Telegram.",
+      "Your first reply arrives within 5 minutes, around the clock. If it's urgent, message our bot @firtech_bot on Telegram.",
     again: 'Send another one',
     error: "Couldn't send the form. Try again or message us on Telegram.",
     errors: {
@@ -1288,7 +1298,7 @@ const en: Dict = {
     },
     nextTitle: 'What happens after you send it',
     next: [
-      'We reply in Telegram or call you within one business day',
+      'First reply in Telegram within 5 minutes, around the clock',
       'A 30-minute call to go through your task',
       'You get a quote with the price and timeline. The decision is yours',
     ],
@@ -1490,8 +1500,8 @@ const en: Dict = {
         id: 'payment',
         title: 'Payment',
         text: [
-          'A prepayment of 50% of the estimate before the work starts, the rest after acceptance and before access and source files are handed over. For projects longer than a month the stages and their payments are written in the estimate.',
-          'Subscriptions (support, content on autopilot, personal agents) are paid a month in advance. A subscription can be stopped at any time; the paid month is served to its end.',
+          'Payment by stages. The estimate is split into stages, and their content, shares and amounts are written in the estimate. Each stage is paid before it starts, the last stage before access and source files are handed over. Projects cheaper than {small} go in two stages, 50% and 50%: before the start and before the launch.',
+          'Subscriptions (support, content on autopilot, personal agents) are paid monthly in advance. A subscription can be stopped at any time; the paid month is served to its end.',
         ],
         list: [
           'Cryptocurrency: USDT on the TRC20 or TON network, address in the estimate',
@@ -1503,10 +1513,10 @@ const en: Dict = {
       },
       {
         id: 'guarantee',
-        title: 'Prepayment guarantee',
+        title: 'First stage payment guarantee',
         text: [
           'The guarantee covers the first delivered result. What counts as the first result depends on the product, see the list below. If the client does not like it, they say so in writing, for example in Telegram, within 7 days of receiving it.',
-          'The prepayment is then returned in full, minus network and payment service fees. This rule applies instead of the charge for completed work in the termination section.',
+          'The first stage payment is then returned in full, minus network and payment service fees. This rule applies instead of the charge for completed work in the termination section.',
           'If the client approved the first result, the guarantee for that stage is closed and the work continues on the usual terms.',
         ],
         list: [
@@ -1522,7 +1532,7 @@ const en: Dict = {
         id: 'delivery',
         title: 'Timelines and acceptance',
         text: [
-          'Timelines run from the prepayment and from receiving everything the client has to provide: texts, photos, access. A delay in materials moves the deadline by the same time.',
+          'Timelines run from the first stage payment and from receiving everything the client has to provide: texts, photos, access. A delay in materials moves the deadline by the same time.',
           'The estimate includes two rounds of revisions: the client sends remarks as a list and the contractor applies them. New features and a change of task beyond the estimate are priced separately. If no remarks arrive within 7 days of delivery, the work counts as accepted.',
           'For 30 days after delivery we fix bugs in the delivered work for free.',
         ],
@@ -1558,7 +1568,7 @@ const en: Dict = {
         title: 'Liability and termination',
         text: [
           'The contractor\'s liability is limited to the amount the client has paid under this estimate. The contractor is not liable for lost profit, for failures of third-party services (Telegram, hosting, payment services, AI models) or for the consequences of changes made by the client\'s side.',
-          'Either party may terminate in writing. If the client terminates, the prepayment is refunded minus the cost of the work done under the estimate, and the finished part is handed over. If the contractor terminates, the unearned part of the prepayment is refunded in full.',
+          'Either party may terminate in writing. If the client terminates, the amount paid is refunded minus the cost of the work done under the estimate, and the finished part is handed over. If the contractor terminates, the unearned part of the payment is refunded in full.',
         ],
         list: [],
       },
@@ -1576,19 +1586,24 @@ const en: Dict = {
   },
   // Money-back guarantee (owner decision 2026-11-19). One sentence reused in the pricing section,
   // the builder summary, the estimate notes, the FAQ and llms.txt; the exact rule is in `terms`.
+  sla: {
+    line: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
+    short: 'First reply within 5 minutes, around the clock',
+    llms: 'Response: first reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
+  },
   guarantee: {
-    line: 'If you do not like the first screen of the website or the first bot scenario, we return the prepayment.',
+    line: 'If you do not like the first screen of the website or the first bot scenario, we return the first stage payment.',
     more: 'Guarantee terms',
-    llms: 'Guarantee: if you do not like the first screen of the website or the first bot scenario, the prepayment is returned.',
+    llms: 'Guarantee: if you do not like the first screen of the website or the first bot scenario, the first stage payment is returned.',
   },
   // Referral page /[locale]/referral. `{percent}` is filled from `referralPercent` (pricing.ts).
   referral: {
-    metaTitle: 'Referral program: {percent} of the estimate | Fir Tech',
+    metaTitle: 'Referral program: {percent} of each stage | Fir Tech',
     metaDescription:
-      'Recommend Fir Tech to a friend and get {percent} of their estimate as a USDT or online wallet transfer, or as a discount on your own project. Rules and link.',
+      'Recommend Fir Tech to a friend and get {percent} of each stage they pay as a USDT or online wallet transfer, or as a discount on your own project. Rules and link.',
     eyebrow: 'Referral program',
-    title: 'Recommend us and get {percent} of the estimate',
-    sub: 'A friend needs a website, a bot or automation? Send them our way, and after their first payment you get a reward.',
+    title: 'Recommend us and get {percent} of each stage',
+    sub: 'A friend needs a website, a bot or automation? Send them our way, and once they start paying you get a reward.',
     stepsTitle: 'How it works',
     steps: [
       {
@@ -1601,16 +1616,16 @@ const en: Dict = {
       },
       {
         title: 'You get the reward',
-        text: 'After the client\'s first payment you get {percent} of their estimate: as a USDT transfer, to an online wallet, or as a discount on your own project.',
+        text: 'For each stage the client pays you get {percent}: as a USDT transfer, to an online wallet, or as a discount on your own project.',
       },
     ],
     rulesTitle: 'Rules',
     rules: [
-      'The reward is paid once for each new client.',
-      'It arrives within 7 days of the client\'s first payment.',
+      'The reward is paid for each stage a new client pays.',
+      'It arrives within 7 days of the client paying a stage.',
       'There is no reward for yourself or for a client who has already written to us.',
       'We may refuse the reward if a recommendation looks like spam.',
-      'The reward is counted from the estimate the client confirmed.',
+      'The reward is counted from the amount of the paid stage.',
     ],
     generatorTitle: 'Your link',
     generatorText: 'Enter a name or a username, get a link and send it to friends. Nothing is saved on a server.',
@@ -1707,6 +1722,58 @@ const en: Dict = {
         fir: 'The work is split into agent roles, and the sources and access are yours.',
       },
     ],
+    // Words-only contrast (go-live 2026-11-21): what the market usually offers against what we do. No names, no numbers.
+    contrast: {
+      title: 'What the market usually offers and what we do',
+      sub: 'Seven points where we work differently. This is typical practice, and some providers do it otherwise.',
+      marketLabel: 'What the market usually offers',
+      usLabel: 'What we do',
+      rows: [
+        {
+          id: 'price',
+          label: 'Price',
+          market: 'A "from" price: the total becomes clear as the work goes on.',
+          us: 'A fixed price in the quote before we start, line by line.',
+        },
+        {
+          id: 'code',
+          label: 'Code',
+          market: 'The code stays with the provider, and the site or bot lives on their platform.',
+          us: 'The source files, the domain and the access pass to you.',
+        },
+        {
+          id: 'payment',
+          label: 'Payment',
+          market: 'The whole sum upfront, before the work begins.',
+          us: 'Payment by stages: you pay each stage before it starts.',
+        },
+        {
+          id: 'guarantee',
+          label: 'Guarantee',
+          market: 'The guarantee is not written down or stays in general words.',
+          us: 'If you do not like the first screen or scenario, we return the first stage payment. The terms are in the offer.',
+        },
+        {
+          id: 'demo',
+          label: 'Demo',
+          market: 'The result is shown after payment.',
+          us: 'You can see a demo before paying: the demo bot works in Telegram, and the site has interface examples.',
+        },
+        {
+          id: 'entity',
+          label: 'Legal entity',
+          market: 'A company with a contract and registration details.',
+          us: 'We have no legal entity: we work as an individual contractor. The terms are in the offer, and the quote is confirmed in writing.',
+        },
+        {
+          id: 'usdt',
+          label: 'How you pay',
+          market: 'Bank accounts and transfers, sometimes with currency conversion.',
+          us: 'Payment in USDT: one transfer, and only the network takes a fee.',
+        },
+      ],
+      payLink: 'How to pay in USDT',
+    },
     officeLink: 'See our HQ',
     note: 'The table describes typical cases. A good freelancer and a good agency may work differently.',
     ctaTitle: 'Price your project',
@@ -1771,6 +1838,92 @@ const en: Dict = {
     again: 'Order for another site',
     mockNote: 'Demo mode: the request was not sent anywhere',
   },
+  // Page "How to pay" /[locale]/pay-how: USDT for a first-time payer. Words only, no amounts or fees.
+  payHow: {
+    metaTitle: 'How to pay in USDT: a step-by-step guide | Fir Tech',
+    metaDescription:
+      'How to pay for a project in USDT: what it is, TRC20 or TON, where to buy it, how the payment page with a QR code works and what happens after you pay.',
+    eyebrow: 'Payment',
+    title: 'How to pay in USDT',
+    sub: 'Paying in crypto for the first time? Here it is step by step, from buying to the start of the stage.',
+    sections: [
+      {
+        id: 'what',
+        title: 'What USDT is',
+        text: [
+          'USDT is a digital dollar: one coin is pegged to one US dollar, so the amount in the quote and the amount you send match.',
+          'It sits in a wallet on your phone, and a transfer takes a few minutes.',
+        ],
+        list: [],
+      },
+      {
+        id: 'network',
+        title: 'TRC20 or TON',
+        text: [
+          'We accept USDT on two networks: TRC20 (the TRON network) and TON. Pick the one your wallet or exchange supports.',
+          'Choose the network carefully. A transfer on another network does not arrive and is not returned. Your wallet or exchange charges the network fee, and it depends on the network.',
+        ],
+        list: [],
+      },
+      {
+        id: 'buy',
+        title: 'Where to buy USDT',
+        text: ['Availability depends on your country, so check each option in your own app.'],
+        list: [
+          'Telegram: the @wallet bot, where it is available',
+          'Crypto exchanges: buy USDT and withdraw it to the right network',
+          'Tonkeeper: a wallet for the TON network, where you can send USDT from an exchange or from @wallet',
+        ],
+      },
+      {
+        id: 'page',
+        title: 'How the payment page works',
+        text: [
+          'When a stage is ready to be paid, we send you a link to the invoice. On the page choose a network, open your wallet and scan the QR code, or copy the address with the button.',
+          'The link is personal: do not forward it to strangers.',
+        ],
+        list: [],
+      },
+      {
+        id: 'cents',
+        title: 'The exact amount, with cents',
+        text: [
+          'The invoice shows the amount with cents. Send it exactly, to the last digit: that is how we recognize your transfer among others automatically.',
+          'If the amount came out different, message us and we will sort it out by hand.',
+        ],
+        list: [],
+      },
+      {
+        id: 'after',
+        title: 'What happens after you pay',
+        text: [
+          'You do not need to press anything: the confirmation arrives automatically, usually within 1-5 minutes, and the page shows by itself that the invoice is paid.',
+          'The paid stage then starts, and the invoice and the stage status are visible in your cabinet.',
+        ],
+        list: [],
+      },
+      {
+        id: 'other',
+        title: 'If USDT does not suit you',
+        text: [
+          'Message us before paying. We name an alternative, for example an online wallet, right in the quote.',
+        ],
+        list: [],
+      },
+      {
+        id: 'fees',
+        title: 'Fees and cards',
+        text: [
+          'We add no fees: you pay the stage amount and the network fee. We have no bank card payments of our own.',
+        ],
+        list: [],
+      },
+    ],
+    termsLink: 'Payment terms in the offer',
+    ctaTitle: 'Still have questions about paying?',
+    ctaBuilder: 'Build a quote',
+    ctaTelegram: 'Message us on Telegram',
+  },
   // Payment page /[locale]/pay/[number]?k=<key> (HQ GET /pay/<number>). Amounts come from data;
   // {number}, {name}, {date}, {via}, {tx} are filled by the page.
   pay: {
@@ -1800,6 +1953,7 @@ const en: Dict = {
     transaction: 'Transaction',
     explorer: 'Open in explorer',
     paidNext: 'The project starts, and your manager will message you on Telegram.',
+    howLink: 'How to pay: a step-by-step guide',
     cabinet: 'Open the cabinet',
     expiredTitle: 'The invoice has expired',
     expiredText: 'Write to us and we will issue a new invoice.',
@@ -2012,7 +2166,7 @@ const en: Dict = {
       allClear: 'Nothing urgent.',
       referral: {
         title: 'Recommend us',
-        text: 'If a client comes through your link and pays for the work, you get {percent} of their estimate.',
+        text: 'If a client comes through your link and pays for the work, you get {percent} of each stage they pay.',
         cta: 'More about referrals',
       },
       blogTitle: 'From the blog',
@@ -2041,8 +2195,8 @@ const en: Dict = {
         new: 'A manager will clarify the details within a working day.',
         qualified: 'We are preparing a commercial proposal.',
         proposal: 'The proposal is ready and waits for your decision.',
-        contract: 'The contract and the 50% invoice are ready.',
-        paid: 'Payment received, we are starting the project.',
+        contract: 'The contract and the first stage invoice are ready.',
+        paid: 'Stage payment received, we are starting it.',
         project: 'The project is in progress, stages are in the project card.',
         lost: 'The request is closed. If the task is still open, write to us.',
       },
@@ -2081,7 +2235,8 @@ const en: Dict = {
       referrals: 'Referrals',
       profile: 'Profile',
       noProjects: 'No projects yet. Put one together in the builder.',
-      noInvoices: 'No invoices yet.',
+      noInvoices: 'No invoices yet. An invoice arrives as a link to the payment page.',
+      payHow: 'How to pay in USDT',
       noDocuments: 'No documents yet.',
       noTickets: 'No requests yet.',
       noReferrals: 'Nobody has come through your link yet.',
@@ -2103,6 +2258,8 @@ const en: Dict = {
         payment: 'Payment',
         done: 'Done',
       },
+      // Stage track of a project: payment before the stage, work, then acceptance (`{n}` = stage number).
+      stageTrack: { pay: 'Stage {n}: payment', work: 'Stage {n}: in progress', accept: 'Stage {n}: acceptance' },
       projectStatus: { draft: 'Draft', active: 'In progress', done: 'Finished' },
       invoiceStatus: { draft: 'Draft', issued: 'Awaiting payment', paid: 'Paid', void: 'Cancelled' },
       documentStatus: {
@@ -2140,7 +2297,7 @@ const en: Dict = {
     },
     referral: {
       title: 'Your link',
-      rule: 'When a client comes through your link and pays for the work, you get {percent} of the amount of their estimate.',
+      rule: 'When a client comes through your link and pays for the work, you get {percent} of each stage they pay.',
       copy: 'Copy',
       copied: 'Copied',
       pending: 'Your link appears once we add you to the referral system. We do it ourselves after your first project.',
@@ -2167,6 +2324,7 @@ const en: Dict = {
     },
   },
   faqLinks: {
+    'pay-how': 'How to pay in USDT, step by step',
     compare: 'Comparison: freelancer, agency or us',
     referral: 'Recommend us and get a reward',
     audit: 'A free audit of your website',
@@ -2189,10 +2347,12 @@ const en: Dict = {
       process: 'Process',
       blog: 'Blog',
       contact: 'Discuss a project',
+      'pay-how': 'How to pay',
       compare: 'Comparison',
       referral: 'Referrals',
       audit: 'Free audit',
       status: 'Systems status',
+      'ai-team': 'A team of AI agents',
     },
   },
   servicePage: {
@@ -2426,6 +2586,958 @@ const en: Dict = {
     },
   },
   notFound: notFoundText.en,
+  // "A team of AI agents" (2026-11-21): the departments of the Fir Tech agent company as products
+  // for someone else's business. No prices: the pages say "quote". Roles follow our own company.
+  aiTeams: {
+    nav: 'A team of AI agents',
+    metaTitle: 'A team of AI agents for your business | Fir Tech',
+    metaDescription:
+      'A marketing, sales or support team, or a whole company of AI agents on your own bots. Agents prepare the work, you approve in Telegram. Priced by quote.',
+    eyebrow: 'A team of AI agents',
+    title: 'A team of agents instead of new hires',
+    sub: 'Agents prepare the work, you approve it in Telegram. Take one department or the whole company.',
+    ctaBuild: 'Build it in the builder',
+    ctaChat: 'Ask in the chat',
+    ctaDiscuss: 'Discuss',
+    flow: {
+      title: 'One working cycle',
+      steps: [
+        { title: 'The agent prepares', text: 'A post, a reply to a client or a proposal goes into the queue.' },
+        { title: 'You approve', text: 'Buttons in Telegram: approve, edit, reject.' },
+        { title: 'The agent acts', text: 'It publishes, sends and reports back to you.' },
+      ],
+    },
+    deptsTitle: 'Six ways to start',
+    deptsSub: 'Each department works on its own. When you need the whole set, take the company.',
+    forWhom: 'Who it is for',
+    inside: 'What is inside',
+    more: 'Details',
+    priceLabel: 'Price',
+    quote: 'By quote',
+    quoteNote: 'We name the price after a short call. It depends on the team and your channels.',
+    howTitle: 'How it works',
+    howItems: [
+      {
+        title: 'You set the rules',
+        text: 'You tell us about the business, the channels and what is off limits. We set the team up around that.',
+      },
+      {
+        title: 'Agents prepare, you decide',
+        text: 'Batches of material, replies and documents arrive in Telegram. Each one has approval buttons.',
+      },
+      {
+        title: 'Trust grows step by step',
+        text: 'A new task starts at the level where you decide. After a run of approvals without edits it can move to working alone. Money, prices and contracts always stay with you.',
+      },
+      {
+        title: 'The control panel shows everything',
+        text: 'An owner panel: who is doing what, the approval queue and the daily summary.',
+      },
+    ],
+    trust: {
+      propose: 'You approve',
+      auto: 'Acts alone, reports back',
+      both: 'Routine alone, money and prices stay with you',
+    },
+    proof: {
+      title: 'What a working company looks like',
+      sub: 'This is our own office, not yours. The same HQ we set up for clients runs Fir Tech.',
+      label: 'This is our own office',
+      note: 'We show counters only. No names, tasks or client data on the site.',
+    },
+    page: {
+      back: 'All teams',
+      insideTitle: 'What is inside',
+      routinesTitle: 'On a schedule',
+      howTitle: 'How it works',
+      needsTitle: 'What we need from you',
+      deliveryTitle: 'Delivery',
+      delivery:
+        'We deploy a separate HQ instance on your bots and your keys. Timing and scope go into the quote.',
+      scopeNote:
+        'The scope follows the roles in our own company. What exactly goes into your delivery is fixed in the quote.',
+      faqTitle: 'Questions',
+      othersTitle: 'Other teams',
+      finalTitle: 'Let us talk about your team',
+      finalText: 'Tell us about the business. We will say which roles you need, what to connect and what it costs.',
+    },
+    agents: {
+      stripTitle: 'Or a single agent',
+      stripText: 'Do not need the whole department? Take one role: every agent has its own page with its tasks and terms.',
+      stripCta: 'See all agents',
+      sectionTitle: 'Every agent on its own',
+      sectionSub: 'Any role can be taken without the rest of the department. What the agent needs on input is written on its page.',
+      more: 'Details',
+      standaloneYes: 'Available on its own',
+      standaloneNo: 'Only with a department',
+      page: {
+        back: 'All agents',
+        deptLabel: 'Department',
+        whatTitle: 'What it does',
+        needsTitle: 'What we need from you',
+        worksTitle: 'Works with',
+        worksAlone: 'Works on its own',
+        trustTitle: 'What it does alone and what waits for you',
+        aloneLabel: 'Does alone',
+        waitsLabel: 'Waits for your decision',
+        requiresTitle: 'Only with a department',
+        requiresText: 'This agent needs at least one department. Choose a department and the agent plugs into it.',
+        finalTitle: 'Let us talk about this agent',
+        finalText: 'Tell us about the business. We will say what needs connecting and what it will cost.',
+        othersTitle: 'Other agents of the department',
+        listTitle: 'Agents of the department',
+        listSub: 'Each has its own page: what it does, what we need from you and what waits for your decision.',
+      },
+      items: {
+        'trend-scout': {
+          title: 'Trend scout',
+          promise: 'Brings the rising topics and formats of your niche every day, so you stop guessing what to write about.',
+          does: [
+            'Scans social networks and search trends in your niche',
+            'Picks rising topics, formats and hooks',
+            'Sends a short digest every day',
+            'Compiles a weekly summary of niche trends',
+          ],
+          needs: [
+            'A description of your niche and a few of your competitors',
+            'The platforms that matter to you',
+            'A Telegram chat for the digest',
+          ],
+          worksNote: 'The content maker uses the digest, but you can read it yourself as a source of post ideas.',
+          alone: 'Collects trends and sends the digest without waiting for your approval.',
+          waits: 'Publishes nothing and writes to nobody, it only suggests topics.',
+          faq: [
+            {
+              q: 'Where does the agent get the trends?',
+              a: 'From public social networks and search trends in the niches you choose. The exact list of sources goes into the quote.',
+            },
+            {
+              q: 'Do I need the content maker?',
+              a: 'No. You can use the digest as ideas for your own content. With the content maker it turns into ready materials.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of niches and platforms.',
+            },
+          ],
+          metaTitle: 'Trend scout: an AI agent for niche trends | Fir Tech',
+          metaDescription: 'The Trend scout AI agent sends the rising topics and formats of your niche every day. Available on its own, without the whole department. Priced by quote.',
+        },
+        'content-maker': {
+          title: 'Content maker',
+          promise: 'Turns topics, trends and case studies into reels, carousels and posts in Russian and English.',
+          does: [
+            'Makes reels, carousels and posts on your topics',
+            'Writes in two languages when you need both',
+            'Takes trends from the trend scout and your case studies',
+            'Sends the materials in a batch for approval',
+          ],
+          needs: [
+            'A description of the business and your tone of voice',
+            'Posts you like and a list of forbidden topics',
+            'Case studies, photos and facts you are happy to show',
+          ],
+          worksNote: 'Takes topics from the trend scout or from your own list. Hands the result to the publisher or to you.',
+          alone: 'Prepares materials and puts them in the queue.',
+          waits: 'Each batch moves on only after your approval, until you switch the task to autonomous mode.',
+          faq: [
+            {
+              q: 'Does the agent make video too?',
+              a: 'Reels are included. Complex videos are built by our developers as a separate task, and the quote marks it.',
+            },
+            {
+              q: 'Can I use it without the publisher?',
+              a: 'Yes. Ready materials arrive in your Telegram and you post them yourself.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the languages and the volume of materials.',
+            },
+          ],
+          metaTitle: 'Content maker: an AI agent for reels and posts | Fir Tech',
+          metaDescription: 'The Content maker AI agent makes reels, carousels and posts in two languages and sends them in a batch for approval. Available on its own. Priced by quote.',
+        },
+        publisher: {
+          title: 'Publisher',
+          promise: 'Schedules ready materials and posts them in your channels after you approve.',
+          does: [
+            'Builds the publishing schedule',
+            'Posts to Telegram, Instagram, YouTube Shorts and VK',
+            'Reports what went out and when',
+            'Moves a post when you ask',
+          ],
+          needs: [
+            'Access to the channels you choose',
+            'Ready content: from the content maker or your own',
+            'Rules: the best time and how often to post',
+          ],
+          worksNote: 'Takes materials from the content maker. If the content is yours, you only need to load it into the queue.',
+          alone: 'Watches the schedule and reports every post.',
+          waits: 'Going live waits for your approval.',
+          faq: [
+            {
+              q: 'Which channels can be connected?',
+              a: 'Telegram, Instagram, YouTube Shorts and VK. The exact list for you goes into the quote.',
+            },
+            {
+              q: 'Where does the content come from?',
+              a: 'From the content maker or from you. The publisher does not care who made the material.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of channels.',
+            },
+          ],
+          metaTitle: 'Publisher: an AI agent for social media posting | Fir Tech',
+          metaDescription: 'The Publisher AI agent keeps the schedule and posts your content to Telegram, Instagram, YouTube Shorts and VK after approval. Priced by quote.',
+        },
+        analyst: {
+          title: 'Analyst',
+          promise: 'Sends the numbers for your channels and leads once a week, with a plan for the next week.',
+          does: [
+            'Collects channel and lead metrics',
+            'Compares the week with the previous one',
+            'Sends a weekly report in Telegram',
+            'Suggests what to repeat and what to drop',
+          ],
+          needs: [
+            'Access to channel and site statistics',
+            'The list of leads or the sheet where they live',
+            'Your definition of success: what counts as a good result',
+          ],
+          worksNote: 'Reads the numbers wherever they are. The picture is fuller next to the publisher and the lead handler, but it works without them too.',
+          alone: 'Collects the numbers and sends the report.',
+          waits: 'Does not change the schedule or budgets, it only suggests.',
+          faq: [
+            {
+              q: 'Which numbers does it see?',
+              a: 'The ones you give access to: channel and site statistics and the list of leads. Nothing else.',
+            },
+            {
+              q: 'Do I need other agents?',
+              a: 'No. The report is built from whatever sources you connect.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of data sources.',
+            },
+          ],
+          metaTitle: 'Analyst: an AI agent with a weekly report | Fir Tech',
+          metaDescription: 'The Analyst AI agent collects numbers from your channels and leads and sends a weekly report with a plan. Available without the department. Priced by quote.',
+        },
+        seo: {
+          title: 'SEO specialist',
+          promise: 'Prepares articles and pages in Russian and English for the search queries of your niche.',
+          does: [
+            'Collects the keywords for your niche',
+            'Writes articles and page texts in two languages',
+            'Prepares entries for directories and Google Business',
+            'Keeps the llms.txt file up to date for AI assistants',
+          ],
+          needs: [
+            'A description of your services and audience',
+            'Access to the site or blog to publish on',
+            'Competitors and topics to avoid',
+          ],
+          worksNote: 'Works on its own. Finished articles can go to the content maker to be cut into posts.',
+          alone: 'Collects queries and writes article drafts.',
+          waits: 'Publishing on the site goes ahead after your approval.',
+          faq: [
+            {
+              q: 'Does the agent edit my site by itself?',
+              a: 'It prepares the texts. How they reach the site is agreed at the start: through you or through access to the blog.',
+            },
+            {
+              q: 'What is llms.txt?',
+              a: 'A file that describes your business for AI assistants. The agent keeps it current.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the languages and the volume of texts.',
+            },
+          ],
+          metaTitle: 'SEO specialist: an AI agent for articles and search | Fir Tech',
+          metaDescription: 'The SEO specialist AI agent collects keywords, writes articles in two languages and prepares directory entries. You approve before publishing. Priced by quote.',
+        },
+        'lead-handler': {
+          title: 'Lead handler',
+          promise: 'Answers the first customer message within a minute, asks the questions and books a call.',
+          does: [
+            'Answers the first message in the messenger',
+            'Asks clarifying questions from your list',
+            'Offers free slots for a call',
+            'Creates a lead card and sends it to you',
+            'Nudges the people who went quiet',
+          ],
+          needs: [
+            'A bot or account where customers write',
+            'A description of your services and answers to common questions',
+            'Your working slots for calls',
+          ],
+          worksNote: 'The lead card can go to the presales agent, who builds the proposal. Without it the card comes to you.',
+          alone: 'Holds the conversation with the customer and reports to you.',
+          waits: 'Prices, discounts and promises about deadlines stay with you.',
+          faq: [
+            {
+              q: 'Does the agent quote prices to customers?',
+              a: 'No. Prices, quotes and contracts always sit at the level where you decide.',
+            },
+            {
+              q: 'What if the agent does not know the answer?',
+              a: 'It passes the question to you. The rules for when to do that are agreed at the start.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the channels and the volume of leads.',
+            },
+          ],
+          metaTitle: 'Lead handler: an AI agent for chat leads | Fir Tech',
+          metaDescription: 'The Lead handler AI agent answers customers within a minute, asks questions, offers a call slot and creates a lead card. You keep the prices. Priced by quote.',
+        },
+        prospector: {
+          title: 'Prospector',
+          promise: 'Finds suitable businesses in your niches and cities and prepares a personal offer for each.',
+          does: [
+            'Collects businesses by niche and city from open sources',
+            'Checks what each one does',
+            'Writes a personal text of the offer',
+            'Sends the list for approval once a day',
+          ],
+          needs: [
+            'The niches and cities where you look for customers',
+            'A description of your offer and examples of good customers',
+            'Rules: who must never be contacted',
+          ],
+          worksNote: 'The lead handler picks up the people who respond. Without it the replies come to you.',
+          alone: 'Collects the list and prepares the offer texts.',
+          waits: 'Every offer goes out only after your approval.',
+          faq: [
+            {
+              q: 'Does the prospector write to people by itself?',
+              a: 'It prepares the list and the text. Sending waits for your approval.',
+            },
+            {
+              q: 'Where do the businesses come from?',
+              a: 'From open sources: maps, directories, sites and social networks. The list of sources goes into the quote.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of niches and cities.',
+            },
+          ],
+          metaTitle: 'Prospector: an AI agent for finding customers | Fir Tech',
+          metaDescription: 'The Prospector AI agent finds suitable businesses in your niches and cities and prepares personal offers for your approval. Priced by quote.',
+        },
+        presales: {
+          title: 'Presales: proposals and quotes',
+          promise: 'Turns a lead card into a commercial proposal, a quote and a draft contract.',
+          does: [
+            'Reads the lead card and the conversation',
+            'Builds the proposal from your template',
+            'Calculates the quote from your price list',
+            'Prepares a draft contract',
+          ],
+          needs: [
+            'Templates for proposals and contracts',
+            'Your price list and discount rules',
+            'A lead card: from the lead handler or from you',
+          ],
+          worksNote: 'Takes the card from the lead handler or from you. The Documents agent can keep the contract templates.',
+          alone: 'Prepares drafts of the proposal, quote and contract.',
+          waits: 'The price, quote and contract reach the customer only after your decision.',
+          faq: [
+            {
+              q: 'Does the agent set the price itself?',
+              a: 'No. It calculates from your price list and rules, and you send the result.',
+            },
+            {
+              q: 'Do I need the lead handler?',
+              a: 'No. You can pass the lead card by hand.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of templates and the complexity of quotes.',
+            },
+          ],
+          metaTitle: 'Presales: an AI agent for proposals and quotes | Fir Tech',
+          metaDescription: 'The Presales AI agent turns a lead card into a proposal, a quote and a draft contract from your templates. You keep prices and contracts. Priced by quote.',
+        },
+        referral: {
+          title: 'Referral agent',
+          promise: 'Runs a referral program: personal links, the leads that came through them and a list of rewards for your approval.',
+          does: [
+            'Gives partners personal links',
+            'Marks the leads that arrived through a link',
+            'Compiles the list of rewards by your rules',
+            'Tells the partner the status of their leads',
+          ],
+          needs: [
+            'The program rules: the size of the reward and when it is earned',
+            'A way to reach your partners',
+            'The payout method you use',
+          ],
+          worksNote: 'Takes the source of a lead from the lead handler card. Without it the link mark has to come from your own form.',
+          alone: 'Keeps the record of links and leads.',
+          waits: 'The program terms and payouts follow only your decision.',
+          faq: [
+            {
+              q: 'Does the agent pay partners?',
+              a: 'No. It prepares the list of rewards, and you confirm and make the payout.',
+            },
+            {
+              q: 'Does it fit if I have no program yet?',
+              a: 'Yes. We design the rules with you at the start.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of partners and the complexity of the rules.',
+            },
+          ],
+          metaTitle: 'Referral agent: an AI agent for referral programs | Fir Tech',
+          metaDescription: 'The Referral agent runs your referral program: personal links, leads that came through them and rewards for your approval. Payouts stay with you. By quote.',
+        },
+        support: {
+          title: 'Support desk',
+          promise: 'Answers customers from your base of answers, tracks tickets against deadlines and hands the hard ones to you.',
+          does: [
+            'Answers questions from the answer base',
+            'Opens a ticket when the base has no answer',
+            'Watches the response deadlines (SLA)',
+            'Sends a morning summary of tickets',
+          ],
+          needs: [
+            'The channel where customers ask questions',
+            'Your answers to common questions and your policies',
+            'Rules: what goes to you straight away',
+          ],
+          worksNote: 'Takes answers from the knowledge base. The base can be kept by the Knowledge base agent or by hand.',
+          alone: 'Tracks tickets and reminds you of deadlines.',
+          waits: 'Answers outside the base and anything about money go through you.',
+          faq: [
+            {
+              q: 'Does the agent answer any question?',
+              a: 'It answers from your base of answers. If the base has no answer, it opens a ticket and passes it to you.',
+            },
+            {
+              q: 'Where does the base of answers come from?',
+              a: 'From your documents and conversations. We collect it together at the start, and it grows as the work goes on.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the channels and the volume of requests.',
+            },
+          ],
+          metaTitle: 'Support desk: an AI agent that answers customers | Fir Tech',
+          metaDescription: 'The Support desk AI agent answers from your base of answers, tracks tickets against deadlines and hands the hard ones to you. Available on its own.',
+        },
+        monitoring: {
+          title: 'Monitoring',
+          promise: 'Watches that your sites and bots keep working and sends an alert the moment something fails.',
+          does: [
+            'Checks the availability of sites and bots from a list',
+            'Notices errors in how they run',
+            'Sends an alert to Telegram',
+            'Reports when the service is back',
+          ],
+          needs: [
+            'A list of site and bot addresses',
+            'A Telegram chat for alerts',
+            'Who should be told when something fails',
+          ],
+          worksNote: 'Works on its own and depends on nobody.',
+          alone: 'Checks and sends alerts without waiting for your approval.',
+          waits: 'Restarts and fixes nothing. The decision stays with you or your developer.',
+          faq: [
+            {
+              q: 'Does the agent fix failures itself?',
+              a: 'No. It notices a failure and tells you. A person fixes it.',
+            },
+            {
+              q: 'What can be checked?',
+              a: 'Sites and bots from a list of addresses. The exact scope goes into the quote.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of sites and bots.',
+            },
+          ],
+          metaTitle: 'Monitoring: an AI agent that watches your sites | Fir Tech',
+          metaDescription: 'The Monitoring AI agent checks that your sites and bots are available and sends a Telegram alert the moment something fails. Available on its own.',
+        },
+        billing: {
+          title: 'Billing',
+          promise: 'Prepares invoices and payment reminders for your subscriptions, and sends them after you approve.',
+          does: [
+            'Keeps the list of subscriptions and due dates',
+            'Prepares an invoice for the right date',
+            'Prepares a polite reminder when payment is missing',
+            'Sends a summary of payments',
+          ],
+          needs: [
+            'A sheet or service with subscriptions and amounts',
+            'Your payment details and methods',
+            'An invoice template and the tone of reminders',
+          ],
+          worksNote: 'The Documents agent can keep the invoice templates. Without it your own templates are used.',
+          alone: 'Watches the dates and prepares drafts.',
+          waits: 'Amounts, sending and anything about money wait for your approval.',
+          faq: [
+            {
+              q: 'Do invoices go out by themselves?',
+              a: 'The agent prepares the invoice and the reminder, and you approve. Amounts and money always stay on your side.',
+            },
+            {
+              q: 'Do I need a payment system?',
+              a: 'Not necessarily. The agent works from your sheet. Connecting payment services is discussed separately.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of subscriptions.',
+            },
+          ],
+          metaTitle: 'Billing: an AI agent for invoices and reminders | Fir Tech',
+          metaDescription: 'The Billing AI agent prepares invoices and payment reminders for your subscriptions. Amounts and sending wait for your approval. Priced by quote.',
+        },
+        onboarding: {
+          title: 'Onboarding',
+          promise: 'Welcomes a new customer: collects the access you need and guides them through the first week by your instructions.',
+          does: [
+            'Sends the customer a questionnaire and a list of the access you need',
+            'Reminds them what is still missing',
+            'Guides the customer through the steps of the first week',
+            'Tells you when the customer is ready or stuck',
+          ],
+          needs: [
+            'Your instructions for a new customer',
+            'The list of access and materials you need from the customer',
+            'A way to reach the customer',
+          ],
+          worksNote: 'When the customer is ready, passes the project to the project manager. Later questions go to the support desk.',
+          alone: 'Collects materials and reminds the customer.',
+          waits: 'Messages to the customer outside the instructions go through you.',
+          faq: [
+            {
+              q: 'What does it do with the customer access?',
+              a: 'Collects it by your list and hands it to you. How it is stored is agreed at the start.',
+            },
+            {
+              q: 'Do I need other agents?',
+              a: 'No. It can follow your instructions and hand the result to you.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the complexity of the instructions and the number of steps.',
+            },
+          ],
+          metaTitle: 'Onboarding: an AI agent for welcoming new customers | Fir Tech',
+          metaDescription: 'The Onboarding AI agent collects a new customer access and guides them through the first week by your instructions. Available on its own. Priced by quote.',
+        },
+        'project-manager': {
+          title: 'Project manager',
+          promise: 'Turns a signed proposal into a brief, a plan and tasks, and sends the client a status at each stage.',
+          does: [
+            'Builds the brief from the signed proposal',
+            'Splits the work into stages and tasks',
+            'Sends the client a status on the days you choose',
+            'Sends you a weekly summary: what is in progress and what is late',
+          ],
+          needs: [
+            'The signed proposal or a description of the order',
+            'A tracker or a sheet of tasks',
+            'A way to reach the client',
+          ],
+          worksNote: 'Does not replace the people who do the work: tasks go to your team. Can call the reviewer before a stage is handed over.',
+          alone: 'Keeps the tasks and deadlines.',
+          waits: 'A status to the client and handing over a stage follow your approval.',
+          faq: [
+            {
+              q: 'Does the agent write code or design?',
+              a: 'No, it organises the work. The people doing it stay yours, or we discuss them as a separate task.',
+            },
+            {
+              q: 'Does the client talk to the agent?',
+              a: 'The client receives statuses and questions by stage. What the agent writes itself and what goes through you is set up together.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of stages and connected systems.',
+            },
+          ],
+          metaTitle: 'Project manager: an AI agent for tasks and statuses | Fir Tech',
+          metaDescription: 'The Project manager AI agent turns a proposal into a brief and a plan and sends the client a status at each stage. Available on its own. Priced by quote.',
+        },
+        'reviewer-qa': {
+          title: 'Reviewer and QA',
+          promise: 'Checks the result of a stage and prepares remarks on quality and security before it goes to the client.',
+          does: [
+            'Compares the result with the brief',
+            'Checks it against the acceptance checklist',
+            'Reads the code changes and looks for errors and risks',
+            'Prepares the list of remarks',
+          ],
+          needs: [
+            'Access to the repository or the materials of the stage',
+            'The brief and the acceptance rules',
+            'A quality checklist, if you have one',
+          ],
+          worksNote: 'Receives a stage from the project manager or straight from you.',
+          alone: 'Reads, checks and writes the remarks.',
+          waits: 'Fixes and handing over the stage stay with you.',
+          faq: [
+            {
+              q: 'Does it fix what it finds?',
+              a: 'No. It writes the list of remarks, and the person doing the work fixes them.',
+            },
+            {
+              q: 'Does it suit projects without code?',
+              a: 'Yes, the checklist review works with any materials. Code review applies only where there is code.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the size of the projects and the number of checks.',
+            },
+          ],
+          metaTitle: 'Reviewer and QA: an AI agent that checks the work | Fir Tech',
+          metaDescription: 'The Reviewer and QA AI agent checks a stage against the checklist, reads the code and prepares remarks before handover. Available on its own. Priced by quote.',
+        },
+        deployer: {
+          title: 'Deployer',
+          promise: 'Puts a finished build on the server from templates and scripts and sends a report of the release.',
+          does: [
+            'Builds the application image from a template',
+            'Releases it to your server or ours',
+            'Reports the result of the release',
+            'Keeps the templates and scripts so every release runs the same way',
+          ],
+          needs: [
+            'Access to the server or hosting',
+            'The repository with the finished code',
+            'Rules: when a release is allowed',
+          ],
+          worksNote: 'Releases what has passed review. After a release, monitoring can keep an eye on the service.',
+          alone: 'Prepares the release and the report.',
+          waits: 'A release to the production server happens only on your command.',
+          faq: [
+            {
+              q: 'Does the agent get full access to the server?',
+              a: 'Only the access a release needs, and only if you choose to give it. The list of access goes into the quote.',
+            },
+            {
+              q: 'Where can it release to?',
+              a: 'Your server or ours. We pick the suitable one together.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of services and servers.',
+            },
+          ],
+          metaTitle: 'Deployer: an AI agent for server releases | Fir Tech',
+          metaDescription: 'The Deployer AI agent releases a finished build to your server or ours from templates and sends a report. Releases happen on your command. Priced by quote.',
+        },
+        documents: {
+          title: 'Documents',
+          promise: 'Prepares contracts, offers, policies and proposal templates from your samples.',
+          does: [
+            'Drafts contracts and offers from your template',
+            'Fills the customer details into the document',
+            'Prepares policies and consent texts',
+            'Updates the proposal templates',
+          ],
+          needs: [
+            'Your templates and samples',
+            'Your company details',
+            'Rules: which documents it may prepare',
+          ],
+          worksNote: 'Presales and billing use the templates, but the agent is useful on its own too.',
+          alone: 'Prepares draft documents.',
+          waits: 'Signing, sending and legal review stay with you.',
+          faq: [
+            {
+              q: 'Does the agent sign contracts?',
+              a: 'No. It prepares a draft from your template. Signing and sending are on your side.',
+            },
+            {
+              q: 'Does it replace a lawyer?',
+              a: 'No. The agent prepares drafts, and a specialist does the legal review.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the number of templates and kinds of documents.',
+            },
+          ],
+          metaTitle: 'Documents: an AI agent for contracts and templates | Fir Tech',
+          metaDescription: 'The Documents AI agent prepares contracts, offers, policies and proposal templates from your samples. You keep the signing. Available on its own.',
+        },
+        'knowledge-base': {
+          title: 'Knowledge base',
+          promise: 'Keeps playbooks, templates and lessons from projects so the team and the agents take answers from one place.',
+          does: [
+            'Gathers policies, instructions and conversations into one base',
+            'Sorts the materials by topic',
+            'Adds lessons from finished projects',
+            'Hands answers to the other agents and to your team',
+          ],
+          needs: [
+            'Materials: policies, instructions, conversations',
+            'Rules: what must never go into the base',
+            'A person who reviews new entries',
+          ],
+          worksNote: 'The support desk takes its answers from it. It also works as a shared knowledge folder for your team.',
+          alone: 'Collects and sorts the materials.',
+          waits: 'Sensitive materials enter the base only with your permission.',
+          faq: [
+            {
+              q: 'What can go into the base?',
+              a: 'Policies, instructions, templates and lessons from projects. You decide what is off limits.',
+            },
+            {
+              q: 'Do I need the support desk?',
+              a: 'No. You and your team can use the base without other agents.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the volume of materials.',
+            },
+          ],
+          metaTitle: 'Knowledge base: an AI agent for policies and lessons | Fir Tech',
+          metaDescription: 'The Knowledge base AI agent gathers policies, templates and lessons from projects in one place for your team and other agents. Available on its own.',
+        },
+        director: {
+          title: 'Director: the managing agent',
+          promise: 'The one bot you talk to: hands tasks to the departments and collects the approvals and the morning summary.',
+          does: [
+            'Takes your tasks in one chat',
+            'Hands them to the department heads',
+            'Collects the queue of approvals in one place',
+            'Sends a morning summary across all departments',
+          ],
+          needs: [
+            'At least one department or a few agents',
+            'The Director Telegram bot (we create it together)',
+            'Rules: what only you decide',
+          ],
+          worksNote: 'The Director needs at least one department. Without working agents there is nothing to assign. It plugs into what already runs.',
+          alone: 'Assigns tasks and compiles the summary.',
+          waits: 'Money, prices and contracts stay with you. The Director makes no decisions about them.',
+          faq: [
+            {
+              q: 'Can I take the Director alone?',
+              a: 'No. It needs at least one department or a few agents, otherwise there is nothing to manage.',
+            },
+            {
+              q: 'How does it differ from the whole company?',
+              a: 'The whole company includes every department and the control panel. The Director plugs into the departments you choose.',
+            },
+            {
+              q: 'How much does it cost?',
+              a: 'We quote the price after a short call. It depends on the set of departments and connected systems.',
+            },
+          ],
+          metaTitle: 'Director: the managing AI agent for departments | Fir Tech',
+          metaDescription: 'The Director hands tasks to AI agent departments, collects the approval queue and the morning summary. It plugs into the departments you choose.',
+        },
+      },
+    },
+    items: {
+      marketing: {
+        title: 'Marketing team',
+        card: 'Content and the weekly plan are ready, you only approve.',
+        promise:
+          'Agents look for topics, make reels, carousels and articles, publish and count the numbers. You decide.',
+        forWhom: 'Small businesses and studios without a marketer or time for regular content.',
+        metaTitle: 'A marketing team of AI agents | Fir Tech',
+        metaDescription:
+          'Trend scout, content maker, publisher and analyst: reels, carousels, articles and a weekly plan. You approve in Telegram. Priced by quote, on your own bots.',
+        agents: [
+          { name: 'Trend Scout', does: 'Collects rising topics and formats from social networks and search every day for the content maker.', trust: 'auto' },
+          { name: 'Content Maker', does: 'Makes reels, carousels and articles from topics and trends in the languages you need.', trust: 'propose' },
+          { name: 'Publisher', does: 'Schedules the finished material and publishes to your channels after approval.', trust: 'propose' },
+          { name: 'Analyst', does: 'Collects channel and lead numbers and sends a weekly report with a plan for the week.', trust: 'auto' },
+        ],
+        routines: [
+          'Every day: a digest of rising topics and formats',
+          'A batch of material for approval in Telegram',
+          'Weekly: a channel report and the plan for the week',
+        ],
+        how: 'The content maker sends material in a batch. You press approve, edit or reject. The publisher goes live after your yes, and once the quality suits you, some tasks can move to working alone.',
+        needs: [
+          'Access to the channels you choose: Instagram, Telegram, YouTube or others',
+          'A Telegram bot for talking to the team (we create it together)',
+          'A description of the business, examples of posts you like and a list of topics to avoid',
+          'Access keys for the AI model and services that you pay for',
+        ],
+        faq: [
+          { q: 'Do the agents publish without my permission?', a: 'Not by default. The content maker and the publisher work at the level where you approve each batch. Working alone is switched on only by your decision.' },
+          { q: 'Which channels can be connected?', a: 'Telegram, Instagram, YouTube Shorts and VK. The exact list for your team goes into the quote.' },
+          { q: 'Do agents make video too?', a: 'Reels are part of the scope. Complex videos are built by our developers as a separate task, and the quote says so.' },
+          { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the team and the number of channels.' },
+        ],
+      },
+      sales: {
+        title: 'Sales team',
+        card: 'The client gets a reply within a minute, you get a ready proposal.',
+        promise:
+          'The lead handler answers the first message, the prospector looks for new clients, presales prepares the proposal and the estimate. Prices and contracts stay with you.',
+        forWhom: 'Service businesses and shops where requests arrive in messengers and some get lost.',
+        metaTitle: 'A sales team of AI agents | Fir Tech',
+        metaDescription:
+          'Lead handler, prospector, proposals and estimates, follow-ups to clients who went quiet. Prices and contracts stay with you. Priced by quote, on your own bots.',
+        agents: [
+          { name: 'Lead Handler', does: 'Answers the first message, asks clarifying questions, offers a call slot and creates the lead card. Nudges those who went quiet.', trust: 'both' },
+          { name: 'Prospector', does: 'Collects suitable businesses in the niches and cities you choose and prepares a personal offer.', trust: 'propose' },
+          { name: 'Presales', does: 'Builds the proposal, the estimate and a draft contract from the lead card.', trust: 'propose' },
+        ],
+        routines: [
+          'Morning: a summary of new leads and replies',
+          'Once a day: a list of businesses for an offer, for approval',
+          'Reminders to leads who have not replied',
+        ],
+        how: 'The agent handles the first reply and the clarifying questions itself and reports back. Prices, estimates and contracts it only prepares: the decision and the button stay with you.',
+        needs: [
+          'A bot or messenger account where clients write',
+          'A price list, a description of services and answers to common questions',
+          'Your working slots for calls',
+          'Niches and cities for prospecting, if you need it',
+        ],
+        faq: [
+          { q: 'Does the agent quote prices to clients?', a: 'No. Prices, estimates and contracts always stay at the level where you decide. The agent prepares a draft and waits for approval.' },
+          { q: 'Does the prospector write to people on its own?', a: 'It collects a list and prepares the offer text. Sending happens after your approval.' },
+          { q: 'What if the agent does not know the answer?', a: 'The team can hand a question over to the owner. We agree with you at the start when that should happen.' },
+          { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the channels and the volume of requests.' },
+        ],
+      },
+      support: {
+        title: 'Support team',
+        card: 'Tickets do not get lost, clients get answers from your own base.',
+        promise:
+          'Agents answer from your base of replies, keep tickets on a clock, watch your sites and bots and prepare invoices.',
+        forWhom: 'Companies with regular clients, subscriptions or project support.',
+        metaTitle: 'A support team of AI agents | Fir Tech',
+        metaDescription:
+          'Tickets, a base of answers, reply deadlines, monitoring, invoices and payment reminders. Agents prepare, you approve. Priced by quote, on your own bots.',
+        agents: [
+          { name: 'Customer Support', does: 'Answers questions from the base of replies, keeps tickets with reply deadlines (SLA) and passes hard cases to you.', trust: 'propose' },
+          { name: 'Monitoring', does: 'Watches your sites and bots and sends an alert when something breaks.', trust: 'auto' },
+          { name: 'Billing', does: 'Prepares invoices and payment reminders for your subscriptions.', trust: 'propose' },
+          { name: 'Onboarding', does: 'Collects a new client\'s access and walks them through the first week by your instructions.', trust: 'propose' },
+        ],
+        routines: [
+          'Morning: a summary of tickets and reply deadlines',
+          'An alert when a site or a bot goes down',
+          'Payment reminders on the subscription schedule',
+        ],
+        how: 'The agent answers questions that are in the base from the base. When there is no answer, it opens a ticket and passes it to you. Invoices and reminders are prepared in advance and go out after your approval.',
+        needs: [
+          'A support bot or a channel where clients ask questions',
+          'Your answers to common questions, rules and policies',
+          'A list of sites and bots to watch',
+          'Subscription and invoice data in the sheet or service you use',
+        ],
+        faq: [
+          { q: 'Does the bot answer any question?', a: 'It answers from your base of replies. When the answer is not in the base, the agent opens a ticket and passes it to you.' },
+          { q: 'Where does the base of replies come from?', a: 'From your documents and conversations. We build it together at the start, and it grows as the team works.' },
+          { q: 'Do invoices go out on their own?', a: 'The agent prepares the invoice and the reminder, you approve. Amounts and money stay on your side.' },
+        ],
+      },
+      production: {
+        title: 'Production',
+        card: 'The project moves in stages, the client knows the status, acceptance is ready.',
+        promise:
+          'The project manager turns a signed proposal into a brief, a plan and stages, keeps the client informed and prepares acceptance.',
+        forWhom: 'Studios and teams that build projects to order and lose time on statuses and approvals.',
+        metaTitle: 'A production team of AI agents: projects and stages | Fir Tech',
+        metaDescription:
+          'A project manager runs briefs, stages and client statuses, a reviewer prepares remarks for acceptance. Doers work separately. Priced by quote, on your bots.',
+        agents: [
+          { name: 'Project Manager', does: 'Builds the brief, the plan and the tasks from a signed proposal and sends the client a status for each stage.', trust: 'propose' },
+          { name: 'Reviewer', does: 'Checks the result of a stage against a checklist and prepares remarks before hand-over.', trust: 'propose' },
+        ],
+        routines: [
+          'A status to the client by stage on the days you choose',
+          'An acceptance checklist before a stage is handed over',
+          'A weekly summary for the owner: what is in progress and what is late',
+        ],
+        how: 'The team runs tasks, deadlines and acceptance. The doers themselves (developers, designers) work separately: for us they are development sessions per project, for you they are your own people. Statuses reach the client after your approval.',
+        needs: [
+          'A proposal template or a description of how you take an order',
+          'Access to the task tracker or sheet where the work is kept',
+          'A channel to clients: a bot or a work chat',
+          'Acceptance rules: what counts as done',
+        ],
+        faq: [
+          { q: 'Do the agents write code or do design?', a: 'No, the team organizes the work. The doers stay yours, or we discuss them as a separate task.' },
+          { q: 'Does the client talk to an agent?', a: 'The client gets statuses and questions by stage. What the agent writes itself and what goes through you, we set up together.' },
+          { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the number of stages and connected systems.' },
+        ],
+      },
+      backoffice: {
+        title: 'Back office',
+        card: 'Documents, knowledge and reports in one place.',
+        promise:
+          'Agents prepare contracts and proposals from templates, keep a shared knowledge base and send regular reports.',
+        forWhom: 'Owners whose paperwork piles up in personal folders and in their heads.',
+        metaTitle: 'A back office of AI agents: documents and reports | Fir Tech',
+        metaDescription:
+          'Documents from your templates, a knowledge base and monthly reports on costs and income. Signing and money stay with you. Priced by quote, on your own bots.',
+        agents: [
+          { name: 'Documents', does: 'Prepares contracts, offers, policies and proposals from your templates.', trust: 'propose' },
+          { name: 'Finance', does: 'Counts costs and income, watches limits and sends a monthly report.', trust: 'both' },
+          { name: 'Knowledge Base', does: 'Keeps playbooks, templates and lessons from projects so agents and the team take answers from there.', trust: 'auto' },
+        ],
+        routines: [
+          'A monthly report on costs and income',
+          'Updates to the document templates',
+          'Lessons from projects added to the knowledge base',
+        ],
+        how: 'Documents arrive as drafts, signing and sending are up to you. Reports are built on a schedule. The agent does not make money decisions.',
+        needs: [
+          'Your templates for contracts, offers and proposals',
+          'Access to the sheet or service where costs and income are kept',
+          'Material for the knowledge base: rules, instructions, conversations',
+          'Rules: which documents may be prepared and which may not',
+        ],
+        faq: [
+          { q: 'Does the agent sign contracts?', a: 'No. It prepares a draft from your template. Signing and sending stay on your side.' },
+          { q: 'Where are our documents stored?', a: 'In your own HQ instance. Where exactly it runs, we agree at the start.' },
+          { q: 'Does it replace an accountant?', a: 'No. The team prepares reports and documents, but bookkeeping stays with a specialist.' },
+        ],
+      },
+      company: {
+        title: 'The whole company',
+        card: 'A Director, every team and a control panel. You talk to one bot.',
+        promise:
+          'The Director hands tasks to the teams and collects the approval queue. You run the company from one chat and one panel.',
+        forWhom: 'An owner who wants to run a company from Telegram and not keep ten processes in mind.',
+        metaTitle: 'A company of AI agents: the Director and every team | Fir Tech',
+        metaDescription:
+          'A Director, marketing, sales, support, production and back office teams, a control panel and owner approvals. A separate HQ on your bots. Priced by quote.',
+        agents: [
+          { name: 'Director', does: 'The only bot you talk to. Hands tasks to the teams and collects the morning summary.', trust: 'auto' },
+          { name: 'Team heads', does: 'Each team has a head. It writes to you itself only with a summary, a batch for approval and alerts.', trust: 'auto' },
+          { name: 'Doers', does: 'The roles of all five departments: trend scout, lead handler, support, project manager, documents and others.', trust: 'propose' },
+          { name: 'Control panel', does: 'The owner panel: who is doing what, the approval queue, events and costs.', trust: 'auto' },
+        ],
+        routines: [
+          'A morning summary from the Director',
+          'The approval queue in one place',
+          'A weekly report across all teams',
+        ],
+        how: 'All teams work in one HQ. Approvals gather in one queue: Telegram for quick decisions, the panel for the full picture. Money, prices and contracts stay with you.',
+        needs: [
+          'The Director\'s Telegram bot (we create it together)',
+          'Access to the channels, messengers and sheets we connect',
+          'Material about the business: services, price list, templates, answers to common questions',
+          'Access keys for the AI model and services that you pay for',
+        ],
+        faq: [
+          { q: 'Do I have to take everything at once?', a: 'No. You can start with one team and add the rest later, and the Director and the panel connect to what already works.' },
+          { q: 'How is it different from a set of teams?', a: 'It has a Director, one approval queue and a shared summary. Separate teams each work through their own bot.' },
+          { q: 'Who sets the rules?', a: 'We do, together with you, at the start. The rules are written down and changed on your word.' },
+          { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the set of teams and the connected systems.' },
+        ],
+      },
+    },
+  },
 }
 
 export default en

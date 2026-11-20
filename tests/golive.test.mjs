@@ -15,11 +15,20 @@ import {
 
 const T0 = Date.parse('2026-11-21T10:00:00Z')
 
-test('remaining: splits the time left into days, hours, minutes, seconds', () => {
+test('remaining: splits the time left into hours, minutes, seconds (no days)', () => {
   const deadline = new Date(T0 + (2 * 86400 + 13 * 3600 + 42 * 60 + 7) * 1000).toISOString()
   const r = remaining(deadline, T0)
-  assert.deepEqual([r.days, r.hours, r.minutes, r.seconds, r.over], [2, 13, 42, 7, false])
-  assert.equal(chipText(r), '2д 13:42:07')
+  assert.deepEqual([r.hours, r.minutes, r.seconds, r.over], [61, 42, 7, false])
+  assert.equal(chipText(r), '61:42:07')
+})
+
+test('remaining: 2 days 3 h reads as 51 h, a fresh 72 h timer as 72:00:00', () => {
+  const r = remaining(new Date(T0 + (2 * 86400 + 3 * 3600) * 1000).toISOString(), T0)
+  assert.equal(r.hours, 51)
+  assert.equal(chipText(r), '51:00:00')
+  assert.equal(chipText(remaining(new Date(T0 + 72 * 3600_000).toISOString(), T0)), '72:00:00')
+  assert.equal(chipText(remaining(new Date(T0 + 72 * 3600_000 - 2000).toISOString(), T0)), '71:59:58')
+  assert.equal(agoText(remaining(new Date(T0 - (2 * 86400 + 4 * 3600) * 1000).toISOString(), T0)), '2 д 4 ч')
 })
 
 test('remaining: not started and over', () => {

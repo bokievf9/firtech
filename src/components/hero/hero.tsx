@@ -1,4 +1,4 @@
-import { ArrowRight, ChatCircleDots } from '@phosphor-icons/react/ssr'
+import { ArrowRight, ChatCircleDots, Clock } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
@@ -7,6 +7,7 @@ import { productIds } from '@/lib/products'
 import { ChatOpenButton } from '../chat/chat-open-button'
 import { HeroIntro } from '../hero-intro'
 import { KineticHeadline } from '../kinetic-headline'
+import { GuaranteeLine } from '../guarantee-line'
 import { Magnetic } from '../magnetic'
 import { HeroSequence } from './hero-sequence'
 
@@ -84,7 +85,15 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
               <ArrowRight size={12} aria-hidden="true" />
             </Link>
           </p>
-          <ul className="mt-5 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-faint lg:hidden">
+          {/* Go-live trust lines (owner 2026-11-21): the guarantee and the response promise on the first screen. */}
+          <div className="mt-4 grid max-w-[46ch] gap-2 lg:max-w-[780px]" data-hero-promises>
+            <GuaranteeLine dict={dict} locale={locale} className="text-[13px]" />
+            <p className="flex items-start gap-2.5 text-[13px] leading-relaxed text-muted">
+              <Clock size={18} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
+              <span>{dict.sla.line}</span>
+            </p>
+          </div>
+          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-faint lg:hidden">
             {h.trust.map((item) => (
               <li key={item} className="flex items-center gap-2">
                 <span className="size-1 rounded-full bg-accent/70" aria-hidden="true" />

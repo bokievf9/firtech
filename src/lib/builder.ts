@@ -6,7 +6,7 @@ import {
   type KindId,
   type ProductId,
 } from '../content/builder-catalog'
-import { bundleDiscount, catalog, estimate, extraPrice } from './pricing'
+import { bundleFraction, defaultPricing, estimate, extraPrices, type Pricing } from './pricing'
 import { serviceSlugs, type ServiceSlug } from './site'
 
 // The project builder: a visitor combines several services and extras into one quote. All prices
@@ -276,12 +276,13 @@ export type Quote = {
 
 const round10 = (value: number) => Math.round(value / 10) * 10
 
-export function quote(build: Build): Quote {
+export function quote(build: Build, pricing: Pricing = defaultPricing): Quote {
   const lines: QuoteLine[] = []
   for (const slug of serviceSlugs) {
     const part = build.parts[slug]
-    if (part) lines.push({ id: slug, price: estimate(slug, part.variant, part.addons) })
+    if (part) lines.push({ id: slug, price: estimate(slug, part.variant, part.addons, pricing) })
   }
+  const extraPrice = extraPrices(pricing)
   let monthly: number | null = null
   for (const id of buildExtras) {
     if (!build.extras.includes(id)) continue
@@ -291,7 +292,7 @@ export function quote(build: Build): Quote {
     else lines.push({ id, price: from })
   }
   const subtotal = lines.reduce((sum, l) => sum + l.price, 0)
-  const discount = lines.length >= 2 ? round10(subtotal * bundleDiscount) : null
+  const discount = lines.length >= 2 ? round10(subtotal * bundleFraction(pricing)) : null
   const total = discount ? subtotal - discount : subtotal
   return { lines, subtotal, discount, total, monthly }
 }
@@ -423,10 +424,10 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       continue
     }
     const slug = serviceSlugs.find((s) => s === head)
-    if (!slug || !Object.hasOwn(catalog[slug].variants, second)) continue
+    if (!slug || !Object.hasOwn(defaultPricing.catalog[slug].variants, second)) continue
     build.parts[slug] = {
       variant: second,
-      addons: keepKnown(third, Object.keys(catalog[slug].addons)),
+      addons: keepKnown(third, Object.keys(defaultPricing.catalog[slug].addons)),
     }
   }
   if (Object.keys(style).length) build.style = style

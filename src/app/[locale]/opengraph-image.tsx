@@ -2,7 +2,8 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { ImageResponse } from 'next/og'
 import { formatUsd } from '@/lib/pricing'
-import { lowestPrice } from '@/lib/seo'
+import { getPricing } from '@/lib/pricing-store'
+import { lowestPriceOf } from '@/lib/seo'
 
 export const alt = 'Fir Tech: AI agents, Telegram bots and websites for small business'
 export const size = { width: 1200, height: 630 }
@@ -11,6 +12,7 @@ export const contentType = 'image/png'
 // Latin-only text: the built-in OG font has no Cyrillic, and the card reads the same in both languages.
 export default async function OpengraphImage() {
   // The brand wordmark font (OFL); the card is rendered at build time.
+  const lowestPrice = lowestPriceOf(await getPricing())
   const brand = await readFile(join(process.cwd(), 'assets/fonts/Unbounded-Bold.ttf'))
   return new ImageResponse(
     (

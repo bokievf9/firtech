@@ -11,6 +11,7 @@ import {
 } from '@/lib/cabinet-data'
 import { buttonStyles } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
+import { getPricing } from '@/lib/pricing-store'
 import { fillReferralPercent } from '@/lib/referral'
 import { CopyLink } from './cabinet-forms'
 import { Card, Chip, Empty } from './ui'
@@ -104,7 +105,17 @@ export function InvoicesCard({ data, dict, locale }: { data: CabinetData; dict: 
   return (
     <Card title={c.invoices} id="cabinet-invoices">
       {data.invoices.length === 0 ? (
-        <Empty>{c.noInvoices}</Empty>
+        <>
+          <Empty>{c.noInvoices}</Empty>
+          <p className="mt-3 text-[13px]">
+            <Link
+              href={`/${locale}/pay-how`}
+              className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
+            >
+              {c.payHow}
+            </Link>
+          </p>
+        </>
       ) : (
         <ul className="grid gap-3">
           {data.invoices.map((i) => (
@@ -129,6 +140,12 @@ export function InvoicesCard({ data, dict, locale }: { data: CabinetData; dict: 
                     className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
                   >
                     {c.payTerms}
+                  </Link>{' '}
+                  <Link
+                    href={`/${locale}/pay-how`}
+                    className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
+                  >
+                    {c.payHow}
                   </Link>
                 </p>
               )}
@@ -168,15 +185,16 @@ export function DocumentsCard({ data, dict, locale }: { data: CabinetData; dict:
   )
 }
 
-export function ReferralsCard({ data, dict, locale }: { data: CabinetData; dict: Dict; locale: Locale }) {
+export async function ReferralsCard({ data, dict, locale }: { data: CabinetData; dict: Dict; locale: Locale }) {
   const t = dict.cabinet.referral
   const c = dict.cabinet.cards
+  const pricing = await getPricing()
   const link = cabinetRefLink(locale, data.referralSlug)
   return (
     <Card title={c.referrals} id="cabinet-referrals">
       <div className="grid gap-5">
         <p className="text-sm leading-relaxed text-muted">
-          {fillReferralPercent(t.rule)}
+          {fillReferralPercent(t.rule, pricing)}
         </p>
         {link ? (
           <div className="grid gap-2">

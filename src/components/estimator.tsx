@@ -9,6 +9,7 @@ import { track } from '@/lib/analytics'
 import { PICK_EVENT, sendEstimate, type PickDetail } from '@/lib/estimate-event'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimate, formatUsd } from '@/lib/pricing'
+import { usePricing } from './pricing-provider'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
@@ -23,13 +24,14 @@ export function Estimator({
 }) {
   const t = dict.estimator
   const reduce = useReducedMotion()
+  const pricing = usePricing()
   const [service, setService] = useState<ServiceSlug>(initialService)
   const [variant, setVariant] = useState(() => firstVariant(dict, initialService))
   const [addons, setAddons] = useState<string[]>([])
 
   const variants = t.catalog[service].variants as Record<string, { name: string; term: string }>
   const addonNames = t.catalog[service].addons as Record<string, string>
-  const price = formatUsd(estimate(service, variant, addons))
+  const price = formatUsd(estimate(service, variant, addons, pricing))
   const term = variants[variant]?.term ?? ''
 
   useEffect(() => {

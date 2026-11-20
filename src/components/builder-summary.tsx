@@ -7,7 +7,7 @@ import { builderUi, kitNames, pick } from '@/content/builder-catalog'
 import { resolveLook, resolveStyle, usesAxes } from '@/lib/builder-style'
 import { buttonStyles, cn } from '@/lib/cn'
 import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
-import { bundleDiscount } from '@/lib/pricing'
+import { usePricing } from './pricing-provider'
 import { BuilderPreview } from './builder-preview'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
@@ -34,8 +34,9 @@ export function SummaryStep({
   onEdit: (step: number) => void
 }) {
   const t = dict.builder
-  const q = quote(build)
-  const doc = estimateDoc(build, dict, locale)
+  const pricing = usePricing()
+  const q = quote(build, pricing)
+  const doc = estimateDoc(build, dict, locale, pricing)
   const brief = briefOf(build, dict, locale)
   const look = resolveLook(build.style)
   const ui = builderUi
@@ -111,7 +112,7 @@ export function SummaryStep({
                 <Row label={t.subtotal} value={doc.subtotal} className="text-muted" />
                 <Row
                   label={t.discount}
-                  value={`-${Math.round(bundleDiscount * 100)}%`}
+                  value={`-${Math.round(pricing.bundleDiscount)}%`}
                   className="text-accent-text"
                 />
               </>
@@ -123,11 +124,39 @@ export function SummaryStep({
               </dd>
             </div>
           </dl>
+          {doc.stages.length > 0 && (
+            <div className="mt-6">
+              <p className="text-sm font-medium">{t.stagesTitle}</p>
+              <table className="mt-3 w-full border-collapse text-left text-sm">
+                <thead>
+                  <tr className="border-b border-line text-[11px] tracking-[0.08em] text-faint uppercase">
+                    <th className="py-2 pr-3 font-medium">{t.stageCols.stage}</th>
+                    <th className="py-2 pr-3 font-medium">{t.stageCols.what}</th>
+                    <th className="py-2 pr-3 text-right font-medium">{t.stageCols.share}</th>
+                    <th className="py-2 text-right font-medium">{t.stageCols.amount}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {doc.stages.map((stage) => (
+                    <tr key={stage.id} className="border-b border-line align-top">
+                      <td className="py-2.5 pr-3 whitespace-nowrap text-muted">
+                        {t.stageWord} {stage.n}
+                      </td>
+                      <td className="py-2.5 pr-3">{stage.name}</td>
+                      <td className="py-2.5 pr-3 text-right font-mono whitespace-nowrap">{stage.share}</td>
+                      <td className="py-2.5 text-right font-mono whitespace-nowrap">{stage.amount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <p className="mt-2 text-[13px] text-faint">{t.stageRule}</p>
+            </div>
+          )}
           <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
           <ul className="mt-6 grid gap-2 text-[13px] leading-relaxed text-faint">
             {doc.onRequest.length > 0 && <li>{pick(ui.onRequestNote, locale)}</li>}
             <li>{t.termsNote}</li>
-            <li>{t.payNote}</li>
+            {doc.stages.length === 0 && <li>{t.payNote}</li>}
             {q.monthly !== null && <li>{t.monthlyNote}</li>}
             <li>{doc.scope}</li>
             <li>{t.note}</li>

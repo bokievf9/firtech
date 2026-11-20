@@ -5,11 +5,13 @@ import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { MobileCta } from '@/components/mobile-cta'
 import { MotionProvider } from '@/components/motion-provider'
+import { PricingProvider } from '@/components/pricing-provider'
 import { ThemeInit } from '@/components/theme-init'
 import { RefLinks } from '@/components/ref-links'
 import { YandexMetrika } from '@/components/yandex-metrika'
 import { getDict } from '@/content'
 import { isLocale, locales } from '@/lib/i18n'
+import { getPricing } from '@/lib/pricing-store'
 import { siteUrl } from '@/lib/site'
 import { cabinetEnabled } from '@/lib/supabase/config'
 import { geologica, jetbrains, onest, unbounded } from '../fonts'
@@ -20,6 +22,10 @@ export function generateStaticParams() {
 }
 
 export const dynamicParams = false
+
+// Prices are editable in the Пульт without a deploy (prices.json): the pages are rebuilt at most every
+// five minutes, and the save handler revalidates the whole tree at once.
+export const revalidate = 300
 
 export const viewport: Viewport = { themeColor: '#ffffff', colorScheme: 'light' }
 
@@ -54,6 +60,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   // The cabinet link shows only when Supabase is configured. The layout is prerendered, so this is
   // decided when the site is built; the cabinet pages themselves check the env on every request.
   const cabinet = cabinetEnabled()
+  const pricing = await getPricing()
 
   return (
     <html
@@ -70,25 +77,27 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
         <noscript>
           <style>{'[data-reveal]{opacity:1!important;transform:none!important}'}</style>
         </noscript>
-        <MotionProvider>
-          <a
-            href="#main"
-            className="print-hidden sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-ink"
-          >
-            {dict.nav.skip}
-          </a>
-          <Header locale={locale} dict={dict} cabinet={cabinet} />
-          <main id="main" tabIndex={-1} className="outline-none">
-            {children}
-          </main>
-          <Footer locale={locale} dict={dict} cabinet={cabinet} />
-          <MobileCta
-            locale={locale}
-            label={dict.nav.cta}
-            telegramLabel={dict.contact.telegramCta}
-          />
-          <ChatWidget locale={locale} dict={dict} contactHref={`/${locale}#contact`} />
-        </MotionProvider>
+        <PricingProvider pricing={pricing}>
+          <MotionProvider>
+            <a
+              href="#main"
+              className="print-hidden sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-accent-ink"
+            >
+              {dict.nav.skip}
+            </a>
+            <Header locale={locale} dict={dict} cabinet={cabinet} />
+            <main id="main" tabIndex={-1} className="outline-none">
+              {children}
+            </main>
+            <Footer locale={locale} dict={dict} cabinet={cabinet} />
+            <MobileCta
+              locale={locale}
+              label={dict.nav.cta}
+              telegramLabel={dict.contact.telegramCta}
+            />
+            <ChatWidget locale={locale} dict={dict} contactHref={`/${locale}#contact`} />
+          </MotionProvider>
+        </PricingProvider>
         <RefLinks />
         <YandexMetrika />
       </body>

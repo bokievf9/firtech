@@ -6,6 +6,7 @@ import type { ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimate, formatUsd } from '@/lib/pricing'
+import { usePricing } from './pricing-provider'
 import type { ServiceSlug } from '@/lib/site'
 import { Reveal } from './reveal'
 import { CafeDemo, DeliveryDemo, SalesDemo, SalonDemo } from './showcase-demos'
@@ -38,6 +39,7 @@ export function ServiceConcepts({
   s: Dict['showcase']
   cta: string
 }) {
+  const pricing = usePricing()
   const demos: Record<CaseId, ReactNode> = {
     cafe: <CafeDemo t={s.demo} business={s.items.cafe.business} />,
     salon: <SalonDemo t={s.demo} />,
@@ -50,7 +52,7 @@ export function ServiceConcepts({
       {conceptsFor[slug].map((id) => {
         const item = s.items[id]
         const c = cases[id]
-        const price = estimate(c.service, c.variant, c.addons)
+        const price = estimate(c.service, c.variant, c.addons, pricing)
         return (
           <Reveal key={id}>
             <article className="grid overflow-hidden rounded-card border border-line bg-surface lg:min-h-[520px] lg:grid-cols-[1.05fr_1fr]">

@@ -30,7 +30,8 @@ import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict, type Dict } from '@/content'
 import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
 import { isLocale, locales } from '@/lib/i18n'
-import { catalog, formatUsd, startingPrice } from '@/lib/pricing'
+import { formatUsd, type Pricing } from '@/lib/pricing'
+import { getPricing } from '@/lib/pricing-store'
 import { isServiceSlug, serviceSlugs, siteUrl, type ServiceSlug } from '@/lib/site'
 import { fillServicePrice } from '@/lib/seo'
 import { shareBase } from '@/lib/share'
@@ -47,9 +48,10 @@ export async function generateMetadata({
   const { locale, slug } = await params
   if (!isLocale(locale) || !isServiceSlug(slug)) return {}
   const raw = getDict(locale).serviceDetails[slug]
+  const pricing = await getPricing()
   const page = {
-    metaTitle: fillServicePrice(raw.metaTitle, slug),
-    metaDescription: fillServicePrice(raw.metaDescription, slug),
+    metaTitle: fillServicePrice(raw.metaTitle, slug, pricing),
+    metaDescription: fillServicePrice(raw.metaDescription, slug, pricing),
   }
   return {
     title: page.metaTitle,
@@ -82,13 +84,14 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
     string,
     { name: string; term: string }
   >
-  const prices = catalog[slug].variants
+  const pricing = await getPricing()
+  const prices = pricing.catalog[slug].variants
 
   const service = {
     '@context': 'https://schema.org',
     '@type': 'Service',
     name: dict.services.items[slug].name,
-    description: fillServicePrice(page.metaDescription, slug),
+    description: fillServicePrice(page.metaDescription, slug, pricing),
     url: `${siteUrl}/${locale}/services/${slug}`,
     provider: { '@type': 'ProfessionalService', name: 'Fir Tech', url: `${siteUrl}/${locale}` },
     offers: Object.entries(variants).map(([id, v]) => ({
@@ -150,7 +153,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
               </HeroIntro>
             </>
           }
-          demo={<HeroCard slug={slug} dict={dict} />}
+          demo={<HeroCard slug={slug} dict={dict} pricing={pricing} />}
         />
       </section>
 
@@ -261,7 +264,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                     </div>
                     <p className="mt-auto font-mono text-sm text-muted">
                       {dict.services.from}{' '}
-                      <span className="text-lg text-accent-text">{formatUsd(startingPrice[other])}</span>
+                      <span className="text-lg text-accent-text">{formatUsd(pricing.startingPrice[other])}</span>
                     </p>
                   </SpotlightCard>
                 </Reveal>
@@ -275,7 +278,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
 
 // Right side of the hero: the starting price and formats, above the service's live miniature
 // (the same ones as on the home page cards).
-function HeroCard({ slug, dict }: { slug: ServiceSlug; dict: Dict }) {
+function HeroCard({ slug, dict, pricing }: { slug: ServiceSlug; dict: Dict; pricing: Pricing }) {
   const item = dict.services.items[slug]
   const Icon = icons[slug]
   const landing = dict.estimator.catalog.websites.variants.landing
@@ -307,7 +310,7 @@ function HeroCard({ slug, dict }: { slug: ServiceSlug; dict: Dict }) {
         <div>
           <p className="text-sm text-muted">{dict.services.from}</p>
           <p className="mt-1 font-mono text-5xl tracking-tight text-accent-text md:text-6xl">
-            {formatUsd(startingPrice[slug])}
+            {formatUsd(pricing.startingPrice[slug])}
           </p>
         </div>
         <span className="flex size-12 items-center justify-center rounded-full border border-line-strong text-accent-text">

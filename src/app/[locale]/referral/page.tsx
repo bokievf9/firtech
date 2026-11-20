@@ -8,12 +8,13 @@ import { Reveal } from '@/components/reveal'
 import { getDict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
-import { fillReferralPercent as fill } from '@/lib/referral'
+import { getPricing } from '@/lib/pricing-store'
+import { fillReferralPercent } from '@/lib/referral'
 import { shareBase } from '@/lib/share'
 import { siteUrl, telegramHandle, telegramUrl } from '@/lib/site'
 
 // Referral page: how it works, the rules and a link generator. The reward share is
-// `referralPercent` (pricing.ts), put into the copy through the `{percent}` token.
+// `referralPercent` (live pricing), put into the copy through the `{percent}` token.
 
 export async function generateMetadata({
   params,
@@ -21,6 +22,8 @@ export async function generateMetadata({
   const { locale } = await params
   if (!isLocale(locale)) return {}
   const t = getDict(locale).referral
+  const pricing = await getPricing()
+  const fill = (text: string) => fillReferralPercent(text, pricing)
   const title = fill(t.metaTitle)
   const description = fill(t.metaDescription)
   return {
@@ -40,6 +43,8 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
   const t = dict.referral
+  const pricing = await getPricing()
+  const fill = (text: string) => fillReferralPercent(text, pricing)
 
   return (
     <>

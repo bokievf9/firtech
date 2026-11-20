@@ -8,6 +8,7 @@ import { trackEvent } from '@/lib/track-event'
 import { leadServiceOf, type Build } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { leadSummary } from '@/lib/estimate-doc'
+import { usePricing } from './pricing-provider'
 import type { Locale } from '@/lib/i18n'
 import { clearDraft, draftReturnPath, draftStorage, hasDraftFlag, loadDraft, saveDraft } from '@/lib/lead-draft'
 import { LeadAccountNote, LeadAuthStep } from './cabinet/lead-auth'
@@ -29,6 +30,7 @@ export function EstimateGate({
 }) {
   const t = dict.builder.pdf
   const c = dict.contact
+  const pricing = usePricing()
   const uid = useId()
   const [open, setOpen] = useState(false)
   const [sent, setSent] = useState(false)
@@ -105,7 +107,7 @@ export function EstimateGate({
           contact: data.contact,
           website: data.website,
           service,
-          estimate: leadSummary(build, dict, locale),
+          estimate: leadSummary(build, dict, locale, pricing),
           message: t.leadNote,
           locale,
           page: (window.location.pathname + window.location.search).slice(0, 600),

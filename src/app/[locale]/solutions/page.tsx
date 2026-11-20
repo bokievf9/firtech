@@ -13,6 +13,7 @@ import { presets, quote } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
+import { getPricing } from '@/lib/pricing-store'
 import { siteUrl } from '@/lib/site'
 import { solutionCopy, type SolutionKind } from '@/lib/solutions'
 import { shareBase } from '@/lib/share'
@@ -45,6 +46,7 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
   const t = dict.solutions
+  const pricing = await getPricing()
 
   const allKinds = kindsByCategory.flatMap((g) => g.kinds).filter((k): k is SolutionKind => k !== 'other')
   const list = {
@@ -54,7 +56,7 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
     itemListElement: allKinds.map((kind, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      name: solutionCopy(kind, locale, dict).title,
+      name: solutionCopy(kind, locale, dict, pricing).title,
       url: `${siteUrl}/${locale}/solutions/${kind}`,
     })),
   }
@@ -83,8 +85,8 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
               </h2>
               <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {kinds.map((kind, i) => {
-                  const q = quote(presets[kind])
-                  const copy = solutionCopy(kind, locale, dict)
+                  const q = quote(presets[kind], pricing)
+                  const copy = solutionCopy(kind, locale, dict, pricing)
                   return (
                     <li key={kind}>
                       <Reveal delay={(i % 3) * 0.06} className="h-full">

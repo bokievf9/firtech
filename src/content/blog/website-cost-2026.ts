@@ -97,10 +97,10 @@ export const websiteCost2026: Article = {
         type: 'p',
         text: 'Сначала короткий бесплатный созвон на 30 минут: разбираемся, что нужно бизнесу. Потом пишем смету, где указаны цена, срок и полный список работ. Всё, что попало в смету, делаем за эту сумму. Если по ходу появляется новая идея, оцениваем её отдельно, и в работу она идёт только с вашего согласия.',
       },
-      { type: 'h2', text: 'Оплата: половина вперёд, половина после приёмки' },
+      { type: 'h2', text: 'Оплата по этапам, каждый этап до его начала' },
       {
         type: 'p',
-        text: 'Платить всю сумму вперёд незнакомому исполнителю рискованно, и мы это понимаем. Поэтому вы платите половину до старта и половину после приёмки, а доступы и исходники передаём после второго платежа. Большие проекты дольше месяца делим на этапы, этапы и платежи записаны в смете. Каждую неделю мы показываем, что уже сделано, так что вы платите за то, что видите.',
+        text: 'Платить всю сумму вперёд незнакомому исполнителю рискованно, и мы это понимаем. Поэтому мы делим работу на этапы: вы платите каждый этап до его начала, а доступы и исходники передаём после последнего платежа. Этапы и суммы записаны в смете, небольшие проекты идут двумя равными этапами. Каждую неделю мы показываем, что уже сделано, так что вы платите за то, что видите.',
       },
       {
         type: 'callout',
@@ -137,7 +137,7 @@ export const websiteCost2026: Article = {
       { type: 'h2', text: 'Коротко' },
       {
         type: 'p',
-        text: `Цена сайта зависит от типа, количества страниц, языков, оплаты и панели для правок. У нас лендинг стоит от ${p.landing}, сайт компании от ${p.company}, интернет-магазин от ${p.shop}. Цену и срок фиксируем в смете до старта, а платите вы половину до старта и половину после приёмки. Если вместе с сайтом нужен Telegram-бот или автоматизация, на комплекс из двух частей и больше действует скидка ${p.bundle}.`,
+        text: `Цена сайта зависит от типа, количества страниц, языков, оплаты и панели для правок. У нас лендинг стоит от ${p.landing}, сайт компании от ${p.company}, интернет-магазин от ${p.shop}. Цену и срок фиксируем в смете до старта, а платите по этапам: каждый этап до его начала, последний до передачи доступов и исходников. Если вместе с сайтом нужен Telegram-бот или автоматизация, на комплекс из двух частей и больше действует скидка ${p.bundle}.`,
       },
       {
         type: 'p',
@@ -232,10 +232,10 @@ export const websiteCost2026: Article = {
         type: 'p',
         text: 'First comes a short free 30 minute call where we work out what the business needs. Then we write a quote with the price, the timeline and the full list of work. Everything in the quote is done for that amount. If a new idea comes up along the way, we price it separately, and it goes ahead only with your agreement.',
       },
-      { type: 'h2', text: 'Payment: half upfront, half on acceptance' },
+      { type: 'h2', text: 'Payment by stages, each before it starts' },
       {
         type: 'p',
-        text: 'Paying the full amount upfront to a developer you do not know yet is risky, and we understand that. So you pay half before we start and half after acceptance, and we hand over access and source files after the second payment. Projects longer than a month are split into stages, and the quote lists the stages and their payments. We show progress every week, so you pay for what you can see.',
+        text: 'Paying the full amount upfront to a developer you do not know yet is risky, and we understand that. So we split the work into stages: you pay each stage before it starts, and we hand over access and source files after the last payment. The quote lists the stages and their amounts, and small projects go in two equal stages. We show progress every week, so you pay for what you can see.',
       },
       {
         type: 'callout',
@@ -272,7 +272,7 @@ export const websiteCost2026: Article = {
       { type: 'h2', text: 'In short' },
       {
         type: 'p',
-        text: `The price of a website depends on its type, the number of pages, languages, payments and an editing panel. With us a landing page starts from ${p.landing}, a company website from ${p.company} and an online store from ${p.shop}. We fix the price and timeline in the quote before we start, and you pay half before we start and half after acceptance. If you need a Telegram bot or automation along with the site, a bundle of two parts or more gets ${p.bundle} off.`,
+        text: `The price of a website depends on its type, the number of pages, languages, payments and an editing panel. With us a landing page starts from ${p.landing}, a company website from ${p.company} and an online store from ${p.shop}. We fix the price and timeline in the quote before we start, and you pay by stages: each stage before it starts and the last one before access and source files are handed over. If you need a Telegram bot or automation along with the site, a bundle of two parts or more gets ${p.bundle} off.`,
       },
       {
         type: 'p',

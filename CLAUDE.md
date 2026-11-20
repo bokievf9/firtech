@@ -24,6 +24,19 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   change them only on the owner's word (current set decided 2026-11-19: below the RU/CIS freelance
   market, extras about half the old prices; `contentPlans` = content subscription, `agentPlans` =
   Dono and Polly).
+  **Editable prices (owner 2026-11-21: «правка всех цен в админке»)**: the numbers in `pricing.ts` are only the
+  DEFAULTS (`defaultPricing`, type `Pricing`: starting prices, `catalog`, `extras`, plans, `bundleDiscount` percent,
+  `referralPercent`, `smallProjectMaxUsd`, `stageShares`). The owner edits every price in the Пульт (Компания, tab «Цены»,
+  ⌘K «Цены»); overrides live in `$DATA_DIR/prices.json` (`pricing-store.ts`: `{overrides, updatedAt, history[200]}`, atomic
+  writes like `golive.json`; **back it up together with `leads.json`**, the daily backup script copies only `leads.json`;
+  delete the file to go back to the defaults). `getPricing()` (server, per-request cached) = defaults + overrides, validated
+  by zod (`pricing-edit.ts`; an invalid override is ignored with a server warning). Every pure helper (`quote`, `estimate`,
+  `stagesFor`, `estimateDoc`, `leadSummary`, `productPrices`, `fillReferralPercent`...) takes a `pricing: Pricing` argument,
+  default `defaultPricing` for tests. Components never import the constants: client code uses `usePricing()`
+  (`PricingProvider` in the locale layout), server code `await getPricing()` (a test greps for this). Blog articles write
+  `{price:...}` tokens (`content/blog/prices.ts`), filled by `allArticles()` from the live pricing. Pages revalidate every
+  300 s (`revalidate` in the locale layout, `/llms.txt`); the save handler calls `revalidatePath('/', 'layout')`. Changing a
+  default in `pricing.ts` still needs the owner's word and a deploy; live edits do not.
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
 - Home page order (stage B1, products lead; `homeSections` in `src/lib/home.ts`, tested): hero
   (`#top`, kinetic headline over a 3D product stage; on lg a 250vh scroll track brings the seven
@@ -58,6 +71,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (owner decision: 10% off the one-time total from two parts) and terms are shown per part, never
   summed. The build lives in `?b=` so it can be shared; the lead arrives as service `bundle` with
   the full list and the link.
+  Payment stages (owner 2026-11-21, replaces 50/50): `paymentStages` and `smallProjectMaxUsd` (300) in `pricing.ts`,
+  pure helpers in `src/lib/payment-stages.ts` (`stagesFor`, `stageTemplateForProduct`; the template of the most
+  expensive part, a total under the limit = two stages 50/50, rounding to whole USD with the remainder on the last
+  stage). `estimateDoc().stages` feeds the stage table (`Этап / Что входит / Доля / Сумма` plus `builder.stageRule`) in
+  the summary and the A4 estimate, and one compact line in `leadSummary` (still within `leadLimit`).
   Eight full-screen steps (business, products, goal, parts, features, style, details, summary); the
   step is in `?step=` (1-based; old `?s=` links map to the new order) with history entries.
   Catalogue: `src/content/builder-catalog.ts` holds every kind (56, in 10 categories; row = emoji,
@@ -84,6 +102,17 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   builder `businessKinds` without `other`; `allSolutionKinds`, copy via `solutionCopy`, the footer lists only the original five): niche pages for search built on `presets[kind]`
   (price from `quote()`, CTA opens the builder with that preset, mockup `BuilderPreview` labelled
   as a concept). Changing a preset changes its page.
+- AI-team pages (2026-11-21, owner: each agent department can be a product on its own or the whole company; pages first,
+  delivery to clients later): `/[locale]/ai-team` (index: flow card, bento of six offers, how it works, live proof block with
+  `ProofLive` from `/api/office/public` labelled «это наш собственный офис», contact) and `/[locale]/ai-team/[id]` (`marketing sales
+  support production backoffice company`; inside agents with a trust chip, routines, how it works, what we need from the client,
+  delivery note, FAQ, others). Ids, department colours and links are in `src/lib/ai-teams.ts`; all text is the `aiTeams` section at the
+  END of `ru.ts`/`en.ts` (same shape). Roles follow COMPANY.md, so a page says the scope goes into the quote. **No prices:**
+  the pages show «По смете» (`aiTeams.quote`) and never a number; CTAs open the builder with `p.aiteam` (`aiTeamBuilderHref`),
+  the receptionist chat (`ChatOpenButton`, source `aiteam*`) and `#contact` («Обсудить»). In `localePages`, the sitemap
+  (`aiTeamPaths`), one footer link in «Продукты» (`footer.pages['ai-team']`) and a strip under the products bento (the seven cards
+  stay seven). Tests: `tests/ai-teams.test.mjs`. Changing a price later = a new line from `pricing.ts`, never typed copy.
+  Every agent is also a product (owner 2026-11-21: «каждого агента можно продавать отдельно»): `agentOffers` in `lib/ai-teams.ts` (19 roles, `standalone: false` only for the Director) with copy in `aiTeams.agents`, pages `/[locale]/ai-team/agent/[id]`, an «Агенты отдела» list on each department page and an «Или один агент» strip plus `#agents` section on the index; the agent CTA sends the lead `source` `agent-<id>` (`AgentDiscuss`), the pages are in the sitemap, the 404 list and `llms.txt`.
 - Blog (`/[locale]/blog`): articles are typed data in `src/content/blog/` (one file each, ru + en).
   Only `published: true` reaches production and the sitemap; drafts show in `next dev` with a
   "Черновик" badge. Publish = set `published: true` and the date. Since 2026-11-19 HQ also publishes
@@ -100,18 +129,18 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   token filled by `fillServicePrice` (`src/lib/seo.ts`); meta descriptions must be 120-160 characters
   and copy must have no long dashes, AI tells or dollar amounts (`tests/site-c.test.mjs`); `/terms`
   (`terms` in the dictionaries, `components/legal-doc.tsx` shared with privacy) is a full draft
-  (2026-11-19: individual contractor without a legal entity, 50% prepayment, USDT TRC20/TON or an
+  (2026-11-19: individual contractor without a legal entity, payment by stages since 2026-11-21, USDT TRC20/TON or an
   online wallet named in the estimate, two rounds of revisions, 7-day acceptance, liability capped
   at the paid amount; contractor «Fir Tech», contact `hello@firtech.pro`, law of Tajikistan, filled
   on the owner's word 2026-11-19; `placeholder` stays in the dictionary for future gaps); `llms.txt`
   comes from the products and `pricing.ts`.
 - Guarantee, referral, comparison (owner decisions 2026-11-19): the money-back sentence («первый экран
-  или первый сценарий не понравился, возвращаем предоплату») is `guarantee.line` in the dictionaries,
+  или первый сценарий не понравился, возвращаем оплату первого этапа») is `guarantee.line` in the dictionaries,
   shown by `components/guarantee-line.tsx` in `#pricing` and the builder summary, in the estimate notes
   (`estimateDoc().guarantee`), in the FAQ, in `llms.txt` (`guarantee.llms`); the rule is the `guarantee`
   section of `terms` (after `payment`, 7 days, full return minus network fees). `/[locale]/referral`
   (`referral` dictionary, link generator `components/referral-link.tsx`) pays `referralPercent`
-  (`pricing.ts`, number 10) of the referred client's estimate; copy carries the `{percent}` token
+  (`pricing.ts`, number 10) of EACH paid stage of the referred client (owner 2026-11-21); copy carries the `{percent}` token
   (`fillReferralPercent` in `src/lib/referral.ts`), never a typed percent. `/[locale]/compare`
   (`comparePage` dictionary, words only, no figures or named competitors). Both are in `localePages`,
   the sitemap and the footer «Студия» column; links from `#pricing` and under the home FAQ.
@@ -160,14 +189,23 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `content-type: application/json` (415) and, when `Origin` is present, the site origin (`NEXT_PUBLIC_SITE_URL`, or
   localhost outside production; 403). The visitor IP (`visitorIp`: `x-real-ip`, else first `x-forwarded-for` hop, like the
   limiters) goes to HQ in header `x-visitor-ip` on every forward (not sent when 'local'). Tests: `tests/audit-2026-11-19.test.mjs`.
-- `GET /api/prices` (`force-static`, `cache-control: public, max-age=600`): `pricesJson()` in `src/lib/prices-json.ts`
-  from `pricing.ts` and `products.ts` (starting prices, catalog, extras, plans, referral percent, products); the agents read it
-  instead of copies. Bump `PRICES_UPDATED_AT` when prices change.
+- `GET /api/prices` (`force-dynamic`, `cache-control: public, max-age=60`): `pricesJson(pricing, updatedAt)` in
+  `src/lib/prices-json.ts` from the LIVE pricing (defaults + the owner's overrides from the Пульт) and `products.ts`
+  (starting prices, catalog, extras, plans, referral percent, `bundleDiscountPercent`, products); the agents read it
+  instead of copies; since 2026-11-21 it also carries `stages` (templates: id, ru/en title, share) and `smallProjectMaxUsd`.
+  `updatedAt` is the last edit in the Пульт (ISO), else `PRICES_UPDATED_AT` (the date of the defaults, 2026-11-21).
+  HQ reloads it every 6 hours, so agents see an edit with that delay (the site cannot push to HQ).
+- `/api/admin/prices` (session + Origin, JSON only): `GET` = defaults, overrides, merged, overridden paths, history (last 50),
+  field list (path, ru label, group, unit, min/max/step); `POST {path, value}`, `{ops:[{path,value}|{reset}]}` (atomic) or
+  `{action:'reset', path?}`; refusals are 422 with a key (`out_of_range:<path>`, `not_integer`, `stage_sum:<template>`...).
+  Tests: `tests/pricing-store.test.mjs`.
 - Security headers (`next.config.ts`, all paths): nosniff, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
   `Permissions-Policy` (microphone only on `/admin/echo`), HSTS in production (nginx sends none, so no duplicate). No CSP yet.
-- Payment copy (owner 2026-11-19): USDT (TRC20/TON) or an online wallet named in the estimate, 50% before the start and 50%
-  after acceptance, stages from the estimate for projects over a month; never cards, Kaspi, Payme, Click as our own methods
-  and never «за каждый этап отдельно». The free audit is promised «в течение рабочего дня после заявки, обычно быстрее».
+- Payment copy (owner 2026-11-19, stages 2026-11-21): USDT (TRC20/TON) or an online wallet named in the estimate; payment by
+  stages, each stage BEFORE it starts and the last before handover (rule sentence `builder.stageRule`), projects under
+  `smallProjectMaxUsd` in two stages 50/50, subscriptions monthly in advance; «50%» appears only in the terms
+  (`{small}` token filled by `fillStageTokens`); the guarantee returns the first stage payment; never cards, Kaspi, Payme,
+  Click as our own methods and never «за каждый этап отдельно». The free audit is promised «в течение рабочего дня после заявки, обычно быстрее».
   The public office maps `blocked` to `waiting`.
 - Env (in `.env.local`, see `.env.example`): `TELEGRAM_BOT_TOKEN` (bot from @BotFather),
   `TELEGRAM_CHAT_ID` (the owner's user id or a group id: send the bot a message, then read
@@ -218,7 +256,8 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   (`src/lib/hq-admin.ts`: `ENDPOINTS`, `CRM_ENDPOINTS`, `PULT_ENDPOINTS`, 5 s timeout, client ids `c:<name>` URL-encoded) to
   `HQ_ADMIN_URL` (default `http://127.0.0.1:8787/admin`, header `x-admin-token: HQ_ADMIN_TOKEN`, falls back to
   `HQ_OFFICE_TOKEN`); unset in development = in-memory mock. Renders: `/api/admin/files/[...path]` (`src/lib/hq-files.ts`,
-  `safeRenderPath`, Range passed, type from the extension, dev SVG placeholder). Go-live plan (owner 2026-11-21): a countdown chip in the top bar, key `8` and ⌘K open the full-screen page `/admin/golive` (shader stage with an odometer `DD : HH : MM : SS` and the 33-item checklist with notes below it, `src/components/admin/golive/`) for the 72-hour timer, stored in `$DATA_DIR/golive.json` (back it up with `leads.json`); API `/api/admin/golive`, logic `src/lib/golive.ts`, list `src/content/golive.ts`, notes in `docs/pult.md`.
+  `safeRenderPath`, Range passed, type from the extension, dev SVG placeholder). Go-live plan (owner 2026-11-21): a countdown chip in the top bar, key `8` and ⌘K open the full-screen page `/admin/golive` (shader stage with an odometer `DD : HH : MM : SS` and the 41-item checklist with notes below it, `src/components/admin/golive/`) for the 72-hour timer, stored in `$DATA_DIR/golive.json` (back it up with `leads.json`); API `/api/admin/golive`, logic `src/lib/golive.ts`, list `src/content/golive.ts`, notes in `docs/pult.md`.
+- Review centre and chats (owner 2026-11-21, `docs/pult.md` «Ревью-центр и чаты»): `/admin/review` is a full-screen editing-room page (departments rail with `counts`, 9:16 video / carousel / document stage, text fields read-only until `E`, versions v1/v2, revise note, keys A E R X P T S C J K, the optimistic decision flow, the Trendwatcher link composer) and `/admin/chats` the client threads with owner replies, both over the same whitelist proxy (`REVIEW_ENDPOINTS` in `src/lib/hq-admin.ts`, view models `src/lib/review.ts` and `src/lib/chats.ts`, dev mock `src/lib/review-mock.ts`). The office top bar has the chips «Ревью N» and «Чаты N» (keys `9`, `0`, ⌘K); the old approvals list in the Director panel links to the review centre.
 - Site events (pult v3 part C): `trackEvent(name)` (`src/lib/track-event.ts`, pure helpers `src/lib/site-events.ts`) POSTs
   same-origin to `/api/events` (JSON only, origin check, 120 per IP per minute), which forwards to HQ `POST /events` (header
   `x-site-token` = `SITE_EVENTS_TOKEN`, else `HQ_CHAT_TOKEN`; URL `HQ_EVENTS_URL`, else the origin of `HQ_CHAT_URL` + `/events`;
@@ -328,7 +367,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   removed after setup). Telegram webhook is set.
 - Cron (user `deploy`, UTC): `*/5` `scripts/ops/watch.mjs` (public + local health, SSL expiry;
   Telegram on down/up changes only; cannot report a dead server, an external monitor would) and
-  daily 03:15 `scripts/ops/backup.mjs` (14 dated copies in `shared/backups`, `leads.json` to the
+  daily 03:15 `scripts/ops/backup.mjs` (14 dated copies in `shared/backups`, `leads.json` (plus dated copies of `prices.json` and `golive.json`) to the
   owner's Telegram when it changed). Log: `shared/ops.log`.
 - GitHub (since 2026-10-19): private repo `bokievf9/firtech`, remote `origin`, over HTTPS (the SSH
   config maps github.com to Vibely's deploy key, so SSH would use the wrong key). **Pushing to

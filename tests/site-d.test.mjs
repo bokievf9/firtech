@@ -2,9 +2,14 @@
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { registerHooks } from 'node:module'
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
+
+// The live prices read $DATA_DIR/prices.json: point it at an empty folder so the defaults apply.
+process.env.DATA_DIR = mkdtempSync(path.join(tmpdir(), 'prices-'))
 
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
@@ -166,13 +171,13 @@ test('guarantee: pricing, builder summary, estimate notes, FAQ, terms, llms.txt'
   assert.equal(doc.guarantee, ru.guarantee.line)
   assert.match(readFileSync('src/components/estimate-sheet.tsx', 'utf8'), /doc\.guarantee/)
   for (const [name, dict] of dicts) {
-    assert.ok(dict.faq.items.some((i) => /guarantee|prepayment/i.test(i.a) || /предоплат/.test(i.a)), `faq ${name}`)
+    assert.ok(dict.faq.items.some((i) => /first stage payment/i.test(i.a) || /оплату первого этапа/.test(i.a)), `faq ${name}`)
     const ids = dict.terms.sections.map((s) => s.id)
     assert.equal(ids[ids.indexOf('payment') + 1], 'guarantee', name)
     const sec = dict.terms.sections.find((s) => s.id === 'guarantee')
     assert.match(sec.text.join(' '), /7/, name)
   }
   const { GET } = await import('../src/app/llms.txt/route.ts')
-  const body = await GET().text()
+  const body = await (await GET()).text()
   assert.ok(body.includes(ru.guarantee.llms) && body.includes(en.guarantee.llms))
 })

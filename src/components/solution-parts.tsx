@@ -2,7 +2,8 @@ import type { Dict } from '@/content'
 import { builderUi, pick, productCatalog } from '@/content/builder-catalog'
 import { quote, presets } from '@/lib/builder'
 import { cn } from '@/lib/cn'
-import { bundleDiscount, formatUsd } from '@/lib/pricing'
+import { formatUsd } from '@/lib/pricing'
+import { getPricing } from '@/lib/pricing-store'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
 import type { SolutionKind } from '@/lib/solutions'
 
@@ -15,7 +16,7 @@ function isService(id: string): id is ServiceSlug {
 // The kind's builder preset as a readable list: each part with its format, options, term and price,
 // then the one-time total (with the bundle discount when it applies) and the monthly extras apart.
 // Terms stay per part and are never summed, like in the builder.
-export function SolutionSet({
+export async function SolutionSet({
   kind,
   dict,
   locale,
@@ -27,7 +28,8 @@ export function SolutionSet({
   const t = dict.solutions
   const b = dict.builder
   const build = presets[kind]
-  const q = quote(build)
+  const pricing = await getPricing()
+  const q = quote(build, pricing)
 
   return (
     <div className="rounded-card border border-line bg-surface p-5 md:p-8">
@@ -109,7 +111,7 @@ export function SolutionSet({
             <Row label={b.subtotal} value={formatUsd(q.subtotal)} className="text-muted" />
             <Row
               label={b.discount}
-              value={`-${Math.round(bundleDiscount * 100)}%`}
+              value={`-${Math.round(pricing.bundleDiscount)}%`}
               className="text-accent-text"
             />
           </>

@@ -13,13 +13,16 @@ import {
 } from '../content/builder-catalog'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
 import { usesAxes } from './builder-style'
-import { bundleDiscount, formatUsd } from './pricing'
+import { stagesFor } from './payment-stages'
+import { defaultPricing, formatUsd, type Pricing } from './pricing'
 import { serviceSlugs, siteUrl, type ServiceSlug } from './site'
 
 // The printable estimate (`/[locale]/builder/estimate?b=...`): the same quote as the builder's
 // summary, turned into labelled rows. Pure, so the numbers can be tested without a browser.
 
 export type EstimateRow = { id: string; name: string; detail: string; term: string; price: string }
+
+export type StageRow = { id: string; n: number; name: string; share: string; amount: string }
 
 export type BriefRow = { id: string; label: string; value: string }
 export type Brief = { goals: BriefRow[]; style: BriefRow[]; details: BriefRow[] }
@@ -37,6 +40,8 @@ export type EstimateDoc = {
   discount: string | null
   total: string
   monthly: string | null
+  // Payment stages with amounts (owner decision 2026-11-21); empty when nothing is priced.
+  stages: StageRow[]
   // The money-back guarantee sentence for the footer notes (dictionary `guarantee.line`).
   guarantee: string
   // What is not in the price (domain, hosting, paid third-party services), per the brief.
@@ -63,8 +68,13 @@ export function scopeLine(build: Build, dict: Dict) {
 const isService = (id: string): id is ServiceSlug =>
   (serviceSlugs as readonly string[]).includes(id)
 
-export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateDoc {
-  const q = quote(build)
+export function estimateDoc(
+  build: Build,
+  dict: Dict,
+  locale: string,
+  pricing: Pricing = defaultPricing,
+): EstimateDoc {
+  const q = quote(build, pricing)
   const parts: EstimateRow[] = []
   const extras: EstimateRow[] = []
   for (const line of q.lines) {
@@ -105,10 +115,17 @@ export function estimateDoc(build: Build, dict: Dict, locale: string): EstimateD
     parts,
     extras,
     subtotal: formatUsd(q.subtotal),
-    discount: q.discount ? `-${Math.round(bundleDiscount * 100)}%` : null,
+    discount: q.discount ? `-${Math.round(pricing.bundleDiscount)}%` : null,
     // No priced lines: nothing to sum, the quote says so instead of showing zero.
     total: q.lines.length ? formatUsd(q.total) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
+    stages: stagesFor(build, q.total, pricing).map((stage, i) => ({
+      id: stage.id,
+      n: i + 1,
+      name: stage.title[locale === 'ru' ? 'ru' : 'en'],
+      share: `${stage.share}%`,
+      amount: formatUsd(stage.amountUsd),
+    })),
     guarantee: dict.guarantee.line,
     scope: scopeLine(build, dict),
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,
@@ -205,10 +222,15 @@ export const leadLimit = 1500
 
 // What the contact form receives from the builder: the quote line by line, then the brief in a few
 // compact lines. The wish goes last and is the part shortened if the whole would not fit.
-export function leadSummary(build: Build, dict: Dict, locale: string) {
+export function leadSummary(
+  build: Build,
+  dict: Dict,
+  locale: string,
+  pricing: Pricing = defaultPricing,
+) {
   const t = dict.builder
-  const doc = estimateDoc(build, dict, locale)
-  const q = quote(build)
+  const doc = estimateDoc(build, dict, locale, pricing)
+  const q = quote(build, pricing)
   const ui = builderUi
   const lines: string[] = []
   if (doc.kind) lines.push(`${pick(ui.kindLabel, locale)}: ${doc.kind}`)
@@ -225,6 +247,10 @@ export function leadSummary(build: Build, dict: Dict, locale: string) {
       `${pick(ui.onRequestLabel, locale)}: ${doc.onRequest.map((row) => row.name).join(', ')}`,
     )
   if (doc.monthly) lines.push(`${dict.extras.items.support.name}: ${doc.monthly}`)
+  if (doc.stages.length)
+    lines.push(
+      `${t.stageLead}: ${doc.stages.map((s) => `${s.n}. ${s.amount} (${s.share})`).join(', ')}`,
+    )
   lines.push(doc.scope)
   const { goals, style, details } = doc.brief
   for (const row of goals) lines.push(`${row.label}: ${row.value}`)

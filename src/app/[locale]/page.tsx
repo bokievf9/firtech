@@ -12,8 +12,9 @@ import { getDict } from '@/content'
 import { homeSections, type HomeSection } from '@/lib/home'
 import { isLocale } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
-import { productIds, productPrice } from '@/lib/products'
-import { lowestPrice } from '@/lib/seo'
+import { getPricing } from '@/lib/pricing-store'
+import { productIds, productPrices } from '@/lib/products'
+import { lowestPriceOf } from '@/lib/seo'
 import { siteUrl } from '@/lib/site'
 import { notFound } from 'next/navigation'
 
@@ -23,6 +24,8 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   const { locale } = await params
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
+  const pricing = await getPricing()
+  const productPrice = productPrices(pricing)
 
   const organization = {
     '@context': 'https://schema.org',
@@ -31,7 +34,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     url: `${siteUrl}/${locale}`,
     description: dict.meta.description,
     areaServed: ['TJ', 'UZ', 'KZ', 'KG', 'RU', 'Worldwide'],
-    priceRange: `${formatUsd(lowestPrice)}+`,
+    priceRange: `${formatUsd(lowestPriceOf(pricing))}+`,
     hasOfferCatalog: {
       '@type': 'OfferCatalog',
       name: dict.products.title,

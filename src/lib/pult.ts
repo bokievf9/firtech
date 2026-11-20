@@ -59,7 +59,7 @@ export const PANEL_TABS: Record<PanelId, readonly string[]> = {
   support: ['tickets'],
   production: ['projects'],
   backoffice: ['invoices', 'documents', 'referrals', 'reviews'],
-  company: ['company'],
+  company: ['company', 'prices'],
 }
 
 export const isPanel = (v: unknown): v is PanelId => typeof v === 'string' && (PANELS as readonly string[]).includes(v)

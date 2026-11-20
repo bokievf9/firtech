@@ -1,9 +1,14 @@
 import { pricesJson } from '@/lib/prices-json'
+import { getPricesUpdatedAt, getPricing } from '@/lib/pricing-store'
 
-// Public prices for the agents (presales, prospector, content): numbers from pricing.ts and
-// products.ts, no dynamic input, so the answer is static for each build.
-export const dynamic = 'force-static'
+// Public prices for the agents (presales, prospector, content): the live prices (pricing.ts defaults
+// plus the owner's overrides from the Пульт), so the answer can change without a deploy. HQ reads
+// it on its own interval; the cache header keeps it from being fetched more than once a minute.
+export const dynamic = 'force-dynamic'
 
-export function GET() {
-  return Response.json(pricesJson(), { headers: { 'cache-control': 'public, max-age=600' } })
+export async function GET() {
+  const [pricing, updatedAt] = await Promise.all([getPricing(), getPricesUpdatedAt()])
+  return Response.json(pricesJson(pricing, updatedAt), {
+    headers: { 'cache-control': 'public, max-age=60' },
+  })
 }

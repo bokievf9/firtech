@@ -1,6 +1,6 @@
 'use client'
 
-import { CloudSlash, Desktop, Lifebuoy, MagnifyingGlass, PaperPlaneTilt, SealCheck, UserPlus, Wallet } from '@phosphor-icons/react'
+import { ChatCircleText, CloudSlash, Desktop, Lifebuoy, MagnifyingGlass, PaperPlaneTilt, SealCheck, Stack, UserPlus, Wallet } from '@phosphor-icons/react'
 import { MotionConfig } from 'motion/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -54,6 +54,8 @@ import {
 } from '@/lib/pult'
 import { loadedContent } from '@/components/admin/pult/content'
 import { deptTheme } from '@/lib/pult-theme'
+import { normalizeChats } from '@/lib/chats'
+import { normalizeReview, pendingTotal } from '@/lib/review'
 import { goliveText } from '@/content/golive'
 import { GoliveChip, useGolive } from './golive'
 import { CommandPalette, type PaletteItem } from './command-palette'
@@ -152,7 +154,8 @@ function Presence({ view, busy, onChange }: { view: PresenceView | null; busy: b
   )
 }
 
-export function Hub() {
+// `initial` comes from `/admin/office?panel=sales&tab=leads&focus=12` (links from the review centre and chats).
+export function Hub({ initial = null }: { initial?: { panel: string; tab?: string; focus?: string | null } | null }) {
   const now = useNow()
   const [toast, setToast] = useState<ToastMessage | null>(null)
   const notify = useCallback((text: string, tone: ToastMessage['tone'] = 'info') => {
@@ -163,7 +166,11 @@ export function Hub() {
   const router = useRouter()
 
   // ---- panel state ----
-  const [open, setOpen] = useState<Open | null>(null)
+  const [open, setOpen] = useState<Open | null>(() => {
+    if (!initial || !isPanel(initial.panel)) return null
+    const tabs = PANEL_TABS[initial.panel]
+    return { panel: initial.panel, tab: initial.tab && tabs.includes(initial.tab) ? initial.tab : tabs[0]!, focus: initial.focus ?? null, key: 1 }
+  })
   const [paletteOpen, setPaletteOpen] = useState(false)
   const size = useSyncExternalStore(panelSize.subscribe, panelSize.get, panelSize.server)
   const openPanel = useCallback((panel: string, tab?: string, focus: string | null = null) => {
@@ -174,6 +181,9 @@ export function Hub() {
   const closePanel = useCallback(() => setOpen(null), [])
   // The go-live plan is a full-screen page (key 8, the top bar chip, ⌘K).
   const openGolive = useCallback(() => router.push('/admin/golive'), [router])
+  // The review centre (key 9) and the client chats (key 0) are full-screen pages too.
+  const openReview = useCallback(() => router.push('/admin/review'), [router])
+  const openChats = useCallback(() => router.push('/admin/chats'), [router])
 
   // ---- presence (kept by pinging while the page is visible) ----
   const lastPresence = useRef<PresenceView | null>(null)
@@ -227,6 +237,8 @@ export function Hub() {
   const depts = usePoll<Items<HqDepartment>>('departments', { visible: 300_000, hidden: 600_000 })
   const summary = useHqView('crm/summary', normalizeSummary, { visible: 30_000, hidden: 120_000 })
   const leads = useHqView('crm/leads?limit=200', normalizeLeads, { visible: 30_000, hidden: 120_000 })
+  const review = useHqView('review?status=pending&limit=1', normalizeReview, { visible: 15_000, hidden: 60_000 })
+  const chats = useHqView('chats?status=open&limit=1', normalizeChats, { visible: 15_000, hidden: 60_000 })
   const unpaid = useHqView('crm/invoices?status=issued&limit=200', normalizeInvoices, { visible: 60_000, hidden: 300_000 })
 
   const [filter, setFilter] = useState<BoardFilter>({ dept: null, assigneeId: null })
@@ -332,6 +344,8 @@ export function Hub() {
   const newLeads = leads.view ? leads.view.items.filter((l) => l.stage === 'new').length : null
   const waitingPay = unpaid.view ? unpaid.view.items.filter((i) => i.status === 'issued').length : null
   const openTickets = summary.view?.tickets.available ? summary.view.tickets.open : null
+  const reviewPending = review.view ? pendingTotal(review.view.counts) : null
+  const chatsUnread = chats.view ? chats.view.unread : null
   const crmBadges = summaryBadges(summary.view)
   const counters = [
     { id: 'approvals', dept: 'director' as PanelId, icon: SealCheck, n: pendingApprovals, label: h.counters.approvals, go: () => openPanel('director', 'approvals') },
@@ -366,6 +380,12 @@ export function Hub() {
         openGolive()
         return
       }
+      if (e.key === '9' || e.key === '0') {
+        e.preventDefault()
+        if (e.key === '9') openReview()
+        else openChats()
+        return
+      }
       const panel = panelForKey(e.key)
       if (panel) {
         e.preventDefault()
@@ -374,7 +394,7 @@ export function Hub() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, paletteOpen, openPanel, openGolive])
+  }, [open, paletteOpen, openPanel, openGolive, openReview, openChats])
 
   // ---- palette entries ----
   const paletteEntries = useMemo<PaletteItem[]>(() => {
@@ -414,8 +434,10 @@ export function Hub() {
       { id: 'cmd:release', group: p.groups.commands, title: p.commands.release, hint: p.commands.releaseHint, dept: 'director', run: () => void command('approve') },
     ]
     const goliveEntry: PaletteItem = { id: 'panel:golive', group: p.groups.panels, title: goliveText.title, hint: '8', dept: 'company', keywords: 'запуск таймер чеклист 72 часа', run: openGolive }
-    return [...panels, goliveEntry, ...commands, ...tabs]
-  }, [openPanel, openGolive, command, notify, refreshAll])
+    const reviewEntry: PaletteItem = { id: 'page:review', group: p.groups.panels, title: 'Ревью-центр', hint: '9', dept: 'marketing', keywords: 'ревью одобрить рилсы правки выкладывай материалы тренды ссылка', run: openReview }
+    const chatsEntry: PaletteItem = { id: 'page:chats', group: p.groups.panels, title: 'Чаты с клиентами', hint: '0', dept: 'sales', keywords: 'чаты переписка клиенты ответить сообщения', run: openChats }
+    return [...panels, goliveEntry, reviewEntry, chatsEntry, ...commands, ...tabs]
+  }, [openPanel, openGolive, openReview, openChats, command, notify, refreshAll])
 
   const contentEntries = useCallback(
     (): PaletteItem[] =>
@@ -482,6 +504,26 @@ export function Hub() {
             ) : null}
             <Presence view={view} busy={presenceBusy} onChange={setPresence} />
             <GoliveChip state={golive.data?.state ?? null} />
+            <Link
+              href="/admin/review"
+              title="Ревью-центр (9)"
+              aria-label={`Ревью: ждут решения ${reviewPending ?? '?'}`}
+              className={cn('inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-sm tabular-nums transition-colors', reviewPending ? cn(deptTheme('marketing').cls.soft, deptTheme('marketing').cls.border, 'text-fg') : 'border-line bg-surface/80 text-muted hover:text-fg')}
+            >
+              <Stack size={16} weight={reviewPending ? 'fill' : 'regular'} aria-hidden="true" className={reviewPending ? deptTheme('marketing').cls.text : ''} />
+              <span className="hidden sm:inline">Ревью</span>
+              {reviewPending ?? '·'}
+            </Link>
+            <Link
+              href="/admin/chats"
+              title="Чаты с клиентами (0)"
+              aria-label={`Чаты: непрочитанных ${chatsUnread ?? '?'}`}
+              className={cn('inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-sm tabular-nums transition-colors', chatsUnread ? cn(deptTheme('sales').cls.soft, deptTheme('sales').cls.border, 'text-fg') : 'border-line bg-surface/80 text-muted hover:text-fg')}
+            >
+              <ChatCircleText size={16} weight={chatsUnread ? 'fill' : 'regular'} aria-hidden="true" className={chatsUnread ? deptTheme('sales').cls.text : ''} />
+              <span className="hidden sm:inline">Чаты</span>
+              {chatsUnread ?? '·'}
+            </Link>
             <nav aria-label={h.counters.label} className="order-last grid w-full grid-cols-4 gap-1.5 lg:order-none lg:ml-auto lg:flex lg:w-auto lg:items-center lg:gap-1">
               {counters.map(({ id, dept, icon: CIcon, n, label, go }) => (
                 <button

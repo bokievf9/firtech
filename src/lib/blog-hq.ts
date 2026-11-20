@@ -1,5 +1,7 @@
 import 'server-only'
 import { articles as bundled, showDrafts } from '../content/blog/index'
+import { fillArticlePrices } from '../content/blog/prices'
+import { getPricing } from './pricing-store'
 import type { Article, ArticleContent, Block, ListItem } from '../content/blog/types'
 
 const DEFAULT_URL = 'http://127.0.0.1:8787/blog'
@@ -135,7 +137,13 @@ export async function allArticles(
   fetcher: typeof fetch = fetch,
   drafts = showDrafts,
 ): Promise<Article[]> {
-  return mergeArticles(await fetchHqArticles(env, fetcher), bundled, drafts)
+  // The bundled articles carry price tokens; the live pricing fills them (owner edits, no deploy).
+  const pricing = await getPricing()
+  return mergeArticles(
+    await fetchHqArticles(env, fetcher),
+    bundled.map((article) => fillArticlePrices(article, pricing)),
+    drafts,
+  )
 }
 
 export async function findArticle(slug: string): Promise<Article | undefined> {
