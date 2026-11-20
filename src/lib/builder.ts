@@ -230,7 +230,7 @@ export function toggleProduct(build: Build, id: ProductId): Build {
   const out: Build = { ...build, parts }
   if (next.length) out.products = next
   else delete out.products
-  return out
+  return withSiteLanguage(out)
 }
 
 // A kind's starting set replaces kind, products, parts and extras; the brief the visitor already
@@ -240,7 +240,29 @@ export function applyKind(build: Build, id: BusinessKind): Build {
   const next: Build = { ...build, ...preset }
   if (!preset.products) delete next.products
   if (!build.goals?.length && kindCatalog[id].goals.length) next.goals = [...kindCatalog[id].goals]
-  return next
+  return withSiteLanguage(next)
+}
+
+// Two or more languages already chosen on the details screen keep the paid "second language"
+// option on a website that joins the build later (another kind, product or part picked after).
+export function withSiteLanguage(build: Build): Build {
+  const site = build.parts.websites
+  if (!site || (build.details?.langs?.length ?? 0) < 2 || site.addons.includes('language'))
+    return build
+  return {
+    ...build,
+    parts: { ...build.parts, websites: { ...site, addons: [...site.addons, 'language'] } },
+  }
+}
+
+// A link that is exactly a starting set (a kind's preset or one product's parts, as the solution
+// and product cards build them) and nothing else: the visitor has not configured anything yet.
+export function isStartingSet(build: Build): boolean {
+  const code = encodeBuild(build)
+  return (
+    businessKinds.some((id) => encodeBuild(presets[id]) === code) ||
+    productIds.some((id) => encodeBuild(toggleProduct(emptyBuild, id)) === code)
+  )
 }
 
 export type QuoteLine = { id: ServiceSlug | BuildExtra; price: number }
@@ -401,7 +423,7 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       continue
     }
     const slug = serviceSlugs.find((s) => s === head)
-    if (!slug || !(second in catalog[slug].variants)) continue
+    if (!slug || !Object.hasOwn(catalog[slug].variants, second)) continue
     build.parts[slug] = {
       variant: second,
       addons: keepKnown(third, Object.keys(catalog[slug].addons)),

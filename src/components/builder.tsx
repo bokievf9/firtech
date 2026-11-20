@@ -12,10 +12,12 @@ import {
   decodeBuild,
   emptyBuild,
   encodeBuild,
+  isStartingSet,
   leadServiceOf,
   productsOnRequest,
   quote,
   toggleProduct,
+  withSiteLanguage,
   type Build,
   type BuildExtra,
   type BusinessKind,
@@ -62,8 +64,15 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const [atForm, setAtForm] = useState(false)
   const [sheet, setSheet] = useState(false)
   const [ready, setReady] = useState(false)
-  const heading = useRef<HTMLHeadingElement>(null)
+  const focusNext = useRef(false)
   const moved = useRef(false)
+  // The new screen mounts after the old one has left (AnimatePresence "wait"), so its title is
+  // focused the moment it mounts instead of on a timer that can fire before that.
+  const heading = useCallback((el: HTMLHeadingElement | null) => {
+    if (!el || !focusNext.current) return
+    focusNext.current = false
+    el.focus({ preventScroll: true })
+  }, [])
 
   const kind = build.kind ?? null
   const hasParts = Object.keys(build.parts).length > 0
@@ -88,7 +97,10 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     const shared = decodeBuild(params.get('b'))
     const asked = stepFromQuery(params)
     const parts = shared ? Object.keys(shared.parts).length > 0 || Boolean(shared.products) : false
-    let next = asked !== null && asked < total ? asked : shared ? SUMMARY : 0
+    // A card's starting set (kind preset or product, no step) opens on the products step, a
+    // shared finished build on the summary.
+    const fallback = shared ? (isStartingSet(shared) ? PRODUCTS : SUMMARY) : 0
+    let next = asked !== null && asked < total ? asked : fallback
     if (next > PARTS && !parts) next = shared ? PARTS : 0
     /* eslint-disable react-hooks/set-state-in-effect -- one-time sync from the URL */
     if (shared) setBuildState(shared)
@@ -107,6 +119,15 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     if (!ready) return
     window.history.replaceState(window.history.state, '', urlFor(build, step))
   }, [build, step, urlFor, ready])
+
+  // Back and Forward land on the top of a step, not on the scroll position the browser remembers.
+  useEffect(() => {
+    const previous = window.history.scrollRestoration
+    window.history.scrollRestoration = 'manual'
+    return () => {
+      window.history.scrollRestoration = previous
+    }
+  }, [])
 
   // Browser Back and Forward walk the steps.
   useEffect(() => {
@@ -137,9 +158,8 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   useEffect(() => {
     if (!moved.current) return
     moved.current = false
+    focusNext.current = true
     window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
-    const id = window.setTimeout(() => heading.current?.focus({ preventScroll: true }), reduce ? 0 : 380)
-    return () => window.clearTimeout(id)
   }, [step, reduce])
 
   const setBuild = useCallback((update: (b: Build) => Build) => setBuildState(update), [])
@@ -176,7 +196,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
       const parts = { ...b.parts }
       if (parts[slug]) delete parts[slug]
       else parts[slug] = { variant: Object.keys(catalog[slug].variants)[0] ?? '', addons: [] }
-      return { ...b, parts }
+      return withSiteLanguage({ ...b, parts })
     })
   }
 

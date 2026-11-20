@@ -359,7 +359,7 @@ export function DetailsStep({
           />
           <span
             className={cn(
-              'w-24 shrink-0 text-right font-mono text-lg',
+              'w-28 shrink-0 text-right font-mono text-lg whitespace-nowrap',
               d.pages ? 'text-accent-text' : 'text-faint',
             )}
           >
