@@ -17,7 +17,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 
 ## Structure
 - `src/app/[locale]/`: pages for `ru` and `en` (home, `services/[slug]` for websites, bots, apps,
-  automation), all statically generated. `src/proxy.ts` sends `/` to the visitor's language.
+  automation), all statically generated. `src/proxy.ts` sends `/` and every bare known page (`/terms`, `/privacy`, `/pay-how`, `/services/*`... list `bareLocalePages` in `lib/i18n.ts`, tested in `tests/bare-paths.test.mjs`) to the visitor's language, keeping the path and query.
 - `src/content/ru.ts` and `en.ts`: every visible text. `en` is typed against `ru`, so both must keep
   the same shape. No em or en dashes in copy (use a hyphen).
 - `src/lib/pricing.ts`: starting prices and calculator prices in USD. **Prices are owner decisions**:

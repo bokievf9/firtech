@@ -24,3 +24,14 @@ export function pickLocale(acceptLanguage: string | null): Locale {
   }
   return 'en'
 }
+
+// First path segments of the pages that live under /ru and /en. A bare link to one of them
+// (`https://firtech.pro/terms` in a contract or an offer) goes to the visitor's language like "/".
+export const bareLocalePages = [
+  'terms', 'privacy', 'pay-how', 'compare', 'referral', 'audit', 'status', 'builder', 'blog', 'ai-team', 'cabinet', 'solutions', 'services',
+] as const
+
+export function isBareLocalePath(pathname: string): boolean {
+  const first = pathname.split('/')[1] ?? ''
+  return (bareLocalePages as readonly string[]).includes(first)
+}

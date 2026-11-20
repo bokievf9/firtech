@@ -230,7 +230,7 @@ test('without Supabase env the cabinet is switched off and every page shows the 
 
 test('proxy keeps the "/" redirect and refreshes sessions on cabinet routes only', () => {
   const code = readFileSync('src/proxy.ts', 'utf8')
-  assert.match(code, /matcher: \['\/', '\/\(ru\|en\)\/cabinet', '\/\(ru\|en\)\/cabinet\/:path\*'\]/)
+  assert.match(code, /matcher: \[[^\]]*'\/',[^\]]*'\/\(ru\|en\)\/cabinet',\s*'\/\(ru\|en\)\/cabinet\/:path\*',?\s*\]/)
   assert.match(code, /pickLocale/)
   for (const f of ['server', 'client', 'middleware']) assert.ok(existsSync(`src/lib/supabase/${f}.ts`), f)
 })
