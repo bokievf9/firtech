@@ -57,6 +57,15 @@ export default async function TermsPage({ params }: PageProps<'/[locale]/terms'>
               {t.privacyLink}
             </Link>
           </p>
+        ) : section.id === 'payment' ? (
+          <p>
+            <Link
+              href={`/${locale}/pay-how`}
+              className="text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
+            >
+              {dict.payHow.title}
+            </Link>
+          </p>
         ) : null
       }
     />

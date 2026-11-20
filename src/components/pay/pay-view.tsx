@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
@@ -275,6 +276,14 @@ export function PayView({
         {t.warning}
       </p>
       <p className="mt-6 text-[15px] leading-relaxed text-muted">{t.auto}</p>
+      <p className="mt-2 text-[15px]">
+        <Link
+          href={`/${locale}/pay-how`}
+          className="text-accent-text underline underline-offset-4 hover:text-fg"
+        >
+          {t.howLink}
+        </Link>
+      </p>
       <p className="mt-2 text-[13px] text-faint" role="status">
         {t.checking}
       </p>

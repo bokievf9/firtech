@@ -105,7 +105,17 @@ export function InvoicesCard({ data, dict, locale }: { data: CabinetData; dict: 
   return (
     <Card title={c.invoices} id="cabinet-invoices">
       {data.invoices.length === 0 ? (
-        <Empty>{c.noInvoices}</Empty>
+        <>
+          <Empty>{c.noInvoices}</Empty>
+          <p className="mt-3 text-[13px]">
+            <Link
+              href={`/${locale}/pay-how`}
+              className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
+            >
+              {c.payHow}
+            </Link>
+          </p>
+        </>
       ) : (
         <ul className="grid gap-3">
           {data.invoices.map((i) => (
@@ -130,6 +140,12 @@ export function InvoicesCard({ data, dict, locale }: { data: CabinetData; dict: 
                     className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
                   >
                     {c.payTerms}
+                  </Link>{' '}
+                  <Link
+                    href={`/${locale}/pay-how`}
+                    className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
+                  >
+                    {c.payHow}
                   </Link>
                 </p>
               )}

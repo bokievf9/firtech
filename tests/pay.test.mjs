@@ -169,7 +169,7 @@ test('amount formatting: always two decimals, cents note only when different', (
 
 test('sitemap: payment pages are not listed', async () => {
   const urls = (await sitemap()).map((e) => e.url)
-  assert.equal(urls.some((u) => u.includes('/pay')), false)
+  assert.equal(urls.some((u) => /\/pay(\/|$)/.test(u)), false)
 })
 
 test('copy: pay section exists in both locales with the same shape, no dashes or dollars', () => {
