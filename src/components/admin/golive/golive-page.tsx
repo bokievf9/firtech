@@ -18,26 +18,15 @@ import { StageField, type StageFieldHandle } from './stage-field'
 
 const ease = [0.23, 1, 0.32, 1] as const
 
-function Pair({ a, b, labels, dir, reduce, digitsA = 2 }: { a: number; b: number; labels: [string, string]; dir: 1 | -1; reduce: boolean; digitsA?: number }) {
-  const cells = [
-    { v: a, label: labels[0], digits: digitsA, key: 'a' },
-    { v: b, label: labels[1], digits: 2, key: 'b' },
-  ]
+function Cell({ v, label, digits, dir, reduce }: { v: number; label: string; digits: number; dir: 1 | -1; reduce: boolean }) {
   return (
-    <div className="flex items-start">
-      {cells.map((c, i) => (
-        <div key={c.key} className="flex items-start">
-          {i === 1 ? <Colon /> : null}
-          <div className="flex flex-col items-center">
-            <span className="flex leading-none">
-              {[...String(c.v).padStart(c.digits, '0')].map((ch, k) => (
-                <Digit key={k} value={Number(ch)} dir={dir} reduce={reduce} />
-              ))}
-            </span>
-            <span className="mt-[0.35em] font-sans text-xs font-normal tracking-wide text-fg/80 sm:text-sm">{c.label}</span>
-          </div>
-        </div>
-      ))}
+    <div className="flex flex-col items-center">
+      <span className="flex leading-none">
+        {[...String(v).padStart(digits, '0')].map((ch, k) => (
+          <Digit key={k} value={Number(ch)} dir={dir} reduce={reduce} />
+        ))}
+      </span>
+      <span className="mt-[0.35em] font-sans text-xs font-normal tracking-wide text-fg/80 sm:text-sm">{label}</span>
     </div>
   )
 }
@@ -48,24 +37,30 @@ const Colon = ({ className }: { className?: string }) => (
   </span>
 )
 
+// Hours : minutes : seconds, hours being the whole hours left (72 : 00 : 00 at the start). On a phone the
+// hours sit on the first row and minutes : seconds on the second; from md up it is one row.
 function Clock({ r, started, reduce }: { r: Remaining; started: boolean; reduce: boolean }) {
   const dir = r.over ? 1 : -1
-  const v = started ? r : { days: 3, hours: 0, minutes: 0, seconds: 0 }
-  const label = `${v.days} ${t.units[0]}, ${v.hours} ${t.units[1]}, ${v.minutes} ${t.units[2]}, ${v.seconds} ${t.units[3]}`
+  const v = started ? r : { hours: GOLIVE_HOURS, minutes: 0, seconds: 0 }
+  const label = `${v.hours} ${t.units[0]}, ${v.minutes} ${t.units[1]}, ${v.seconds} ${t.units[2]}`
   return (
     <div
       role="timer"
       aria-label={label}
       style={{ fontSize: 'var(--golive-fs)' }}
       className={cn(
-        'flex flex-col items-center gap-[0.5em] font-brand font-semibold tabular-nums transition-[opacity,color] duration-500 [--golive-fs:min(21vw,13svh)] md:flex-row md:items-start md:gap-0 md:[--golive-fs:min(12vw,30svh)]',
+        'flex flex-col items-center gap-[0.5em] font-brand font-semibold tabular-nums transition-[opacity,color] duration-500 [--golive-fs:min(21vw,13svh)] md:flex-row md:items-start md:gap-0 md:[--golive-fs:min(14vw,30svh)]',
         r.over && started ? 'text-danger' : 'text-fg',
         !started && 'opacity-40',
       )}
     >
-      <Pair a={v.days} b={v.hours} labels={[t.labels[0], t.labels[1]]} dir={dir} reduce={reduce} digitsA={Math.max(2, String(v.days).length)} />
+      <Cell v={v.hours} label={t.labels[0]} digits={Math.max(2, String(v.hours).length)} dir={dir} reduce={reduce} />
       <Colon className="hidden md:block" />
-      <Pair a={v.minutes} b={v.seconds} labels={[t.labels[2], t.labels[3]]} dir={dir} reduce={reduce} />
+      <div className="flex items-start">
+        <Cell v={v.minutes} label={t.labels[1]} digits={2} dir={dir} reduce={reduce} />
+        <Colon />
+        <Cell v={v.seconds} label={t.labels[2]} digits={2} dir={dir} reduce={reduce} />
+      </div>
     </div>
   )
 }

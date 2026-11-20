@@ -11,6 +11,7 @@ import { agentPlans, contentPlans } from '../src/lib/pricing.ts'
 import { builderProduct, productBuild, productBuilderHref, productIds, productPrice } from '../src/lib/products.ts'
 import { serviceSlugs } from '../src/lib/site.ts'
 import { isSolutionKind } from '../src/lib/solutions.ts'
+import { isAgentId, isAiTeamId } from '../src/lib/ai-teams.ts'
 
 const dicts = { ru, en }
 
@@ -88,6 +89,10 @@ function resolves(href, locale) {
   const rest = path.replace(`/${locale}/`, '').split('/')
   if (rest[0] === 'services') return serviceSlugs.includes(rest[1]) && rest.length === 2
   if (rest[0] === 'solutions') return rest.length === 1 || (rest.length === 2 && isSolutionKind(rest[1]))
+  if (rest[0] === 'ai-team') {
+    if (rest.length === 2) return isAiTeamId(rest[1])
+    if (rest.length === 3) return rest[1] === 'agent' && isAgentId(rest[2])
+  }
   if (!localePages.includes(rest[0]) || rest.length !== 1) return false
   return existsSync(new URL(`../src/app/[locale]/${rest[0]}/page.tsx`, import.meta.url))
 }

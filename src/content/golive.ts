@@ -63,7 +63,7 @@ export const goliveText = {
   chipOn: 'До go-live',
   chipOver: 'Go-live: время вышло',
   open: 'Открыть план go-live',
-  units: ['дней', 'часов', 'минут', 'секунд'],
+  units: ['часов', 'минут', 'секунд'],
   deadline: 'Срок',
   over: 'Время вышло',
   overAgo: 'прошло {t}',
@@ -95,5 +95,5 @@ export const goliveText = {
   top: 'Наверх',
   openNote: 'Показать заметку',
   hasNote: 'Есть заметка',
-  labels: ['дней', 'часов', 'минут', 'секунд'],
+  labels: ['часов', 'минут', 'секунд'],
 } as const

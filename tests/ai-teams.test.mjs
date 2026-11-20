@@ -174,3 +174,106 @@ test('ai teams: the index shows the live proof from the public office feed, labe
   assert.match(ru.aiTeams.proof.label, /наш собственный офис/)
   assert.match(en.aiTeams.proof.label, /our own office/)
 })
+
+// Every agent (role) is a product of its own (owner 2026-11-21).
+const agentIds = [
+  'trend-scout', 'content-maker', 'publisher', 'analyst', 'seo',
+  'lead-handler', 'prospector', 'presales', 'referral',
+  'support', 'monitoring', 'billing', 'onboarding',
+  'project-manager', 'reviewer-qa', 'deployer',
+  'documents', 'knowledge-base',
+  'director',
+]
+const { notFoundText } = await import('../src/content/not-found.ts')
+
+test('agents: the roles from COMPANY.md, each in an existing department, flags and links valid', () => {
+  assert.deepEqual([...teams.agentIds], agentIds)
+  assert.equal(new Set(agentIds).size, agentIds.length)
+  for (const offer of teams.agentOffers) {
+    assert.ok(teams.isAiTeamId(offer.dept), `${offer.id} dept`)
+    assert.ok(teams.trustLevels.includes(offer.trust), `${offer.id} trust`)
+    assert.equal(typeof offer.standalone, 'boolean')
+    for (const other of offer.worksWith) {
+      assert.ok(teams.isAgentId(other), `${offer.id} works with ${other}`)
+      assert.notEqual(other, offer.id)
+    }
+    assert.match(teams.agentSource(offer.id), /^[a-z0-9_-]{1,40}$/, 'a valid lead source slug')
+    assert.ok(teams.agentsOfDept(offer.dept).some((a) => a.id === offer.id))
+  }
+  assert.equal(teams.isAgentId('nope'), false)
+  // Every department except none has at least one agent; the Director is the only one that needs a department.
+  for (const dept of ids) assert.ok(teams.agentsOfDept(dept).length >= 1, dept)
+  assert.deepEqual(teams.agentOffers.filter((a) => !a.standalone).map((a) => a.id), ['director'])
+  assert.equal(teams.agentOffer('director').dept, 'company')
+  assert.deepEqual(teams.agentPaths, agentIds.map((id) => `/ai-team/agent/${id}`))
+})
+
+test('agents: full copy in both locales, same shape, three FAQ, trust note, works-with sentence', () => {
+  assert.deepEqual(shape(ru.aiTeams.agents), shape(en.aiTeams.agents))
+  for (const [locale, dict] of dicts) {
+    assert.deepEqual(Object.keys(dict.aiTeams.agents.items), agentIds, locale)
+    for (const id of agentIds) {
+      const a = dict.aiTeams.agents.items[id]
+      for (const key of ['title', 'promise', 'worksNote', 'alone', 'waits', 'metaTitle', 'metaDescription'])
+        assert.ok(a[key] && a[key].length >= 5, `${locale} ${id} ${key}`)
+      assert.ok(a.does.length >= 3 && a.does.length <= 5, `${locale} ${id} does`)
+      assert.ok(a.needs.length >= 3, `${locale} ${id} needs`)
+      assert.equal(a.faq.length, 3, `${locale} ${id} faq`)
+      for (const f of a.faq) assert.ok(f.q.endsWith('?') && f.a.length > 10, `${locale} ${id} faq item`)
+      const m = a.metaDescription.length
+      assert.ok(m >= 120 && m <= 160, `${locale} ${id} meta ${m}`)
+      assert.ok(a.metaTitle.length <= 70, `${locale} ${id} title`)
+    }
+  }
+  assert.notEqual(ru.aiTeams.agents.items.publisher.title, en.aiTeams.agents.items.publisher.title)
+  // The Director is a «managing agent» and says it needs a department.
+  assert.match(ru.aiTeams.agents.items.director.title, /управляющий агент/)
+  assert.match(en.aiTeams.agents.items.director.title, /managing agent/)
+  assert.match(ru.aiTeams.agents.items.director.worksNote, /хотя бы один отдел/)
+  // Agent copy never carries digits, dollars, long dashes or exclamation marks.
+  for (const [locale, dict] of dicts)
+    for (const [at, text] of strings(dict.aiTeams.agents)) {
+      assert.doesNotMatch(text, /\d/, `${locale} ${at}`)
+      assert.doesNotMatch(text, /[$€₽]|USD|\bdollars?\b|долл/i, `${locale} ${at}`)
+      assert.doesNotMatch(text, /[–—]/, `${locale} ${at}`)
+      assert.doesNotMatch(text, /!/, `${locale} ${at}`)
+    }
+})
+
+test('agents: pages exist, static for both locales, in the sitemap with alternates, in the 404 list and llms.txt', async () => {
+  assert.ok(existsSync('src/app/[locale]/ai-team/agent/[id]/page.tsx'))
+  const page = readFileSync('src/app/[locale]/ai-team/agent/[id]/page.tsx', 'utf8')
+  assert.match(page, /generateStaticParams/)
+  assert.match(page, /dynamicParams = false/)
+  assert.match(page, /AgentDiscuss/)
+  assert.doesNotMatch(page, /formatUsd|from '@\/lib\/pricing'|\$\d/)
+  const urls = (await sitemap()).map((e) => e.url)
+  for (const locale of ['ru', 'en'])
+    for (const p of teams.agentPaths) assert.ok(urls.some((u) => u.endsWith(`/${locale}${p}`)), `${locale}${p}`)
+  const one = (await sitemap()).find((e) => e.url.endsWith('/en/ai-team/agent/publisher'))
+  assert.deepEqual(Object.keys(one.alternates.languages).sort(), ['en', 'ru'])
+  for (const locale of ['ru', 'en']) {
+    const paths = notFoundText[locale].pages.map((p) => p.path)
+    for (const p of ['/ai-team', '/ai-team#agents', ...ids.map((id) => `/ai-team/${id}`), ...teams.agentPaths])
+      assert.ok(paths.includes(p), `404 ${locale} ${p}`)
+  }
+  const { GET } = await import('../src/app/llms.txt/route.ts')
+  const llms = await (await GET()).text()
+  for (const p of teams.allAiTeamPaths) assert.ok(llms.includes(`/en${p}`) && llms.includes(`/ru${p}`), `llms ${p}`)
+})
+
+test('agents: the discuss button hands the agent to the contact form as the lead source', () => {
+  const button = readFileSync('src/components/ai-team/agent-discuss.tsx', 'utf8')
+  assert.match(button, /agentSource\(id\)/)
+  assert.match(button, /\?agent=\$\{id\}#contact/)
+  assert.match(button, /sendEstimate/)
+})
+
+test('agents: department pages list their agents and the index has the strip and the agents section', () => {
+  const dept = readFileSync('src/app/[locale]/ai-team/[id]/page.tsx', 'utf8')
+  assert.match(dept, /agentsOfDept\(id\)/)
+  const index = readFileSync('src/app/[locale]/ai-team/page.tsx', 'utf8')
+  assert.match(index, /id="agents"/)
+  assert.match(index, /stripTitle/)
+  for (const [, dict] of dicts) assert.ok(dict.aiTeams.agents.stripTitle && dict.aiTeams.agents.page.listTitle)
+})
