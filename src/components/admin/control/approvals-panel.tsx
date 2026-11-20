@@ -1,6 +1,7 @@
 'use client'
 
 import { Check, LockSimple, PencilSimple, SealCheck, X } from '@phosphor-icons/react'
+import Link from 'next/link'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { admin } from '@/content/admin'
@@ -275,6 +276,12 @@ export function ApprovalsPanel({
             </button>
           </div>
         ) : null}
+        <p className="mb-3 px-1 text-sm">
+          <Link href="/admin/review" className="inline-flex min-h-9 items-center text-accent-text underline">
+            Открыть в ревью-центре
+          </Link>
+          <span className="text-faint">: читать, править и выкладывать на весь экран</span>
+        </p>
         {error && !list ? <p className="p-2 text-sm text-danger">{errText(error)}</p> : null}
         {!list && !error ? <div className="h-40 animate-pulse rounded-xl bg-surface-2/60" /> : null}
         {list && !list.length ? <p className="p-2 text-sm text-muted">{t.empty}</p> : null}

@@ -17,17 +17,17 @@ export type GoliveState = {
 
 export const emptyGolive = (): GoliveState => ({ deadline: null, startedAt: null, durationHours: GOLIVE_HOURS, done: {}, notes: {} })
 
-export type Remaining = { days: number; hours: number; minutes: number; seconds: number; totalMs: number; over: boolean }
+// Hours are the whole hours left (days * 24 + hours): the clock has no days.
+export type Remaining = { hours: number; minutes: number; seconds: number; totalMs: number; over: boolean }
 
 // Time left until the deadline; once it passed, the same fields count how long ago (totalMs < 0).
 export function remaining(deadline: string | null | undefined, now: number): Remaining {
   const at = deadline ? Date.parse(deadline) : NaN
-  if (!Number.isFinite(at)) return { days: 0, hours: 0, minutes: 0, seconds: 0, totalMs: 0, over: false }
+  if (!Number.isFinite(at)) return { hours: 0, minutes: 0, seconds: 0, totalMs: 0, over: false }
   const totalMs = at - now
   const abs = Math.floor(Math.abs(totalMs) / 1000)
   return {
-    days: Math.floor(abs / 86_400),
-    hours: Math.floor((abs % 86_400) / 3600),
+    hours: Math.floor(abs / 3600),
     minutes: Math.floor((abs % 3600) / 60),
     seconds: abs % 60,
     totalMs,
@@ -37,14 +37,14 @@ export function remaining(deadline: string | null | undefined, now: number): Rem
 
 const two = (n: number) => String(n).padStart(2, '0')
 
-// «2д 13:42:07» for the top bar chip.
+// «61:42:07» for the top bar chip.
 export function chipText(r: Remaining) {
-  return `${r.days}д ${two(r.hours)}:${two(r.minutes)}:${two(r.seconds)}`
+  return `${two(r.hours)}:${two(r.minutes)}:${two(r.seconds)}`
 }
 
 // Words for «how long ago»: «3 ч 05 мин», «2 д 4 ч», «41 мин».
 export function agoText(r: Remaining) {
-  if (r.days) return `${r.days} д ${r.hours} ч`
+  if (r.hours >= 24) return `${Math.floor(r.hours / 24)} д ${r.hours % 24} ч`
   if (r.hours) return `${r.hours} ч ${two(r.minutes)} мин`
   if (r.minutes) return `${r.minutes} мин`
   return `${r.seconds} с`

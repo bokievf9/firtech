@@ -1,5 +1,6 @@
 import { officeMock } from './office-mock'
 import { createPultMock } from './pult-mock'
+import { createReviewMock } from './review-mock'
 import {
   effectivePresence,
   sameId,
@@ -414,6 +415,7 @@ export function createHqMock(start = Date.now()) {
   const office = () => officeMock()
   const crm = createCrmMock(start)
   const pult = createPultMock(start, { approvals: () => state.approvals })
+  const review = createReviewMock(start)
 
   const addInbox = (now: number, kind: InboxKind, text: string, extra: Partial<InboxItem> = {}) => {
     state.inbox.push({
@@ -608,6 +610,8 @@ export function createHqMock(start = Date.now()) {
     const seg = path.split('/').filter(Boolean)
     const v3 = pult(method, seg, query, body, now)
     if (v3) return v3 as MockReply
+    const rv = review(method, seg, query, body, now)
+    if (rv) return rv as MockReply
     if (seg[0] === 'crm') return crm(method, seg, query, body, now)
     const key = `${method} ${seg[0] ?? ''}`
     switch (key) {
