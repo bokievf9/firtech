@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import type { Dict } from '@/content'
 import { formatDate, type CabinetTicket } from '@/lib/cabinet-data'
-import { parseThreads, sortThreads, threadFor, unreadTotal, type ChatThread, type ThreadKind } from '@/lib/cabinet-chat'
+import { parseThreads, sortThreads, threadByParam, unreadTotal, type ChatThread, type ThreadKind } from '@/lib/cabinet-chat'
 import { buttonStyles, cn } from '@/lib/cn'
 import { COUNTS_EVENT } from './cabinet-tabs'
 import { TicketsPanel } from './cabinet-forms'
@@ -17,7 +17,8 @@ import { Empty, fill } from './ui'
 // a messenger. The thread list (one per request, project, support and the client's own agent) with
 // unread badges, the conversation next to it (on phones it replaces the list), the composer. The open
 // thread refreshes every 15 s while the page is visible (thread-pane.tsx); the list does the same.
-// `?ref=lead-12` opens that request's thread (links from the cards).
+// `?ref=lead-12` opens that request's thread (links from the cards); `?thread=<id>` is the link of the
+// «new message» email (without `?tab=` the tab is Сообщения, see CabinetTabs).
 const POLL_MS = 15_000
 const icons: Record<ThreadKind, typeof Briefcase> = { lead: ClipboardText, project: Briefcase, agent: Robot, support: Lifebuoy }
 const TICKET = 'ticket'
@@ -37,7 +38,7 @@ export function MessagesPanel({
   const search = useSearchParams()
   const [threads, setThreads] = useState(() => sortThreads(initial))
   const [selected, setSelected] = useState<string | null>(null)
-  const ref = search.get('ref')
+  const ref = search.get('thread') ?? search.get('ref')
 
   // The tab badge follows the list (an effect: the bar is another component, never touched while rendering).
   useEffect(() => {
@@ -50,7 +51,7 @@ export function MessagesPanel({
   const [seen, setSeen] = useState<string | null>(null)
   if (ref !== seen) {
     setSeen(ref)
-    const wanted = threadFor(threads, ref)
+    const wanted = threadByParam(threads, ref)
     if (wanted) setSelected(wanted.id)
   }
 

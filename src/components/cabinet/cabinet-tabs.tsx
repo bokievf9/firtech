@@ -34,7 +34,9 @@ export function CabinetTabs({
   pollUnread?: boolean
 }) {
   const search = useSearchParams()
-  const tab = parseTab(search.get('tab'), defaultTab, tabs)
+  // A link of the «new message» email (`?thread=`) lands on the messages, a «review» link on the projects.
+  const landing: CabinetTab = search.get('thread') && tabs.includes('messages') ? 'messages' : defaultTab
+  const tab = parseTab(search.get('tab'), landing, tabs)
   const [counts, setCounts] = useState(initialCounts)
 
   useEffect(() => {

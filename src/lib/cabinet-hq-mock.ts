@@ -16,6 +16,7 @@ type MockState = {
   agent: ClientAgent | null
   conversations: AgentConversation[]
   signatures: { docId: string; name: string; bytes: number }[]
+  reviews: { id: number; clientId: number; client: string; projectId: number; rating: number; text: string; at: string }[]
 }
 
 const day = 86_400_000
@@ -38,6 +39,8 @@ function seed(): MockState {
   })
   const docs: ClientDoc[] = [
     doc({ id: 'q-14', kind: 'quote', title: 'Коммерческое предложение: автоматизация заявок', number: 'КП-2026-014', leadId: 14, state: 'awaiting_client', createdAt: at(-0.3), amountUsd: 450 }),
+    doc({ id: 'q-7', kind: 'quote', title: 'Коммерческое предложение: сайт-визитка', number: 'КП-2026-007', leadId: 7, state: 'declined', createdAt: at(-9), amountUsd: 300 }),
+    doc({ id: 'q-6', kind: 'quote', title: 'Коммерческое предложение: чат-бот', number: 'КП-2026-006', leadId: 6, state: 'expired', createdAt: at(-20), amountUsd: 280 }),
     doc({ id: 'c-2', kind: 'contract', title: 'Договор: бот для записи в салон', number: 'Д-2026-012', leadId: 12, projectId: 2, state: 'awaiting_signature', createdAt: at(-0.6), amountUsd: 340 }),
     doc({ id: 'q-12', kind: 'quote', title: 'Коммерческое предложение: бот для записи', number: 'КП-2026-012', leadId: 12, projectId: 2, state: 'accepted', createdAt: at(-1.6), acceptedAt: at(-1.2), amountUsd: 340 }),
     doc({ id: 'c-1', kind: 'contract', title: 'Договор: сайт для барбершопа', number: 'Д-2026-009', leadId: 9, projectId: 1, state: 'signed', createdAt: at(-14), signedAt: at(-13.5), amountUsd: 400 }),
@@ -97,7 +100,7 @@ function seed(): MockState {
     { id: 'cv-2', startedAt: at(-1.2), lastAt: at(-1.2), channel: 'cabinet', messages: 3, leadsCaptured: 0 },
     { id: 'cv-1', startedAt: at(-2.4), lastAt: at(-2.4), channel: 'widget', messages: 9, leadsCaptured: 2 },
   ]
-  return { seq: 100, docs, threads, messages, agent, conversations, signatures: [] }
+  return { seq: 100, docs, threads, messages, agent, conversations, signatures: [], reviews: [] }
 }
 
 type G = typeof globalThis & { __firtechCabinetMock?: MockState }
@@ -132,6 +135,30 @@ export function mockAcceptQuote(docId: string): 'ok' | 'not_found' | 'not_awaiti
     acceptedAt: null,
   })
   postMock('lead-14', 'firtech', 'Спасибо, КП принято. Договор уже в разделе «Документы», подпишите его там.')
+  return 'ok'
+}
+
+// «Отклонить / обсудить»: the quote becomes `declined`, the client's words go to the request's thread.
+export function mockRejectQuote(docId: string, reason: string, mode: 'decline' | 'discuss'): 'ok' | 'not_found' | 'not_awaiting' {
+  const s = mockState()
+  const d = s.docs.find((x) => x.id === docId)
+  if (!d) return 'not_found'
+  if (d.kind !== 'quote' || d.state !== 'awaiting_client') return 'not_awaiting'
+  d.state = 'declined'
+  const thread = d.leadId ? `lead-${d.leadId}` : 'support'
+  postMock(thread, 'client', `${mode === 'discuss' ? 'Хочу обсудить КП: ' : 'Не подходит: '}${reason}`)
+  postMock(thread, 'firtech', 'Ваш ответ у менеджера, он ответит в сообщениях.')
+  return 'ok'
+}
+
+// One review per project (the mock has projects 1 and 2).
+const reviewed = new Set<number>()
+export function mockReview(projectId: number, rating: number, text: string): 'ok' | 'not_found' | 'exists' | 'invalid' {
+  if (projectId !== 1 && projectId !== 2) return 'not_found'
+  if (rating < 1 || rating > 5 || !text.trim()) return 'invalid'
+  if (reviewed.has(projectId)) return 'exists'
+  reviewed.add(projectId)
+  mockState().reviews.push({ id: mockState().reviews.length + 1, clientId: 1, client: 'Тестовый клиент', projectId, rating, text, at: new Date().toISOString() })
   return 'ok'
 }
 

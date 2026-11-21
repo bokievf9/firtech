@@ -115,6 +115,12 @@ export function threadFor(threads: readonly ChatThread[], ref: string | null | u
   return threads.find((t) => t.kind === m[1] && (m[2] === undefined || t.refId === m[2])) ?? null
 }
 
+// `?thread=<id>` (the link of the «new message» email): the thread's own id first, else the `?ref=` form.
+export function threadByParam(threads: readonly ChatThread[], value: string | null | undefined): ChatThread | null {
+  if (!value) return null
+  return threads.find((t) => t.id === value) ?? threadFor(threads, value)
+}
+
 // A key press in the composer: Enter sends, Shift+Enter breaks the line, and nothing happens while
 // an input method (Chinese, Japanese, Korean, dead keys) is composing a word.
 export function composerKey(e: { key: string; shiftKey: boolean; isComposing?: boolean; ctrlKey?: boolean; metaKey?: boolean }): 'send' | 'newline' | null {
