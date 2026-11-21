@@ -84,5 +84,5 @@ export const milestones = [
   { date: '2026-10-14', text: 'База Vibely переехала в Сингапур' },
   { date: '2026-10-15', text: 'Vibely на трёх процессах PM2' },
   { date: '2026-10-16', text: 'Запущен firtech.pro' },
-  { date: '2026-10-17', text: 'Панель /admin и новый конструктор' },
+  { date: '2026-10-17', text: 'Панель /admin и новая сборка проекта' },
 ]

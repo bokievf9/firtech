@@ -14,7 +14,6 @@ import {
   emptyBuild,
   encodeBuild,
   isStartingSet,
-  leadServiceOf,
   productsOnRequest,
   quote,
   toggleProduct,
@@ -34,8 +33,7 @@ import {
   toggleDelivery,
 } from '@/lib/builder-v2'
 import { buttonStyles, cn } from '@/lib/cn'
-import { leadSummary } from '@/lib/estimate-doc'
-import { sendEstimate } from '@/lib/estimate-event'
+import { hasDraftFlag } from '@/lib/lead-draft'
 import type { Locale } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { usePricing } from './pricing-provider'
@@ -74,6 +72,9 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const [build, setBuildState] = useState<Build>(emptyBuild)
   const [copied, setCopied] = useState(false)
   const [atForm, setAtForm] = useState(false)
+  // Back from sign-in (`draft=1`) or an old `#contact` link: the last step scrolls to its send button.
+  const [cameBack, setCameBack] = useState(false)
+  const [focusSend, setFocusSend] = useState(false)
   const [sheet, setSheet] = useState(false)
   const [ready, setReady] = useState(false)
   const [attempted, setAttempted] = useState(false)
@@ -113,10 +114,16 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     // A card's starting set (kind preset or product, no step) opens on the products step, a
     // shared finished build on the summary.
     const fallback = shared ? (isStartingSet(shared) ? PRODUCTS : SUMMARY) : 0
+    const wantsSend = window.location.hash === '#contact'
+    const back = hasDraftFlag(window.location.search)
     let next = asked !== null && asked < total ? asked : fallback
+    // An old link to #contact opens the step that holds the send button, when there is a project to send.
+    if (wantsSend && parts && asked === null) next = SUMMARY
     if (next > PARTS && !parts) next = shared ? PARTS : 0
     /* eslint-disable react-hooks/set-state-in-effect -- one-time sync from the URL */
     if (shared) setBuildState(shared)
+    setCameBack(back)
+    setFocusSend(wantsSend)
     setStep(next)
     setReady(true)
     /* eslint-enable react-hooks/set-state-in-effect */
@@ -157,6 +164,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     return () => window.removeEventListener('popstate', onPop)
   }, [total])
 
+  // The send button sits in the last step: the bottom bar steps aside while it is on screen.
   useEffect(() => {
     const target = document.getElementById('contact')
     if (!target) return
@@ -165,7 +173,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     })
     io.observe(target)
     return () => io.disconnect()
-  }, [])
+  }, [step, ready])
 
   // A new screen starts at the top, with focus on its title for keyboard and screen readers.
   useEffect(() => {
@@ -258,11 +266,9 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     }))
   }
 
-  function handOff() {
-    const service = leadServiceOf(build)
-    sendEstimate({ service, summary: leadSummary(build, dict, locale, pricing) })
-    track('builder_sent', { service })
-    document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+  // The bottom bar's button on the last step brings the send block (the real button) into view.
+  function scrollToSend() {
+    document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })
   }
 
   async function copyLink() {
@@ -391,7 +397,8 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                       build={build}
                       estimateHref={`${pathname}/estimate?b=${encodeBuild(build)}`}
                       copied={copied}
-                      onSend={handOff}
+                      cameBack={cameBack}
+                      focusSend={focusSend}
                       onCopy={copyLink}
                       onEdit={go}
                     />
@@ -467,7 +474,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
         }
         primary={
           last ? (
-            hasContent && <NextButton label={pick(faceUi.send, locale)} onClick={handOff} />
+            hasContent && <NextButton label={pick(faceUi.send, locale)} onClick={scrollToSend} />
           ) : (
             <NextButton label={t.next} blocked={!canGo} onClick={next} />
           )

@@ -24,10 +24,10 @@ export const goliveBlocks = [
 ] as const
 
 export const goliveItems: GoliveItem[] = [
-  { id: 'site-theme-review', block: 'site', title: 'Белая и тёмная тема проверены на всех страницах', hint: 'Переключатель в шапке, главная, услуги, конструктор, блог, кабинет.', owner: 'owner' },
-  { id: 'site-copy', block: 'site', title: 'Тексты, цены и условия вычитаны', hint: 'Цены только из конструктора, без опечаток, RU и EN.', owner: 'owner' },
+  { id: 'site-theme-review', block: 'site', title: 'Белая и тёмная тема проверены на всех страницах', hint: 'Переключатель в шапке, главная, услуги, сборка проекта, блог, кабинет.', owner: 'owner' },
+  { id: 'site-copy', block: 'site', title: 'Тексты, цены и условия вычитаны', hint: 'Цены только из сборки проекта, без опечаток, RU и EN.', owner: 'owner' },
   { id: 'site-seo', block: 'site', title: 'Sitemap, robots, Search Console и Яндекс Вебмастер подключены', hint: 'Сайт добавлен в обе консоли, sitemap принят без ошибок.', owner: 'owner', link: 'https://search.google.com/search-console' },
-  { id: 'site-speed', block: 'site', title: 'Главная и конструктор: Lighthouse 90+ на мобильном', hint: 'Замер на проде, не на локальной сборке.', owner: 'claude' },
+  { id: 'site-speed', block: 'site', title: 'Главная и сборка проекта: Lighthouse 90+ на мобильном', hint: 'Замер на проде, не на локальной сборке.', owner: 'claude' },
   { id: 'site-legal', block: 'site', title: 'Политика и условия в финальной редакции', hint: 'Условия и политика конфиденциальности прочитаны владельцем.', owner: 'owner', link: '/ru/terms' },
 
   { id: 'cab-google', block: 'cab', title: 'Вход через Google работает', hint: 'Новый аккаунт входит и попадает в кабинет.', owner: 'owner' },

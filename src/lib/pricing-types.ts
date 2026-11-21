@@ -19,7 +19,7 @@ export type PriceField = {
 export type HistoryEntry = { at: string; path: string; from: number; to: number; by: string }
 export const groupTitles: Record<PriceGroup, string> = {
   start: 'Старт-цены',
-  kinds: 'Конструктор по видам',
+  kinds: 'Сборка по видам',
   options: 'Опции',
   extras: 'Допы',
   plans: 'Подписки',

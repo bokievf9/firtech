@@ -236,8 +236,8 @@ export const detailLabels = {
 
 export const deliveryText: Record<DeliveryChannel, Named & { soon?: boolean }> = {
   telegram: n(
-    ['Telegram', 'Клиенты пишут боту в привычном мессенджере, заявки приходят вам туда же'],
-    ['Telegram', 'Clients message a bot in a messenger they use, requests reach you there'],
+    ['Telegram', 'Клиенты пишут агенту в привычном мессенджере, заявки приходят вам туда же'],
+    ['Telegram', 'Clients message an agent in a messenger they use, requests reach you there'],
   ),
   widget: n(
     ['Виджет на сайте', 'Окно чата на вашем сайте, сайт у вас уже есть или входит в сборку'],
@@ -257,8 +257,8 @@ export const deliveryUi = {
     en: 'What the agent does is set above. Here you choose where clients talk to it.',
   },
   noSiteDiff: {
-    ru: 'Telegram: клиенты пишут боту в мессенджере, заявки приходят вам туда же. Площадка Fir Tech: агент отвечает в окне в вашем кабинете у нас, подходит, если сайта нет и вы хотите сначала увидеть агента в деле.',
-    en: 'Telegram: clients message a bot in a messenger and requests reach you there. Fir Tech playground: the agent answers in a window in your cabinet on our side, a fit when you have no site and want to see the agent working first.',
+    ru: 'Telegram: клиенты пишут агенту в мессенджере, заявки приходят вам туда же. Площадка Fir Tech: агент отвечает в окне в вашем кабинете у нас, подходит, если сайта нет и вы хотите сначала увидеть агента в деле.',
+    en: 'Telegram: clients message an agent in a messenger and requests reach you there. Fir Tech playground: the agent answers in a window in your cabinet on our side, a fit when you have no site and want to see the agent working first.',
   },
   pickOne: { ru: 'Выберите хотя бы один способ общения', en: 'Pick at least one way to talk to clients' },
 }
@@ -311,8 +311,8 @@ export const productIncludes: Record<string, L<string[]>> = {
     en: ['A landing page: offer, benefits and a request form', 'Phone-friendly and fast', 'You can upgrade the format below to a company site or a shop'],
   },
   bot: {
-    ru: ['Бот отвечает на частые вопросы', 'Собирает заявки в чате', 'Передаёт контакты вам'],
-    en: ['The bot answers common questions', 'Collects requests in chat', 'Hands the contacts to you'],
+    ru: ['Агент отвечает на частые вопросы', 'Собирает заявки в чате', 'Передаёт контакты вам'],
+    en: ['The agent answers common questions', 'Collects requests in chat', 'Hands the contacts to you'],
   },
   app: {
     ru: ['Веб-приложение, которое ставится на телефон', 'Вход, данные и экраны под вашу задачу', 'Формат можно усилить ниже'],
@@ -415,7 +415,11 @@ export const faceUi = {
     ru: 'Превью собрано из ваших ответов и темы. Если всё так, отправьте проект: мы вернёмся со сметой.',
     en: 'The preview is built from your answers and theme. If it looks right, send the project and we come back with a quote.',
   },
-  send: { ru: 'Отправить проект', en: 'Send the project' },
+  send: { ru: 'Отправить проект в работу', en: 'Send the project to work' },
+  sendDraft: {
+    ru: 'Вы вошли, проект на месте. Нажмите «Отправить проект в работу».',
+    en: 'You are signed in and the project is here. Press «Send the project to work».',
+  },
   sendHint: { ru: 'Нужен вход в аккаунт: так заявка попадёт в ваш кабинет', en: 'Sign-in is needed so the request lands in your cabinet' },
   quoteMore: { ru: 'Смета и этапы оплаты', en: 'Quote and payment stages' },
   required: { ru: 'Обязательно', en: 'Required' },

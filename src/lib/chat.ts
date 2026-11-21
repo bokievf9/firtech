@@ -1,4 +1,4 @@
-// On-page chat with the AI receptionist («попробуйте приёмщика»): the contract between the widget,
+// On-page chat with the AI receptionist («попробуйте менеджера заявок»): the contract between the widget,
 // POST /api/chat and HQ, plus the scripted mock used when HQ_CHAT_URL is unset in development.
 // Pure module (no server-only imports), covered by tests/chat.test.mjs. Contract details and the
 // HQ side: docs/site-design-notes.md, section «Чат».

@@ -36,7 +36,7 @@ export type LeadFields = Pick<
 
 export const serviceNames: Record<Lead['service'], string> = {
   websites: 'Сайт',
-  bots: 'Telegram-бот',
+  bots: 'Агент в Telegram',
   apps: 'Приложение',
   automation: 'Автоматизация / ИИ',
   ai: 'ИИ-ассистент',

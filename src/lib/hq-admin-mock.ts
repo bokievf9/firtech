@@ -89,7 +89,7 @@ function seed(now: number): MockState {
   const tasks: HqTask[] = [
     task(11, 'Отчёт за неделю для владельца', 'done', 'analyst', 90, { tags: ['отчёт'] }),
     task(12, 'Пачка контента на эту неделю', 'running', 'marketing-head', 20, { priority: 'high', tags: ['план'] }),
-    task(13, 'Клип: ИИ-приёмщик', 'running', 'content-maker', 7, { tags: ['видео'] }),
+    task(13, 'Клип: ИИ-менеджер заявок', 'running', 'content-maker', 7, { tags: ['видео'] }),
     task(14, 'Пост в Telegram: кейс бота', 'approval', 'publisher', 42),
     task(15, 'Статья: сайт для барбершопа', 'blocked', 'seo-specialist', 180, {
       lastEvent: ev(180, 'task.blocked', 'seo-specialist', 'Нет доступа к Search Console: нужен токен'),
@@ -177,7 +177,7 @@ function seed(now: number): MockState {
     item(5, 42, 'approval', 'Publisher ждёт одобрения поста про бота для кофейни.', { approvalId: 101, taskId: 14 }),
     item(6, 25, 'approval', 'Finance просит оплатить хостинг: $36.', { approvalId: 103, taskId: 41 }),
     item(7, 9, 'message', 'Директор: Content Maker закончит клип к вечеру, обложки на проверке.', { taskId: 13 }),
-    item(8, 2, 'progress', 'Lead Handler взял новую заявку в работу.', { taskId: 21 }),
+    item(8, 2, 'progress', 'Lead manager взял новую заявку в работу.', { taskId: 21 }),
   ]
   const queued: Approval[] = [
     {
@@ -227,7 +227,7 @@ const ticker = [
   ['progress', 'Content Maker: черновой монтаж клипа готов.', 13],
   ['progress', 'Prospector добавил 5 салонов в список.', 22],
   ['message', 'Директор: Head of Marketing собрал пачку на неделю, жду одобрения поста.', 12],
-  ['progress', 'Lead Handler: заявка квалифицирована, бюджет до $500.', 21],
+  ['progress', 'Lead manager: заявка квалифицирована, бюджет до $500.', 21],
 ] as const
 
 const progressLines: Record<string, string[]> = {

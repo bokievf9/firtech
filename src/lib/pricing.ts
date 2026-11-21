@@ -28,7 +28,7 @@ const stageTitles: Record<StageTemplateId, { id: string; title: { ru: string; en
   ],
   bot: [
     { id: 'scenario', title: { ru: 'Сценарий и структура', en: 'Scenario and structure' } },
-    { id: 'build', title: { ru: 'Рабочий бот на тесте', en: 'Working bot on a test' } },
+    { id: 'build', title: { ru: 'Рабочий агент на тесте', en: 'Working agent on a test' } },
     { id: 'launch', title: { ru: 'Запуск и обучение', en: 'Launch and training' } },
   ],
   automation: [

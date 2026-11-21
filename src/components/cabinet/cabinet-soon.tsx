@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Dict } from '@/content'
-import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
+import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { HeroIntro } from '../hero-intro'
 
@@ -16,7 +16,7 @@ export function CabinetSoon({ locale, dict }: { locale: Locale; dict: Dict }) {
         </h1>
         <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-muted">{t.text}</p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <Link href={homeAnchor(locale, 'contact')} className={buttonStyles.primary}>
+          <Link href={`/${locale}/builder`} className={buttonStyles.primary}>
             {t.contact}
           </Link>
           <Link href={`/${locale}`} className={cn(buttonStyles.secondary)}>
