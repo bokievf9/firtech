@@ -150,8 +150,8 @@ function ProductCard({
         </div>
 
         <div className="flex flex-1 flex-col gap-5 p-6 md:p-7">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex min-w-0 items-center gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+            <div className="flex min-w-[14rem] flex-1 items-center gap-3">
               <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-line-strong text-accent-text">
                 <Glyph size={20} aria-hidden="true" />
               </span>
@@ -161,12 +161,12 @@ function ProductCard({
                     <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent-text">{t.flagship}</span>
                   </p>
                 )}
-                <h3 id={`${productAnchor(id)}-name`} className="text-xl font-semibold tracking-tight md:text-2xl">
+                <h3 id={`${productAnchor(id)}-name`} className="text-xl font-semibold tracking-tight break-words md:text-2xl">
                   {item.name}
                 </h3>
               </div>
             </div>
-            <ProductPriceTag id={id} copy={t} className="shrink-0 text-right" />
+            <ProductPriceTag id={id} copy={t} className="shrink-0 sm:text-right" />
           </div>
 
           <p className="text-lg leading-snug">{item.benefit}</p>

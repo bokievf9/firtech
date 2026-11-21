@@ -414,14 +414,14 @@ export default function ChatPanel({
                 <div
                   className={
                     m.from === 'me'
-                      ? 'max-w-[85%] rounded-[18px] rounded-br-md bg-accent px-3.5 py-2.5 text-[15px] leading-snug text-accent-ink'
+                      ? 'max-w-[85%] rounded-[18px] rounded-br-md bg-accent px-3.5 py-2.5 text-[15px] leading-snug [overflow-wrap:anywhere] text-accent-ink'
                       : m.cabinet
                         ? 'max-w-[90%] rounded-[18px] border border-accent-text/40 bg-accent/[0.06] px-3.5 py-2.5 text-sm leading-snug text-fg'
                       : m.from === 'sys'
                         ? 'max-w-[90%] rounded-[18px] border border-danger/30 bg-danger/5 px-3.5 py-2.5 text-sm leading-snug text-fg'
                         : m.from === 'owner'
-                          ? 'max-w-[85%] rounded-[18px] rounded-bl-md border border-accent-text/40 bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line text-fg'
-                        : 'max-w-[85%] rounded-[18px] rounded-bl-md bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line text-fg'
+                          ? 'max-w-[85%] rounded-[18px] rounded-bl-md border border-accent-text/40 bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug [overflow-wrap:anywhere] whitespace-pre-line text-fg'
+                        : 'max-w-[85%] rounded-[18px] rounded-bl-md bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug [overflow-wrap:anywhere] whitespace-pre-line text-fg'
                   }
                 >
                   {m.from === 'owner' ? (
@@ -586,7 +586,7 @@ export default function ChatPanel({
                     e.currentTarget.form?.requestSubmit()
                   }
                 }}
-                className="ym-disable-keys max-h-28 min-h-10 flex-1 resize-none bg-transparent py-2 text-[15px] text-fg placeholder:text-faint focus:outline-none"
+                className="ym-disable-keys max-h-28 min-h-10 min-w-0 flex-1 resize-none bg-transparent py-2 text-[15px] text-fg placeholder:text-faint focus:outline-none"
               />
               <button
                 type="submit"
