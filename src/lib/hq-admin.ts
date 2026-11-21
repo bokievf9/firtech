@@ -164,6 +164,9 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/\d{1,6}$/ },
   { method: 'POST', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions$/, body: z.object({ text: z.string().min(1).max(20000), note: z.string().max(200).optional() }).strict() },
   { method: 'POST', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/rollback$/, body: z.object({ version: z.number().int().min(1).max(999999), note: z.string().max(200).optional() }).strict() },
+  // HQ «Processes»: the chain map with step health, and the existing drill (start / clear).
+  { method: 'GET', path: /^processes$/ },
+  { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
   { method: 'POST', path: /^company\/routines\/[\w-]{1,64}$/, body: z.object({ enabled: z.boolean() }).strict() },

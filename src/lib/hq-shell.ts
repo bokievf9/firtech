@@ -40,7 +40,7 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'projects', label: 'Projects', state: 'ready', href: '/admin/projects', legacy: office('production', 'projects') },
   { id: 'documents', label: 'Documents', state: 'ready', href: '/admin/documents', legacy: office('backoffice', 'documents') },
   { id: 'agents', label: 'Agents', state: 'ready', href: '/admin/agents', legacy: office('company', 'company') },
-  { id: 'processes', label: 'Processes', state: 'soon', href: '/admin/processes', legacy: office('company', 'company') },
+  { id: 'processes', label: 'Processes', state: 'ready', href: '/admin/processes', legacy: office('company', 'company') },
   { id: 'content', label: 'Content', state: 'ready', href: '/admin/content', legacy: office('marketing', 'content') },
   { id: 'finance', label: 'Finance', state: 'soon', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
   { id: 'settings', label: 'Settings', state: 'soon', href: '/admin/settings', legacy: office('company', 'prices') },

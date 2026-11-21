@@ -545,3 +545,16 @@ Tag `E:hq` = `tests/e2e/admin-hq.spec.ts`; `U:hq-shell` = `tests/hq-shell.test.m
 | Content / item drawer | «Решить в Approvals» (pending items) | link to `/admin/approvals?tab=content` | - | - | untested (click) |
 | Content (every tab) | «Промпт» | drawer with a topic field and a format; «Отправить Content Maker» posts the order and opens Orders | `POST content/orders` `{mode:'prompt'}` | `E:hq`, `U:content-studio` | pass |
 | Content / Orders | list (state, mode, link to the item), «Открыть в ленте», «Решить в Approvals» | polls every 8 s; a delivered order opens its item in the feed | `GET content/orders` | `E:hq` (order, link), `U:content-studio` | pass (list, link), untested (Approvals link) |
+
+## HQ, Processes (2026-11-23), adds to the rows above
+Tag `E:processes` = `tests/e2e/admin-processes.spec.ts`; `U:processes` = `tests/processes.test.mjs`. The section is built (no longer «Soon»); it reads `GET processes` every 30 s.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/processes` | section menu link «Processes» (10th item, no number key) | opens the page instead of the placeholder | - | `E:processes`, `U:hq-shell` | pass |
+| Processes | chain blocks and step cards | health (Работает / Внимание / Сбой / Нет данных), last success, failures of the week, stuck, last failure text | `GET processes` | `E:processes`, `U:processes` (view model, defaults, unknown values) | pass (render) |
+| Processes | «Обновить» | reloads the map | `GET processes` | `E:processes` (present), `U:processes` | untested (click) |
+| Processes | «Прогнать дрилл» | starts the existing drill; disabled while it runs; shows the table as it fills | `POST processes/drill {action:'start'}` | `E:processes` (start, running table, second start blocked), `U:processes` (whitelist, mock) | pass |
+| Processes | «Очистить тестовые данные» | asks to confirm, then runs `/drill clear`; disabled when no drill exists | `POST processes/drill {action:'clear'}` | `E:processes` (confirm, reset), `U:processes` | pass |
+| Processes | failed call | toast «Не получилось: ...», the map stays | - | `U:processes` (error codes via `errText`) | untested (browser) |
+
