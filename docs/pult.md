@@ -247,3 +247,6 @@
 - **Dev-мок**: `pult-mock.ts` (блок `processes`, учения заканчиваются сами через 20 с).
 - Тесты `tests/processes.test.mjs`, `tests/hq-shell.test.mjs`, e2e `tests/e2e/admin-processes.spec.ts`; кнопки в `docs/button-census.md`.
 
+
+## Finance (2026-11-23)
+Раздел `/admin/finance` вместо заглушки «Soon», вкладки `?tab=`: **Invoices** (существующая панель счетов бэк-офиса `InvoicesTab`, без изменений), **Payments** (оплаты месяца по дате оплаты счёта из `GET crm/invoices`: итог и прошлый месяц, разбивка по этапам по «этап N» в названии счёта, ждут оплаты и просрочено, таблица, переключатель месяца) и **Costs** (расход LLM за месяц по отделам и агентам против лимитов отделов, дневные столбики за 30 суток: `GET agents` даёт `departments[].budgetUsd/monthUsd` и `agents[].monthUsd`, `GET company` даёт `costs.byDept[].todayUsd` и `costs.byDay`; 80% лимита = «Близко», 100% = «Превышен», как алерты HQ). Новых эндпоинтов нет: всё это уже в whitelist, текстов клиентов нет. Логика `src/lib/finance.ts`, вид `components/admin/hq/finance-view.tsx`. Тесты `tests/finance.test.mjs`, `tests/hq-shell.test.mjs`, e2e `tests/e2e/admin-finance.spec.ts`; кнопки в `docs/button-census.md`.

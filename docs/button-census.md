@@ -558,3 +558,17 @@ Tag `E:processes` = `tests/e2e/admin-processes.spec.ts`; `U:processes` = `tests/
 | Processes | «Очистить тестовые данные» | asks to confirm, then runs `/drill clear`; disabled when no drill exists | `POST processes/drill {action:'clear'}` | `E:processes` (confirm, reset), `U:processes` | pass |
 | Processes | failed call | toast «Не получилось: ...», the map stays | - | `U:processes` (error codes via `errText`) | untested (browser) |
 
+
+## HQ, Finance (2026-11-23), adds to the rows above
+Tag `E:finance` = `tests/e2e/admin-finance.spec.ts`; `U:finance` = `tests/finance.test.mjs`. The section is built (no longer «Soon»).
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/finance` | section menu link «Finance» (12th item, no number key) | opens the page instead of the placeholder | - | `E:finance`, `U:hq-shell` | pass |
+| Finance | tabs Invoices, Payments, Costs (`?tab=`) | switch the view; Invoices is the default | - | `E:finance` | pass |
+| Invoices | the back-office `InvoicesTab` (remind, paid by hand, void, copy link, explorer) | as in section 12, unchanged | `crm/invoices` | `E:finance` (renders), rest as section 12 | pass (render) |
+| Payments | month arrows (Предыдущий / Следующий месяц) | change the month; «next» is disabled on the current month | - | `E:finance`, `U:finance` (month helpers) | pass |
+| Payments | «Обновить» | reloads the invoices | `GET crm/invoices` | `E:finance` (present) | untested (click) |
+| Payments | stat tiles, stage split, payments table, explorer link | month total, by stage, awaiting and overdue, paid rows | `GET crm/invoices` | `E:finance`, `U:finance` (`paymentsView`) | pass |
+| Costs | department cards with agents and limit bars | month spend against the limit, state None / In limit / Near / Over | `GET agents`, `GET company` | `E:finance`, `U:finance` (`costsView`, `costState`) | pass |
+| Costs | daily bars | last 30 days of spend | `GET company` | `E:finance` | pass |
