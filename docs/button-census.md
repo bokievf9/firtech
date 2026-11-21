@@ -518,3 +518,16 @@ Tag `E:hq` = `tests/e2e/admin-hq.spec.ts`; `U:hq-shell` = `tests/hq-shell.test.m
 | Projects | tabs Projects, Payments | `ProjectsBoard`, `InvoicesTab` | as in section 12 | `E:hq` (Payments tab) | pass (tab), rest as section 12 |
 | Documents | tabs Documents, Referrals, Reviews | back-office panels | as in section 12 | `E:hq` (page) | pass (page) |
 | soon sections | «Open the old screen» | goes to the hub panel that holds the section | - | `E:hq` | pass |
+
+## HQ Agents (2026-11-23), adds to the rows above
+`U:agents-hq` = `tests/agents-hq.test.mjs` (normalizers, grouping, diff, dev mock); the proxy whitelist rows are in `U:hq-admin`. «Agents» is a built section now (`/admin/agents`, `?agent=<id>`), no longer a «Soon» placeholder.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/agents` | roster link per agent (grouped by department, English titles) | opens the card (`?agent=`); a phone shows the card alone with a back link | `GET agents` | `E:hq` (Agents test) | pass |
+| `/admin/agents` card | «Edit instructions» | opens the editor dialog (counter, optional note); Save is disabled for empty, too long or unchanged text; Esc closes | `POST agents/<id>/instructions` | `E:hq`, `U:hq-admin` (body schema) | pass |
+| `/admin/agents` card | editor «Save as a new version» | saves, shows the new version, closes the dialog | `POST agents/<id>/instructions` | `E:hq` | pass |
+| `/admin/agents` card | «Versions N» | lists versions (author, note, time) newest first | in the card | `E:hq` | pass |
+| `/admin/agents` card | version «Show» | text of that version as a line diff against the current one | `GET agents/<id>/instructions/<n>` | `E:hq`, `U:agents-hq` (diff) | pass |
+| `/admin/agents` card | version «Roll back to this» | confirm, then a NEW version with the old text (history stays) | `POST agents/<id>/instructions/rollback` | `E:hq`, `U:agents-hq` (mock) | pass |
+| `/admin/agents` card | trust, tools, budget, Fira pack, recent decisions | read-only blocks (ids and counters only) | `GET agents/<id>` | `E:hq` (blocks visible), `U:agents-hq` | pass (shown), manual (live HQ numbers) |

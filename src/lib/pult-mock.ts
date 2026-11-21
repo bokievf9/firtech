@@ -1,4 +1,5 @@
 import type { Approval } from './hq-admin-view'
+import { createAgentsMock } from './agents-mock'
 import { HUB_DEPTS, isoWeek, shiftWeek, weekDates } from './pult'
 
 // Development stand-in for the пульт v3 part of HQ's admin API (hub, leads funnel, client 360,
@@ -258,7 +259,11 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
     })
   }
 
+  const agentsMock = createAgentsMock(start)
+
   return function handle(method: 'GET' | 'POST', seg: string[], query: Json, body: Json, now: number): Reply | null {
+    const agents = agentsMock(method, seg, body, now)
+    if (agents) return agents
     const path = seg.join('/')
     if (method === 'GET' && path === 'hub') return hub(now)
 
