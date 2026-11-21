@@ -548,6 +548,32 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       return ok({ week, ...cur, days, prevWeek: block(Number(shiftWeek(week, -1).slice(-2)) || 1) })
     }
 
+    // ---- calendar (read only): calls, milestones, routine runs and planned content of a range
+    if (seg[0] === 'calendar' && method === 'GET' && seg.length === 1) {
+      const dateOk = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)
+      if (!dateOk(query.from) || !dateOk(query.to)) return bad('invalid')
+      const from = Date.parse(`${query.from}T00:00:00Z`)
+      const to = Date.parse(`${query.to}T00:00:00Z`) + 86_400_000
+      if (!(to > from) || to - from > 62 * 86_400_000) return bad('range_too_long')
+      const events: Row[] = []
+      const day = 86_400_000
+      const at = (d: number, h: number, m = 0) => d * day + h * 3_600_000 + m * 60_000
+      for (let d = Math.floor(from / day); d < to / day; d++) {
+        const wd = new Date(d * day).getUTCDay()
+        // a daily routine at 09:00 and a weekly pack on Monday 06:00
+        events.push({ id: `routine:marketing-daily-today:${at(d, 9)}`, kind: 'routine', at: iso(at(d, 9)), allDay: false, title: 'Контент на сегодня', detail: '0 9 * * *', dept: 'marketing', status: 'scheduled', link: 'routines:marketing-daily-today' })
+        if (wd === 1) events.push({ id: `routine:marketing-weekly-pack:${at(d, 6)}`, kind: 'routine', at: iso(at(d, 6)), allDay: false, title: 'Недельный пакет контента', detail: '0 6 * * 1', dept: 'marketing', status: 'scheduled', link: 'routines:marketing-weekly-pack' })
+        // content planned every second day, a call every third, a milestone every fifth (days counted from the epoch, stable between requests)
+        if (d % 2 === 0) events.push({ id: `content:${d}`, kind: 'content', at: iso(at(d, 0)), allDay: true, title: d % 4 === 0 ? 'Рилс: запись без звонков' : 'Пост: ИИ-администратор', detail: d % 4 === 0 ? 'clip' : 'post', dept: 'marketing', status: d % 4 === 0 ? 'approved' : 'pending', link: `content:item:${(d % 7) + 1}` })
+        if (d % 3 === 0) events.push({ id: `call:${d}`, kind: 'call', at: iso(at(d, 11, 30)), allDay: false, title: d % 6 === 0 ? 'Мадина' : 'Pulse Gym', detail: d % 6 === 0 ? 'bots' : 'automation', dept: 'sales', status: d % 6 === 0 ? 'confirmed' : 'pending', link: `calls:${(d % 5) + 3}` })
+        if (d % 5 === 0) events.push({ id: `milestone:${d}`, kind: 'milestone', at: iso(at(d, 15)), allDay: false, title: d % 10 === 0 ? 'Прототип' : 'Сдача', detail: 'Алиса', dept: 'production', status: 'open', link: 'projects:2' })
+      }
+      events.sort((a, b) => String(a.at).localeCompare(String(b.at)) || String(a.id).localeCompare(String(b.id)))
+      const counts = { call: 0, milestone: 0, routine: 0, content: 0 } as Record<string, number>
+      for (const e of events) counts[String(e.kind)] = (counts[String(e.kind)] ?? 0) + 1
+      return ok({ from: query.from, to: query.to, tz: 'Asia/Tashkent', today: iso(now).slice(0, 10), counts, events })
+    }
+
     // ---- processes
     if (seg[0] === 'processes') {
       const step = (id: string, title: string, hint: string, health: string, lastMin: number | null, failures = 0, stuck = 0, failure: string | null = null) => ({

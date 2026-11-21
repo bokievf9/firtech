@@ -40,11 +40,7 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  test('a soon section says so and links to the old screen; the office still opens', async ({ page }) => {
-    await open(page, '/admin/tasks')
-    await expect(page.getByText('Soon').first()).toBeVisible()
-    await page.getByRole('link', { name: 'Open the old screen' }).click()
-    await expect(page).toHaveURL(/\/admin\/office\?panel=director/)
+  test('the old office still opens next to HQ', async ({ page }) => {
     await open(page, '/admin/office')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
   })

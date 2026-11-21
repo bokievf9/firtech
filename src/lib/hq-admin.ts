@@ -189,6 +189,8 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'POST', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/rollback$/, body: z.object({ version: z.number().int().min(1).max(999999), note: z.string().max(200).optional() }).strict() },
   // HQ «Processes»: the chain map with step health, and the existing drill (start / clear).
   { method: 'GET', path: /^processes$/ },
+  // HQ «Calendar»: calls, milestones, routine runs and planned content of a date range (read only).
+  { method: 'GET', path: /^calendar$/, query: ['from', 'to'] },
   { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
