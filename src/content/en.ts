@@ -1288,6 +1288,7 @@ const en: Dict = {
     successTitle: 'Request received',
     successText:
       "First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder. For something urgent, message us on Telegram: @firtech_bot.",
+    successQueued: 'Request saved and will go to work as soon as the server answers',
     again: 'Send another one',
     error: "Couldn't send the form. Try again or message us on Telegram.",
     errors: {

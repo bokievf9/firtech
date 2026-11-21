@@ -53,6 +53,7 @@ export function ProjectSend({
   const [authStep, setAuthStep] = useState(false)
   const [failure, setFailure] = useState<ErrorInfo | null>(null)
   const [cabinet, setCabinet] = useState<string | null>(null)
+  const [queued, setQueued] = useState(false)
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -77,7 +78,7 @@ export function ProjectSend({
       const name = (d?.owner || d?.company || account?.name || account?.email.split('@')[0] || 'Client').slice(0, 80)
       const contact = (account ? [account.email, account.telegram].filter(Boolean).join(', ') : d?.owner || d?.company || '').slice(0, 120)
       {
-        const result = await fetchJson<{ cabinet?: string | null }>('/api/lead', {
+        const result = await fetchJson<{ cabinet?: string | null; queued?: boolean }>('/api/lead', {
           locale,
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -107,11 +108,13 @@ export function ProjectSend({
         const answer = result.data
         clearDraft(draftStorage(window), 'lead')
         setCabinet(answer.cabinet ?? null)
+        setQueued(Boolean(answer.queued))
         setStatus('sent')
         track('builder_sent', { service })
         track('lead_sent', { service })
         trackEvent('lead_sent')
-        if (answer.cabinet) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
+        // A queued lead stays on the «saved» text; the cabinet is one button away.
+        if (answer.cabinet && !answer.queued) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
       }
     },
     [build.details, fields, keepDraft, link, locale, service],
@@ -148,7 +151,7 @@ export function ProjectSend({
           <CheckCircle size={24} weight="light" className="text-accent-text" />
           {t.successTitle}
         </p>
-        <p className="text-sm leading-relaxed text-muted">{cabinet ? dict.leadAuth.redirecting : t.successText}</p>
+        <p className="text-sm leading-relaxed text-muted">{queued ? t.successQueued : cabinet ? dict.leadAuth.redirecting : t.successText}</p>
         {cabinet && (
           <a href={cabinet} className={buttonStyles.secondary}>
             {dict.leadAuth.toCabinet}

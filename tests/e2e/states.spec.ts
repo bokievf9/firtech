@@ -87,6 +87,20 @@ test('builder send: pending is aria-busy, a 500 shows the reason and «Повт�
   await shot(page, page.getByRole('status').filter({ hasText: 'Заявка у нас' }), 'builder-send-success')
 })
 
+for (const [locale, title, queuedText] of [
+  ['ru', 'Заявка у нас', 'Заявка сохранена и уйдёт в работу, как только сервер ответит'],
+  ['en', 'Request received', 'Request saved and will go to work as soon as the server answers'],
+] as const) {
+  test(`builder send (${locale}): a queued lead (HQ down) shows the saved text, not the plain success`, async ({ page }) => {
+    await signedIn(page)
+    await page.route('**/api/lead', (route) => route.fulfill({ json: { ok: true, id: 1, queued: true, cabinet: '/' + locale + '/cabinet' } }))
+    await open(page, `/${locale}/builder?b=websites.landing.telegram~k.cafe~s.premium.amber.dark.soft~d.5.ru-en.logo.month&step=8`)
+    await page.locator('#contact').getByRole('button').first().click()
+    const status = page.getByRole('status').filter({ hasText: title })
+    await expect(status).toContainText(queuedText)
+  })
+}
+
 test('audit form: the field text survives a failed send and the retry goes through', async ({ page }) => {
   await signedIn(page)
   let calls = 0
