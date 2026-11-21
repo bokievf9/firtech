@@ -66,14 +66,18 @@ export async function askReceptionist(
         // The signed-in cabinet account (clientEmail, cabinetId, clientName, taken from the session
         // on the server, never from the browser): HQ routes the visitor to their own thread.
         // A demo message (persona) carries `clientId`, `clientEmail` and `demo: true` instead: HQ counts it
-        // per client (`demo_usage`, daily limit) and answers with `usage: { calls, left }`.
+        // per client (`demo_usage`, daily limit) and answers with `limit`, `remaining` and `usage: { limit, used, remaining }`.
         ...(req.persona ? demoFields(identity) : identityFields(identity)),
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
     })
-    if (res.status === 401 || res.status === 403) return { ok: false, error: 'hq_unauthorized' }
     const body: unknown = await res.json().catch(() => null)
+    // Strict mode of HQ (`DEMO_REQUIRE_CLIENT`): a demo message without a known client; the visitor signs in.
+    if (res.status === 401 && body && typeof body === 'object' && (body as { error?: unknown }).error === 'login_required') {
+      return { ok: false, error: 'auth_required' }
+    }
+    if (res.status === 401 || res.status === 403) return { ok: false, error: 'hq_unauthorized' }
     if (res.status === 429) {
       const code = body && typeof body === 'object' ? (body as { error?: unknown }).error : undefined
       return { ok: false, error: code === 'limit_reached' || code === 'demo_limit' ? 'demo_limit' : 'rate_limited' }

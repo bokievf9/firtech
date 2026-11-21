@@ -34,6 +34,25 @@ test.describe('cabinet, signed in', () => {
     expect(errors).toEqual([])
   })
 
+  test('support thread: «Вопрос решён» closes the open ticket, a new message brings the button back', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/ru/cabinet?thread=support')
+    const bar = page.locator('[data-ticket-bar]')
+    await expect(bar).toBeVisible()
+    await bar.locator('[data-ticket-resolve]').click()
+    await expect(bar).toHaveCount(0)
+    // After a reload the mock HQ still has it closed (the newest open ticket is the other one, id 1 is answered).
+    await open(page, '/ru/cabinet?thread=support')
+    await expect(page.locator('[data-ticket-bar]')).toBeVisible()
+    await page.locator('[data-ticket-resolve]').click()
+    await expect(page.locator('[data-ticket-bar]')).toHaveCount(0)
+    // A new message opens a new ticket: the button is back.
+    await page.getByRole('textbox').last().fill('Ещё вопрос про домен')
+    await page.getByRole('textbox').last().press('Enter')
+    await expect(page.locator('[data-ticket-bar]')).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
   test('a quote can be declined or discussed: the state, the hint and the thread line', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/ru/cabinet?tab=documents&doc=q-14')

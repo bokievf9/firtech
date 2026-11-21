@@ -2,7 +2,7 @@ import 'server-only'
 import { z } from 'zod'
 import { demoNiches } from '../content/builder-v2'
 import { stripHtml } from './chat'
-import { demoFields, parseUsage, type DemoUsage } from './demo-gate'
+import { chatTokenHeader, demoFields, parseUsage, type DemoUsage } from './demo-gate'
 import type { LeadIdentity } from './lead-identity'
 import { visitorIpHeader } from './public-post'
 
@@ -71,13 +71,14 @@ export async function askDemoAgent(
   try {
     const res = await fetcher(url, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', ...visitorIpHeader(ip) },
+      headers: { 'content-type': 'application/json', ...chatTokenHeader(env), ...visitorIpHeader(ip) },
       // `clientId`, `clientEmail` and `demo: true` from the session (never from the browser): HQ counts the usage.
       body: JSON.stringify({ sessionId: req.sessionId, text: req.text, ...demoFields(identity) }),
       cache: 'no-store',
       signal: AbortSignal.timeout(AGENT_DEMO_TIMEOUT_MS),
     })
     const body = (await res.json().catch(() => null)) as { ok?: unknown; reply?: unknown; error?: unknown } | null
+    if (res.status === 401 && body?.error === 'login_required') return { ok: false, error: 'auth_required' }
     if (res.status === 429) return { ok: false, error: body?.error === 'limit_reached' || body?.error === 'demo_limit' ? 'demo_limit' : 'rate_limited' }
     if (!res.ok || !body || body.ok !== true || typeof body.reply !== 'string')
       return { ok: false, error: 'hq_error' }

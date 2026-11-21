@@ -13,17 +13,26 @@ export function demoFields(identity: LeadIdentity | null): { demo: true; clientI
   return identity ? { demo: true, clientId: identity.cabinetId, clientEmail: identity.clientEmail } : { demo: true }
 }
 
+// HQ takes the demo identity on `POST /agent/:id/chat` only with `x-chat-token` (the same `HQ_CHAT_TOKEN` as
+// `POST /chat`). Server side only; empty when no token is configured (development).
+export function chatTokenHeader(env: Record<string, string | undefined>): Record<string, string> {
+  const token = (env.HQ_CHAT_TOKEN || env.LEAD_INTAKE_TOKEN || '').trim()
+  return token ? { 'x-chat-token': token } : {}
+}
+
 const count = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : null)
 
-// HQ's `usage: { calls, left }`; null when HQ says nothing usable.
+// HQ's usage in any of its three forms: flat `limit` / `remaining`, `usage: { limit, used, remaining }` (the
+// contract, public-api.md) or the older `usage: { calls, left }`. `remaining ?? usage.remaining ?? usage.left`;
+// null when HQ says nothing usable.
 export function parseUsage(body: unknown): DemoUsage | null {
   const o = body && typeof body === 'object' ? (body as Record<string, unknown>) : {}
-  const u = o.usage && typeof o.usage === 'object' ? (o.usage as Record<string, unknown>) : null
-  if (!u) return null
-  const calls = count(u.calls)
-  const left = count(u.left)
-  if (calls === null && left === null) return null
-  return { calls: calls ?? 0, left }
+  const u = o.usage && typeof o.usage === 'object' ? (o.usage as Record<string, unknown>) : {}
+  const limit = count(o.limit) ?? count(u.limit)
+  const used = count(u.used) ?? count(u.calls)
+  const left = count(o.remaining) ?? count(u.remaining) ?? count(u.left) ?? (limit !== null && used !== null ? Math.max(0, limit - used) : null)
+  if (used === null && left === null) return null
+  return { calls: used ?? (limit !== null && left !== null ? Math.max(0, limit - left) : 0), left }
 }
 
 // Where «Войти» leads: the login page with the page to come back to. `next` must stay inside the locale

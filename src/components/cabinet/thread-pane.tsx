@@ -44,6 +44,7 @@ export function ThreadPane({
   locale,
   onRead,
   onBack,
+  onSent,
   agentReply = false,
   chrome = true,
   className,
@@ -54,6 +55,8 @@ export function ThreadPane({
   // The thread was opened or read: the unread count of it is now zero.
   onRead?: (threadId: string) => void
   onBack?: () => void
+  // A message of the client went through; `ticketId` is the support ticket it became (null when none).
+  onSent?: (ticketId: number | null) => void
   agentReply?: boolean
   // The header with the title (off where the surrounding card has its own).
   chrome?: boolean
@@ -168,12 +171,13 @@ export function ThreadPane({
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ text: body }),
       })
-      const data = (await res.json().catch(() => null)) as { ok?: boolean; item?: unknown; reply?: unknown; error?: string } | null
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; item?: unknown; reply?: unknown; ticketId?: unknown; error?: string } | null
       const item = res.ok && data?.ok ? parseMessageItem({ item: data.item }) : null
       if (item) {
         const reply = data?.reply ? parseMessageItem({ item: data.reply }) : null
         setMessages((m) => mergeMessages(m.filter((x) => x.id !== localId), reply ? [item, reply] : [item]))
         if (agentReply && !reply) burst()
+        onSent?.(typeof data?.ticketId === 'number' ? data.ticketId : null)
         return true
       }
       setError(errors[data?.error ?? ''] ?? errors.hq ?? '')

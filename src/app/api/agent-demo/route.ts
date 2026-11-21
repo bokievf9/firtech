@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const answer = await askDemoAgent(parsed.data, process.env, fetch, ip, gate.identity)
   if (!answer.ok) {
     if (answer.error !== 'demo_limit') console.error(`[agent-demo] not answered: ${answer.error}`)
-    return apiError(answer.error, answer.error === 'rate_limited' || answer.error === 'demo_limit' ? 429 : answer.error === 'hq_timeout' ? 504 : 502)
+    return apiError(answer.error, answer.error === 'auth_required' ? 401 : answer.error === 'rate_limited' || answer.error === 'demo_limit' ? 429 : answer.error === 'hq_timeout' ? 504 : 502)
   }
   return NextResponse.json(answer, { headers: { 'cache-control': 'no-store' } })
 }
