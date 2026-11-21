@@ -444,7 +444,8 @@ export async function fetchAgentConversations(clientId: number, agentId: string,
 // name, telegram and locale from the sign-up data and was the CRM half of the profile bug.
 export async function patchClientProfile(
   clientId: number,
-  fields: { name?: string; telegram?: string; locale?: 'ru' | 'en' },
+  // HQ reads name, telegram, phone, company, locale; the other keys are the 2026-11-22 contract (HQ strips them until then).
+  fields: { name?: string; telegram?: string; phone?: string; company?: string; locale?: 'ru' | 'en' } & Record<string, string | boolean>,
   env: Env = process.env,
   fetcher: typeof fetch = fetch,
 ): Promise<HqV3<true>> {

@@ -152,6 +152,55 @@ const entries: Record<string, Entry> = {
     retryable: true,
     status: 503,
   },
+  // Cabinet profile (2026-11-22, /api/cabinet/profile).
+  save_denied: {
+    ru: ['Не сохранилось: база не дала записать', 'Это настройка на нашей стороне. Напишите нам, мы исправим, а пока значение осталось прежним.'],
+    en: ['Not saved: the database refused the write', 'This is on our side. Message us and we will fix it; the old value is kept for now.'],
+    retryable: false,
+    status: 403,
+  },
+  save_failed: {
+    ru: ['Не удалось сохранить', 'Повторите. Значение осталось прежним.'],
+    en: ['Could not save', 'Try again. The old value is kept.'],
+    retryable: true,
+    status: 500,
+  },
+  profile_outdated: {
+    ru: ['Эта настройка заработает после обновления базы', 'Мы уже обновляем кабинет. Имя, Telegram, язык и новости сохраняются как раньше.'],
+    en: ['This setting starts working after a database update', 'We are updating the cabinet. Name, Telegram, language and news save as before.'],
+    retryable: false,
+    status: 503,
+  },
+  telegram_invalid: {
+    ru: ['Telegram не похож на ник', 'Ник вида @name: латиница, цифры и _, от 5 знаков.'],
+    en: ['That does not look like a Telegram username', 'A username like @name: letters, digits and _, 5 characters or more.'],
+    retryable: false,
+    status: 400,
+  },
+  telegram_required: {
+    ru: ['Для Telegram нужен ник', 'Укажите Telegram в разделе «Вы», затем выберите этот канал.'],
+    en: ['Telegram needs a username', 'Add your Telegram in «You», then pick this channel.'],
+    retryable: false,
+    status: 409,
+  },
+  phone_invalid: {
+    ru: ['Телефон не похож на номер', 'Номер с кодом страны, например +992 900 12 34 56.'],
+    en: ['That does not look like a phone number', 'A number with the country code, e.g. +992 900 12 34 56.'],
+    retryable: false,
+    status: 400,
+  },
+  website_invalid: {
+    ru: ['Адрес сайта не распознан', 'Например example.com или https://example.com.'],
+    en: ['The website address was not recognised', 'For example example.com or https://example.com.'],
+    retryable: false,
+    status: 400,
+  },
+  niche_invalid: {
+    ru: ['Такой ниши нет в списке', 'Выберите из списка или «Другое».'],
+    en: ['This niche is not in the list', 'Pick one from the list or «Other».'],
+    retryable: false,
+    status: 400,
+  },
   server_error: {
     ru: ['Ошибка на сервере', 'Повторите. Если повторяется, напишите нам и назовите код.'],
     en: ['Server error', 'Try again. If it keeps happening, message us with the code.'],

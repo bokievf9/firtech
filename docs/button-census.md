@@ -280,10 +280,17 @@ Legend of `E:` tags (file : test title):
 | offers (in Обзор and under the other tabs) | state-based offers, `cabinet_offer_click` | `lib/cabinet-offers.ts` | `U:cabinet-offers` | pass (unit), untested (browser) |
 | ticket form «Написать менеджеру» | `POST /api/cabinet/tickets` -> HQ `createClientTicket` | HQ | `U:cabinet`, `U:cabinet-hq` | untested (browser) |
 | lead reply box (Заявки) | reply to a request | `/api/cabinet/leads/[id]` | `U:cabinet-leads` | untested (browser) |
-| profile form «Сохранить» | `updateProfileAction` (`public.profiles`) | Supabase | `U:cabinet` | untested |
+| Профиль: text fields (Вы, Компания, Для документов) | save on blur / Enter, status «Сохраняем... / Сохранено», `ErrorNote` with «Повторить», typed text kept on error | `POST /api/cabinet/profile` (patch, row read back) | `U:cabinet-profile`, `U:cabinet-stage-render`, `E:profile` (company saved, bad website reason) | pass |
+| Профиль: language and niche selects | save on change, rollback on error | `POST /api/cabinet/profile` | `U:cabinet-profile` | pass (unit), untested (browser) |
+| Уведомления: switches «Новости и акции», «Рекомендации» | `role=switch`, optimistic, rollback with the reason | `POST /api/cabinet/profile` (`marketing`, `recommendations`) | `E:profile` (stays on after reload, RLS refusal rolls back) | pass |
+| Уведомления: channel Почта / Telegram / оба | radio, Telegram disabled without a nick; clearing the nick moves to email | `POST /api/cabinet/profile` (`notifyChannel`) | `U:cabinet-profile`, `E:profile` | pass |
+| Безопасность: «Сменить пароль» | current password checked (email accounts), `updateUser` | `changePasswordAction` | `U:cabinet-profile` (source) | untested (browser) |
+| Безопасность: «Сменить почту» | Supabase confirmation letter | `changeEmailAction` | none | untested (sends mail) |
+| Безопасность: «Выйти везде» | `signOut({scope:'global'})` | `signOutEverywhereAction` | `U:cabinet-profile` (source) | untested |
+| `/cabinet/unsubscribe?token=` «Отписаться» | GET changes nothing, the button POSTs; one-click `POST /api/cabinet/unsubscribe?token=` | service role update of one column | `U:cabinet-profile` (token), `E:profile` (unsubscribe) | pass |
 | referral link copy | copies `/<locale>/?ref=<slug>` | clipboard | `U:cabinet` (`cabinetRefLink`) | untested (browser) |
 | «Выйти» | `logoutAction` | Supabase | none | untested |
-| account deletion: «Удалить аккаунт» -> confirm / cancel | `deleteAccountAction` (service role, else a ticket) | Supabase admin | `U:cabinet-auth` | untested (destructive, needs a throwaway account) |
+| account deletion: «Удалить аккаунт» -> type УДАЛИТЬ / DELETE -> «Удалить навсегда» / cancel | `deleteAccountAction` (word checked on the server too; service role, else a ticket) | Supabase admin | `U:cabinet-auth` | untested (destructive, needs a throwaway account) |
 | all cabinet pages | `noindex`, `cache-control: private, no-store` | `proxy.ts` | `E:cab-noindex` | pass |
 
 ## 10. 404 and chat

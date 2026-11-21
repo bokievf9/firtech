@@ -40,7 +40,7 @@ export function ErrorNote({
       )}
     >
       <p className="font-medium">{error.message}</p>
-      <p className="mt-0.5 opacity-90">{error.hint}</p>
+      {error.hint ? <p className="mt-0.5 opacity-90">{error.hint}</p> : null}
       {error.ref ? (
         <p className="mt-1 font-mono text-[12px] opacity-80">
           {l.code}: {error.ref}

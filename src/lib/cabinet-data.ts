@@ -297,6 +297,12 @@ export type ClientSyncProfile = {
   telegram: string | null
   locale: string | null
   marketing_consent: boolean | null
+  // Profile settings of migration 0003 (2026-11-22). HQ's registration schema strips them today; they are
+  // the contract in docs/cabinet.md «Нужно от HQ».
+  recommendations_consent?: boolean | null
+  notify_channel?: string | null
+  phone?: string | null
+  company?: string | null
 }
 export function clientSyncBody(userId: string, profile: ClientSyncProfile) {
   return {
@@ -306,6 +312,10 @@ export function clientSyncBody(userId: string, profile: ClientSyncProfile) {
     locale: profile.locale === 'en' ? 'en' : 'ru',
     supabaseId: userId,
     marketingConsent: profile.marketing_consent === true,
+    recommendationsConsent: profile.recommendations_consent === true,
+    notifyChannel: profile.notify_channel === 'telegram' || profile.notify_channel === 'both' ? profile.notify_channel : 'email',
+    phone: (profile.phone ?? '').trim(),
+    company: (profile.company ?? '').trim(),
   }
 }
 

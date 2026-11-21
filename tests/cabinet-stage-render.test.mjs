@@ -22,7 +22,7 @@ registerHooks({
     if (specifier === 'next/link') return next('next/link.js', context)
     // Server actions pull in cookies and Supabase; the cards under test never call them.
     if (specifier.startsWith('@/app/') && specifier.endsWith('/actions')) {
-      const stub = 'export const deleteAccountAction = async () => ({}); export const updateProfileAction = async () => ({})'
+      const stub = ['deleteAccountAction', 'changePasswordAction', 'changeEmailAction', 'signOutEverywhereAction', 'unsubscribeAction'].map((n) => `export const ${n} = async () => ({});`).join(' ')
       return { url: `data:text/javascript,${encodeURIComponent(stub)}`, shortCircuit: true }
     }
     if (specifier.startsWith('@/')) {
@@ -67,6 +67,7 @@ const { SignaturePad } = await import('../src/components/cabinet/signature-pad.t
 const { MessagesPanel } = await import('../src/components/cabinet/messages-panel.tsx')
 const { AgentPanel } = await import('../src/components/cabinet/agent-panel.tsx')
 const { MaterialsPanel } = await import('../src/components/cabinet/materials-panel.tsx')
+const { ProfilePanel } = await import('../src/components/cabinet/profile-panel.tsx')
 
 const dev = { NODE_ENV: 'development' }
 const text = (html) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
@@ -256,4 +257,31 @@ test('Материалы: labels, upload form into the project thread, a note wi
   assert.match(html, /data-upload/)
   assert.match(text(html), /до 10 МБ/)
   assert.match(text(h(MaterialsPanel, { dict: ru, locale: 'ru', thread: null })), /Загрузка откроется/)
+})
+
+test('profile (2026-11-22): five sections, switches as role=switch with the stored state, Telegram channel locked without a nick', () => {
+  const base = {
+    name: 'Анна', email: 'anna@example.com', telegram: '', phone: '', locale: 'ru', company: '', niche: 'salon', website: '', city: '',
+    legalName: '', legalAddress: '', refundWallet: '', marketing: true, recommendations: false, notifyChannel: 'email', updatedAt: null,
+  }
+  const niches = [{ label: 'Красота и здоровье', options: [{ id: 'salon', name: 'Салон красоты' }] }]
+  const html = h(ProfilePanel, { dict: ru, locale: 'ru', initial: base, legacy: false, niches, hasPassword: true })
+  const t = text(html)
+  for (const title of ['Вы', 'Компания', 'Для документов', 'Уведомления', 'Безопасность']) assert.match(t, new RegExp(title))
+  assert.match(t, /Используется в договоре и счёте/)
+  assert.match(t, /Всегда включено/)
+  assert.match(html, /data-pref="marketing"[\s\S]*?role="switch" aria-checked="true"/)
+  assert.match(html, /data-pref="recommendations"[\s\S]*?role="switch" aria-checked="false"/)
+  const radio = (markup, v) => markup.match(new RegExp(`<input[^>]*type="radio"[^>]*value="${v}"[^>]*>`))?.[0] ?? ''
+  assert.match(radio(html, 'telegram'), /disabled=""/)
+  assert.match(radio(html, 'email'), /checked=""/)
+  assert.match(t, /укажите ник в разделе «Вы»/)
+  assert.match(html, /<option value="salon" selected="">/)
+  assert.match(t, /Текущий пароль/)
+  assert.doesNotMatch(html, /<form[^>]*data-profile/)
+  const withTg = h(ProfilePanel, { dict: en, locale: 'en', initial: { ...base, telegram: '@anna_salon', notifyChannel: 'both' }, legacy: true, niches, hasPassword: false })
+  assert.doesNotMatch(radio(withTg, 'telegram'), /disabled/)
+  assert.match(radio(withTg, 'both'), /checked=""/)
+  assert.match(text(withTg), /after a database update/)
+  assert.doesNotMatch(text(withTg), /Current password/)
 })
