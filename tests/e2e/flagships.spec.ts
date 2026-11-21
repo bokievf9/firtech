@@ -25,7 +25,7 @@ test('flagships: Personal AI page, the day by the hour, three levels, live cases
   await expect(page.locator('[data-myday] [role=tabpanel]')).toContainText('40 минут')
   await expect(page.locator('[data-plan-levels] [data-plan]')).toHaveCount(3)
   await expect(page.locator('[data-plan="basic"]')).toContainText('$290')
-  await expect(page.locator('[data-cases] li')).toHaveCount(2)
+  await expect(page.locator('[data-cases] > li')).toHaveCount(2)
   await expect(page.locator('[data-cases]')).not.toContainText('$')
   await expect(page.locator('[data-cta="product_page_personal_build"]')).toHaveAttribute('href', /p\.personal/)
   expect(errors).toEqual([])
@@ -57,6 +57,12 @@ test('flagships: both pages fit 390 and 1440 without overflow', async ({ page })
       await open(page, `/ru/products/${id}`)
       await noHorizontalOverflow(page, `${id} ${name}`)
       if (shots) {
+        // Scroll through so every Reveal block fades in, then capture the whole page.
+        for (let y = 0; y < (await page.evaluate(() => document.body.scrollHeight)); y += 600) {
+          await page.evaluate((top) => window.scrollTo(0, top), y)
+          await page.waitForTimeout(120)
+        }
+        await page.waitForTimeout(800)
         await page.screenshot({ path: `${shots}/${id}-${size.width}.png`, fullPage: true })
       }
     }
