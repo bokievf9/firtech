@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { AdminMenu } from '@/components/admin/admin-shell'
 import { errText, fill, hq, storedValue, usePoll } from '@/components/admin/control/api'
 import { TaskDrawer } from '@/components/admin/control/task-drawer'
-import type { BoardFilter } from '@/components/admin/control/tasks-panel'
+import type { PersonFilter } from '@/lib/orders'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { PixelOffice, type OfficeZones } from '@/components/admin/office/pixel-office'
 import { useOffice } from '@/components/admin/office/use-office'
@@ -43,6 +43,7 @@ import {
   normalizeInvoices,
   normalizeLeads,
   PANEL_TABS,
+  panelTab,
   PANELS,
   panelForKey,
   roomPanel,
@@ -168,15 +169,13 @@ export function Hub({ initial = null }: { initial?: { panel: string; tab?: strin
   // ---- panel state ----
   const [open, setOpen] = useState<Open | null>(() => {
     if (!initial || !isPanel(initial.panel)) return null
-    const tabs = PANEL_TABS[initial.panel]
-    return { panel: initial.panel, tab: initial.tab && tabs.includes(initial.tab) ? initial.tab : tabs[0]!, focus: initial.focus ?? null, key: 1 }
+    return { panel: initial.panel, tab: panelTab(initial.panel, initial.tab), focus: initial.focus ?? null, key: 1 }
   })
   const [paletteOpen, setPaletteOpen] = useState(false)
   const size = useSyncExternalStore(panelSize.subscribe, panelSize.get, panelSize.server)
   const openPanel = useCallback((panel: string, tab?: string, focus: string | null = null) => {
     if (!isPanel(panel)) return
-    const tabs = PANEL_TABS[panel]
-    setOpen({ panel, tab: tab && tabs.includes(tab) ? tab : tabs[0]!, focus, key: Date.now() })
+    setOpen({ panel, tab: panelTab(panel, tab), focus, key: Date.now() })
   }, [])
   const closePanel = useCallback(() => setOpen(null), [])
   // The go-live plan is a full-screen page (key 8, the top bar chip, ⌘K).
@@ -241,7 +240,7 @@ export function Hub({ initial = null }: { initial?: { panel: string; tab?: strin
   const chats = useHqView('chats?status=open&limit=1', normalizeChats, { visible: 15_000, hidden: 60_000 })
   const unpaid = useHqView('crm/invoices?status=issued&limit=200', normalizeInvoices, { visible: 60_000, hidden: 300_000 })
 
-  const [filter, setFilter] = useState<BoardFilter>({ dept: null, assigneeId: null })
+  const [filter, setFilter] = useState<PersonFilter>({ dept: null, assigneeId: null })
   const [openTask, setOpenTask] = useState<Id | null>(null)
   const [selected, setSelected] = useState<HitTarget | null>(null)
   const closeDrawer = useCallback(() => setOpenTask(null), [])

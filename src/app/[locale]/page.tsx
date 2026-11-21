@@ -7,6 +7,7 @@ import { RefCapture } from '@/components/ref-capture'
 import { PricingSection } from '@/components/pricing-section'
 import { ProductsBento } from '@/components/products/products-bento'
 import { Proof } from '@/components/proof/proof'
+import { SolutionsHome } from '@/components/solutions-home'
 import { WorkTimeline } from '@/components/work-timeline'
 import { getDict } from '@/content'
 import { homeSections, type HomeSection } from '@/lib/home'
@@ -64,11 +65,12 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   const sections: Record<HomeSection, ReactNode> = {
     hero: <Hero locale={locale} dict={dict} />,
     products: <ProductsBento locale={locale} dict={dict} />,
-    demo: <DemoSection dict={dict} />,
+    demo: <DemoSection dict={dict} locale={locale} />,
     proof: <Proof dict={dict} />,
-    process: <WorkTimeline dict={dict} />,
+    solutions: <SolutionsHome dict={dict} locale={locale} />,
+    process: <WorkTimeline dict={dict} locale={locale} />,
     pricing: <PricingSection dict={dict} locale={locale} teaser />,
-    faqContact: <FaqContact dict={dict} locale={locale} />,
+    faq: <FaqContact dict={dict} locale={locale} />,
     footer: null,
   }
 

@@ -1,4 +1,4 @@
-import { productAnchor, productIds, type ProductId } from './product-ids'
+import { productAnchor, productIds, productPath, type ProductId } from './product-ids'
 import { serviceSlugs, type ServiceSlug } from './site'
 import { solutionKinds } from './solutions'
 
@@ -12,9 +12,10 @@ export const homeSections = [
   'products',
   'demo',
   'proof',
+  'solutions',
   'process',
   'pricing',
-  'faqContact',
+  'faq',
   'footer',
 ] as const
 export type HomeSection = (typeof homeSections)[number]
@@ -24,9 +25,10 @@ export const sectionAnchor: Record<HomeSection, string | null> = {
   products: 'products',
   demo: 'demo',
   proof: 'proof',
+  solutions: 'solutions',
   process: 'process',
   pricing: 'pricing',
-  faqContact: 'contact',
+  faq: 'faq',
   footer: null,
 }
 
@@ -34,13 +36,12 @@ export const sectionAnchor: Record<HomeSection, string | null> = {
 // old `#services` (kept on the products section for old links) and one per product card.
 export const homeAnchors: string[] = [
   ...homeSections.flatMap((s) => (sectionAnchor[s] ? [sectionAnchor[s] as string] : [])),
-  'faq',
   'services',
   ...productIds.map(productAnchor),
 ]
 
 // Pages under /[locale] besides the home page (directories in src/app/[locale]).
-export const localePages = ['builder', 'blog', 'privacy', 'solutions', 'referral', 'compare', 'audit', 'status', 'ai-team', 'pay-how'] as const
+export const localePages = ['builder', 'blog', 'privacy', 'solutions', 'referral', 'compare', 'audit', 'status', 'ai-team', 'pay-how', 'how-we-work'] as const
 
 export type FooterLink =
   | { kind: 'product'; id: ProductId; href: string }
@@ -56,7 +57,7 @@ export function footerColumns(locale: string): FooterColumn[] {
     {
       id: 'products',
       links: [
-        ...productIds.map((id): FooterLink => ({ kind: 'product', id, href: `/${locale}#${productAnchor(id)}` })),
+        ...productIds.map((id): FooterLink => ({ kind: 'product', id, href: `/${locale}${productPath(id)}` })),
         { kind: 'page', id: 'ai-team', href: `/${locale}/ai-team` },
       ],
     },
@@ -78,9 +79,8 @@ export function footerColumns(locale: string): FooterColumn[] {
       links: [
         { kind: 'page', id: 'builder', href: `/${locale}/builder` },
         { kind: 'page', id: 'pricing', href: `/${locale}#pricing` },
-        { kind: 'page', id: 'process', href: `/${locale}#process` },
+        { kind: 'page', id: 'process', href: `/${locale}/how-we-work` },
         { kind: 'page', id: 'blog', href: `/${locale}/blog` },
-        { kind: 'page', id: 'contact', href: `/${locale}#contact` },
         { kind: 'page', id: 'pay-how', href: `/${locale}/pay-how` },
         { kind: 'page', id: 'compare', href: `/${locale}/compare` },
         { kind: 'page', id: 'referral', href: `/${locale}/referral` },

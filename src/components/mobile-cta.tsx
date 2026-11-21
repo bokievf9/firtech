@@ -1,23 +1,20 @@
 'use client'
 
-import { ArrowRight, TelegramLogo } from '@phosphor-icons/react'
+import { ArrowRight } from '@phosphor-icons/react'
 import { AnimatePresence, motion, useMotionValueEvent, useScroll } from 'motion/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
-import { telegramUrl } from '@/lib/site'
+import { buttonStyles, cn } from '@/lib/cn'
 
 // Phone-only bar with the main action, shown once the hero is scrolled away and hidden again
 // while the contact form itself is on screen (no point pointing at what you are looking at).
 export function MobileCta({
   locale,
   label,
-  telegramLabel,
 }: {
   locale: string
   label: string
-  telegramLabel: string
 }) {
   const pathname = usePathname()
   const { scrollY } = useScroll()
@@ -54,25 +51,13 @@ export function MobileCta({
           style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         >
           <Link
-            href={homeAnchor(locale, 'contact')}
+            href={`/${locale}/builder`}
             data-cta="mobile_bar"
             className={cn(buttonStyles.primary, 'flex-1 py-3')}
           >
             {label}
             <ArrowRight size={16} />
           </Link>
-          {telegramUrl && (
-            <a
-              href={telegramUrl}
-              data-place="mobile-cta"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={telegramLabel}
-              className="flex size-12 shrink-0 items-center justify-center rounded-full border border-line-strong text-tg"
-            >
-              <TelegramLogo size={20} weight="fill" />
-            </a>
-          )}
         </motion.div>
       )}
     </AnimatePresence>

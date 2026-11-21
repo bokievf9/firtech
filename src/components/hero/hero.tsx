@@ -24,6 +24,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
   }))
   return (
     <HeroSequence
+      locale={locale}
       products={products}
       demo={dict.products.demo}
       copy={h.sequence}
@@ -77,11 +78,11 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
           </div>
           <p className="mt-4 text-[13px]">
             <Link
-              href={`/${locale}/audit`}
-              data-cta="hero_audit"
+              href={`/${locale}/ai-team`}
+              data-cta="hero_team"
               className="inline-flex items-center gap-1.5 text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
             >
-              {h.auditLink}
+              {h.teamLink}
               <ArrowRight size={12} aria-hidden="true" />
             </Link>
           </p>

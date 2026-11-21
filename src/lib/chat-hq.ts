@@ -50,6 +50,8 @@ export async function askReceptionist(
         // HQ's chatSchema is not strict, so an unknown `ref` is ignored today; HQ reads it later.
         // TODO(agents): add `ref` to chatSchema and attribute web-chat leads.
         ...(req.ref ? { ref: req.ref } : {}),
+        // The demo niche (salon, clinic, shop). Ignored by HQ until it reads it: TODO(agents) in chat.ts.
+        ...(req.persona ? { persona: req.persona } : {}),
         // The signed-in cabinet account, so a lead from the chat lands in that client's cabinet.
         // HQ's chatSchema is not strict: ignored until HQ reads it.
         ...identityFields(identity),

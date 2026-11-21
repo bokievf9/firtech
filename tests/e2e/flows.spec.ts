@@ -18,7 +18,7 @@ test('builder: walk through all 8 steps to the summary, estimate and PDF page', 
   await expect(step()).toHaveAttribute('aria-label', /^2\./)
 
   // 2. Products: toggle one off and on again.
-  const product = page.locator('button', { hasText: 'ИИ-приёмщик заявок 24/7' }).first()
+  const product = page.locator('button', { hasText: 'ИИ-менеджер заявок' }).first()
   await product.click()
   await product.click()
   await next().click()
@@ -92,7 +92,7 @@ test('estimate page lists the build as rows and offers print', async ({ page }) 
 // ---- contact form with the sign-in gate ---------------------------------------------------------
 
 test('contact form: empty submit shows field errors, a filled one asks to sign in', async ({ page }) => {
-  await open(page, '/ru#contact')
+  await open(page, '/ru/builder?b=websites.landing.telegram~k.cafe&step=8#contact')
   const form = page.locator('#contact form').first()
   await form.scrollIntoViewIfNeeded()
   await form.locator('button[type=submit]').click()
@@ -197,7 +197,7 @@ test('cabinet pages are noindex', async ({ page }) => {
 test('chat widget opens, sends and answers in mock mode, then closes', async ({ page }) => {
   const errors = watchErrors(page)
   await open(page, '/ru')
-  await page.getByRole('button', { name: 'Чат с ИИ-приёмщиком' }).click()
+  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
   const dialog = page.locator('[role=dialog]')
   await expect(dialog).toContainText('Демо-режим')
   const box = dialog.locator('textarea')
@@ -214,9 +214,9 @@ test('chat widget opens, sends and answers in mock mode, then closes', async ({ 
   expect(errors).toEqual([])
 })
 
-test('chat opens from the hero button and from the #demo link', async ({ page }) => {
+test('chat opens from the hero button «Спросить агента»', async ({ page }) => {
   await open(page, '/ru')
-  await page.getByRole('link', { name: 'Поговорить с приёмщиком' }).click()
+  await page.locator('#top').getByRole('link', { name: 'Спросить агента' }).click()
   await expect(page.locator('[role=dialog]')).toBeVisible()
 })
 
@@ -233,16 +233,16 @@ test('chat API: validation (400) and mock answer (200)', async ({ request, baseU
 
 // ---- services ------------------------------------------------------------------------------------
 
-test('service page: «Посчитать» picks the format in the calculator', async ({ page }) => {
+test('service page: «Оценить стоимость» picks the format in the estimate block', async ({ page }) => {
   await open(page, '/ru/services/websites')
-  await page.getByRole('button', { name: /Посчитать в калькуляторе: Сайт компании/ }).click()
+  await page.getByRole('button', { name: /Оценить стоимость: Сайт компании/ }).click()
   const picked = page.locator('#pricing [role=radio][aria-checked=true]').first()
   await expect(picked).toContainText('Сайт компании')
 })
 
 test('solution page opens the builder with its preset', async ({ page }) => {
   await open(page, '/ru/solutions/cafe')
-  await page.getByRole('link', { name: 'Собрать такой проект' }).first().click()
+  await page.getByRole('link', { name: 'Собрать это решение' }).first().click()
   await expect(page).toHaveURL(/\/ru\/builder\?b=.*k\.cafe/)
 })
 
@@ -257,7 +257,7 @@ test('chat: Enter sends right after opening (queued behind the greeting), Shift+
     await route.continue()
   })
   await open(page, '/ru')
-  await page.getByRole('button', { name: 'Чат с ИИ-приёмщиком' }).click()
+  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
   const dialog = page.locator('[role=dialog]')
   const box = dialog.locator('textarea')
   await box.focus()

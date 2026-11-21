@@ -68,11 +68,11 @@ export function Header({
 
   const links = [
     { href: homeAnchor(locale, 'products'), label: dict.nav.products },
+    { href: `/${locale}/ai-team`, label: dict.nav.aiTeams },
+    { href: `/${locale}/solutions`, label: dict.nav.solutions },
     { href: homeAnchor(locale, 'demo'), label: dict.nav.demo },
+    { href: `/${locale}/how-we-work`, label: dict.nav.process },
     { href: homeAnchor(locale, 'pricing'), label: dict.nav.pricing },
-    { href: `/${locale}/builder`, label: dict.nav.builder },
-    { href: homeAnchor(locale, 'process'), label: dict.nav.process },
-    { href: homeAnchor(locale, 'faq'), label: dict.nav.faq },
   ]
 
   const localeSwitch = (
@@ -157,7 +157,7 @@ export function Header({
           <ThemeSwitch copy={dict.theme} className="hidden sm:inline-flex" />
           <div className="hidden sm:block">{localeSwitch}</div>
           <Link
-            href={homeAnchor(locale, 'contact')}
+            href={`/${locale}/builder`}
             data-cta="header"
             className={cn(buttonStyles.small, 'hidden sm:inline-flex')}
           >
@@ -232,7 +232,7 @@ export function Header({
             </nav>
             <div className="grid gap-3 pt-6">
               <Link
-                href={homeAnchor(locale, 'contact')}
+                href={`/${locale}/builder`}
                 data-cta="menu"
                 onClick={() => setOpen(false)}
                 className={cn(buttonStyles.primary, 'w-full')}
@@ -263,7 +263,7 @@ export function Header({
                   aria-hidden="true"
                   className="text-accent-text"
                 />
-                {dict.hero.chatCta}
+                {dict.nav.ask}
               </button>
               <div className="flex items-center justify-center gap-3 pt-2">
                 <ThemeSwitch copy={dict.theme} />

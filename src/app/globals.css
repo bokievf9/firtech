@@ -971,9 +971,9 @@
    Only transform, opacity and filter move; everything stops under reduced motion.
    ============================================================================================ */
 
-/* Hero display size: as large as the page container allows (three lines, the middle one longest). */
+/* Hero display size: as large as the page container allows (two lines, the first one longest). */
 .hero-display {
-  font-size: min(clamp(2.6rem, 1rem + 6vw, 7.4rem), calc(var(--container-7xl) * 0.084), 13.5vh);
+  font-size: min(clamp(2.4rem, 0.9rem + 5.2vw, 6.4rem), calc(var(--container-7xl) * 0.071), 12vh);
   line-height: 0.92;
   letter-spacing: -0.05em;
 }

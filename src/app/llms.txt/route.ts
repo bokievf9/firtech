@@ -2,7 +2,7 @@ import { getDict } from '@/content'
 import { agentOffers, agentPath, aiTeamIds, aiTeamPath, aiTeamsPath } from '@/lib/ai-teams'
 import { formatUsd, type Pricing } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
-import { productIds, productPrices, type ProductId } from '@/lib/products'
+import { productIds, productPath, productPrices, type ProductId } from '@/lib/products'
 import { serviceSlugs, siteUrl, telegramHandle } from '@/lib/site'
 
 // llms.txt: a plain description of the studio and its products for AI assistants. Built from the
@@ -28,7 +28,7 @@ export async function GET() {
     const t = dict.products
     const items = productIds.map((id) => {
       const item = t.items[id]
-      return `- ${item.name} (${priceText(pricing, id, t)}): ${item.benefit}. ${t.forWhom}: ${item.forWhom}.`
+      return `- ${item.name} (${priceText(pricing, id, t)}): ${item.benefit}. ${t.forWhom}: ${item.forWhom}. ${siteUrl}/${locale}${productPath(id)}`
     })
     // AI-team pages: the index, each department and each agent, one line each (prices by quote).
     const aiTeam = [
@@ -63,6 +63,8 @@ export async function GET() {
       '',
       dict.sla.llms,
       '',
+      `${dict.nav.process}: ${siteUrl}/${locale}/how-we-work`,
+      '',
       `${dict.faqLinks['pay-how']}: ${siteUrl}/${locale}/pay-how`,
     ].join('\n')
   })
@@ -74,6 +76,7 @@ export async function GET() {
     `- Russian: ${siteUrl}/ru`,
     `- English: ${siteUrl}/en`,
     `- Project builder and estimate: ${siteUrl}/en/builder`,
+    `- How we work: ${siteUrl}/en/how-we-work`,
     `- Blog: ${siteUrl}/en/blog (RSS feed with the Russian articles: ${siteUrl}/rss.xml)`,
     ...(telegramHandle ? [`- Telegram: ${telegramHandle}`] : []),
     '',

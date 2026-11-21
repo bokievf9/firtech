@@ -1,11 +1,12 @@
-import { ArrowRight, ArrowUp, InstagramLogo, TelegramLogo } from '@phosphor-icons/react/ssr'
+import { ArrowRight, ArrowUp, ChatCircleDots, InstagramLogo, TelegramLogo } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import { CabinetNavLabel } from './cabinet/cabinet-nav-label'
 import type { Dict } from '@/content'
-import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
+import { buttonStyles, cn } from '@/lib/cn'
 import { footerColumns, type FooterLink } from '@/lib/home'
 import type { Locale } from '@/lib/i18n'
 import { instagramUrl, telegramHandle, telegramUrl } from '@/lib/site'
+import { ChatOpenButton } from './chat/chat-open-button'
 import { Logo } from './logo'
 import { Magnetic } from './magnetic'
 import { Reveal } from './reveal'
@@ -48,30 +49,40 @@ export function Footer({
     <footer className="print-hidden relative overflow-hidden border-t border-line">
       <div className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-4 pt-20 pb-16 md:flex-row md:items-end md:justify-between md:px-8 md:pt-28">
         <p className="max-w-[16ch] font-display text-title font-semibold">{f.ctaTitle}</p>
-        <Magnetic>
-          {telegramUrl ? (
+        <div className="flex flex-col items-start gap-4 md:items-end">
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Magnetic>
+              <Link
+                href={`/${locale}/builder`}
+                data-cta="footer_build"
+                className={cn(buttonStyles.primary, 'group px-8 py-4 text-base')}
+              >
+                {dict.nav.cta}
+                <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </Magnetic>
+            <ChatOpenButton
+              source="footer"
+              fallbackHref={`/${locale}#demo`}
+              className={cn(buttonStyles.secondary, 'px-8 py-4 text-base')}
+            >
+              <ChatCircleDots size={18} weight="fill" aria-hidden="true" className="text-accent-text" />
+              {dict.nav.ask}
+            </ChatOpenButton>
+          </div>
+          {telegramUrl && (
             <a
               href={telegramUrl}
               data-place="footer-cta"
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(buttonStyles.primary, 'group px-8 py-4 text-base')}
+              className="inline-flex items-center gap-1.5 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
             >
-              <TelegramLogo size={18} weight="fill" />
-              {dict.contact.telegramCta}
-              <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+              <TelegramLogo size={14} weight="fill" aria-hidden="true" />
+              {f.telegramLink}
             </a>
-          ) : (
-            <Link
-              href={homeAnchor(locale, 'contact')}
-              data-cta="footer"
-              className={cn(buttonStyles.primary, 'group px-8 py-4 text-base')}
-            >
-              {dict.nav.cta}
-              <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
-            </Link>
           )}
-        </Magnetic>
+        </div>
       </div>
 
       <div className="mx-auto grid max-w-7xl gap-12 border-t border-line px-4 py-16 md:grid-cols-12 md:px-8">

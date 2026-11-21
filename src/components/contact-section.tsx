@@ -1,8 +1,6 @@
-import { TelegramLogo } from '@phosphor-icons/react/ssr'
 import type { Dict } from '@/content'
-import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
-import { telegramHandle, telegramUrl, type ServiceSlug } from '@/lib/site'
+import type { ServiceSlug } from '@/lib/site'
 import { ContactForm } from './contact-form'
 import { Reveal } from './reveal'
 import { RiseText } from './rise-text'
@@ -42,22 +40,6 @@ export function ContactSection({
               ))}
             </ol>
           </div>
-          {telegramUrl && (
-            <div className="mt-10 rounded-card border border-line p-6">
-              <p className="font-medium">{t.telegramTitle}</p>
-              <p className="mt-1.5 text-sm text-muted">{t.telegramText}</p>
-              <a
-                href={telegramUrl}
-                data-place="contact"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(buttonStyles.secondary, 'mt-5 w-full sm:w-auto')}
-              >
-                <TelegramLogo size={18} weight="fill" className="text-tg" />
-                {telegramHandle}
-              </a>
-            </div>
-          )}
         </Reveal>
       </div>
       <Reveal className="lg:col-span-8" delay={0.08}>

@@ -1,65 +1,55 @@
-import { ArrowRight, TelegramLogo } from '@phosphor-icons/react/ssr'
+import { ArrowRight, ChatCircleDots } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
-import { telegramHandle, telegramUrl } from '@/lib/site'
-import { ContactForm } from './contact-form'
+import { ChatOpenButton } from './chat/chat-open-button'
 import { FaqList } from './faq'
 import { Reveal } from './reveal'
 
-// FAQ and the contact form on one screen (home page, stage B1). Both anchors live here: #faq on the
-// questions, #contact on the section (the header, footer and «Обсудить» buttons scroll to it).
+// The only FAQ on the site's pages besides the per-product ones (owner 2026-11-22): the accordion
+// and, under it, the compact «Остались вопросы? Спросите агента» strip. The contact form is no
+// longer a page section: it stays in the builder hand-off and in the cabinet. `#faq` is this section.
 export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
-  const t = dict.faqContact
+  const t = dict.askStrip
   return (
-    <section id="contact" className="relative mx-auto max-w-7xl scroll-mt-20 px-4 py-section md:px-8">
-      <Reveal>
-        <h2 className="font-display text-title font-semibold">{t.title}</h2>
-        <p className="mt-5 max-w-[52ch] text-lead text-muted">{t.sub}</p>
-      </Reveal>
-      <div className="mt-12 grid gap-12 lg:grid-cols-12 lg:gap-10">
-        <Reveal className="lg:col-span-5">
-          <div id="faq" className="scroll-mt-28">
-            <p className="mb-4 text-sm text-faint">{dict.faq.title}</p>
-            <FaqList items={dict.faq.items} compact />
-            <ul className="mt-5 grid gap-2 text-sm">
-              {(['pay-how', 'compare', 'referral', 'audit'] as const).map((page) => (
-                <li key={page}>
-                  <Link
-                    href={`/${locale}/${page}`}
-                    className="inline-flex items-center gap-1.5 text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
-                  >
-                    {dict.faqLinks[page]}
-                    <ArrowRight size={14} aria-hidden="true" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          {telegramUrl && (
-            <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-card border border-line p-5">
-              <div>
-                <p className="font-medium">{dict.contact.telegramTitle}</p>
-                <p className="mt-1 text-sm text-muted">{dict.contact.telegramText}</p>
-              </div>
-              <a
-                href={telegramUrl}
-                data-place="contact"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(buttonStyles.secondary, 'px-5 py-2.5')}
-              >
-                <TelegramLogo size={18} weight="fill" className="text-tg" />
-                {telegramHandle}
-              </a>
-            </div>
-          )}
+    <section id="faq" className="relative mx-auto max-w-7xl scroll-mt-20 px-4 py-section md:px-8">
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+        <Reveal className="lg:col-span-4">
+          <h2 className="font-display text-title font-semibold">{dict.faq.title}</h2>
+          <ul className="mt-6 grid gap-2 text-sm">
+            {(['pay-how', 'compare', 'referral', 'audit'] as const).map((page) => (
+              <li key={page}>
+                <Link
+                  href={`/${locale}/${page}`}
+                  className="inline-flex items-center gap-1.5 text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
+                >
+                  {dict.faqLinks[page]}
+                  <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+              </li>
+            ))}
+          </ul>
         </Reveal>
-        <Reveal className="lg:col-span-7" delay={0.08}>
-          <ContactForm dict={dict} locale={locale} />
+        <Reveal className="lg:col-span-8" delay={0.08}>
+          <FaqList items={dict.faq.items} compact />
         </Reveal>
       </div>
+      <Reveal className="mt-14">
+        <div
+          data-ask-strip
+          className="flex flex-col gap-5 rounded-card border border-line bg-surface p-6 sm:flex-row sm:items-center sm:justify-between md:p-8"
+        >
+          <div>
+            <p className="font-display text-2xl font-semibold tracking-tight">{t.title}</p>
+            <p className="mt-2 text-muted">{t.text}</p>
+          </div>
+          <ChatOpenButton source="faq" fallbackHref={`/${locale}#demo`} className={cn(buttonStyles.primary, 'shrink-0')}>
+            <ChatCircleDots size={18} weight="fill" aria-hidden="true" />
+            {t.cta}
+          </ChatOpenButton>
+        </div>
+      </Reveal>
     </section>
   )
 }

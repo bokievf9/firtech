@@ -40,7 +40,9 @@ import {
   type ReviewItem,
   type ReviewView,
 } from '@/lib/review'
+import { documentField, firstVersionText, versionSavePayload } from '@/lib/doc-editor'
 import { CallDialog, ResultsDialog, ScheduleDialog } from './dialogs'
+import { DocEditor } from './doc-editor'
 import { Details } from './details'
 import { MediaStage, type StageHandle } from './stage'
 import { TrendDialog, TrendList, useTrends } from './trends'
@@ -94,6 +96,8 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
   const [sheet, setSheet] = useState(false)
   const [busy, setBusy] = useState(false)
   const [exiting, setExiting] = useState<ReviewItem | null>(null)
+  // The full-screen editor: the id of the text document being written (key E on documents).
+  const [docEditing, setDocEditing] = useState<string | null>(null)
 
   const items = useMemo(() => data.view?.items ?? [], [data.view])
   const counts: Counts | null = data.view?.counts ?? null
@@ -180,6 +184,19 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
     })
   }
 
+  // «Сохранить как версию» in the full-screen editor: the same `edit` call as the side editor, a new version v+1.
+  const saveDoc = async (it: ReviewItem, text: string) => {
+    const payload = versionSavePayload(it, text)
+    if (!payload) {
+      notify('Текст не изменился')
+      return true
+    }
+    return commit(it, payload, {
+      optimistic: (v) => ({ ...v, items: v.items.map((x) => (x.id === it.id ? withText(x, payload.text) : x)) }),
+      ok: (_res, next) => notify(next ? `Сохранено как версия v${next.currentVersion}` : 'Правка сохранена, версия добавлена'),
+    })
+  }
+
   const revise = (it: ReviewItem) =>
     commit(it, { action: 'revise', note: u.note.trim() }, {
       leave: it.kind === 'article',
@@ -210,6 +227,7 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
         if (await ask(`Отклонить «${it.title}»?`, { yes: 'Отклонить', danger: true })) void decide(it, 'reject')
         return
       case 'edit':
+        if (documentField(it)) return setDocEditing(it.id)
         if (u.editing) return
         patch({ editing: true, reviseOpen: false, viewVersion: null })
         if (!desktop) setSheet(true)
@@ -527,6 +545,18 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
       ) : null}
       {modal?.type === 'trend' ? <TrendDialog onClose={() => setModal(null)} onSent={(m, tone) => { notify(m, tone); void trends.reload() }} /> : null}
       {modal?.type === 'results' ? <ResultsDialog title={modal.title} message={modal.message} results={modal.results} onClose={() => setModal(null)} /> : null}
+      {docEditing && current?.id === docEditing && documentField(current) ? (
+        <DocEditor
+          key={current.id}
+          title={current.title || current.summary}
+          subtitle={KIND_LABEL[current.kind] ?? current.kind}
+          initial={documentField(current)!.value}
+          baseText={firstVersionText(current)}
+          storageId={current.id}
+          onSave={(text) => saveDoc(current, text)}
+          onClose={() => setDocEditing(null)}
+        />
+      ) : null}
       {confirmDialog}
       <Toast message={toast} onClose={closeToast} />
     </MotionConfig>

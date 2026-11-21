@@ -64,7 +64,7 @@ test.describe('with a session', () => {
   test('panel tabs switch and the counters open their panels', async ({ page }) => {
     await open(page, '/admin/office')
     await page.keyboard.press('1')
-    for (const tab of ['Входящие', 'Одобрения', 'Задачи', 'Чат', 'Лента', 'Учения']) {
+    for (const tab of ['Входящие', 'Одобрения', 'Поручения', 'Лента', 'Учения']) {
       await page.getByRole('tab', { name: new RegExp(`^${tab}`) }).click()
       await expect(page.getByRole('tab', { name: new RegExp(`^${tab}`) })).toHaveAttribute('aria-selected', 'true')
     }
@@ -91,7 +91,7 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  test('Director: approving a card lowers the counter; the chat answers a command; the task filter narrows the board', async ({ page }) => {
+  test('Director: approving a card lowers the counter; Поручения answers a command and the person filter narrows the timeline', async ({ page }) => {
     await open(page, '/admin/office')
     await expect(page.getByRole('button', { name: 'Одобрения: 3' })).toBeVisible()
     await page.keyboard.press('1')
@@ -99,14 +99,24 @@ test.describe('with a session', () => {
     await page.getByRole('button', { name: /^Одобрить/ }).first().click()
     await expect(page.getByRole('button', { name: /^Одобрения: [0-2]$/ })).toBeVisible()
 
-    await page.getByRole('tab', { name: 'Чат' }).click()
-    await page.getByRole('button', { name: '/status' }).click()
+    // The old «Чат» tab is gone: the Director is written to from the composer of «Поручения».
+    await expect(page.getByRole('tab', { name: 'Чат' })).toHaveCount(0)
+    await page.getByRole('tab', { name: /^Поручения/ }).click()
+    const composer = page.getByRole('combobox', { name: 'Новое поручение Директору' })
+    await composer.fill('/status')
+    await composer.press('Enter')
     await expect(page.locator('aside').getByText('/status').first()).toBeVisible()
+    await expect(page.locator('aside [data-task]').first()).toBeVisible()
 
-    await page.getByRole('tab', { name: 'Задачи' }).click()
-    const before = await page.locator('aside button', { hasText: /#\d+/ }).count()
-    await page.getByRole('button', { name: 'Маркетинг', exact: true }).first().click()
-    await expect.poll(() => page.locator('aside button', { hasText: /#\d+/ }).count()).toBeLessThan(before)
+    // Filters: «Сделано» shows only finished tasks.
+    const cards = page.locator('aside [data-task]')
+    const before = await cards.count()
+    await page.getByRole('group', { name: 'Что показать' }).getByRole('button', { name: /^Сделано/ }).click()
+    await expect.poll(() => cards.count()).toBeLessThan(before)
+    await page.getByRole('group', { name: 'Что показать' }).getByRole('button', { name: /^Все/ }).click()
+    // Search narrows by title.
+    await page.getByRole('searchbox', { name: 'Поиск по поручениям' }).fill('Отчёт')
+    await expect.poll(() => cards.count()).toBeLessThan(before)
   })
 
   test('Back office: invoice actions are there and «Напомнить» answers with a toast', async ({ page }) => {

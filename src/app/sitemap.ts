@@ -3,6 +3,7 @@ import { allArticles } from '@/lib/blog-hq'
 import { locales } from '@/lib/i18n'
 import { serviceSlugs, siteUrl } from '@/lib/site'
 import { allAiTeamPaths } from '@/lib/ai-teams'
+import { productIds, productPath } from '@/lib/product-ids'
 import { allSolutionKinds } from '@/lib/solutions'
 
 const legal = ['/privacy', '/terms']
@@ -15,6 +16,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const paths = [
     '',
     '/builder',
+    '/how-we-work',
+    ...productIds.map(productPath),
     '/compare',
     '/pay-how',
     '/referral',

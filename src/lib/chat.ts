@@ -43,6 +43,9 @@ export function stripHtml(input: string): string {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
+export const personas = ['salon', 'clinic', 'shop'] as const
+export type Persona = (typeof personas)[number]
+
 export const chatRequestSchema = z.object({
   sessionId: z.string().regex(UUID),
   locale: z.enum(['ru', 'en']),
@@ -52,6 +55,11 @@ export const chatRequestSchema = z.object({
     .string()
     .max(300)
     .transform((p) => (p.startsWith('/') ? p.split(/[?#]/)[0]!.slice(0, 200) : '/')),
+  // The niche the visitor picked in the #demo tab «ИИ-менеджер заявок» (owner 2026-11-22). Passed on to
+  // HQ as `persona`; HQ's chatSchema is not strict, so it is ignored today. TODO(agents): read
+  // `persona` in the receptionist and answer as the first line of that niche. A request with a
+  // persona never creates a lead (the route answers contacts itself).
+  persona: z.enum(personas).optional(),
   // Referral slug (sanitized by the site, see referral.ts).
   ref: z
     .string()
