@@ -162,7 +162,7 @@ export const admin = {
       office: 'Офис',
       inbox: 'Входящие',
       approvals: 'Одобрения',
-      tasks: 'Задачи',
+      tasks: 'Поручения',
       director: 'Директор',
       drill: 'Учения',
       leads: 'Лиды',
@@ -904,6 +904,7 @@ export const admin = {
     reply: 'Ответ Директора',
     mineTag: 'от владельца',
     count: 'Показано {n}',
+    more: 'Показать ещё {n}',
   },
   // «Разбор заявки» (2026-11-22): что заказали в конструкторе, ответы и смета.
   breakdown: {
