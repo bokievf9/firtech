@@ -295,6 +295,7 @@ export function createCrmMock(start = Date.now()) {
   ]
   const documents: Row[] = [
     { id: 'bl:5', source: 'billing', kind: 'invoice', status: 'issued', client: 'Алиса', title: 'Сайт, этап 1', excerpt: 'Сайт, этап 1', amountUsd: 300, number: 'FT-2026-001', createdAt: ago(60 * 20), link: null },
+    { id: 'bl:7', source: 'billing', kind: 'invoice', status: 'draft', client: 'Sadaf Clinic', title: 'Сайт и бот, этап 1', excerpt: 'Счёт FT-2026-007, сайт и бот, этап 1', amountUsd: 600, number: 'FT-2026-007', createdAt: ago(300), link: null },
     { id: 'ps:4', source: 'presales', kind: 'kp', status: 'draft', client: 'Боб', title: 'КП на Telegram-бота', excerpt: 'Бот для записи клиентов: меню, напоминания, оплата.', amountUsd: null, number: null, createdAt: ago(60 * 26), link: null },
     { id: 'bo:2', source: 'back_office', kind: 'contract', status: 'pending', client: 'Алиса', title: 'Договор на разработку сайта', excerpt: 'Исполнитель обязуется разработать сайт...', amountUsd: null, number: null, createdAt: ago(60 * 50), link: null },
   ]

@@ -101,10 +101,16 @@ export function buildTimeline(tasks: HqTask[] | null, messages: ChatMessage[], o
     const id = String(m.taskId)
     // A reply about a task that is not in the list (filtered out, gone) stays as plain text.
     if (!byId.has(id)) return
-    if (m.text) replies.set(id, [...(replies.get(id) ?? []), m.text])
-    skip.add(m.id)
-    const before = messages[i - 1]
-    if (before?.role === 'me' && !before.taskId) skip.add(before.id)
+    // The reply that carries the task id, the Director's lines just before it and the owner's line that started it.
+    const group: ChatMessage[] = [m]
+    let j = i - 1
+    while (j >= 0 && messages[j]!.role === 'director' && !messages[j]!.taskId) group.unshift(messages[j--]!)
+    const origin = messages[j]
+    if (origin?.role === 'me' && !origin.taskId) group.unshift(origin)
+    for (const g of group) {
+      skip.add(g.id)
+      if (g.role === 'director' && g.text) replies.set(id, [...(replies.get(id) ?? []), g.text])
+    }
   })
 
   const entries: TimelineEntry[] = []

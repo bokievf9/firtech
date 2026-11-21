@@ -398,3 +398,14 @@ test('counts and the local draft: only a draft started from the saved text is of
   assert.equal(d.draftKey('ap_204'), 'firtech-doc-draft:ap_204:draft')
   assert.equal(d.DOC_MAX, 8000)
 })
+
+test('reviewItemForDocument: the Documents tab finds the pending item behind an invoice or a back-office document', () => {
+  const v = view(createHqMock(T0))
+  const it = d.reviewItemForDocument('bl:7', v.items)
+  assert.equal(it.id, 'ap_207')
+  assert.equal(d.reviewItemForDocument('bl:5', v.items), null, 'no review item for that invoice')
+  assert.equal(d.reviewItemForDocument('ps:4', v.items), null, 'presales documents are not editable here')
+  assert.equal(d.reviewItemForDocument('bo:x', v.items), null)
+  const docs = get(createHqMock(T0), 'crm/documents', {})
+  assert.ok(docs.items.some((x) => x.id === 'bl:7'), 'the mock has the row')
+})

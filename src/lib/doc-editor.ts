@@ -29,6 +29,22 @@ export function versionSavePayload(item: ReviewItem, value: string): { action: '
   return typeof draft === 'string' ? { action: 'edit', text: { draft } } : null
 }
 
+// The pending review item behind a row of the Documents tab (`bo:<n>` back-office document, `bl:<n>`
+// invoice), when HQ is waiting for the owner on it and its text can be edited.
+export function reviewItemForDocument(docId: string, items: ReviewItem[]): ReviewItem | null {
+  const m = /^(bo|bl):(\d{1,12})$/.exec(docId)
+  if (!m) return null
+  const kind = m[1] === 'bo' ? 'bo_document' : 'billing_invoice'
+  const key = m[1] === 'bo' ? 'document' : 'invoice'
+  return (
+    items.find((it) => {
+      if (it.kind !== kind || it.status !== 'pending' || !documentField(it)) return false
+      const ref = it.meta[key]
+      return !!ref && typeof ref === 'object' && String((ref as Record<string, unknown>).id) === m[2]
+    }) ?? null
+  )
+}
+
 // HQ refuses a draft longer than this (400 invalid), so the editor stops before it.
 export const DOC_MAX = 8000
 

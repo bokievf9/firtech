@@ -123,13 +123,13 @@ export function LeadBreakdown({ input, className }: { input: BreakdownInput; cla
                       <span className="block font-medium">{p.name}</span>
                       <span className="block text-xs text-muted">{[p.detail, p.term].filter(Boolean).join(', ')}</span>
                     </td>
-                    <td className="py-1 text-right font-mono tabular-nums">{p.price}</td>
+                    <td className="py-1 whitespace-nowrap text-right font-mono tabular-nums">{p.price}</td>
                   </tr>
                 ))}
                 {doc.extras.map((p) => (
                   <tr key={p.id} className="align-top">
                     <td className="py-1 pr-2 text-muted">{t.extras}: {p.name}</td>
-                    <td className="py-1 text-right font-mono tabular-nums">{p.price}</td>
+                    <td className="py-1 whitespace-nowrap text-right font-mono tabular-nums">{p.price}</td>
                   </tr>
                 ))}
                 {doc.onRequest.map((p) => (
@@ -141,17 +141,17 @@ export function LeadBreakdown({ input, className }: { input: BreakdownInput; cla
                 {doc.discount ? (
                   <tr>
                     <td className="py-1 pr-2 text-xs text-muted">{t.subtotal}, {t.discount.toLowerCase()} {doc.discount}</td>
-                    <td className="py-1 text-right font-mono text-xs tabular-nums text-muted">{doc.subtotal}</td>
+                    <td className="py-1 whitespace-nowrap text-right font-mono text-xs tabular-nums text-muted">{doc.subtotal}</td>
                   </tr>
                 ) : null}
                 <tr className="border-t border-line">
                   <td className="py-1.5 pr-2 font-medium">{t.total}</td>
-                  <td className="py-1.5 text-right font-mono font-medium tabular-nums">{doc.total}</td>
+                  <td className="py-1.5 whitespace-nowrap text-right font-mono font-medium tabular-nums">{doc.total}</td>
                 </tr>
                 {doc.monthly ? (
                   <tr>
                     <td className="py-1 pr-2 text-xs text-muted">{t.monthly}</td>
-                    <td className="py-1 text-right font-mono text-xs tabular-nums">{doc.monthly}</td>
+                    <td className="py-1 whitespace-nowrap text-right font-mono text-xs tabular-nums">{doc.monthly}</td>
                   </tr>
                 ) : null}
               </tbody>
@@ -175,7 +175,7 @@ export function LeadBreakdown({ input, className }: { input: BreakdownInput; cla
                       <td className="py-1 pr-2 font-mono text-xs tabular-nums text-faint">{s.n}</td>
                       <td className="py-1 pr-2">{s.name}</td>
                       <td className="py-1 pr-2 font-mono text-xs tabular-nums text-muted">{s.share}</td>
-                      <td className="py-1 text-right font-mono tabular-nums">{s.amount}</td>
+                      <td className="py-1 whitespace-nowrap text-right font-mono tabular-nums">{s.amount}</td>
                     </tr>
                   ))}
                 </tbody>

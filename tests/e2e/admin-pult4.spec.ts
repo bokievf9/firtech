@@ -166,6 +166,19 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
+  test('back office: a document HQ waits on opens in the same full-screen editor from the Documents tab', async ({ page }) => {
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('6')
+    await page.getByRole('tab', { name: /^Документы/ }).click()
+    await page.getByRole('button', { name: 'Править в редакторе' }).first().click()
+    const dialog = page.getByRole('dialog', { name: 'Редактор документа' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('textbox', { name: 'Текст документа' })).toHaveValue(/Счёт FT-2026-007/)
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+  })
+
   test('phone: the editor has its toolbar at the bottom and Поручения fits the screen', async ({ page }) => {
     await page.setViewportSize(SIZES.mobile)
     await open(page, '/admin/review')

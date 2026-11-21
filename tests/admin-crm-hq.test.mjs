@@ -231,8 +231,8 @@ test('mock CRM: lists, filters, the prospect state machine and tickets', () => {
   assert.equal(c.normalizeTickets(get('crm/tickets', { status: 'open' })).items.length, 1)
 
   const docs = c.normalizeDocuments(get('crm/documents'))
-  assert.deepEqual(docs.items.map((d) => d.kind).sort(), ['contract', 'invoice', 'kp'])
-  assert.equal(docs.items.find((d) => d.kind === 'invoice').amountUsd, 300)
+  assert.deepEqual(docs.items.map((d) => d.kind).sort(), ['contract', 'invoice', 'invoice', 'kp'])
+  assert.equal(docs.items.find((d) => d.id === 'bl:5').amountUsd, 300)
   const proj = c.normalizeProjects(get('crm/projects')).items[0]
   assert.equal(proj.tasksTotal, 4)
   assert.equal(c.normalizeReferrals(get('crm/referrals')).items.length, 1)

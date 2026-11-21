@@ -144,3 +144,18 @@ test('mock: say makes a task the timeline shows; cancel and reminder words are u
   assert.equal(rem.taskId, undefined)
   assert.equal(mock('GET', 'tasks', { limit: '300' }, {}, T0).items.length, before + 1)
 })
+
+test('buildTimeline: the Director\'s lines before the one that carries the task id join the task card', () => {
+  const messages = [
+    msg('m1', 'me', 'Сделай клип про бота', 6),
+    msg('m2', 'director', 'Принял. Задача #6 ушла в маркетинг.', 5),
+    msg('m3', 'director', 'Напишу, когда будет результат.', 5, 6),
+    msg('m4', 'me', '/status', 3),
+  ]
+  const all = o.buildTimeline(tasks, messages, { filter: 'all', query: '' })
+  assert.deepEqual(all.map((e) => e.key).filter((k) => k !== 't1' && k !== 't2' && k !== 't3' && k !== 't4' && k !== 't5'), ['mm4', 't6'])
+  assert.deepEqual(all.find((e) => e.key === 't6').replies, ['Принял. Задача #6 ушла в маркетинг.', 'Напишу, когда будет результат.'])
+  // The task is filtered out of the list: its lines stay as plain chat.
+  const person = o.buildTimeline(tasks, messages, { filter: 'all', query: '', person: { dept: 'back-office' } })
+  assert.deepEqual(person.map((e) => e.key), ['t2'])
+})
