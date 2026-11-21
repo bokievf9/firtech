@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 
-// The owner panel is the control center only: /admin goes to /admin/office (which sends a visitor
-// without a session on to the login screen).
+// /admin opens HQ (the Inbox); a visitor without a session goes on to the login screen from there.
+// The pixel office lives on /admin/office.
 export default function AdminIndexPage() {
-  redirect('/admin/office')
+  redirect('/admin/inbox')
 }

@@ -425,3 +425,20 @@ test('proxy: CRM falls back to the mock without HQ_ADMIN_URL, and keeps its 5 s 
   assert.ok(body.items.length >= 5)
   assert.equal(proxy.HQ_ADMIN_TIMEOUT_MS, 5000)
 })
+
+// HQ «Agents» (2026-11-23)
+test('proxy whitelist: agents list, card, version, edit and rollback only', async () => {
+  const { resolveEndpoint } = proxy
+  const none = new URLSearchParams()
+  assert.equal(resolveEndpoint('GET', ['agents'], none, undefined).ok, true)
+  assert.equal(resolveEndpoint('GET', ['agents', 'marketing-head'], none, undefined).ok, true)
+  assert.equal(resolveEndpoint('GET', ['agents', 'seo', 'instructions', '2'], none, undefined).ok, true)
+  assert.equal(resolveEndpoint('POST', ['agents', 'seo', 'instructions'], none, { text: 'x', note: 'n' }).ok, true)
+  assert.equal(resolveEndpoint('POST', ['agents', 'seo', 'instructions'], none, { text: '' }).ok, false)
+  assert.equal(resolveEndpoint('POST', ['agents', 'seo', 'instructions'], none, { text: 'x'.repeat(20001) }).ok, false)
+  assert.equal(resolveEndpoint('POST', ['agents', 'seo', 'instructions'], none, { text: 'x', extra: 1 }).ok, false)
+  assert.equal(resolveEndpoint('POST', ['agents', 'seo', 'instructions', 'rollback'], none, { version: 1 }).ok, true)
+  assert.equal(resolveEndpoint('POST', ['agents', 'seo', 'instructions', 'rollback'], none, { version: 0 }).ok, false)
+  assert.equal(resolveEndpoint('POST', ['agents', 'seo'], none, {}).ok, false)
+  assert.equal(resolveEndpoint('GET', ['agents', 'Bad_Id'], none, undefined).ok, false)
+})

@@ -7,7 +7,7 @@ import { hasAdminSession } from '@/lib/admin-page'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLoginPage() {
-  if (await hasAdminSession()) redirect('/admin/office')
+  if (await hasAdminSession()) redirect('/admin/inbox')
   return (
     <div className="dot-grid flex min-h-[100dvh] items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm rounded-card border border-line bg-surface p-7 shadow-2xl">

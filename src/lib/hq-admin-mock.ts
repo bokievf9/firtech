@@ -635,7 +635,7 @@ export function createHqMock(start = Date.now()) {
       case 'desk':
         state.mode = 'desk'
         state.lastPingAt = iso(now)
-        return ['Ты на месте: уведомления идут в пульт.']
+        return ['Ты на месте: уведомления идут в HQ.']
       case 'away':
         state.mode = 'away'
         return ['Ты не на месте: уведомления идут в Telegram.']

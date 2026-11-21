@@ -33,7 +33,7 @@ export const goliveItems: GoliveItem[] = [
   { id: 'cab-google', block: 'cab', title: 'Вход через Google работает', hint: 'Новый аккаунт входит и попадает в кабинет.', owner: 'owner' },
   { id: 'cab-email', block: 'cab', title: 'Регистрация по почте: письмо приходит (Resend SMTP)', hint: 'Письмо подтверждения доходит во входящие, не в спам.', owner: 'owner' },
   { id: 'cab-lead-e2e', block: 'cab', title: 'Сквозная проверка: заявка, HQ, КП, договор, счёт, оплата, проект в кабинете', hint: 'Один тестовый клиент проходит весь путь, потом чистится.', owner: 'claude' },
-  { id: 'cab-messages', block: 'cab', title: 'Переписка клиент и менеджер в обе стороны', hint: 'Клиент пишет из кабинета, владелец отвечает из Пульта, и наоборот.', owner: 'claude' },
+  { id: 'cab-messages', block: 'cab', title: 'Переписка клиент и менеджер в обе стороны', hint: 'Клиент пишет из кабинета, владелец отвечает из HQ, и наоборот.', owner: 'claude' },
   { id: 'cab-review', block: 'cab', title: 'Кабинет просмотрен владельцем, табы и предложения ок', hint: 'Обзор, Заявки, проекты, счета, документы.', owner: 'owner' },
 
   { id: 'pay-wallets', block: 'pay', title: 'Кошельки USDT TRC20 и TON проверены переводом на 1 USDT', hint: 'Перевод дошёл, сеть и адрес совпадают со счётом.', owner: 'owner' },
@@ -41,7 +41,7 @@ export const goliveItems: GoliveItem[] = [
   { id: 'pay-docs', block: 'pay', title: 'КП, договор, счёт, смета: шаблоны проверены', hint: 'Реквизиты, сроки, счёт за этап 1, следующие после приёмки, гарантия.', owner: 'owner' },
 
   { id: 'hq-routines', block: 'hq', title: 'Все рутины отработали по расписанию без ошибок 24 ч', hint: 'Панель Компания, вкладка рутин.', owner: 'claude' },
-  { id: 'hq-approvals', block: 'hq', title: 'Карточки одобрений в Telegram и Пульте работают', hint: 'Одобрить, править, отклонить: результат виден в обоих местах.', owner: 'owner' },
+  { id: 'hq-approvals', block: 'hq', title: 'Карточки одобрений в Telegram и HQ работают', hint: 'Одобрить, править, отклонить: результат виден в обоих местах.', owner: 'owner' },
   { id: 'hq-backup', block: 'hq', title: 'Ночной бэкап пришёл в Telegram', hint: 'Файл пришёл и открывается.', owner: 'claude' },
   { id: 'hq-monitoring', block: 'hq', title: 'Внешний монитор (UptimeRobot) и алерты', hint: 'Сайт и HQ под наблюдением, алерт приходит владельцу.', owner: 'owner' },
   { id: 'hq-instructions', block: 'hq', title: 'Инструкции голов перезагружены, плейбуки на месте', hint: 'Панель Компания, плейбуки: у каждой роли свежая дата.', owner: 'claude' },
@@ -51,7 +51,7 @@ export const goliveItems: GoliveItem[] = [
   { id: 'mk-youtube', block: 'mk', title: 'Первый Short загружен (unlisted до слова владельца)', hint: 'Видео загружено как unlisted, публикуется только после слова владельца; ссылка в профиле работает.', owner: 'claude' },
   { id: 'mk-instagram', block: 'mk', title: 'Публикатор на Маке: вход, проба, launchd', hint: 'Пробная публикация прошла, агент запускается сам.', owner: 'owner' },
   { id: 'mk-blog', block: 'mk', title: 'Блог: 7+ статей, RSS подключён к Дзену', hint: 'Лента /rss.xml принята Дзеном.', owner: 'owner' },
-  { id: 'mk-analytics', block: 'mk', title: 'Цифры недели в Пульте показывают сайт, блог, YouTube', hint: 'Панель Маркетинг, вкладка Цифры.', owner: 'claude' },
+  { id: 'mk-analytics', block: 'mk', title: 'Цифры недели в HQ показывают сайт, блог, YouTube', hint: 'Панель Маркетинг, вкладка Цифры.', owner: 'claude' },
 
   { id: 'ops-mail', block: 'ops', title: 'Почта hello@firtech.pro принимает письма', hint: 'Тестовое письмо с чужого адреса дошло.', owner: 'owner' },
   { id: 'ops-telegram', block: 'ops', title: '@firtech_bot: анкета, демо, «позвать человека» проверены', hint: 'Все три сценария пройдены с телефона.', owner: 'owner' },

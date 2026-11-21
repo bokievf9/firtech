@@ -146,6 +146,12 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // The owner accepts a client's finished stage from the project drawer (same call as the cabinet button).
   // Numeric client id only (a client without an account has no cabinet to accept in).
   { method: 'POST', path: /^clients\/\d{1,12}\/projects\/\d{1,12}\/milestones\/\d{1,3}\/accept$/, body: empty },
+  // HQ «Agents» (2026-11-23): list, card, one instruction version, edit and rollback of the instructions.
+  { method: 'GET', path: /^agents$/ },
+  { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}$/ },
+  { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/\d{1,6}$/ },
+  { method: 'POST', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions$/, body: z.object({ text: z.string().min(1).max(20000), note: z.string().max(200).optional() }).strict() },
+  { method: 'POST', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/rollback$/, body: z.object({ version: z.number().int().min(1).max(999999), note: z.string().max(200).optional() }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
   { method: 'POST', path: /^company\/routines\/[\w-]{1,64}$/, body: z.object({ enabled: z.boolean() }).strict() },
@@ -252,7 +258,7 @@ export function resolveEndpoint(method: string, segments: string[], search: URLS
   return { ok: true, path, query, body: parsed.data }
 }
 
-const ERROR_EXTRAS = ['item', 'results', 'message', 'state', 'status', 'via', 'actions', 'allowed', 'hint', 'placeholders', 'threads'] as const
+const ERROR_EXTRAS = ['maxChars', 'item', 'results', 'message', 'state', 'status', 'via', 'actions', 'allowed', 'hint', 'placeholders', 'threads'] as const
 
 export type CallDeps = { env?: Env; fetcher?: typeof fetch; timeoutMs?: number; now?: number }
 
