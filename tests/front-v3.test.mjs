@@ -178,7 +178,7 @@ test('new pages: how-we-work and the product pages are registered everywhere', a
 })
 
 test('home: sections in order with solutions and FAQ, anchors, no contact section', () => {
-  assert.deepEqual([...homeSections], ['hero', 'products', 'demo', 'proof', 'solutions', 'process', 'pricing', 'faq', 'footer'])
+  assert.deepEqual([...homeSections], ['hero', 'products', 'demo', 'solutions', 'process', 'pricing', 'faq', 'footer'])
   const page = read('src/app/[locale]/page.tsx')
   assert.match(page, /SolutionsHome/)
   assert.match(page, /DemoSection/)
@@ -222,12 +222,13 @@ test('page tails: the footer ends every page with «Собрать проект�
   assert.match(read('src/app/[locale]/layout.tsx'), /<Footer /)
 })
 
-test('solutions on the home page: the first row is salon, clinic, shop; the rest comes from the categories', async () => {
+test('solutions on the home page: exactly the six top niches from homeSolutionKinds and one «Все решения» button', async () => {
   const mod = read('src/components/solutions-home.tsx')
-  assert.match(mod, /featuredKinds = \['salon', 'clinic', 'shop'\]/)
-  assert.match(mod, /PER_CATEGORY = 3/)
-  assert.match(read('src/components/solution-groups.tsx'), /aria-expanded/)
-  for (const [, dict] of dicts) assert.ok(dict.solutionsHome.more && dict.solutionsHome.fewer)
+  assert.match(mod, /homeSolutionKinds = \['salon', 'clinic', 'cafe', 'onlineschool', 'carservice', 'shop'\]/)
+  assert.match(mod, /data-cta="solutions_all"/)
+  assert.doesNotMatch(mod, /PER_CATEGORY|SolutionGroups/)
+  assert.equal(existsSync('src/components/solution-groups.tsx'), false)
+  for (const [, dict] of dicts) assert.ok(dict.solutionsHome.all && dict.solutionsHome.from)
   assert.match(read('src/components/header.tsx'), /nav\.solutions/)
 })
 

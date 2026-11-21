@@ -56,7 +56,7 @@ test('product prices come only from pricing.ts (as the builder counts them), or 
     for (const p of [...agentPlans, ...contentPlans]) assert.ok(dict.products.plans[p.id], p.id)
   // Copy never carries a price or a long dash.
   for (const dict of [ru, en]) {
-    const text = JSON.stringify([dict.products, dict.proof, dict.work, dict.pricingHome, dict.faqContact, dict.hero.sequence, dict.footer])
+    const text = JSON.stringify([dict.products, dict.work, dict.pricingHome, dict.faqContact, dict.hero.sequence, dict.footer])
     assert.doesNotMatch(text, /\$\s?\d/)
     assert.doesNotMatch(text, /[–—]/)
   }
@@ -72,9 +72,9 @@ test('«Собрать проект» opens the builder with the product picked'
   }
 })
 
-test('home page: nine sections in order, page.tsx renders homeSections', () => {
-  assert.deepEqual(homeSections, ['hero', 'products', 'demo', 'proof', 'solutions', 'process', 'pricing', 'faq', 'footer'])
-  for (const id of ['top', 'products', 'demo', 'proof', 'solutions', 'process', 'pricing', 'faq', 'services'])
+test('home page: eight sections in order, page.tsx renders homeSections', () => {
+  assert.deepEqual(homeSections, ['hero', 'products', 'demo', 'solutions', 'process', 'pricing', 'faq', 'footer'])
+  for (const id of ['top', 'products', 'demo', 'solutions', 'process', 'pricing', 'faq', 'services'])
     assert.ok(homeAnchors.includes(id), id)
   assert.equal(homeAnchors.includes('contact'), false)
   assert.equal(sectionAnchor.faq, 'faq')

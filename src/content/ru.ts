@@ -328,30 +328,8 @@ const ru = {
       },
     },
   },
-  // «Мы сами работаем на этом»: our own agents as proof. Live numbers are counts from
-  // /api/office/public only.
+  // Live HQ counters (demo office tab and /ai-team). The home «proof» section was removed (owner 2026-11-22).
   proof: {
-    eyebrow: 'Сделано на себе',
-    title: 'Мы сами работаем на этих агентах',
-    sub: 'Три системы работают у нас каждый день. Мы продаём то, чем пользуемся сами.',
-    setup: 'запуск',
-    items: {
-      dono: {
-        name: 'Dono',
-        role: 'Учебный ассистент',
-        text: 'Следит за дедлайнами в Moodle и письмами в почте, ставит задачи в календарь и напоминает в Telegram.',
-      },
-      polly: {
-        name: 'Polly',
-        role: 'Учитель языков',
-        text: 'Занимается с учеником в Telegram: короткие уроки, разбор ошибок и повторение по расписанию.',
-      },
-      hq: {
-        name: 'Fir Tech HQ',
-        role: 'Компания ИИ-агентов',
-        text: 'Директор и отделы продаж, маркетинга, производства и поддержки. Заявка с этого сайта попадает к ним.',
-      },
-    },
     live: {
       online: 'HQ на связи',
       demo: 'Демо: HQ сейчас не отвечает',
@@ -359,12 +337,6 @@ const ru = {
       agents: 'агентов в штате',
       working: 'работают сейчас',
       done: 'задач закрыто сегодня',
-    },
-    note: 'Личные данные на сайте не показываем.',
-    lesson: {
-      task: 'Переведите: I have been waiting for an hour',
-      answer: 'Я жду уже час',
-      ok: 'Верно. Следующее слово завтра в 9:00',
     },
   },
   // How we work: the sticky horizontal timeline (steps from `process`, rules folded in from the
@@ -3093,14 +3065,11 @@ const ru = {
     cta: 'Собрать проект',
     ask: 'Спросить агента',
   },
-  // «Решения» on the home page: three niches per category, «Ещё» expands the whole list.
+  // «Решения» on the home page: six top niches and a link to the full list.
   solutionsHome: {
     eyebrow: 'Решения',
     title: 'Решения под ваш бизнес',
     sub: 'Выберите свою нишу: покажем состав, цену и этапы. Если вашей нет в списке, соберите проект с нуля.',
-    first: 'Чаще всего заказывают',
-    more: 'Ещё',
-    fewer: 'Свернуть',
     all: 'Все решения',
     from: 'от',
   },

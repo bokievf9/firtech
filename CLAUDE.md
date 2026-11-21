@@ -46,8 +46,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   gone too, the lead agent is «Менеджер заявок» / «Lead manager»; the classic bots service reads «Агенты в Telegram»). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
   and «Спросить агента», third item the link to `/ai-team`, then the guarantee and the 5-minute line), products (`#products`: seven
   cards each with «Подробнее» to `/[locale]/products/[id]`, the ladder `#levels`, the departments strip), demo (`#demo` «Попробуйте
-  сейчас», tabs, `components/demo/`), proof, solutions (`#solutions`: salon, clinic, shop on the first row, three niches per catalogue
-  category, «Ещё» expands), process (`#process`, short, links to `/how-we-work`), pricing (builder teaser and payment line only; the estimator is gone everywhere), faq (`#faq`: the only FAQ, with the «Остались вопросы? Спросите агента» strip), footer.
+  сейчас», tabs, `components/demo/`), solutions (`#solutions`: six cards from `homeSolutionKinds` in `components/solutions-home.tsx` (salon, clinic, cafe, onlineschool, carservice, shop) and the «Все решения» button; the «Сделано на себе» section was removed 2026-11-22, `dict.proof` keeps only `live` for the demo office tab and `/ai-team`), process (`#process`, short, links to `/how-we-work`), pricing (builder teaser and payment line only; the estimator is gone everywhere), faq (`#faq`: the only FAQ, with the «Остались вопросы? Спросите агента» strip), footer.
   **Product pages** `/[locale]/products/[id]` (`productPage` dictionary section, `lib/product-page.ts`, `components/products/
   capability-mock.tsx`): what it does as a list with a one-line example and a small CSS mock, first day/week/month, what we need,
   what it does not do, the live price (`ProductPriceTag`) and the stage table of the product's template (`productPayment`,

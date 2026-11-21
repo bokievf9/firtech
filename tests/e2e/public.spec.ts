@@ -214,14 +214,13 @@ test('home: «Попробуйте сейчас» tabs switch, the booking sampl
   await expect(page.locator('[data-demo-chat] li').nth(1)).toBeVisible()
 })
 
-test('home: the ladder, the solutions block with «Ещё» and the ask strip are there', async ({ page }) => {
+test('home: the ladder, six solution cards with «Все решения» and the ask strip are there', async ({ page }) => {
   await open(page, '/ru')
   await expect(page.locator('[data-ladder-track]')).toHaveCount(3)
   await expect(page.locator('[data-ladder-rung="content-auto"]')).toHaveAttribute('href', '/ru/products/content')
-  const more = page.locator('#solutions button[aria-expanded]')
-  await more.scrollIntoViewIfNeeded()
-  await more.click()
-  await expect(more).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('#solutions [data-solution-card]')).toHaveCount(6)
+  await expect(page.locator('#solutions [data-cta="solutions_all"]')).toHaveAttribute('href', '/ru/solutions')
+  await expect(page.locator('#proof')).toHaveCount(0)
   await expect(page.locator('#faq [data-ask-strip]')).toContainText('Остались вопросы?')
 })
 

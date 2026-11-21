@@ -149,7 +149,7 @@ Legend of `E:` tags (file : test title):
 | products bento | «Открыть чат» (receptionist card) | opens the chat | chat | `E:chat-open` | pass |
 | products bento | 4 classic services (cards) | service pages | `/{locale}/services/{websites,bots,apps,automation}` | `E:links` no (home body); `E:matrix` renders each page | untested (card click) |
 | demo `#demo` | «Демо-салон в Telegram», «Открыть чат» | deep link, chat | `t.me`, chat | `E:chat-open` | pass |
-| proof `#proof` | live counts | `GET /api/office/public` | HQ office (dev demo) | `E:files` (200) | pass |
+
 | process `#process` | timeline | render | - | `E:matrix` | pass |
 | pricing `#pricing` | «Условия гарантии» | terms anchor | `/{locale}/terms#terms-guarantee` | none | untested |
 | pricing | «Почему дешевле агентства» | compare | `/{locale}/compare` | `E:matrix` (page renders) | untested (click) |
@@ -456,7 +456,7 @@ Observed, not a bug: the 404 pages answer with `<html id="__next_error__">` in `
 | demo | four tabs | switch the demo | client state | `E:demo` | pass |
 | demo | niche chips, hint chips, input | real chat with `persona` | `POST /api/chat` | `E:demo` (mock), `U:front-v3` | pass |
 | demo | booking options | state machine, no request | `lib/demo-booking.ts` | `E:demo`, `U:front-v3` | pass |
-| solutions | «Ещё» | expands every category list | client state | `E:ladder` | pass |
+| solutions | «Все решения» | full list | `/{locale}/solutions` | `E:ladder` | pass |
 | process | «Подробнее: кабинет, приёмка, оплата, гарантия» | how we work | `/{locale}/how-we-work` | `U:front-v3` | pass |
 | product page | «Собрать проект», «Спросить агента», FAQ | builder with the product, chat, accordion | `/{locale}/builder?b=…p.<id>` | `E:product-page` | pass |
 | solution page | «Собрать это решение», «Спросить агента» | builder with the preset, chat | `/{locale}/builder?b=…` | `E:solution` | pass |

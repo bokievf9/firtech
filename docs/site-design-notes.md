@@ -201,7 +201,7 @@ products of COMPANY.md and replaces the hero with a motion-heavy one in the spir
 | 1 | Hero `#top` | `hero/hero.tsx` | hero trust line |
 | 2 | Products `#products` | `products/products-bento.tsx` | directions, services, before/after of pains |
 | 3 | Demo `#demo` | `demo-section.tsx` | (restyled) |
-| 4 | Proof `#proof` | `proof/proof.tsx` | Dono case, live office counts |
+| 4 | (removed 2026-11-22) Proof `#proof` | - | owner removed «Сделано на себе»; live counts stay in the demo office tab and `/ai-team#proof` |
 | 5 | Process `#process` | `work-timeline.tsx` | process, trust rules |
 | 6 | Prices `#pricing` | `pricing-section.tsx` (`teaser`) | builder teaser, regions payment line |
 | 7 | FAQ + contact `#faq` `#contact` | `faq-contact.tsx` | FAQ, contact |
@@ -238,7 +238,7 @@ two-segment path with an unknown locale (`/xx/yy`) still gets Next's plain 404 b
   sessionStorage и в заявку как `source: 'ref:<slug>'`; HQ понимает такой source.
 - `/compare`: честная таблица из 10 строк (фрилансер, агентство, Fir Tech), только слова, без цифр,
   без названий конкурентов. На телефоне таблица превращается в карточки. Ссылка на живой HQ ведёт
-  на блок `#proof`, потому что пиксельный офис живёт только в /admin/office.
+  на `/ai-team#proof`, потому что пиксельный офис живёт только в /admin/office.
 
 
 ## Демо, аудит, статус (2026-11-19)

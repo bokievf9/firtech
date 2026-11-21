@@ -317,28 +317,8 @@ const en: Dict = {
       },
     },
   },
+  // Live HQ counters (demo office tab and /ai-team). The home «proof» section was removed (owner 2026-11-22).
   proof: {
-    eyebrow: 'We use it ourselves',
-    title: 'We run on these agents ourselves',
-    sub: 'Three systems run for us every day. We sell what we use ourselves.',
-    setup: 'setup',
-    items: {
-      dono: {
-        name: 'Dono',
-        role: 'Study assistant',
-        text: 'Watches Moodle deadlines and email, puts tasks in the calendar and sends reminders in Telegram.',
-      },
-      polly: {
-        name: 'Polly',
-        role: 'Language teacher',
-        text: 'Teaches in Telegram: short lessons, mistake reviews and spaced repetition on schedule.',
-      },
-      hq: {
-        name: 'Fir Tech HQ',
-        role: 'A company of AI agents',
-        text: 'A director and sales, marketing, production and support departments. A request from this site lands with them.',
-      },
-    },
     live: {
       online: 'HQ online',
       demo: 'Demo: HQ is not answering right now',
@@ -346,12 +326,6 @@ const en: Dict = {
       agents: 'agents on staff',
       working: 'working now',
       done: 'tasks closed today',
-    },
-    note: 'We never show personal data on the site.',
-    lesson: {
-      task: 'Translate: Я жду уже час',
-      answer: 'I have been waiting for an hour',
-      ok: 'Correct. Next word tomorrow at 9:00',
     },
   },
   work: {
@@ -3084,9 +3058,6 @@ const en: Dict = {
     eyebrow: 'Solutions',
     title: 'Solutions for your business',
     sub: 'Pick your niche: we show the contents, the price and the stages. If yours is not listed, build a project from scratch.',
-    first: 'Ordered most often',
-    more: 'More',
-    fewer: 'Show less',
     all: 'All solutions',
     from: 'from',
   },

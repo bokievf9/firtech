@@ -4,14 +4,13 @@ import { solutionKinds } from './solutions'
 
 type FeaturedKind = (typeof solutionKinds)[number]
 
-// Home page map (stage B1, docs/site-design-notes.md): eight sections, products first. The page
+// Home page map (stage B1, docs/site-design-notes.md): sections, products first. The page
 // renders `homeSections` in this order; each one's anchor id is in `sectionAnchor` (null = no
 // anchor). Tested in tests/site-b1.test.mjs.
 export const homeSections = [
   'hero',
   'products',
   'demo',
-  'proof',
   'solutions',
   'process',
   'pricing',
@@ -24,7 +23,6 @@ export const sectionAnchor: Record<HomeSection, string | null> = {
   hero: 'top',
   products: 'products',
   demo: 'demo',
-  proof: 'proof',
   solutions: 'solutions',
   process: 'process',
   pricing: 'pricing',

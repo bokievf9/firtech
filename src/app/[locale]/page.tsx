@@ -6,7 +6,6 @@ import { JsonLd, faqJsonLd } from '@/components/json-ld'
 import { RefCapture } from '@/components/ref-capture'
 import { PricingSection } from '@/components/pricing-section'
 import { ProductsBento } from '@/components/products/products-bento'
-import { Proof } from '@/components/proof/proof'
 import { SolutionsHome } from '@/components/solutions-home'
 import { WorkTimeline } from '@/components/work-timeline'
 import { getDict } from '@/content'
@@ -66,7 +65,6 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     hero: <Hero locale={locale} dict={dict} />,
     products: <ProductsBento locale={locale} dict={dict} />,
     demo: <DemoSection dict={dict} locale={locale} />,
-    proof: <Proof dict={dict} />,
     solutions: <SolutionsHome dict={dict} locale={locale} />,
     process: <WorkTimeline dict={dict} locale={locale} />,
     pricing: <PricingSection dict={dict} locale={locale} />,

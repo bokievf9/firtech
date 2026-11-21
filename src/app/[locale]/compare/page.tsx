@@ -44,7 +44,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
   const office = (id: string) =>
     id === 'progress' ? (
       <Link
-        href={`/${locale}#proof`}
+        href={`/${locale}/ai-team#proof`}
         className="mt-2 inline-flex items-center gap-1 text-accent-text underline underline-offset-4"
       >
         {t.officeLink}
