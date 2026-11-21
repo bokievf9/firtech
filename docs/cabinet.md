@@ -49,6 +49,11 @@ status: 404, hasVerifier: true }`. OAuth used to start in a server action. Now:
   redirecting; `next` (`safeNextPath`: a path of this locale only) is where email links and Google return.
 - Every Supabase error code maps to a RU/EN sentence (`authErrorKey`, `cabinet.auth.errors`); the raw code goes to the
   server log only (`[cabinet] auth error {where, code, status}`), browser-side ones through `POST /api/cabinet/auth-log`.
+- 5xx from Supabase Auth (2026-11-22, the owner saw «нет связи» with working internet when Supabase's SMTP failed with
+  `500 Error sending confirmation email`): auth-js raises the same `AuthRetryableFetchError` for a dead fetch (status 0) and
+  for a 5xx answer. Now status 0 = `network`, a 5xx about sending mail = `mail_down` («Сервер входа не смог отправить письмо...
+  войдите через Google»), any other 5xx = `server_error` (text with the support code `AUTH-5XX`). Each 5xx is logged as
+  `[cabinet] auth 5xx <status> <code>[ mail]`, no address or message text (visible in PM2). Tests: `tests/cabinet-auth.test.mjs`.
 - `/[locale]/cabinet/health` (noindex): yes/no for Supabase URL, anon key, service key, site URL, HQ token, HQ reachable
   (`pingHq`), lead hand-off. Never a value.
 - Recommended Supabase email templates (owner, dashboard): confirmation link

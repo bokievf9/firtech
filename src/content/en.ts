@@ -2081,6 +2081,8 @@ const en: Dict = {
         unavailable: 'The cabinet is unavailable right now. Please try later.',
         generic: 'Something went wrong. Please try again.',
         profile: 'Could not save the profile. Please try again.',
+        mail_down: 'The sign-in server could not send the email. We already know; try later or sign in with Google.',
+        server_error: 'The sign-in server returned an error. Try again in a minute or sign in with Google. Support code: AUTH-5XX.',
         delete_word: 'Type the word exactly as shown to confirm the deletion.',
         current_password: 'The current password does not fit.',
         same_email: 'This is already your email.',
