@@ -141,7 +141,7 @@ const DEMO_DEPTS: [string, string, [string, string][], [string, string]][] = [
     'sales',
     'Sales',
     [
-      ['lead-intake', 'Lead Intake'],
+      ['lead-intake', 'Lead manager'],
       ['prospector', 'Prospector'],
       ['presales', 'Presales'],
     ],

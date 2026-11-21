@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { Builder } from '@/components/builder'
-import { ContactSection } from '@/components/contact-section'
 import { getDict } from '@/content'
 import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
@@ -36,11 +35,8 @@ export default async function BuilderPage({ params }: PageProps<'/[locale]/build
 
   // The builder is the page: its own step bar carries the h1, each step is a full screen.
   return (
-    <>
-      <section className="pt-16 md:pt-[72px]">
-        <Builder dict={dict} locale={locale} />
-      </section>
-      <ContactSection dict={dict} locale={locale} />
-    </>
+    <section className="pt-16 md:pt-[72px]">
+      <Builder dict={dict} locale={locale} />
+    </section>
   )
 }

@@ -1,17 +1,19 @@
 'use client'
 
-import { ArrowRight, Check, Link as LinkIcon, PencilSimple } from '@phosphor-icons/react'
+import { Check, Link as LinkIcon, PencilSimple } from '@phosphor-icons/react'
 import type { Dict } from '@/content'
 import { quote, type Build } from '@/lib/builder'
 import { builderUi, kitNames, pick } from '@/content/builder-catalog'
 import { closestTheme, resolveLook, resolveStyle, usesAxes } from '@/lib/builder-style'
 import { buttonStyles, cn } from '@/lib/cn'
+import type { Locale } from '@/lib/i18n'
 import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
 import { usePricing } from './pricing-provider'
 import { LivePreview } from './builder-live-preview'
 import { faceUi, themeText, moodText } from '@/content/builder-v2'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
+import { ProjectSend } from './builder-send'
 import { Panel } from './builder-ui'
 
 // The last screen: the quote, the brief and the mockup side by side, then the actions.
@@ -21,7 +23,8 @@ export function SummaryStep({
   build,
   estimateHref,
   copied,
-  onSend,
+  cameBack,
+  focusSend,
   onCopy,
   onEdit,
 }: {
@@ -30,7 +33,8 @@ export function SummaryStep({
   build: Build
   estimateHref: string
   copied: boolean
-  onSend: () => void
+  cameBack: boolean
+  focusSend: boolean
   onCopy: () => void
   onEdit: (step: number) => void
 }) {
@@ -114,11 +118,7 @@ export function SummaryStep({
       <div className="grid content-start gap-4 lg:col-span-5">
         <Panel title={t.actionsTitle}>
           <div className="grid gap-3">
-            <button type="button" onClick={onSend} className={buttonStyles.primary}>
-              {pick(faceUi.send, locale)}
-              <ArrowRight size={16} />
-            </button>
-            <p className="text-[12px] leading-snug text-faint">{pick(faceUi.sendHint, locale)}</p>
+            <ProjectSend dict={dict} locale={locale as Locale} build={build} cameBack={cameBack} focusHere={focusSend} />
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               <button type="button" onClick={onCopy} className={buttonStyles.secondary}>
                 {copied ? <Check size={16} /> : <LinkIcon size={16} />}

@@ -1,4 +1,4 @@
-// On-page chat with the AI receptionist («попробуйте приёмщика»): the contract between the widget,
+// On-page chat with the AI receptionist («попробуйте менеджера заявок»): the contract between the widget,
 // POST /api/chat and HQ, plus the scripted mock used when HQ_CHAT_URL is unset in development.
 // Pure module (no server-only imports), covered by tests/chat.test.mjs. Contract details and the
 // HQ side: docs/site-design-notes.md, section «Чат».
@@ -53,7 +53,7 @@ export function stripHtml(input: string): string {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-export const personas = ['salon', 'clinic', 'shop'] as const
+export const personas = ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses'] as const
 export type Persona = (typeof personas)[number]
 
 export const chatRequestSchema = z.object({

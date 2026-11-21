@@ -8,8 +8,8 @@ import { Estimator } from './estimator'
 import { GuaranteeLine } from './guarantee-line'
 import { Reveal } from './reveal'
 
-// Prices (#pricing): the calculator; on the home page (`teaser`) also the builder teaser and the
-// payment line (folded in from the old regions block). The bundle discount comes from pricing.ts.
+// Prices (#pricing): on a service page the format calculator; on the home page (`teaser`, owner 2026-11-22: the
+// builder replaced the estimator) only the builder teaser and the payment line. The bundle discount comes from pricing.ts.
 export async function PricingSection({
   dict,
   locale,
@@ -28,9 +28,9 @@ export async function PricingSection({
     <section id="pricing" className="mx-auto max-w-7xl px-4 py-section md:px-8">
       <div className={cn('grid gap-gutter', teaser && 'lg:grid-cols-12 lg:items-stretch')}>
         <Reveal className={cn(teaser && 'lg:col-span-7 lg:self-center')}>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h2 className="mt-4 font-display text-title font-semibold">{t.title}</h2>
-          <p className="mt-5 max-w-[48ch] text-lead text-muted">{t.sub}</p>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{teaser ? h.eyebrow : t.eyebrow}</p>
+          <h2 className="mt-4 font-display text-title font-semibold">{teaser ? h.title : t.title}</h2>
+          <p className="mt-5 max-w-[48ch] text-lead text-muted">{teaser ? h.sub : t.sub}</p>
           {teaser && (
             <p className="mt-6 text-sm text-faint">
               {h.currency}. {h.stages} {dict.region.payTitle}: {dict.region.pay.join(', ')}.
@@ -76,9 +76,11 @@ export async function PricingSection({
           </Reveal>
         )}
       </div>
-      <Reveal className="mt-12">
-        <Estimator dict={dict} locale={locale} initialService={initialService} />
-      </Reveal>
+      {!teaser && (
+        <Reveal className="mt-12">
+          <Estimator dict={dict} locale={locale} initialService={initialService} />
+        </Reveal>
+      )}
     </section>
   )
 }

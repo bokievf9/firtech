@@ -130,7 +130,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
           kind: 'clip',
           platform: 'instagram',
           status: full ? (['pending', 'approved', 'rendering', 'ready', 'published', 'pending', 'draft'] as const)[i]! : 'published',
-          title: ['Бот, который записывает клиентов ночью', 'Сайт за 7 дней: как мы это делаем', 'ИИ-приёмщик отвечает за 3 секунды', 'Почему клиенты не дозваниваются', 'Автоматизация абонементов', 'Три ошибки лендинга', 'Как работает наш офис агентов'][i]!,
+          title: ['Бот, который записывает клиентов ночью', 'Сайт за 7 дней: как мы это делаем', 'ИИ-менеджер отвечает за 3 секунды', 'Почему клиенты не дозваниваются', 'Автоматизация абонементов', 'Три ошибки лендинга', 'Как работает наш офис агентов'][i]!,
           hook: 'Ваш администратор спит, а запись идёт.',
           caption: {
             instagram: 'Бот записывает клиентов, пока вы спите. Пишите в директ слово «бот».',
@@ -472,7 +472,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
             { id: 'content-maker', dept: 'marketing', title: 'Content Maker', state: 'working' },
             { id: 'publisher', dept: 'marketing', title: 'Publisher', state: 'idle' },
             { id: 'renderer', dept: 'marketing', title: 'Renderer', state: 'working' },
-            { id: 'lead-intake', dept: 'sales', title: 'Lead Handler', state: 'idle' },
+            { id: 'lead-intake', dept: 'sales', title: 'Lead manager', state: 'idle' },
             { id: 'prospector', dept: 'sales', title: 'Prospector', state: 'sleeping' },
             { id: 'billing', dept: 'backoffice', title: 'Finance', state: 'idle' },
             { id: 'project-manager', dept: 'production', title: 'Project Manager', state: 'paused' },

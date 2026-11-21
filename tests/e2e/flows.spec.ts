@@ -96,17 +96,14 @@ test('estimate page lists the build as rows and offers print', async ({ page }) 
   expect(await page.locator('meta[name=robots]').getAttribute('content')).toContain('noindex')
 })
 
-// ---- contact form with the sign-in gate ---------------------------------------------------------
+// ---- the builder sends the lead itself, with the sign-in gate ------------------------------------------
 
-test('contact form: empty submit shows field errors, a filled one asks to sign in', async ({ page }) => {
+test('builder send: «Отправить проект в работу» asks to sign in, the old #contact link lands on the button', async ({ page }) => {
   await open(page, '/ru/builder?b=websites.landing.telegram~k.cafe&step=8#contact')
-  const form = page.locator('#contact form').first()
-  await form.scrollIntoViewIfNeeded()
-  await form.locator('button[type=submit]').click()
-  await expect(form.locator('[aria-invalid="true"]').first()).toBeVisible()
-  await form.locator('input[name=name]').fill('E2E Test')
-  await form.locator('input[name=contact]').fill('e2e@example.com')
-  await form.locator('button[type=submit]').click()
+  const send = page.locator('#contact').getByRole('button', { name: 'Отправить проект в работу' })
+  await expect(send).toBeVisible()
+  await expect(page.locator('#contact form')).toHaveCount(0)
+  await send.click()
   await expect(page.locator('[data-lead-auth]')).toBeVisible()
   await expect(page.locator('[data-lead-auth]')).toContainText('войдите или создайте аккаунт')
 })

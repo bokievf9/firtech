@@ -145,6 +145,46 @@ test('goals follow the product and the niche', () => {
   assert.ok(goalsFor({ ...presets.salon, goals: ['regular'] }).includes('regular'))
 })
 
+test('goals: the administrator, the lead manager and the assistant each have their own set of 7-8, the rest have 7 or more', () => {
+  for (const family of ['admin', 'leadmgr', 'assistant']) assert.ok(familyGoalIds[family].length >= 7 && familyGoalIds[family].length <= 8, family)
+  for (const family of ['site', 'automation', 'content', 'miniapp', 'department', 'app']) assert.ok(familyGoalIds[family].length >= 7, family)
+  const only = (id) => goalsFor(toggleProduct({ parts: {}, extras: [] }, id))
+  const admin = only('adminbot')
+  const lead = only('intake')
+  const assistant = only('agent')
+  assert.ok(admin.includes('noshow') && admin.includes('nocalls'))
+  assert.ok(!lead.includes('noshow') && !lead.includes('nocalls'), 'no «Меньше неявок» for the lead manager')
+  assert.ok(lead.includes('qualify') && lead.includes('followup'))
+  assert.ok(assistant.includes('deadlines') && assistant.includes('inbox') && !assistant.includes('leadcollect') && !assistant.includes('noshow'))
+  assert.notDeepEqual(admin, lead)
+  assert.notDeepEqual(lead, assistant)
+})
+
+test('extras: no mailings or payments for the lead manager outside a shop or a clinic; three new extras from existing prices', () => {
+  const lead = toggleProduct({ parts: {}, extras: [] }, 'intake')
+  const cafe = { ...lead, kind: 'cafe' }
+  assert.ok(!visibleAddons(cafe, 'bots').includes('broadcasts') && !visibleAddons(cafe, 'bots').includes('payments'))
+  for (const kind of ['shop', 'clinic']) assert.ok(visibleAddons({ ...lead, kind }, 'bots').includes('payments'), kind)
+  // the administrator keeps them
+  assert.ok(visibleAddons({ ...toggleProduct({ parts: {}, extras: [] }, 'adminbot'), kind: 'cafe' }, 'bots').includes('payments'))
+  const extras = visibleExtras({ parts: { websites: { variant: 'landing', addons: [] }, apps: { variant: 'pwa', addons: [] } }, extras: [] })
+  for (const id of ['crm', 'internal', 'rescue']) assert.ok(extras.includes(id), id)
+  const q = quote({ parts: { websites: { variant: 'landing', addons: [] } }, extras: ['rescue', 'crm', 'internal'] }, defaultPricing)
+  assert.deepEqual(q.lines.slice(1).map((l) => l.price), [defaultPricing.extras.rescue, defaultPricing.catalog.automation.variants.crm, defaultPricing.catalog.apps.variants.internal])
+  assert.equal(decodeBuild(encodeBuild({ parts: { websites: { variant: 'landing', addons: [] } }, extras: ['rescue', 'crm'] })).extras.join(), 'rescue,crm')
+})
+
+test('the preview chat label follows the chosen agent product and the step numbering is one style', () => {
+  const live = readFileSync('src/components/builder-live-preview.tsx', 'utf8')
+  assert.match(live, /productCatalog\[agentId\]\.name/)
+  const ui = readFileSync('src/components/builder-ui.tsx', 'utf8')
+  const nav = readFileSync('src/components/builder-nav.tsx', 'utf8')
+  assert.doesNotMatch(ui, /padStart/)
+  assert.doesNotMatch(nav, /padStart/)
+  assert.match(ui, /\{label\} \{index \+ 1\} \{of\} \{total\}/)
+  assert.match(ru.builder.stepLabel + ' 1 ' + ru.builder.of + ' 8', /^Шаг 1 из 8$/)
+})
+
 test('channels: twelve with a one-line hint each', () => {
   assert.equal(buildChannels.length, 12)
   for (const id of buildChannels) assert.ok(channelText[id].hint.ru.length > 5 && channelText[id].hint.en.length > 5, id)
@@ -199,7 +239,10 @@ test('extras come in a sanity order', () => {
   const full = { parts: { websites: { variant: 'shop', addons: [] }, bots: { variant: 'faq', addons: [] } }, extras: [] }
   assert.deepEqual(visibleAddons(full, 'websites', lowLanguage), ['cms', 'payments', 'telegram', 'language'])
   assert.deepEqual(visibleAddons(full, 'bots'), ['ai', 'broadcasts', 'payments', 'admin'])
-  assert.deepEqual(visibleExtras(full), ['seo', 'design', 'support'])
+  assert.deepEqual(visibleExtras(full), ['seo', 'design', 'crm', 'rescue', 'support'])
+  // Internal systems only next to automation or an app; CRM not when the build already is the CRM format.
+  assert.ok(visibleExtras({ ...full, parts: { ...full.parts, automation: { variant: 'integration', addons: [] } } }).includes('internal'))
+  assert.ok(!visibleExtras({ ...full, parts: { ...full.parts, automation: { variant: 'crm', addons: [] } } }).includes('crm'))
   for (const slug of Object.keys(addonOrder)) assert.ok(addonOrder[slug].length === 4)
 })
 

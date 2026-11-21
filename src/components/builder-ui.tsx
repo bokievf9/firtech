@@ -8,12 +8,12 @@ import { cn } from '@/lib/cn'
 
 export const Screen = forwardRef<
   HTMLHeadingElement,
-  { index: number; total: number; label: string; title: string; sub?: string; children: ReactNode }
->(function Screen({ index, total, label, title, sub, children }, ref) {
+  { index: number; total: number; label: string; of: string; title: string; sub?: string; children: ReactNode }
+>(function Screen({ index, total, label, of, title, sub, children }, ref) {
   return (
     <div>
       <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">
-        {label} {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        {label} {index + 1} {of} {total}
       </p>
       <h2
         ref={ref}

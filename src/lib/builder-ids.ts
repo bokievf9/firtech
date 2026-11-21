@@ -4,7 +4,9 @@
 
 // Goals. The first five are the original ones (old links); the rest are outcome goals per product family.
 export const legacyGoals = ['leads', 'sales', 'booking', 'routine', 'brand'] as const
-export const goalFamilies = ['agent', 'site', 'automation', 'content', 'miniapp', 'department', 'app'] as const
+// `agent` is the classic Telegram bot; `admin`, `leadmgr` and `assistant` are the three agent products
+// (2026-11-22: each has its own set). Families are only ever appended.
+export const goalFamilies = ['agent', 'site', 'automation', 'content', 'miniapp', 'department', 'app', 'admin', 'leadmgr', 'assistant'] as const
 export type GoalFamily = (typeof goalFamilies)[number]
 
 export const familyGoalIds = {
@@ -13,13 +15,16 @@ export const familyGoalIds = {
   automation: ['nomanual', 'oneplace', 'reports', 'alerts', 'nolost', 'paytrack', 'synctools'],
   content: ['regular', 'reels', 'cards', 'lesstime', 'voice', 'stories', 'season'],
   miniapp: ['ordertg', 'loyalty', 'repeat', 'paytg', 'catalog', 'bookingtg', 'promo'],
-  department: ['knowledge', 'docs', 'train', 'oneassist', 'onboard', 'control'],
-  app: ['ownapp', 'teamtool', 'cabinet', 'offline', 'pushapp', 'dashboard'],
+  department: ['knowledge', 'docs', 'train', 'oneassist', 'onboard', 'control', 'weeklysum', 'approvals'],
+  app: ['ownapp', 'teamtool', 'cabinet', 'offline', 'pushapp', 'dashboard', 'payinapp', 'loginapp'],
+  admin: ['nocalls', 'noshow', 'answer24', 'faqoff', 'fillslots', 'upsell', 'reviews', 'handover'],
+  leadmgr: ['answer24', 'speedlead', 'leadcollect', 'qualify', 'followup', 'nolost', 'faqoff', 'handover'],
+  assistant: ['deadlines', 'inbox', 'planday', 'remindme', 'calsync', 'langstudy', 'focus', 'weekly'],
 } as const satisfies Record<GoalFamily, readonly string[]>
 
+// Families share goals (the administrator and the lead manager both answer at any hour), so the flat list is unique.
 export const buildGoals = [
-  ...legacyGoals,
-  ...goalFamilies.flatMap((family) => familyGoalIds[family]),
+  ...new Set([...legacyGoals, ...goalFamilies.flatMap((family) => familyGoalIds[family])]),
 ] as readonly string[] as readonly [string, ...string[]]
 export type BuildGoal = string
 

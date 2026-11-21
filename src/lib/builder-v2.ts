@@ -23,10 +23,10 @@ import { serviceSlugs, type ServiceSlug } from './site'
 // ------------------------------------------------------------------- families
 
 export const productFamily: Record<ProductId, GoalFamily> = {
-  adminbot: 'agent',
-  intake: 'agent',
+  adminbot: 'admin',
+  intake: 'leadmgr',
   bot: 'agent',
-  agent: 'agent',
+  agent: 'assistant',
   automation: 'automation',
   content: 'content',
   miniapp: 'miniapp',
@@ -46,13 +46,13 @@ const has = (build: Build, id: ProductId) => (build.products ?? []).includes(id)
 // reordered by it, so a salon sees «меньше неявок» first and a shop «каталог с ценами».
 const categoryPriority: Record<KindCategory, readonly string[]> = {
   food: ['promo', 'repeat', 'ordertg', 'regular', 'reels', 'cards', 'season', 'faqoff', 'nocalls', 'onlineorder', 'prices'],
-  beauty: ['noshow', 'nocalls', 'upsell', 'reviews', 'portfolio', 'stories', 'reels', 'bookingtg', 'loyalty', 'trust'],
+  beauty: ['noshow', 'nocalls', 'fillslots', 'upsell', 'reviews', 'portfolio', 'stories', 'reels', 'bookingtg', 'loyalty', 'trust'],
   retail: ['catalog', 'onlineorder', 'cards', 'repeat', 'loyalty', 'paytg', 'prices', 'nolost', 'paytrack', 'upsell'],
-  services: ['portfolio', 'trust', 'leadcollect', 'moreleads', 'nolost', 'prices', 'reviews', 'handover'],
+  services: ['portfolio', 'trust', 'speedlead', 'leadcollect', 'qualify', 'followup', 'moreleads', 'nolost', 'prices', 'reviews', 'handover'],
   education: ['reviews', 'repeat', 'bookingtg', 'langs', 'leadcollect', 'onboard', 'train', 'regular'],
-  realty: ['trust', 'prices', 'leadcollect', 'nolost', 'handover', 'docs', 'portfolio', 'moreleads'],
+  realty: ['trust', 'prices', 'speedlead', 'leadcollect', 'qualify', 'followup', 'nolost', 'handover', 'docs', 'portfolio', 'moreleads'],
   travel: ['langs', 'prices', 'faqoff', 'handover', 'season', 'portfolio', 'leadcollect'],
-  b2b: ['reports', 'portfolio', 'nolost', 'synctools', 'docs', 'knowledge', 'leadcollect', 'moreleads'],
+  b2b: ['reports', 'portfolio', 'qualify', 'followup', 'nolost', 'synctools', 'docs', 'knowledge', 'leadcollect', 'moreleads'],
   health: ['noshow', 'trust', 'nocalls', 'faqoff', 'reviews', 'handover', 'docs'],
   other: [],
 }
@@ -90,7 +90,7 @@ export const addonOrder: Record<ServiceSlug, readonly string[]> = {
   apps: ['accounts', 'payments', 'push', 'admin'],
   automation: ['sheets', 'alerts', 'training', 'support'],
 }
-export const extraOrder: readonly BuildExtra[] = ['seo', 'design', 'support']
+export const extraOrder: readonly BuildExtra[] = ['seo', 'design', 'crm', 'internal', 'rescue', 'support']
 
 // Owner rule (2026-11-22): a second language of a site cannot cost more than a lead channel («заявки
 // в Telegram»). Prices stay as they are in pricing.ts; when the rule is broken the language option is
@@ -139,6 +139,15 @@ export function visibleAddons(build: Build, slug: ServiceSlug, pricing: Pricing 
   if (slug === 'websites' && has(build, 'intake')) hidden.add('telegram')
   if (slug === 'websites' && languageRuleBroken(pricing) && !part.addons.includes('language'))
     hidden.add('language')
+  // The lead manager only answers and collects requests: mailings and payments are for a shop or a clinic
+  // (or when another product of the build brings them anyway).
+  if (slug === 'bots' && has(build, 'intake') && !has(build, 'adminbot') && !has(build, 'miniapp') && !has(build, 'bot')) {
+    const niche = demoNicheOf(build.kind)
+    if (niche !== 'shop' && niche !== 'clinic') {
+      hidden.add('broadcasts')
+      hidden.add('payments')
+    }
+  }
   const order = addonOrder[slug]
   return known
     .filter((id) => !hidden.has(id))
@@ -156,6 +165,13 @@ export function visibleExtras(build: Build): BuildExtra[] {
     if (!(buildExtras as readonly string[]).includes(id)) return false
     if (id === 'seo') return Boolean(build.parts.websites)
     if (id === 'support') return hasParts
+    // CRM under key: not when the build already holds the CRM format of automation or a department.
+    if (id === 'crm') return hasParts && build.parts.automation?.variant !== 'crm' && !has(build, 'aiteam')
+    // Internal systems: for builds with automation or an app, unless the app already is one.
+    if (id === 'internal')
+      return Boolean(build.parts.automation || build.parts.apps) && build.parts.apps?.variant !== 'internal'
+    // A fix of someone else's project: next to any real part.
+    if (id === 'rescue') return hasParts
     return true
   })
 }

@@ -25,13 +25,19 @@ export async function DemoSection({ dict, locale }: { dict: Dict; locale: Locale
   const names: Record<DemoTabId, string> = {
     receptionist: dict.products.items.receptionist.name,
     admin: dict.products.items.admin.name,
+    automation: dict.products.items.automation.name,
     content: dict.products.items.content.name,
+    miniapp: dict.products.items.miniapp.name,
+    agent: dict.products.items.agent.name,
     implementation: dict.products.items.implementation.name,
   }
   const buildHrefs: Record<DemoTabId, string> = {
     receptionist: productBuilderHref(locale, 'receptionist'),
     admin: productBuilderHref(locale, 'admin'),
+    automation: productBuilderHref(locale, 'automation'),
     content: productBuilderHref(locale, 'content'),
+    miniapp: productBuilderHref(locale, 'miniapp'),
+    agent: productBuilderHref(locale, 'agent'),
     implementation: productBuilderHref(locale, 'implementation'),
   }
   return (

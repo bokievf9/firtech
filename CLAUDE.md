@@ -42,17 +42,16 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   unchanged): `admin` ИИ-администратор, `receptionist` ИИ-менеджер заявок, `automation` Автоматизация процессов, `content` Контент на
   автопилоте, `miniapp` Telegram Mini App, `agent` Персональный ИИ-ассистент, `implementation` ИИ-отдел под ключ (EN in `products.items`
   and `builder-catalog.ts`); «бот» stays only as a delivery channel. The builder is «Сборка проекта» everywhere (nav, titles, buttons;
-  the word «калькулятор» is gone from the site; the `cabinet` dictionary section still says «конструктор», it belongs to the cabinet
-  builder). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
+  the words «калькулятор» and «конструктор» are gone everywhere, the cabinet and the Пульт included (test in `copy-qa`); «приёмщик» is
+  gone too, the lead agent is «Менеджер заявок» / «Lead manager»; the classic bots service reads «Агенты в Telegram»). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
   and «Спросить агента», third item the link to `/ai-team`, then the guarantee and the 5-minute line), products (`#products`: seven
   cards each with «Подробнее» to `/[locale]/products/[id]`, the ladder `#levels`, the departments strip), demo (`#demo` «Попробуйте
   сейчас», tabs, `components/demo/`), proof, solutions (`#solutions`: salon, clinic, shop on the first row, three niches per catalogue
-  category, «Ещё» expands), process (`#process`, short, links to `/how-we-work`), pricing, faq (`#faq`: the only FAQ besides the
-  per-product ones, with the «Остались вопросы? Спросите агента» strip), footer.
+  category, «Ещё» expands), process (`#process`, short, links to `/how-we-work`), pricing (builder teaser and payment line only, the estimator is gone from the home page; service pages keep it), faq (`#faq`: the only FAQ, with the «Остались вопросы? Спросите агента» strip), footer.
   **Product pages** `/[locale]/products/[id]` (`productPage` dictionary section, `lib/product-page.ts`, `components/products/
   capability-mock.tsx`): what it does as a list with a one-line example and a small CSS mock, first day/week/month, what we need,
   what it does not do, the live price (`ProductPriceTag`) and the stage table of the product's template (`productPayment`,
-  `StageTable`), FAQ 4-5 (FAQ is allowed there because of that page's own content), CTAs «Собрать проект» (product preselected) and
+  `StageTable`), no FAQ (owner 2026-11-22: FAQ only on the home page; the useful answers sit in the capability texts), CTAs «Собрать проект» (product preselected) and
   «Спросить агента». **Ladder** (`lib/ladder.ts`, `components/ladder.tsx`, `ladder` section): per direction one agent -> on autopilot
   -> whole department (content: Контент-мейкер -> Контент на автопилоте -> Отдел маркетинга; sales: ИИ-менеджер заявок -> Продажи на
   автопилоте (agent page of the prospector) -> Отдел продаж; support: Служба поддержки -> Поддержка на автопилоте (monitoring) ->
@@ -64,14 +63,14 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   link anywhere (`lib/demo.ts` is deleted). **`/[locale]/how-we-work`** (`how` section): stages with what the client does, sees in the
   cabinet and who answers, acceptance, payment, guarantee, what if not liked, tools, approvals. **Tails**: the footer carries the two
   actions «Собрать проект» / «Спросить агента» on every page, Telegram is a small third link there only; the contact form is not a
-  page section any more (only on the builder page, as the hand-off target `#contact`, and in the cabinet); `Estimator` hands its pick
-  to the builder. Solution pages show the full stage table, the first-stage price and the main part's timeline, CTAs «Собрать это
+  page section any more (the builder's last step sends the lead itself: `components/builder-send.tsx`, «Отправить проект в работу», sign-in gate and 24 h draft,
+  `#contact` is the anchor of that button for old links); `Estimator` hands its pick to the builder. Solution pages show the full stage table, the first-stage price and the main part's timeline, CTAs «Собрать это
   решение» / «Спросить агента». Tests: `tests/front-v3.test.mjs`, `tests/products-pages.test.mjs`. Design notes: `docs/site-design-notes.md`.
 - Home page order (stage B1, products lead; `homeSections` in `src/lib/home.ts`, tested): hero
   (`#top`, kinetic headline over a 3D product stage; on lg a 250vh scroll track brings the seven
   products forward one by one, phones rotate them on a timer), products bento (`#products`, old
   `#services` anchor kept; seven cards from `src/lib/products.ts` with CSS mini-demos, «для кого»,
-  «что внутри», price, «Собрать в конструкторе» opening the builder with the product picked via the
+  «что внутри», price, «Собрать проект» opening the builder with the product picked via the
   `p.<id>` chunk, plus the four classic services), demo (`#demo`, opens the receptionist chat),
   proof (`#proof`: Dono, Polly, Fir Tech HQ with live counts from `/api/office/public`), process
   (`#process`, sticky horizontal timeline with the rules), pricing (`#pricing`: builder teaser and

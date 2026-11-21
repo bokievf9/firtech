@@ -192,7 +192,7 @@ test('terms: apply on confirmation, guarantee per product, 30 days of fixes, pla
     assert.match(d.text.join(' '), /30/)
   }
   assert.equal(ru.terms.draftNote, 'Документ проверяется юристом, редакция может уточняться.')
-  assert.match(ru.terms.sections.find((s) => s.id === 'guarantee').list.join(' '), /первый сценарий в тестовом боте/)
+  assert.match(ru.terms.sections.find((s) => s.id === 'guarantee').list.join(' '), /первый сценарий агента на тесте/)
 })
 
 test('privacy: AI model providers named, no names or contacts sent', () => {

@@ -169,7 +169,7 @@ test('session cookie label: a session, not a verifier', () => {
 
 test('«Get started»: nav and login copy (owner 2026-11-20)', () => {
   assert.equal(ru.nav.cabinetStart, 'Личный кабинет') // owner 2026-11-21: «Начать» did not read well
-  assert.equal(en.nav.cabinetStart, 'Get started')
+  assert.equal(en.nav.cabinetStart, 'Client area')
   assert.equal(ru.nav.cabinet, 'Кабинет')
   assert.equal(en.nav.cabinet, 'Cabinet')
   assert.equal(ru.cabinet.auth.title, 'Начало работы')

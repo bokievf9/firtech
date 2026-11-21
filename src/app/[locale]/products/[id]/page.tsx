@@ -3,9 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
-import { Faq } from '@/components/faq'
 import { HeroIntro } from '@/components/hero-intro'
-import { JsonLd, faqJsonLd } from '@/components/json-ld'
+import { JsonLd } from '@/components/json-ld'
 import { CapabilityMock, type MockKind } from '@/components/products/capability-mock'
 import { productIcons } from '@/components/products/product-icons'
 import { ProductPriceTag } from '@/components/products/product-price'
@@ -84,7 +83,6 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
   return (
     <>
       <JsonLd data={service} />
-      <JsonLd data={faqJsonLd(page.faq)} />
 
       <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-8">
@@ -117,7 +115,7 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
               {t.cta}
               <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
-            <ChatOpenButton source={`product_${id}`} fallbackHref="#faq" className={buttonStyles.secondary}>
+            <ChatOpenButton source={`product_${id}`} fallbackHref="#price" className={buttonStyles.secondary}>
               {t.ask}
             </ChatOpenButton>
           </div>
@@ -230,8 +228,6 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
         </Reveal>
       </section>
 
-      <Faq id="faq" title={t.faqTitle} items={page.faq} />
-
       <section className="mx-auto max-w-7xl px-4 pb-section md:px-8">
         <Reveal>
           <div className="rounded-card border border-accent-text/30 bg-[linear-gradient(150deg,var(--color-pine),var(--color-surface)_70%)] p-6 md:p-10">
@@ -242,7 +238,7 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
                 {t.cta}
                 <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
-              <ChatOpenButton source={`product_${id}_final`} fallbackHref="#faq" className={buttonStyles.secondary}>
+              <ChatOpenButton source={`product_${id}_final`} fallbackHref="#price" className={buttonStyles.secondary}>
                 {t.ask}
               </ChatOpenButton>
             </div>

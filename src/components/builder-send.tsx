@@ -1,0 +1,180 @@
+'use client'
+
+import { ArrowRight, CheckCircle } from '@phosphor-icons/react'
+import { usePathname } from 'next/navigation'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import type { Dict } from '@/content'
+import { faceUi } from '@/content/builder-v2'
+import { pick } from '@/content/builder-catalog'
+import { track } from '@/lib/analytics'
+import { leadServiceOf, type Build } from '@/lib/builder'
+import { buttonStyles } from '@/lib/cn'
+import { leadSummary } from '@/lib/estimate-doc'
+import type { Locale } from '@/lib/i18n'
+import { clearDraft, draftReturnPath, draftStorage, saveDraft } from '@/lib/lead-draft'
+import { refSource, storedRef } from '@/lib/referral'
+import { trackEvent } from '@/lib/track-event'
+import { LeadAccountNote, LeadAuthStep } from './cabinet/lead-auth'
+import { useCabinetUser, type CabinetUserState } from './cabinet/use-cabinet-user'
+import { ConsentText } from './consent-text'
+import { usePricing } from './pricing-provider'
+
+type Status = 'idle' | 'sending' | 'sent' | 'error'
+
+// «Отправить проект в работу» (owner 2026-11-22): the last builder step sends the lead itself, no
+// second form. The same /api/lead as the contact form, the same sign-in gate and 24 h draft
+// (`lead-draft.ts`). The name comes from the details step, the contact from the account. The
+// wrapper carries `id="contact"` so an old `#contact` link lands on the button.
+export function ProjectSend({
+  dict,
+  locale,
+  build,
+  cameBack,
+  focusHere,
+}: {
+  dict: Dict
+  locale: Locale
+  build: Build
+  // Back from sign-in or the confirmation email (`draft=1` was in the address).
+  cameBack: boolean
+  // An old `#contact` link: scroll here once.
+  focusHere: boolean
+}) {
+  const t = dict.contact
+  const pricing = usePricing()
+  const pathname = usePathname()
+  const { state: me, refresh } = useCabinetUser()
+  const meRef = useRef<CabinetUserState>(me)
+  useEffect(() => {
+    meRef.current = me
+  }, [me])
+  const [status, setStatus] = useState<Status>('idle')
+  const [authStep, setAuthStep] = useState(false)
+  const [cabinet, setCabinet] = useState<string | null>(null)
+  const root = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (focusHere || cameBack) root.current?.scrollIntoView({ block: 'center' })
+  }, [focusHere, cameBack])
+
+  const service = leadServiceOf(build)
+  const summary = leadSummary(build, dict, locale, pricing)
+
+  const keepDraft = useCallback(() => {
+    saveDraft(draftStorage(window), 'lead', { estimate: summary, service })
+  }, [summary, service])
+
+  const send = useCallback(
+    async (who: CabinetUserState) => {
+      setStatus('sending')
+      const d = build.details
+      const account = who.status === 'in' ? who.user : null
+      const name = (d?.owner || d?.company || account?.name || account?.email.split('@')[0] || 'Client').slice(0, 80)
+      const contact = (account ? [account.email, account.telegram].filter(Boolean).join(', ') : d?.owner || d?.company || '').slice(0, 120)
+      try {
+        const response = await fetch('/api/lead', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            contact: contact.length >= 3 ? contact : '(builder)',
+            service,
+            estimate: summary,
+            source: refSource(storedRef()),
+            locale,
+            page: (pathname + window.location.search).slice(0, 600),
+          }),
+        })
+        if (response.status === 401) {
+          meRef.current = { status: 'out' }
+          keepDraft()
+          setAuthStep(true)
+          setStatus('idle')
+          return
+        }
+        if (!response.ok) throw new Error(String(response.status))
+        const answer = (await response.json().catch(() => ({}))) as { cabinet?: string | null }
+        clearDraft(draftStorage(window), 'lead')
+        setCabinet(answer.cabinet ?? null)
+        setStatus('sent')
+        track('builder_sent', { service })
+        track('lead_sent', { service })
+        trackEvent('lead_sent')
+        if (answer.cabinet) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
+      } catch {
+        setStatus('error')
+      }
+    },
+    [build.details, keepDraft, locale, pathname, service, summary],
+  )
+
+  async function onPress() {
+    let who = meRef.current
+    if (who.status === 'loading') {
+      who = await refresh()
+      meRef.current = who
+    }
+    if (who.status === 'out') {
+      keepDraft()
+      setAuthStep(true)
+      setStatus('idle')
+      return
+    }
+    void send(who)
+  }
+
+  async function onSignedIn() {
+    const next = await refresh()
+    meRef.current = next
+    setAuthStep(false)
+    void send(next)
+  }
+
+  const returnPath = typeof window === 'undefined' ? '' : draftReturnPath(window.location.pathname, window.location.search, '#contact')
+
+  if (status === 'sent') {
+    return (
+      <div id="contact" ref={root} role="status" className="grid gap-3 scroll-mt-40">
+        <p className="flex items-center gap-2 text-lg font-medium">
+          <CheckCircle size={24} weight="light" className="text-accent-text" />
+          {t.successTitle}
+        </p>
+        <p className="text-sm leading-relaxed text-muted">{cabinet ? dict.leadAuth.redirecting : t.successText}</p>
+        {cabinet && (
+          <a href={cabinet} className={buttonStyles.secondary}>
+            {dict.leadAuth.toCabinet}
+          </a>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div id="contact" ref={root} className="grid gap-3 scroll-mt-40">
+      {cameBack && me.status === 'in' && !authStep && (
+        <p role="status" className="rounded-xl border border-accent-text/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
+          {pick(faceUi.sendDraft, locale)}
+        </p>
+      )}
+      {!authStep && (
+        <button type="button" onClick={() => void onPress()} disabled={status === 'sending'} className={buttonStyles.primary}>
+          {status === 'sending' ? t.sending : pick(faceUi.send, locale)}
+          {status !== 'sending' && <ArrowRight size={16} />}
+        </button>
+      )}
+      {status === 'error' && (
+        <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
+          {t.error}
+        </p>
+      )}
+      <p className="text-[12px] leading-snug text-faint">{pick(faceUi.sendHint, locale)}</p>
+      <LeadAccountNote dict={dict} state={me} />
+      <p className="text-[12px] leading-relaxed text-faint">
+        <ConsentText text={t.consent} href={`/${locale}/privacy`} />
+      </p>
+      {authStep && (
+        <LeadAuthStep dict={dict} locale={locale} returnPath={returnPath} onSignedIn={() => void onSignedIn()} onBeforeRedirect={keepDraft} />
+      )}
+    </div>
+  )
+}

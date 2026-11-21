@@ -83,6 +83,23 @@ export const goalText: Record<string, Named> = {
   oneassist: n(['Один ассистент для всех сотрудников', 'Вопросы к одному агенту вместо пяти коллег'], ['One assistant for everyone', 'Ask one agent instead of five colleagues']),
   onboard: n(['Быстро вводить новых сотрудников', 'Новичок получает ответы без отвлечения команды'], ['Onboard new people fast', 'Newcomers get answers without bothering the team']),
   control: n(['Видеть, что делает каждый агент', 'Отчёт о задачах и расходах в понятном виде'], ['See what each agent does', 'A clear report of tasks and costs']),
+  // agent products added 2026-11-22 (administrator, lead manager, personal assistant), apps and departments
+  fillslots: n(['Заполнять свободные окна', 'Освободившееся время агент предлагает тем, кто ждал'], ['Fill free slots', 'A freed time is offered to those who waited']),
+  speedlead: n(['Отвечать на заявку за минуту', 'Клиент не успевает уйти к тем, кто ответил быстрее'], ['Reply to a lead within a minute', 'The client does not wander off to a faster competitor']),
+  qualify: n(['Отделять горячие заявки от пустых', 'Бюджет, срок и задача выяснены до звонка менеджера'], ['Tell hot leads from idle ones', 'Budget, deadline and task are known before the manager calls']),
+  followup: n(['Возвращать замолчавших клиентов', 'Агент один раз мягко напоминает о себе'], ['Bring back silent clients', 'The agent nudges once, politely']),
+  deadlines: n(['Не пропускать сроки', 'Дедлайны из почты и систем собраны в один список'], ['Never miss a deadline', 'Deadlines from mail and systems sit in one list']),
+  inbox: n(['Разбирать почту быстрее', 'Письма, на которые нужно ответить, выделены, черновики готовы'], ['Clear the inbox faster', 'Letters that need an answer are marked, drafts are ready']),
+  planday: n(['Планировать день', 'Дела расставлены по времени в календаре'], ['Plan the day', 'Tasks are placed on the calendar']),
+  remindme: n(['Получать напоминания вовремя', 'Сообщение в Telegram в нужный момент, без лишнего шума'], ['Get reminders on time', 'A Telegram message at the right moment, no extra noise']),
+  calsync: n(['Держать календарь в порядке', 'Встречи, учёба и дела в одном месте'], ['Keep the calendar tidy', 'Meetings, study and tasks in one place']),
+  langstudy: n(['Учить язык по расписанию', 'Короткие задания и разбор ошибок каждый день'], ['Study a language on schedule', 'Short tasks and mistake review every day']),
+  focus: n(['Беречь время без отвлечений', 'Часы тишины: ассистент не пишет, пока вы заняты'], ['Protect focus time', 'Quiet hours: the assistant stays silent while you work']),
+  weekly: n(['Видеть итоги недели', 'Что сделано, что горит и что перенесено'], ['See the week in one summary', 'What is done, what is urgent and what moved']),
+  weeklysum: n(['Недельная сводка владельцу', 'Что сделали агенты, что ждёт решения'], ['A weekly summary for the owner', 'What the agents did and what waits for a decision']),
+  approvals: n(['Одобрять решения кнопкой', 'Агенты готовят, вы решаете в Telegram'], ['Approve decisions with a button', 'Agents prepare, you decide in Telegram']),
+  payinapp: n(['Принимать оплату в приложении', 'Клиент платит, не выходя из экрана'], ['Take payment in the app', 'The client pays without leaving the screen']),
+  loginapp: n(['Вход и личные данные пользователей', 'Каждый видит только своё'], ['User sign-in and personal data', 'Everyone sees only their own']),
   // apps
   ownapp: n(['Своё приложение для клиентов', 'Иконка на телефоне и ваш фирменный стиль'], ['Your own client app', 'An icon on the phone in your style']),
   teamtool: n(['Внутренний инструмент для команды', 'Учёт, задачи и данные в одном окне'], ['An internal team tool', 'Records, tasks and data in one window']),
@@ -236,8 +253,8 @@ export const detailLabels = {
 
 export const deliveryText: Record<DeliveryChannel, Named & { soon?: boolean }> = {
   telegram: n(
-    ['Telegram', 'Клиенты пишут боту в привычном мессенджере, заявки приходят вам туда же'],
-    ['Telegram', 'Clients message a bot in a messenger they use, requests reach you there'],
+    ['Telegram', 'Клиенты пишут агенту в привычном мессенджере, заявки приходят вам туда же'],
+    ['Telegram', 'Clients message an agent in a messenger they use, requests reach you there'],
   ),
   widget: n(
     ['Виджет на сайте', 'Окно чата на вашем сайте, сайт у вас уже есть или входит в сборку'],
@@ -257,8 +274,8 @@ export const deliveryUi = {
     en: 'What the agent does is set above. Here you choose where clients talk to it.',
   },
   noSiteDiff: {
-    ru: 'Telegram: клиенты пишут боту в мессенджере, заявки приходят вам туда же. Площадка Fir Tech: агент отвечает в окне в вашем кабинете у нас, подходит, если сайта нет и вы хотите сначала увидеть агента в деле.',
-    en: 'Telegram: clients message a bot in a messenger and requests reach you there. Fir Tech playground: the agent answers in a window in your cabinet on our side, a fit when you have no site and want to see the agent working first.',
+    ru: 'Telegram: клиенты пишут агенту в мессенджере, заявки приходят вам туда же. Площадка Fir Tech: агент отвечает в окне в вашем кабинете у нас, подходит, если сайта нет и вы хотите сначала увидеть агента в деле.',
+    en: 'Telegram: clients message an agent in a messenger and requests reach you there. Fir Tech playground: the agent answers in a window in your cabinet on our side, a fit when you have no site and want to see the agent working first.',
   },
   pickOne: { ru: 'Выберите хотя бы один способ общения', en: 'Pick at least one way to talk to clients' },
 }
@@ -311,8 +328,8 @@ export const productIncludes: Record<string, L<string[]>> = {
     en: ['A landing page: offer, benefits and a request form', 'Phone-friendly and fast', 'You can upgrade the format below to a company site or a shop'],
   },
   bot: {
-    ru: ['Бот отвечает на частые вопросы', 'Собирает заявки в чате', 'Передаёт контакты вам'],
-    en: ['The bot answers common questions', 'Collects requests in chat', 'Hands the contacts to you'],
+    ru: ['Агент отвечает на частые вопросы', 'Собирает заявки в чате', 'Передаёт контакты вам'],
+    en: ['The agent answers common questions', 'Collects requests in chat', 'Hands the contacts to you'],
   },
   app: {
     ru: ['Веб-приложение, которое ставится на телефон', 'Вход, данные и экраны под вашу задачу', 'Формат можно усилить ниже'],
@@ -415,7 +432,11 @@ export const faceUi = {
     ru: 'Превью собрано из ваших ответов и темы. Если всё так, отправьте проект: мы вернёмся со сметой.',
     en: 'The preview is built from your answers and theme. If it looks right, send the project and we come back with a quote.',
   },
-  send: { ru: 'Отправить проект', en: 'Send the project' },
+  send: { ru: 'Отправить проект в работу', en: 'Send the project to work' },
+  sendDraft: {
+    ru: 'Вы вошли, проект на месте. Нажмите «Отправить проект в работу».',
+    en: 'You are signed in and the project is here. Press «Send the project to work».',
+  },
   sendHint: { ru: 'Нужен вход в аккаунт: так заявка попадёт в ваш кабинет', en: 'Sign-in is needed so the request lands in your cabinet' },
   quoteMore: { ru: 'Смета и этапы оплаты', en: 'Quote and payment stages' },
   required: { ru: 'Обязательно', en: 'Required' },
@@ -580,6 +601,9 @@ export const deptForGoal: Record<string, 'marketing' | 'sales' | 'support' | 'pr
   sales: 'sales',
   moreleads: 'sales',
   leadcollect: 'sales',
+  speedlead: 'sales',
+  qualify: 'sales',
+  followup: 'sales',
   brand: 'marketing',
   regular: 'marketing',
   reels: 'marketing',
@@ -587,6 +611,7 @@ export const deptForGoal: Record<string, 'marketing' | 'sales' | 'support' | 'pr
   reports: 'backoffice',
   docs: 'backoffice',
   knowledge: 'backoffice',
+  weeklysum: 'backoffice',
 }
 
 // Three plain steps of "how it works" on the prototype site, per niche block of the catalogue.

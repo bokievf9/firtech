@@ -26,6 +26,8 @@ registerHooks({
 const { default: ru } = await import('../src/content/ru.ts')
 const { default: en } = await import('../src/content/en.ts')
 const { articles } = await import('../src/content/blog/index.ts')
+const { kindCatalog, productCatalog } = await import('../src/content/builder-catalog.ts')
+const { stageDefs, stageTemplateIds } = await import('../src/lib/pricing.ts')
 
 function* strings(value, at = '') {
   if (typeof value === 'string') yield [at, value]
@@ -208,7 +210,7 @@ test('copy-qa: one set of product names, no old names, only the three CTAs for t
     assert.deepEqual(Object.values(dict.products.items).map((i) => i.name), names[locale])
     const hits = []
     for (const [at, text] of strings(publicOf(dict)))
-      if (/ИИ-приёмщик|ИИ-ресепшн|калькулятор|конструктор проект|AI receptionist|calculator|configurator/i.test(text)) hits.push(`${locale} ${at}: ${text.slice(0, 100)}`)
+      if (/ИИ-приёмщик|ИИ-ресепшн|AI receptionist/i.test(text)) hits.push(`${locale} ${at}: ${text.slice(0, 100)}`)
     none(hits)
   }
   assert.equal(ru.nav.cta, 'Собрать проект')
@@ -231,4 +233,75 @@ test('copy-qa: llms.txt reads as plain text without tells', async () => {
   assert.doesNotMatch(withoutServices, /Telegram-бот/i)
   for (const re of [...shapeTells, ...stock]) assert.doesNotMatch(body, re)
   for (const line of body.split('\n')) assert.ok(line.length < 400, `llms line too long: ${line.slice(0, 80)}`)
+})
+
+// ---- owner remarks 2026-11-22 that were missed, kept out of the copy for good ---------------------------
+
+// Everything a visitor, a crawler or the owner's Пульт can read: both dictionaries in full (builder, cabinet and
+// admin included), the blog and the builder's niche and product catalogue.
+const everything = [
+  ['ru', ru],
+  ['en', en],
+  ['blog', articles.map((a) => ({ ru: a.ru, en: a.en }))],
+  ['kinds', Object.values(kindCatalog).map((k) => ({ ru: k.ru, en: k.en }))],
+  ['products', productCatalog],
+  ['stages', stageTemplateIds.flatMap((id) => stageDefs(id).map((st) => st.title))],
+]
+
+test('copy-qa: «приёмщик» is gone from RU and EN text, the lead agent is «Менеджер заявок» / "Lead manager"', () => {
+  const hits = []
+  for (const [name, value] of everything)
+    for (const [at, text] of strings(value)) if (/приём?щик|lead handler|lead intake/iu.test(text)) hits.push(`${name} ${at}: ${text.slice(0, 100)}`)
+  none(hits)
+  assert.equal(ru.aiTeams.agents.items['lead-handler'].title, 'Менеджер заявок')
+  assert.equal(en.aiTeams.agents.items['lead-handler'].title, 'Lead manager')
+})
+
+test('copy-qa: «калькулятор» and «конструктор» appear nowhere, the cabinet and the Пульт say «сборка проекта»', () => {
+  const hits = []
+  for (const [name, value] of everything)
+    for (const [at, text] of strings(value)) if (/калькулятор|конструктор|calculator|configurator/iu.test(text)) hits.push(`${name} ${at}: ${text.slice(0, 100)}`)
+  none(hits)
+})
+
+test('copy-qa: «бот» is never the name of a product, a niche solution, a stage or a service', () => {
+  const bot = /(?<![а-яё])бот(?:а|ы|ов|у|е|ом|ам|ами|ах)?(?![а-яё])|\bbots?\b/iu
+  const hits = []
+  const titles = [
+    ...Object.entries(kindCatalog).flatMap(([id, k]) => [[`kind ${id} ru`, k.ru[1]], [`kind ${id} en`, k.en[1]]]),
+    ...Object.entries(productCatalog).flatMap(([id, p]) => [[`product ${id} ru`, p.name.ru], [`product ${id} en`, p.name.en]]),
+    ...stageTemplateIds.flatMap((id) => stageDefs(id).flatMap((st) => [[`stage ${id}.${st.id} ru`, st.title.ru], [`stage ${id}.${st.id} en`, st.title.en]])),
+    ...[['ru', ru], ['en', en]].flatMap(([l, d]) => [
+      [`${l} services.title`, d.services.title],
+      ...Object.entries(d.services.items).map(([id, item]) => [`${l} services.${id}`, item.name]),
+      [`${l} builder.metaTitle`, d.builder.metaTitle],
+      [`${l} builder.preview.bot`, d.builder.preview.bot],
+      [`${l} footer`, JSON.stringify(d.footer)],
+    ]),
+  ]
+  for (const [at, text] of titles) {
+    // The classic `bot` product keeps its own name: it is the channel itself and is not offered in the builder list.
+    if (at === 'product bot ru' || at === 'product bot en') continue
+    if (bot.test(text)) hits.push(`${at}: ${text}`)
+  }
+  none(hits)
+})
+
+test('copy-qa: the guarantee says «первый сценарий агента» / "first agent scenario", the small-project sentence stays in the terms', async () => {
+  for (const [locale, dict] of [['ru', ru], ['en', en]]) {
+    const hits = []
+    for (const [at, text] of strings(dict)) {
+      if (/сценарий бота|bot scenario|в тестовом боте|test bot\b/i.test(text)) hits.push(`${locale} ${at}: ${text.slice(0, 100)}`)
+      if (/Небольшие проекты идут двумя равными|Small projects go in two equal/.test(text)) hits.push(`${locale} ${at}: ${text.slice(0, 100)}`)
+      if (/комплекс[а-я]* из двух частей|из двух продуктов|от двух продуктов|за комплекс|two products|bundle of two/i.test(text)) hits.push(`${locale} ${at}: ${text.slice(0, 100)}`)
+    }
+    none(hits)
+  }
+  assert.match(ru.guarantee.line, /первый сценарий агента/)
+  assert.match(en.guarantee.line, /first agent scenario/)
+  const { GET } = await import('../src/app/llms.txt/route.ts')
+  const body = await (await GET()).text()
+  assert.match(body, /первый сценарий агента/)
+  assert.match(body, /first agent scenario/)
+  assert.doesNotMatch(body, /приём?щик|сценарий бота|bot scenario|Небольшие проекты идут|Small projects go|калькулятор|конструктор/iu)
 })

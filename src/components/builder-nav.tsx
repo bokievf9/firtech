@@ -73,7 +73,6 @@ export function StepBar({
                           : 'text-faint/50',
                     )}
                   >
-                    <span className="mr-1.5 font-mono">{String(i + 1).padStart(2, '0')}</span>
                     {label}
                   </span>
                 </button>
