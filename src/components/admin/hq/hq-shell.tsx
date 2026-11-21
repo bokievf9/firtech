@@ -14,6 +14,7 @@ import {
   Megaphone,
   MagnifyingGlass,
   Tray,
+  CheckCircle,
   UsersThree,
   Desktop,
 } from '@phosphor-icons/react'
@@ -35,6 +36,7 @@ const p = admin.hub.palette
 
 const icons: Record<HqSectionId, Icon> = {
   inbox: Tray,
+  approvals: CheckCircle,
   tasks: ListChecks,
   calendar: CalendarBlank,
   chats: ChatCircleText,

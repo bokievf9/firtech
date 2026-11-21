@@ -6,11 +6,11 @@ import { test } from 'node:test'
 const s = await import('../src/lib/hq-shell.ts')
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
-test('sections: twelve English names, four built, keys 1-9', () => {
-  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Inbox', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Agents', 'Processes', 'Content', 'Finance', 'Settings'])
+test('sections: thirteen English names, four built, keys 1-9', () => {
+  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Agents', 'Processes', 'Content', 'Finance', 'Settings'])
   assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), ['inbox', 'clients', 'projects', 'documents'])
   assert.equal(s.sectionForKey('1').id, 'inbox')
-  assert.equal(s.sectionForKey('9').id, 'processes')
+  assert.equal(s.sectionForKey('9').id, 'agents')
   assert.equal(s.sectionForKey('0'), null)
   assert.equal(s.sectionForKey('10'), null)
   for (const x of s.HQ_SECTIONS.filter((x) => x.state === 'soon')) assert.ok(x.legacy.startsWith('/admin/office?panel='), x.id)

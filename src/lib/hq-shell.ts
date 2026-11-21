@@ -4,6 +4,7 @@
 
 export type HqSectionId =
   | 'inbox'
+  | 'approvals'
   | 'tasks'
   | 'calendar'
   | 'chats'
@@ -31,6 +32,7 @@ const office = (panel: string, tab?: string) => `/admin/office?panel=${panel}${t
 
 export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'inbox', label: 'Inbox', state: 'ready', href: '/admin/inbox', legacy: office('director', 'inbox') },
+  { id: 'approvals', label: 'Approvals', state: 'link', href: '/admin/approvals', legacy: '/admin/approvals' },
   { id: 'tasks', label: 'Tasks', state: 'soon', href: '/admin/tasks', legacy: office('director', 'tasks') },
   { id: 'calendar', label: 'Calendar', state: 'soon', href: '/admin/calendar', legacy: office('sales', 'calls') },
   { id: 'chats', label: 'Chats', state: 'link', href: '/admin/chats', legacy: '/admin/chats' },

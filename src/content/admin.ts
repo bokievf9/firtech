@@ -347,6 +347,7 @@ export const admin = {
     },
     sectionHints: {
       inbox: 'What waits for you',
+      approvals: 'Documents, replies, content and money to decide',
       tasks: 'Agent tasks and orders',
       calendar: 'Calls, stages, routines',
       chats: 'Client conversations',
