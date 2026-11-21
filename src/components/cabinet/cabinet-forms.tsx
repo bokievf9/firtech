@@ -81,6 +81,9 @@ export function TicketForm({
   )
 }
 
+// Controlled on purpose: React 19 resets uncontrolled fields to their `defaultValue` after a form
+// action, which put the old name and Telegram back right after a successful save (2026-11-22).
+// The values the action reports as saved replace the local ones.
 export function ProfileForm({
   dict,
   locale,
@@ -94,11 +97,30 @@ export function ProfileForm({
   const errors = dict.cabinet.auth.errors as Record<string, string>
   const uid = useId()
   const [state, action, pending] = useActionState(updateProfileAction, initial)
+  const [values, setValues] = useState({
+    name: profile.name,
+    telegram: profile.telegram,
+    locale: profile.locale,
+    marketing: profile.marketing,
+  })
+  const [seen, setSeen] = useState(state.saved)
+  if (state.saved && state.saved !== seen) {
+    setSeen(state.saved)
+    setValues(state.saved)
+  }
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} className="grid gap-4" data-profile-form>
       <input type="hidden" name="locale" value={locale} />
       <Field id={`${uid}-name`} label={t.name}>
-        <input id={`${uid}-name`} name="name" defaultValue={profile.name} maxLength={80} autoComplete="name" className={inputClass} />
+        <input
+          id={`${uid}-name`}
+          name="name"
+          value={values.name}
+          onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
+          maxLength={80}
+          autoComplete="name"
+          className={inputClass}
+        />
       </Field>
       <Field id={`${uid}-email`} label={t.email}>
         <input id={`${uid}-email`} value={profile.email} readOnly className={`${inputClass} text-muted`} />
@@ -107,7 +129,8 @@ export function ProfileForm({
         <input
           id={`${uid}-tg`}
           name="telegram"
-          defaultValue={profile.telegram}
+          value={values.telegram}
+          onChange={(e) => setValues((v) => ({ ...v, telegram: e.target.value }))}
           maxLength={60}
           autoCapitalize="none"
           placeholder="@name"
@@ -116,7 +139,13 @@ export function ProfileForm({
         />
       </Field>
       <Field id={`${uid}-lang`} label={t.language}>
-        <select id={`${uid}-lang`} name="profileLocale" defaultValue={profile.locale} className={inputClass}>
+        <select
+          id={`${uid}-lang`}
+          name="profileLocale"
+          value={values.locale}
+          onChange={(e) => setValues((v) => ({ ...v, locale: e.target.value }))}
+          className={inputClass}
+        >
           <option value="ru">{t.languages.ru}</option>
           <option value="en">{t.languages.en}</option>
         </select>
@@ -125,7 +154,8 @@ export function ProfileForm({
         <input
           type="checkbox"
           name="marketing"
-          defaultChecked={profile.marketing}
+          checked={values.marketing}
+          onChange={(e) => setValues((v) => ({ ...v, marketing: e.target.checked }))}
           className="mt-1 size-4 accent-[var(--color-accent)]"
         />
         {t.marketing}
