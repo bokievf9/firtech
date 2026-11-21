@@ -23,7 +23,7 @@ export function ClientsTab({ focus }: { focus: string | null }) {
   const items = useMemo(() => feed.view?.items ?? [], [feed.view])
   const shown = items.filter((x) => (only === 'all' || x.cabinet) && matchesQuery(q, x.name, x.contact))
 
-  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading />
+  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading />
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">
       <Search value={q} onChange={setQ} placeholder={c.search} />
@@ -72,7 +72,7 @@ export function Client360Drawer({ id, onClose }: { id: string | null; onClose: (
       {!id ? null : data ? (
         <Client360Body key={id} data={data} />
       ) : view.failed ? (
-        <Offline error={view.failed} onRetry={() => void view.reload()} />
+        <Offline error={view.failed} onRetry={() => view.reload()} />
       ) : (
         <Loading />
       )}

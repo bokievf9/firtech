@@ -4,6 +4,9 @@ import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
+import { ErrorNote } from '@/components/ui/error-note'
+import { Spinner } from '@/components/ui/spinner'
+import { fetchJson, type ErrorInfo } from '@/lib/errors'
 import {
   explorerUrl,
   formatAmount,
@@ -76,20 +79,25 @@ export function PayView({
   const [invoice, setInvoice] = useState(initial)
   const [tab, setTab] = useState<PayMethodId>(initial.methods[0]?.id ?? 'usdt_trc20')
 
+  // A failed status check keeps the last state on screen and says so, with a manual re-check.
+  const [checkError, setCheckError] = useState<ErrorInfo | null>(null)
+  const [checking, setChecking] = useState(false)
   const poll = useCallback(async () => {
     if (document.hidden) return
-    try {
-      const res = await fetch(`/api/pay/${invoice.number}?k=${encodeURIComponent(keyValue)}`, {
-        cache: 'no-store',
-      })
-      if (!res.ok) return
-      const body: unknown = await res.json()
-      const next = body && typeof body === 'object' ? parseInvoice((body as { invoice?: unknown }).invoice) : null
-      if (next && next.number === invoice.number) setInvoice(next)
-    } catch {
-      // Keep showing the last state.
+    setChecking(true)
+    const result = await fetchJson<{ invoice?: unknown }>(`/api/pay/${invoice.number}?k=${encodeURIComponent(keyValue)}`, {
+      cache: 'no-store',
+      locale,
+    })
+    setChecking(false)
+    if (!result.ok) {
+      setCheckError(result.error)
+      return
     }
-  }, [invoice.number, keyValue])
+    setCheckError(null)
+    const next = parseInvoice(result.data.invoice)
+    if (next && next.number === invoice.number) setInvoice(next)
+  }, [invoice.number, keyValue, locale])
 
   const watching = invoice.status === 'issued'
   useEffect(() => {
@@ -201,6 +209,21 @@ export function PayView({
   return (
     <div>
       {header}
+      {watching && checking && (
+        <p role="status" className="mt-4 inline-flex items-center gap-2 text-sm text-muted">
+          <Spinner />
+          {locale === 'en' ? 'Checking the payment...' : 'Проверяем оплату...'}
+        </p>
+      )}
+      {watching && checkError && (
+        <ErrorNote
+          error={checkError}
+          locale={locale}
+          onRetry={() => void poll()}
+          retryLabel={locale === 'en' ? 'Check again' : 'Проверить ещё раз'}
+          className="mt-4"
+        />
+      )}
       <section className="mt-8 rounded-card border border-line bg-surface p-6 md:p-8">
         <p className="text-muted">
           {invoice.clientFirstName ? fill(t.toPay, { name: invoice.clientFirstName }) : t.toPayNoName}

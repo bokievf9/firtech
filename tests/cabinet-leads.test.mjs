@@ -59,7 +59,7 @@ test('gated routes: /api/lead and /api/audit answer 401 before anything is sent;
     const code = readFileSync(file, 'utf8').split('\n').filter((l) => !l.startsWith('import ')).join('\n')
     const at = code.indexOf('leadGate(')
     assert.ok(at > 0, file)
-    assert.match(code, /if \(!gate\.ok\) return NextResponse\.json\(\{ ok: false, error: gate\.error \}, \{ status: gate\.status \}\)/, file)
+    assert.match(code, /if \(!gate\.ok\) return apiError\(gate\.error, gate\.status\)/, file)
     for (const later of ['createLead(', 'forwardLeadDetailed(', 'forwardAudit(', 'notifyOwner('])
       if (code.includes(later)) assert.ok(code.indexOf(later) > at, `${later} after the gate in ${file}`)
   }
@@ -225,7 +225,9 @@ test('audit route: with the cabinet on, a signed-out request gets 401 and HQ is 
       body: JSON.stringify({ url: 'https://example.com', contact: '@alice_b', locale: 'ru' }),
     }))
     assert.equal(res.status, 401)
-    assert.deepEqual(await res.json(), { ok: false, error: 'auth_required' })
+    const failed = await res.json()
+    assert.equal(failed.ok, false)
+    assert.equal(failed.error.code, 'auth_required')
     assert.equal(called, false)
   } finally {
     globalThis.fetch = realFetch

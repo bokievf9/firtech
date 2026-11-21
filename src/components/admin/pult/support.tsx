@@ -58,7 +58,7 @@ export function SupportTab({ focus }: { focus: string | null }) {
     openPanel('sales', 'clients', id)
   }
 
-  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading />
+  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading />
   if (!feed.view.available) return <div className="p-4"><Empty>{k.unavailable}</Empty></div>
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">

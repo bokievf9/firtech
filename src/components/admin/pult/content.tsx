@@ -105,7 +105,7 @@ export function ContentTab({ focus }: { focus: string | null }) {
         ) : null}
       </div>
       {!data ? (
-        feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading />
+        feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading />
       ) : (
         <div className={cn('-mx-1 grid gap-2 overflow-x-auto px-1 pb-2 transition-opacity md:grid-cols-[repeat(7,minmax(8.5rem,1fr))]', feed.stale && 'opacity-50')}>
           {dates.map((date) => {

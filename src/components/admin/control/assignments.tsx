@@ -1,5 +1,6 @@
 'use client'
 
+import { PanelError, PanelWait } from './panel-error'
 import { ArrowClockwise, BellRinging, MagnifyingGlass, PaperPlaneRight, Trash, UserFocus, X, XCircle } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
@@ -23,7 +24,7 @@ import {
   type PersonFilter,
   type TimelineEntry,
 } from '@/lib/orders'
-import { errText, fill, hq } from './api'
+import { fill, hq } from './api'
 import { ApprovalsSection, type ApprovalsProps } from './approvals-panel'
 import { CcPanel } from './cc-panel'
 import { chat, clearChat, clearedAt } from './chat-store'
@@ -407,8 +408,8 @@ export function Assignments({
         </div>
 
         <div role="log" aria-live="polite" aria-relevant="additions" className="px-3 py-3">
-          {error && !tasks ? <p className="p-2 text-sm text-danger">{errText(error)}</p> : null}
-          {!tasks && !error ? <div className="h-40 animate-pulse rounded-xl bg-surface-2/60" /> : null}
+          {error && !tasks ? <PanelError error={error} /> : null}
+          {!tasks && !error ? <PanelWait /> : null}
           {sending ? (
             <p className="mb-2.5 flex items-center gap-2 text-xs text-muted" role="status">
               <span className="flex gap-1" aria-hidden="true">

@@ -4,6 +4,7 @@ import { ArrowSquareOut, Copy, Phone, TelegramLogo, X } from '@phosphor-icons/re
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { admin, fillAdmin } from '@/content/admin'
+import { describeError } from '@/lib/errors'
 import {
   adminStatuses,
   contactLinks,
@@ -130,7 +131,8 @@ function DrawerBody({
     } catch (error) {
       // Session expired or revoked on another device: back to the login screen.
       if (String(error).includes('unauthorized')) router.replace('/admin/login')
-      setMessage({ text: t.failed, bad: true })
+      // The reason (HQ down, timeout...) next to the generic line.
+      setMessage({ text: `${t.failed} ${describeError({ code: String(error instanceof Error ? error.message : error).replace(/^Error: /, '') }).message}`, bad: true })
     } finally {
       setBusy(false)
     }
@@ -141,7 +143,10 @@ function DrawerBody({
       await navigator.clipboard.writeText(lead.contact)
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
-    } catch {}
+    } catch {
+      // Clipboard blocked (insecure page or no permission): say so instead of staying silent.
+      setMessage({ text: t.failed, bad: true })
+    }
   }
 
   const rows: [string, string][] = [

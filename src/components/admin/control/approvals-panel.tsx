@@ -1,5 +1,6 @@
 'use client'
 
+import { PanelError, PanelWait } from './panel-error'
 import { Check, LockSimple, PencilSimple, SealCheck, X } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'motion/react'
@@ -9,7 +10,7 @@ import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { approvalsView, sameId, type Approval, type Id } from '@/lib/hq-admin-view'
 import { formatDuration, minutesSince } from '@/lib/office-view'
-import { errText, fill } from './api'
+import { fill } from './api'
 import { CcPanel } from './cc-panel'
 
 const t = admin.cc.approvals
@@ -241,8 +242,8 @@ export function ApprovalsSection({ items, error, now, focus, queued, onAct, onEd
         </Link>
         <span className="text-faint">: читать, править и выкладывать на весь экран</span>
       </p>
-      {error && !list ? <p className="p-2 text-sm text-danger">{errText(error)}</p> : null}
-      {!list && !error ? <div className="h-40 animate-pulse rounded-xl bg-surface-2/60" /> : null}
+      {error && !list ? <PanelError error={error} /> : null}
+      {!list && !error ? <PanelWait /> : null}
       {list && !list.length ? <p className="p-2 text-sm text-muted">{t.empty}</p> : null}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         <AnimatePresence initial={false} mode="popLayout">

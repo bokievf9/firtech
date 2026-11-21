@@ -1,5 +1,6 @@
 'use client'
 
+import { PanelError, PanelWait } from './panel-error'
 import { Phone } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { send } from '@/components/admin/lead-drawer'
@@ -8,7 +9,7 @@ import { bookingWeeks, callsToday, pendingCalls, type Call } from '@/lib/admin-c
 import { formatSlot, formatSlotDate, formatSlotTime } from '@/lib/booking'
 import { cn } from '@/lib/cn'
 import { badgeText } from '@/lib/hq-admin-view'
-import { errText, fill } from './api'
+import { fill } from './api'
 import { CcPanel } from './cc-panel'
 import type { CrmData } from './crm-data'
 
@@ -74,8 +75,8 @@ export function CallsPanel({
     >
       <div className="grid gap-4 p-3 sm:p-4">
         <p className="text-xs text-faint">{t.hint}</p>
-        {error && !leads ? <p className="text-sm text-danger" role="alert">{errText(error)}</p> : null}
-        {!leads && !error ? <div className="h-32 animate-pulse rounded-xl bg-surface-2/60" /> : null}
+        {error && !leads ? <PanelError error={error} /> : null}
+        {!leads && !error ? <PanelWait height="h-32" /> : null}
 
         {leads ? (
           <>

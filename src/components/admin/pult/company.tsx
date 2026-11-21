@@ -176,7 +176,7 @@ export function CompanyTab() {
     setPlaybook(null)
   }
 
-  if (!c) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading rows={4} />
+  if (!c) return feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading rows={4} />
   const byDay = c.costs.byDay.map((d) => d.usd)
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-5 p-3 sm:p-4">

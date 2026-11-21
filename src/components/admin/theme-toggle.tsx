@@ -24,7 +24,9 @@ export function ThemeToggle() {
     document.documentElement.dataset.theme = next
     try {
       localStorage.setItem(KEY, next)
-    } catch {}
+    } catch {
+      // Storage blocked: the choice lasts for this page view only.
+    }
     document
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute('content', next === 'light' ? '#d9dfd0' : '#0a0d0b')

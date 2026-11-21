@@ -28,7 +28,9 @@ export function ThemeSwitch({ copy, className }: { copy: ThemeSwitchCopy; classN
     document.documentElement.dataset.theme = next
     try {
       localStorage.setItem(THEME_KEY, next)
-    } catch {}
+    } catch {
+      // Storage blocked: the choice lasts for this page view only.
+    }
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor[next])
   }
 

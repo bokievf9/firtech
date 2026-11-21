@@ -1,6 +1,9 @@
 'use client'
 
 import { ArrowRight, CheckCircle } from '@phosphor-icons/react'
+import { ErrorNote } from '@/components/ui/error-note'
+import { Pending } from '@/components/ui/pending'
+import { fetchJson, type ErrorInfo } from '@/lib/errors'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { faceUi } from '@/content/builder-v2'
@@ -48,6 +51,7 @@ export function ProjectSend({
   }, [me])
   const [status, setStatus] = useState<Status>('idle')
   const [authStep, setAuthStep] = useState(false)
+  const [failure, setFailure] = useState<ErrorInfo | null>(null)
   const [cabinet, setCabinet] = useState<string | null>(null)
   const root = useRef<HTMLDivElement>(null)
 
@@ -67,12 +71,14 @@ export function ProjectSend({
   const send = useCallback(
     async (who: CabinetUserState) => {
       setStatus('sending')
+      setFailure(null)
       const d = build.details
       const account = who.status === 'in' ? who.user : null
       const name = (d?.owner || d?.company || account?.name || account?.email.split('@')[0] || 'Client').slice(0, 80)
       const contact = (account ? [account.email, account.telegram].filter(Boolean).join(', ') : d?.owner || d?.company || '').slice(0, 120)
-      try {
-        const response = await fetch('/api/lead', {
+      {
+        const result = await fetchJson<{ cabinet?: string | null }>('/api/lead', {
+          locale,
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -85,15 +91,20 @@ export function ProjectSend({
             page: leadPage(link),
           }),
         })
-        if (response.status === 401) {
+        if (!result.ok && result.status === 401) {
           meRef.current = { status: 'out' }
           keepDraft()
           setAuthStep(true)
           setStatus('idle')
           return
         }
-        if (!response.ok) throw new Error(String(response.status))
-        const answer = (await response.json().catch(() => ({}))) as { cabinet?: string | null }
+        if (!result.ok) {
+          // The build stays on screen: «Повторить» sends the same project again.
+          setFailure(result.error)
+          setStatus('error')
+          return
+        }
+        const answer = result.data
         clearDraft(draftStorage(window), 'lead')
         setCabinet(answer.cabinet ?? null)
         setStatus('sent')
@@ -101,8 +112,6 @@ export function ProjectSend({
         track('lead_sent', { service })
         trackEvent('lead_sent')
         if (answer.cabinet) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
-      } catch {
-        setStatus('error')
       }
     },
     [build.details, fields, keepDraft, link, locale, service],
@@ -157,16 +166,12 @@ export function ProjectSend({
         </p>
       )}
       {!authStep && (
-        <button type="button" onClick={() => void onPress()} disabled={status === 'sending'} className={buttonStyles.primary}>
-          {status === 'sending' ? t.sending : pick(faceUi.send, locale)}
-          {status !== 'sending' && <ArrowRight size={16} />}
-        </button>
+        <Pending pending={status === 'sending'} pendingLabel={t.sending} onClick={() => void onPress()} className={buttonStyles.primary}>
+          {pick(faceUi.send, locale)}
+          <ArrowRight size={16} />
+        </Pending>
       )}
-      {status === 'error' && (
-        <p role="alert" className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger">
-          {t.error}
-        </p>
-      )}
+      {status === 'error' && failure && <ErrorNote error={failure} locale={locale} onRetry={() => void onPress()} />}
       <p className="text-[12px] leading-snug text-faint">{pick(faceUi.sendHint, locale)}</p>
       <LeadAccountNote dict={dict} state={me} />
       <p className="text-[12px] leading-relaxed text-faint">

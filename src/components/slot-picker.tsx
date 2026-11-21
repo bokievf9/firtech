@@ -6,6 +6,8 @@ import { useId, useState } from 'react'
 import type { Dict } from '@/content'
 import { formatSlot, formatSlotDate, formatSlotTime, type SlotDay } from '@/lib/booking'
 import { cn } from '@/lib/cn'
+import { fetchJson, type ErrorInfo } from '@/lib/errors'
+import { Spinner } from '@/components/ui/spinner'
 import type { Locale } from '@/lib/i18n'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
@@ -35,20 +37,24 @@ export function SlotPicker({
   const [load, setLoad] = useState<Load>('idle')
   const [days, setDays] = useState<SlotDay[]>([])
   const [day, setDay] = useState('')
+  const [reason, setReason] = useState<ErrorInfo | null>(null)
 
   async function fetchSlots() {
     setLoad('loading')
-    try {
-      const response = await fetch('/api/slots', { cache: 'no-store' })
-      if (!response.ok) throw new Error(String(response.status))
-      const data = (await response.json()) as { days: SlotDay[] }
+    setReason(null)
+    {
+      const result = await fetchJson<{ days: SlotDay[] }>('/api/slots', { cache: 'no-store', locale })
+      if (!result.ok || !Array.isArray(result.data.days)) {
+        setReason(result.ok ? null : result.error)
+        setLoad('error')
+        return
+      }
+      const data = result.data
       setDays(data.days)
       setDay((current) =>
         data.days.some((d) => d.date === current) ? current : (data.days[0]?.date ?? ''),
       )
       setLoad('ready')
-    } catch {
-      setLoad('error')
     }
   }
 
@@ -102,10 +108,16 @@ export function SlotPicker({
             className="overflow-hidden"
           >
             <div className="grid gap-4 pt-1" aria-live="polite" aria-busy={load === 'loading'}>
-              {load === 'loading' && <p className="text-sm text-muted">{t.loading}</p>}
+              {load === 'loading' && (
+                <p className="inline-flex items-center gap-2 text-sm text-muted">
+                  <Spinner />
+                  {t.loading}
+                </p>
+              )}
               {load === 'error' && (
                 <p className="text-sm text-muted">
-                  {t.failed}{' '}
+                  {t.failed}
+                  {reason ? ` (${reason.message})` : ''}{' '}
                   <button
                     type="button"
                     onClick={() => void fetchSlots()}

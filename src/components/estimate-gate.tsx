@@ -3,6 +3,9 @@
 import { ArrowSquareOut, FilePdf } from '@phosphor-icons/react'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
+import { ErrorNote } from '@/components/ui/error-note'
+import { Pending } from '@/components/ui/pending'
+import { fetchJson, type ErrorInfo } from '@/lib/errors'
 import { track } from '@/lib/analytics'
 import { trackEvent } from '@/lib/track-event'
 import { leadServiceOf, type Build } from '@/lib/builder'
@@ -36,6 +39,7 @@ export function EstimateGate({
   const [sent, setSent] = useState(false)
   const [status, setStatus] = useState<'idle' | 'sending' | 'error'>('idle')
   const [errors, setErrors] = useState<{ name?: string; contact?: string }>({})
+  const [failure, setFailure] = useState<ErrorInfo | null>(null)
   // The PDF request is a lead too, so it needs an account (owner 2026-11-20). After it the PDF
   // opens as before and the cabinet link shows the request.
   const { state: me, refresh } = useCabinetUser()
@@ -97,9 +101,11 @@ export function EstimateGate({
     }
 
     setStatus('sending')
+    setFailure(null)
     const service = leadServiceOf(build)
-    try {
-      const response = await fetch('/api/lead', {
+    {
+      const result = await fetchJson<{ cabinet?: string | null }>('/api/lead', {
+        locale: locale as Locale,
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -113,7 +119,7 @@ export function EstimateGate({
           page: (window.location.pathname + window.location.search).slice(0, 600),
         }),
       })
-      if (response.status === 401) {
+      if (!result.ok && result.status === 401) {
         meRef.current = { status: 'out' }
         keepDraft()
         setReturnPath(draftReturnPath(window.location.pathname, window.location.search, window.location.hash))
@@ -121,16 +127,18 @@ export function EstimateGate({
         setStatus('idle')
         return
       }
-      if (!response.ok) throw new Error(String(response.status))
-      const answer = (await response.json().catch(() => ({}))) as { cabinet?: string | null }
+      if (!result.ok) {
+        setFailure(result.error)
+        setStatus('error')
+        return
+      }
+      const answer = result.data
       setCabinet(answer.cabinet ?? null)
       clearDraft(draftStorage(window), 'estimate')
       track('estimate_pdf', { service })
       trackEvent('estimate_pdf')
       setSent(true)
       setStatus('idle')
-    } catch {
-      setStatus('error')
     }
   }
 
@@ -214,18 +222,12 @@ export function EstimateGate({
           />
           <LeadAccountNote dict={dict} state={me} />
           {!authStep && (
-            <button
-              type="submit"
-              disabled={status === 'sending'}
-              className={cn(buttonStyles.primary, 'mt-1')}
-            >
-              {status === 'sending' ? c.sending : t.submit}
-            </button>
+            <Pending type="submit" pending={status === 'sending'} pendingLabel={c.sending} className={cn(buttonStyles.primary, 'mt-1')}>
+              {t.submit}
+            </Pending>
           )}
-          {status === 'error' && (
-            <p role="alert" className="text-sm text-danger">
-              {c.error}
-            </p>
+          {status === 'error' && failure && (
+            <ErrorNote error={failure} locale={locale as Locale} onRetry={() => formRef.current?.requestSubmit()} />
           )}
           <p className="text-xs leading-relaxed text-faint">
             <ConsentText text={c.consent} href={`/${locale}/privacy`} />

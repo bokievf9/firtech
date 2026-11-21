@@ -99,7 +99,9 @@ function usePref(key: string, fallback: boolean) {
   const set = (next: boolean) => {
     try {
       localStorage.setItem(key, next ? '1' : '0')
-    } catch {}
+    } catch {
+      // Storage blocked: the choice lasts for this page view only.
+    }
     prefListeners.forEach((l) => l())
   }
   return [value, set] as const

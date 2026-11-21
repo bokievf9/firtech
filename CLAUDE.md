@@ -90,6 +90,12 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   60 s; `src/lib/status.ts` (normalizer, only known fields, no URLs) and `status-hq.ts` (60 s cache, 3 s timeout,
   `HQ_STATUS_URL` optional, else the origin of `LEAD_INTAKE_URL` + `/status`; the site row comes from its own `/api/health`
   when HQ says `unknown`; dev mock). Both pages are in `localePages`, the sitemap and the footer «Студия». Tests: `tests/site-e.test.mjs`.
+- Loading and errors (owner review 2026-11-22, `docs/data-states.md`): every network action has a waiting state and a visible
+  error. One map `src/lib/errors.ts` (`describeError`, `fetchJson` with a 20 s timeout, RU/EN, unknown failures get a support
+  code `E-<CODE>-<HHMM>`), public routes answer `{ok:false, error:{code,message}}` with the real status (`lib/api-error.ts`;
+  cabinet and Пульт keep `{error:'code'}`, clients read both with `codeFromBody`), UI kit in `components/ui/` (`Pending`
+  button with `aria-busy`, `ErrorNote` with «Повторить», `Skeleton`, `Spinner`; the one animation is `.spinner`/`.skeleton`),
+  `loading.tsx` / `error.tsx` / `global-error.tsx`. Never write an empty `catch {}` (`tests/data-states.test.mjs` checks).
 - Builder (`/[locale]/builder`, logic in `src/lib/builder.ts`, tested): the visitor combines
   services, options and extras into one quote. Prices are exact (owner 2026-11-19: no ranges; `quote()` lines
   are `price: number`, `estimate()` returns a number); domain, hosting, server and paid third-party services are
