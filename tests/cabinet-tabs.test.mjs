@@ -103,9 +103,9 @@ test('the bar is an accessible tablist, polls the unread badge, and the page use
   assert.match(bar, /id === tab &&/)
 })
 
-test('the cabinet label for a signed-out visitor: RU «Личный кабинет», EN «Get started»', () => {
+test('the cabinet label for a signed-out visitor: RU «Личный кабинет», EN «Client area»', () => {
   assert.equal(ru.nav.cabinetStart, 'Личный кабинет')
-  assert.equal(en.nav.cabinetStart, 'Get started')
+  assert.equal(en.nav.cabinetStart, 'Client area')
 })
 
 test('the Google button carries the four-colour G', () => {

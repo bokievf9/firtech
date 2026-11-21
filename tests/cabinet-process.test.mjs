@@ -146,7 +146,7 @@ test('copy: leads block same shape in ru and en, no long dashes, no dollar amoun
   const shape = (v) => (v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, shape(x)])) : typeof v)
   assert.deepEqual(shape(ru.cabinet.leads), shape(en.cabinet.leads))
   assert.equal(ru.cabinet.leads.pending, 'Заявка принята, ответим в течение 5 минут.')
-  assert.equal(ru.cabinet.leads.emptyBuilder, 'Собрать проект в конструкторе')
+  assert.equal(ru.cabinet.leads.emptyBuilder, 'Собрать проект')
   assert.equal(ru.cabinet.leads.emptyAudit, 'Заказать бесплатный аудит')
   assert.match(ru.cabinet.leads.defaultNext.contract, /подпись/)
   function* strings(v) {

@@ -494,10 +494,10 @@ const en: Dict = {
   builder: {
     metaTitle: 'Project builder: put together agents and a site with a price',
     metaDescription:
-      'Build your project from ready blocks and see the price and timeline right away. 10% off from two parts of the project.',
+      'Build your project from ready blocks and see the price and timeline right away. 10% off from two parts of the project, the estimate can be saved as a PDF.',
     eyebrow: 'Project builder',
     title: 'Build your project',
-    sub: 'Pick what your business needs and see right away how it could look and what it costs. 10% off from two parts of the project.',
+    sub: 'Pick what your business needs and see right away how it could look and what it costs. 10% off from two parts of the project, the estimate can be saved as a PDF.',
     steps: ['Business', 'Goal', 'What we build', 'Features', 'Style', 'Details', 'Summary'],
     back: 'Back',
     next: 'Next',
@@ -643,6 +643,9 @@ const en: Dict = {
       support: 'Hosting, backups and small edits every month',
       seo: 'Google and Yandex Maps, search and analytics',
       design: 'Logo, colours and fonts for every channel',
+      rescue: 'We look at what exists, fix it and finish it',
+      crm: 'amoCRM or Bitrix24 set up for your sales, with your client base moved',
+      internal: 'Stock, order records and a staff cabinet',
     },
     styleTitle: 'Which style feels right?',
     styleSub:
@@ -3103,6 +3106,26 @@ const en: Dict = {
       end: 'Want such an assistant for your business?',
       you: 'Client',
       agent: 'AI booking assistant',
+    },
+    automation: {
+      intro: 'This is how an automation chain looks: a request arrives, the data lands in a sheet and the CRM on its own, and a message reaches you. A sample scheme, no real data is used.',
+    },
+    miniapp: {
+      intro: 'This is a shop inside Telegram: a catalogue, a cart and payment in one window. A sample, no real order is created.',
+    },
+    agent: {
+      intro: 'This is how a personal assistant works: it gathers deadlines, puts tasks on the calendar and writes in Telegram. A scripted sample, no real data is connected.',
+      name: 'Assistant',
+      sub: 'Personal AI assistant',
+      greet: 'Good morning. What shall I show?',
+      prompts: [
+        { q: 'What is on this week?', a: 'Three deadlines: the coursework on Wednesday, the client report on Thursday, hosting payment on Friday. The coursework is urgent, start there.' },
+        { q: 'Go through my mail', a: 'Two letters wait for a reply: from the dean office and from a client. Drafts are ready, open and check them.' },
+        { q: 'Find time for the report', a: 'I put the report on Tuesday, 15:00, two hours. I will remind you an hour before.' },
+      ],
+      you: 'You',
+      end: 'Want an assistant like this for yourself?',
+      restart: 'Start over',
     },
     content: {
       intro: 'The latest articles of our blog. Content on autopilot gives the same rhythm: plan, preparation, approval, publishing.',

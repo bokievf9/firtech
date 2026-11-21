@@ -63,8 +63,8 @@ test('product pages: full copy for the seven products in both languages, same sh
       }
       for (const key of ['day', 'week', 'month']) assert.ok(p.first[key].length > 20, `${locale} ${id} ${key}`)
       assert.ok(p.needs.length >= 3 && p.not.length >= 3, `${locale} ${id} needs/not`)
-      assert.ok(p.faq.length >= 4 && p.faq.length <= 5, `${locale} ${id} faq`)
-      for (const f of p.faq) assert.ok(f.q.endsWith('?') && f.a.length > 10, `${locale} ${id} faq item`)
+      // FAQ lives only on the home page (owner 2026-11-22): no per-product FAQ any more.
+      assert.equal(p.faq, undefined, `${locale} ${id} faq`)
       assert.ok(p.metaDescription.length >= 120 && p.metaDescription.length <= 160, `${locale} ${id} meta ${p.metaDescription.length}`)
       assert.ok(p.metaTitle.length <= 70, `${locale} ${id} title ${p.metaTitle.length}`)
     }
@@ -113,12 +113,13 @@ test('product pages: price comes from the live pricing, stages from the template
   assert.ok(after.total > before.total)
 })
 
-test('product pages: route, static params, price tag, stage table, FAQ, preselected builder, chat', () => {
+test('product pages: route, static params, price tag, stage table, preselected builder, chat, no FAQ', () => {
   const page = readFileSync('src/app/[locale]/products/[id]/page.tsx', 'utf8')
   assert.match(page, /generateStaticParams/)
   assert.match(page, /dynamicParams = false/)
-  for (const part of ['ProductPriceTag', 'StageTable', '<Faq', 'productBuilderHref', 'ChatOpenButton', 'productPayment', 'CapabilityMock', 'faqJsonLd'])
+  for (const part of ['ProductPriceTag', 'StageTable', 'productBuilderHref', 'ChatOpenButton', 'productPayment', 'CapabilityMock'])
     assert.match(page, new RegExp(part), part)
+  assert.doesNotMatch(page, /<Faq|faqJsonLd/)
   assert.doesNotMatch(page, /formatUsd|from '@\/lib\/pricing'|\$\d|ContactSection|#contact/)
   assert.match(readFileSync('src/components/stage-table.tsx', 'utf8'), /stage\.share|stage\.amountUsd/)
 })

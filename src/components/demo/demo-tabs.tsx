@@ -6,18 +6,20 @@ import { useId, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ChatOpenButton } from '../chat/chat-open-button'
+import { DemoAssistant } from './demo-assistant'
 import { DemoBooking } from './demo-booking'
+import { DemoBuilt } from './demo-built'
 import { DemoChat } from './demo-chat'
 import { DemoOffice } from './demo-office'
 
 export type DemoArticle = { slug: string; title: string; description: string; date: string; dateLabel: string }
 
-export const demoTabIds = ['receptionist', 'admin', 'content', 'implementation'] as const
+export const demoTabIds = ['receptionist', 'admin', 'automation', 'content', 'miniapp', 'agent', 'implementation'] as const
 export type DemoTabId = (typeof demoTabIds)[number]
 
-// The tabs of #demo (owner 2026-11-22), one per product with a working demo on our own agents: the
-// receptionist chat with a niche selector, the booking dialogue sample, the latest blog articles and
-// the live office counts. Arrow keys move between the tabs; the chat stays mounted so a
+// The tabs of #demo (owner 2026-11-22), one per product, all seven: the receptionist chat with a niche
+// selector (live), the latest blog articles and the live office counts, and labelled «Пример» the
+// booking dialogue, the process chain, the Mini App phone and the assistant's scripted chat. Arrow keys move between the tabs; the chat stays mounted so a
 // conversation survives a switch.
 export function DemoTabs({
   dict,
@@ -85,6 +87,15 @@ export function DemoTabs({
         </div>
         <div role="tabpanel" id={`${base}-panel-admin`} aria-labelledby={`${base}-tab-admin`} hidden={active !== 'admin'}>
           {active === 'admin' && <DemoBooking copy={t.admin} badge={t.exampleBadge} />}
+        </div>
+        <div role="tabpanel" id={`${base}-panel-automation`} aria-labelledby={`${base}-tab-automation`} hidden={active !== 'automation'}>
+          {active === 'automation' && <DemoBuilt dict={dict} locale={locale} product="automation" intro={t.automation.intro} badge={t.exampleBadge} />}
+        </div>
+        <div role="tabpanel" id={`${base}-panel-miniapp`} aria-labelledby={`${base}-tab-miniapp`} hidden={active !== 'miniapp'}>
+          {active === 'miniapp' && <DemoBuilt dict={dict} locale={locale} product="miniapp" intro={t.miniapp.intro} badge={t.exampleBadge} />}
+        </div>
+        <div role="tabpanel" id={`${base}-panel-agent`} aria-labelledby={`${base}-tab-agent`} hidden={active !== 'agent'}>
+          {active === 'agent' && <DemoAssistant copy={t.agent} badge={t.exampleBadge} />}
         </div>
         <div role="tabpanel" id={`${base}-panel-content`} aria-labelledby={`${base}-tab-content`} hidden={active !== 'content'}>
           {active === 'content' && (

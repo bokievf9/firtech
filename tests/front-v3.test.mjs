@@ -80,8 +80,10 @@ test('names: «бот» leaves every product name, the new names are in place', 
   }
   // The ladder titles and the tab labels never say «бот» either.
   for (const [at, text] of strings(ru.ladder.tracks)) if (/\.title$/.test(at)) assert.doesNotMatch(text, /бот/i, at)
-  // «Бот» stays as a delivery channel: the builder still offers the Telegram bot service.
-  assert.match(ru.services.items.bots.name, /бот/i)
+  // «Бот» is a delivery channel, never a name (owner 2026-11-22): the classic service reads «Агенты в Telegram».
+  assert.doesNotMatch(ru.services.items.bots.name, /бот/i)
+  assert.equal(ru.services.items.bots.name, 'Агенты в Telegram')
+  assert.equal(en.services.items.bots.name, 'Telegram agents')
 })
 
 test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minute promise', () => {
@@ -187,20 +189,22 @@ test('home: sections in order with solutions and FAQ, anchors, no contact sectio
   assert.match(ru.askStrip.cta, /Спросить агента/)
 })
 
-test('FAQ only on the home page (and the per-product FAQ), no contact section outside home, builder and cabinet', () => {
+test('FAQ only on the home page, no contact section anywhere outside the cabinet (the builder sends the lead itself)', () => {
   const pages = [...walk('src/app/[locale]')].filter((f) => f.endsWith('.tsx') && !f.includes(`${path.sep}cabinet${path.sep}`))
   const withFaq = pages.filter((f) => /<Faq\b|faqJsonLd\(|FaqList|FaqContact/.test(read(f))).map((f) => f.replaceAll(path.sep, '/'))
-  assert.deepEqual(withFaq.sort(), ['src/app/[locale]/page.tsx', 'src/app/[locale]/products/[id]/page.tsx'])
+  assert.deepEqual(withFaq.sort(), ['src/app/[locale]/page.tsx'])
   const withContact = pages.filter((f) => /ContactSection|ContactForm|id="contact"/.test(read(f))).map((f) => f.replaceAll(path.sep, '/'))
-  assert.deepEqual(withContact, ['src/app/[locale]/builder/page.tsx'])
+  assert.deepEqual(withContact, [])
   for (const f of pages) assert.doesNotMatch(read(f), /#contact|'contact'\)/, f)
   const components = [...walk('src/components')].filter((f) => f.endsWith('.tsx') && !f.includes(`${path.sep}cabinet${path.sep}`) && !f.includes(`${path.sep}admin${path.sep}`))
   const importers = components.filter((f) => /from '\.\/contact-form'|from '\.\/contact-section'/.test(read(f))).map((f) => f.replaceAll(path.sep, '/'))
   assert.deepEqual(importers, ['src/components/contact-section.tsx'])
   // The contact section has no Telegram card any more.
   assert.doesNotMatch(read('src/components/contact-section.tsx'), /telegramUrl|TelegramLogo/)
-  // The builder hand-off still reaches the form.
-  assert.match(read('src/components/builder.tsx'), /getElementById\('contact'\)/)
+  // The builder's last step sends the lead itself: the send block carries the old #contact anchor.
+  assert.match(read('src/components/builder-send.tsx'), /id="contact"/)
+  assert.match(read('src/components/builder-send.tsx'), /\/api\/lead/)
+  assert.doesNotMatch(read('src/app/[locale]/builder/page.tsx'), /ContactSection/)
 })
 
 test('page tails: the footer ends every page with «Собрать проект» and «Спросить агента», Telegram is a small third link', () => {
@@ -263,7 +267,12 @@ test('llms.txt: the product lines carry the new names and the product page', asy
 
 test('demo: tabs per product, the chat persona is validated and forwarded, the booking dialogue is a state machine', async () => {
   const demo = read('src/components/demo/demo-tabs.tsx')
-  for (const id of ['receptionist', 'admin', 'content', 'implementation']) assert.ok(demo.includes(`'${id}'`), id)
+  for (const id of ['receptionist', 'admin', 'automation', 'content', 'miniapp', 'agent', 'implementation']) assert.ok(demo.includes(`'${id}'`), id)
+  // all seven products are shown, the scripted ones carry the «Пример» badge
+  assert.match(demo, /DemoBuilt[^>]*product="automation"/)
+  assert.match(demo, /DemoBuilt[^>]*product="miniapp"/)
+  assert.match(demo, /DemoAssistant/)
+  for (const [, dict] of dicts) assert.ok(dict.demoSection.exampleBadge && dict.demoSection.agent.prompts.length === 3 && dict.demoSection.automation.intro && dict.demoSection.miniapp.intro)
   assert.match(demo, /role="tablist"/)
   assert.doesNotMatch(read('src/components/demo-section.tsx') + demo + read('src/components/demo/demo-booking.tsx'), /t\.me\//)
   assert.equal(ru.demoSection.title, 'Попробуйте сейчас')
@@ -325,4 +334,24 @@ test('demo booking: a full dialogue walks service, master, time, reminder, revie
     }
     assert.equal(st.step, 'end')
   }
+})
+
+test('leftovers 2026-11-22: the home has no estimator, the cabinet stub points to the builder, the chat button hides on scroll', () => {
+  const pricing = read('src/components/pricing-section.tsx')
+  assert.match(pricing, /\{!teaser && \(/, 'the estimator is not rendered on the home page')
+  assert.doesNotMatch(read('src/components/cabinet/cabinet-soon.tsx'), /#contact|homeAnchor/)
+  assert.match(read('src/components/cabinet/cabinet-soon.tsx'), /\/builder/)
+  const widget = read('src/components/chat/chat-widget.tsx')
+  assert.match(widget, /SCROLL_IDLE_MS = 1500/)
+  assert.match(widget, /quietRoute = .*builder\|cabinet/)
+  assert.match(widget, /BUILDER_STEP_EVENT/)
+  assert.match(read('src/components/builder.tsx'), /BUILDER_STEP_EVENT/)
+  for (const [, dict] of dicts) {
+    assert.equal(typeof dict.pricingHome.title, 'string')
+    assert.doesNotMatch(dict.pricingHome.title + dict.pricingHome.sub, /Оценка|Оцените|estimate/i)
+  }
+  assert.equal(ru.aiTeams.agents.page.finalTitle, 'Подключить этого агента')
+  assert.equal(en.aiTeams.agents.page.finalTitle, 'Connect this agent')
+  assert.equal(ru.aiTeams.page.finalTitle, 'Запустить этот отдел')
+  assert.equal(en.aiTeams.page.finalTitle, 'Launch this department')
 })

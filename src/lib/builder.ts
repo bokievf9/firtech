@@ -46,7 +46,8 @@ import {
 
 // Extras that make sense as a part of a build. The others are already a format or option of a main
 // service (AI assistant, CRM, payments, internal systems) or are not something you "build" (rescue).
-export const buildExtras = ['support', 'seo', 'design'] as const
+// `rescue`, `crm` and `internal` were added 2026-11-22; their prices are the ones already in pricing.ts.
+export const buildExtras = ['support', 'seo', 'design', 'rescue', 'crm', 'internal'] as const
 export type BuildExtra = (typeof buildExtras)[number]
 
 export type BuildPart = { variant: string; addons: string[] }

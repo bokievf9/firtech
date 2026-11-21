@@ -39,6 +39,7 @@ import { formatUsd } from '@/lib/pricing'
 import { usePricing } from './pricing-provider'
 import type { ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { BUILDER_STEP_EVENT } from './chat/chat-events'
 import { DetailsStep, ThemeStep } from './builder-brief'
 import { BottomNav, NextButton, PreviewSheet, StepBar } from './builder-nav'
 import { BuilderPreview } from './builder-preview'
@@ -132,6 +133,12 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   // Пульт «Цифры»: the visitor reached the summary (the estimate) of the builder.
   useEffect(() => {
     if (ready && step === SUMMARY) trackEvent('builder_done')
+  }, [ready, step])
+
+  // The chat launcher stays hidden on the builder until the last step.
+  useEffect(() => {
+    if (!ready) return
+    window.dispatchEvent(new CustomEvent(BUILDER_STEP_EVENT, { detail: { last: step === SUMMARY } }))
   }, [ready, step])
 
   // Keep the address in sync with the build and step, without a navigation.
@@ -343,6 +350,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                 index={step}
                 total={total}
                 label={t.stepLabel}
+                of={t.of}
                 title={screen.title}
                 sub={screen.sub}
               >

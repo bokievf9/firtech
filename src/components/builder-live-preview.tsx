@@ -3,7 +3,7 @@
 import { ArrowRight, PaperPlaneRight, ShoppingBag, UserCircle } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
-import { kindCatalog, kindName, pick, previewCopy } from '@/content/builder-catalog'
+import { kindCatalog, kindName, pick, previewCopy, productCatalog } from '@/content/builder-catalog'
 import {
   deliveryText,
   detailLabels,
@@ -14,7 +14,7 @@ import {
 import type { Build, BuildStyle } from '@/lib/builder'
 import { motionOf, styleVars } from '@/lib/builder-style'
 import { kindTheme } from '@/lib/builder-themes'
-import { demoNicheOf, departmentOf, effectiveDelivery, previewModes, type PreviewMode } from '@/lib/builder-v2'
+import { agentProducts, demoNicheOf, departmentOf, effectiveDelivery, previewModes, type PreviewMode } from '@/lib/builder-v2'
 import { cn } from '@/lib/cn'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { useSiteTheme } from '@/lib/use-site-theme'
@@ -183,6 +183,9 @@ function AgentWindow({
   const loc = locale === 'ru' ? 'ru' : 'en'
   const reduce = useReducedMotion()
   const niche = demoNicheOf(build.kind)
+  // The label follows the chosen agent product (administrator, lead manager, personal assistant).
+  const agentId = (build.products ?? []).find((id) => agentProducts.includes(id))
+  const agentLabel = agentId ? pick(productCatalog[agentId].name, locale) : pick(previewUi.agentOf, locale)
   const script = scripted[niche][loc]
   const greeting = script.greeting.replace('{company}', company)
   const [msgs, setMsgs] = useState<Msg[]>([{ from: 'bot', text: greeting }])
@@ -247,7 +250,7 @@ function AgentWindow({
         <span className="min-w-0 flex-1">
           <span className={cn(HEAD, 'block truncate text-[15px]')}>{company}</span>
           <span className="block truncate text-[12px] text-muted">
-            {pick(previewUi.agentOf, locale)}
+            {agentLabel}
             {build.kind && build.kind !== 'other' ? `, ${kindName(build.kind, locale).toLowerCase()}` : ''} · {pick(previewUi.online, locale)}
           </span>
         </span>
