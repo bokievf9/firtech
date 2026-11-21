@@ -33,8 +33,8 @@ const office = (panel: string, tab?: string) => `/admin/office?panel=${panel}${t
 export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'inbox', label: 'Inbox', state: 'ready', href: '/admin/inbox', legacy: office('director', 'inbox') },
   { id: 'approvals', label: 'Approvals', state: 'link', href: '/admin/approvals', legacy: '/admin/approvals' },
-  { id: 'tasks', label: 'Tasks', state: 'soon', href: '/admin/tasks', legacy: office('director', 'tasks') },
-  { id: 'calendar', label: 'Calendar', state: 'soon', href: '/admin/calendar', legacy: office('sales', 'calls') },
+  { id: 'tasks', label: 'Tasks', state: 'ready', href: '/admin/tasks', legacy: office('director', 'tasks') },
+  { id: 'calendar', label: 'Calendar', state: 'ready', href: '/admin/calendar', legacy: office('sales', 'calls') },
   { id: 'chats', label: 'Chats', state: 'link', href: '/admin/chats', legacy: '/admin/chats' },
   { id: 'clients', label: 'Clients', state: 'ready', href: '/admin/clients', legacy: office('sales', 'clients') },
   { id: 'projects', label: 'Projects', state: 'ready', href: '/admin/projects', legacy: office('production', 'projects') },

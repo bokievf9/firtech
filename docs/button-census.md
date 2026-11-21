@@ -558,3 +558,27 @@ Tag `E:processes` = `tests/e2e/admin-processes.spec.ts`; `U:processes` = `tests/
 | Processes | «Очистить тестовые данные» | asks to confirm, then runs `/drill clear`; disabled when no drill exists | `POST processes/drill {action:'clear'}` | `E:processes` (confirm, reset), `U:processes` | pass |
 | Processes | failed call | toast «Не получилось: ...», the map stays | - | `U:processes` (error codes via `errText`) | untested (browser) |
 
+
+## HQ, Tasks and Calendar (2026-11-23), adds to the rows above
+Tag `E:tc` = `tests/e2e/admin-tasks-calendar.spec.ts`; `U:tc` = `tests/hq-tasks-calendar.test.mjs`. Both sections are built (no longer «Soon»). Tasks reads `GET tasks?limit=500` every 20 s; Calendar reads `GET calendar?from=&to=` every 60 s.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/tasks` | menu link «Tasks» (3rd item, key `3`) | opens the page instead of the placeholder | - | `E:tc`, `U:hq-shell` | pass |
+| Tasks | select «Отдел» | keeps the tasks of one department; the agent list follows it | `GET tasks` (filter in the browser) | `E:tc`, `U:tc` (`taskDepts`, `agentOptions`) | pass |
+| Tasks | select «Агент» | keeps the tasks of one agent (the «Поручения» person filter) | - | `E:tc`, `U:tc` | pass |
+| Tasks | select «Статус» | one board column or «Отменены» | - | `E:tc`, `U:tc` (`filterByStatus`) | pass |
+| Tasks | «Сбросить фильтры» (only with a filter on) | clears the three selects | - | `E:tc` | pass |
+| Tasks | «Обновить» | reloads the list | `GET tasks` | `E:tc` (present) | untested (click) |
+| Tasks | the whole «Поручения» block: composer, `/commands`, filters Все / Мои / Ждёт меня / Сделано, search, «В работу», «Напомнить», «Отменить» | the existing `control/assignments.tsx`, unchanged | `POST say`, `POST command`, `POST tasks/<id>/retry`, `GET director/history` | `E:tc` (composer, «В работу» on a blocked task), `U:orders` | pass (shown), see the orders rows for the rest |
+| Tasks | task row | opens the task card (the existing drawer: status, events, approvals, children, «В работу») | `GET tasks/<id>` | `E:tc` | pass |
+| `/admin/calendar` | menu link «Calendar» (4th item, key `4`) | opens the page instead of the placeholder | - | `E:tc`, `U:hq-shell` | pass |
+| Calendar | «Назад», «Вперёд» | moves the grid by a week or a month | `GET calendar` | `E:tc` (forward), `U:tc` (`shiftAnchor`) | pass (forward), untested (back) |
+| Calendar | «Сегодня» | back to the current period | - | `E:tc` | pass |
+| Calendar | «Неделя» / «Месяц» | week grid (7 days) or month grid (whole weeks) | `GET calendar` | `E:tc`, `U:tc` (`gridDays`) | pass |
+| Calendar | kind chips Созвоны, Этапы проектов, Рутины, Публикации | show or hide one kind (with its count) | - | `E:tc` (routines), `U:tc` (`eventsByDay`) | pass (routines), untested (others in browser) |
+| Calendar | «Обновить» | reloads the period | `GET calendar` | `E:tc` (present) | untested (click) |
+| Calendar | event card | a link into HQ: call to Clients / Calls, stage to Projects, publication to Content / Feed, routine to the company panel of the office | - | `E:tc` (call, stage, content), `U:tc` (`calendarHref`) | pass (3 kinds), untested (routine link) |
+| Calendar / month | day number | opens that week | - | - | untested (click) |
+| Calendar / month | «ещё N» | opens that week when a day has more than three items | - | - | untested (click) |
+| Calendar | failed call | «HQ не отвечает» with «Повторить», the last good grid stays | - | `U:tc` (normalizer) | untested (browser) |

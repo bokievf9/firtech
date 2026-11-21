@@ -247,3 +247,10 @@
 - **Dev-мок**: `pult-mock.ts` (блок `processes`, учения заканчиваются сами через 20 с).
 - Тесты `tests/processes.test.mjs`, `tests/hq-shell.test.mjs`, e2e `tests/e2e/admin-processes.spec.ts`; кнопки в `docs/button-census.md`.
 
+
+## Tasks и Calendar (2026-11-23, ветка `hq-tasks`)
+Два раздела HQ вместо заглушек «Soon» (`src/app/admin/(hq)/tasks`, `calendar`; клавиши `3` и `4`).
+- **Tasks** (`components/admin/hq/tasks-section.tsx`, фильтры `lib/tasks-hq.ts`): все задачи агентов и поручения владельца одним списком. Список, поле ввода, `/команды` и «В работу / Напомнить / Отменить» это существующие «Поручения» (`control/assignments.tsx`, `lib/orders.ts`) без изменений; сверху три фильтра (отдел, агент, статус колонки или «Отменены»), по клику строка открывает карточку задачи (существующий `TaskDrawer`). Данные: `GET tasks?limit=500`, новых эндпоинтов нет.
+- **Calendar** (`components/admin/hq/calendar-view.tsx`, модель и сетка `lib/calendar.ts`): созвоны, этапы проектов, рутины и публикации контента в одной сетке «Неделя» или «Месяц» (понедельник первым), фильтр по видам, «Сегодня». Клик по карточке ведёт в раздел: созвон в Clients / Calls, этап в Projects, публикация в Content / Feed, рутина в панель компании офиса (`calendarHref`). Месяц на телефоне показывает точки вместо карточек, номер дня открывает неделю.
+- Данных не хватало, поэтому в agents добавлен read-only `GET /admin/calendar?from=&to=` (`apps/hq/src/pult-calendar.ts`, контракт в `docs/admin-crm-api.md`, «Calendar»), в whitelist-прокси `calendar` (только `from`, `to`), dev-мок в `pult-mock.ts`. Время событий показывается по часовому поясу компании из ответа HQ.
+- Тесты: `tests/hq-tasks-calendar.test.mjs`, `tests/e2e/admin-tasks-calendar.spec.ts`; перепись кнопок в `docs/button-census.md`.
