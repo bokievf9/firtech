@@ -49,10 +49,12 @@ const { localePages } = await import('../src/lib/home.ts')
 const read = (p) => readFileSync(p, 'utf8')
 
 test('emotions and variants are the agreed lists', () => {
-  assert.deepEqual([...pose.emotions], ['idle', 'thinking', 'happy', 'talking', 'point', 'sleep'])
-  assert.deepEqual([...pose.variants], ['a', 'b', 'c'])
+  assert.deepEqual([...pose.emotions], ['idle', 'thinking', 'happy', 'talking', 'point', 'sleep', 'wave', 'surprised'])
+  assert.deepEqual([...pose.variants], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'], 'eight variants registered')
+  assert.deepEqual([...pose.roundTwo], ['d', 'e', 'f', 'g', 'h'])
+  assert.ok(pose.isRoundTwo('d') && pose.isRoundTwo('h') && !pose.isRoundTwo('c'))
   assert.ok(pose.isEmotion('happy') && !pose.isEmotion('angry') && !pose.isEmotion(undefined))
-  assert.ok(pose.isVariant('c') && !pose.isVariant('d'))
+  assert.ok(pose.isVariant('c') && pose.isVariant('h') && !pose.isVariant('i'))
   for (const e of pose.emotions) {
     assert.ok(pose.targets[e], e)
     assert.ok(pose.breathHz[e] > 0, e)
@@ -72,6 +74,33 @@ test('emotions differ in the way the brief asks', () => {
   assert.equal(t.point.arm, 1)
   assert.ok(t.point.lean > 0)
   assert.equal(t.idle.hop, 0)
+  assert.equal(t.wave.wave, 1, 'wave raises the arm')
+  assert.ok(t.surprised.wide > 1.2 && t.surprised.browY === 1 && t.surprised.mouthO > 0.4, 'surprised: wide eyes, brows up, round mouth')
+  assert.ok(t.thinking.browSplit === 1, 'thinking raises one brow')
+  assert.ok(t.happy.grin > 0.5 && t.happy.tail === 1, 'happy grins, the tail curls')
+})
+
+test('mouth: five visemes, open grows with the voice, the grin never fights lip-sync', () => {
+  const names = new Set()
+  for (let a = 0; a <= 1; a += 0.02) for (const ph of [0, Math.PI / 2, Math.PI * 1.5]) {
+    const v = pose.visemeAt(a, ph)
+    names.add(v.name)
+    for (const k of ['open', 'w', 'h', 'tongue']) assert.ok(Number.isFinite(v[k]) && v[k] >= 0 && v[k] <= 1, `${a} ${k}`)
+  }
+  assert.deepEqual([...names].sort(), ['ah', 'big', 'closed', 'ee', 'oh'])
+  assert.equal(pose.visemeAt(0).name, 'closed')
+  assert.equal(pose.visemeAt(1).name, 'big')
+  assert.ok(pose.visemeAt(0.9, 0).h > pose.visemeAt(0.1, 0).h, 'taller when louder')
+  assert.equal(pose.visemeAt(Number.NaN).name, 'closed')
+  const quiet = pose.mouthShape(0.4, 0, 0, 0, 0)
+  assert.equal(quiet.open, 0)
+  const grin = pose.mouthShape(0.4, 0.85, 0, 0, 0)
+  assert.ok(grin.open > 0.8 && grin.flat === 1)
+  const o = pose.mouthShape(0, 0, 0.6, 0, 0)
+  assert.ok(o.open > 0.5 && o.w < 0.6)
+  const loud = pose.mouthShape(0.4, 0.85, 0, 1, 0)
+  assert.equal(loud.open, 1)
+  assert.ok(loud.flat === 0 && loud.h > 0.7, 'the voice wins over the grin')
 })
 
 test('spring converges, stays finite on a long frame, critical damping does not overshoot', () => {
@@ -146,6 +175,12 @@ test('fallback SVG renders without WebGL for every variant and emotion', () => {
     }
   }
   assert.match(renderToStaticMarkup(createElement(FiraFallback, { variant: 'a', emotion: 'sleep' })), /M150 52h14/, 'z marks when asleep')
+  for (const v of pose.roundTwo) assert.match(renderToStaticMarkup(createElement(FiraFallback, { variant: v, emotion: 'sleep' })), /M150 52h14/, `${v} z marks`)
+  const shapes = new Set(pose.roundTwo.map((v) => renderToStaticMarkup(createElement(FiraFallback, { variant: v, emotion: 'idle' }))))
+  assert.equal(shapes.size, 5, 'five different silhouettes')
+  const emo = new Set(pose.emotions.map((e) => renderToStaticMarkup(createElement(FiraFallback, { variant: 'd', emotion: e }))))
+  assert.equal(emo.size, pose.emotions.length, 'every emotion looks different in the fallback')
+  assert.ok(!/key=/.test(renderToStaticMarkup(createElement(FiraFallback, { variant: 'e', emotion: 'wave' }))))
 })
 
 test('palette table matches the CSS tokens', () => {
@@ -165,8 +200,8 @@ test('component files and exports', () => {
   const fira = read('src/components/fira/fira.tsx')
   assert.match(fira, /^'use client'/)
   assert.match(fira, /export function Fira\b/)
-  assert.match(fira, /export \{ emotions, variants \}/)
-  for (const prop of ['variant', 'emotion', 'size', 'lookAt', 'mouth', 'theme']) assert.match(fira, new RegExp(`${prop}\\??:`))
+  assert.match(fira, /export \{ emotions, variants, roundTwo \}/)
+  for (const prop of ['variant', 'emotion', 'size', 'lookAt', 'mouth', 'theme', 'spin']) assert.match(fira, new RegExp(`${prop}\\??:`))
   assert.match(fira, /dynamic\(\(\) => import\('\.\/fira-scene'\), \{ ssr: false \}\)/, 'scene is lazy')
   assert.match(fira, /useReducedMotion/)
   assert.match(fira, /IntersectionObserver/)
@@ -176,14 +211,33 @@ test('component files and exports', () => {
   assert.match(scene, /frameloop=\{active \? 'always' : 'never'\}/)
 })
 
-test('procedural only: under 60 KB of code, no textures or external assets', () => {
+// Budget raised from 60 KB to 160 KB in round two (five more characters, a clay shader, a face rig,
+// the lab); still procedural code only, no assets (docs/fira.md).
+test('procedural only: under 160 KB of code, no textures or external assets', () => {
   const files = [...readdirSync('src/components/fira').map((f) => `src/components/fira/${f}`), ...readdirSync('src/lib/fira').map((f) => `src/lib/fira/${f}`)]
   const total = files.reduce((n, f) => n + statSync(f).size, 0)
-  assert.ok(total < 60 * 1024, `${total} bytes`)
+  assert.ok(total < 160 * 1024, `${total} bytes`)
   for (const f of files) {
     const code = read(f)
     assert.ok(!/TextureLoader|useTexture|useGLTF|\.(png|jpe?g|webp|glb|gltf|hdr)['"]/.test(code), f)
   }
+})
+
+test('round two: every new character is wired in the kit, the scene and the lab', () => {
+  const chars = read('src/components/fira/fira-chars.tsx')
+  for (const n of ['CharD', 'CharE', 'CharF', 'CharG', 'CharH']) assert.match(chars, new RegExp(`export function ${n}\\b`))
+  const kit = read('src/components/fira/fira-kit2.ts')
+  for (const v of pose.roundTwo) assert.match(kit, new RegExp(`\\b${v}: \\{\\s*\\n?\\s*scale`), `spec ${v}`)
+  const scene2 = read('src/components/fira/fira-scene2.tsx')
+  assert.match(scene2, /dpr=\{\[1, 1\.5\]\}/, 'dpr capped at 1.5')
+  assert.match(scene2, /frameloop=\{active \? 'always' : 'never'\}/)
+  const fira = read('src/components/fira/fira.tsx')
+  assert.match(fira, /import\('\.\/fira-scene2'\)/, 'round two is its own lazy chunk')
+  const lab = read('src/components/fira/fira-lab.tsx')
+  assert.match(lab, /all \? variants : roundTwo/, 'round one hidden unless ?all=1')
+  assert.match(lab, /sheetTiles/)
+  assert.equal((lab.match(/\{ emotion: '/g) ?? []).length >= 9, true, 'sticker sheet has nine tiles')
+  assert.match(read('src/app/[locale]/fira-lab/page.tsx'), /one\(sp\.all\) === '1'/)
 })
 
 test('the lab page is hidden: noindex, not in localePages or the sitemap', () => {

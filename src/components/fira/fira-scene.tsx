@@ -6,7 +6,7 @@ import type { Group, Mesh, ShaderMaterial } from 'three'
 import { readPalette, palettes, type Palette } from '@/lib/fira/palette'
 import {
   BLINK_LEN, blinkClosed, blinkDelay, breathHz, channels, clampLook, feel, hopCurve, makeSprings,
-  stepSpring, targets, volumeXZ, type Emotion, type Variant,
+  stepSpring, targets, volumeXZ, type Emotion, type RoundOne, type Variant,
 } from '@/lib/fira/pose'
 import { makeKit, onSurface, type Kit } from './fira-kit'
 import { paint, uni } from './materials'
@@ -19,17 +19,19 @@ export type SceneProps = {
   theme?: 'light' | 'dark'
   active: boolean
   clock?: number
+  /** Turntable: radians per second around the vertical axis (0 or undefined: off). */
+  spin?: number
   onReady?: () => void
 }
 
-type Live = Pick<SceneProps, 'emotion' | 'lookAt' | 'mouth' | 'clock'>
+type Live = Pick<SceneProps, 'emotion' | 'lookAt' | 'mouth' | 'clock' | 'spin'>
 type Perf = { n: number; ms: number }
 
 const mix = (a: number, b: number, k: number) => a + (b - a) * k
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
 
 function Rig({ variant, live, theme, onReady }: { variant: Variant; live: React.RefObject<Live>; theme?: 'light' | 'dark'; onReady?: () => void }) {
-  const kit: Kit = useMemo(() => makeKit(variant), [variant])
+  const kit: Kit = useMemo(() => makeKit(variant as RoundOne), [variant])
   useEffect(() => () => kit.dispose(), [kit])
 
   // Palette: live from the site's CSS variables (and again when <html data-theme> changes), or the
@@ -158,6 +160,7 @@ function Rig({ variant, live, theme, onReady }: { variant: Variant; live: React.
     if (!r || !h || !q) return
     r.position.set(P.lean.x * 0.2, -1.38 * spec.scale + hop.y * 0.5 * hopK, 0)
     r.rotation.z = -P.lean.x
+    r.rotation.y = L.spin ? s.t * L.spin : 0
     q.scale.set(sxz, sy, sxz)
     h.rotation.set(P.pitch.x - s.py * 0.2 + breath * 0.5 + s.mo * 0.03, s.px * 0.34 + Math.sin(clock * 0.6) * 0.03 * (1 - clamp01(P.zzz.x)), P.roll.x + s.px * -0.05)
 
@@ -200,7 +203,7 @@ function Rig({ variant, live, theme, onReady }: { variant: Variant; live: React.
       const wig = Math.sin(clock * 9) * 0.16 * P.cheer.x
       const a = -1.1 + P.arm.x * 1.35 + P.cheer.x * 2.15 + wig
       const len = 0.8 + P.arm.x * 0.4 + P.cheer.x * 0.35
-      ar.rotation.z = a
+      ar.rotation.z = a + P.wave.x * (2.5 + Math.sin(clock * 8.5) * 0.4)
       ar.scale.set(len, 1, 1)
       al.rotation.z = Math.PI - (-1.1 + P.cheer.x * 2.15 - wig)
       al.scale.set(0.8 + P.cheer.x * 0.35, 1, 1)
@@ -351,10 +354,10 @@ function Rig({ variant, live, theme, onReady }: { variant: Variant; live: React.
   )
 }
 
-export default function FiraScene({ variant, emotion, lookAt, mouth, theme, active, clock, onReady }: SceneProps) {
-  const live = useRef<Live>({ emotion, lookAt, mouth, clock })
+export default function FiraScene({ variant, emotion, lookAt, mouth, theme, active, clock, spin, onReady }: SceneProps) {
+  const live = useRef<Live>({ emotion, lookAt, mouth, clock, spin })
   useEffect(() => {
-    live.current = { emotion, lookAt, mouth, clock }
+    live.current = { emotion, lookAt, mouth, clock, spin }
   })
   return (
     <Canvas

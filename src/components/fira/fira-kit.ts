@@ -2,7 +2,7 @@ import {
   CapsuleGeometry, CircleGeometry, IcosahedronGeometry, LatheGeometry, Object3D, PlaneGeometry,
   Quaternion, SphereGeometry, TorusGeometry, Vector2, Vector3, type BufferGeometry, type ShaderMaterial,
 } from 'three'
-import type { Variant } from '@/lib/fira/pose'
+import type { RoundOne } from '@/lib/fira/pose'
 import { blobMaterial, eyeMaterial, softMaterial, uni } from './materials'
 
 // Everything one Fira needs, built once per variant: body profile, geometries and materials. Pure
@@ -10,7 +10,7 @@ import { blobMaterial, eyeMaterial, softMaterial, uni } from './materials'
 
 export type Profile = { pts: Vector2[]; r: (y: number) => number; dr: (y: number) => number; top: number }
 
-function profileOf(fn: (t: number) => [number, number], n = 120): Profile {
+export function profileOf(fn: (t: number) => [number, number], n = 120): Profile {
   const pts: Vector2[] = []
   for (let i = 0; i <= n; i++) {
     const [r, y] = fn((i / n) * Math.PI)
@@ -29,7 +29,7 @@ function profileOf(fn: (t: number) => [number, number], n = 120): Profile {
   return { pts, r: (y) => at(y)[0], dr: (y) => at(y)[1], top: pts[pts.length - 1]!.y }
 }
 
-const smooth = (a: number, b: number, x: number) => {
+export const smooth = (a: number, b: number, x: number) => {
   const t = Math.min(Math.max((x - a) / (b - a), 0), 1)
   return t * t * (3 - 2 * t)
 }
@@ -64,13 +64,13 @@ export type VariantSpec = {
   profile: Profile
 }
 
-export const specs: Record<Variant, VariantSpec> = {
+export const specs: Record<RoundOne, VariantSpec> = {
   a: { scale: 0.9, eye: { x: 0.35, y: 0.02, s: 0.3, aspect: 1, lid: 0, spark: 1 }, mouthY: -0.36, cheek: { x: 0.64, y: -0.24, k: 0.6 }, profile: dropProfile },
   b: { scale: 1, eye: { x: 0.3, y: 0.08, s: 0.28, aspect: 0.8, lid: 0, spark: 1 }, mouthY: -0.26, cheek: { x: 0.56, y: -0.14, k: 0.4 }, profile: ballProfile },
   c: { scale: 0.98, eye: { x: 0.34, y: 0.06, s: 0.25, aspect: 1.15, lid: 0, spark: 0, arch: 0.82 }, mouthY: -0.24, cheek: { x: 0.6, y: -0.16, k: 1 }, profile: ballProfile },
 }
 
-export function makeKit(variant: Variant) {
+export function makeKit(variant: RoundOne) {
   const spec = specs[variant]
   const geo: BufferGeometry[] = []
   const g = <T extends BufferGeometry>(x: T) => (geo.push(x), x)

@@ -3,10 +3,10 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
-import type { Emotion, Variant } from '@/lib/fira/pose'
+import { isRoundTwo, type Emotion, type Variant } from '@/lib/fira/pose'
 import { FiraFallback } from './fira-fallback'
 
-export { emotions, variants } from '@/lib/fira/pose'
+export { emotions, variants, roundTwo } from '@/lib/fira/pose'
 export type { Emotion, Variant } from '@/lib/fira/pose'
 
 export type FiraProps = {
@@ -22,6 +22,8 @@ export type FiraProps = {
   theme?: 'light' | 'dark'
   /** Fixed time in seconds, for stills (no blink, hop frozen at that phase). */
   clock?: number
+  /** Turntable: radians per second (the figure turns slowly around). */
+  spin?: number
   className?: string
   style?: CSSProperties
   /** Accessible name; without it the figure is decorative. */
@@ -29,7 +31,9 @@ export type FiraProps = {
 }
 
 // The scene is a separate chunk: three.js and R3F load only when Fira is shown with WebGL.
+// Round one (a to c) and round two (d to h, the improved rig) are separate chunks.
 const Scene = dynamic(() => import('./fira-scene'), { ssr: false })
+const Scene2 = dynamic(() => import('./fira-scene2'), { ssr: false })
 
 let glOk: boolean | undefined
 function hasWebGL(): boolean {
@@ -45,7 +49,7 @@ function hasWebGL(): boolean {
 
 // Fira, the lime dot of the logo come alive. WebGL (R3F) when the device allows it, a still-ish SVG
 // otherwise (no WebGL, or prefers-reduced-motion). Draws only while on screen and the tab is visible.
-export function Fira({ variant = 'a', emotion = 'idle', size = 240, lookAt = true, mouth, theme, clock, className, style, label }: FiraProps) {
+export function Fira({ variant = 'd', emotion = 'idle', size = 240, lookAt = true, mouth, theme, clock, spin, className, style, label }: FiraProps) {
   const reduce = useReducedMotion()
   const host = useRef<HTMLDivElement>(null)
   const [gl, setGl] = useState(false)
@@ -90,7 +94,11 @@ export function Fira({ variant = 'a', emotion = 'idle', size = 240, lookAt = tru
       />
       {use3d ? (
         <div style={{ position: 'absolute', inset: 0, opacity: shown ? 1 : 0, transition: 'opacity 220ms cubic-bezier(0.23, 1, 0.32, 1)' }}>
-          <Scene variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} active={seen && tab} onReady={() => setShown(true)} />
+          {isRoundTwo(variant) ? (
+            <Scene2 variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} spin={spin} active={seen && tab} onReady={() => setShown(true)} />
+          ) : (
+            <Scene variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} spin={spin} active={seen && tab} onReady={() => setShown(true)} />
+          )}
         </div>
       ) : null}
     </div>
