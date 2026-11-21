@@ -363,6 +363,16 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri
   10:00-18:00, 30 min), free slots at `/api/slots`, picked in the form, double booking blocked.
 
+## Fira (2026-11-22)
+Brand mascot «Фира» (the lime dot of the logo come alive; cute and soft, not a tree, not a robot), concept stage: three
+procedural React Three Fiber variants on one rig (A «Капля», B «Светлячок», C «Пушинка») for the owner to pick. Code:
+`src/components/fira/` (`fira.tsx` is the component, lazy `<Canvas>`, SVG fallback without WebGL or under reduced motion),
+`src/lib/fira/` (`pose.ts` pure emotion targets and springs, `palette.ts`, `mouth.ts` lip-sync hook), hidden noindex lab
+`/[locale]/fira-lab` (not in `localePages` or the sitemap). Props `variant emotion size lookAt mouth theme`; emotions
+`idle thinking happy talking point sleep`. Deps pinned exactly: `three`, `@react-three/fiber`, `@react-three/drei` (not yet
+imported), `@types/three`. Procedural only, no textures; keep the code under 60 KB (tested). Details, numbers and the glTF and
+Remotion plan: `docs/fira.md`. Tests: `tests/fira.test.mjs`.
+
 ## Commands
 - `npm run dev` (http://localhost:3001), `npm run typecheck`, `npm run lint`, `npm test`,
   `npm run build`.

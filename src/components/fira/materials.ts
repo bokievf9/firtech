@@ -21,8 +21,8 @@ const soft = {
         vec3 ge = vec3(f1 * cos(p.x * f1 + uTime * 1.3) * sin(p.y * f2 - uTime) * sin(p.z * f3 + uTime * 0.8),
                        f2 * sin(p.x * f1 + uTime * 1.3) * cos(p.y * f2 - uTime) * sin(p.z * f3 + uTime * 0.8),
                        f3 * sin(p.x * f1 + uTime * 1.3) * sin(p.y * f2 - uTime) * cos(p.z * f3 + uTime * 0.8));
-        p += n * (d * 0.045 + e * 0.014) * uDisp;
-        n = normalize(n - (g * 0.045 + ge * 0.014) * uDisp * 0.6);
+        p += n * (d * 0.022 + e * 0.008) * uDisp;
+        n = normalize(n - (g * 0.022 + ge * 0.008) * uDisp * 0.6);
       }
       vec4 mv = modelViewMatrix * vec4(p, 1.0);
       vN = normalize(normalMatrix * n);
@@ -57,15 +57,16 @@ const eye = {
     uniform float uOpen; uniform float uLid; uniform float uMoon; uniform float uThick; uniform float uDir;
     uniform float uAspect; uniform float uSpark;
     varying vec2 vUv;
-    float ell(vec2 p, vec2 r) { float k0 = length(p / r); float k1 = length(p / (r * r)); return k0 * (k0 - 1.0) / max(k1, 1e-4); }
+    float sdArc(vec2 p, vec2 sc, float ra, float rb) { p.x = abs(p.x); return ((sc.y * p.x > sc.x * p.y) ? length(p - sc * ra) : abs(length(p) - ra)) - rb; }
+    float ell(vec2 p, vec2 r) { return (length(p / r) - 1.0) * min(r.x, r.y); }
     void main() {
       vec2 p = vUv * 2.0 - 1.0;
       vec2 r = vec2(0.8 * uAspect, 0.8 * max(uOpen, 0.07));
       float d = ell(p, r);
       d = max(d, p.y - r.y * (1.0 - 2.0 * uLid));
-      float shift = mix(3.2, uThick, smoothstep(0.0, 1.0, uMoon));
-      vec2 q = p - vec2(0.0, -uDir * shift);
-      d = max(d, -(length(q) - 0.8));
+      vec2 q = (p - vec2(0.0, -0.3 * uDir)) * vec2(1.0, uDir);
+      float da = sdArc(q, vec2(sin(1.05), cos(1.05)), 0.62 * uAspect, uThick);
+      d = mix(d, da, smoothstep(0.0, 1.0, uMoon));
       float w = fwidth(d) * 1.3 + 1e-4;
       float a = 1.0 - smoothstep(-w, w, d);
       float spark = 1.0 - smoothstep(0.0, 0.03, length(p - vec2(-0.28, 0.3) * vec2(uAspect, 1.0)) - 0.2);
@@ -90,6 +91,11 @@ const blob = {
 }
 
 const c = (hex: string) => new Color(hex)
+
+// Uniform bag with loose values (Color, Vector3, number): tuples are typed per material above.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Uni = Record<string, { value: any }>
+export const uni = (m: ShaderMaterial) => m.uniforms as Uni
 
 export type SoftOpts = { color?: string; rim?: number; rimPow?: number; spec?: number; opacity?: number; alphaRim?: number; disp?: number; glow?: number }
 
@@ -153,16 +159,16 @@ export function blobMaterial(additive = false) {
 
 // Paints every material from the palette. Shade = lime pulled toward the ink so shadows stay green.
 export function paint(
-  mats: { body: ShaderMaterial[]; ink: ShaderMaterial[]; cream: ShaderMaterial[]; strong: ShaderMaterial[]; mark: ShaderMaterial[] },
+  mats: { core?: ShaderMaterial[]; body: ShaderMaterial[]; ink: ShaderMaterial[]; cream: ShaderMaterial[]; strong: ShaderMaterial[]; mark: ShaderMaterial[] },
   eyes: ShaderMaterial[],
   p: Palette,
 ) {
   const accent = c(p.accent), ink = c(p.ink), cream = c(p.cream), strong = c(p.strong), mark = c(p.mark)
-  const shade = accent.clone().lerp(ink, 0.34)
+  const shade = accent.clone().lerp(ink, p.dark ? 0.2 : 0.34)
   const set = (m: ShaderMaterial, col: Color, sh: Color, rim: Color) => {
-    m.uniforms.uColor.value.copy(col)
-    m.uniforms.uShade.value.copy(sh)
-    m.uniforms.uRim.value.copy(rim)
+    uni(m).uColor!.value.copy(col)
+    uni(m).uShade!.value.copy(sh)
+    uni(m).uRim!.value.copy(rim)
   }
   const rimBody = accent.clone().lerp(cream, 0.55)
   for (const m of mats.body) set(m, accent, shade, m.userData.rimCream ? cream : rimBody)
@@ -170,8 +176,10 @@ export function paint(
   for (const m of mats.ink) set(m, ink, ink.clone().lerp(accent, 0.12), ink.clone().lerp(accent, 0.25))
   for (const m of mats.cream) set(m, cream, cream.clone().lerp(accent, 0.28), cream)
   for (const m of mats.mark) set(m, mark, mark, mark)
+  const core = accent.clone().lerp(cream, 0.62)
+  for (const m of mats.core ?? []) set(m, core, accent.clone().lerp(cream, 0.15), accent)
   for (const m of eyes) {
-    m.uniforms.uInk.value.copy(ink)
-    m.uniforms.uCream.value.copy(cream)
+    uni(m).uInk!.value.copy(ink)
+    uni(m).uCream!.value.copy(cream)
   }
 }

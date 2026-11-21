@@ -10,7 +10,7 @@ export function ampFromBytes(data: ArrayLike<number>, gate = 0.03, gain = 3.4): 
   if (!n) return 0
   let sum = 0
   for (let i = 0; i < n; i++) {
-    const s = (data[i] - 128) / 128
+    const s = ((data[i] ?? 128) - 128) / 128
     sum += s * s
   }
   const rms = Math.sqrt(sum / n)
