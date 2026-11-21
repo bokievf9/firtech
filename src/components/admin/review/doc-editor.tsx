@@ -223,11 +223,13 @@ export function DocEditor({ title, subtitle, initial, baseText, storageId, onSav
   )
 
   const replaceOne = () => {
-    if (!find || current === null) return jump(1)
-    const next = replaceAt(value, current, find.q.length, find.r)
-    commit({ text: next, start: current, end: current + find.r.length })
+    // The match the cursor is on, else the next one from the caret.
+    const target = current ?? stepMatch(matches, ta.current?.selectionStart ?? 0, 1)
+    if (!find || target === null) return
+    const next = replaceAt(value, target, find.q.length, find.r)
+    commit({ text: next, start: target, end: target + find.r.length })
     const rest = findMatches(next, find.q, find.cs)
-    setCursor(stepMatch(rest, current + find.r.length, 1))
+    setCursor(stepMatch(rest, target + find.r.length, 1))
     setFindNote(fill(t.replaced, { n: 1 }))
     scrollToMatch()
   }
@@ -360,7 +362,7 @@ export function DocEditor({ title, subtitle, initial, baseText, storageId, onSav
       <button type="button" className={toolbarButton} aria-label={mode === 'preview' ? t.edit : t.preview} title={mode === 'preview' ? t.edit : t.preview} aria-pressed={mode === 'preview'} onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}>
         {mode === 'preview' ? <PencilSimple size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
       </button>
-      <button type="button" className={toolbarButton} aria-label={mode === 'compare' ? t.compareOff : t.compare} title={mode === 'compare' ? t.compareOff : t.compare} aria-pressed={mode === 'compare'} onClick={() => setMode(mode === 'compare' ? 'edit' : 'compare')}>
+      <button type="button" className={toolbarButton} aria-label={t.compareTool} title={t.compare} aria-pressed={mode === 'compare'} onClick={() => setMode(mode === 'compare' ? 'edit' : 'compare')}>
         <Columns size={18} aria-hidden="true" />
       </button>
     </div>

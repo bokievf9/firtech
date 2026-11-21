@@ -833,6 +833,7 @@ export const admin = {
     tooLong: 'Слишком длинно: не больше {max} знаков',
     compare: 'Сравнить с v1',
     compareOff: 'Закрыть сравнение',
+    compareTool: 'Сравнение с v1',
     compareBefore: 'v1, до правок',
     compareAfter: 'Сейчас',
     compareNone: 'Без отличий от v1.',
