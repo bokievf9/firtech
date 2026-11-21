@@ -32,6 +32,8 @@ export type Breakdown = {
   oldLink: boolean
   estimateHref: string | null
   buildHref: string | null
+  // The builder's final step (summary with the mockup) for this code, to open in a new tab.
+  previewHref: string | null
   doc: EstimateDoc | null
   // Niche, products, goals and channels, details: every answer as «question: answer».
   answers: BriefRow[]
@@ -84,6 +86,7 @@ export function leadBreakdown(input: BreakdownInput, pricing: Pricing = defaultP
     oldLink: false,
     estimateHref: null,
     buildHref: null,
+    previewHref: null,
     doc: null,
     answers: [],
     style: [],
@@ -101,6 +104,7 @@ export function leadBreakdown(input: BreakdownInput, pricing: Pricing = defaultP
   out.oldLink = !hasBrief
   out.estimateHref = `/${locale}/builder/estimate?b=${found.code}`
   out.buildHref = `/${locale}/builder?b=${found.code}`
+  out.previewHref = `/${locale}/builder?b=${found.code}&step=8`
   const kindLabel = locale === 'ru' ? 'Ниша' : 'Niche'
   const productsLabel = locale === 'ru' ? 'Продукты' : 'Products'
   out.answers = [

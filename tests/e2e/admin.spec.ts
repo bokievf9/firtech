@@ -64,7 +64,7 @@ test.describe('with a session', () => {
   test('panel tabs switch and the counters open their panels', async ({ page }) => {
     await open(page, '/admin/office')
     await page.keyboard.press('1')
-    for (const tab of ['Входящие', 'Одобрения', 'Поручения', 'Лента', 'Учения']) {
+    for (const tab of ['Входящие', 'Поручения', 'Документы', 'Лента', 'Учения']) {
       await page.getByRole('tab', { name: new RegExp(`^${tab}`) }).click()
       await expect(page.getByRole('tab', { name: new RegExp(`^${tab}`) })).toHaveAttribute('aria-selected', 'true')
     }
@@ -95,13 +95,15 @@ test.describe('with a session', () => {
     await open(page, '/admin/office')
     await expect(page.getByRole('button', { name: 'Одобрения: 3' })).toBeVisible()
     await page.keyboard.press('1')
-    await page.getByRole('tab', { name: /^Одобрения/ }).click()
-    await page.getByRole('button', { name: /^Одобрить/ }).first().click()
-    await expect(page.getByRole('button', { name: /^Одобрения: [0-2]$/ })).toBeVisible()
-
-    // The old «Чат» tab is gone: the Director is written to from the composer of «Поручения».
+    // The old «Одобрения» and «Чат» tabs are gone: approvals are the section on top of «Поручения».
+    await expect(page.getByRole('tab', { name: 'Одобрения' })).toHaveCount(0)
     await expect(page.getByRole('tab', { name: 'Чат' })).toHaveCount(0)
     await page.getByRole('tab', { name: /^Поручения/ }).click()
+    const section = page.getByRole('region', { name: 'Ждут вашего решения' })
+    await expect(section).toBeVisible()
+    await section.getByRole('button', { name: /^Одобрить/ }).first().click()
+    await expect(page.getByRole('button', { name: /^Одобрения: [0-2]$/ })).toBeVisible()
+
     const composer = page.getByRole('combobox', { name: 'Новое поручение Директору' })
     await composer.fill('/status')
     await composer.press('Enter')
@@ -287,6 +289,15 @@ test.describe('with a session', () => {
     const box = thread.locator('textarea')
     await expect(box).toBeVisible()
     await expect(box).toHaveAttribute('placeholder', /^Ответ клиенту/)
+    // Anna has a lead, a project and support threads: the picker offers them, the lead's is preselected.
+    const picker = thread.getByRole('combobox', { name: 'Ответить в тред' })
+    await expect(picker).toBeVisible()
+    await expect(picker).toHaveValue('lead')
+    await picker.selectOption('project-4')
+    // The list has a search box and «mark unread».
+    await list.getByRole('searchbox', { name: 'Поиск по клиентам' }).fill('нет такого клиента')
+    await expect(list.getByText('По запросу никого нет.')).toBeVisible()
+    await list.getByRole('searchbox', { name: 'Поиск по клиентам' }).fill('')
     await box.fill('e2e: ответ владельца')
     await box.press('Enter')
     await expect(thread.getByText('e2e: ответ владельца').first()).toBeVisible()

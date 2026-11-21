@@ -28,6 +28,9 @@ export default async function LoginPage({
   const { data } = (await supabase?.auth.getUser()) ?? { data: { user: null } }
   if (data.user) redirect(next)
 
+  // `?email=` comes from the links HQ sends to bot-lead clients: prefill, but only a plausible address.
+  const rawEmail = one(query.email)?.trim().slice(0, 200) ?? ''
+  const email = /^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(rawEmail) ? rawEmail : ''
   const error = one(query.error)
   const t = dict.cabinet.auth
 
@@ -46,6 +49,7 @@ export default async function LoginPage({
           locale={locale}
           startMode={one(query.tab) === 'signup' ? 'up' : 'in'}
           next={next}
+          initialEmail={email}
           callbackError={isAuthErrorKey(error) ? error : error ? 'callback' : null}
         />
       </div>

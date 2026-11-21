@@ -17,6 +17,8 @@ export type Proxied = { ok: true; [k: string]: unknown } | { ok: false; error: s
 const segment = /^[\w-]{1,64}$/
 const id = z.union([z.string().regex(segment), z.number().int().nonnegative()])
 const empty = z.object({}).strict()
+// Longest document text the proxy accepts (a contract runs to ~30k characters).
+export const MAX_DOC = 40000
 
 // The whole allowed surface: method, path pattern, accepted query keys or body schema. Anything else
 // is a 404 from the route, so the page can never reach other HQ endpoints through this proxy.
@@ -41,7 +43,7 @@ export const ENDPOINTS: readonly Endpoint[] = [
     body: z
       .object({
         action: z.enum(['approve', 'reject', 'edit']),
-        text: z.string().max(8000).optional(),
+        text: z.string().max(MAX_DOC).optional(),
         part: id.optional(),
       })
       .strict()
@@ -145,8 +147,8 @@ export const REVIEW_DEPTS = ['marketing', 'sales', 'support', 'production', 'bac
 export const REVIEW_ACTIONS = ['approve', 'edit', 'revise', 'reject', 'publish_now', 'reschedule', 'send', 'call'] as const
 const reviewText = z
   .object({
-    draft: z.string().max(8000),
-    body: z.string().max(8000),
+    draft: z.string().max(MAX_DOC),
+    body: z.string().max(MAX_DOC),
     caption: z.string().max(4000),
     hashtags: z.array(z.string().max(80)).max(40),
     captions: z
@@ -160,12 +162,15 @@ export const REVIEW_BODY = z
   .object({
     action: z.enum(REVIEW_ACTIONS),
     text: reviewText.optional(),
+    // A КП pack edits one of its documents at a time (`presales_pack`, 2026-11-22): `text.draft` is its new text.
+    doc: z.enum(['kp', 'estimate', 'contract']).optional(),
     note: z.string().trim().min(1).max(4000).optional(),
     slot: z.string().max(40).optional(),
     platform: z.enum(['instagram', 'tiktok', 'shorts', 'youtube']).optional(),
   })
   .strict()
   .refine((b) => b.action !== 'edit' || (b.text !== undefined && Object.keys(b.text).length > 0), 'edit needs text')
+  .refine((b) => b.doc === undefined || (b.action === 'edit' && typeof b.text?.draft === 'string'), 'doc needs an edit with text.draft')
   .refine((b) => b.action !== 'revise' || b.note !== undefined, 'revise needs a note')
   .refine((b) => (b.action !== 'reschedule' && b.action !== 'call') || (b.slot !== undefined && b.slot.trim().length > 0), 'slot needed')
 export const REVIEW_ENDPOINTS: readonly Endpoint[] = [
@@ -173,7 +178,21 @@ export const REVIEW_ENDPOINTS: readonly Endpoint[] = [
   { method: 'POST', path: /^review\/ap_\d{1,12}$/, body: REVIEW_BODY },
   { method: 'GET', path: /^chats$/, query: ['status', 'limit', 'cursor'] },
   { method: 'GET', path: /^chats\/[\w-]{1,64}$/ },
-  { method: 'POST', path: /^chats\/[\w-]{1,64}\/reply$/, body: z.object({ text: z.string().trim().min(1).max(2000) }).strict() },
+  // `thread` (lead | support | project-<id>) is the cabinet thread the reply lands in, `replyTo` the id of the
+  // message answered (contract «GET /admin/chats и ответы клиентам», 2026-11-22). Both optional.
+  {
+    method: 'POST',
+    path: /^chats\/[\w-]{1,64}\/reply$/,
+    body: z
+      .object({
+        text: z.string().trim().min(1).max(2000),
+        thread: z.string().regex(/^(lead|support|project-\d{1,12})$/).optional(),
+        replyTo: z.string().regex(/^[\w-]{1,64}$/).optional(),
+      })
+      .strict(),
+  },
+  // A cabinet client's threads (lead, project, support, agent) for the reply picker; read only.
+  { method: 'GET', path: /^clients\/\d{1,12}\/threads$/ },
   { method: 'GET', path: /^trends$/, query: ['limit', 'cursor'] },
   { method: 'POST', path: /^trends$/, body: z.object({ url: z.string().trim().min(1).max(600), note: z.string().max(500).optional() }).strict() },
 ]
@@ -218,7 +237,7 @@ export function resolveEndpoint(method: string, segments: string[], search: URLS
   return { ok: true, path, query, body: parsed.data }
 }
 
-const ERROR_EXTRAS = ['item', 'results', 'message', 'state', 'status', 'via', 'actions', 'allowed', 'hint', 'placeholders'] as const
+const ERROR_EXTRAS = ['item', 'results', 'message', 'state', 'status', 'via', 'actions', 'allowed', 'hint', 'placeholders', 'threads'] as const
 
 export type CallDeps = { env?: Env; fetcher?: typeof fetch; timeoutMs?: number; now?: number }
 

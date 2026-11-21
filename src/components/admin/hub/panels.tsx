@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { LeadDrawer } from '@/components/admin/lead-drawer'
 import { Assignments } from '@/components/admin/control/assignments'
-import { ApprovalsPanel } from '@/components/admin/control/approvals-panel'
 import { CallsPanel } from '@/components/admin/control/calls-panel'
 import { BarePanel } from '@/components/admin/control/cc-panel'
 import { useCrmLeads } from '@/components/admin/control/crm-data'
@@ -86,6 +85,11 @@ function Documents({ badge }: { badge: string | null }) {
   const { now } = useHub()
   return <DocumentsPanel feed={useFeed(`crm/documents${q}`, normalizeDocuments)} badge={badge} now={now} />
 }
+// The Director's «Документы»: the latest documents by client, each with «Править» (the same editor as the review centre).
+function DirectorDocuments() {
+  const { now } = useHub()
+  return <DocumentsPanel feed={useFeed('crm/documents?limit=40', normalizeDocuments)} badge={null} now={now} by="client" />
+}
 function Referrals({ badge }: { badge: string | null }) {
   const { now } = useHub()
   return <ReferralsPanel feed={useFeed(`crm/referrals${q}`, normalizeReferrals)} badge={badge} now={now} />
@@ -100,20 +104,6 @@ function DirectorTab({ tab, d }: { tab: string; d: DirectorProps }) {
     case 'inbox':
       if (!d.inbox) return d.inboxError ? <Offline error={d.inboxError} onRetry={d.reloadHub} /> : null
       return <Notifications items={d.inbox} now={now} onOpen={d.onLink} />
-    case 'approvals':
-      return (
-        <ApprovalsPanel
-          items={d.approvals}
-          error={d.approvalsError}
-          now={now}
-          badge={null}
-          focus={d.focusApproval}
-          queued={d.queued}
-          onAct={d.onAct}
-          onEdit={d.onEdit}
-          onRelease={d.onRelease}
-        />
-      )
     case 'tasks':
       return (
         <Assignments
@@ -125,8 +115,20 @@ function DirectorTab({ tab, d }: { tab: string; d: DirectorProps }) {
           onOpenTask={d.onOpenTask}
           onStart={d.onRetry}
           onSent={d.onSent}
+          approvals={{
+            items: d.approvals,
+            error: d.approvalsError,
+            now,
+            focus: d.focusApproval,
+            queued: d.queued,
+            onAct: d.onAct,
+            onEdit: d.onEdit,
+            onRelease: d.onRelease,
+          }}
         />
       )
+    case 'documents':
+      return <DirectorDocuments />
     case 'feed':
       return <Feed data={d.office} fresh={d.fresh} now={now} />
     case 'drill':

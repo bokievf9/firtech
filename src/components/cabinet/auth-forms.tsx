@@ -36,6 +36,7 @@ export function AuthForms({
   compact = false,
   onSignedIn,
   onBeforeRedirect,
+  initialEmail = '',
 }: {
   dict: Dict
   locale: Locale
@@ -45,6 +46,8 @@ export function AuthForms({
   compact?: boolean
   onSignedIn?: (email: string) => void
   onBeforeRedirect?: () => void
+  // Prefills the email field (HQ links to bot-lead clients carry `?email=`); a typed or submitted value wins.
+  initialEmail?: string
 }) {
   const t = dict.cabinet.auth
   const uid = useId()
@@ -102,7 +105,7 @@ export function AuthForms({
                 required
                 autoComplete="email"
                 maxLength={200}
-                defaultValue={forgotState.email}
+                defaultValue={forgotState.email || initialEmail}
                 className={inputClass}
               />
             </Field>
@@ -196,7 +199,7 @@ export function AuthForms({
               required
               autoComplete="email"
               maxLength={200}
-              defaultValue={inState.email}
+              defaultValue={inState.email || initialEmail}
               className={inputClass}
             />
           </Field>
@@ -259,7 +262,7 @@ export function AuthForms({
               required
               autoComplete="email"
               maxLength={200}
-              defaultValue={upState.email}
+              defaultValue={upState.email || initialEmail}
               className={inputClass}
             />
           </Field>

@@ -111,3 +111,54 @@ test('encode then break down is a round trip for the build', () => {
   const b = leadBreakdown({ builderUrl: `/ru/builder?b=${encodeBuild(build)}` })
   assert.deepEqual(b.build, build)
 })
+
+// pult.ts and review.ts pull in modules that use the `@/` alias.
+import { registerHooks } from 'node:module'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+const srcUrl = pathToFileURL(path.resolve('src') + '/').href
+registerHooks({
+  resolve(specifier, context, next) {
+    if (specifier === 'server-only') return { url: 'data:text/javascript,export{}', shortCircuit: true }
+    if (specifier.startsWith('@/')) {
+      const base = new URL(specifier.slice(2), srcUrl).href
+      for (const candidate of [`${base}.ts`, `${base}.tsx`, `${base}/index.ts`]) {
+        try {
+          return next(candidate, context)
+        } catch {}
+      }
+    }
+    return next(specifier, context)
+  },
+})
+
+test('breakdownSource: the Sales drawer and the review centre build the same input, with the fallbacks', async () => {
+  const { breakdownSource, firstBuilderLink, leadRow } = await import('../src/lib/pult.ts')
+  const { leadBreakdownInput } = await import('../src/lib/review.ts')
+  const link = `https://firtech.pro/ru/builder?b=${full}`
+  // HQ's own fields win
+  const own = { id: 1, name: 'A', message: 'Нужен сайт', estimate: 'Смета', builderUrl: link, enrichment: { builderLink: '/ru/builder?b=apps.pwa' } }
+  assert.deepEqual(breakdownSource(own), { estimate: 'Смета', message: 'Нужен сайт', builderUrl: link })
+  // no builderUrl: the enrichment link
+  const enriched = { id: 1, message: 'Салон', enrichment: { builderLink: '/ru/builder?b=bots.booking~k.salon' } }
+  assert.equal(breakdownSource(enriched).builderUrl, '/ru/builder?b=bots.booking~k.salon')
+  // neither: the first builder link in the lead's text (task, message, estimate)
+  const texted = { id: 1, task: `Сборка: ${link}. Жду ответа.`, message: 'Нужен сайт' }
+  assert.equal(breakdownSource(texted).builderUrl, link)
+  assert.equal(breakdownSource({ id: 1, estimate: 'Итого $300 (/en/builder/estimate?b=apps.pwa&x=1)' }).builderUrl, '/en/builder/estimate?b=apps.pwa&x=1')
+  assert.equal(firstBuilderLink('нет ссылки', 'тут https://firtech.pro/ru/builder?b=bots.booking~k.cafe, дальше')?.endsWith('k.cafe'), true)
+  assert.equal(firstBuilderLink(null, undefined, 5), null)
+  assert.equal(breakdownSource({}), null)
+  assert.equal(breakdownSource(null), null)
+  assert.equal(breakdownSource({ id: 1, name: 'Без ничего' }), null)
+  // the drawer's row and the review item feed the same breakdown
+  const row = leadRow({ id: 5, ...texted })
+  const item = leadBreakdownInput({ meta: { lead: { id: 5, ...texted } } })
+  assert.equal(row.builderUrl, item.builderUrl)
+  assert.equal(row.message, item.message)
+  const b = leadBreakdown(item)
+  assert.equal(b.code, full)
+  assert.ok(b.doc)
+  assert.equal(b.previewHref, `/ru/builder?b=${full}&step=8`, 'the builder final step in a new tab')
+  assert.equal(leadBreakdown({}).previewHref, null)
+})

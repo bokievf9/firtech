@@ -8,7 +8,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { AdminMenu } from '@/components/admin/admin-shell'
 import { errText, fill, hq, storedValue, usePoll } from '@/components/admin/control/api'
 import { TaskDrawer } from '@/components/admin/control/task-drawer'
-import type { PersonFilter } from '@/lib/orders'
+import { runOrder } from '@/components/admin/control/orders-run'
+import type { PersonFilter, Send } from '@/lib/orders'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { PixelOffice, type OfficeZones } from '@/components/admin/office/pixel-office'
 import { useOffice } from '@/components/admin/office/use-office'
@@ -288,16 +289,19 @@ export function Hub({ initial = null }: { initial?: { panel: string; tab?: strin
     notify(fill(cc.approvals.failed, { e: errText(res.error) }), 'error')
     return false
   }
-  const command = useCallback(
-    async (name: string, arg?: string) => {
-      const res = await hq<{ replies: string[] }>('command', arg ? { name, arg } : { name })
-      if (res.ok) notify(plainFirst(res.replies) ?? fill(h.palette.ran, { name }))
-      else notify(errText(res.error), 'error')
+  // ⌘K Director commands answer in «Поручения»: the owner's line and HQ's reply go into its timeline (not a toast).
+  const toTimeline = useCallback(
+    async (plan: Send, shownAs?: string) => {
+      openPanel('director', 'tasks')
+      const res = await runOrder(plan, shownAs)
       refreshAll()
+      return res
     },
-    [notify, refreshAll],
+    [openPanel, refreshAll],
   )
-  const onRelease = () => command('approve')
+  const onRelease = async () => {
+    await toTimeline({ kind: 'command', name: 'approve', arg: '' })
+  }
   const onRetry = async (task: HqTask) => {
     const res = await hq<{ replies?: string[]; task?: HqTask }>(`tasks/${encodeURIComponent(String(task.id))}/retry`, {})
     if (res.ok) {
@@ -353,7 +357,7 @@ export function Hub({ initial = null }: { initial?: { panel: string; tab?: strin
     { id: 'tickets', dept: 'support' as PanelId, icon: Lifebuoy, n: openTickets, label: h.counters.tickets, go: () => openPanel('support', 'tickets') },
   ]
   const tabBadges: Record<string, string | null> = {
-    approvals: badgeText(pendingApprovals),
+    tasks: badgeText(pendingApprovals),
     inbox: null,
     leads: newLeads ? badgeText(newLeads) : null,
     invoices: waitingPay ? badgeText(waitingPay) : null,
@@ -419,24 +423,20 @@ export function Hub({ initial = null }: { initial?: { panel: string; tab?: strin
           }))
         : [],
     )
-    const say = async (text: string) => {
-      const res = await hq<{ replies?: string[] }>('say', { text })
-      if (res.ok) notify(plainFirst(res.replies) ?? fill(p.ran, { name: p.commands.pack }))
-      else notify(errText(res.error), 'error')
-      refreshAll()
-    }
+    const say = async (text: string) => void (await toTimeline({ kind: 'say', text }))
+    const run = async (name: string) => void (await toTimeline({ kind: 'command', name, arg: '' }))
     const commands: PaletteItem[] = [
       { id: 'cmd:pack', group: p.groups.commands, title: p.commands.pack, hint: p.commands.packHint, dept: 'marketing', keywords: 'контент неделя', run: () => void say(p.commands.packSay) },
-      { id: 'cmd:report', group: p.groups.commands, title: p.commands.report, hint: p.commands.reportHint, dept: 'director', keywords: 'статус сводка', run: () => void command('status') },
-      { id: 'cmd:drill', group: p.groups.commands, title: p.commands.drill, hint: p.commands.drillHint, dept: 'director', run: () => openPanel('director', 'drill') },
-      { id: 'cmd:costs', group: p.groups.commands, title: p.commands.costs, hint: p.commands.costsHint, dept: 'company', run: () => void command('costs') },
-      { id: 'cmd:release', group: p.groups.commands, title: p.commands.release, hint: p.commands.releaseHint, dept: 'director', run: () => void command('approve') },
+      { id: 'cmd:report', group: p.groups.commands, title: p.commands.report, hint: p.commands.reportHint, dept: 'director', keywords: 'статус сводка', run: () => void run('status') },
+      { id: 'cmd:drill', group: p.groups.commands, title: p.commands.drill, hint: p.commands.drillHint, dept: 'director', run: () => void run('drill') },
+      { id: 'cmd:costs', group: p.groups.commands, title: p.commands.costs, hint: p.commands.costsHint, dept: 'company', run: () => void run('costs') },
+      { id: 'cmd:release', group: p.groups.commands, title: p.commands.release, hint: p.commands.releaseHint, dept: 'director', run: () => void run('approve') },
     ]
     const goliveEntry: PaletteItem = { id: 'panel:golive', group: p.groups.panels, title: goliveText.title, hint: '8', dept: 'company', keywords: 'запуск таймер чеклист 72 часа', run: openGolive }
     const reviewEntry: PaletteItem = { id: 'page:review', group: p.groups.panels, title: 'Ревью-центр', hint: '9', dept: 'marketing', keywords: 'ревью одобрить рилсы правки выкладывай материалы тренды ссылка', run: openReview }
     const chatsEntry: PaletteItem = { id: 'page:chats', group: p.groups.panels, title: 'Чаты с клиентами', hint: '0', dept: 'sales', keywords: 'чаты переписка клиенты ответить сообщения', run: openChats }
     return [...panels, goliveEntry, reviewEntry, chatsEntry, ...commands, ...tabs]
-  }, [openPanel, openGolive, openReview, openChats, command, notify, refreshAll])
+  }, [openPanel, openGolive, openReview, openChats, toTimeline])
 
   const contentEntries = useCallback(
     (): PaletteItem[] =>

@@ -23,9 +23,11 @@ import {
   type PersonFilter,
   type TimelineEntry,
 } from '@/lib/orders'
-import { errText, fill, hq } from './api'
+import { errText, fill } from './api'
+import { ApprovalsSection, type ApprovalsProps } from './approvals-panel'
 import { CcPanel } from './cc-panel'
-import { chat, pushChat } from './chat-store'
+import { chat } from './chat-store'
+import { runOrder } from './orders-run'
 
 const t = admin.orders
 const deptName = (id: string) => (admin.office.depts as Record<string, string>)[id] ?? id
@@ -146,6 +148,7 @@ export function Assignments({
   onOpenTask,
   onStart,
   onSent,
+  approvals,
   className,
 }: {
   tasks: HqTask[] | null
@@ -157,6 +160,8 @@ export function Assignments({
   onStart: (task: HqTask) => Promise<void>
   // Something changed in HQ (a task was given, a command ran): the page refreshes its panels.
   onSent: () => void
+  // The approvals waiting for the owner, drawn as a section on top of the feed (same actions as the review centre's cards).
+  approvals?: ApprovalsProps
   className?: string
 }) {
   const { notify } = useHub()
@@ -194,21 +199,10 @@ export function Assignments({
     if (!plan || sending) return
     setText('')
     setSending(true)
-    pushChat({ role: 'me', text: raw.trim() })
-    const res =
-      plan.kind === 'command'
-        ? await hq<{ replies: string[] }>('command', { name: plan.name, arg: plan.arg || undefined })
-        : await hq<{ replies: string[]; taskId?: Id }>('say', { text: plan.text })
+    const res = await runOrder(plan, raw.trim())
     setSending(false)
-    if (!res.ok) {
-      pushChat({ role: 'error', text: errText(res.error) })
-    } else {
-      const replies = Array.isArray(res.replies) ? res.replies.map(String) : []
-      const taskId = 'taskId' in res && res.taskId !== undefined && res.taskId !== null ? (res.taskId as Id) : null
-      if (!replies.length && taskId === null) pushChat({ role: 'director', text: '…' })
-      replies.forEach((r, i) => pushChat({ role: 'director', text: plainBotText(r), taskId: i === replies.length - 1 ? taskId : null }))
-      if (!replies.length && taskId !== null) pushChat({ role: 'director', text: '', taskId })
-      if (taskId !== null) notify(fill(t.taskCreated, { id: taskId }))
+    if (res.ok) {
+      if (res.taskId !== null) notify(fill(t.taskCreated, { id: res.taskId }))
       onSent()
     }
     input.current?.focus()
@@ -221,12 +215,12 @@ export function Assignments({
     if (action === 'start') {
       await onStart(task)
     } else {
-      const res = await hq<{ replies?: string[] }>('say', { text: action === 'cancel' ? cancelText(task) : remindText(task) })
-      if (res.ok) {
-        const first = Array.isArray(res.replies) && res.replies.length ? plainBotText(String(res.replies[0])).trim() : ''
-        notify(first ? first.slice(0, 200) : fill(t.asked, { t: task.title }))
-        onSent()
-      } else notify(fill(t.failed, { e: errText(res.error) }), 'error')
+      // «Напомнить» and «Отменить» have no HQ endpoint: they go to the Director in words, and both the line and its answer stay in the timeline.
+      const res = await runOrder(
+        { kind: 'say', text: action === 'cancel' ? cancelText(task) : remindText(task) },
+        fill(action === 'cancel' ? t.cancelLine : t.remindLine, { id: task.id, t: task.title }),
+      )
+      if (res.ok) onSent()
     }
     setBusy(null)
   }
@@ -352,6 +346,16 @@ export function Assignments({
           </form>
           <p className="mt-1.5 hidden text-[11px] text-faint sm:block">{t.hint}</p>
         </div>
+
+        {approvals && (approvals.items === null ? approvals.error : approvals.items.length > 0 || approvals.queued > 0) ? (
+          <section aria-label={t.approvals.title} data-orders-approvals className="border-b border-line p-3">
+            <h3 className="mb-2 flex items-center gap-2 px-1 text-sm font-medium">
+              {t.approvals.title}
+              {approvals.items?.length ? <span className="rounded-full bg-accent px-2 py-0.5 font-mono text-xs text-accent-ink tabular-nums">{approvals.items.length}</span> : null}
+            </h3>
+            <ApprovalsSection {...approvals} limit={3} />
+          </section>
+        ) : null}
 
         <div className="grid gap-2.5 px-3 pt-3">
           <div className="flex gap-1.5 overflow-x-auto" role="group" aria-label={t.filters.label}>

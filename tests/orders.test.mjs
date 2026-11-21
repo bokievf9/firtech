@@ -116,8 +116,10 @@ test('orderCounts and orderActions', () => {
 })
 
 test('director tabs: Поручения replaces tasks and chat, old tab names still resolve', () => {
-  assert.deepEqual(p.PANEL_TABS.director, ['inbox', 'approvals', 'tasks', 'feed', 'drill'])
+  assert.deepEqual(p.PANEL_TABS.director, ['inbox', 'tasks', 'documents', 'feed', 'drill'])
   assert.equal(p.panelTab('director', 'chat'), 'tasks')
+  assert.equal(p.panelTab('director', 'approvals'), 'tasks', 'the old Одобрения tab is a section of Поручения')
+  assert.equal(p.panelTab('director', 'documents'), 'documents')
   assert.equal(p.panelTab('director', 'tasks'), 'tasks')
   assert.equal(p.panelTab('director', 'nope'), 'inbox')
   assert.equal(p.panelTab('sales', undefined), 'leads')

@@ -1,4 +1,4 @@
-# Button census (2026-11-21)
+# Button census (2026-11-21, owner panel sections refreshed 2026-11-22)
 
 Owner, 2026-11-21: «протестировать каждый процесс, каждую кнопку» before go-live. This is the list of
 every user-facing action of the public site and the owner panel, how each one is verified and where it
@@ -89,6 +89,18 @@ Legend of `E:` tags (file : test title):
 | `E:keys-9-0` | admin.spec : «keys 9 and 0 open the review centre and the chats» |
 | `E:review` | admin.spec : «review centre: rail with counts, queue, J/K step, the revise composer and the trend link dialog» |
 | `E:chats` | admin.spec : «chats: a thread opens, the reply box sends with Enter and the answer joins the thread» |
+| `E:editor` | admin-pult4.spec : «review: E opens the full-screen editor, type, find and replace, save as a version, compare with v1» |
+| `E:editor-esc` | admin-pult4.spec : «review editor: Esc with unsaved changes asks first, ⌘Enter saves and closes» |
+| `E:editor-phone` | admin-pult4.spec : «phone: the editor has its toolbar at the bottom and Поручения fits the screen» |
+| `E:pack-editor` | admin-pult4.spec : «review: E on a КП pack opens its first document, the stage has «Править» for each document» |
+| `E:doc-rows` | admin-pult4.spec : «back office: every document row opens the full-screen editor, pending or approved, a КП too» (an issued invoice has the button disabled) |
+| `E:doc-director` | admin-pult4.spec : «Director: the «Документы» tab lists documents by client with «Править»; approvals are part of Поручения» |
+| `E:breakdown` | admin-pult4.spec : «review: the sales item shows «Разбор заявки» with answers, estimate links and stages» |
+| `E:breakdown-lead` | admin-pult4.spec : «sales: the lead drawer shows «Разбор заявки» (old link and no link too)» |
+| `E:orders` | admin-pult4.spec : «Поручения: the composer makes a task and the timeline shows it; N focuses the composer» (also «Напомнить» / «Отменить» with the confirm) |
+| `E:orders-cmd` | admin-pult4.spec : «Поручения: a slash opens the command list, Tab completes, Esc closes the list only» |
+| `E:palette-orders` | admin-pult4.spec : «⌘K: a Director command answers inside the Поручения timeline, not in a toast» |
+| `E:cab-email` | flows.spec : «cabinet login: ?email= prefills the email field (HQ links to bot-lead clients), junk is ignored» |
 | `E:prices` | admin.spec : «Company / Цены: edit one price in the panel, see it saved, reset it through the API» (throwaway data dir) |
 | `E:accept-pult` | admin.spec : «Production: the project drawer accepts a paid, delivered stage for the client» |
 | `U:cabinet-milestones` | node:test `tests/cabinet-milestones.test.mjs`: milestone parsing, track rows, the accept call and its 409 codes, mock, route, Пульт whitelist and drawer helpers |
@@ -296,10 +308,11 @@ Legend of `E:` tags (file : test title):
 | `/admin/*`, `/api/admin/*` | session guard | redirect to login, 401 | `admin-guard.ts` | `E:adm-guard`, `U:admin` | pass |
 | `/admin` | redirect | `/admin/office` | - | `E:adm-guard` | pass |
 | `/admin/office` | presence «На месте» / «Не на месте» (also named on phones) | `POST HQ presence` (mock) | `/api/admin/hq/presence` | `E:hub`, `U:hq-admin` | pass |
-| hub | counters «Одобрения», «Новые лиды», «Ждут оплаты», «Открытые тикеты» | open Director/approvals, Sales/leads, Back office/invoices, Support/tickets | - | `E:hub` (visible), `E:tabs` («Ждут оплаты») | pass (payments), untested (other 3 clicks) |
+| hub | counters «Одобрения», «Новые лиды», «Ждут оплаты», «Открытые тикеты» | open Director/Поручения (approvals are its top section), Sales/leads, Back office/invoices, Support/tickets | - | `E:hub` (visible), `E:tabs` («Ждут оплаты»), `U:orders` (`approvals` tab resolves to `tasks`) | pass (payments), untested (other 3 clicks) |
 | hub | ⌘K / Ctrl+K | command palette with HQ search | `GET /api/admin/hq/...` | `E:palette`, `U:pult-v3` | pass |
+| hub | ⌘K Director commands «Отчёт» (`status`), «Выпустить одобрения» (`approve`), «Расходы» (`costs`), «Учения» (`drill`), «Пакет недели» (`say`) | open Поручения and write the owner's line and HQ's answer into its timeline (no toast) | `POST command`, `POST say` | `E:palette-orders` («Отчёт»), `U:orders` | pass («Отчёт»), untested (other four) |
 | hub | keys 1-7 | open the 7 panels (1 Director ... 7 Company), Esc closes | - | `E:keys` | pass |
-| hub | keys 9 and 0, chips «Ревью N» and «Чаты N» | `/admin/review`, `/admin/chats` | `E:keys-9-0` | pass (keys), untested (chips) |
+| hub | keys 9 and 0, chips «Ревью N» and «Чаты N» | open `/admin/review`, `/admin/chats` | - | `E:keys-9-0` | pass (keys), untested (chips) |
 | hub | key 8 and the go-live chip | `/admin/golive` | - | `E:keys` | pass |
 | hub | theme button | admin light/dark | localStorage | `E:adm-theme`, `U:pult-theme` | pass |
 | hub | «Ещё» menu: «Скачать заявки в CSV» | `GET /api/admin/export` | `/api/admin/export` | `E:csv` | pass |
@@ -318,10 +331,12 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 | Panel / tab | Element | What it does | Calls | Verified by | Status |
 |---|---|---|---|---|---|
 | Директор / Входящие | notification rows | open the object (lead, invoice, approval, ticket, project) in its panel | `GET hub`, `inbox/read` | `E:panels`, `U:pult-v3` | untested (row click) |
-| Директор / Одобрения | «Выпустить сейчас» | releases the queue | `POST approvals/...` | `E:panels` (renders) | untested |
-| Директор / Одобрения | «Одобрить» (A), «Отклонить» (R) (with confirm), part chips («Всё целиком», «Пост в канал», «Сторис»), «Править» | approve / reject / edit | `POST approvals/<id>` | `E:director` (approve lowers the counter), `U:hq-admin` | pass (approve), untested (reject, edit, parts) |
-| Директор / Задачи | 6 department filters, task cards, «Повторить» | filter, open drawer, retry | `GET tasks`, `POST tasks/<id>/retry` | `E:director` (filter narrows), `E:panels` | pass (filter), untested (drawer, retry) |
-| Директор / Чат | 5 command chips (`/status`, `/tasks`, `/approve`, `/costs`, `/builders`), textarea, «Отправить», clear | talk to the Director | `POST say`, `POST command` | `E:director` (`/status` echoes) | pass (chip), untested (free text, clear) |
+| Директор / Поручения | composer (Enter sends, Shift+Enter new line, `N` focuses it), `/` command list (arrows, Tab, Esc closes the list only), «Поставить» | free text becomes a task (`say`), `/command` runs a Director command; both land in one timeline | `POST say`, `POST command` | `E:orders`, `E:orders-cmd`, `E:director` (`/status`), `U:orders` | pass |
+| Директор / Поручения | section «Ждут вашего решения» on top (first 3 cards, «Показать все N») with «Одобрить» (A), «Отклонить» (R), part chips, «Выпустить сейчас» | the old «Одобрения» tab: same actions, same optimistic counter | `POST approvals/<id>` | `E:director` (approve lowers the counter), `U:hq-admin` | pass (approve), untested (reject, parts, «Показать все», «Выпустить сейчас») |
+| Директор / Поручения | approval card «Править» (pencil) | opens the full-screen editor (no inline textarea); «Сохранить как версию» sends `edit` | `POST approvals/<id>` (up to 40000 characters) | `U:hq-admin` (40000 accepted), `E:editor` (the same editor component) | untested (browser, from the approvals card) |
+| Директор / Поручения | filters «Все / Мои поручения / Ждёт меня / Сделано», search, task card (opens the drawer), «В работу», «Напомнить», «Отменить» (with confirm) | filter and act; «Напомнить» and «Отменить» go through `say` and show as the owner's line plus the Director's answer | `POST tasks/<id>/retry`, `POST say` | `E:director` (filter, search), `E:orders` (cancel), `U:orders` | pass (filters, cancel), untested (drawer, retry, remind) |
+| Директор / Поручения | clear conversation | empties the kept timeline lines (sessionStorage; HQ has no history endpoint, see Follow-ups in `docs/pult.md`) | - | none | untested |
+| Директор / Документы | rows grouped by client (latest 40), «Править» on every row | opens the full-screen editor (a КП, смета, contract, invoice draft); disabled with the reason when HQ allows no edit | `GET crm/documents`, `GET review?status=all`, `POST review/<id>` (edit, `doc` for a pack) | `E:doc-director`, `U:review` | pass (open), untested (save) |
 | Директор / Лента | live feed | render | `GET /api/admin/office` | `E:panels` | pass (render) |
 | Директор / Учения | department select, «Запустить учения», «Таблица», «Очистить» | drill | `GET/POST drill` | `E:panels` (renders) | untested |
 | Маркетинг / Контент | week arrows «Прошлая/Следующая неделя», «Эта неделя», content cards | week calendar, card drawer | `GET content?week=` | `E:panels` (renders) | untested (clicks) |
@@ -337,10 +352,12 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 | Производство / Проекты | drawer: «Принять этап» on a stage awaiting acceptance (client found by name, then HQ accept; 409 reasons shown) | `GET crm/clients?q=`, `POST clients/<id>/projects/<pid>/milestones/<no>/accept` (whitelist) | `E:accept-pult`, `U:cabinet-milestones` | pass |
 | Бэк-офис / Счета | status filters, search, «Ссылка» (pay link), «Транзакция» (explorer), «Напомнить клиенту», «Оплачено вручную», «Аннулировать» | invoice writes | `POST crm/invoices/<id>` | `E:backoffice` (buttons present, «Напомнить» answers), `U:pult-v3` | pass (remind), untested (mark paid, void, link copy) |
 | Бэк-офис / Документы | kind and status chips, search | render | `GET crm/documents` | `E:panels`, `U:admin-crm-hq` | pass (render) |
+| Бэк-офис / Документы | «Править» on EVERY row: invoice draft, approved unsigned contract, КП / смета / договор of a pack; disabled with a reason for an issued invoice | full-screen editor, «Сохранить как версию» = `edit` v+1 (with `doc` for a pack) | `GET review?status=all`, `POST review/<id>` | `E:doc-rows`, `U:review` (`targetForRow`, payload, mock) | pass (open), untested (save from the tab) |
 | Бэк-офис / Рекомендации | status chips, search | render | `GET crm/referrals` | `E:panels` | pass (render) |
 | Бэк-офис / Отзывы | list | render | `GET crm/reviews` | `E:panels` | pass (render) |
 | Компания | routine toggles and «Запустить сейчас: <routine>» (5), trust level switches (5), playbook rows (open drawer), costs, workers | company controls | `GET company`, `POST company/...` | `E:panels` (renders), `U:pult-v3` | untested (writes) |
-| Компания / Цены | every price editable in place (Enter saves, Esc cancels), «Вернуть по умолчанию», history, API range refusal 422 | `GET/POST /api/admin/prices` | `E:prices` (edit in the panel, API reset, 422 and 403), `U:pricing-store` | pass (one price edited), untested (stage shares, «Сбросить всё») |
+| Компания / Цены | every price editable in place (Enter saves, Esc cancels), «Вернуть по умолчанию» per price, the live preview line («Бот от $…», «Сайт от $…», stage shares), history with «Показать ещё», API range refusal 422 | `GET/POST /api/admin/prices` | `E:prices` (edit in the panel, API reset, 422 and 403), `U:pricing-store` | pass (one price edited), untested (history, preview line) |
+| Компания / Цены | stage shares per product: inputs (must sum to 100), «Сохранить доли», «Вернуть доли»; «Сбросить всё» (confirm) | `POST /api/admin/prices` (`stageShares.*`, reset ops) | `U:pricing-store` | untested (browser) |
 | every panel | «Шире» / «Уже», «Закрыть панель», Esc | resize, close | - | `E:keys` (Esc, open), `E:tabs` | pass (open/close), untested (resize) |
 
 ## 13. Go-live `/admin/golive`
@@ -354,23 +371,34 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 | item checkbox | tick with time and rollback | `POST {action:'toggle'}` | `E:golive` (API), `U:golive` | pass (API), untested (checkbox click) |
 | item note | saved on blur (max 300) | `POST {action:'note'}` | `E:golive` (API), `U:golive` | pass (API), untested (field) |
 | block navigation, «Наверх», row expand | scroll, reveal | - | `E:golive-fit` (renders) | untested (clicks) |
+| item badge «Вы» / «Claude» and the link icon | who does the item; opens the console, page or file the item names (http links in a new tab) | - | `U:golive` (the list) | untested (clicks) |
+| progress ring and odometer | done / 41 items and the 72 h countdown as hours:minutes:seconds | - | `E:golive-fit` (renders), `U:golive` | pass (render) |
 | «Назад в офис», theme button | navigation, theme | - | `E:golive-fit` (link visible) | pass |
 | API guard | 401 without session, 403 bad Origin, 400 unknown action | `/api/admin/golive` | `E:golive`, `U:golive` | pass |
 | top-bar chip | countdown text | - | `U:golive` (`chipText`) | pass |
 
-## 14. Review centre `/admin/review` and chats `/admin/chats`
+## 14. Review centre `/admin/review`, editor, chats `/admin/chats`
 
 | Element | What it does | Calls | Verified by | Status |
 |---|---|---|---|---|
 | review: department rail (7, with counts) | switches the queue | `GET review?status=all` | `E:review` (seven entries, counts, one switch), `U:review` | pass |
 | review: queue, J / K, position counter, «Предыдущий» / «Следующий» | steps through the items | - | `E:review` (J then K), `U:review` | pass (keys), untested (arrow buttons) |
 | review: «Правки» (R) composer | opens the revise note, Esc closes it | `POST review/<id>` (revise) | `E:review` (opens, fills, Esc), `U:review` | pass (open and close), untested (send) |
-| review: «Одобрить» (A), «Править» (E), «Отклонить» (X), «Выложить сейчас» (P), «Перенести» (T), «Отправить» (S), «Позвонить» (C) | decisions, optimistic with rollback | `POST review/<id>` | `U:review`, `U:hq-admin` | untested (browser) |
+| review: «Одобрить» (A), «Отклонить» (X), «Выложить сейчас» (P), «Перенести» (T), «Отправить» (S), «Позвонить» (C) | decisions, optimistic with rollback | `POST review/<id>` | `U:review`, `U:hq-admin` | untested (browser) |
+| review: «Править» (E) on a text document | opens the full-screen editor (toolbar, ⌘F find and replace, «Просмотр», «Сравнить с v1», draft kept every 5 s), «Сохранить как версию» (⌘S), ⌘Enter saves and closes, Esc with unsaved text asks first | `POST review/<id>` (`edit`, `text.draft`, up to 40000) | `E:editor`, `E:editor-esc`, `E:editor-phone`, `U:review`, `U:diff` | pass |
+| review: «Править КП» and «Править» on each document of a КП pack (E opens the КП) | the same editor for a presales pack's КП, смета and договор; the contract is left out once the pack is approved | `POST review/<id>` (`edit`, `doc`, `text.draft`) | `E:pack-editor`, `U:review` (targets, payload, mock, whitelist) | pass (open), untested (save in the browser) |
 | review: «Скинуть ссылку» | dialog with the link and a note, host check, Esc closes | `POST trends` | `E:review` (rejects a foreign host, accepts a YouTube link, toast) | pass |
 | review: versions, media stage, details sheet | v1/v2, video, carousel | - | `U:review` | untested (browser) |
+| review and Sales drawer: «Разбор заявки» | the same block in both: niche, products, goals, channels, parts and prices, stages, style, answers; built from `meta.lead` / lead row `estimate`, `builderUrl`, `message`, else `enrichment.builderLink`, else the first builder link in the lead text | - | `E:breakdown`, `E:breakdown-lead`, `U:lead-breakdown` (`breakdownSource`) | pass |
+| «Разбор заявки»: «Открыть смету», «Открыть сборку», «Открыть превью» | new tab: the estimate page, the builder, the builder's final step with the `?b=` | - | `U:lead-breakdown` (hrefs) | untested (clicks) |
+| «Разбор заявки»: «Показать превью» / «Скрыть превью» | draws the builder's mockup small from the decoded `?b=` (loaded on demand) | - | none | untested |
 | chats: list, thread opens | threads with channels and unread | `GET chats`, `GET chats/<id>` | `E:chats`, `U:chats` | pass |
 | chats: reply box (Enter sends, Shift+Enter new line) | owner reply joins the thread | `POST chats/<id>/reply` | `E:chats` (Enter), `U:chats` | pass (Enter), untested (Shift+Enter) |
-| chats: filters, links «Открыть лид / тикет / клиента» | filter, jump to the Пульт panel | - | `U:chats` | untested (browser) |
+| chats: «Ответить в тред» picker (lead / support / project N; shown when the client has several threads, the lead's preselected) | sends `thread`; `422 thread_required` opens the picker with HQ's names and keeps the draft | `POST chats/<id>/reply`, `GET clients/<id>/threads` | `E:chats` (picker, value), `U:chats` (choices, 422, body, whitelist) | pass (picker), untested (422 in the browser) |
+| chats: «Ответить» under a client message (cabinet messages `cab_`, `ct_`) and the «Ответ на: …» chip with ✕ | sends `replyTo` | `POST chats/<id>/reply` | `U:chats` (`canReplyTo`, body) | untested (browser) |
+| chats: search box «Поиск по клиентам» | filters by name, contact, email and last message | - | `E:chats` (empty result), `U:chats` | pass |
+| chats: «Отметить непрочитанным» | local flag in this browser (HQ has no such call), the thread shows an unread count until opened | - | `U:chats` (marks) | untested (browser) |
+| chats: filters «Активные / Все» and channels, links «Открыть лид / тикет / клиента» | filter, jump to the Пульт panel | - | `U:chats` | untested (browser) |
 
 ## Totals
 
@@ -388,13 +416,13 @@ Counted as rows of the tables above (one row can stand for a group of identical 
 | 8 pay | 6 | 1 | 0 | 1 |
 | 9 cabinet | 3 | 5 | 0 | 12 |
 | 10 404 and chat | 6 | 2 | 0 | 3 |
-| 11 owner login and hub | 10 | 3 | 0 | 3 |
-| 12 department panels | 5 | 8 | 0 | 12 |
-| 13 go-live | 6 | 2 | 0 | 2 |
-| 14 review centre and chats | 3 | 3 | 0 | 3 |
-| **all** | **96** | **37** | **0** | **60** |
+| 11 owner login and hub | 10 | 4 | 0 | 3 |
+| 12 department panels | 6 | 9 | 0 | 14 |
+| 13 go-live | 7 | 2 | 0 | 3 |
+| 14 review centre, editor, chats | 6 | 5 | 0 | 7 |
+| **all** | **101** | **41** | **0** | **67** |
 
-The totals were recounted from the tables on 2026-11-21 (section 10 holds 6 pass, 2 in part, 3 untested rows; the earlier table had it one row off) and section 14 was added with the review centre and the chats.
+The totals were recounted from the tables on 2026-11-21 (section 10 holds 6 pass, 2 in part, 3 untested rows; the earlier table had it one row off) and section 14 was added with the review centre and the chats. On 2026-11-22 sections 11 to 14 were recounted after the refresh (Поручения with the approvals section, the Director «Документы» tab, the editor on every document row, «Разбор заявки» with the preview, the chat reply thread, search and «mark unread», go-live and prices rows); sections 1 to 10 keep the 2026-11-21 count.
 
 `fail` is 0 because the two bugs the suite found were small and are fixed (below); they stay in the tables as
 `pass` with the test that now guards them. `untested` is mostly three groups: everything behind a real Supabase

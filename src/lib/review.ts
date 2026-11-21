@@ -1,4 +1,4 @@
-import { fileUrl, safeRenderPath, safeUrl } from './pult'
+import { breakdownSource, fileUrl, safeRenderPath, safeUrl } from './pult'
 
 // Ревью-центр (contract «Ревью-центр», 2026-11-21, docs/pult.md): view models of GET /admin/review,
 // GET /admin/trends and the decisions of POST /admin/review/:id. Pure: no I/O, no React. Nothing
@@ -32,7 +32,7 @@ export type ReviewStatus = (typeof STATUSES)[number]
 export const MEDIA_TYPES = ['video', 'image', 'pdf', 'html'] as const
 
 export type ReviewMedia = { type: (typeof MEDIA_TYPES)[number]; src: string; poster: string | null; w: number | null; h: number | null; durationS: number | null }
-export type ReviewDoc = { key: string; title: string; body: string }
+export type ReviewDoc = { key: string; title: string; body: string; id?: string }
 export type ReviewText = {
   body?: string
   draft?: string
@@ -92,13 +92,14 @@ export function normalizeMedia(raw: unknown): ReviewMedia[] {
 export function normalizeText(raw: unknown): ReviewText {
   const r = rec(raw)
   const out: ReviewText = {}
-  for (const k of ['body', 'draft', 'caption', 'subject', 'page'] as const) if (typeof r[k] === 'string') out[k] = r[k] as string
+  // Documents (a contract runs to ~30k characters) keep up to 60k; the short fields are cut where HQ cuts them.
+  for (const k of ['body', 'draft', 'caption', 'subject', 'page'] as const) if (typeof r[k] === 'string') out[k] = (r[k] as string).slice(0, k === 'body' || k === 'draft' ? 60_000 : 20_000)
   if (Array.isArray(r.hashtags)) out.hashtags = r.hashtags.filter((h): h is string => typeof h === 'string').slice(0, 40)
   const caps = rec(r.captions)
   const captions: ReviewText['captions'] = {}
   for (const k of ['instagram', 'tiktok', 'shorts'] as const) if (typeof caps[k] === 'string') captions[k] = caps[k] as string
   if (Object.keys(captions).length) out.captions = captions
-  const docs = arr(r.documents, 10).map((d): ReviewDoc => ({ key: str(rec(d).key, 20), title: str(rec(d).title, 200), body: str(rec(d).body) }))
+  const docs = arr(r.documents, 10).map((d): ReviewDoc => ({ key: str(rec(d).key, 20), title: str(rec(d).title, 200), body: str(rec(d).body, 60_000), ...(rec(d).id !== undefined && rec(d).id !== null ? { id: str(rec(d).id, 40) } : {}) }))
   if (docs.length) out.documents = docs
   return out
 }
@@ -315,11 +316,7 @@ export const documentText = (item: ReviewItem): string => (item.kind === 'articl
 // «Разбор заявки» for a sales item: what the lead came with (the client's words, the quote text, the
 // builder link). Null when the item has no lead or the lead carries none of them.
 export function leadBreakdownInput(item: Pick<ReviewItem, 'meta'>): { estimate: string; message: string; builderUrl: string | null } | null {
-  const lead = rec(item.meta.lead)
-  if (!Object.keys(lead).length) return null
-  const link = lead.builderUrl ?? lead.builder_url ?? rec(lead.builder).url
-  const out = { estimate: str(lead.estimate, 2000), message: str(lead.message ?? lead.summary, 2000), builderUrl: typeof link === 'string' && link ? link.slice(0, 2000) : null }
-  return out.estimate || out.message || out.builderUrl ? out : null
+  return breakdownSource(item.meta.lead)
 }
 
 // ---- versions ------------------------------------------------------------------------------------

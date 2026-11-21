@@ -129,3 +129,87 @@ export function threadLinks(t: ChatThread): { label: string; href: string }[] {
 
 // Enter sends, Shift+Enter is a newline; never while an IME composition is going on.
 export const sendsOnEnter = (e: { key: string; shiftKey: boolean; isComposing?: boolean }): boolean => e.key === 'Enter' && !e.shiftKey && !e.isComposing
+
+// ---- reply thread (contract «GET /admin/chats и ответы клиентам», 2026-11-22) ----------------------
+// A cabinet client has up to three kinds of threads the owner's reply can land in: the lead's own
+// (`lead`), `support` and one per project (`project-<id>`). The picker lists them; HQ answers
+// `422 thread_required` when several exist and it cannot tell which one the client wrote in last.
+
+export type ThreadChoice = { id: string; label: string }
+const CHOICE_ID = /^(lead|support|project-\d{1,12})$/
+export const isThreadChoice = (v: unknown): v is string => typeof v === 'string' && CHOICE_ID.test(v)
+export function choiceLabel(id: string): string {
+  if (id === 'lead') return 'Заявка'
+  if (id === 'support') return 'Поддержка'
+  const m = /^project-(\d+)$/.exec(id)
+  return m ? `Проект #${m[1]}` : id
+}
+
+// GET /admin/clients/:id/threads → the replyable ones (agent threads are answered by the agent, never by the owner).
+export function normalizeThreadChoices(body: unknown): ThreadChoice[] | null {
+  const b = rec(body)
+  if (!Array.isArray(b.items)) return null
+  const out: ThreadChoice[] = []
+  for (const raw of b.items.slice(0, 100)) {
+    const r = rec(raw)
+    const refId = optNum(r.refId)
+    const id = r.kind === 'lead' ? 'lead' : r.kind === 'support' ? 'support' : r.kind === 'project' && refId !== null ? `project-${refId}` : null
+    if (!id || out.some((c) => c.id === id)) continue
+    const title = str(r.title, 80)
+    out.push({ id, label: title || choiceLabel(id) })
+  }
+  return out
+}
+
+// Without that list (a client without a cabinet, or the call failed): what the thread row itself shows.
+export function fallbackChoices(t: ChatThread): ThreadChoice[] {
+  const out: ThreadChoice[] = []
+  if (t.leadId !== null) out.push({ id: 'lead', label: choiceLabel('lead') })
+  if (t.ticketId !== null) out.push({ id: 'support', label: choiceLabel('support') })
+  return out
+}
+
+// The names HQ sends with a 422 (`threads: ["lead","support"]`) as picker options.
+export function choicesFrom(names: unknown, known: ThreadChoice[] = []): ThreadChoice[] {
+  const out: ThreadChoice[] = []
+  for (const n of Array.isArray(names) ? names.slice(0, 50) : []) {
+    if (!isThreadChoice(n) || out.some((c) => c.id === n)) continue
+    out.push(known.find((c) => c.id === n) ?? { id: n, label: choiceLabel(n) })
+  }
+  return out
+}
+
+// A message the owner can reply to: only cabinet messages have ids HQ accepts (`cab_<n>`, `ct_<n>`).
+export const canReplyTo = (m: Pick<ChatMessage, 'id' | 'from'>): boolean => m.from === 'client' && /^(cab|ct)_\d{1,12}$/.test(m.id)
+
+// The thread to preselect: the last client message's own thread when HQ names one, else the lead's, else support, else the first.
+export function defaultChoice(choices: ThreadChoice[], hint?: string | null): string | null {
+  if (hint && choices.some((c) => c.id === hint)) return hint
+  return (choices.find((c) => c.id === 'lead') ?? choices.find((c) => c.id === 'support') ?? choices[0])?.id ?? null
+}
+
+// The body of the reply call. `thread` goes along only when there is a real choice or the owner made one.
+export function replyBody(text: string, opts: { thread?: string | null; replyTo?: string | null }): { text: string; thread?: string; replyTo?: string } {
+  return { text, ...(opts.thread && isThreadChoice(opts.thread) ? { thread: opts.thread } : {}), ...(opts.replyTo && /^[\w-]{1,64}$/.test(opts.replyTo) ? { replyTo: opts.replyTo } : {}) }
+}
+
+// ---- search and «mark unread» ----------------------------------------------------------------------
+
+// Case-insensitive match on name, contact, email and the last message.
+export function searchThreads(items: ChatThread[], query: string): ChatThread[] {
+  const q = query.trim().toLowerCase()
+  if (!q) return items
+  return items.filter((t) => [t.client.name, t.client.contact, t.client.email ?? '', t.preview].some((f) => f.toLowerCase().includes(q)))
+}
+
+// HQ has no «mark unread» call: the owner's marks live in this browser (a set of thread ids) and
+// show as an unread dot on top of HQ's own counter.
+export function applyUnreadMarks(items: ChatThread[], marks: ReadonlySet<string>): ChatThread[] {
+  return items.map((t) => (marks.has(t.id) && t.unread === 0 ? { ...t, unread: 1 } : t))
+}
+export function toggleMark(marks: ReadonlySet<string>, id: string, on: boolean): Set<string> {
+  const next = new Set(marks)
+  if (on) next.add(id)
+  else next.delete(id)
+  return next
+}
