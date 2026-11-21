@@ -558,3 +558,21 @@ Tag `E:processes` = `tests/e2e/admin-processes.spec.ts`; `U:processes` = `tests/
 | Processes | «Очистить тестовые данные» | asks to confirm, then runs `/drill clear`; disabled when no drill exists | `POST processes/drill {action:'clear'}` | `E:processes` (confirm, reset), `U:processes` | pass |
 | Processes | failed call | toast «Не получилось: ...», the map stays | - | `U:processes` (error codes via `errText`) | untested (browser) |
 
+
+## HQ Settings (2026-11-23), adds to the rows above
+`U:settings-hq` = `tests/settings-hq.test.mjs` (normalizer, field catalogue, PATCH builders, validation, proxy whitelist incl. `PATCH settings` and `autopilot`, dev mock); `E:hq` = `tests/e2e/admin-hq.spec.ts` (Settings test). «Settings» is a built section now (`/admin/settings`), no longer «Soon». Every field saves alone through `PATCH settings` (browser `POST`-free: `hqPatch`), shows «Saving», then «Saved», or the error under the control; a wrong value is refused in the page before any call.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/settings` Autopilot | three radios «Зови меня при любом сомнении» / «Зови меня по политике» / «Автопилот: ...» | sets `autopilot.leadManager` (`ask_me` / `policy` / `autopilot`), applies at once | `PATCH settings` | `E:hq`, `U:settings-hq` | pass |
+| Schedule | time fields (morning summary, approvals batch, digest time, quiet from/until, call windows) | save on blur or Enter, `HH:mm` checked first | `PATCH settings` | `E:hq` (summary), `U:settings-hq` | pass |
+| Schedule | weekly digest day, default document language (selects) | save on change | `PATCH settings` | `U:settings-hq` | pass (logic), manual (UI) |
+| Schedule | «Quiet hours» switch | on writes `{from,to}`, off writes `null`; the two times are disabled while off | `PATCH settings` | `U:settings-hq` (builder) | pass (logic), manual (UI) |
+| Schedule | time zone fields (yours, market) | save on blur; an unknown zone shows the error | `PATCH settings` | `E:hq` | pass |
+| Notifications, Alerts | one switch per reminder type and alert kind | save at once | `PATCH settings` | `E:hq` (New lead) | pass |
+| Notifications | grouping window (0..120), «Stay quiet while the desk is open» | save on blur / at once | `PATCH settings` | `U:settings-hq` | pass (logic), manual (UI) |
+| Trust | default threshold; per action kind: threshold, «Use default», level switch | level 1 asks to confirm first; threshold null resets | `PATCH settings` (`trust.levels`, `trust.thresholds`) | `E:hq` (level), `U:settings-hq` | pass |
+| Limits and spend | five department budgets plus Director, client model replies a day | save on blur; this month's spend and today's use shown next to the limit | `PATCH settings` | `E:hq` (spend shown), `U:settings-hq` | pass |
+| Calls, Quotes, Playground | durations, buffer, validity days, message limits | save on blur, range checked in the page and by HQ | `PATCH settings` | `E:hq` (range error) | pass |
+| Service flags | Telegram approval cards, group reports | save at once, then a «Restart needed» note lists the keys | `PATCH settings` | `E:hq` | pass |
+| Changed in this session | list of key, old -> new | filled from each save's `changed` keys; HQ has no endpoint to read `settings_log` yet | none | `E:hq`, `U:settings-hq` | pass |

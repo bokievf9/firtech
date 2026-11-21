@@ -43,7 +43,7 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'processes', label: 'Processes', state: 'ready', href: '/admin/processes', legacy: office('company', 'company') },
   { id: 'content', label: 'Content', state: 'ready', href: '/admin/content', legacy: office('marketing', 'content') },
   { id: 'finance', label: 'Finance', state: 'soon', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
-  { id: 'settings', label: 'Settings', state: 'soon', href: '/admin/settings', legacy: office('company', 'prices') },
+  { id: 'settings', label: 'Settings', state: 'ready', href: '/admin/settings', legacy: office('company', 'prices') },
 ] as const
 
 export const isSoonSection = (v: unknown): v is HqSectionId =>

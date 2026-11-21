@@ -11,11 +11,11 @@ export const dynamic = 'force-dynamic'
 
 type Ctx = { params: Promise<{ path: string[] }> }
 
-async function handle(request: Request, ctx: Ctx, method: 'GET' | 'POST') {
+async function handle(request: Request, ctx: Ctx, method: 'GET' | 'POST' | 'PATCH') {
   const denied = await guard(request)
   if (denied) return denied
   const { path } = await ctx.params
-  const body = method === 'POST' ? await readJson(request) : undefined
+  const body = method !== 'GET' ? await readJson(request) : undefined
   const resolved = resolveEndpoint(method, path, new URL(request.url).searchParams, body)
   if (!resolved.ok) return json({ ok: false, error: resolved.error }, resolved.status)
   return json(await callHqAdmin(method, resolved.path, { query: resolved.query, body: resolved.body }))
@@ -23,3 +23,4 @@ async function handle(request: Request, ctx: Ctx, method: 'GET' | 'POST') {
 
 export const GET = (request: Request, ctx: Ctx) => handle(request, ctx, 'GET')
 export const POST = (request: Request, ctx: Ctx) => handle(request, ctx, 'POST')
+export const PATCH = (request: Request, ctx: Ctx) => handle(request, ctx, 'PATCH')

@@ -10,7 +10,7 @@ import { hqMock } from './hq-admin-mock'
 export const DEFAULT_HQ_ADMIN_URL = 'http://127.0.0.1:8787/admin'
 export const HQ_ADMIN_TIMEOUT_MS = 5000
 
-type Method = 'GET' | 'POST'
+type Method = 'GET' | 'POST' | 'PATCH'
 type Env = Record<string, string | undefined>
 export type Proxied = { ok: true; [k: string]: unknown } | { ok: false; error: string; reason?: string; [k: string]: unknown }
 
@@ -64,6 +64,27 @@ export const ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^drill$/ },
   { method: 'POST', path: /^drill$/, body: z.object({ arg: z.string().max(100).optional() }).strict() },
 ]
+
+// HQ «Settings» (2026-11-23): the one settings object; HQ takes PATCH here (`agents/docs/admin-crm-api.md` «Настройки»). The body mirrors
+// HQ's strict schema (any subset of the groups, nothing else), including the lead manager's `autopilot` mode.
+const settingsTime = z.string().regex(/^([01]?\d|2[0-3]):[0-5]\d$/)
+const settingsFlags = (keys: readonly string[]) => z.object(Object.fromEntries(keys.map((k) => [k, z.boolean().optional()]))).strict()
+const settingsZone = z.string().min(1).max(64)
+export const SETTINGS_BODY = z
+  .object({
+    schedule: z.object({ summaryTime: settingsTime, approvalTime: settingsTime, digestDay: z.number().int().min(0).max(6), digestTime: settingsTime, quietHours: z.object({ from: settingsTime, to: settingsTime }).strict().nullable(), ownerTz: settingsZone, tz: settingsZone }).partial().strict(),
+    notices: z.object({ types: settingsFlags(['client', 'lead', 'approval', 'payment', 'stage', 'signed', 'call', 'chat', 'human']), alerts: settingsFlags(['lost_lead', 'email_failed', 'llm', 'budget', 'service', 'human']), groupWindowMin: z.number().int().min(0).max(120), skipWhileDesk: z.boolean() }).partial().strict(),
+    trust: z.object({ defaultThreshold: z.number().int().min(1).max(1000), thresholds: z.record(z.string().max(60), z.number().int().min(1).max(1000).nullable()), levels: z.record(z.string().max(60), z.union([z.literal(0), z.literal(1)])) }).partial().strict(),
+    limits: z.object({ deptBudgetUsd: z.object(Object.fromEntries(['marketing', 'sales', 'support', 'production', 'backoffice', 'director'].map((k) => [k, z.number().min(0).max(100000).optional()]))).strict(), clientLlmDailyCap: z.number().int().min(0).max(100000) }).partial().strict(),
+    calls: z.object({ slotHours: z.tuple([settingsTime, settingsTime]), durationMin: z.number().int().min(5).max(240), bufferMin: z.number().int().min(0).max(240) }).partial().strict(),
+    kp: z.object({ validDays: z.number().int().min(1).max(90), defaultLang: z.enum(['ru', 'en']) }).partial().strict(),
+    playground: z.object({ draftMsgsPerDay: z.number().int().min(1).max(2000), liveMsgsPerDay: z.number().int().min(1).max(2000) }).partial().strict(),
+    service: z.object({ tgApprovalCards: z.boolean(), tgGroupReports: z.boolean() }).partial().strict(),
+    autopilot: z.object({ leadManager: z.enum(['ask_me', 'policy', 'autopilot']) }).partial().strict(),
+  })
+  .partial()
+  .strict()
+  .refine((b) => Object.keys(b).length > 0, 'empty patch')
 
 // «Пульт» stage 2: the read-mostly CRM views (agents/docs/admin-crm-api.md) and the two writes
 // (a prospect's status and note, a ticket's status and note). Ids are numeric. A reply to a client
@@ -158,7 +179,9 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // The owner accepts a client's finished stage from the project drawer (same call as the cabinet button).
   // Numeric client id only (a client without an account has no cabinet to accept in).
   { method: 'POST', path: /^clients\/\d{1,12}\/projects\/\d{1,12}\/milestones\/\d{1,3}\/accept$/, body: empty },
-  // HQ «Agents» (2026-11-23): list, card, one instruction version, edit and rollback of the instructions.
+    { method: 'GET', path: /^settings$/ },
+  { method: 'PATCH', path: /^settings$/, body: SETTINGS_BODY },
+// HQ «Agents» (2026-11-23): list, card, one instruction version, edit and rollback of the instructions.
   { method: 'GET', path: /^agents$/ },
   { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}$/ },
   { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/\d{1,6}$/ },
@@ -273,7 +296,7 @@ export function resolveEndpoint(method: string, segments: string[], search: URLS
   return { ok: true, path, query, body: parsed.data }
 }
 
-const ERROR_EXTRAS = ['maxChars', 'item', 'results', 'message', 'state', 'status', 'via', 'actions', 'allowed', 'hint', 'placeholders', 'threads'] as const
+const ERROR_EXTRAS = ['fields', 'kinds', 'department', 'maxChars', 'item', 'results', 'message', 'state', 'status', 'via', 'actions', 'allowed', 'hint', 'placeholders', 'threads'] as const
 
 export type CallDeps = { env?: Env; fetcher?: typeof fetch; timeoutMs?: number; now?: number }
 
@@ -292,7 +315,7 @@ export async function callHqAdmin(
   const token = env.HQ_ADMIN_TOKEN?.trim() || env.HQ_OFFICE_TOKEN?.trim()
   const headers: Record<string, string> = { accept: 'application/json' }
   if (token) headers['x-admin-token'] = token
-  if (method === 'POST') headers['content-type'] = 'application/json'
+  if (method !== 'GET') headers['content-type'] = 'application/json'
   // An explicit timer: AbortSignal.timeout() does not keep the event loop alive, so a hanging request
   // could outlive the process (seen in CI).
   const controller = new AbortController()
@@ -302,7 +325,7 @@ export async function callHqAdmin(
     const res = await fetcher(`${base}/${encoded}${qs ? `?${qs}` : ''}`, {
       method,
       headers,
-      ...(method === 'POST' ? { body: JSON.stringify(body ?? {}) } : {}),
+      ...(method !== 'GET' ? { body: JSON.stringify(body ?? {}) } : {}),
       cache: 'no-store',
       signal: controller.signal,
     })
