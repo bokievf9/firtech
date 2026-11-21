@@ -104,7 +104,7 @@ test('mock flow: greeting, what, deadline, budget, contact, thanks', () => {
 
   assert.equal(say('не скажу').reply, copy.badContact)
   const done = say('@madina_cafe')
-  assert.equal(done.reply, 'Спасибо! Первый ответ за 5 минут, круглосуточно; цены и сроки подтверждает основатель.')
+  assert.equal(done.reply, 'Спасибо. Первый ответ за 5 минут, круглосуточно; цены и сроки подтверждает основатель.')
   assert.equal(done.state, 'done')
   assert.notEqual(done.leadCreated, true, 'the mock never claims a lead')
   assert.equal(say('ещё вопрос').reply, copy.after)
