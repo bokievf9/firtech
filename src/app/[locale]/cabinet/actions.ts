@@ -2,7 +2,6 @@
 
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
-import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import {
   appOrigin,
@@ -17,8 +16,8 @@ import {
   validationKey,
   type AuthErrorKey,
 } from '@/lib/cabinet-auth'
-import { parseProfileForm, saveProfileRow, type ProfileInput, type ProfilesClient } from '@/lib/cabinet-profile'
-import { createClientTicket, fetchClientByEmail, patchClientProfile, syncClientToHq } from '@/lib/cabinet-hq'
+import { deleteWordOk } from '@/lib/cabinet-profile'
+import { createClientTicket, fetchClientByEmail, syncClientToHq } from '@/lib/cabinet-hq'
 import { requireCabinetUser } from '@/lib/cabinet-session'
 import { isLocale, type Locale } from '@/lib/i18n'
 import { supabaseConfig } from '@/lib/supabase/config'
@@ -30,11 +29,9 @@ import { createClient } from '@/lib/supabase/server'
 // `stay=1` (the compact form next to a lead form) answers `signed_in` instead of redirecting, and
 // `next` (a path of this locale, see safeNextPath) is where the email links come back to.
 export type FormState = {
-  error?: AuthErrorKey | 'profile' | 'telegram' | 'delete_failed'
-  notice?: 'check_email' | 'reset_sent' | 'saved' | 'delete_requested' | 'signed_in' | 'resent'
+  error?: AuthErrorKey | 'telegram' | 'delete_failed' | 'delete_word' | 'current_password' | 'same_email'
+  notice?: 'check_email' | 'reset_sent' | 'delete_requested' | 'signed_in' | 'resent' | 'password_changed' | 'email_sent'
   email?: string
-  // The values the profile now holds (updateProfileAction), so the form shows them after saving.
-  saved?: ProfileInput
   // The address exists but is not confirmed yet: the form offers «Отправить письмо ещё раз».
   canResend?: boolean
 }
@@ -161,38 +158,65 @@ export async function logoutAction(form: FormData): Promise<void> {
   redirect(`/${locale}/cabinet/login`)
 }
 
-// Saves name, Telegram, language and the newsletter flag. The write is verified (a silent
-// zero-row update used to report «Сохранено»), the cabinet is revalidated, HQ gets the new name and
-// Telegram (CRM) and the state carries the stored values back so the form keeps them
-// (cabinet-profile.ts has the full story of the 2026-11-22 bug).
-export async function updateProfileAction(_: FormState, form: FormData): Promise<FormState> {
+// Security section of the profile (2026-11-22). Plain server actions behind small forms (password fields
+// SHOULD be cleared after a form action). The profile fields themselves save through /api/cabinet/profile.
+
+// New password. An account with a password must type the current one first (checked by signing in with
+// it); a Google-only account sets its first password without it.
+export async function changePasswordAction(_: FormState, form: FormData): Promise<FormState> {
   const locale = localeOf(form)
   const { supabase, user } = await requireCabinetUser(locale)
-  const parsed = parseProfileForm(form, locale)
-  if (!parsed.ok) return { error: parsed.error }
-  const { input } = parsed
-  const saved = await saveProfileRow(supabase as unknown as ProfilesClient, user, input)
-  if (!saved.ok) {
-    console.warn(`[cabinet] profile save failed (${saved.reason})`)
-    return { error: 'profile' }
+  const parsed = resetSchema.safeParse({ password: form.get('password') ?? '' })
+  if (!parsed.success) return { error: 'weak_password' }
+  const hasPassword = (user.identities ?? []).some((i) => i.provider === 'email') || user.app_metadata?.provider === 'email'
+  if (hasPassword) {
+    const current = String(form.get('current') ?? '')
+    if (!current) return { error: 'current_password' }
+    const check = await supabase.auth.signInWithPassword({ email: user.email ?? '', password: current })
+    if (check.error) {
+      logAuth('password_check', check.error)
+      const key = authErrorKey(check.error)
+      return { error: key === 'invalid_credentials' ? 'current_password' : key }
+    }
   }
-  const email = (user.email ?? '').toLowerCase()
-  // The CRM: a known client gets a PATCH-style update (`POST /admin/clients/:id`, only these fields); a client
-  // HQ does not know yet is registered with the saved data. Never the registration upsert for a known one.
-  const known = await fetchClientByEmail(email)
-  const synced = known.ok
-    ? await patchClientProfile(known.data.client.id, { name: input.name, telegram: input.telegram, locale: input.locale })
-    : known.error === 'not_found'
-      ? await syncClientToHq(user.id, { email, name: input.name, telegram: input.telegram, locale: input.locale, marketing_consent: input.marketing })
-      : known
-  if (synced.ok) {
-    const { error } = await supabase.from('profiles').update({ hq_synced_at: new Date().toISOString() }).eq('id', user.id)
-    if (error) console.warn('[cabinet] could not store hq_synced_at')
-  } else {
-    console.warn(`[cabinet] HQ profile sync failed (${synced.error})`)
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
+  if (error) {
+    logAuth('password_change', error)
+    return { error: authErrorKey(error) }
   }
-  revalidatePath(`/${locale}/cabinet`)
-  return { notice: 'saved', saved: input }
+  return { notice: 'password_changed' }
+}
+
+// New email through Supabase: it sends a confirmation link (to both addresses with «Secure email change»);
+// the address changes only after the click. The link comes back through the usual callback.
+export async function changeEmailAction(_: FormState, form: FormData): Promise<FormState> {
+  const locale = localeOf(form)
+  const { supabase, user } = await requireCabinetUser(locale)
+  const parsed = forgotSchema.safeParse({ email: form.get('email') ?? '' })
+  if (!parsed.success) return { error: 'invalid_email' }
+  if (parsed.data.email.toLowerCase() === (user.email ?? '').toLowerCase()) return { error: 'same_email' }
+  const { error } = await supabase.auth.updateUser(
+    { email: parsed.data.email },
+    { emailRedirectTo: callbackUrl(appOrigin(await headers()), locale, `/${locale}/cabinet?tab=profile`) },
+  )
+  if (error) {
+    logAuth('email_change', error)
+    const key = authErrorKey(error)
+    return { error: key === 'rate_limit' ? 'email_rate_limit' : key, email: parsed.data.email }
+  }
+  return { notice: 'email_sent', email: parsed.data.email }
+}
+
+// «Выйти на всех устройствах»: every session of the account ends, this one too.
+export async function signOutEverywhereAction(form: FormData): Promise<void> {
+  const locale = localeOf(form)
+  const supabase = await createClient()
+  const { error } = (await supabase?.auth.signOut({ scope: 'global' })) ?? { error: null }
+  if (error) {
+    logAuth('sign_out_global', error)
+    await supabase?.auth.signOut()
+  }
+  redirect(`/${locale}/cabinet/login`)
 }
 
 // Deleting the account: with SUPABASE_SERVICE_ROLE_KEY the auth user (and, by cascade, the profile)
@@ -201,6 +225,8 @@ export async function updateProfileAction(_: FormState, form: FormData): Promise
 export async function deleteAccountAction(_: FormState, form: FormData): Promise<FormState> {
   const locale = localeOf(form)
   const { supabase, user } = await requireCabinetUser(locale)
+  // The word typed by hand (УДАЛИТЬ / DELETE), checked here too, not only in the browser.
+  if (!deleteWordOk(String(form.get('confirm') ?? ''), locale)) return { error: 'delete_word' }
   const config = supabaseConfig()
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   if (config && serviceKey) {

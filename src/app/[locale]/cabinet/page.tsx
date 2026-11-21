@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { AgentPanel } from '@/components/cabinet/agent-panel'
 import { CabinetSoon } from '@/components/cabinet/cabinet-soon'
-import { ProfileForm, DeleteAccount } from '@/components/cabinet/cabinet-forms'
+import { ProfilePanel, type NicheGroup } from '@/components/cabinet/profile-panel'
 import { ReferralsCard } from '@/components/cabinet/cabinet-cards'
 import { CabinetTabs } from '@/components/cabinet/cabinet-tabs'
 import { DocumentsPanel } from '@/components/cabinet/documents-panel'
@@ -11,9 +11,11 @@ import { MessagesPanel } from '@/components/cabinet/messages-panel'
 import { OffersStrip } from '@/components/cabinet/offers'
 import { EmptyProjects, ProjectCard, RecentBlock } from '@/components/cabinet/projects-home'
 import { RefreshWhileVisible } from '@/components/cabinet/refresh-while-visible'
-import { Card, fill } from '@/components/cabinet/ui'
+import { fill } from '@/components/cabinet/ui'
 import { HeroIntro } from '@/components/hero-intro'
 import { getDict } from '@/content'
+import { categoryNames, kindCatalog, kindCategories, kindIds, pick } from '@/content/builder-catalog'
+import { rowToView, type ProfileRow } from '@/lib/cabinet-profile'
 import { pickOffers, offerState } from '@/lib/cabinet-offers'
 import { defaultTab } from '@/lib/cabinet-tabs'
 import { fetchClientByEmail, fetchCabinetExtras, fetchThreadMessages } from '@/lib/cabinet-hq'
@@ -43,6 +45,16 @@ const emptyData = (email: string, name: string): CabinetData => ({
   referrals: [],
   referralSlug: null,
 })
+
+// The «Ниша» list of the profile: the builder's niches grouped by its categories («Другое» last).
+function nicheGroups(locale: 'ru' | 'en'): NicheGroup[] {
+  return kindCategories.map((category) => ({
+    label: pick(categoryNames[category], locale),
+    options: kindIds
+      .filter((id) => kindCatalog[id].category === category)
+      .map((id) => ({ id, name: kindCatalog[id][locale][0] })),
+  }))
+}
 
 export default async function CabinetPage({ params, searchParams }: PageProps<'/[locale]/cabinet'>) {
   const { locale } = await params
@@ -146,7 +158,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
               <RecentBlock docs={view.recentDocs} messages={recentMessages} dict={dict} locale={locale} />
             </>
           ),
-          documents: <DocumentsPanel dict={dict} locale={locale} initial={view.docs} defaultName={name} />,
+          documents: <DocumentsPanel dict={dict} locale={locale} initial={view.docs} defaultName={profile?.legal_name?.trim() || name} />,
           messages: <MessagesPanel dict={dict} locale={locale} initial={extras.threads} tickets={data.tickets} />,
           agent: view.agent ? (
             <AgentPanel dict={dict} locale={locale} agent={view.agent} conversations={extras.conversations} thread={view.agentThread} />
@@ -154,20 +166,14 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
           materials: <MaterialsPanel dict={dict} locale={locale} thread={view.materialsThread} />,
           referrals: <ReferralsCard data={data} dict={dict} locale={locale} />,
           profile: (
-            <Card title={t.cards.profile} id="cabinet-profile">
-              <ProfileForm
-                dict={dict}
-                locale={locale}
-                profile={{
-                  name,
-                  email,
-                  telegram: profile?.telegram ?? '',
-                  locale: profile?.locale === 'en' ? 'en' : 'ru',
-                  marketing: profile?.marketing_consent === true,
-                }}
-              />
-              <DeleteAccount dict={dict} locale={locale} />
-            </Card>
+            <ProfilePanel
+              dict={dict}
+              locale={locale}
+              initial={rowToView({ ...(profile ?? {}), name } as unknown as ProfileRow, email)}
+              legacy={Boolean(profile?.legacy)}
+              niches={nicheGroups(locale)}
+              hasPassword={(user.identities ?? []).some((i) => i.provider === 'email') || user.app_metadata?.provider === 'email'}
+            />
           ),
         }}
       />

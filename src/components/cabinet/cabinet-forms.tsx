@@ -1,14 +1,11 @@
 'use client'
 
-import { useActionState, useId, useState, type FormEvent } from 'react'
-import { deleteAccountAction, updateProfileAction, type FormState } from '@/app/[locale]/cabinet/actions'
+import { useId, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
 import { buttonStyles } from '@/lib/cn'
 import { formatDate, label, type CabinetTicket } from '@/lib/cabinet-data'
 import type { Locale } from '@/lib/i18n'
 import { Field, FormMessage, inputClass } from './ui'
-
-const initial: FormState = {}
 
 // «Написать в поддержку»: posts to /api/cabinet/tickets and adds the new ticket to the list.
 export function TicketForm({
@@ -78,127 +75,6 @@ export function TicketForm({
         {status === 'sending' ? t.sending : t.submit}
       </button>
     </form>
-  )
-}
-
-// Controlled on purpose: React 19 resets uncontrolled fields to their `defaultValue` after a form
-// action, which put the old name and Telegram back right after a successful save (2026-11-22).
-// The values the action reports as saved replace the local ones.
-export function ProfileForm({
-  dict,
-  locale,
-  profile,
-}: {
-  dict: Dict
-  locale: Locale
-  profile: { name: string; email: string; telegram: string; locale: string; marketing: boolean }
-}) {
-  const t = dict.cabinet.profile
-  const errors = dict.cabinet.auth.errors as Record<string, string>
-  const uid = useId()
-  const [state, action, pending] = useActionState(updateProfileAction, initial)
-  const [values, setValues] = useState({
-    name: profile.name,
-    telegram: profile.telegram,
-    locale: profile.locale,
-    marketing: profile.marketing,
-  })
-  const [seen, setSeen] = useState(state.saved)
-  if (state.saved && state.saved !== seen) {
-    setSeen(state.saved)
-    setValues(state.saved)
-  }
-  return (
-    <form action={action} className="grid gap-4" data-profile-form>
-      <input type="hidden" name="locale" value={locale} />
-      <Field id={`${uid}-name`} label={t.name}>
-        <input
-          id={`${uid}-name`}
-          name="name"
-          value={values.name}
-          onChange={(e) => setValues((v) => ({ ...v, name: e.target.value }))}
-          maxLength={80}
-          autoComplete="name"
-          className={inputClass}
-        />
-      </Field>
-      <Field id={`${uid}-email`} label={t.email}>
-        <input id={`${uid}-email`} value={profile.email} readOnly className={`${inputClass} text-muted`} />
-      </Field>
-      <Field id={`${uid}-tg`} label={t.telegram} help={t.telegramHint}>
-        <input
-          id={`${uid}-tg`}
-          name="telegram"
-          value={values.telegram}
-          onChange={(e) => setValues((v) => ({ ...v, telegram: e.target.value }))}
-          maxLength={60}
-          autoCapitalize="none"
-          placeholder="@name"
-          aria-describedby={`${uid}-tg-help`}
-          className={inputClass}
-        />
-      </Field>
-      <Field id={`${uid}-lang`} label={t.language}>
-        <select
-          id={`${uid}-lang`}
-          name="profileLocale"
-          value={values.locale}
-          onChange={(e) => setValues((v) => ({ ...v, locale: e.target.value }))}
-          className={inputClass}
-        >
-          <option value="ru">{t.languages.ru}</option>
-          <option value="en">{t.languages.en}</option>
-        </select>
-      </Field>
-      <label className="flex items-start gap-3 text-sm text-muted">
-        <input
-          type="checkbox"
-          name="marketing"
-          checked={values.marketing}
-          onChange={(e) => setValues((v) => ({ ...v, marketing: e.target.checked }))}
-          className="mt-1 size-4 accent-[var(--color-accent)]"
-        />
-        {t.marketing}
-      </label>
-      {state.error && <FormMessage kind="error">{errors[state.error] ?? errors.generic}</FormMessage>}
-      {state.notice === 'saved' && <FormMessage kind="ok">{t.saved}</FormMessage>}
-      <button type="submit" disabled={pending} className={`${buttonStyles.primary} justify-self-start`}>
-        {pending ? t.saving : t.save}
-      </button>
-    </form>
-  )
-}
-
-export function DeleteAccount({ dict, locale }: { dict: Dict; locale: Locale }) {
-  const t = dict.cabinet.profile
-  const errors = dict.cabinet.auth.errors as Record<string, string>
-  const [confirming, setConfirming] = useState(false)
-  const [state, action, pending] = useActionState(deleteAccountAction, initial)
-  return (
-    <div className="mt-8 border-t border-line pt-6">
-      <h3 className="text-sm font-medium">{t.deleteTitle}</h3>
-      <p className="mt-2 max-w-[60ch] text-[13px] leading-relaxed text-faint">{t.deleteText}</p>
-      {state.notice === 'delete_requested' ? (
-        <div className="mt-4">
-          <FormMessage kind="ok">{t.deleteRequested}</FormMessage>
-        </div>
-      ) : confirming ? (
-        <form action={action} className="mt-4 flex flex-wrap items-center gap-3">
-          <input type="hidden" name="locale" value={locale} />
-          <button type="submit" disabled={pending} className={buttonStyles.secondary}>
-            {t.deleteConfirm}
-          </button>
-          <button type="button" onClick={() => setConfirming(false)} className="text-sm text-muted hover:text-fg">
-            {t.deleteCancel}
-          </button>
-          {state.error && <FormMessage kind="error">{errors[state.error] ?? errors.generic}</FormMessage>}
-        </form>
-      ) : (
-        <button type="button" onClick={() => setConfirming(true)} className={`${buttonStyles.secondary} mt-4`}>
-          {t.deleteButton}
-        </button>
-      )}
-    </div>
   )
 }
 

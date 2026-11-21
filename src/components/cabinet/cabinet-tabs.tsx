@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { cn } from '@/lib/cn'
 import { parseTab, tabFromKey, withTab, type CabinetTab } from '@/lib/cabinet-tabs'
 import { fill } from './ui'
@@ -192,8 +192,10 @@ export function CabinetTabs({
         >
           {id === tab && (
             <div className="grid gap-gutter">
-              {panels[id]}
-              {strip}
+              {/* Keyed: a server node that is still streaming arrives as a lazy chunk, and React then checks
+                  the keys of this pair (intermittent «unique key» warning, 2026-11-22). */}
+              <Fragment key="panel">{panels[id]}</Fragment>
+              <Fragment key="strip">{strip}</Fragment>
             </div>
           )}
         </div>

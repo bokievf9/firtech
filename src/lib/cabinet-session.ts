@@ -2,6 +2,7 @@ import 'server-only'
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { syncClientToHq } from './cabinet-hq'
+import { BASE_PROFILE_COLUMNS, PROFILE_COLUMNS } from './cabinet-profile'
 import { forwardSiteEvent } from './events-hq'
 import { createClient } from './supabase/server'
 
@@ -13,6 +14,26 @@ export type Profile = {
   locale: string | null
   marketing_consent: boolean | null
   hq_synced_at: string | null
+  updated_at?: string | null
+  // Columns of migration 0003 (absent until the owner runs it).
+  phone?: string | null
+  company?: string | null
+  niche?: string | null
+  website?: string | null
+  city?: string | null
+  legal_name?: string | null
+  legal_address?: string | null
+  refund_wallet?: string | null
+  recommendations_consent?: boolean | null
+  notify_channel?: string | null
+  // True when the database has no 0003 columns yet: the profile UI says so and saves only the old fields.
+  legacy?: boolean
+}
+
+// A select that names a column the table does not have (migration 0003 not run yet).
+const missingColumn = (error: unknown) => {
+  const e = (error ?? {}) as { code?: unknown; message?: unknown }
+  return e.code === '42703' || e.code === 'PGRST204' || /does not exist/i.test(String(e.message ?? ''))
 }
 
 // The signed-in user of a cabinet page, or a redirect to the login page of this locale.
@@ -27,9 +48,15 @@ export async function requireCabinetUser(locale: string): Promise<{ supabase: Su
 // Reads the profile; creates it from the auth user when the sign-up trigger has not (RLS allows
 // inserting one's own row).
 export async function loadProfile(supabase: SupabaseClient, user: User): Promise<Profile | null> {
-  const columns = 'id,email,name,telegram,locale,marketing_consent,hq_synced_at'
-  const found = await supabase.from('profiles').select(columns).eq('id', user.id).maybeSingle()
-  if (found.data) return found.data as Profile
+  let columns = PROFILE_COLUMNS
+  let legacy = false
+  let found = await supabase.from('profiles').select(columns).eq('id', user.id).maybeSingle()
+  if (found.error && missingColumn(found.error)) {
+    legacy = true
+    columns = BASE_PROFILE_COLUMNS
+    found = await supabase.from('profiles').select(columns).eq('id', user.id).maybeSingle()
+  }
+  if (found.data) return { ...(found.data as unknown as Profile), legacy }
   if (found.error || !user.email) return null
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>
   const name = typeof meta.name === 'string' ? meta.name : typeof meta.full_name === 'string' ? meta.full_name : null
@@ -38,7 +65,7 @@ export async function loadProfile(supabase: SupabaseClient, user: User): Promise
     .insert({ id: user.id, email: user.email.toLowerCase(), name, locale: meta.locale === 'en' ? 'en' : 'ru' })
     .select(columns)
     .maybeSingle()
-  return (created.data as Profile | null) ?? null
+  return created.data ? { ...(created.data as unknown as Profile), legacy } : null
 }
 
 // Tells HQ about the client once: only while `hq_synced_at` is null, and a failure is only logged

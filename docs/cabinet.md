@@ -49,6 +49,11 @@ status: 404, hasVerifier: true }`. OAuth used to start in a server action. Now:
   redirecting; `next` (`safeNextPath`: a path of this locale only) is where email links and Google return.
 - Every Supabase error code maps to a RU/EN sentence (`authErrorKey`, `cabinet.auth.errors`); the raw code goes to the
   server log only (`[cabinet] auth error {where, code, status}`), browser-side ones through `POST /api/cabinet/auth-log`.
+- 5xx from Supabase Auth (2026-11-22, the owner saw «нет связи» with working internet when Supabase's SMTP failed with
+  `500 Error sending confirmation email`): auth-js raises the same `AuthRetryableFetchError` for a dead fetch (status 0) and
+  for a 5xx answer. Now status 0 = `network`, a 5xx about sending mail = `mail_down` («Сервер входа не смог отправить письмо...
+  войдите через Google»), any other 5xx = `server_error` (text with the support code `AUTH-5XX`). Each 5xx is logged as
+  `[cabinet] auth 5xx <status> <code>[ mail]`, no address or message text (visible in PM2). Tests: `tests/cabinet-auth.test.mjs`.
 - `/[locale]/cabinet/health` (noindex): yes/no for Supabase URL, anon key, service key, site URL, HQ token, HQ reachable
   (`pingHq`), lead hand-off. Never a value.
 - Recommended Supabase email templates (owner, dashboard): confirmation link
@@ -210,3 +215,40 @@ Not in the site (HQ decisions): emails to the client (HQ sends them, link `<SITE
 
 ### Dev mock
 Without `HQ_ADMIN_URL` and `HQ_ADMIN_TOKEN` (development) `cabinet-hq.ts` answers from `cabinet-hq-mock.ts`, kept on `globalThis`: a client with a running project (3 stages), a project waiting for a signature, a request with a quote to accept, seven documents (accept creates the contract, signing creates the invoice), five threads, a demo agent «Мила» that answers from a few canned rules, uploads (no file content), a generated one-page PDF for the viewer. Both layers are covered by `tests/cabinet-v3.test.mjs`; the components are rendered in `tests/cabinet-stage-render.test.mjs`; the signed-out gate is in `tests/e2e/flows.spec.ts`.
+
+## Профиль и уведомления (2026-11-22, пункты 10 и 11 ревью владельца)
+Владелец: «галочка „Присылать новости и акции“ ... нажимаю, сохраняю, и она убирается. После этого нужно добавить кнопку „не получать рекомендации“ и т.д., и чтобы они переключались»; «профиль какой-то неудобный, сделай его более удобным».
+
+### Настоящая причина бага с галочкой
+Значение СОХРАНЯЛОСЬ (воспроизведено на фейковом Supabase: после «Сохранить» в базе `marketing_consent = true`, а галочка на экране снята). Форма профиля была React form action. После action React 19 вызывает `form.reset()`, и каждое поле возвращается к своему значению ПО УМОЛЧАНИЮ. У управляемого текстового поля React держит умолчание в такт значению (атрибут `value`), поэтому имя и Telegram после прошлого фикса остались на месте; у управляемого чекбокса `defaultChecked` React не обновляет никогда (`updateInput` в react-dom трогает его только без `checked`), он остаётся тем, что было при первом рендере (выкл). Итог: сразу после «Сохранить» галочка гасла, а следующее сохранение отправляло «выкл» уже по-настоящему. Плюс HQ не узнавал об изменении: обновление CRM несло только имя, Telegram и язык.
+Исправление: в профиле больше нет form action. Каждое поле сохраняется само через `POST /api/cabinet/profile` (патч), ответ это строка, прочитанная обратно из базы (`update().eq().select(все колонки)`), и экран показывает её. Ошибка видна рядом с полем (`ErrorNote`, причина и «Повторить»), переключатель откатывается. Последний сохранённый профиль держится в модуле `profile-panel.tsx`, поэтому после смены вкладки видно свежее состояние.
+Коды ошибок (`lib/errors.ts`): `save_denied` 403 (RLS: нет прав или политики, 42501, или строка невидима), `profile_outdated` 503 (миграция 0003 не применена: 42703 / PGRST204), `timeout` 504 (Supabase не ответил за 8 с), `save_failed` 500, `telegram_invalid`, `phone_invalid`, `website_invalid`, `niche_invalid` 400, `telegram_required` 409.
+
+### Что теперь на вкладке «Профиль»
+Слева разделы (на телефоне строка чипов), справа карточки (`components/cabinet/profile-panel.tsx`, `profile-security.tsx`, логика `lib/cabinet-profile.ts`):
+- **Вы**: имя, почта (только чтение, «меняется через письмо» ведёт в «Безопасность»), Telegram, телефон, язык писем и документов.
+- **Компания**: название, ниша из списка сборки (`kindCatalog` по категориям), сайт (нормализуется в `https://`), город.
+- **Для документов** (плашка «Используется в договоре и счёте»): имя или юрлицо для договора, адрес, кошелёк для возврата по гарантии. Имя для договора подставляется в подпись документа, если заполнено.
+- **Уведомления**: «Письма о проекте» всегда включены (замок), переключатели «Новости и акции» (`marketing_consent`) и «Рекомендации по вашему бизнесу» (`recommendations_consent`, по умолчанию ВЫКЛ, как и новости: согласие, а не отписка; поменять умолчание = решение владельца), канал Почта / Telegram / оба (`notify_channel`, Telegram доступен только с ником; если ник стереть, канал сам возвращается на почту).
+- **Безопасность**: смена пароля (с текущим паролем; аккаунт только с Google задаёт первый пароль без него), смена почты письмом Supabase (`updateUser({email})`, ссылка возвращается через обычный callback), «Выйти на всех устройствах» (`signOut({scope:'global'})`), удаление аккаунта после ввода слова УДАЛИТЬ / DELETE (проверяется и на сервере).
+Текстовое поле сохраняется при выходе из него или по Enter, выбор и переключатели сразу. Пока миграции 0003 нет, страница пишет «Часть полей заработает после обновления базы», а имя, Telegram, язык и новости сохраняются как раньше (чтение профиля откатывается на старые колонки).
+
+### Отписка по ссылке из письма
+`/<locale>/cabinet/unsubscribe?token=<token>`, без входа. Токен (`lib/unsubscribe.ts`): `<base64url(id пользователя Supabase)>.<поле>.<подпись>`, поле `marketing` или `recommendations`, подпись = base64url(HMAC-SHA256(`UNSUBSCRIBE_SECRET`, `"unsub:v1:<id>:<поле>"`)), без срока (старое письмо тоже работает). Открытие страницы ничего не меняет (почтовые сканеры ходят по ссылкам), выключает кнопка «Отписаться» (POST). Для почтовых клиентов есть one-click `POST /api/cabinet/unsubscribe?token=` (RFC 8058). Пишет через service role (`SUPABASE_SERVICE_ROLE_KEY`), затем шлёт профиль в HQ. Без `UNSUBSCRIBE_SECRET` (16+ знаков) или service key страница отправляет в настройки кабинета.
+
+### Владельцу: SQL в Supabase (SQL editor, безопасно повторять)
+`supabase/migrations/0003_profile_prefs.sql`: десять колонок с умолчаниями (`recommendations_consent`, `notify_channel`, `phone`, `company`, `niche`, `website`, `city`, `legal_name`, `legal_address`, `refund_wallet`), проверка канала и длин, те же права и политика обновления своей строки, что в 0002. Если 0002 ещё не применяли, сначала 0002. И в `shared/.env.production` на сервере добавить `UNSUBSCRIBE_SECRET` (тот же у HQ).
+
+### Синхронизация с HQ
+После каждого сохранения (в `after`, ответ клиенту не ждёт) `syncProfileToHq` (`lib/cabinet-profile-server.ts`): известный клиент получает `POST /admin/clients/:id` с телом `hqProfileBody` (все поля профиля), неизвестный регистрируется `POST /admin/clients` (`clientSyncBody` теперь несёт ещё `recommendationsConsent`, `notifyChannel`, `phone`, `company`). HQ сегодня читает `name`, `telegram`, `phone`, `company`, `locale` и молча отбрасывает остальное (zod без strict), ничего не ломается.
+
+### Нужно от HQ (агенты, `apps/hq/src/admin-crm.ts`)
+1. **`POST /admin/clients/:id` принимает новые поля** (сейчас `profilePatch` их отбрасывает, в том числе согласие на новости, то есть отписка в кабинете до CRM не доходит): `marketingConsent: boolean`, `recommendationsConsent: boolean`, `notifyChannel: 'email'|'telegram'|'both'`, `niche: string` (id ниши сборки, до 40), `website: string` (до 200, `https://...`), `city` (до 80), `legalName` (до 160), `legalAddress` (до 300), `refundWallet` (до 120). Пустая строка очищает, как у остальных. В ответ `client` с этими полями.
+2. **`POST /admin/clients` (регистрация)** принимает `recommendationsConsent`, `notifyChannel`, `phone`, `company` (сайт уже шлёт).
+3. **Рассылки уважают настройки**: новости и акции только при `marketingConsent`, рекомендации только при `recommendationsConsent`; письма о проекте всегда, по каналу `notifyChannel` (Telegram только если клиент связан с ботом, иначе почта).
+4. **Ссылка «Отписаться» в каждом письме новостей и рекомендаций**: `https://firtech.pro/<locale>/cabinet/unsubscribe?token=<token>` по формуле выше с общим секретом `UNSUBSCRIBE_SECRET` (`supabaseId` клиента уже есть в `cab_clients`), плюс заголовки `List-Unsubscribe: <https://firtech.pro/api/cabinet/unsubscribe?token=<token>>` и `List-Unsubscribe-Post: List-Unsubscribe=One-Click`.
+5. **Данные для документов**: подставлять `legalName` и `legalAddress` в договор, счёт и акт (если пусто, имя клиента), `refundWallet` показывать владельцу при возврате по гарантии.
+6. **Смена почты**: когда клиент меняет почту в Supabase, сайт продолжает искать его в HQ по старой почте из `profiles.email`. Нужен `email` в `POST /admin/clients/:id` (или поиск по `supabaseId`: `GET /admin/clients/by-supabase/:id`), тогда сайт будет обновлять почту в CRM после подтверждения.
+
+### Тесты
+`tests/cabinet-profile.test.mjs` (патч, запись с чтением обратно на фейковой таблице: успех, нет строки, скрытая строка, RLS 42501, таймаут, старая схема; тело HQ; токен отписки; миграция), `tests/cabinet-stage-render.test.mjs` (панель профиля в разметке), e2e `tests/e2e/profile.spec.ts` против фейкового Supabase `tests/e2e/fake-supabase.mjs` (поднимается вторым webServer в `playwright.config.ts`; куки сессии `fakeSessionCookie()` в `helpers.ts`): переключатель держится после сохранения и перезагрузки, поле сохраняется при выходе, отказ базы откатывает и объясняет, канал Telegram, 390 px без горизонтального скролла, отписка по ссылке. Фейк годится и для ручной проверки: `FAKE_SUPABASE_PORT=3106 node tests/e2e/fake-supabase.mjs`, сайт с `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:3106`, куки из `sessionCookie()`.

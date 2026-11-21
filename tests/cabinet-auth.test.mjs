@@ -230,3 +230,30 @@ test('callback expires stale verifiers and logs cookieBytes', () => {
   assert.match(src, /maxAge: 0/)
   assert.match(src, /cookieBytes/)
 })
+
+test('auth 5xx (2026-11-22): a dead fetch is «network», a 500 about mail is «mail_down», any other 5xx is «server_error» and is logged', () => {
+  const logged = []
+  const warn = console.warn
+  console.warn = (...args) => logged.push(args.join(' '))
+  try {
+    // fetch itself failed: auth-js raises AuthRetryableFetchError with status 0.
+    assert.equal(auth.authErrorKey({ name: 'AuthRetryableFetchError', message: 'fetch failed', status: 0 }), 'network')
+    assert.equal(logged.length, 0)
+    // Supabase answered 500 «Error sending confirmation email» (its SMTP is down): same error class, real status.
+    assert.equal(auth.authErrorKey({ name: 'AuthRetryableFetchError', message: 'Error sending confirmation email', status: 500 }), 'mail_down')
+    assert.equal(auth.authErrorKey({ name: 'AuthApiError', code: 'unexpected_failure', message: 'Error sending recovery email', status: 500 }), 'mail_down')
+    // Another 5xx: a server error with the support code, never «нет связи».
+    assert.equal(auth.authErrorKey({ name: 'AuthRetryableFetchError', message: 'Service Unavailable', status: 503 }), 'server_error')
+    assert.equal(auth.authErrorKey({ code: 'unexpected_failure', message: 'Database error saving new user', status: 500 }), 'server_error')
+    assert.equal(logged.length, 4)
+    assert.match(logged[0], /^\[cabinet\] auth 5xx 500 retryable_fetch mail$/)
+    assert.match(logged[2], /^\[cabinet\] auth 5xx 503 retryable_fetch$/)
+    assert.ok(logged.every((l) => !/@|Error sending/.test(l)), 'no message text or address in the log')
+  } finally {
+    console.warn = warn
+  }
+  for (const dict of [ru, en]) {
+    assert.ok(dict.cabinet.auth.errors.mail_down.length > 20)
+    assert.match(dict.cabinet.auth.errors.server_error, /AUTH-5XX/)
+  }
+})

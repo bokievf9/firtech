@@ -22,6 +22,8 @@ export const authErrorKeys = [
   'oauth_cancelled',
   'signup_disabled',
   'network',
+  'mail_down',
+  'server_error',
   'unavailable',
   'generic',
 ] as const
@@ -102,11 +104,27 @@ const codeMap: Record<string, AuthErrorKey> = {
 
 // Maps a Supabase auth error to a key the dictionary has. Unknown errors are `generic`; nothing
 // from the error text reaches the visitor (the raw code goes to the server log only).
+//
+// 5xx (2026-11-22): auth-js raises `AuthRetryableFetchError` both when fetch itself fails (status 0, a real
+// network problem) and on 502/503/504 from Supabase Auth, and `AuthApiError` with `unexpected_failure` on a
+// 500 such as «Error sending confirmation email» (Supabase's SMTP broken). The owner saw «нет связи» with a
+// working internet. Now: status 0 = `network`; a 5xx about sending mail = `mail_down`; any other 5xx =
+// `server_error` (its text carries the support code AUTH-5XX). Each 5xx is logged as
+// `[cabinet] auth 5xx <status> <code>` (no address, no message text).
+const MAIL_FAILURE = /error sending .*e-?mail|sending (confirmation|recovery|magic link|invite|email change) e-?mail|smtp/i
+
 export function authErrorKey(
   error: { code?: string; status?: number; message?: string; name?: string } | null | undefined,
 ): AuthErrorKey {
   if (!error) return 'generic'
   const code = error.code ?? ''
+  const status = typeof error.status === 'number' ? error.status : 0
+  if (status >= 500 && status < 600) {
+    const safe = /^[A-Za-z0-9_]{1,60}$/.test(code) ? code : error.name === 'AuthRetryableFetchError' ? 'retryable_fetch' : 'unknown'
+    const mail = MAIL_FAILURE.test(error.message ?? '') || (code === 'unexpected_failure' && /mail/i.test(error.message ?? ''))
+    console.warn(`[cabinet] auth 5xx ${status} ${safe}${mail ? ' mail' : ''}`)
+    return mail ? 'mail_down' : 'server_error'
+  }
   if (Object.hasOwn(codeMap, code)) return codeMap[code]!
   const message = (error.message ?? '').toLowerCase()
   if (message.includes('invalid login credentials')) return 'invalid_credentials'
