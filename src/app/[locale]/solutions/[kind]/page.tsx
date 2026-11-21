@@ -108,8 +108,9 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
             <ArrowLeft size={14} />
             {t.all}
           </Link>
-          <h1 className="mt-6 max-w-[18ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
-            {page.title}
+          <p className="mt-6 text-sm font-medium text-accent-text">{page.title}</p>
+          <h1 className="mt-3 max-w-[20ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+            {page.promise}
           </h1>
           <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-muted md:text-xl">
             {page.sub}

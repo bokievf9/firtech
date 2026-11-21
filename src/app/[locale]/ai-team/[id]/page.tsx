@@ -86,10 +86,10 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
           </Link>
           <div className="mt-6 flex items-center gap-3">
             <TeamGlyph id={id} />
-            <p className={cn('text-sm font-medium', accent.text)}>{t.nav}</p>
+            <p className={cn('text-sm font-medium', accent.text)}>{page.title}</p>
           </div>
-          <h1 className="mt-5 max-w-[18ch] font-display text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
-            {page.title}
+          <h1 className="mt-5 max-w-[20ch] font-display text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+            {page.headline}
           </h1>
           <p className="mt-6 max-w-[56ch] text-lead text-muted">{page.promise}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">

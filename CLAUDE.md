@@ -52,7 +52,13 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   capability-mock.tsx`): what it does as a list with a one-line example and a small CSS mock, first day/week/month, what we need,
   what it does not do, the live price (`ProductPriceTag`) and the stage table of the product's template (`productPayment`,
   `StageTable`), no FAQ (owner 2026-11-22: FAQ only on the home page; the useful answers sit in the capability texts), CTAs «Собрать проект» (product preselected) and
-  «Спросить агента». **Ladder** (`lib/ladder.ts`, `components/ladder.tsx`, `ladder` section): per direction one agent -> on autopilot
+  «Спросить агента». **Since 2026-11-22 (owner: «у каждого продукта свой подход») each product page has its own structure**: the
+  order of section blocks is `src/content/product-pages.ts` (`productPages[id].sections`, `demo` = chat|booking|assistant), the blocks
+  are `src/components/product-sections/` (hero with the client's result as h1, demo, day by the hour, request flow, content week,
+  roles, before/after, routines, phones, Telegram facts with sources, scenarios, knows/never promises, org chart, growth, plus the
+  shared included/price+term/offer from the terms/objections/readiness CTAs), the texts `productPage.items.<id>` (`result`,
+  `inPrice`, `notInPrice`, `objections` and the product's own block). Sales rules: `docs/sales-playbook-site.md`. Niche pages show a
+  promise headline from `content/solution-promises.ts`; ai-team pages show `headline` as h1. **Ladder** (`lib/ladder.ts`, `components/ladder.tsx`, `ladder` section): per direction one agent -> on autopilot
   -> whole department (content: Контент-мейкер -> Контент на автопилоте -> Отдел маркетинга; sales: ИИ-менеджер заявок -> Продажи на
   автопилоте (agent page of the prospector) -> Отдел продаж; support: Служба поддержки -> Поддержка на автопилоте (monitoring) ->
   Отдел поддержки), on the home products section and on `/ai-team`; `/ai-team` is in the header as «ИИ-отделы». **Demo**: the receptionist

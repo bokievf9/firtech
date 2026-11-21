@@ -158,6 +158,8 @@ Legend of `E:` tags (file : test title):
 | demo | 7 tabs (receptionist, admin, automation, content, Mini App, assistant, department); automation, Mini App and assistant are «Пример» | tab panels | none | `U:front-v3` | untested (click) |
 | chat button | hides on scroll down, back on scroll up or after 1.5 s; on `/builder` and `/cabinet` hidden until the last step or 8 s idle | opens the chat | none | `U:front-v3` | screenshots 390 px |
 | product pages | «Частые вопросы» removed | - | - | `U:products-pages` | pass |
+| product pages (2026-11-22, blocks in the order of `content/product-pages.ts`) | hero «Собрать проект» / «Спросить агента»; demo block (admin booking, receptionist live chat, assistant); «Все условия в оферте», «Условия гарантии»; ИИ-отдел «Все ступени по направлениям» | builder with `p.<id>`, chat, demo state, terms, `/ai-team#levels` | `/{locale}/builder?b=`, `/{locale}/terms` | `U:products-pages` (config, copy, hrefs in source) | untested (click) |
+| product pages: «Выберите свой следующий шаг» | «Открыть демо» (`#demo` on the page or `/{locale}#demo`), «Спросить агента», «Собрать проект», «Договориться о созвоне» (chat, source `product_<id>_call`), «Написать в Telegram» (`data-place product_<id>`) | demo, chat, builder, Telegram | `t.me/firtech_bot` | `U:products-pages` | untested (click) |
 | FAQ `#faq` | 9 question buttons | expand/collapse | - | `E:faq` | pass |
 | FAQ | «Сравнение: фрилансер, агентство или мы», «Порекомендуйте нас…», «Бесплатный аудит вашего сайта» | links | compare, referral, audit | `E:matrix` (pages render) | untested (click) |
 

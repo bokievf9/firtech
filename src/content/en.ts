@@ -1685,8 +1685,8 @@ const en: Dict = {
     metaDescription:
       'An honest comparison of a freelancer, an agency and an AI agent studio: who does the work, how fast, who answers after delivery and what happens in a year.',
     eyebrow: 'Comparison',
-    title: 'Freelancer, agency or an agent studio',
-    sub: 'Three ways to order a website or automation. Each has its strengths, and here is how they differ in practice.',
+    title: 'Pick a contractor your project will not get stuck with',
+    sub: 'A freelancer, an agency or an AI agent studio: each has its strengths. We compare who does the work, how soon you see a result and who answers after handover.',
     aspect: 'What we compare',
     columns: { freelancer: 'Freelancer', agency: 'Agency', fir: 'Fir Tech' },
     rows: [
@@ -2617,7 +2617,7 @@ const en: Dict = {
       metaTitle: 'Website and landing page development from {price} | Fir Tech',
       metaDescription:
         'Landing pages from {price}, company websites and online stores. Mobile-friendly design, leads to Telegram, content editor. Price and deadline up front.',
-      title: 'A website that brings in leads',
+      title: 'A website that sends every request straight to your Telegram',
       sub: 'A landing page in 5-7 days or a company website in 2-3 weeks. Looks right on a phone and sends every enquiry to your Telegram.',
       included: [
         'Structure and copy that lead to an enquiry',
@@ -2656,7 +2656,7 @@ const en: Dict = {
       metaTitle: 'Agents in Telegram from {price} | Fir Tech',
       metaDescription:
         'Agents in Telegram for bookings, orders and customer questions, Telegram Mini Apps, in-chat payments and AI answers. From {price}, from 3 days.',
-      title: 'An agent in Telegram that works for you',
+      title: 'Orders and bookings in Telegram are taken even when you are busy',
       sub: 'Takes orders, books clients and answers common questions around the clock. The first agent is ready in 3-5 days.',
       included: [
         'A conversation flow designed for your business',
@@ -2695,7 +2695,7 @@ const en: Dict = {
       metaTitle: 'App development from {price} | Fir Tech',
       metaDescription:
         'Web apps, iOS and Android apps, customer accounts and internal tools for your team. From {price}, stages and payments in the quote. Price and timeline up front.',
-      title: 'An app that starts from the main job',
+      title: 'Clients do the main thing in your app from the first version',
       sub: 'We start with a minimal version that solves the main problem and grow it as you grow. Stages and payments are written in the quote.',
       included: [
         'Task breakdown and screen prototype',
@@ -2734,7 +2734,7 @@ const en: Dict = {
       metaTitle: 'Business automation and AI assistants from {price} | Fir Tech',
       metaDescription:
         'We connect your website, Telegram, CRM and Google Sheets, set up CRM and AI assistants. Less manual work, from {price}. Price and timeline up front.',
-      title: 'Let routine work run itself',
+      title: 'Reports, requests and reminders run themselves while your team does the work',
       sub: 'We connect your tools: leads land in the CRM, reports fill a spreadsheet, clients get answers and reminders.',
       included: [
         'Process review: where time is lost',
@@ -3324,8 +3324,8 @@ const en: Dict = {
     metaDescription:
       'The stages of a project, what you see in the cabinet, who answers and how fast, how acceptance and payment by stages work. A guarantee on the first stage.',
     eyebrow: 'How we work',
-    title: 'From the first message to launch',
-    sub: 'What you see in the cabinet at every stage, who answers, and how acceptance and payment work.',
+    title: 'You know what is happening with your project at every step',
+    sub: 'You pay by stages, accept the work within 7 days, and the first stage is under guarantee. The cabinet shows what is done, what waits for you and who answers.',
     stagesTitle: 'Project stages',
     you: 'What you do',
     cabinet: 'What shows in the cabinet',
@@ -3399,8 +3399,8 @@ const en: Dict = {
     metaDescription:
       'A marketing, sales or support team, or a whole company of AI agents in your own Telegram. Agents prepare, you approve with a button. Price by quote.',
     eyebrow: 'A team of AI agents',
-    title: 'A team of AI agents: they prepare, you decide',
-    sub: 'Agents prepare the work, you approve it in Telegram. Take one department or the whole company.',
+    title: 'A whole department works and you only approve',
+    sub: 'Marketing, sales or support on AI agents. Agents prepare the work, you approve with a button in Telegram. Take one department or the whole company.',
     ctaBuild: 'Build a project',
     ctaChat: 'Ask an agent',
     ctaDiscuss: 'Ask an agent',
@@ -3496,6 +3496,7 @@ const en: Dict = {
       items: {
         'trend-scout': {
           title: 'Trend scout',
+          headline: 'Every morning you know what to post about',
           promise: 'Brings the rising topics and formats of your niche every day, so you stop guessing what to write about.',
           does: [
             'Scans social networks and search trends in your niche',
@@ -3530,6 +3531,7 @@ const en: Dict = {
         },
         'content-maker': {
           title: 'Content maker',
+          headline: 'Reels, carousels and posts wait only for your approval',
           promise: 'Turns topics, trends and case studies into reels, carousels and posts in Russian and English.',
           does: [
             'Makes reels, carousels and posts on your topics',
@@ -3564,6 +3566,7 @@ const en: Dict = {
         },
         publisher: {
           title: 'Publisher',
+          headline: 'Content goes out on schedule while you run the business',
           promise: 'Puts ready materials on a schedule and publishes after your approval: YouTube Shorts by itself, other platforms through a posting queue.',
           does: [
             'Builds the publishing schedule',
@@ -3598,6 +3601,7 @@ const en: Dict = {
         },
         analyst: {
           title: 'Analyst',
+          headline: 'Every week you see the numbers and the plan for the next',
           promise: 'Sends the numbers for your channels and leads once a week, with a plan for the next week.',
           does: [
             'Collects channel and lead metrics',
@@ -3632,6 +3636,7 @@ const en: Dict = {
         },
         seo: {
           title: 'SEO specialist',
+          headline: 'Clients find you in search for what they actually type',
           promise: 'Prepares articles and pages in Russian and English for the search queries of your niche.',
           does: [
             'Collects the keywords for your niche',
@@ -3666,6 +3671,7 @@ const en: Dict = {
         },
         'lead-handler': {
           title: 'Lead manager',
+          headline: 'Every client gets an answer within a minute',
           promise: 'Answers the first customer message within a minute, asks the questions and books a call.',
           does: [
             'Answers the first message in the messenger',
@@ -3701,6 +3707,7 @@ const en: Dict = {
         },
         prospector: {
           title: 'Prospector',
+          headline: 'New clients turn up while you serve the current ones',
           promise: 'Finds suitable businesses in your niches and cities and prepares a personal offer for each.',
           does: [
             'Collects businesses by niche and city from open sources',
@@ -3735,6 +3742,7 @@ const en: Dict = {
         },
         presales: {
           title: 'Presales: proposals and quotes',
+          headline: 'The proposal, quote and contract are ready for your signature',
           promise: 'Turns a lead card into a commercial proposal, a quote and a draft contract.',
           does: [
             'Reads the lead card and the conversation',
@@ -3769,6 +3777,7 @@ const en: Dict = {
         },
         referral: {
           title: 'Referral agent',
+          headline: 'Partners bring clients and the payouts add up by themselves',
           promise: 'Runs a referral program: personal links, the leads that came through them and a list of rewards for your approval.',
           does: [
             'Gives partners personal links',
@@ -3803,6 +3812,7 @@ const en: Dict = {
         },
         support: {
           title: 'Support desk',
+          headline: 'Clients get answers and only the hard cases reach you',
           promise: 'Answers customers from your base of answers, tracks tickets against deadlines and hands the hard ones to you.',
           does: [
             'Answers questions from the answer base',
@@ -3837,6 +3847,7 @@ const en: Dict = {
         },
         monitoring: {
           title: 'Monitoring',
+          headline: 'You hear about a failure before your clients do',
           promise: 'Watches that your sites and services keep working and sends an alert the moment something fails.',
           does: [
             'Checks the availability of sites and services from a list',
@@ -3871,6 +3882,7 @@ const en: Dict = {
         },
         billing: {
           title: 'Billing',
+          headline: 'Invoices and payment reminders go out on time',
           promise: 'Prepares invoices and payment reminders for your subscriptions, and sends them after you approve.',
           does: [
             'Keeps the list of subscriptions and due dates',
@@ -3905,6 +3917,7 @@ const en: Dict = {
         },
         onboarding: {
           title: 'Onboarding',
+          headline: 'A new client knows what to do from day one',
           promise: 'Welcomes a new customer: collects the access you need and guides them through the first week by your instructions.',
           does: [
             'Sends the customer a questionnaire and a list of the access you need',
@@ -3939,6 +3952,7 @@ const en: Dict = {
         },
         'project-manager': {
           title: 'Project manager',
+          headline: 'The client sees the project status and you write no reports',
           promise: 'Turns a signed proposal into a brief, a plan and tasks, and sends the client a status at each stage.',
           does: [
             'Builds the brief from the signed proposal',
@@ -3973,6 +3987,7 @@ const en: Dict = {
         },
         'reviewer-qa': {
           title: 'Reviewer and QA',
+          headline: 'Errors are found before the client sees them',
           promise: 'Checks the result of a stage and prepares remarks on quality and security before it goes to the client.',
           does: [
             'Compares the result with the brief',
@@ -4007,6 +4022,7 @@ const en: Dict = {
         },
         deployer: {
           title: 'Deployer',
+          headline: 'Finished work reaches the server without manual uploads',
           promise: 'Puts a finished build on the server from templates and scripts and sends a report of the release.',
           does: [
             'Builds the application image from a template',
@@ -4041,6 +4057,7 @@ const en: Dict = {
         },
         documents: {
           title: 'Documents',
+          headline: 'Contracts and terms are ready from your own templates',
           promise: 'Prepares contracts, offers, policies and proposal templates from your samples.',
           does: [
             'Drafts contracts and offers from your template',
@@ -4075,6 +4092,7 @@ const en: Dict = {
         },
         'knowledge-base': {
           title: 'Knowledge base',
+          headline: 'The team and the agents take answers from one place',
           promise: 'Keeps playbooks, templates and lessons from projects so the team and the agents take answers from one place.',
           does: [
             'Gathers policies, instructions and conversations into one base',
@@ -4109,6 +4127,7 @@ const en: Dict = {
         },
         director: {
           title: 'Director: the managing agent',
+          headline: 'You run the company from one chat',
           promise: 'The one agent you talk to: hands tasks to the departments and collects the approvals and the morning summary.',
           does: [
             'Takes your tasks in one chat',
@@ -4146,6 +4165,7 @@ const en: Dict = {
     items: {
       marketing: {
         title: 'Marketing team',
+        headline: 'Content goes out every week and you only approve it',
         card: 'Content and the weekly plan are ready, you only approve.',
         promise:
           'Agents find topics, make reels, carousels and articles, prepare publishing and count the numbers. The decision is yours.',
@@ -4180,6 +4200,7 @@ const en: Dict = {
       },
       sales: {
         title: 'Sales team',
+        headline: 'Every client gets an answer, and a hot one gets a proposal too',
         card: 'The client gets a reply within a minute, you get a ready proposal.',
         promise:
           'The lead manager answers the first message, the prospector looks for new clients, presales prepares the proposal and the estimate. Prices and contracts stay with you.',
@@ -4213,6 +4234,7 @@ const en: Dict = {
       },
       support: {
         title: 'Support team',
+        headline: 'Clients get answers and you see only the hard cases',
         card: 'Tickets do not get lost, clients get answers from your own base.',
         promise:
           'Agents answer from your base of replies, keep tickets on a clock, watch your sites and services and prepare invoices.',
@@ -4246,6 +4268,7 @@ const en: Dict = {
       },
       production: {
         title: 'Production',
+        headline: 'Projects run to plan and the client sees every stage',
         card: 'The project moves in stages, the client knows the status, acceptance is ready.',
         promise:
           'The project manager turns a signed proposal into a brief, a plan and stages, keeps the client informed and prepares acceptance.',
@@ -4277,6 +4300,7 @@ const en: Dict = {
       },
       backoffice: {
         title: 'Back office',
+        headline: 'Invoices, documents and payments in order, you only sign',
         card: 'Documents, knowledge and reports in one place.',
         promise:
           'Agents prepare contracts and proposals from templates, keep a shared knowledge base and send regular reports.',
@@ -4309,6 +4333,7 @@ const en: Dict = {
       },
       company: {
         title: 'The whole company',
+        headline: 'The company runs and you lead it from one chat',
         card: 'A Director, every team and a control panel. You talk to one agent.',
         promise:
           'The Director hands tasks to the teams and collects the approval queue. You run the company from one chat and one panel.',
