@@ -1,7 +1,6 @@
 'use client'
 
 import { ArrowRight, CheckCircle } from '@phosphor-icons/react'
-import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { faceUi } from '@/content/builder-v2'
@@ -9,7 +8,7 @@ import { pick } from '@/content/builder-catalog'
 import { track } from '@/lib/analytics'
 import { leadServiceOf, type Build } from '@/lib/builder'
 import { buttonStyles } from '@/lib/cn'
-import { leadSummary } from '@/lib/estimate-doc'
+import { estimateDoc, leadEstimateFields, leadPage } from '@/lib/estimate-doc'
 import type { Locale } from '@/lib/i18n'
 import { clearDraft, draftReturnPath, draftStorage, saveDraft } from '@/lib/lead-draft'
 import { refSource, storedRef } from '@/lib/referral'
@@ -42,7 +41,6 @@ export function ProjectSend({
 }) {
   const t = dict.contact
   const pricing = usePricing()
-  const pathname = usePathname()
   const { state: me, refresh } = useCabinetUser()
   const meRef = useRef<CabinetUserState>(me)
   useEffect(() => {
@@ -58,7 +56,9 @@ export function ProjectSend({
   }, [focusHere, cameBack])
 
   const service = leadServiceOf(build)
-  const summary = leadSummary(build, dict, locale, pricing)
+  const fields = leadEstimateFields(build, dict, locale, pricing)
+  const summary = fields.estimate
+  const link = estimateDoc(build, dict, locale, pricing).link
 
   const keepDraft = useCallback(() => {
     saveDraft(draftStorage(window), 'lead', { estimate: summary, service })
@@ -79,10 +79,10 @@ export function ProjectSend({
             name,
             contact: contact.length >= 3 ? contact : '(builder)',
             service,
-            estimate: summary,
+            ...fields,
             source: refSource(storedRef()),
             locale,
-            page: (pathname + window.location.search).slice(0, 600),
+            page: leadPage(link),
           }),
         })
         if (response.status === 401) {
@@ -105,7 +105,7 @@ export function ProjectSend({
         setStatus('error')
       }
     },
-    [build.details, keepDraft, locale, pathname, service, summary],
+    [build.details, fields, keepDraft, link, locale, service],
   )
 
   async function onPress() {

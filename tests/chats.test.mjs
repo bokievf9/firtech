@@ -56,7 +56,11 @@ test('thread view: messages by time, alias ids open the client thread, reply is 
   assert.equal(v.messages.length, 5)
   assert.deepEqual(v.messages.map((x) => x.from), ['client', 'hq', 'client', 'owner', 'client'])
   assert.equal(v.messages[0].channel, 'web')
-  assert.equal(m('POST', 'chats/c3/reply', {}, { text: 'Макет завтра.' }, T0).error, 'thread_required', 'three threads and no hint')
+  assert.deepEqual(v.messages.map((x) => x.thread), ['lead', 'lead', 'lead', 'lead', 'project-4'], 'each message names its thread')
+  assert.equal(c.lastClientThread(v.messages), 'project-4', 'the default reply thread is the last client message\'s')
+  assert.deepEqual(c.messageThreads(v.messages), ['lead', 'project-4'])
+  const noHint = m('POST', 'chats/c3/reply', {}, { text: 'Макет завтра.' }, T0)
+  assert.equal(noHint.message.thread, 'project-4', 'no hint: HQ answers into the last client thread')
   const reply = c.normalizeReply(m('POST', 'chats/c3/reply', {}, { text: 'Макет завтра.', thread: 'project-4' }, T0))
   assert.equal(reply.sent, true)
   assert.equal(reply.via, 'cabinet')
@@ -99,8 +103,7 @@ test('reply thread: the picker choices, the 422 names, the body and the proxy wh
   const t = c.normalizeThread({ id: 'l12', client: { id: null, name: 'A' }, leadId: 12, ticketId: 3 })
   assert.deepEqual(c.fallbackChoices(t).map((x) => x.id), ['lead', 'support'])
   // 422 thread_required: the names HQ sends become the options, labels from the known ones
-  const refusal = m('POST', 'chats/c3/reply', {}, { text: 'Привет' }, T0)
-  assert.equal(refusal.error, 'thread_required')
+  const refusal = { ok: false, error: 'thread_required', threads: ['lead', 'support', 'project-4'] }
   assert.deepEqual(c.choicesFrom(refusal.threads, choices).map((x) => x.id), ['lead', 'support', 'project-4'])
   assert.deepEqual(c.choicesFrom(['agent-1', 'lead', 'lead', 'x'], []).map((x) => x.id), ['lead'])
   assert.equal(m('POST', 'chats/c3/reply', {}, { text: 'Привет', thread: 'project-77' }, T0).error, 'not_found')
@@ -126,7 +129,7 @@ test('reply thread: the picker choices, the 422 names, the body and the proxy wh
   assert.equal(resolveEndpoint('POST', ['clients', '3', 'threads'], new URLSearchParams(), {}).ok, false)
 })
 
-test('chat search and the local «mark unread» flags', () => {
+test('chat search and «mark unread» through HQ', async () => {
   const list = [
     c.normalizeThread({ id: 'c1', client: { id: 1, name: 'Анна', email: 'anna@example.com', contact: '@anna' }, preview: 'Когда макет?' }),
     c.normalizeThread({ id: 'c2', client: { id: 2, name: 'Фаррух', contact: '+992 90' }, preview: 'Спасибо' }),
@@ -137,9 +140,16 @@ test('chat search and the local «mark unread» flags', () => {
   assert.deepEqual(c.searchThreads(list, '@anna').map((x) => x.id), ['c1'])
   assert.deepEqual(c.searchThreads(list, 'спасибо').map((x) => x.id), ['c2'])
   assert.deepEqual(c.searchThreads(list, 'никого'), [])
-  const marks = c.toggleMark(new Set(), 'c2', true)
-  assert.deepEqual(c.applyUnreadMarks(list, marks).map((x) => x.unread), [0, 1])
-  assert.equal(c.applyUnreadMarks([{ ...list[1], unread: 3 }], marks)[0].unread, 3, 'HQ count wins')
-  assert.equal(c.toggleMark(marks, 'c2', false).size, 0)
-  assert.equal(marks.size, 1, 'the old set is not changed')
+  assert.equal(c.markedUnread(list[1]).unread, 1)
+  assert.equal(c.markedUnread({ ...list[1], unread: 3 }).unread, 3, 'an unread thread stays as it is')
+  const m = createHqMock(T0)
+  const done = m('POST', 'chats/t4/unread', {}, {}, T0)
+  assert.equal(done.ok, true)
+  assert.equal(c.normalizeThread(done.thread).unread, 1)
+  assert.equal(m('POST', 'chats/c3/unread', {}, {}, T0).thread.unread, 1, 'already unread: unchanged')
+  assert.equal(m('POST', 'chats/zzz/unread', {}, {}, T0).error, 'not_found')
+  const { resolveEndpoint } = await import('../src/lib/hq-admin.ts')
+  assert.equal(resolveEndpoint('POST', ['chats', 't4', 'unread'], new URLSearchParams(), {}).ok, true)
+  assert.equal(resolveEndpoint('POST', ['chats', 't4', 'unread'], new URLSearchParams(), { a: 1 }).ok, false)
+  assert.equal(resolveEndpoint('GET', ['chats', 't4', 'unread'], new URLSearchParams(), null).ok, false)
 })

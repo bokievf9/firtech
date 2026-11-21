@@ -324,6 +324,49 @@ export const CHAT_KEEP = 50
 
 export const keepLast = (messages: ChatMessage[], n = CHAT_KEEP) => messages.slice(-n)
 
+// ---- the Director's history (GET /admin/director/history, 2026-11-22) ------------------------------------
+// HQ keeps the lines the site wrote through `say` and `command` (the owner's words, the commands, the
+// Director's replies), newest last. They are the base of the «Поручения» timeline; this tab's own kept
+// lines (sessionStorage) fill in only what the server does not have yet.
+
+export const HISTORY_LIMIT = 100
+const minuteOf = (iso: string) => Math.floor(Date.parse(iso) / 60_000)
+const sameText = (a: string, b: string) => plainBotText(a).trim() === plainBotText(b).trim()
+
+export function normalizeDirectorHistory(body: unknown): ChatMessage[] | null {
+  if (!isObj(body) || !Array.isArray(body.items)) return null
+  const out: ChatMessage[] = []
+  for (const raw of body.items.slice(-200)) {
+    if (!isObj(raw)) continue
+    const n = typeof raw.id === 'number' || typeof raw.id === 'string' ? String(raw.id) : ''
+    const role = raw.role === 'hq' ? 'director' : raw.role === 'owner' || raw.role === 'command' ? 'me' : null
+    const at = typeof raw.at === 'string' && !Number.isNaN(Date.parse(raw.at)) ? raw.at : null
+    if (!n || !role || !at || typeof raw.text !== 'string') continue
+    const taskId = typeof raw.taskId === 'number' || typeof raw.taskId === 'string' ? raw.taskId : null
+    out.push({ id: `h${n}`, role, text: role === 'director' ? plainBotText(raw.text) : raw.text, at, taskId })
+  }
+  return out
+}
+
+// Server lines first, then this tab's lines the server has not got: the same role and text within the same
+// minute (or the same task id on a reply) counts as already there. Lines at or before `clearedAt` are hidden.
+export function mergeHistory(server: ChatMessage[], local: ChatMessage[], clearedAt: string | null = null): ChatMessage[] {
+  const cut = clearedAt ? Date.parse(clearedAt) : 0
+  const base = server.filter((m) => Date.parse(m.at) > cut)
+  const onServer = (l: ChatMessage) =>
+    server.some(
+      (m) =>
+        m.role === l.role &&
+        ((sameText(m.text, l.text) && Math.abs(minuteOf(m.at) - minuteOf(l.at)) <= 1) ||
+          (l.role === 'director' && l.taskId !== null && l.taskId !== undefined && String(m.taskId) === String(l.taskId) && (l.text === '' || sameText(m.text, l.text)))),
+    )
+  const extra = local.filter((l) => !onServer(l))
+  return [...base, ...extra]
+    .map((m, i) => ({ m, i }))
+    .sort((a, b) => Date.parse(a.m.at) - Date.parse(b.m.at) || a.i - b.i)
+    .map((x) => x.m)
+}
+
 // "/approve 12" -> { name: 'approve', arg: '12' }; plain text -> null (it goes to /say).
 export function parseCommand(input: string): { name: string; arg: string } | null {
   const m = input.trim().match(/^\/([a-z][a-z_-]{0,31})(?:@\w+)?(?:\s+([\s\S]*))?$/i)

@@ -289,11 +289,12 @@ test.describe('with a session', () => {
     const box = thread.locator('textarea')
     await expect(box).toBeVisible()
     await expect(box).toHaveAttribute('placeholder', /^Ответ клиенту/)
-    // Anna has a lead, a project and support threads: the picker offers them, the lead's is preselected.
+    // Anna has a lead, a project and support threads: the picker offers them, the thread of her last message (project 4) is preselected and the messages carry thread chips.
     const picker = thread.getByRole('combobox', { name: 'Ответить в тред' })
     await expect(picker).toBeVisible()
-    await expect(picker).toHaveValue('lead')
-    await picker.selectOption('project-4')
+    await expect(picker).toHaveValue('project-4')
+    await expect(thread.getByText('Заявка', { exact: true }).first()).toBeVisible()
+    await picker.selectOption('lead')
     // The list has a search box and «mark unread».
     await list.getByRole('searchbox', { name: 'Поиск по клиентам' }).fill('нет такого клиента')
     await expect(list.getByText('По запросу никого нет.')).toBeVisible()

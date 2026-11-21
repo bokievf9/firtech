@@ -58,6 +58,8 @@ export const ENDPOINTS: readonly Endpoint[] = [
     path: /^command$/,
     body: z.object({ name: z.string().regex(/^[a-z][a-z_-]{0,31}$/), arg: z.string().max(500).optional() }).strict(),
   },
+  // The Director's history for «Поручения» (limit 1..200); the page asks for 100 when it opens.
+  { method: 'GET', path: /^director\/history$/, query: ['limit'] },
   { method: 'GET', path: /^departments$/ },
   { method: 'GET', path: /^drill$/ },
   { method: 'POST', path: /^drill$/, body: z.object({ arg: z.string().max(100).optional() }).strict() },
@@ -191,6 +193,8 @@ export const REVIEW_ENDPOINTS: readonly Endpoint[] = [
       })
       .strict(),
   },
+  // The owner marks a client unread again (no body); HQ answers `{ ok, thread }` (contract 2026-11-22).
+  { method: 'POST', path: /^chats\/[\w-]{1,64}\/unread$/, body: empty },
   // A cabinet client's threads (lead, project, support, agent) for the reply picker; read only.
   { method: 'GET', path: /^clients\/\d{1,12}\/threads$/ },
   { method: 'GET', path: /^trends$/, query: ['limit', 'cursor'] },

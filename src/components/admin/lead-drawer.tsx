@@ -13,6 +13,7 @@ import {
   type AdminLead,
 } from '@/lib/admin-data'
 import { cn } from '@/lib/cn'
+import { estimateAsText } from '@/lib/lead'
 import type { LeadStatus } from '@/lib/store'
 
 const t = admin.drawer
@@ -285,7 +286,7 @@ function DrawerBody({
               {lead.service === 'bundle' ? t.fields.bundle : t.fields.estimate}
             </h3>
             <pre className="rounded-xl border border-line bg-field p-4 font-mono text-xs leading-relaxed break-words whitespace-pre-wrap text-muted">
-              {lead.estimate}
+              {estimateAsText(lead.estimate)}
             </pre>
           </section>
         ) : null}

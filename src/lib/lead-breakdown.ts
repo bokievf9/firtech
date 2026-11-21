@@ -4,6 +4,7 @@ import ru from '../content/ru'
 import { decodeBuild, type Build } from './builder'
 import { resolveLook } from './builder-style'
 import { estimateDoc, type BriefRow, type EstimateDoc } from './estimate-doc'
+import { estimateAsText } from './lead'
 import { defaultPricing, type Pricing } from './pricing'
 
 // «Разбор заявки» (2026-11-22): what a client ordered in the builder, read back from the lead.
@@ -75,7 +76,7 @@ const bareCode = (v: string | null | undefined) => {
 
 export function leadBreakdown(input: BreakdownInput, pricing: Pricing = defaultPricing): Breakdown {
   const message = (input.message ?? '').trim()
-  const estimateText = (input.estimate ?? '').trim()
+  const estimateText = estimateAsText((input.estimate ?? '').trim())
   const found = findBuildCode(input.builderUrl, estimateText, message) ?? bareCode(input.builderUrl)
   const locale = found?.locale ?? lang(input.locale) ?? 'ru'
   const build = found ? decodeBuild(found.code) : null

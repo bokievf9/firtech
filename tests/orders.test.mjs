@@ -161,3 +161,36 @@ test('buildTimeline: the Director\'s lines before the one that carries the task 
   const person = o.buildTimeline(tasks, messages, { filter: 'all', query: '', person: { dept: 'back-office' } })
   assert.deepEqual(person.map((e) => e.key), ['t2'])
 })
+
+test('Director history: GET director/history is whitelisted, normalized and merged under this tab\'s own lines', async () => {
+  const v = await import('../src/lib/hq-admin-view.ts')
+  const m = createHqMock(T0)
+  assert.equal(proxy.resolveEndpoint('GET', ['director', 'history'], new URLSearchParams('limit=100'), null).ok, true)
+  assert.equal(proxy.resolveEndpoint('POST', ['director', 'history'], new URLSearchParams(), {}).ok, false)
+  assert.equal(m('GET', 'director/history', { limit: '0' }, {}, T0).error, 'invalid')
+  const seeded = v.normalizeDirectorHistory(m('GET', 'director/history', { limit: '100' }, {}, T0))
+  assert.equal(seeded.length, 2)
+  assert.deepEqual(seeded.map((x) => x.role), ['me', 'director'])
+  // say and command append lines newest last, the reply that made a task carries its id
+  const said = m('POST', 'say', {}, { text: 'Подготовь КП для салона' }, T0)
+  m('POST', 'command', {}, { name: 'status' }, T0)
+  const items = m('GET', 'director/history', { limit: '100' }, {}, T0).items
+  assert.deepEqual(items.map((x) => x.role).slice(2, 4), ['owner', 'hq'])
+  assert.equal(items.find((x) => x.taskId !== null).taskId, said.taskId)
+  assert.ok(items.at(-1).id > items[0].id && items.some((x) => x.role === 'command' && x.text === '/status'))
+  // merge: lines the server has are not repeated, newer local lines stay, a cleared tab hides old server lines
+  const server = v.normalizeDirectorHistory({ items: [
+    { id: 1, at: iso(10), role: 'owner', text: 'Сделай клип', taskId: null },
+    { id: 2, at: iso(10), role: 'hq', text: '<b>Принял.</b>', taskId: 6 },
+  ] })
+  const local = [
+    msg('l1', 'me', 'Сделай клип', 10),
+    msg('l2', 'director', 'Принял.', 10, 6),
+    msg('l3', 'me', '/status', 1),
+  ]
+  const merged = v.mergeHistory(server, local)
+  assert.deepEqual(merged.map((x) => x.text), ['Сделай клип', 'Принял.', '/status'])
+  assert.deepEqual(v.mergeHistory(server, [], iso(5)), [])
+  assert.equal(v.normalizeDirectorHistory({ ok: true }), null)
+  assert.deepEqual(v.normalizeDirectorHistory({ items: [{ id: 'x', role: 'bad', at: iso(1), text: 't' }] }), [])
+})

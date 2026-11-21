@@ -14,7 +14,7 @@ import {
   withDetails,
   withLangs,
 } from '../src/lib/builder.ts'
-import { estimateDoc, leadLimit, leadSummary } from '../src/lib/estimate-doc.ts'
+import { estimateDoc, estimateJson, leadEstimateFields, leadLimit, leadPage, leadSummary } from '../src/lib/estimate-doc.ts'
 
 const full = {
   parts: {
@@ -202,4 +202,33 @@ test('lead summary: a compact stage line, the limit still holds', () => {
   assert.match(plain, /Оплата по этапам: 1\. \$[\d,]+/)
   // The scope line stays after the stage line.
   assert.ok(plain.indexOf('Оплата по этапам') < plain.indexOf(estimateDoc(presets.cafe, ru, 'ru').scope))
+})
+
+test('lead estimate JSON: lines, discount, total as HQ checks it, text summary stays in the message', () => {
+  const j = estimateJson(full, ru, 'ru')
+  assert.equal(j.v, 1)
+  const q = quote(full)
+  assert.equal(j.lines.length, q.lines.length)
+  assert.ok(j.lines.every((l) => l.label && l.usd > 0))
+  assert.equal(j.totalUsd, j.lines.reduce((a, l) => a + l.usd, 0) - (j.discountUsd ?? 0))
+  assert.equal(j.totalUsd, q.total)
+  assert.equal(j.monthlyUsd, q.monthly)
+  const fields = leadEstimateFields(full, ru, 'ru')
+  assert.ok(fields.estimate.startsWith('{') && fields.estimate.length <= leadLimit)
+  assert.deepEqual(JSON.parse(fields.estimate), j)
+  assert.equal(fields.message, leadSummary(full, ru, 'ru'))
+  assert.ok(fields.message.length <= 2000)
+  // nothing priced: no JSON, the text goes in `estimate` as before
+  const none = leadEstimateFields({ parts: {}, extras: [] }, ru, 'ru')
+  assert.equal(none.message, undefined)
+  assert.equal(estimateJson({ parts: {}, extras: [] }, ru, 'ru'), null)
+})
+
+test('lead page: the whole builder link, cut at a ~ when over 600 characters', () => {
+  const link = estimateDoc(presets.cafe, ru, 'ru').link
+  assert.equal(leadPage(link), link)
+  assert.match(link, /\/ru\/builder\?b=/)
+  const long = `https://firtech.pro/ru/builder?b=${Array.from({ length: 80 }, (_, i) => `x.part${i}`).join('~')}`
+  const cut = leadPage(long)
+  assert.ok(cut.length <= 600 && long.startsWith(cut) && !cut.endsWith('~'))
 })

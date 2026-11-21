@@ -201,7 +201,7 @@ Legend of `E:` tags (file : test title):
 | 8 Превью | 4 x «Изменить» | back to the step | `E:builder` (first one) | pass (one), untested (other 3) |
 | 8 Превью | «Скопировать ссылку» | copies `/{locale}/builder?b=...` | `E:builder` (clipboard) | pass |
 | 8 Превью | «Скачать смету (PDF)» | name + contact gate, then the estimate page | `E:pdf-gate` (sign-in step shown) | pass (gate); untested (signed-in open of the estimate) |
-| 8 Превью | «Отправить проект в работу» (actions panel, `#contact`; the bottom bar button scrolls to it) | sends the lead itself via `/api/lead` (sign-in gate and 24 h draft stay, no second form) | `E:builder` (visible), `E:flows` (gate) | untested (send) |
+| 8 Превью | «Отправить проект в работу» (actions panel, `#contact`; the bottom bar button scrolls to it) | sends the lead itself via `/api/lead` (sign-in gate and 24 h draft stay, no second form); `estimate` is the JSON quote, `message` the text summary, `page` the full builder link with `?b=` | `E:builder` (visible), `E:flows` (gate), `U:builder` (JSON, page) | untested (send) |
 | 8 Превью | «Условия гарантии» | terms | none | untested |
 | link | `?b=...&step=8`, old `s.`/`y.`/`d.5` chunks | decodes the build, old styles map to the closest theme | `E:builder-link`, `E:builder-v2` (legacy link), `U:builder-v2` | pass |
 
@@ -335,7 +335,7 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 | Директор / Поручения | section «Ждут вашего решения» on top (first 3 cards, «Показать все N») with «Одобрить» (A), «Отклонить» (R), part chips, «Выпустить сейчас» | the old «Одобрения» tab: same actions, same optimistic counter | `POST approvals/<id>` | `E:director` (approve lowers the counter), `U:hq-admin` | pass (approve), untested (reject, parts, «Показать все», «Выпустить сейчас») |
 | Директор / Поручения | approval card «Править» (pencil) | opens the full-screen editor (no inline textarea); «Сохранить как версию» sends `edit` | `POST approvals/<id>` (up to 40000 characters) | `U:hq-admin` (40000 accepted), `E:editor` (the same editor component) | untested (browser, from the approvals card) |
 | Директор / Поручения | filters «Все / Мои поручения / Ждёт меня / Сделано», search, task card (opens the drawer), «В работу», «Напомнить», «Отменить» (with confirm) | filter and act; «Напомнить» and «Отменить» go through `say` and show as the owner's line plus the Director's answer | `POST tasks/<id>/retry`, `POST say` | `E:director` (filter, search), `E:orders` (cancel), `U:orders` | pass (filters, cancel), untested (drawer, retry, remind) |
-| Директор / Поручения | clear conversation | empties the kept timeline lines (sessionStorage; HQ has no history endpoint, see Follow-ups in `docs/pult.md`) | - | none | untested |
+| Директор / Поручения | clear conversation | hides the timeline lines up to now (sessionStorage keeps the time; the server history stays) | `GET director/history` (the base of the timeline, loaded on open) | `U:orders` (history merge, cleared) | untested (browser) |
 | Директор / Документы | rows grouped by client (latest 40), «Править» on every row | opens the full-screen editor (a КП, смета, contract, invoice draft); disabled with the reason when HQ allows no edit | `GET crm/documents`, `GET review?status=all`, `POST review/<id>` (edit, `doc` for a pack) | `E:doc-director`, `U:review` | pass (open), untested (save) |
 | Директор / Лента | live feed | render | `GET /api/admin/office` | `E:panels` | pass (render) |
 | Директор / Учения | department select, «Запустить учения», «Таблица», «Очистить» | drill | `GET/POST drill` | `E:panels` (renders) | untested |
@@ -394,10 +394,10 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 | «Разбор заявки»: «Показать превью» / «Скрыть превью» | draws the builder's mockup small from the decoded `?b=` (loaded on demand) | - | none | untested |
 | chats: list, thread opens | threads with channels and unread | `GET chats`, `GET chats/<id>` | `E:chats`, `U:chats` | pass |
 | chats: reply box (Enter sends, Shift+Enter new line) | owner reply joins the thread | `POST chats/<id>/reply` | `E:chats` (Enter), `U:chats` | pass (Enter), untested (Shift+Enter) |
-| chats: «Ответить в тред» picker (lead / support / project N; shown when the client has several threads, the lead's preselected) | sends `thread`; `422 thread_required` opens the picker with HQ's names and keeps the draft | `POST chats/<id>/reply`, `GET clients/<id>/threads` | `E:chats` (picker, value), `U:chats` (choices, 422, body, whitelist) | pass (picker), untested (422 in the browser) |
+| chats: «Ответить в тред» picker (lead / support / project N; shown when the client has several threads, the thread of the last client message preselected) and a thread chip on each message when there are several | sends `thread`; `422 thread_required` opens the picker with HQ's names and keeps the draft | `POST chats/<id>/reply`, `GET clients/<id>/threads` | `E:chats` (picker, value), `U:chats` (choices, last client thread, 422, body, whitelist) | pass (picker), untested (422 in the browser) |
 | chats: «Ответить» under a client message (cabinet messages `cab_`, `ct_`) and the «Ответ на: …» chip with ✕ | sends `replyTo` | `POST chats/<id>/reply` | `U:chats` (`canReplyTo`, body) | untested (browser) |
 | chats: search box «Поиск по клиентам» | filters by name, contact, email and last message | - | `E:chats` (empty result), `U:chats` | pass |
-| chats: «Отметить непрочитанным» | local flag in this browser (HQ has no such call), the thread shows an unread count until opened | - | `U:chats` (marks) | untested (browser) |
+| chats: «Отметить непрочитанным» | the list counter goes up at once, `POST chats/<id>/unread` confirms (the row is replaced) or the counter rolls back with a toast | `POST chats/<id>/unread` | `U:chats` (mock, whitelist, `markedUnread`) | untested (browser) |
 | chats: filters «Активные / Все» and channels, links «Открыть лид / тикет / клиента» | filter, jump to the Пульт panel | - | `U:chats` | untested (browser) |
 
 ## Totals

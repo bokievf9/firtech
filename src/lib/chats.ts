@@ -29,7 +29,8 @@ export type ChatThread = {
   openTicket: boolean
 }
 export type ChatAttachment = { name: string; url: string | null }
-export type ChatMessage = { id: string; at: string | null; from: 'client' | 'hq' | 'owner'; channel: Channel; text: string; attachments: ChatAttachment[] }
+// `thread`: the cabinet thread the message was written in (`lead`, `support`, `project-<id>`), null when HQ does not say.
+export type ChatMessage = { id: string; at: string | null; from: 'client' | 'hq' | 'owner'; channel: Channel; thread: string | null; text: string; attachments: ChatAttachment[] }
 export type ChatsView = { items: ChatThread[]; unread: number; nextCursor: string | null }
 export type ChatThreadView = { thread: ChatThread; messages: ChatMessage[] }
 
@@ -84,7 +85,7 @@ export function normalizeMessage(raw: unknown): ChatMessage | null {
     const x = rec(a)
     return { name: str(x.name, 120) || 'файл', url: safeUrl(x.url) }
   })
-  return { id: r.id.slice(0, 64), at: when(r.at), from, channel: channel(r.channel) ?? 'web', text: str(r.text), attachments }
+  return { id: r.id.slice(0, 64), at: when(r.at), from, channel: channel(r.channel) ?? 'web', thread: isThreadChoice(r.thread) ? r.thread : null, text: str(r.text), attachments }
 }
 
 export function normalizeThreadView(body: unknown): ChatThreadView | null {
@@ -202,14 +203,22 @@ export function searchThreads(items: ChatThread[], query: string): ChatThread[] 
   return items.filter((t) => [t.client.name, t.client.contact, t.client.email ?? '', t.preview].some((f) => f.toLowerCase().includes(q)))
 }
 
-// HQ has no «mark unread» call: the owner's marks live in this browser (a set of thread ids) and
-// show as an unread dot on top of HQ's own counter.
-export function applyUnreadMarks(items: ChatThread[], marks: ReadonlySet<string>): ChatThread[] {
-  return items.map((t) => (marks.has(t.id) && t.unread === 0 ? { ...t, unread: 1 } : t))
+// «Отметить непрочитанным» is HQ's `POST /admin/chats/:id/unread` (contract 2026-11-22): the thread's `unread`
+// becomes 1 when everything was answered, and stays as it is when something is unread already.
+export const markedUnread = <T extends { unread: number }>(t: T): T => (t.unread > 0 ? t : { ...t, unread: 1 })
+
+// ---- threads of the messages -----------------------------------------------------------------------
+
+// The thread of the LAST client message: HQ answers into it when the reply names no thread, so the picker starts there.
+export function lastClientThread(messages: Pick<ChatMessage, 'from' | 'thread' | 'at'>[]): string | null {
+  let best: { at: number; thread: string } | null = null
+  messages.forEach((m, i) => {
+    if (m.from !== 'client' || !m.thread) return
+    const at = m.at ? Date.parse(m.at) : i
+    if (!best || at >= best.at) best = { at, thread: m.thread }
+  })
+  return (best as { thread: string } | null)?.thread ?? null
 }
-export function toggleMark(marks: ReadonlySet<string>, id: string, on: boolean): Set<string> {
-  const next = new Set(marks)
-  if (on) next.add(id)
-  else next.delete(id)
-  return next
-}
+
+// The distinct threads the messages were written in; the chip next to a message shows only when there are several.
+export const messageThreads = (messages: Pick<ChatMessage, 'thread'>[]): string[] => [...new Set(messages.flatMap((m) => (m.thread ? [m.thread] : [])))]

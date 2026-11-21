@@ -10,3 +10,11 @@ let seq = 0
 const newId = () => `${Date.now().toString(36)}-${(seq++).toString(36)}`
 export const pushChat = (...messages: Omit<ChatMessage, 'id' | 'at'>[]) =>
   chat.set(keepLast([...chat.get(), ...messages.map((m) => ({ ...m, id: newId(), at: new Date().toISOString() }))]))
+
+// «Очистить» hides what the timeline showed up to now: the server keeps its history, so the time of the
+// last clearing is remembered in this tab and older server lines stay out of the timeline.
+export const clearedAt = storedValue<string | null>('firtech-cc-cleared', 'session', (raw) => (raw && !Number.isNaN(Date.parse(JSON.parse(raw) as string)) ? (JSON.parse(raw) as string) : null), null)
+export const clearChat = () => {
+  chat.set([])
+  clearedAt.set(new Date().toISOString())
+}

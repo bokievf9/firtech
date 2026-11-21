@@ -62,6 +62,25 @@ export function clip(value: string, max: number) {
   return value.length > max ? `${value.slice(0, max)}… (полностью в /admin)` : value
 }
 
+// The builder sends its estimate as JSON (`{"v":1,"lines":[{"label","usd"}],...}`, see estimate-doc.ts
+// `estimateJson`); everywhere a person reads it, it becomes lines of text. Anything else passes through.
+export function estimateAsText(value: string): string {
+  const t = value.trim()
+  if (!t.startsWith('{')) return value
+  try {
+    const j = JSON.parse(t) as { v?: unknown; lines?: unknown; discountUsd?: unknown; totalUsd?: unknown; monthlyUsd?: unknown; onRequest?: unknown }
+    if (j.v !== 1 || !Array.isArray(j.lines) || typeof j.totalUsd !== 'number') return value
+    const rows = j.lines.flatMap((l: { label?: unknown; usd?: unknown }) => (typeof l?.label === 'string' && typeof l.usd === 'number' ? [`${l.label} ($${l.usd})`] : []))
+    if (typeof j.discountUsd === 'number') rows.push(`Скидка: -$${j.discountUsd}`)
+    rows.push(`Итого: $${j.totalUsd}`)
+    if (Array.isArray(j.onRequest) && j.onRequest.length) rows.push(`По смете, без цены: ${j.onRequest.filter((x) => typeof x === 'string').join(', ')}`)
+    if (typeof j.monthlyUsd === 'number') rows.push(`Поддержка по подписке: $${j.monthlyUsd}/мес`)
+    return rows.join('\n')
+  } catch {
+    return value
+  }
+}
+
 // Telegram message for the owner (always in Russian; the lead's own language is noted).
 export function formatLead(lead: LeadFields, title = 'Новая заявка с сайта Fir Tech') {
   const rows: [string, string][] = [
@@ -69,7 +88,7 @@ export function formatLead(lead: LeadFields, title = 'Новая заявка с
     ['Связь', lead.contact],
     ['Услуга', serviceNames[lead.service]],
     ['Бюджет', lead.budget],
-    [lead.service === 'bundle' ? 'Сборка' : 'Оценка', lead.estimate],
+    [lead.service === 'bundle' ? 'Сборка' : 'Оценка', estimateAsText(lead.estimate)],
     ['Задача', clip(lead.message, 1000)],
     ['Язык', lead.locale.toUpperCase()],
     ['Страница', clip(lead.page, 300)],

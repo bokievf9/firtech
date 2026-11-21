@@ -82,6 +82,14 @@ export function withDocText(item: ReviewItem, value: string, doc: PackDoc | null
 // `bl:<n>` invoice (HQ only lets a draft be edited), `ps:<n>` a КП, смета or договор of a presales
 // pack (matched by the document id HQ may send, else by kind and client name).
 export type DocRow = { id: string; kind: string; client: string }
+// The `ps_documents` ids a pack declares: its `documents[].id` and `meta.pack.documentIds`.
+export function packDocIds(item: ReviewItem): Set<string> {
+  const out = new Set<string>()
+  for (const d of item.text.documents ?? []) if (d.id !== undefined && d.id !== '') out.add(d.id)
+  const pack = item.meta.pack as { documentIds?: unknown } | null | undefined
+  if (Array.isArray(pack?.documentIds)) for (const v of pack.documentIds) if (typeof v === 'number' || typeof v === 'string') out.add(String(v))
+  return out
+}
 const norm = (v: unknown) => (typeof v === 'string' ? v.trim().toLowerCase() : '')
 export function targetForRow(row: DocRow, items: ReviewItem[]): DocTarget | null {
   const m = /^(bo|bl|ps):(\d{1,12})$/.exec(row.id)
@@ -92,10 +100,13 @@ export function targetForRow(row: DocRow, items: ReviewItem[]): DocTarget | null
     let named: DocTarget | null = null
     for (const it of items) {
       if (it.kind !== 'presales_pack') continue
-      const docs = it.text.documents ?? []
       const t = editableTargets(it).find((x) => x.doc === row.kind)
       if (!t) continue
-      if (docs.some((d) => d.key === row.kind && String((d as { id?: unknown }).id ?? '') === m[2])) return t
+      const ids = packDocIds(it)
+      // HQ names the pack's documents by `ps_documents.id` (`documents[].id`, `meta.pack.documentIds`): an exact match.
+      if (ids.has(m[2]!)) return t
+      // The kind + client name guess only for packs that carry no ids at all (an older HQ).
+      if (ids.size > 0) continue
       const lead = it.meta.lead as { name?: unknown } | null | undefined
       if (!named && client && (norm(lead?.name) === client || norm(it.title).includes(client))) named = t
     }

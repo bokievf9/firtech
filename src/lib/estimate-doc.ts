@@ -266,6 +266,70 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
   return { goals, setup, style, details }
 }
 
+// The estimate as JSON for HQ (`estimate` of the lead, 2026-11-22): `{"v":1,"lines":[{"label","usd"}],
+// "discountUsd"?,"totalUsd","monthlyUsd"?,"onRequest"?:[names]}`. `totalUsd` is the sum of the lines minus the
+// discount, as HQ checks it. null when nothing is priced or the JSON would not fit `leadLimit`.
+export type EstimateJson = {
+  v: 1
+  lines: { label: string; usd: number }[]
+  discountUsd?: number
+  totalUsd: number
+  monthlyUsd?: number
+  onRequest?: string[]
+}
+export function estimateJson(
+  build: Build,
+  dict: Dict,
+  locale: string,
+  pricing: Pricing = defaultPricing,
+): EstimateJson | null {
+  const q = quote(build, pricing)
+  const doc = estimateDoc(build, dict, locale, pricing)
+  const rows = [...doc.parts, ...doc.extras]
+  const lines = q.lines
+    .map((line, i) => {
+      const row = rows[i]
+      const label = row ? (row.detail ? `${row.name}: ${row.detail}` : row.name) : line.id
+      return { label: label.slice(0, 120), usd: line.price }
+    })
+    .filter((l) => l.usd > 0)
+  if (!lines.length || lines.length > 30) return null
+  const sum = lines.reduce((acc, l) => acc + l.usd, 0)
+  const discountUsd = q.discount ?? 0
+  const out: EstimateJson = {
+    v: 1,
+    lines,
+    ...(discountUsd > 0 ? { discountUsd } : {}),
+    totalUsd: sum - discountUsd,
+    ...(q.monthly ? { monthlyUsd: q.monthly } : {}),
+    ...(doc.onRequest.length ? { onRequest: doc.onRequest.map((r) => r.name) } : {}),
+  }
+  return JSON.stringify(out).length <= leadLimit ? out : null
+}
+
+// The builder link for the lead's `page` (600 characters at most, in the lead schema): the whole
+// `https://firtech.pro/<locale>/builder?b=...`; a longer one is cut at a `~` so it stays a valid, shorter build.
+export const leadPageLimit = 600
+export function leadPage(link: string): string {
+  if (link.length <= leadPageLimit) return link
+  const cut = link.slice(0, leadPageLimit)
+  const at = cut.lastIndexOf('~')
+  return at > link.indexOf('?b=') + 3 ? cut.slice(0, at) : cut
+}
+
+// What the builder's lead carries: the JSON estimate in `estimate` and the text summary in `message`
+// (the owner's Telegram card and the cabinet show both); without a JSON the text stays in `estimate`.
+export function leadEstimateFields(
+  build: Build,
+  dict: Dict,
+  locale: string,
+  pricing: Pricing = defaultPricing,
+): { estimate: string; message?: string } {
+  const text = leadSummary(build, dict, locale, pricing)
+  const json = estimateJson(build, dict, locale, pricing)
+  return json ? { estimate: JSON.stringify(json), message: text } : { estimate: text }
+}
+
 // The contact form's estimate field holds at most this many characters (lead schema).
 export const leadLimit = 1500
 

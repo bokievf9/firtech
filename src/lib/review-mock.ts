@@ -172,12 +172,12 @@ export function createReviewMock(start = Date.now()) {
       text: {
         body: PACK_KP,
         documents: [
-          { key: 'kp', title: 'Коммерческое предложение', body: PACK_KP },
-          { key: 'estimate', title: 'Смета', body: '## Смета\n\n| Этап | Что входит | Сумма |\n|---|---|---|\n| 1 | Меню и запись | $300 |\n| 2 | Напоминания и оплата | $300 |\n\nИтого: **$600**.' },
-          { key: 'contract', title: 'Договор (черновик)', body: '## Договор на разработку Telegram-бота\n\n1. Предмет договора.\n2. Стоимость и порядок оплаты по этапам.\n3. Сроки и приёмка этапов.\n4. Ответственность сторон.' },
+          { id: 31, key: 'kp', title: 'Коммерческое предложение', body: PACK_KP },
+          { id: 32, key: 'estimate', title: 'Смета', body: '## Смета\n\n| Этап | Что входит | Сумма |\n|---|---|---|\n| 1 | Меню и запись | $300 |\n| 2 | Напоминания и оплата | $300 |\n\nИтого: **$600**.' },
+          { id: 33, key: 'contract', title: 'Договор (черновик)', body: '## Договор на разработку Telegram-бота\n\n1. Предмет договора.\n2. Стоимость и порядок оплаты по этапам.\n3. Сроки и приёмка этапов.\n4. Ответственность сторон.' },
         ],
       },
-      meta: { lead: { id: 2, name: 'Боб', contact: '@bob', service: 'bot', budget: '600', stage: 'proposal', source: 'telegram', temperature: 'warm', taskId: 42, callAt: null, cabinet: false, message: MOCK_MESSAGES[5], estimate: MOCK_ESTIMATES[5], builderUrl: mockBuilderUrl(5) }, client: { id: null, email: null, cabinet: false }, pack: { id: 4, direction: 'bot', totalUsd: 600, prepayUsd: 180, prepayPercent: 30, stages: null, timeline: '10 дней' } },
+      meta: { lead: { id: 2, name: 'Боб', contact: '@bob', service: 'bot', budget: '600', stage: 'proposal', source: 'telegram', temperature: 'warm', taskId: 42, callAt: null, cabinet: false, message: MOCK_MESSAGES[5], estimate: MOCK_ESTIMATES[5], builderUrl: mockBuilderUrl(5) }, client: { id: null, email: null, cabinet: false }, pack: { id: 4, documentIds: [31, 32, 33], direction: 'bot', totalUsd: 600, prepayUsd: 180, prepayPercent: 30, stages: null, timeline: '10 дней' } },
       versions: [ver(1, 70, { body: PACK_KP }, '', 'worker')],
       currentVersion: 1, parentId: null, taskId: 42, error: null,
     },
@@ -212,7 +212,7 @@ export function createReviewMock(start = Date.now()) {
   ]
 
   // ---- chats ----
-  type Msg = { id: string; at: string; from: 'client' | 'hq' | 'owner'; channel: string; text: string; attachments: Row[] }
+  type Msg = { id: string; at: string; from: 'client' | 'hq' | 'owner'; channel: string; thread: string; text: string; attachments: Row[] }
   const threads: Row[] = [
     { id: 'c3', client: { id: 3, name: 'Анна', email: 'anna@example.com', contact: '@anna' }, channels: ['cabinet', 'telegram'], lastAt: ago(12), unread: 1, preview: 'Когда будет готов макет?', leadId: 12, ticketId: null, textsStored: true, openTicket: false },
     { id: 't4', client: { id: null, name: 'Фаррух', email: null, contact: '+992 90 111 22 33' }, channels: ['telegram'], lastAt: ago(60 * 5), unread: 0, preview: 'Спасибо, вижу обновление.', leadId: 6, ticketId: 4, textsStored: true, openTicket: true },
@@ -220,16 +220,16 @@ export function createReviewMock(start = Date.now()) {
   ]
   const messages = new Map<string, Msg[]>([
     ['c3', [
-      { id: 'lead_12', at: ago(60 * 48), from: 'client', channel: 'web', text: 'Здравствуйте! Нужен сайт для студии йоги, есть логотип и фото.', attachments: [] },
-      { id: 'rp_4', at: ago(60 * 47), from: 'hq', channel: 'telegram', text: 'Здравствуйте, Анна! Сайт для студии делаем за 10 дней. Пришлите, пожалуйста, ссылки на фото.', attachments: [] },
-      { id: 'cab_21', at: ago(60 * 20), from: 'client', channel: 'cabinet', text: 'Фото загрузила в кабинет. Нужно ли расписание на сайте?', attachments: [] },
-      { id: 'ow_3', at: ago(60 * 19), from: 'owner', channel: 'cabinet', text: 'Да, добавим расписание с записью на занятия.', attachments: [] },
-      { id: 'cab_22', at: ago(12), from: 'client', channel: 'cabinet', text: 'Когда будет готов макет?', attachments: [] },
+      { id: 'lead_12', at: ago(60 * 48), from: 'client', channel: 'web', thread: 'lead', text: 'Здравствуйте! Нужен сайт для студии йоги, есть логотип и фото.', attachments: [] },
+      { id: 'rp_4', at: ago(60 * 47), from: 'hq', channel: 'telegram', thread: 'lead', text: 'Здравствуйте, Анна! Сайт для студии делаем за 10 дней. Пришлите, пожалуйста, ссылки на фото.', attachments: [] },
+      { id: 'cab_21', at: ago(60 * 20), from: 'client', channel: 'cabinet', thread: 'lead', text: 'Фото загрузила в кабинет. Нужно ли расписание на сайте?', attachments: [] },
+      { id: 'ow_3', at: ago(60 * 19), from: 'owner', channel: 'cabinet', thread: 'lead', text: 'Да, добавим расписание с записью на занятия.', attachments: [] },
+      { id: 'cab_22', at: ago(12), from: 'client', channel: 'cabinet', thread: 'project-4', text: 'Когда будет готов макет?', attachments: [] },
     ]],
     ['t4', [
-      { id: 'tk_4_q', at: ago(300), from: 'client', channel: 'telegram', text: 'Поменяйте часы работы: теперь с 9 до 21.', attachments: [] },
-      { id: 'tk_4_a', at: ago(240), from: 'hq', channel: 'telegram', text: 'Готово, обновление на сайте через пять минут.', attachments: [] },
-      { id: 'cab_30', at: ago(60 * 5), from: 'client', channel: 'telegram', text: 'Спасибо, вижу обновление.', attachments: [] },
+      { id: 'tk_4_q', at: ago(300), from: 'client', channel: 'telegram', thread: 'lead', text: 'Поменяйте часы работы: теперь с 9 до 21.', attachments: [] },
+      { id: 'tk_4_a', at: ago(240), from: 'hq', channel: 'telegram', thread: 'lead', text: 'Готово, обновление на сайте через пять минут.', attachments: [] },
+      { id: 'cab_30', at: ago(60 * 5), from: 'client', channel: 'telegram', thread: 'lead', text: 'Спасибо, вижу обновление.', attachments: [] },
     ]],
     ['w7f3', []],
   ])
@@ -395,11 +395,15 @@ export function createReviewMock(start = Date.now()) {
         const names = replyThreads(t)
         const wanted = typeof body.thread === 'string' ? body.thread : null
         if (wanted && !names.includes(wanted)) return bad('not_found')
-        if (names.length > 1 && !wanted && !body.replyTo && t.id === 'c3') return { ok: false, error: 'thread_required', threads: names }
         const list = messages.get(String(t.id)) ?? []
+        // No `thread`, no `replyTo`: HQ answers into the thread of the client's last message (contract 2026-11-22);
+        // 422 thread_required only when it cannot tell (several threads, the client wrote nowhere).
+        const lastClient = [...list].reverse().find((m) => m.from === 'client')
+        if (names.length > 1 && !wanted && !body.replyTo && !lastClient) return { ok: false, error: 'thread_required', threads: names }
+        const replyThread = wanted ?? (body.replyTo ? (/^ct_/.test(String(body.replyTo)) ? 'project-4' : 'lead') : (lastClient?.thread ?? 'lead'))
         const cabinet = (t.channels as string[]).includes('cabinet')
         const via = t.textsStored === false ? 'none' : cabinet ? 'cabinet' : 'telegram'
-        const message: Msg = { id: `ow_${nextMsg++}`, at: iso(now), from: 'owner', channel: cabinet ? 'cabinet' : 'telegram', text, attachments: [] }
+        const message: Msg = { id: `ow_${nextMsg++}`, at: iso(now), from: 'owner', channel: cabinet ? 'cabinet' : 'telegram', thread: replyThread, text, attachments: [] }
         list.push(message)
         messages.set(String(t.id), list)
         t.unread = 0
@@ -407,6 +411,11 @@ export function createReviewMock(start = Date.now()) {
         t.preview = text.slice(0, 120)
         t.textsStored = true
         return { ok: true, sent: via !== 'none', via, message: clone(message), thread: clone(t) }
+      }
+      // The owner marks the client unread again: a thread with everything answered gets 1, one with unread stays.
+      if (method === 'POST' && seg[2] === 'unread' && seg.length === 3) {
+        if (Number(t.unread) === 0) t.unread = 1
+        return { ok: true, thread: clone(t) }
       }
       return null
     }

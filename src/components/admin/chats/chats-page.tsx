@@ -4,23 +4,26 @@ import { ArrowBendUpLeft, ArrowLeft, ChatCircleText, EnvelopeSimple, MagnifyingG
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { errText, hq, storedValue } from '@/components/admin/control/api'
+import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btnPrimary, inputClass, modalOpen, Offline, typingIn, useHqView } from '@/components/admin/hub/ui'
 import { Chip } from '@/components/admin/pult/bits'
 import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { cn } from '@/lib/cn'
 import {
-  applyUnreadMarks,
   canReplyTo,
   CHANNEL_LABELS,
   choiceLabel,
   choicesFrom,
   defaultChoice,
   fallbackChoices,
+  lastClientThread,
+  markedUnread,
+  messageThreads,
   mergeMessages,
   normalizeChats,
   normalizeReply,
+  normalizeThread,
   normalizeThreadChoices,
   normalizeThreadView,
   replyBody,
@@ -29,7 +32,6 @@ import {
   sendsOnEnter,
   sortThreads,
   threadLinks,
-  toggleMark,
   type Channel,
   type ChatMessage,
   type ChatThread,
@@ -51,20 +53,6 @@ const time = (iso: string | null) => {
   const same = d.toDateString() === new Date().toDateString()
   return same ? d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
-// The owner's «mark unread» flags (HQ has no such call) live in this browser: a list of thread ids.
-const unreadMarks = storedValue<string[]>(
-  'fir-chats-unread',
-  'local',
-  (raw) => {
-    try {
-      const v: unknown = JSON.parse(raw ?? '[]')
-      return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 500) : []
-    } catch {
-      return []
-    }
-  },
-  [],
-)
 const t422 = 'У клиента несколько тредов: выберите, куда отправить ответ.'
 const NO_TEXTS =
   'Тексты анонимных диалогов сайта и бота не хранятся: у такого чата есть только короткая обезличенная сводка. Сообщения появятся, когда человек станет лидом, тикетом или клиентом кабинета.'
@@ -91,10 +79,6 @@ export function ChatsPage() {
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
   const [query, setQuery] = useState('')
-  // The owner's «mark unread» flags (HQ has no such call): kept in this browser.
-  const markList = useSyncExternalStore(unreadMarks.subscribe, unreadMarks.get, unreadMarks.server)
-  const marks = useMemo(() => new Set(markList), [markList])
-  const setMarks = (next: ReadonlySet<string>) => unreadMarks.set([...next])
   // Reply target: the thread picked in the composer (per chat) and the message answered.
   const [pickedThread, setPickedThread] = useState<Record<string, string>>({})
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
@@ -104,15 +88,15 @@ export function ChatsPage() {
 
   const list = useHqView(`chats?status=${scope}&limit=100`, normalizeChats, { visible: 30_000, hidden: 120_000 })
   const threads = useMemo(
-    () => searchThreads(sortThreads(applyUnreadMarks(list.view?.items ?? [], marks)), query).filter((t) => channel === 'all' || t.channels.includes(channel)),
-    [list.view, channel, marks, query],
+    () => searchThreads(sortThreads(list.view?.items ?? []), query).filter((t) => channel === 'all' || t.channels.includes(channel)),
+    [list.view, channel, query],
   )
   const activeId = sel ?? (desktop ? (threads[0]?.id ?? null) : null)
   // Only the open thread refreshes (30 s), and not at all while the tab is hidden.
   const open = useHqView(activeId ? `chats/${encodeURIComponent(activeId)}` : null, normalizeThreadView, { visible: 30_000, hidden: 86_400_000 })
   const thread: ChatThread | null = open.view && !open.stale ? open.view.thread : (threads.find((t) => t.id === activeId) ?? null)
-  const messages = open.view && !open.stale ? open.view.messages : []
-  const unread = (list.view?.unread ?? 0) + [...marks].filter((id) => (list.view?.items ?? []).some((t) => t.id === id && t.unread === 0)).length
+  const messages = useMemo(() => (open.view && !open.stale ? open.view.messages : []), [open.view, open.stale])
+  const unread = list.view?.unread ?? 0
   // The client's threads (lead, support, project-N) for the reply picker; a client without a cabinet falls back to what the row shows.
   const clientId = thread?.client.id ?? null
   const threadsRes = useHqView(clientId !== null ? `clients/${clientId}/threads` : null, normalizeThreadChoices, { visible: 120_000, hidden: 86_400_000 })
@@ -121,7 +105,10 @@ export function ChatsPage() {
     const known = hqChoices && thread && hqChoices.for === thread.id ? hqChoices.list : fromHq
     return known && known.length ? known : thread ? fallbackChoices(thread) : []
   }, [hqChoices, threadsRes.view, threadsRes.stale, thread, clientId])
-  const chosen = thread ? (pickedThread[thread.id] ?? defaultChoice(choices)) : null
+  // The reply goes to the thread picked by the owner, else the thread of the client's LAST message (HQ's own default).
+  const lastThread = useMemo(() => lastClientThread(messages), [messages])
+  const showThreadChip = useMemo(() => messageThreads(messages).length > 1, [messages])
+  const chosen = thread ? (pickedThread[thread.id] ?? defaultChoice(choices, lastThread)) : null
 
   const end = useRef<HTMLDivElement>(null)
   const last = messages.at(-1)?.id
@@ -133,16 +120,38 @@ export function ChatsPage() {
   const { mutate: mutateList } = list
   const { mutate: mutateOpen } = open
 
+  // «Отметить непрочитанным»: optimistic (the counter in the list at once), rolled back when HQ refuses.
+  const markUnread = async (t: ChatThread) => {
+    const before = list.view?.items.find((x) => x.id === t.id) ?? null
+    mutateList((v) => ({ ...v, items: v.items.map((x) => (x.id === t.id ? markedUnread(x) : x)), unread: v.items.filter((x) => (x.id === t.id ? markedUnread(x) : x).unread > 0).length }))
+    if (!desktop) setSel(null)
+    const res = await hq<Record<string, unknown>>(`chats/${encodeURIComponent(t.id)}/unread`, {})
+    const row = res.ok ? normalizeThread((res as { thread?: unknown }).thread) : null
+    if (!row) {
+      mutateList((v) => {
+        const items = v.items.map((x) => (x.id === t.id && before ? before : x))
+        return { ...v, items, unread: items.filter((x) => x.unread > 0).length }
+      })
+      notify(res.ok ? errText('hq_bad_response') : errText(res.error), 'error')
+      return
+    }
+    mutateList((v) => {
+      const items = v.items.map((x) => (x.id === t.id || x.id === row.id ? row : x))
+      return { ...v, items, unread: items.filter((x) => x.unread > 0).length }
+    })
+    notify('Отмечено непрочитанным', 'info')
+  }
+
   const send = async () => {
     const text = draft.trim()
     if (!text || sending || !thread) return
     setSending(true)
     const id = `local_${Date.now()}`
-    const local: ChatMessage = { id, at: new Date().toISOString(), from: 'owner', channel: thread.channels.includes('cabinet') ? 'cabinet' : (thread.channels[0] ?? 'web'), text, attachments: [] }
-    setDraft('')
-    mutateOpen((v) => ({ ...v, messages: [...v.messages, local] }))
     // `thread` goes along when the client has several threads (the picked one) or the owner chose; `replyTo` when a message is being answered.
     const target = choices.length > 1 || pickedThread[thread.id] ? chosen : null
+    const local: ChatMessage = { id, at: new Date().toISOString(), from: 'owner', channel: thread.channels.includes('cabinet') ? 'cabinet' : (thread.channels[0] ?? 'web'), thread: target, text, attachments: [] }
+    setDraft('')
+    mutateOpen((v) => ({ ...v, messages: [...v.messages, local] }))
     const res = await hq<Record<string, unknown>>(`chats/${encodeURIComponent(thread.id)}/reply`, replyBody(text, { thread: target, replyTo: replyTo?.id }))
     setSending(false)
     const out = res.ok ? normalizeReply(res) : null
@@ -252,10 +261,6 @@ export function ChatsPage() {
                         setSel(t.id)
                         setReplyTo(null)
                         setPickerHot(false)
-                        if (marks.has(t.id)) {
-                          const next = toggleMark(marks, t.id, false)
-                          setMarks(next)
-                        }
                       }}
                       aria-current={active} className={cn('grid w-full gap-1 p-3 text-left transition-colors', active ? 'bg-surface-2' : 'hover:bg-surface-2/60')}>
                       <span className="flex items-center justify-between gap-2">
@@ -297,12 +302,7 @@ export function ChatsPage() {
                   <div className="ml-auto flex flex-wrap items-center gap-x-3">
                     <button
                       type="button"
-                      onClick={() => {
-                        const next = toggleMark(marks, thread.id, true)
-                        setMarks(next)
-                        if (!desktop) setSel(null)
-                        notify('Отмечено непрочитанным', 'info')
-                      }}
+                      onClick={() => void markUnread(thread)}
                       className="inline-flex min-h-9 items-center gap-1 text-sm text-muted hover:text-fg"
                     >
                       <EnvelopeSimple size={14} aria-hidden="true" /> Отметить непрочитанным
@@ -337,6 +337,7 @@ export function ChatsPage() {
                             </div>
                             <span className="mt-0.5 flex items-center gap-2 px-1 font-mono text-xs text-faint">
                               {m.from === 'hq' ? 'Fir Tech' : m.from === 'owner' ? 'Вы' : 'Клиент'}, {CHANNEL_LABELS[m.channel]}, {time(m.at)}
+                              {showThreadChip && m.thread ? <Chip>{choiceLabel(m.thread)}</Chip> : null}
                               {canReplyTo(m) ? (
                                 <button type="button" onClick={() => setReplyTo(m)} aria-label="Ответить на это сообщение" className="inline-flex min-h-6 items-center gap-1 font-sans text-accent-text underline">
                                   <ArrowBendUpLeft size={12} aria-hidden="true" /> Ответить

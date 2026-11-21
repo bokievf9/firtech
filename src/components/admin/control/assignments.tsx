@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { modalOpen, typingIn, useConfirm, useHub } from '@/components/admin/hub/ui'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { blockedReason, plainBotText, type HqTask, type Id, type TaskColumn } from '@/lib/hq-admin-view'
+import { blockedReason, HISTORY_LIMIT, mergeHistory, normalizeDirectorHistory, plainBotText, type ChatMessage, type HqTask, type Id, type TaskColumn } from '@/lib/hq-admin-view'
 import { formatDuration, formatUntil, minutesSince } from '@/lib/office-view'
 import {
   buildTimeline,
@@ -23,10 +23,10 @@ import {
   type PersonFilter,
   type TimelineEntry,
 } from '@/lib/orders'
-import { errText, fill } from './api'
+import { errText, fill, hq } from './api'
 import { ApprovalsSection, type ApprovalsProps } from './approvals-panel'
 import { CcPanel } from './cc-panel'
-import { chat } from './chat-store'
+import { chat, clearChat, clearedAt } from './chat-store'
 import { runOrder } from './orders-run'
 
 const t = admin.orders
@@ -166,7 +166,21 @@ export function Assignments({
 }) {
   const { notify } = useHub()
   const { ask, dialog } = useConfirm()
-  const messages = useSyncExternalStore(chat.subscribe, chat.get, chat.server)
+  const local = useSyncExternalStore(chat.subscribe, chat.get, chat.server)
+  const cleared = useSyncExternalStore(clearedAt.subscribe, clearedAt.get, clearedAt.server)
+  // The Director's history from HQ (the timeline base), loaded once when the panel opens; this tab's own lines fill in what it lacks.
+  const [history, setHistory] = useState<ChatMessage[]>([])
+  useEffect(() => {
+    let alive = true
+    void hq<Record<string, unknown>>(`director/history?limit=${HISTORY_LIMIT}`).then((res) => {
+      const items = res.ok ? normalizeDirectorHistory(res) : null
+      if (alive && items) setHistory(items)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
+  const messages = useMemo(() => mergeHistory(history, local, cleared), [history, local, cleared])
   const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
   const [filter, setFilter] = useState<OrderFilter>('all')
@@ -250,7 +264,7 @@ export function Assignments({
       className={className}
       aside={
         messages.length ? (
-          <button type="button" onClick={() => chat.set([])} aria-label={t.clear} title={t.clear} className="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg">
+          <button type="button" onClick={clearChat} aria-label={t.clear} title={t.clear} className="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg">
             <Trash size={16} aria-hidden="true" />
           </button>
         ) : null

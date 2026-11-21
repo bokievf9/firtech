@@ -296,7 +296,7 @@ export function createCrmMock(start = Date.now()) {
   const documents: Row[] = [
     { id: 'bl:5', source: 'billing', kind: 'invoice', status: 'issued', client: 'Алиса', title: 'Сайт, этап 1', excerpt: 'Сайт, этап 1', amountUsd: 300, number: 'FT-2026-001', createdAt: ago(60 * 20), link: null },
     { id: 'bl:7', source: 'billing', kind: 'invoice', status: 'draft', client: 'Sadaf Clinic', title: 'Сайт и бот, этап 1', excerpt: 'Счёт FT-2026-007, сайт и бот, этап 1', amountUsd: 600, number: 'FT-2026-007', createdAt: ago(300), link: null },
-    { id: 'ps:4', source: 'presales', kind: 'kp', status: 'draft', client: 'Боб', title: 'КП на Telegram-бота', excerpt: 'Бот для записи клиентов: меню, напоминания, оплата.', amountUsd: null, number: null, createdAt: ago(60 * 26), link: null },
+    { id: 'ps:31', source: 'presales', kind: 'kp', status: 'draft', client: 'Боб', title: 'КП на Telegram-бота', excerpt: 'Бот для записи клиентов: меню, напоминания, оплата.', amountUsd: null, number: null, createdAt: ago(60 * 26), link: null },
     { id: 'bo:2', source: 'back_office', kind: 'contract', status: 'pending', client: 'Алиса', title: 'Договор на разработку сайта', excerpt: 'Исполнитель обязуется разработать сайт...', amountUsd: null, number: null, createdAt: ago(60 * 50), link: null },
   ]
   const projects: Row[] = [
@@ -490,6 +490,16 @@ export function createHqMock(start = Date.now()) {
       ),
     }))
 
+  // The Director's history kept by `say` and `command` (GET director/history), seeded with one old exchange.
+  type HistoryRow = { id: number; at: string; role: 'owner' | 'command' | 'hq'; text: string; taskId: number | null }
+  const history: HistoryRow[] = [
+    { id: 1, at: iso(start - 3 * 3_600_000), role: 'owner', text: 'Подготовь пост про запись в Telegram-боте', taskId: null },
+    { id: 2, at: iso(start - 3 * 3_600_000 + 2000), role: 'hq', text: 'Принял. Передал Маркетингу, пришлю на проверку.', taskId: null },
+  ]
+  const pushHistory = (now: number, role: HistoryRow['role'], text: string, taskId: number | null) => {
+    history.push({ id: (history.at(-1)?.id ?? 0) + 1, at: iso(now), role, text: text.slice(0, 4000), taskId })
+    if (history.length > 2000) history.shift()
+  }
   const say = (text: string, now: number) => {
     const lower = text.toLowerCase()
     // «Отмени поручение #12» and «Напомни мне про поручение #12»: the Director acts on an existing task.
@@ -720,10 +730,26 @@ export function createHqMock(start = Date.now()) {
         retry(t, now)
         return { ok: true, replies: [`Задача #${t.id} снова в очереди.`], task: t }
       }
-      case 'POST say':
-        return { ok: true, ...say(String(body.text ?? ''), now) }
-      case 'POST command':
-        return { ok: true, replies: command(String(body.name ?? ''), String(body.arg ?? ''), now) }
+      case 'POST say': {
+        const out = say(String(body.text ?? ''), now)
+        const owner = String(body.text ?? '').trim()
+        pushHistory(now, 'owner', owner, null)
+        out.replies.forEach((r, i) => pushHistory(now, 'hq', r, i === out.replies.length - 1 ? ((out as { taskId?: number }).taskId ?? null) : null))
+        return { ok: true, ...out }
+      }
+      case 'POST command': {
+        const replies = command(String(body.name ?? ''), String(body.arg ?? ''), now)
+        pushHistory(now, 'command', `/${String(body.name ?? '')}${body.arg ? ` ${String(body.arg)}` : ''}`, null)
+        for (const r of replies) pushHistory(now, 'hq', r, null)
+        return { ok: true, replies }
+      }
+      // The Director's history (contract 2026-11-22): the lines `say` and `command` wrote, newest last.
+      case 'GET director': {
+        if (seg[1] !== 'history') return { ok: false, error: 'not_found' }
+        const limit = query.limit === undefined ? 50 : Number(query.limit)
+        if (!Number.isInteger(limit) || limit < 1 || limit > 200) return { ok: false, error: 'invalid' }
+        return { ok: true, items: history.slice(-limit).map((x) => ({ ...x })) }
+      }
       case 'GET departments':
         return { ok: true, items: departments() }
       case 'GET drill':
