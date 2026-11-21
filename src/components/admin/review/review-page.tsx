@@ -472,7 +472,7 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
 
             {item && (
               <div className={cn('border-t border-line bg-bg px-2 py-2 sm:px-4', !desktop && 'pb-[max(0.5rem,env(safe-area-inset-bottom))]')}>
-                <div className="flex items-center gap-2 overflow-x-auto [scrollbar-width:none]" role="toolbar" aria-label="Решения">
+                <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Решения">
                   {buttons.map((b) => (
                     <button
                       key={b.action}

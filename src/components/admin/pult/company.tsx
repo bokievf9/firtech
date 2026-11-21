@@ -45,7 +45,7 @@ function Toggle({ on, label, disabled, onChange }: { on: boolean; label: string;
   )
 }
 
-const toolCols = 'md:grid md:grid-cols-[minmax(9rem,13rem)_minmax(0,1fr)_6.5rem_4.5rem_4.5rem_minmax(0,14rem)] md:items-center md:gap-x-3'
+const toolCols = '2xl:grid 2xl:grid-cols-[minmax(9rem,13rem)_minmax(0,1fr)_6.5rem_4.5rem_4.5rem_minmax(0,14rem)] 2xl:items-center 2xl:gap-x-3'
 
 // One row of the toolbox table: a state dot (red = needs a key that is not set), the name, the
 // departments as chips, configured yes/no, calls and errors today, limits. Stacked on narrow screens.
@@ -64,24 +64,24 @@ function ToolRow({ t }: { t: CompanyTool }) {
           <Chip key={d}>{dept(d)}</Chip>
         ))}
       </span>
-      <span className="flex flex-wrap gap-x-3 gap-y-0.5 md:contents">
-      <span className="text-xs md:text-sm">
-        <span className="text-faint md:hidden">{k.toolConfigured}: </span>
+      <span className="flex flex-wrap gap-x-3 gap-y-0.5 2xl:contents">
+      <span className="text-xs 2xl:text-sm">
+        <span className="text-faint 2xl:hidden">{k.toolConfigured}: </span>
         <span className={state === 'missing' ? 'text-danger' : state === 'ok' ? '' : 'text-muted'} title={why || undefined}>
           {t.configured ? k.toolYes : k.toolNo}
         </span>
       </span>
-      <span className="text-xs tabular-nums md:text-right md:text-sm">
-        <span className="md:hidden">{fill(k.toolCallsShort, { n: t.callsToday })}</span>
-        <span className="hidden md:inline">{t.callsToday}</span>
+      <span className="text-xs tabular-nums 2xl:text-right 2xl:text-sm">
+        <span className="2xl:hidden">{fill(k.toolCallsShort, { n: t.callsToday })}</span>
+        <span className="hidden 2xl:inline">{t.callsToday}</span>
       </span>
-      <span className={cn('text-xs tabular-nums md:text-right md:text-sm', t.errorsToday > 0 && 'text-warn')}>
-        <span className="md:hidden">{fill(k.toolErrorsShort, { n: t.errorsToday })}</span>
-        <span className="hidden md:inline">{t.errorsToday}</span>
+      <span className={cn('text-xs tabular-nums 2xl:text-right 2xl:text-sm', t.errorsToday > 0 && 'text-warn')}>
+        <span className="2xl:hidden">{fill(k.toolErrorsShort, { n: t.errorsToday })}</span>
+        <span className="hidden 2xl:inline">{t.errorsToday}</span>
       </span>
       </span>
       <span className="text-xs text-faint">{limits}</span>
-      {why ? <span className={cn('text-xs md:col-span-6', state === 'missing' ? 'text-danger' : 'text-faint')}>{why}</span> : null}
+      {why ? <span className={cn('text-xs 2xl:col-span-6', state === 'missing' ? 'text-danger' : 'text-faint')}>{why}</span> : null}
     </li>
   )
 }

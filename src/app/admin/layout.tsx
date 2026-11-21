@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: LayoutProps<'/admin'>) {
       lang="ru"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${onest.variable} ${jetbrains.variable} ${unbounded.variable}`}
+      className={`${onest.variable} ${jetbrains.variable} ${unbounded.variable} admin-root`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

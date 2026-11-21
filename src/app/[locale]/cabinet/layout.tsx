@@ -16,5 +16,6 @@ export async function generateMetadata({ params }: LayoutProps<'/[locale]/cabine
 }
 
 export default function CabinetLayout({ children }: LayoutProps<'/[locale]/cabinet'>) {
-  return children
+  // `cabinet-root` (globals.css): single-column grids may shrink and long words break, on every cabinet page.
+  return <div className="cabinet-root">{children}</div>
 }

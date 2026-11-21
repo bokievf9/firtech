@@ -184,8 +184,8 @@ function Doc({ item, onEditDoc }: { item: ReviewItem; onEditDoc?: (doc: PackDoc)
         <FileText size={14} aria-hidden="true" />
         {item.kind === 'article' ? 'Статья в блог' : 'Текст'}
       </p>
-      <h2 className="mt-1 mb-4 text-lg leading-snug font-semibold">{item.text.subject || item.title}</h2>
-      {markdown ? <Markdown text={text} /> : <p className="text-[0.95rem] leading-relaxed whitespace-pre-wrap">{text}</p>}
+      <h2 className="mt-1 mb-4 text-lg leading-snug font-semibold wrap-anywhere">{item.text.subject || item.title}</h2>
+      {markdown ? <Markdown text={text} /> : <p className="text-[0.95rem] leading-relaxed whitespace-pre-wrap wrap-anywhere">{text}</p>}
       {onEditDoc && editable.has('kp') ? (
         <button type="button" onClick={() => onEditDoc('kp')} className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm text-muted hover:border-accent hover:text-fg">
           <PencilSimpleLine size={14} aria-hidden="true" /> Править КП
@@ -193,8 +193,8 @@ function Doc({ item, onEditDoc }: { item: ReviewItem; onEditDoc?: (doc: PackDoc)
       ) : null}
       {docs.map((d) => (
         <section key={d.key} className="mt-6 border-t border-line pt-4">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold">{d.title}</h3>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <h3 className="min-w-0 text-sm font-semibold wrap-anywhere">{d.title}</h3>
             {onEditDoc && editable.has(d.key as PackDoc) ? (
               <button type="button" onClick={() => onEditDoc(d.key as PackDoc)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm text-muted hover:border-accent hover:text-fg">
                 <PencilSimpleLine size={14} aria-hidden="true" /> Править
