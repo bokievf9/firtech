@@ -22,20 +22,20 @@ export function newConversationId(random: () => number = Math.random): string {
 
 export type DemoLimit = { limit: number | null; remaining: number | null }
 
-// The limit of the demo as HQ reports it (the contract names no fields yet, so the likely ones are read:
-// `limit` / `remaining`, `usage: { limit, used }` or `usage: { calls, left }`); null when HQ says nothing.
+// The limit of the demo as HQ reports it (the contract, public-api.md: all forms are read:
+// `limit` / `remaining`, `usage: { limit, used, remaining }` or the older `usage: { calls, left }`); null when HQ says nothing.
 export function parseDemoLimit(body: unknown): DemoLimit {
   const o = body && typeof body === 'object' ? (body as Record<string, unknown>) : {}
   const usage = o.usage && typeof o.usage === 'object' ? (o.usage as Record<string, unknown>) : {}
   const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : null)
   const limit = n(o.limit) ?? n(usage.limit)
-  const remaining = n(o.remaining) ?? n(usage.left) ?? (limit !== null && n(usage.used) !== null ? Math.max(0, limit - (n(usage.used) as number)) : null)
+  const remaining = n(o.remaining) ?? n(usage.remaining) ?? n(usage.left) ?? (limit !== null && n(usage.used) !== null ? Math.max(0, limit - (n(usage.used) as number)) : null)
   return { limit, remaining }
 }
 
 export type DemoAnswer =
   | { ok: true; reply: string; conversationId: string | null; limit: DemoLimit }
-  | { ok: false; error: 'unauthorized' | 'limit_reached' | 'rate_limited' | 'invalid' | 'unavailable' | 'network' }
+  | { ok: false; error: 'unauthorized' | 'login_required' | 'limit_reached' | 'rate_limited' | 'invalid' | 'unavailable' | 'network' }
 
 // HQ's answer by status and body: 200 `{ ok, reply, conversationId, mode: "demo" }`, 401 `unauthorized` (a wrong or
 // missing key), 429 `limit_reached` (the demo's daily limit) or `rate_limited`, 400 `invalid`, anything else unavailable.
@@ -49,6 +49,7 @@ export function parseDemoAnswer(status: number, body: unknown): DemoAnswer {
       limit: parseDemoLimit(o),
     }
   }
+  if (status === 401 && o.error === 'login_required') return { ok: false, error: 'login_required' }
   if (status === 401 || status === 403) return { ok: false, error: 'unauthorized' }
   if (status === 429) return { ok: false, error: o.error === 'rate_limited' ? 'rate_limited' : 'limit_reached' }
   if (status === 400) return { ok: false, error: 'invalid' }

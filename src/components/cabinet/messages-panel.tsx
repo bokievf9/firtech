@@ -23,6 +23,38 @@ const POLL_MS = 15_000
 const icons: Record<ThreadKind, typeof Briefcase> = { lead: ClipboardText, project: Briefcase, agent: Robot, support: Lifebuoy }
 const TICKET = 'ticket'
 
+// «Вопрос решён» above the support thread: closes the client's newest open ticket (HQ P-22). A new message
+// of the client is a new ticket, so the button comes back after it.
+function ResolveBar({ dict, ticketId, onClosed }: { dict: Dict; ticketId: number | null; onClosed: () => void }) {
+  const c = dict.cabinet.cards
+  const [busy, setBusy] = useState(false)
+  const [failed, setFailed] = useState(false)
+  if (ticketId === null) return null
+  async function close() {
+    setBusy(true)
+    setFailed(false)
+    try {
+      const res = await fetch(`/api/cabinet/tickets/${ticketId}/close`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })
+      const body = (await res.json().catch(() => null)) as { ok?: boolean } | null
+      if (res.ok && body?.ok) onClosed()
+      else setFailed(true)
+    } catch {
+      setFailed(true)
+    }
+    setBusy(false)
+  }
+  return (
+    <div data-ticket-bar className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
+      <span className="text-sm text-muted">{failed ? c.ticketResolveError : c.ticketResolveHint}</span>
+      <button type="button" data-ticket-resolve disabled={busy} onClick={close} className={cn(buttonStyles.secondary, '!px-4 !py-2 text-sm')}>
+        {busy ? c.ticketResolving : c.ticketResolve}
+      </button>
+    </div>
+  )
+}
+
+const newestOpen = (list: CabinetTicket[]) => list.filter((x) => x.status !== 'closed').reduce<number | null>((a, x) => (a === null || x.id > a ? x.id : a), null)
+
 export function MessagesPanel({
   dict,
   locale,
@@ -85,6 +117,7 @@ export function MessagesPanel({
 
   const active = threads.find((x) => x.id === selected) ?? (selected === null && wide ? (threads[0] ?? null) : null)
   const showTicket = selected === TICKET
+  const [openTicket, setOpenTicket] = useState<number | null>(() => newestOpen(tickets))
   const hasSupport = threads.some((x) => x.kind === 'support')
   const paneOpen = selected !== null
 
@@ -166,16 +199,20 @@ export function MessagesPanel({
 
           <div className={cn('flex min-h-0 flex-col', !paneOpen && 'hidden lg:flex')}>
             {active ? (
+              <div className="flex h-full min-h-0 flex-col">
+              {active.kind === 'support' && <ResolveBar dict={dict} ticketId={openTicket} onClosed={() => setOpenTicket(null)} />}
               <ThreadPane
                 key={active.id}
+                onSent={active.kind === 'support' ? (id) => id !== null && setOpenTicket(id) : undefined}
                 thread={active}
                 dict={dict}
                 locale={locale}
                 onRead={onRead}
                 onBack={() => setSelected(null)}
                 agentReply={active.kind === 'agent'}
-                className="h-full"
+                className="min-h-0 flex-1"
               />
+              </div>
             ) : showTicket ? (
               <div className="min-h-0 flex-1 overflow-y-auto p-5 md:p-6">
                 <button type="button" onClick={() => setSelected(null)} className="mb-3 text-sm text-muted hover:text-fg lg:hidden">

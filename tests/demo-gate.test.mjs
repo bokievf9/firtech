@@ -37,6 +37,14 @@ test('demo fields: the client from the session plus the flag, only the flag with
 
 test('usage: HQ\'s { calls, left } is read, junk is not', () => {
   assert.deepEqual(gate.parseUsage({ usage: { calls: 4, left: 26 } }), { calls: 4, left: 26 })
+  // The contract of HQ (public-api.md): flat limit/remaining and usage { limit, used, remaining }.
+  assert.deepEqual(gate.parseUsage({ limit: 30, remaining: 25, usage: { limit: 30, used: 5, remaining: 25 } }), { calls: 5, left: 25 })
+  assert.deepEqual(gate.parseUsage({ remaining: 0, limit: 30 }), { calls: 30, left: 0 })
+  assert.deepEqual(gate.parseUsage({ usage: { limit: 30, used: 12 } }), { calls: 12, left: 18 })
+  assert.deepEqual(demo.parseDemoLimit({ usage: { limit: 30, used: 5, remaining: 25 } }), { limit: 30, remaining: 25 })
+  assert.deepEqual(demo.parseDemoLimit({ limit: 30, remaining: 7 }), { limit: 30, remaining: 7 })
+  assert.deepEqual(demo.parseDemoAnswer(401, { ok: false, error: 'login_required' }), { ok: false, error: 'login_required' })
+  assert.deepEqual(demo.parseDemoAnswer(401, { ok: false, error: 'unauthorized' }), { ok: false, error: 'unauthorized' })
   assert.deepEqual(gate.parseUsage({ usage: { left: 3 } }), { calls: 0, left: 3 })
   assert.deepEqual(gate.parseUsage({ usage: { calls: 7 } }), { calls: 7, left: null })
   for (const bad of [null, {}, { usage: 'x' }, { usage: { calls: -1, left: 'a' } }]) assert.equal(gate.parseUsage(bad), null)
@@ -90,4 +98,19 @@ test('copy: the gate texts exist in both languages and say sign in, never bot', 
     assert.doesNotMatch(JSON.stringify(g), /бот|\bbots?\b|—|–/i)
   }
   assert.equal(getDict('ru').demoGate.hint, 'Войдите, чтобы написать агенту')
+})
+
+test('the demo agent call carries x-chat-token from the server env', async () => {
+  assert.deepEqual(gate.chatTokenHeader({ HQ_CHAT_TOKEN: ' tok ' }), { 'x-chat-token': 'tok' })
+  assert.deepEqual(gate.chatTokenHeader({}), {})
+  const { askDemoAgent } = await import('../src/lib/agent-demo.ts')
+  let seen
+  const fetcher = async (_u, init) => {
+    seen = init
+    return new Response(JSON.stringify({ ok: true, reply: 'hi' }), { status: 200 })
+  }
+  const out = await askDemoAgent({ niche: 'salon', sessionId: 's1234567', text: 'hi' }, { HQ_AGENT_URL: 'http://hq.test', HQ_CHAT_TOKEN: 'tok' }, fetcher, undefined, { cabinetId: 'u1', clientEmail: 'a@b.c', clientName: '' })
+  assert.equal(out.ok, true)
+  assert.equal(seen.headers['x-chat-token'], 'tok')
+  assert.equal(JSON.parse(seen.body).clientEmail, 'a@b.c')
 })

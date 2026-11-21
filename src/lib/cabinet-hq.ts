@@ -377,7 +377,9 @@ export async function fetchThreadMessages(
 
 // The client writes: `{ text, attachments? }` (attachments are upload ids). An `agent` thread is answered
 // by the client's own agent (HQ): the answer comes back as `reply`, so the page shows it at once.
-export type PostedMessage = { item: ChatMessage; reply: ChatMessage | null }
+// `ticketId`: the support ticket the message became (lead, project and support threads), for «Вопрос решён».
+export type PostedMessage = { item: ChatMessage; reply: ChatMessage | null; ticketId: number | null }
+let mockTicketSeq = 100
 export async function postThreadMessage(
   clientId: number,
   threadId: string,
@@ -391,7 +393,7 @@ export async function postThreadMessage(
     const sent = mockSend(threadId, text, [])
     if (!sent) return { ok: false, error: 'not_found' }
     const all = mockThreadMessages(threadId, sent.id) ?? []
-    return { ok: true, data: { item: { ...sent }, reply: all[0] ? { ...all[0] } : null } }
+    return { ok: true, data: { item: { ...sent }, reply: all[0] ? { ...all[0] } : null, ticketId: /^(lead|project|support)/.test(threadId) ? ++mockTicketSeq : null } }
   }
   const json = { text, ...(attachments.length > 0 ? { attachments } : {}) }
   const res = await callV3(`/clients/${clientId}/threads/${enc(threadId)}/messages`, { method: 'POST', json }, env, fetcher)
@@ -400,7 +402,8 @@ export async function postThreadMessage(
   if (!item) return { ok: false, error: 'hq_error' }
   const raw = (res.body as { reply?: unknown } | null)?.reply
   const reply = raw && typeof raw === 'object' ? parseMessageItem({ item: raw }) : null
-  return { ok: true, data: { item, reply } }
+  const tid = (res.body as { ticketId?: unknown } | null)?.ticketId
+  return { ok: true, data: { item, reply, ticketId: typeof tid === 'number' && Number.isInteger(tid) && tid > 0 ? tid : null } }
 }
 
 export async function markThreadRead(clientId: number, threadId: string, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<true>> {
@@ -649,6 +652,27 @@ function mockLeads(iso: (offset: number) => string, mine: (leadId: number) => Le
   ]
 }
 
+// P-22 «вопрос решён»: POST /clients/:id/tickets/:ticketId/close, idempotent (`already`), a foreign or missing ticket 404.
+// A new message of the client is a new ticket (`POST /clients/:id/tickets`), so a closed thread is «reopened» by writing again.
+const mockClosedTickets = new Set<number>()
+export async function closeClientTicket(
+  clientId: number,
+  ticketId: number,
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<CabinetTicket>> {
+  if (!okId(clientId) || !okId(ticketId)) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    mockClosedTickets.add(ticketId)
+    return { ok: true, data: { id: ticketId, text: '', status: 'closed', createdAt: null, answeredAt: null } }
+  }
+  const res = await callV3(`/clients/${clientId}/tickets/${ticketId}/close`, { method: 'POST', json: {} }, env, fetcher)
+  if (!res.ok) return res
+  const item = (res.body as { item?: unknown } | null)?.item
+  const parsed = parseTicketItem(item)
+  return { ok: true, data: parsed ? { ...parsed, status: 'closed' } : { id: ticketId, text: '', status: 'closed', createdAt: null, answeredAt: null } }
+}
+
 export function cabinetMock(email: string): CabinetData {
   const day = 86_400_000
   const iso = (offset: number) => new Date(Date.now() + offset * day).toISOString()
@@ -701,7 +725,8 @@ export function cabinetMock(email: string): CabinetData {
     ],
     tickets: [
       { id: 1, text: 'Можно добавить страницу с ценами?', status: 'answered', createdAt: iso(-5), answeredAt: iso(-4) },
-    ],
+      { id: 2, text: 'Как продлить домен?', status: 'open', createdAt: iso(-1), answeredAt: null },
+    ].map((t) => (mockClosedTickets.has(t.id) ? { ...t, status: 'closed' } : t)),
     referrals: [
       { id: 1, referred: 'Боб', status: 'proposed', reward: '10%', createdAt: iso(-3), paidAt: null, rewardedAt: null },
     ],

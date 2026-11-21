@@ -118,6 +118,27 @@ export function TicketsPanel({
 }) {
   const c = dict.cabinet.cards
   const [tickets, setTickets] = useState(initialTickets)
+  const [closing, setClosing] = useState<number | null>(null)
+  const [closeError, setCloseError] = useState(false)
+
+  async function resolve(id: number) {
+    setClosing(id)
+    setCloseError(false)
+    try {
+      const res = await fetch(`/api/cabinet/tickets/${id}/close`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: '{}',
+      })
+      const body = (await res.json().catch(() => null)) as { ok?: boolean } | null
+      if (res.ok && body?.ok) setTickets((list) => list.map((x) => (x.id === id ? { ...x, status: 'closed' } : x)))
+      else setCloseError(true)
+    } catch {
+      setCloseError(true)
+    }
+    setClosing(null)
+  }
+
   return (
     <div className="grid gap-8">
       {tickets.length === 0 ? (
@@ -125,7 +146,7 @@ export function TicketsPanel({
       ) : (
         <ul className="grid gap-3">
           {tickets.map((ticket) => (
-            <li key={ticket.id} className="rounded-xl border border-line p-4">
+            <li key={ticket.id} data-ticket={ticket.id} data-ticket-status={ticket.status} className="rounded-xl border border-line p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-mono text-[12px] text-faint">{formatDate(ticket.createdAt, locale)}</span>
                 <span
@@ -137,10 +158,22 @@ export function TicketsPanel({
                 </span>
               </div>
               <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-fg">{ticket.text}</p>
+              {ticket.status !== 'closed' && (
+                <button
+                  type="button"
+                  data-ticket-resolve
+                  disabled={closing === ticket.id}
+                  onClick={() => resolve(ticket.id)}
+                  className={`${buttonStyles.secondary} mt-3`}
+                >
+                  {closing === ticket.id ? c.ticketResolving : c.ticketResolve}
+                </button>
+              )}
             </li>
           ))}
         </ul>
       )}
+      {closeError && <FormMessage kind="error">{c.ticketResolveError}</FormMessage>}
       <TicketForm dict={dict} onCreated={(ticket) => setTickets((list) => [ticket, ...list])} />
     </div>
   )
