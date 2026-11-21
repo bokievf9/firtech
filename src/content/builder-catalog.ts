@@ -332,6 +332,8 @@ export const builderUi = {
   solutionsLinkAll: { ru: 'Все 50+ решений по нишам', en: 'All 50+ niche solutions' },
   recommendedProducts: { ru: 'Обычно берут', en: 'Usually chosen' },
   noPriceInQuote: { ru: 'по смете', en: 'on quote' },
+  noPriceHint: { ru: 'На цену не влияет', en: 'Never changes the price' },
+  removePart: { ru: 'Убрать часть', en: 'Remove this part' },
   totalOnRequest: { ru: 'по смете', en: 'on quote' },
 }
 

@@ -50,7 +50,8 @@ Legend of `E:` tags (file : test title):
 | `E:faq` | public.spec : «home: FAQ items open and close» |
 | `E:ref` | public.spec : «referral link generator builds a ?ref= link and copies it» |
 | `E:status` | public.spec : «status page shows the systems list from the dev mock» |
-| `E:builder` | flows.spec : «builder: walk through all 8 steps to the summary, estimate and PDF page» |
+| `E:builder` | flows.spec : «builder: walk through all 8 steps to the preview, estimate and PDF page» |
+| `E:builder-v2` | builder-v2.spec : three scenarios at 1440 and 390 (salon agent without a site, shop site with two languages, content product) and the old-link check |
 | `E:builder-link` | flows.spec : «builder: a build link opens on the right step with the quote» |
 | `E:pdf-gate` | flows.spec : «builder: the PDF button asks for a sign-in before the estimate» |
 | `E:estimate` | flows.spec : «estimate page lists the build as rows and offers print» |
@@ -159,27 +160,36 @@ Legend of `E:` tags (file : test title):
 | «политике конфиденциальности» | privacy | `/{locale}/privacy` | `E:matrix` | pass |
 | «Написать в Telegram», `@firtech_bot` | external | `t.me/firtech_bot` | `E:links` | pass |
 
-## 5. Builder `/{locale}/builder`
+## 5. Builder «Сборка проекта» `/{locale}/builder` (rewritten 2026-11-22, `docs/builder-v2.md`)
 
 | Step | Element | What it does | Verified by | Status |
 |---|---|---|---|---|
-| all | step bar (8 buttons) | go to a reachable step (later ones disabled) | `E:builder` (`aria-current`), `E:builder-link` | pass (state), untested (clicking a bar button) |
-| all | «Назад», «Дальше» / «К итогу» | previous / next step, history entries | `E:builder` (Дальше x6), `U:builder` | pass (Дальше), untested (Назад) |
-| 1 Бизнес | 10 category tabs (Все, Еда, ...) | filter niches | `E:builder` («Еда») | pass (one tab) |
-| 1 Бизнес | 56 niche cards | picks the kind, preset build, goes to step 2 | `E:builder` («Кафе и ресторан»), `U:builder-catalog` (presets) | pass |
-| 2 Что собираем | 10 product cards (7 products + site, bot, app) | toggle; price and parts follow | `E:builder` (toggle off/on), `U:builder` | pass |
-| 3 Цель | 5 goal cards, 4 channel chips | toggle | `E:builder` («Запись клиентов», «Instagram») | pass (one each) |
-| 4 Что делаем | 4 service groups, variants | add/remove parts | `E:builder` («Интернет-магазин») | pass (one) |
-| 5 Функции | extras with price (`+$..`) | toggle, total moves | `E:builder` (first extra), `U:builder` | pass |
-| 6 Стиль | 19 ready looks | restyles the mockup, never the price | `E:builder` («Люкс»), `U:builder-catalog` | pass (one) |
-| 6 Стиль | «Настроить» | opens the five axes (palette, type, shape, density, mood) | `E:builder` (clicked, no console error) | untested (axis controls) |
-| 7 Детали | pages slider, language chips (RU, EN, TJ, UZ), «Логотип», «Тексты», «Фото», «Домен», «Хостинг», two URL inputs, deadline chips, «Пожелания» | brief; two or more languages turn on the `language` option | `E:builder` (slider, «Как можно скорее», textarea), `U:builder` | pass (those), untested (language and asset chips, URL inputs) |
-| 8 Итог | 4 x «Изменить» | back to the step | `E:builder` (first one) | pass (one), untested (other 3) |
-| 8 Итог | «Скопировать ссылку» | copies `/{locale}/builder?b=...` | `E:builder` (clipboard) | pass |
-| 8 Итог | «Скачать смету (PDF)» | name + contact gate, then the estimate page | `E:pdf-gate` (sign-in step shown) | pass (gate); untested (signed-in open of the estimate) |
-| 8 Итог | «Отправить сборку» (2 places) | hands the build to the contact form (lead `bundle`) | `E:builder` (visible) , `U:cabinet-leads` | untested (click and send) |
-| 8 Итог | «Условия гарантии» | terms | none | untested |
-| link | `?b=...&step=8` | decodes the build | `E:builder-link` | pass |
+| all | step bar (8 buttons) | go to a reachable step | `E:builder` (`aria-current`), `E:builder-link` | pass (state), untested (clicking a bar button) |
+| all | «Назад», «Дальше» | previous / next step; «Дальше» with a required answer missing stays put and shows the reason (`#builder-issue`) | `E:builder`, `E:builder-v2` (blocked press on Детали), `U:builder-v2` (`stepIssues`) | pass (Дальше and the blocked press), untested (Назад) |
+| 1 Ниша | explainer, 3 common niche cards (salon, clinic, shop) | picks the kind and its preset, goes to step 2 | `E:builder-v2` (salon, shop), `U:builder-catalog` | pass |
+| 1 Ниша | «Ещё ниши» / «Свернуть» | opens the full grid by category | `E:builder`, `E:builder-v2` | pass |
+| 1 Ниша | «ещё N» / «меньше» per category | three niches per category, the rest on demand | `E:builder-v2` («ещё N» visible) | pass in part (clicking it untested) |
+| 2 Что делаем | product cards (ИИ-администратор, ИИ-менеджер заявок, Автоматизация, Контент, Mini App, Персональный ассистент, ИИ-отдел, Приложение; сайт until «сайт не нужен») | toggle; price and parts follow | `E:builder` (toggle off/on), `E:builder-v2` (Mini App off), `U:builder` | pass |
+| 2 Что делаем | «Сайт нужен» / «Сайт не нужен» / «Сайт уже есть» (agent products only) | no / have remove the site part and product for good; need adds a landing | `E:builder-v2` (no), `E:builder` (need), `U:builder-v2` (all three) | pass |
+| 3 Цели | goal cards (by product and niche) | toggle, at least one required | `E:builder-v2`, `U:builder-v2` | pass |
+| 3 Цели | 12 channel cards with hints | toggle | `E:builder-v2` (Instagram), `E:builder` | pass (one) |
+| 4 Состав | «Уже входит» product cards | explain what each product brings, pre-selected | `E:builder-v2` | pass |
+| 4 Состав | format radios per part, «Убрать часть» | variant; remove a part no product owns | `E:builder` (Приложения), `E:builder-v2` («Убрать часть») | pass (remove), untested (variant radios) |
+| 4 Состав | delivery: Telegram, Виджет на сайте, WhatsApp (soon, disabled), Площадка Fir Tech | where an agent lives; empty choice blocks «Дальше» | `E:builder-v2` (Telegram off, playground on), `U:builder-v2` | pass |
+| 4 Состав | «Показать отдельные части» | the four separate parts to add (never the site after «не нужен») | `E:builder-v2`, `E:builder` | pass |
+| 5 Функции | priced options per part, extras (SEO, дизайн, поддержка) | toggle, total moves; hidden by product and by the price rule | `E:builder` (first option), `E:builder-v2` (no Telegram lead channel for the receptionist, no language), `U:builder-v2` | pass |
+| 6 Тема | 3 mood radios, 10 theme cards | restyles the mockup and its motion, never the price | `E:builder-v2`, `E:builder`, `U:builder-v2` | pass |
+| 6 Тема | «Тонкая настройка», palettes, fonts, «Сбросить настройку» | fine tuning inside the theme | `E:builder` (opens) | untested (palette and font clicks, reset) |
+| 7 Детали | business name, clients text + chips, owner, deadline chips (required) | `?b=` JSON chunk | `E:builder-v2`, `U:builder-v2` | pass |
+| 7 Детали | after-request, sources, tools, materials, worries, budget chips, languages, two example links, notes | brief | `E:builder-v2` (after), `E:builder` (notes), `U:builder-v2` | pass in part (other chips untested) |
+| 8 Превью | tabs (Сайт, Агент, Площадка, Отдел, Mini App, Контент, Процессы) | switch the live preview | `E:builder-v2` (tab absent for no site) | pass in part (clicking a tab untested) |
+| 8 Превью | agent chat: question chips, input, send | demo persona through `POST /api/agent-demo`, scripted lines when HQ is unreachable | `E:builder-v2` (chip, scripted answer), `U:builder-v2` (proxy) | pass (scripted), manual (live HQ) |
+| 8 Превью | 4 x «Изменить» | back to the step | `E:builder` (first one) | pass (one), untested (other 3) |
+| 8 Превью | «Скопировать ссылку» | copies `/{locale}/builder?b=...` | `E:builder` (clipboard) | pass |
+| 8 Превью | «Скачать смету (PDF)» | name + contact gate, then the estimate page | `E:pdf-gate` (sign-in step shown) | pass (gate); untested (signed-in open of the estimate) |
+| 8 Превью | «Отправить проект» (bottom bar and actions panel) | hands the project to the contact form (lead `bundle`, sign-in gate stays) | `E:builder` (visible), `U:cabinet-leads` | untested (click and send) |
+| 8 Превью | «Условия гарантии» | terms | none | untested |
+| link | `?b=...&step=8`, old `s.`/`y.`/`d.5` chunks | decodes the build, old styles map to the closest theme | `E:builder-link`, `E:builder-v2` (legacy link), `U:builder-v2` | pass |
 
 ## 6. Estimate, services, solutions
 
@@ -371,7 +381,7 @@ Counted as rows of the tables above (one row can stand for a group of identical 
 | 2 header, footer, global | 12 | 0 | 0 | 2 |
 | 3 home | 10 | 2 | 0 | 8 |
 | 4 contact form | 5 | 1 | 0 | 2 |
-| 5 builder | 9 | 5 | 0 | 3 |
+| 5 builder | 18 | 6 | 0 | 4 |
 | 6 estimate, services, solutions | 7 | 1 | 0 | 5 |
 | 7 other pages | 11 | 4 | 0 | 4 |
 | 8 pay | 6 | 1 | 0 | 1 |

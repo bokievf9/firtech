@@ -107,6 +107,7 @@ export function leadBreakdown(input: BreakdownInput, pricing: Pricing = defaultP
     ...(doc.kind ? [{ id: 'kind', label: kindLabel, value: doc.kind }] : []),
     ...(doc.products.length ? [{ id: 'products', label: productsLabel, value: doc.products.join(', ') }] : []),
     ...doc.brief.goals,
+    ...doc.brief.setup,
     ...doc.brief.details,
   ]
   out.style = doc.brief.style
