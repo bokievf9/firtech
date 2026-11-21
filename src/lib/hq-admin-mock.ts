@@ -491,6 +491,20 @@ export function createHqMock(start = Date.now()) {
 
   const say = (text: string, now: number) => {
     const lower = text.toLowerCase()
+    // «Отмени поручение #12» and «Напомни мне про поручение #12»: the Director acts on an existing task.
+    const word = /^(отмени|напомни)[^#]*#(\d+)/i.exec(text.trim())
+    if (word) {
+      const target = findTask(word[2]!)
+      if (!target) return { replies: [`Не нашёл поручение #${word[2]}.`] }
+      if (word[1]!.toLowerCase() === 'отмени') {
+        target.status = 'cancelled'
+        target.updatedAt = iso(now)
+        pushEvent(target, { at: iso(now), kind: 'task.cancelled', actor: 'owner', body: 'Владелец отменил поручение' })
+        return { replies: [`Отменил поручение #${target.id}: «${target.title}». Исполнитель снят.`] }
+      }
+      addInbox(now, 'progress', `Напоминание: поручение #${target.id} «${target.title}».`, { taskId: target.id, read: false })
+      return { replies: [`Напомню про поручение #${target.id}: «${target.title}». Пришлю в уведомления.`] }
+    }
     const dept = /клиент|кп|продаж|заявк/.test(lower)
       ? 'sales'
       : /счёт|счет|оплат|договор/.test(lower)

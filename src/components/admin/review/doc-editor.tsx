@@ -119,7 +119,15 @@ export function DocEditor({ title, subtitle, initial, baseText, storageId, onSav
   const [cursor, setCursor] = useState<number | null>(null)
   const [findNote, setFindNote] = useState('')
   const [draftAt, setDraftAt] = useState<number | null>(null)
-  const [offer, setOffer] = useState<ReturnType<typeof parseDraft>>(null)
+  // A stored draft that was started from the text saved now is offered back once (the editor only opens in the browser).
+  const [offer, setOffer] = useState<ReturnType<typeof parseDraft>>(() => {
+    try {
+      const d = parseDraft(localStorage.getItem(draftKey(storageId)))
+      return draftRestorable(d, initial) ? d : null
+    } catch {
+      return null
+    }
+  })
   const [error, setError] = useState<string | null>(null)
   const ta = useRef<HTMLTextAreaElement>(null)
   const scroller = useRef<HTMLDivElement>(null)
@@ -128,14 +136,6 @@ export function DocEditor({ title, subtitle, initial, baseText, storageId, onSav
   const key = draftKey(storageId)
   const dirty = value !== saved
   const tooLong = value.length > maxLength
-
-  // A stored draft that was started from the text saved now is offered back once.
-  useEffect(() => {
-    try {
-      const d = parseDraft(localStorage.getItem(key))
-      if (draftRestorable(d, initial)) setOffer(d)
-    } catch {}
-  }, [key, initial])
 
   // Autosave: the draft goes to this device every 5 s while the text differs from the saved one.
   const latest = useRef({ value, saved })

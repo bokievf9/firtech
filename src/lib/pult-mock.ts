@@ -15,16 +15,39 @@ const iso = (t: number) => new Date(t).toISOString()
 // A few 1x1-free sample renders: the file proxy draws a labelled placeholder for any png path in dev.
 const png = (name: string) => ({ path: `content/2026-w47/${name}.png`, type: 'png', w: 1080, h: 1350 })
 
+// Builder links the dev leads came with (the lead's own words ride in the `w.` chunk as base64url).
+// `leadBreakdown` reads them in «Разбор заявки»; lead 5 has an old link (parts only), the rest none.
+const b64 = (t: string) => Buffer.from(t, 'utf8').toString('base64url')
+export const MOCK_BUILDS = {
+  7: `bots.booking.payments-broadcasts~x.support~k.salon~p.adminbot~g.booking-routine~c.instagram-telegram~y.blush.rounded.pill.airy.playful.candy~d._.ru._.month~w.${b64('Нужна запись по мастерам и напоминания за день. Салон на 4 кресла.')}`,
+  6: `websites.company.telegram-cms~x.seo~k.carservice~p.site~g.leads-booking~c.search-word~y.graphite.grotesk.soft.compact.bold~d.6.ru-tj.logo-photos.asap~u.${b64('https://example-auto.tj')}~w.${b64('Хочу как у конкурента, но с онлайн-записью на диагностику.')}`,
+  4: `websites.company.telegram-cms-language~bots.booking.payments~x.seo-support~k.clinic~p.site-adminbot~g.leads-brand~c.instagram-search~y.mintlight.serif.soft.airy.premium.clinic~d.8.ru-en-tj.logo-texts-photos-domain-hosting.month~w.${b64('Клиника, 6 врачей, нужен каталог услуг и запись.')}`,
+  5: 'bots.faq',
+} as const
+export const mockBuilderUrl = (id: keyof typeof MOCK_BUILDS) => `https://firtech.pro/ru/builder?b=${MOCK_BUILDS[id]}`
+export const MOCK_ESTIMATES: Record<number, string> = {
+  7: 'Тип бизнеса: Салон и запись\nПродукты: Бот-администратор\nTelegram-боты: Запись и заказы + Оплата в боте + Рассылки ($350)\nИтого: $350\nПоддержка: $20/мес\nЭтапы: 1. $105 (30%), 2. $140 (40%), 3. $105 (30%)\nЦели: Записи, Рутина; Каналы: Instagram, Telegram',
+  6: 'Тип бизнеса: Автосервис\nПродукты: Сайт\nСайты и лендинги: Сайт компании + Заявки в Telegram + Панель для правок ($470)\nКарты, SEO и аналитика ($50)\nСкидка за набор: $520 -> $470\nИтого: $470\nЭтапы: 1. $141 (30%), 2. $188 (40%), 3. $141 (30%)\nЦели: Заявки, Записи',
+  4: 'Тип бизнеса: Клиника и медцентр\nПродукты: Сайт, Бот-администратор\nСайты и лендинги: Сайт компании + Заявки в Telegram + Панель для правок + Второй язык ($510)\nTelegram-боты: Запись и заказы + Оплата в боте ($310)\nСкидка за набор: $870 -> $780\nИтого: $780\nПоддержка: $20/мес',
+}
+export const MOCK_MESSAGES: Record<number, string> = {
+  7: 'Здравствуйте! Хотим бота для записи в салон: 4 мастера, напоминания клиентам за день, предоплата в боте. Когда сможете начать?',
+  6: 'Нужен сайт автосервиса с записью на диагностику. Есть логотип и фото, домена нет.',
+  4: 'Новый сайт клиники и бот для записи. Нужны страницы врачей и услуги с ценами.',
+  5: 'Бот для записи клиентов',
+  3: 'Сайт для студии йоги, расписание и запись.',
+}
+
 export function createPultMock(start = Date.now(), deps: { approvals: () => Approval[] } = { approvals: () => [] }) {
   const ago = (min: number) => iso(start - min * 60_000)
   const ahead = (days: number) => iso(start + days * 86_400_000)
 
   const leads: Row[] = [
-    { id: 7, name: 'Нигина', contact: '@nigina_beauty', service: 'bot', niche: 'beauty', brief: 'Бот для записи в салон, напоминания клиентам за день.', budget: '300-500', source: 'site', temperature: 'hot', stage: 'new', nextAction: 'Ответить и уточнить сроки', estimateUsd: 420, hasDomain: false, hasHosting: false, notes: [], clientId: null, callAt: null, createdAt: ago(25) },
-    { id: 6, name: 'Фаррух', contact: '+992 90 111 22 33', service: 'site', niche: 'auto', brief: 'Сайт автосервиса с онлайн-записью.', budget: '', source: 'telegram', temperature: 'warm', stage: 'qualified', nextAction: 'Назначить созвон', estimateUsd: 650, hasDomain: true, hasHosting: false, notes: [{ at: ago(300), text: 'Хочет запуск до Нового года.' }], clientId: null, callAt: null, createdAt: ago(60 * 9) },
-    { id: 5, name: 'Боб', contact: '@bob', service: 'bot', niche: '', brief: 'Бот для записи клиентов', budget: '', source: 'telegram', temperature: 'warm', stage: 'proposal', nextAction: 'КП отправлено, ждём ответа', estimateUsd: 380, hasDomain: null, hasHosting: null, notes: [], clientId: 'c:Боб', callAt: ahead(1), createdAt: ago(60 * 26) },
-    { id: 4, name: 'Sadaf Clinic', contact: 'hello@sadaf.example', service: 'site', niche: 'clinic', brief: 'Новый сайт клиники и бот для записи.', budget: '1000+', source: 'ref:c1a1b2c3', temperature: 'warm', stage: 'contract', nextAction: 'Договор на подписи', estimateUsd: 1200, hasDomain: true, hasHosting: true, notes: [], clientId: null, callAt: null, createdAt: ago(60 * 50) },
-    { id: 3, name: 'Алиса', contact: '@alice', service: 'site', niche: 'studio', brief: 'Сайт для студии', budget: '', source: 'site', temperature: 'hot', stage: 'paid', nextAction: null, estimateUsd: 600, hasDomain: false, hasHosting: false, notes: [], clientId: '1', callAt: null, createdAt: ago(60 * 70) },
+    { id: 7, name: 'Нигина', contact: '@nigina_beauty', service: 'bot', niche: 'beauty', brief: 'Бот для записи в салон, напоминания клиентам за день.', budget: '300-500', source: 'site', temperature: 'hot', stage: 'new', nextAction: 'Ответить и уточнить сроки', estimateUsd: 350, hasDomain: false, hasHosting: false, notes: [], clientId: null, callAt: null, createdAt: ago(25), message: MOCK_MESSAGES[7], estimate: MOCK_ESTIMATES[7], builderUrl: mockBuilderUrl(7) },
+    { id: 6, name: 'Фаррух', contact: '+992 90 111 22 33', service: 'site', niche: 'auto', brief: 'Сайт автосервиса с онлайн-записью.', budget: '', source: 'telegram', temperature: 'warm', stage: 'qualified', nextAction: 'Назначить созвон', estimateUsd: 470, hasDomain: true, hasHosting: false, notes: [{ at: ago(300), text: 'Хочет запуск до Нового года.' }], clientId: null, callAt: null, createdAt: ago(60 * 9), message: MOCK_MESSAGES[6], estimate: MOCK_ESTIMATES[6], builderUrl: mockBuilderUrl(6) },
+    { id: 5, name: 'Боб', contact: '@bob', service: 'bot', niche: '', brief: 'Бот для записи клиентов', budget: '', source: 'telegram', temperature: 'warm', stage: 'proposal', nextAction: 'КП отправлено, ждём ответа', estimateUsd: 100, hasDomain: null, hasHosting: null, notes: [], clientId: 'c:Боб', callAt: ahead(1), createdAt: ago(60 * 26), message: MOCK_MESSAGES[5], builderUrl: mockBuilderUrl(5) },
+    { id: 4, name: 'Sadaf Clinic', contact: 'hello@sadaf.example', service: 'site', niche: 'clinic', brief: 'Новый сайт клиники и бот для записи.', budget: '1000+', source: 'ref:c1a1b2c3', temperature: 'warm', stage: 'contract', nextAction: 'Договор на подписи', estimateUsd: 780, hasDomain: true, hasHosting: true, notes: [], clientId: null, callAt: null, createdAt: ago(60 * 50), message: MOCK_MESSAGES[4], estimate: MOCK_ESTIMATES[4], builderUrl: mockBuilderUrl(4) },
+    { id: 3, name: 'Алиса', contact: '@alice', service: 'site', niche: 'studio', brief: 'Сайт для студии', budget: '', source: 'site', temperature: 'hot', stage: 'paid', nextAction: null, estimateUsd: 600, hasDomain: false, hasHosting: false, notes: [], clientId: '1', callAt: null, createdAt: ago(60 * 70), message: MOCK_MESSAGES[3], estimate: 'Итого: $600' },
     { id: 2, name: 'Pulse Gym', contact: '@pulse.gym', service: 'automation', niche: 'gym', brief: 'Автоматизация абонементов.', budget: '', source: 'site', temperature: 'warm', stage: 'project', nextAction: null, estimateUsd: 900, hasDomain: true, hasHosting: true, notes: [], clientId: null, callAt: null, createdAt: ago(60 * 24 * 6) },
     { id: 1, name: 'Old Cafe', contact: '@oldcafe', service: 'site', niche: 'cafe', brief: 'Меню на сайте.', budget: '50', source: 'site', temperature: 'cold', stage: 'lost', nextAction: null, estimateUsd: null, hasDomain: null, hasHosting: null, notes: [], clientId: null, callAt: null, lostReason: 'Бюджет меньше минимального', createdAt: ago(60 * 24 * 9) },
   ]

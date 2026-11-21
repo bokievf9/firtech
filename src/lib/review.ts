@@ -312,6 +312,16 @@ export function editPayload(item: ReviewItem, values: Partial<Record<FieldKey, s
 // What the centre shows for an item without media: the document text (articles, replies, invoices).
 export const documentText = (item: ReviewItem): string => (item.kind === 'article' ? (item.text.body ?? item.text.draft) : (item.text.draft ?? item.text.body)) ?? ''
 
+// «Разбор заявки» for a sales item: what the lead came with (the client's words, the quote text, the
+// builder link). Null when the item has no lead or the lead carries none of them.
+export function leadBreakdownInput(item: Pick<ReviewItem, 'meta'>): { estimate: string; message: string; builderUrl: string | null } | null {
+  const lead = rec(item.meta.lead)
+  if (!Object.keys(lead).length) return null
+  const link = lead.builderUrl ?? lead.builder_url ?? rec(lead.builder).url
+  const out = { estimate: str(lead.estimate, 2000), message: str(lead.message ?? lead.summary, 2000), builderUrl: typeof link === 'string' && link ? link.slice(0, 2000) : null }
+  return out.estimate || out.message || out.builderUrl ? out : null
+}
+
 // ---- versions ------------------------------------------------------------------------------------
 
 export type VersionChange = { key: string; label: string; before: string; after: string; delta: number }

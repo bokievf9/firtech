@@ -53,13 +53,20 @@ export type PanelId = (typeof PANELS)[number]
 
 // Tabs of each panel, in order. The first one opens by default.
 export const PANEL_TABS: Record<PanelId, readonly string[]> = {
-  director: ['inbox', 'approvals', 'tasks', 'chat', 'feed', 'drill'],
+  director: ['inbox', 'approvals', 'tasks', 'feed', 'drill'],
   marketing: ['content', 'metrics'],
   sales: ['leads', 'clients', 'site', 'calls', 'prospects'],
   support: ['tickets'],
   production: ['projects'],
   backoffice: ['invoices', 'documents', 'referrals', 'reviews'],
   company: ['company', 'prices'],
+}
+
+// The tab a link or a key asks for, or the panel's first one. The Director's old «Чат» tab now lives in «Поручения».
+export function panelTab(panel: PanelId, tab: string | null | undefined): string {
+  const tabs = PANEL_TABS[panel]
+  const wanted = panel === 'director' && tab === 'chat' ? 'tasks' : tab
+  return wanted && tabs.includes(wanted) ? wanted : tabs[0]!
 }
 
 export const isPanel = (v: unknown): v is PanelId => typeof v === 'string' && (PANELS as readonly string[]).includes(v)
@@ -206,6 +213,10 @@ export type Lead = {
   callAt: string | null
   lostReason: string
   createdAt: string | null
+  // «Разбор заявки»: the client's own words, the quote text and the builder link the lead came with.
+  message: string
+  estimateText: string
+  builderUrl: string | null
 }
 
 export function leadRow(raw: unknown): Lead | null {
@@ -219,6 +230,8 @@ export function leadRow(raw: unknown): Lead | null {
           .filter((n) => n.text)
   // HQ keeps one owner note per lead in `note` (contract deviation 2026-11-20); shown first.
   if (typeof r.note === 'string' && r.note.trim() && !notes.some((n) => n.text === r.note)) notes.unshift({ at: null, text: r.note.slice(0, 2000) })
+  const link = r.builderUrl ?? r.builder_url ?? rec(r.builder).url
+  const builderUrl = typeof link === 'string' ? link.slice(0, 2000) : ''
   return {
     id: r.id,
     name: str(r.name, 200),
@@ -239,6 +252,9 @@ export function leadRow(raw: unknown): Lead | null {
     callAt: when(r.callAt),
     lostReason: str(r.lostReason ?? r.lost_reason, 300),
     createdAt: when(r.createdAt),
+    message: str(r.message ?? r.summary, 2000),
+    estimateText: typeof r.estimate === 'string' ? r.estimate.slice(0, 2000) : '',
+    builderUrl: builderUrl || null,
   }
 }
 

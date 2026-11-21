@@ -1,3 +1,4 @@
+import { mockBuilderUrl, MOCK_ESTIMATES, MOCK_MESSAGES } from './pult-mock'
 import { REVIEW_DEPT_IDS, TREND_STATUSES, trendUrlProblem } from './review'
 
 // Dev stand-in for HQ's review centre, chats and trend links (contract «Ревью-центр», 2026-11-21).
@@ -117,7 +118,7 @@ export function createReviewMock(start = Date.now()) {
       title: 'Ответ Нигине', summary: 'Бот для записи в салон: сроки и вопросы',
       media: [],
       text: { draft: 'Здравствуйте, Нигина! Бот для записи в салон делаем за 5-7 дней. Чтобы назвать точную цену, уточню два момента: сколько мастеров и нужны ли напоминания клиентам за день? Если удобно, созвонимся завтра.', body: 'Здравствуйте, Нигина! Бот для записи в салон делаем за 5-7 дней. Чтобы назвать точную цену, уточню два момента: сколько мастеров и нужны ли напоминания клиентам за день? Если удобно, созвонимся завтра.' },
-      meta: { lead: { id: 7, name: 'Нигина', contact: '@nigina_beauty', service: 'bot', budget: '300-500', stage: 'new', source: 'site', temperature: 'hot', taskId: 90, callAt: null, cabinet: false }, client: { id: null, email: null, cabinet: false }, delivery: 'telegram' },
+      meta: { lead: { id: 7, name: 'Нигина', contact: '@nigina_beauty', service: 'bot', budget: '300-500', stage: 'new', source: 'site', temperature: 'hot', taskId: 90, callAt: null, cabinet: false, message: MOCK_MESSAGES[7], estimate: MOCK_ESTIMATES[7], builderUrl: mockBuilderUrl(7) }, client: { id: null, email: null, cabinet: false }, delivery: 'telegram' },
       versions: [ver(1, 25, { draft: 'Здравствуйте, Нигина! Бот делаем за 5-7 дней. Уточню детали.' }, '', 'worker')],
       currentVersion: 1, parentId: null, taskId: 90, error: null,
     },
@@ -126,7 +127,7 @@ export function createReviewMock(start = Date.now()) {
       title: 'Цена для Фарруха', summary: 'Сайт автосервиса с записью',
       media: [],
       text: { draft: 'Фаррух, сайт автосервиса с онлайн-записью выйдет от $650. Срок 10 дней. Счёт за этап 1 [сумма этапа], следующие после приёмки.', body: 'Фаррух, сайт автосервиса с онлайн-записью выйдет от $650. Срок 10 дней. Счёт за этап 1 [сумма этапа], следующие после приёмки.' },
-      meta: { lead: { id: 6, name: 'Фаррух', contact: '+992 90 111 22 33', service: 'site', budget: '', stage: 'qualified', source: 'telegram', temperature: 'warm', taskId: 80, callAt: null, cabinet: false }, client: { id: null, email: null, cabinet: false }, delivery: 'owner' },
+      meta: { lead: { id: 6, name: 'Фаррух', contact: '+992 90 111 22 33', service: 'site', budget: '', stage: 'qualified', source: 'telegram', temperature: 'warm', taskId: 80, callAt: null, cabinet: false, message: MOCK_MESSAGES[6], estimate: MOCK_ESTIMATES[6], builderUrl: mockBuilderUrl(6) }, client: { id: null, email: null, cabinet: false }, delivery: 'owner' },
       versions: [ver(1, 200, { draft: 'Фаррух, сайт автосервиса от $650.' }, '', 'worker')],
       currentVersion: 1, parentId: null, taskId: 80, error: null,
     },
@@ -144,7 +145,7 @@ export function createReviewMock(start = Date.now()) {
       title: 'Счёт Sadaf Clinic', summary: 'Сайт и бот, этап 1',
       media: [],
       text: { draft: 'Счёт FT-2026-007\nКлиент: Sadaf Clinic\nЗа что: сайт и бот, этап 1\nСумма: $600\nСрок оплаты: через 3 дня\nОплата: USDT (TRC20 или TON).', body: 'Счёт FT-2026-007\nКлиент: Sadaf Clinic\nЗа что: сайт и бот, этап 1\nСумма: $600\nСрок оплаты: через 3 дня\nОплата: USDT (TRC20 или TON).' },
-      meta: { invoice: { id: 7, number: 'FT-2026-007', client: 'Sadaf Clinic', amountUsd: 600, dueDate: day(3), status: 'draft', what: 'Сайт и бот, этап 1', leadId: 4, projectId: 4 }, lead: { id: 4, name: 'Sadaf Clinic', contact: 'hello@sadaf.example', service: 'site', budget: '1000+', stage: 'contract', source: 'ref', temperature: 'warm', taskId: 70, callAt: null, cabinet: false }, client: { id: null, email: null, cabinet: false } },
+      meta: { invoice: { id: 7, number: 'FT-2026-007', client: 'Sadaf Clinic', amountUsd: 600, dueDate: day(3), status: 'draft', what: 'Сайт и бот, этап 1', leadId: 4, projectId: 4 }, lead: { id: 4, name: 'Sadaf Clinic', contact: 'hello@sadaf.example', service: 'site', budget: '1000+', stage: 'contract', source: 'ref', temperature: 'warm', taskId: 70, callAt: null, cabinet: false, message: MOCK_MESSAGES[4], estimate: MOCK_ESTIMATES[4], builderUrl: mockBuilderUrl(4) }, client: { id: null, email: null, cabinet: false } },
       versions: [ver(1, 300, { draft: 'Счёт FT-2026-007, $600.' }, '', 'worker')],
       currentVersion: 1, parentId: null, taskId: 70, error: null,
     },
