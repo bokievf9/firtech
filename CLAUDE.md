@@ -387,7 +387,7 @@ procedural React Three Fiber variants on one rig (A «Капля», B «Свет
 `src/lib/fira/` (`pose.ts` pure emotion targets and springs, `palette.ts`, `mouth.ts` lip-sync hook), hidden noindex lab
 `/[locale]/fira-lab` (not in `localePages` or the sitemap). Props `variant emotion size lookAt mouth theme`; emotions
 `idle thinking happy talking point sleep`. Deps pinned exactly: `three`, `@react-three/fiber`, `@react-three/drei` (not yet
-imported), `@types/three`. Procedural only, no textures; keep the code under 160 KB (tested). Round two (2026-11-22, after the owner rejected A to C as generic spheres): five new characters D to H on an improved rig, A to C only behind `?all=1` in the lab, references and rules in `docs/fira-references.md`; emotions now also `wave surprised`. Details, numbers and the glTF and
+imported), `@types/three`. Procedural only, no textures; keep the code under 220 KB (tested). Round two (2026-11-22, after the owner rejected A to C as generic spheres): five new characters D to H on an improved rig, A to C only behind `?all=1` in the lab, references and rules in `docs/fira-references.md`; emotions now also `wave surprised`. Round three (2026-11-22, «взрослая милота», after the owner called D to H childish and identical): five grown-up face systems I to M (`pose3.ts`, `fira-kit3.ts`, `fira-scene3.tsx`, `fira-fallback3.tsx`), the lab default and the `Fira` default `i`, emotions also `listening sorry`, eyes under 12% of the face height (tested), code budget 220 KB. Details, numbers and the glTF and
 Remotion plan: `docs/fira.md`. Tests: `tests/fira.test.mjs`.
 
 ## Commands

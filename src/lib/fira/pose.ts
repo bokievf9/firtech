@@ -2,14 +2,20 @@
 // timing, the hop curve and the pointer limits. The rig (components/fira/fira-scene.tsx) steps one
 // spring per channel toward the target of the current emotion and writes the result to the meshes.
 
-export const emotions = ['idle', 'thinking', 'happy', 'talking', 'point', 'sleep', 'wave', 'surprised'] as const
+// Round three added listening (the chat avatar while the visitor types) and sorry (an error or an
+// apology); the old eight keep their meaning.
+export const emotions = ['idle', 'listening', 'thinking', 'happy', 'talking', 'surprised', 'sorry', 'sleep', 'point', 'wave'] as const
 export type Emotion = (typeof emotions)[number]
 
-// a-c: round one (spheres with faces, kept for comparison). d-h: round two, the improved rig.
-export const variants = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const
+// a-c: round one (spheres with faces), d-h: round two (the clay rig), both kept for comparison.
+// i-m: round three, «взрослая милота» (pose3.ts, fira-scene3.tsx).
+export const variants = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm'] as const
 export type RoundOne = 'a' | 'b' | 'c'
 export const roundTwo = ['d', 'e', 'f', 'g', 'h'] as const
+export const roundThree = ['i', 'j', 'k', 'l', 'm'] as const
+export type RoundThree = (typeof roundThree)[number]
 export const isRoundTwo = (v: Variant) => (roundTwo as readonly string[]).includes(v)
+export const isRoundThree = (v: Variant): v is RoundThree => (roundThree as readonly string[]).includes(v)
 export type Variant = (typeof variants)[number]
 
 export function isEmotion(v: unknown): v is Emotion {
@@ -76,12 +82,14 @@ export const targets: Record<Emotion, Targets> = {
   point: { ...calm, lean: 0.22, roll: -0.12, arm: 1, lookX: 0.8, lookY: 0.1, smile: 0.55, pointer: 0.1, ear: 0.4, glow: 0.45, browY: 0.25, waddle: 0 },
   sleep: { ...calm, pitch: 0.26, roll: 0.1, squash: 0.94, open: 0, moon: -1, smile: 0.15, blush: 0.55, glow: 0.04, ear: -1, breath: 0.05, zzz: 1, pointer: 0, browY: -0.45, browTilt: -0.3, tail: 0.25, waddle: 0 },
   wave: { ...calm, pitch: 0.05, roll: -0.08, smile: 0.9, blush: 0.7, wave: 1, glow: 0.65, ear: 0.9, pointer: 0.6, browY: 0.5, browTilt: -0.2, grin: 0.35, tail: 0.8, waddle: 0.5, breath: 0.03 },
+  listening: { ...calm, pitch: 0.08, roll: 0.12, lean: 0.06, smile: 0.5, glow: 0.5, ear: 0.6, browY: 0.3, wide: 1.08, waddle: 0 },
+  sorry: { ...calm, pitch: 0.24, roll: 0.08, squash: 0.96, smile: 0, blush: 0.4, glow: 0.12, ear: -0.8, browY: 0.2, browTilt: 0.6, lid: 0.3, lidTilt: -0.4, tail: 0.15, waddle: 0, pointer: 0.3 },
   surprised: { ...calm, pitch: -0.06, squash: 1.07, smile: 0, blush: 0.2, wide: 1.28, browY: 1, browTilt: -0.15, mouthO: 0.62, glow: 0.95, ear: 1, pointer: 0.45, cheer: 0.15, arm: 0.2, tail: 1, waddle: 0, breath: 0.012 },
 }
 
 // Breathing rate in Hz per emotion (a calm in-out every 3 s, slower asleep).
 export const breathHz: Record<Emotion, number> = {
-  idle: 0.33, thinking: 0.28, happy: 0.7, talking: 0.45, point: 0.35, sleep: 0.16, wave: 0.6, surprised: 0.5,
+  idle: 0.33, listening: 0.36, sorry: 0.22, thinking: 0.28, happy: 0.7, talking: 0.45, point: 0.35, sleep: 0.16, wave: 0.6, surprised: 0.5,
 }
 
 export type Spring = { x: number; v: number }

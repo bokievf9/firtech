@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
-import { isRoundTwo, type Emotion, type Variant } from '@/lib/fira/pose'
+import { isRoundThree, isRoundTwo, type Emotion, type Variant } from '@/lib/fira/pose'
+import { FiraFallback3 } from './fira-fallback3'
 
 // The 2D Fira: plain SVG, no hooks, so it renders on the server, without WebGL and under reduced
 // motion. Colours are the site tokens (CSS variables), so it follows the theme with no JavaScript.
@@ -112,6 +113,7 @@ function RoundTwo({ variant, emotion, className, style }: { variant: 'd' | 'e' |
   const r = rigs[variant]
   const happy = emotion === 'happy', sleep = emotion === 'sleep', think = emotion === 'thinking'
   const talk = emotion === 'talking', point = emotion === 'point', wave = emotion === 'wave', wow = emotion === 'surprised'
+  const listen = emotion === 'listening', sorry = emotion === 'sorry'
   const look = think ? { x: -4, y: -5 } : point ? { x: 5, y: 0 } : { x: 0, y: 0 }
   const rx = wow ? r.rx * 1.22 : r.rx, ry = wow ? r.ry * 1.25 : r.ry
   const eye = (side: -1 | 1) => {
@@ -144,6 +146,8 @@ function RoundTwo({ variant, emotion, className, style }: { variant: 'd' | 'e' |
     <ellipse cx="100" cy={my + 2} rx="7" ry="8" fill={ink} />
   ) : happy || wave ? (
     <path d={`M88 ${my - 3}H112Q110 ${my + 13} 100 ${my + 13}Q90 ${my + 13} 88 ${my - 3}Z`} fill={ink} />
+  ) : sorry ? (
+    <path d={`M92 ${my + 3}Q100 ${my - 4} 108 ${my + 3}`} fill="none" stroke={ink} strokeWidth="3.4" strokeLinecap="round" />
   ) : sleep ? (
     <path d={`M95 ${my}Q100 ${my + 3} 105 ${my}`} fill="none" stroke={ink} strokeWidth="3.4" strokeLinecap="round" />
   ) : (
@@ -168,7 +172,7 @@ function RoundTwo({ variant, emotion, className, style }: { variant: 'd' | 'e' |
     const x1 = side > 0 ? 200 - sx + (hx - sx) : sx + (hx - sx)
     return <line key={side} x1={x0} y1={sy} x2={x1} y2={hy} stroke={body} strokeWidth={r.arm * 2} strokeLinecap="round" />
   })
-  const tilt = think ? -5 : point ? 4 : 0
+  const tilt = think ? -5 : point ? 4 : listen ? 7 : sorry ? -3 : 0
   return (
     <svg viewBox="0 0 200 200" className={className} style={style} data-fira-svg={`${variant}-${emotion}`} aria-hidden="true" focusable="false">
       <ellipse cx="100" cy="191" rx={variant === 'h' ? 56 : 50} ry="6" fill={ink} opacity="0.16" />
@@ -242,8 +246,9 @@ function RoundTwo({ variant, emotion, className, style }: { variant: 'd' | 'e' |
 }
 
 // The 2D Fira: plain SVG, no hooks, so it renders on the server, without WebGL and under reduced
-// motion. Every variant (a to h) and every emotion has one.
+// motion. Every variant (a to m) and every emotion has one; round three lives in fira-fallback3.tsx.
 export function FiraFallback({ variant, emotion, className, style }: { variant: Variant; emotion: Emotion; className?: string; style?: CSSProperties }) {
+  if (isRoundThree(variant)) return <FiraFallback3 variant={variant} emotion={emotion} className={className} style={style} />
   return isRoundTwo(variant) ? (
     <RoundTwo variant={variant as 'd' | 'e' | 'f' | 'g' | 'h'} emotion={emotion} className={className} style={style} />
   ) : (

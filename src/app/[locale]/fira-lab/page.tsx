@@ -15,9 +15,10 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 function parseCapture(sp: Record<string, string | string[] | undefined>): Capture | null {
   const solo = one(sp.solo)
   const sheet = one(sp.sheet)
-  if (!isVariant(solo) && !isVariant(sheet)) return null
+  const row = one(sp.row)
+  if (!isVariant(solo) && !isVariant(sheet) && !isVariant(row)) return null
   const emo = one(sp.emotion)
-  const size = Math.min(1200, Math.max(120, Number(one(sp.size)) || 800))
+  const size = Math.min(1200, Math.max(120, Number(one(sp.size)) || (isVariant(row) ? 160 : 800)))
   const clockRaw = one(sp.clock)
   const seq = (one(sp.seq) ?? '')
     .split(',')
@@ -28,6 +29,7 @@ function parseCapture(sp: Record<string, string | string[] | undefined>): Captur
   return {
     solo: isVariant(solo) ? solo : null,
     sheet: isVariant(sheet) ? sheet : null,
+    row: isVariant(row) ? row : null,
     spin: Number.isFinite(spin) && spin > 0 ? Math.min(spin, 6) : undefined,
     emotion: isEmotion(emo) ? emo : 'idle',
     size,

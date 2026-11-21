@@ -115,7 +115,7 @@ const clay = {
     uniform vec3 uColor; uniform vec3 uShade; uniform vec3 uRim; uniform vec3 uSss;
     uniform vec3 uKey; uniform vec3 uFill; uniform vec3 uBack;
     uniform float uRimPow; uniform float uRimAmt; uniform float uSpec; uniform float uGlow;
-    uniform float uOpacity; uniform float uAlphaRim; uniform float uSssAmt; uniform float uEdge;
+    uniform float uOpacity; uniform float uAlphaRim; uniform float uSssAmt; uniform float uEdge; uniform float uSpecPow;
     uniform vec3 uTipCol; uniform float uTipY; uniform float uTipAmt;
     varying vec3 vN; varying vec3 vV; varying vec3 vP;
     void main() {
@@ -132,7 +132,7 @@ const clay = {
       float back = clamp(dot(n, normalize(uBack)) * 0.5 + 0.5, 0.0, 1.0);
       col = mix(col, uRim, fr * uRimAmt * (0.35 + 0.65 * back));
       vec3 h = normalize(normalize(uKey) + v);
-      col += pow(max(dot(n, h), 0.0), 9.0) * uSpec;
+      col += pow(max(dot(n, h), 0.0), uSpecPow) * uSpec;
       float g = fract(sin(dot(vP * vec3(91.0, 57.0, 73.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
       col *= 0.987 + 0.026 * g;
       col += uColor * uGlow;
@@ -292,7 +292,7 @@ export function paint(
   }
 }
 
-export type ClayOpts = SoftOpts & { sss?: number; edge?: number; bend?: number; bendY?: number; tipY?: number; tipAmt?: number }
+export type ClayOpts = SoftOpts & { specPow?: number; sss?: number; edge?: number; bend?: number; bendY?: number; tipY?: number; tipAmt?: number }
 
 // The round-two body material (see the clay shader above). Same uniform names as Soft where they
 // overlap, so `paint` can colour both.
@@ -319,6 +319,7 @@ export function clayMaterial(o: ClayOpts = {}) {
       uOpacity: { value: o.opacity ?? 1 },
       uAlphaRim: { value: o.alphaRim ?? 0 },
       uSssAmt: { value: o.sss ?? 0.4 },
+      uSpecPow: { value: o.specPow ?? 9 },
       uEdge: { value: o.edge ?? 0 },
       uTipCol: { value: c('#f2ffb0') },
       uTipY: { value: o.tipY ?? 99 },
