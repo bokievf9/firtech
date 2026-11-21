@@ -1,3 +1,5 @@
+import { boolOrNull, count, idNum, idStr, isObj, list, str, strOrNull } from './cabinet-parse'
+import { parseNextAction, type NextAction, type NextActionKind, type PublicDoc } from './cabinet-docs'
 import { sanitizeRefSlug } from './referral'
 import { siteUrl } from './site'
 
@@ -21,6 +23,9 @@ export type CabinetMilestone = {
   state: MilestoneState
 }
 
+export type ProjectState = 'preparing' | 'in_progress' | 'paused' | 'done'
+export const projectStates: ProjectState[] = ['preparing', 'in_progress', 'paused', 'done']
+
 export type CabinetProject = {
   id: number
   what: string
@@ -33,6 +38,12 @@ export type CabinetProject = {
   tasksDone: number
   createdAt: string | null
   milestones: CabinetMilestone[]
+  // v3: the client's own view of the project. `state` is HQ's (derived from `status` when absent),
+  // `documents` the ids of its documents, `nextAction` what the client has to do now (null = HQ
+  // did not send one; the page then derives it from documents and stages).
+  state: ProjectState
+  documents: string[]
+  nextAction: NextAction | null
 }
 export type CabinetInvoice = {
   id: string
@@ -90,6 +101,8 @@ export type CabinetLead = {
   nextStep: string
   timeline: LeadEvent[]
   replies: LeadReply[]
+  // v3: HQ's `nextStep` may be the same object as a project's `nextAction`; null when it is a sentence.
+  nextAction: NextAction | null
 }
 export type CabinetData = {
   client: CabinetClient
@@ -101,24 +114,6 @@ export type CabinetData = {
   tickets: CabinetTicket[]
   referrals: CabinetReferral[]
   referralSlug: string | null
-}
-
-const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
-const str = (v: unknown, max = 500) => (typeof v === 'string' ? v.slice(0, max) : '')
-const strOrNull = (v: unknown) => (typeof v === 'string' && v ? v.slice(0, 80) : null)
-const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0)
-const idNum = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
-const idStr = (v: unknown) => (typeof v === 'string' && v ? v : typeof v === 'number' ? String(v) : null)
-
-// One list: items that do not look right are dropped, the rest are cleaned.
-function list<T>(value: unknown, parse: (row: Record<string, unknown>) => T | null): T[] {
-  if (!Array.isArray(value)) return []
-  const out: T[] = []
-  for (const row of value) {
-    const item = isObj(row) ? parse(row) : null
-    if (item) out.push(item)
-  }
-  return out
 }
 
 const milestoneStates: MilestoneState[] = ['awaiting_payment', 'in_progress', 'awaiting_acceptance', 'accepted']
@@ -162,7 +157,18 @@ function parseProject(r: Record<string, unknown>): CabinetProject | null {
     tasksDone: count(r.tasksDone),
     createdAt: strOrNull(r.createdAt),
     milestones: list(r.milestones, parseMilestone).sort((a, b) => a.stageNo - b.stageNo),
+    state: projectStates.find((x) => x === r.state) ?? projectStateFallback(str(r.status, 20), str(r.stage, 20)),
+    documents: Array.isArray(r.documents) ? r.documents.map(idStr).filter((x): x is string => x !== null).slice(0, 100) : [],
+    nextAction: parseNextAction(r.nextAction),
   }
+}
+
+// An older HQ sends `status` only: a draft is being prepared, a finished one is done, the rest works.
+export function projectStateFallback(status: string, stage: string): ProjectState {
+  if (status === 'done' || stage === 'done') return 'done'
+  if (status === 'paused') return 'paused'
+  if (status === 'draft' || stage === 'spec') return 'preparing'
+  return 'in_progress'
 }
 
 function parseInvoice(r: Record<string, unknown>): CabinetInvoice | null {
@@ -220,8 +226,6 @@ function parseReferral(r: Record<string, unknown>): CabinetReferral | null {
   }
 }
 
-const boolOrNull = (v: unknown) => (typeof v === 'boolean' ? v : null)
-
 function parseEvent(r: Record<string, unknown>): LeadEvent | null {
   const title = str(r.title, 200)
   return title ? { at: strOrNull(r.at), kind: str(r.kind, 20), title } : null
@@ -247,6 +251,7 @@ function parseLead(r: Record<string, unknown>): CabinetLead | null {
     hasHosting: boolOrNull(r.hasHosting),
     stage: str(r.stage, 20) || 'new',
     nextStep: str(r.nextStep, 300),
+    nextAction: parseNextAction(r.nextAction) ?? parseNextAction(r.nextStep),
     timeline: list(r.timeline, parseEvent).slice(0, 50),
     replies: list(r.replies, parseReply).slice(-100),
   }
@@ -475,4 +480,66 @@ export function followLink(param: unknown, botUsername: string): string | null {
   if (typeof param !== 'string' || !botUsername) return null
   const m = /^(\d{1,10})\.([a-f0-9]{6,64})$/.exec(param)
   return m ? `https://t.me/${botUsername}?start=lead_${m[1]}_${m[2]}` : null
+}
+
+// ---- cabinet v3: the project in the client's words -----------------------------------------------
+
+// The sentence key (`cabinet.v3.status`) for a project: its state plus what is needed from the client.
+export type ProjectStatusKey =
+  | 'preparing'
+  | 'preparing_accept'
+  | 'preparing_sign'
+  | 'preparing_pay'
+  | 'in_progress'
+  | 'in_progress_accept'
+  | 'in_progress_pay'
+  | 'paused'
+  | 'done'
+export function projectStatusKey(state: ProjectState, kind: NextActionKind): ProjectStatusKey {
+  if (state === 'done' || state === 'paused') return state
+  if (state === 'preparing') {
+    return kind === 'accept_quote' ? 'preparing_accept' : kind === 'sign_contract' ? 'preparing_sign' : kind === 'pay_stage' ? 'preparing_pay' : 'preparing'
+  }
+  return kind === 'accept_stage' ? 'in_progress_accept' : kind === 'pay_stage' ? 'in_progress_pay' : 'in_progress'
+}
+
+// The road to the start of a project that has no payment stages yet: КП, договор, подпись, оплата
+// этапа 1, работа. `now` follows the next action (wait = the contract is being prepared by us).
+export const prepStepIds = ['quote', 'contract', 'sign', 'pay', 'work'] as const
+export type PrepStepId = (typeof prepStepIds)[number]
+export function prepSteps(kind: NextActionKind): { id: PrepStepId; state: 'done' | 'now' | 'next' }[] {
+  const at = kind === 'accept_quote' ? 0 : kind === 'sign_contract' ? 2 : kind === 'pay_stage' ? 3 : kind === 'accept_stage' ? 4 : 1
+  return prepStepIds.map((id, i) => ({ id, state: i < at ? 'done' : i === at ? 'now' : 'next' }))
+}
+
+const stateRank: Record<ProjectState, number> = { in_progress: 0, preparing: 1, paused: 2, done: 3 }
+// Projects that wait for the client first, then running, preparing, paused and finished ones.
+export function sortProjects<P extends { id: number; state: ProjectState }>(projects: readonly P[], needsClient: (p: P) => boolean): P[] {
+  return [...projects].sort((a, b) => Number(needsClient(b)) - Number(needsClient(a)) || stateRank[a.state] - stateRank[b.state] || b.id - a.id)
+}
+
+// Old HQ without the v3 documents: the legacy invoices and documents shown as simple documents
+// (no viewer, no signature) so the «Документы» tab is not empty.
+export function legacyDocs(d: Pick<CabinetData, 'invoices' | 'documents'>): PublicDoc[] {
+  const base = {
+    leadId: null,
+    projectId: null,
+    deliveredAt: null,
+    acceptedAt: null,
+    signedAt: null,
+    stageNo: null,
+    payUrl: null,
+    hasPdf: false,
+  }
+  const out: PublicDoc[] = []
+  for (const i of d.invoices) {
+    if (i.status !== 'paid' && i.status !== 'issued') continue
+    out.push({ ...base, id: `inv:${i.id}`, kind: 'invoice', title: i.title, number: i.number, state: i.status, createdAt: i.createdAt, amountUsd: i.amountUsd })
+  }
+  for (const x of d.documents) {
+    if (x.kind === 'invoice' || x.status !== 'approved') continue
+    const kind = x.kind === 'contract' ? 'contract' : x.kind === 'kp' || x.kind === 'estimate' ? 'quote' : x.kind === 'act' ? 'act' : 'other'
+    out.push({ ...base, id: `doc:${x.id}`, kind, title: x.title, number: null, state: 'accepted', createdAt: x.createdAt, amountUsd: null })
+  }
+  return out
 }

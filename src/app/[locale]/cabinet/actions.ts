@@ -2,8 +2,8 @@
 
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { headers } from 'next/headers'
+import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { z } from 'zod'
 import {
   appOrigin,
   authErrorKey,
@@ -17,8 +17,8 @@ import {
   validationKey,
   type AuthErrorKey,
 } from '@/lib/cabinet-auth'
-import { normalizeTelegram } from '@/lib/cabinet-data'
-import { createClientTicket, fetchClientByEmail, syncClientToHq } from '@/lib/cabinet-hq'
+import { parseProfileForm, saveProfileRow, type ProfileInput, type ProfilesClient } from '@/lib/cabinet-profile'
+import { createClientTicket, fetchClientByEmail, patchClientProfile, syncClientToHq } from '@/lib/cabinet-hq'
 import { requireCabinetUser } from '@/lib/cabinet-session'
 import { isLocale, type Locale } from '@/lib/i18n'
 import { supabaseConfig } from '@/lib/supabase/config'
@@ -33,6 +33,8 @@ export type FormState = {
   error?: AuthErrorKey | 'profile' | 'telegram' | 'delete_failed'
   notice?: 'check_email' | 'reset_sent' | 'saved' | 'delete_requested' | 'signed_in' | 'resent'
   email?: string
+  // The values the profile now holds (updateProfileAction), so the form shows them after saving.
+  saved?: ProfileInput
   // The address exists but is not confirmed yet: the form offers «Отправить письмо ещё раз».
   canResend?: boolean
 }
@@ -159,34 +161,38 @@ export async function logoutAction(form: FormData): Promise<void> {
   redirect(`/${locale}/cabinet/login`)
 }
 
-const profileSchema = z.object({
-  name: z.string().trim().max(80),
-  locale: z.enum(['ru', 'en']),
-  marketing: z.boolean(),
-})
-
+// Saves name, Telegram, language and the newsletter flag. The write is verified (a silent
+// zero-row update used to report «Сохранено»), the cabinet is revalidated, HQ gets the new name and
+// Telegram (CRM) and the state carries the stored values back so the form keeps them
+// (cabinet-profile.ts has the full story of the 2026-11-22 bug).
 export async function updateProfileAction(_: FormState, form: FormData): Promise<FormState> {
   const locale = localeOf(form)
   const { supabase, user } = await requireCabinetUser(locale)
-  const telegram = normalizeTelegram(String(form.get('telegram') ?? ''))
-  if (telegram === null) return { error: 'telegram' }
-  const parsed = profileSchema.safeParse({
-    name: form.get('name') ?? '',
-    locale: form.get('profileLocale') ?? locale,
-    marketing: form.get('marketing') === 'on',
-  })
-  if (!parsed.success) return { error: 'profile' }
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      name: parsed.data.name || null,
-      telegram: telegram || null,
-      locale: parsed.data.locale,
-      marketing_consent: parsed.data.marketing,
-    })
-    .eq('id', user.id)
-  if (error) return { error: 'profile' }
-  return { notice: 'saved' }
+  const parsed = parseProfileForm(form, locale)
+  if (!parsed.ok) return { error: parsed.error }
+  const { input } = parsed
+  const saved = await saveProfileRow(supabase as unknown as ProfilesClient, user, input)
+  if (!saved.ok) {
+    console.warn(`[cabinet] profile save failed (${saved.reason})`)
+    return { error: 'profile' }
+  }
+  const email = (user.email ?? '').toLowerCase()
+  // The CRM: a known client gets a PATCH-style update (`POST /admin/clients/:id`, only these fields); a client
+  // HQ does not know yet is registered with the saved data. Never the registration upsert for a known one.
+  const known = await fetchClientByEmail(email)
+  const synced = known.ok
+    ? await patchClientProfile(known.data.client.id, { name: input.name, telegram: input.telegram, locale: input.locale })
+    : known.error === 'not_found'
+      ? await syncClientToHq(user.id, { email, name: input.name, telegram: input.telegram, locale: input.locale, marketing_consent: input.marketing })
+      : known
+  if (synced.ok) {
+    const { error } = await supabase.from('profiles').update({ hq_synced_at: new Date().toISOString() }).eq('id', user.id)
+    if (error) console.warn('[cabinet] could not store hq_synced_at')
+  } else {
+    console.warn(`[cabinet] HQ profile sync failed (${synced.error})`)
+  }
+  revalidatePath(`/${locale}/cabinet`)
+  return { notice: 'saved', saved: input }
 }
 
 // Deleting the account: with SUPABASE_SERVICE_ROLE_KEY the auth user (and, by cascade, the profile)

@@ -124,18 +124,19 @@ test('reply: POST /clients/:id/leads/:leadId/messages with the token; errors map
   assert.ok(mock.leads.find((l) => l.id === 12).replies.some((m) => m.text === 'привет'))
 })
 
-test('home order: Заявки, Проекты, Счета, Документы, Обращения, Рекомендации; live refresh 30 s', () => {
+test('home order (v3): projects with requests and recent items, documents, messages, agent, materials, referrals, profile', () => {
   const page = readFileSync('src/app/[locale]/cabinet/page.tsx', 'utf8')
-  const order = ['<LeadsSection', '<ProjectsCard', '<InvoicesCard', '<DocumentsCard', '<TicketsPanel', '<ReferralsCard', '<ProfileForm']
+  const order = ['<ProjectCard', '<LeadsSection', '<RecentBlock', '<DocumentsPanel', '<MessagesPanel', '<AgentPanel', '<MaterialsPanel', '<ReferralsCard', '<ProfileForm']
   const at = order.map((tag) => page.indexOf(tag))
   assert.ok(at.every((i) => i > 0), JSON.stringify(at))
   assert.deepEqual([...at].sort((a, b) => a - b), at)
+  // The home is the project: refreshed every minute while visible, no reply box, a link to the thread.
+  assert.match(readFileSync('src/components/cabinet/refresh-while-visible.tsx', 'utf8'), /everyMs = 60_000/)
+  assert.match(page, /<RefreshWhileVisible \/>/)
   const section = readFileSync('src/components/cabinet/leads-section.tsx', 'utf8')
-  assert.match(section, /const POLL_MS = 30_000/)
-  assert.match(section, /document\.visibilityState !== 'visible'/)
-  assert.match(section, /\/api\/cabinet\/leads\/\$\{leadId\}\/messages/)
-  assert.match(section, /t\.emptyBuilder/)
-  assert.match(section, /t\.emptyAudit/)
+  assert.doesNotMatch(section, /ReplyBox|replyErrors|\/messages`/)
+  assert.match(section, /tab="messages"/)
+  assert.match(section, /ref: `lead-\$\{lead\.id\}`/)
   const route = readFileSync('src/app/api/cabinet/leads/[id]/messages/route.ts', 'utf8')
   assert.match(route, /fetchClientByEmail\(data\.user\.email\)/)
   assert.match(route, /status: 401|, 401\)/)
@@ -147,6 +148,7 @@ test('copy: leads block same shape in ru and en, no long dashes, no dollar amoun
   assert.equal(ru.cabinet.leads.pending, 'Заявка принята, ответим в течение 5 минут.')
   assert.equal(ru.cabinet.leads.emptyBuilder, 'Собрать проект в конструкторе')
   assert.equal(ru.cabinet.leads.emptyAudit, 'Заказать бесплатный аудит')
+  assert.match(ru.cabinet.leads.defaultNext.contract, /подпись/)
   function* strings(v) {
     if (typeof v === 'string') yield v
     else if (v && typeof v === 'object') for (const x of Object.values(v)) yield* strings(x)

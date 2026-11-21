@@ -3,10 +3,12 @@
 import { Check, Plus } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
-import { PICK_EVENT, sendEstimate, type PickDetail } from '@/lib/estimate-event'
+import { emptyBuild, encodeBuild } from '@/lib/builder'
+import { PICK_EVENT, type PickDetail } from '@/lib/estimate-event'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimate, formatUsd } from '@/lib/pricing'
 import { usePricing } from './pricing-provider'
@@ -24,6 +26,7 @@ export function Estimator({
 }) {
   const t = dict.estimator
   const reduce = useReducedMotion()
+  const router = useRouter()
   const pricing = usePricing()
   const [service, setService] = useState<ServiceSlug>(initialService)
   const [variant, setVariant] = useState(() => firstVariant(dict, initialService))
@@ -55,11 +58,12 @@ export function Estimator({
     setAddons((list) => (list.includes(id) ? list.filter((a) => a !== id) : [...list, id]))
   }
 
+  // «Собрать проект»: the picked format and options open in the project builder (the contact form
+  // is no longer a section of this page; the builder hands the request over).
   function handOff() {
-    const parts = [variants[variant]?.name, ...addons.map((id) => addonNames[id])].filter(Boolean)
-    sendEstimate({ service, summary: `${parts.join(' + ')}: ${price}, ${term}` })
     track('estimate_handoff', { service })
-    document.getElementById('contact')?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' })
+    const build = { ...emptyBuild, parts: { [service]: { variant, addons } } }
+    router.push(`/${locale}/builder?b=${encodeBuild(build)}`)
   }
 
   return (

@@ -9,10 +9,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { BuilderPreview } from '@/components/builder-preview'
-import { ContactSection } from '@/components/contact-section'
-import { Faq } from '@/components/faq'
+import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { HeroIntro } from '@/components/hero-intro'
-import { JsonLd, faqJsonLd } from '@/components/json-ld'
+import { JsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
 import { RiseText } from '@/components/rise-text'
 import { SolutionSet } from '@/components/solution-parts'
@@ -20,11 +19,14 @@ import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
 import { kindCatalog, kindName } from '@/content/builder-catalog'
 import { presets, quote } from '@/lib/builder'
+import { stagesFor } from '@/lib/payment-stages'
+import { StageTable } from '@/components/stage-table'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale, locales } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
 import { siteUrl } from '@/lib/site'
+import { mainPartTerm } from '@/lib/solutions'
 import {
   allSolutionKinds,
   isSolutionKind,
@@ -75,6 +77,8 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
   const build = presets[kind]
   const q = quote(build, pricing)
   const builderHref = solutionBuilderHref(locale, kind)
+  const stages = stagesFor(build, q.total, pricing)
+  const mainTerm = mainPartTerm(build, q.lines, dict)
 
   const service = {
     '@context': 'https://schema.org',
@@ -94,7 +98,6 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
   return (
     <>
       <JsonLd data={service} />
-      <JsonLd data={faqJsonLd(page.faq)} />
 
       <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-8">
@@ -119,9 +122,9 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                 className="transition-transform duration-300 group-hover:translate-x-1"
               />
             </Link>
-            <Link href="#contact" className={buttonStyles.secondary}>
+            <ChatOpenButton source={`solution_${kind}`} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
               {t.discuss}
-            </Link>
+            </ChatOpenButton>
           </div>
         </HeroIntro>
         <Reveal className="lg:col-span-4" delay={0.3}>
@@ -201,9 +204,9 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                   className="transition-transform duration-300 group-hover:translate-x-1"
                 />
               </Link>
-              <Link href="#contact" className={buttonStyles.secondary}>
+              <ChatOpenButton source={`solution_${kind}_set`} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
                 {t.discuss}
-              </Link>
+              </ChatOpenButton>
             </div>
           </Reveal>
           <Reveal className="min-w-0 lg:col-span-5" delay={0.1}>
@@ -221,8 +224,56 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
         </div>
       </section>
 
-      <Faq title={t.faqTitle} items={page.faq} />
-      <ContactSection dict={dict} locale={locale} />
+      <section className="border-y border-line bg-surface/40" aria-labelledby="solution-stages">
+        <div className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28">
+          <RiseText
+            text={t.stagesTitle}
+            className="text-3xl font-semibold tracking-[-0.03em] md:text-5xl"
+          />
+          <p id="solution-stages" className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted">
+            {t.stagesSub}
+          </p>
+          <Reveal className="mt-10">
+            <div className="grid gap-8 rounded-card border border-line bg-surface p-5 md:p-8 lg:grid-cols-12">
+              <div className="min-w-0 lg:col-span-8">
+                <StageTable
+                  stages={stages}
+                  dict={dict}
+                  locale={locale}
+                  title={dict.builder.stagesTitle}
+                  note={dict.builder.stageRule}
+                />
+              </div>
+              <dl className="grid content-start gap-5 lg:col-span-4">
+                <div>
+                  <dt className="text-sm text-faint">{t.firstStageLabel}</dt>
+                  <dd className="mt-1 font-mono text-3xl text-accent-text" data-first-stage>
+                    {stages[0] ? formatUsd(stages[0].amountUsd) : ''}
+                  </dd>
+                  <dd className="mt-1 text-[13px] leading-relaxed text-faint">{t.firstStageNote}</dd>
+                </div>
+                {mainTerm && (
+                  <div>
+                    <dt className="text-sm text-faint">{t.timelineLabel}</dt>
+                    <dd className="mt-1 text-xl font-medium" data-timeline>
+                      {mainTerm}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
+          </Reveal>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href={builderHref} className={cn(buttonStyles.primary, 'group')}>
+              {t.cta}
+              <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+            <ChatOpenButton source={`solution_${kind}_stages`} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
+              {t.discuss}
+            </ChatOpenButton>
+          </div>
+        </div>
+      </section>
 
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8" aria-label={t.othersTitle}>
         <h2 className="text-xl font-semibold tracking-tight">{t.othersTitle}</h2>

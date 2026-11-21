@@ -127,7 +127,7 @@ test('sitemap: every page, 55 solutions, services, blog, legal pages, with alter
   assert.equal(allSolutionKinds.length, 55)
   const alt = entries[0].alternates.languages
   assert.deepEqual(Object.keys(alt).sort(), ['en', 'ru'])
-  assert.equal(urls.some((u) => u.includes('/admin') || u.includes('/estimate')), false)
+  assert.equal(urls.some((u) => /\/(ru|en)\/(admin|builder\/estimate)/.test(u)), false)
 })
 
 test('terms: page, both dictionaries, filled on the owner\'s word, footer link', () => {

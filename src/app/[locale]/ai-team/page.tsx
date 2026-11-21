@@ -5,8 +5,8 @@ import { notFound } from 'next/navigation'
 import { AgentRow } from '@/components/ai-team/agent-list'
 import { TeamGlyph } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
-import { ContactSection } from '@/components/contact-section'
 import { HeroIntro } from '@/components/hero-intro'
+import { Ladder } from '@/components/ladder'
 import { JsonLd } from '@/components/json-ld'
 import { ProofLive } from '@/components/proof/proof-live'
 import { Reveal } from '@/components/reveal'
@@ -107,7 +107,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
               {t.ctaBuild}
               <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
-            <ChatOpenButton source="aiteam" fallbackHref="#contact" className={buttonStyles.secondary}>
+            <ChatOpenButton source="aiteam" fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
               {t.ctaChat}
             </ChatOpenButton>
           </div>
@@ -134,6 +134,16 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
             </ol>
           </div>
         </Reveal>
+      </section>
+
+      <section id="levels" className="mx-auto max-w-7xl scroll-mt-24 px-4 pb-24 md:px-8">
+        <Reveal>
+          <h2 className="max-w-[22ch] font-display text-title font-semibold">{dict.ladder.title}</h2>
+          <p className="mt-4 max-w-[56ch] text-lead text-muted">{dict.ladder.sub}</p>
+        </Reveal>
+        <div className="mt-10">
+          <Ladder locale={locale} dict={dict} heading="h3" />
+        </div>
       </section>
 
       <section id="teams" className="mx-auto max-w-7xl px-4 pb-24 md:px-8">
@@ -293,7 +303,6 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         </Reveal>
       </section>
 
-      <ContactSection dict={dict} locale={locale} />
     </>
   )
 }

@@ -20,6 +20,7 @@ import {
   type LeadStage,
 } from '@/lib/pult'
 import { Kanban } from './kanban'
+import { LeadBreakdown } from './lead-breakdown'
 import { btn, btnPrimary, CopyButton, Empty, inputClass, Loading, Offline, Pills, useHqView, useHub } from '../hub/ui'
 
 const k = admin.pult.leads
@@ -221,6 +222,7 @@ function LeadBody({ lead, onMove, onWrite, onClient, onDocuments }: DrawerProps 
               </div>
             ))}
           </dl>
+          <LeadBreakdown input={{ estimate: lead.estimateText, message: lead.message || lead.brief, builderUrl: lead.builderUrl }} />
           <div className="flex flex-wrap gap-2">
             {lead.clientId ? (
               <button type="button" className={btn} onClick={() => onClient(lead.clientId!)}>

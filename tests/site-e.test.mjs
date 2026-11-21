@@ -29,7 +29,6 @@ const sitemap = (await import('../src/app/sitemap.ts')).default
 const audit = await import('../src/lib/audit.ts')
 const status = await import('../src/lib/status.ts')
 const { createStatusSource, statusUrl } = await import('../src/lib/status-hq.ts')
-const { demoSalonUrl } = await import('../src/lib/demo.ts')
 
 function* strings(value, at = '') {
   if (typeof value === 'string') yield [at, value]
@@ -78,25 +77,23 @@ test('copy: new dictionaries have no long dashes, AI tells or dollar amounts', (
     /, (позволяя|делая|помогая|обеспечивая|allowing|making|helping|ensuring)\b/i,
   ]
   for (const [name, dict] of dicts)
-    for (const [at, text] of strings([dict.demoStand, dict.auditPage, dict.statusPage, dict.faqLinks, dict.hero.auditLink, dict.chat.demoChip])) {
+    for (const [at, text] of strings([dict.auditPage, dict.statusPage, dict.faqLinks])) {
       assert.doesNotMatch(text, /[–—]/, `${name} ${at}`)
       assert.doesNotMatch(text, /\$\s?\d/, `${name} ${at}`)
       for (const re of tells) assert.doesNotMatch(text, re, `${name} ${at}`)
     }
 })
 
-test('demo stand: deep link, data-place, three lines, label, card links, chat chip', () => {
-  assert.equal(demoSalonUrl, 'https://t.me/firtech_bot?start=demo_salon')
-  for (const [, dict] of dicts) {
-    assert.equal(dict.demoStand.lines.length, 3)
-    assert.ok(dict.demoStand.badge && dict.demoStand.cta && dict.demoStand.tryDemo && dict.demoStand.botDemo)
-  }
-  assert.match(ru.demoStand.badge, /записи не настоящие/)
-  const demo = readFileSync('src/components/demo-section.tsx', 'utf8')
-  assert.match(demo, /data-place=\{demoPlace\}/)
-  assert.match(readFileSync('src/lib/demo.ts', 'utf8'), /demoPlace = 'demo_salon'/)
-  assert.match(readFileSync('src/components/products/products-bento.tsx', 'utf8'), /id === 'admin' \|\| id === 'miniapp'/)
-  assert.match(readFileSync('src/components/chat/chat-panel.tsx', 'utf8'), /demoChatMessage/)
+test('demo (2026-11-22): no demo salon deep link on the page, the #demo block is the tabs', () => {
+  for (const file of [
+    'src/components/demo-section.tsx',
+    'src/components/products/products-bento.tsx',
+    'src/components/chat/chat-panel.tsx',
+    'src/components/hero/hero.tsx',
+  ])
+    assert.doesNotMatch(readFileSync(file, 'utf8'), /demo_salon|demoSalon|t\.me\/firtech_bot/, file)
+  assert.equal(existsSync('src/lib/demo.ts'), false)
+  for (const [, dict] of dicts) assert.equal('demoStand' in dict, false)
 })
 
 test('audit: url validation', () => {
@@ -298,10 +295,9 @@ test('status source: HQ down gives unavailable with the site row from its own he
   assert.equal(mock.incidents.length, 2)
 })
 
-test('status page: indexed (no noindex), refresh island, hero and FAQ links to the audit', () => {
+test('status page: indexed (no noindex), refresh island, FAQ links to the audit', () => {
   assert.doesNotMatch(readFileSync('src/app/[locale]/status/page.tsx', 'utf8'), /noindex|robots/)
   assert.match(readFileSync('src/components/status-view.tsx', 'utf8'), /REFRESH_MS = 60_000/)
-  assert.match(readFileSync('src/components/hero/hero.tsx', 'utf8'), /\/audit/)
   assert.match(readFileSync('src/components/faq-contact.tsx', 'utf8'), /'audit'/)
   for (const [, dict] of dicts) assert.ok(dict.faq.items.some((i) => /audit|аудит/i.test(i.a)))
   assert.match(readFileSync('src/lib/analytics.ts', 'utf8'), /audit_sent/)

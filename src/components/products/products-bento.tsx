@@ -1,15 +1,13 @@
 import { ArrowRight, ArrowUpRight, Check } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
-import { cn } from '@/lib/cn'
-import { demoPlace, demoSalonUrl } from '@/lib/demo'
+import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
-import { productAnchor, productBuilderHref, productIds, type ProductId } from '@/lib/products'
+import { productAnchor, productBuilderHref, productIds, productPath, type ProductId } from '@/lib/products'
 import { serviceSlugs } from '@/lib/site'
-import { ChatOpenButton } from '../chat/chat-open-button'
-import { DirectionCta } from '../direction-cta'
+import { Ladder } from '../ladder'
 import { Reveal } from '../reveal'
 import { SpotlightCard } from '../spotlight-card'
 import { ProductDemo } from './product-demo'
@@ -49,27 +47,11 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
         {productIds.map((id, i) => (
           <li key={id} id={productAnchor(id)} className={cn('scroll-mt-28', spans[id])}>
             <Reveal className="h-full" delay={(i % 3) * 0.06}>
-              <ProductCard id={id} index={i} locale={locale} dict={dict} />
+              <ProductCard id={id} locale={locale} dict={dict} />
             </Reveal>
           </li>
         ))}
       </ul>
-
-      <Reveal className="mt-gutter">
-        <Link
-          href={`/${locale}/ai-team`}
-          className="group flex flex-col gap-4 rounded-card border border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 transition-colors hover:border-accent-text/50 sm:flex-row sm:items-center sm:justify-between md:p-8"
-        >
-          <span>
-            <span className="block font-display text-2xl font-semibold tracking-tight">{dict.aiTeams.nav}</span>
-            <span className="mt-2 block max-w-[60ch] text-muted">{dict.aiTeams.sub}</span>
-          </span>
-          <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium">
-            {dict.aiTeams.deptsTitle}
-            <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
-          </span>
-        </Link>
-      </Reveal>
 
       <Reveal className="mt-gutter">
         <div className="grid gap-6 rounded-card border border-line p-6 md:p-8 lg:grid-cols-12 lg:items-center">
@@ -101,18 +83,48 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
           </ul>
         </div>
       </Reveal>
+
+      <div id="levels" className="mt-section scroll-mt-24">
+        <Reveal>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{dict.ladder.eyebrow}</p>
+          <h2 className="mt-4 max-w-[22ch] font-display text-title font-semibold">{dict.ladder.title}</h2>
+          <p className="mt-5 max-w-[56ch] text-lead text-muted">{dict.ladder.sub}</p>
+        </Reveal>
+        <div className="mt-10">
+          <Ladder locale={locale} dict={dict} />
+        </div>
+      </div>
+
+      <Reveal className="mt-gutter">
+        <div
+          data-departments-strip
+          className="flex flex-col gap-5 rounded-card border border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 md:p-8 lg:flex-row lg:items-center lg:justify-between"
+        >
+          <div>
+            <p className="font-display text-2xl font-semibold tracking-tight">{dict.ladder.strip.title}</p>
+            <p className="mt-2 max-w-[60ch] text-muted">{dict.ladder.strip.text}</p>
+          </div>
+          <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
+            <Link href={`/${locale}/ai-team`} data-cta="products_departments" className={cn(buttonStyles.primary, 'group')}>
+              {dict.ladder.strip.depts}
+              <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+            <Link href={`/${locale}/ai-team#agents`} data-cta="products_agents" className={buttonStyles.secondary}>
+              {dict.ladder.strip.agents}
+            </Link>
+          </div>
+        </div>
+      </Reveal>
     </section>
   )
 }
 
 function ProductCard({
   id,
-  index,
   locale,
   dict,
 }: {
   id: ProductId
-  index: number
   locale: Locale
   dict: Dict
 }) {
@@ -144,14 +156,11 @@ function ProductCard({
                 <Glyph size={20} aria-hidden="true" />
               </span>
               <div className="min-w-0">
-                <p className="font-mono text-[11px] text-faint">
-                  {String(index + 1).padStart(2, '0')}
-                  {wide && (
-                    <span className="ml-2 rounded-full bg-accent/15 px-2 py-0.5 text-accent-text">
-                      {t.flagship}
-                    </span>
-                  )}
-                </p>
+                {wide && (
+                  <p className="font-mono text-[11px]">
+                    <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent-text">{t.flagship}</span>
+                  </p>
+                )}
                 <h3 id={`${productAnchor(id)}-name`} className="text-xl font-semibold tracking-tight md:text-2xl">
                   {item.name}
                 </h3>
@@ -182,7 +191,7 @@ function ProductCard({
             </div>
           </dl>
 
-          <div className="relative z-10 mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-1">
+          <div className="relative z-10 mt-auto flex flex-wrap items-center gap-x-3 gap-y-3 pt-1">
             <Link
               href={productBuilderHref(locale, id)}
               data-cta={`product_${id}`}
@@ -191,30 +200,14 @@ function ProductCard({
               {t.build}
               <ArrowRight size={14} aria-hidden="true" />
             </Link>
-            {id === 'receptionist' ? (
-              <ChatOpenButton
-                source="product"
-                fallbackHref="#demo"
-                className="inline-flex items-center gap-1.5 text-sm font-medium transition-colors hover:text-accent-text"
-              >
-                {dict.demoSection.cta}
-                <ArrowUpRight size={14} aria-hidden="true" />
-              </ChatOpenButton>
-            ) : (
-              <DirectionCta id={id} label={t.discuss} variant="link" />
-            )}
-            {(id === 'admin' || id === 'miniapp') && (
-              <a
-                href={demoSalonUrl}
-                data-place={`${demoPlace}_${id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-accent-text"
-              >
-                {id === 'admin' ? dict.demoStand.tryDemo : dict.demoStand.botDemo}
-                <ArrowUpRight size={14} aria-hidden="true" />
-              </a>
-            )}
+            <Link
+              href={`/${locale}${productPath(id)}`}
+              data-cta={`product_more_${id}`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-line-strong px-4 py-2 text-sm font-medium transition-[border-color,background-color,transform] duration-300 ease-out-expo hover:border-fg/40 hover:bg-fg/5 active:scale-[0.98]"
+            >
+              {t.more}
+              <ArrowUpRight size={14} aria-hidden="true" />
+            </Link>
           </div>
         </div>
       </article>

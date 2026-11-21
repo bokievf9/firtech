@@ -279,3 +279,19 @@ two-segment path with an unknown locale (`/xx/yy`) still gets Next's plain 404 b
   glass window and the page around it are light), the Google and Telegram brand marks, the payment QR
   (white), the product mini-demo food colours, the A4 estimate paper (own colours, white in print).
   The OG image route (`opengraph-image.tsx`) stays dark.
+
+
+## Front v3 (2026-11-22)
+
+References skimmed with WebFetch (motionsites.ai, unsection.com, bentogrids.com). The fetches returned only page chrome and section
+names, not layouts, so the structures below are borrowed by name and built from the owner's brief:
+- unsection.com lists pricing, plan comparison, FAQ and CTA sections: the product page price block is a plan-style card with the
+  stage table inside, and the home FAQ ends in a short CTA strip.
+- motionsites.ai is a filterable collection with category chips: the home `#demo` tabs and the solutions groups use the same
+  chip-and-panel idea (tabs per product, three niches per category with «Ещё»).
+- bentogrids.com: mixed-size tiles. The product page capabilities use a 6-column grid (two wide tiles, then three narrow ones), each
+  tile with its own small mock; the home bento keeps its 12-column rhythm.
+
+Contract notes for HQ (agents repo): `POST /chat` now may carry `persona` (`salon|clinic|shop`) from the #demo tab. HQ's `chatSchema` is
+not strict, so it is ignored today. TODO(agents): read `persona` and answer as the first line of that niche; the site never forwards a
+contact from a request that has a persona (the route answers it), so no lead is created from the demo.

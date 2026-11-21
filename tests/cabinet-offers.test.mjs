@@ -71,17 +71,6 @@ test('state from data', () => {
   assert.equal(offers.offerState({ leads: [], projects: [{ status: 'done' }] }).projectInWork, false)
 })
 
-test('latest articles: newest three, only slug, title and date', () => {
-  const mk = (slug, date) => ({ slug, date, published: true, ru: { title: `R ${slug}`, blocks: [] }, en: { title: `E ${slug}`, blocks: [] } })
-  const out = offers.latestArticles([mk('a', '2026-01-01'), mk('d', '2026-04-01'), mk('b', '2026-02-01'), mk('c', '2026-03-01')], 'en')
-  assert.deepEqual(out, [
-    { slug: 'd', title: 'E d', date: '2026-04-01' },
-    { slug: 'c', title: 'E c', date: '2026-03-01' },
-    { slug: 'b', title: 'E b', date: '2026-02-01' },
-  ])
-  assert.deepEqual(Object.keys(out[0]).sort(), ['date', 'slug', 'title'])
-})
-
 test('copy: same shape in both languages, percent only as the token, no long dashes or dollars', () => {
   const shape = (v) => (v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, shape(x)])) : typeof v)
   assert.deepEqual(shape(en.cabinet.offers), shape(ru.cabinet.offers))
@@ -90,23 +79,24 @@ test('copy: same shape in both languages, percent only as the token, no long das
     const text = JSON.stringify([dict.cabinet.offers, dict.cabinet.tabs])
     assert.doesNotMatch(text, /[–—]/)
     assert.doesNotMatch(text, /\$\d|\d\s?%|\d\s?USD/)
-    assert.match(dict.cabinet.offers.referral.text, /\{percent\}/)
+    // v3: our own status and the overview blocks are gone from the cabinet copy.
+    assert.equal('status' in dict.cabinet.offers, false)
   }
   assert.equal(ru.cabinet.offers.label, 'Предложение')
   assert.equal(en.cabinet.offers.label, 'Offer')
 })
 
-test('call sites: clicks are tracked, the overview uses the guarantee, referral and status links', () => {
+test('call sites: clicks are tracked, the strip is compact and the cabinet has no office status block', () => {
   const link = read('src/components/cabinet/offer-link.tsx')
   assert.match(link, /trackEvent\('cabinet_offer_click'\)/)
   assert.match(link, /track\('cabinet_offer'/)
   const view = read('src/components/cabinet/offers.tsx')
-  assert.match(view, /<GuaranteeLine/)
-  assert.match(view, /fillReferralPercent\(/)
-  assert.match(view, /cabinetRefLink\(/)
-  assert.match(view, /\/status/)
   assert.match(view, /ProductPriceTag/)
-  assert.match(view, /rounded-card border border-line bg-surface/)
-  assert.match(read('src/app/[locale]/cabinet/page.tsx'), /latestArticles\(await allArticles\(\), locale\)/)
+  assert.match(view, /data-offers-strip/)
+  assert.match(view, /rounded-xl border border-line bg-surface p-4/)
+  assert.doesNotMatch(view, /\/status|Overview/)
+  const page = read('src/app/[locale]/cabinet/page.tsx')
+  assert.match(page, /<OffersStrip/)
+  assert.doesNotMatch(page, /allArticles|\/status/)
   assert.match(read('src/lib/analytics.ts'), /cabinet_offer: \[params: \{ offer: string \}\]/)
 })

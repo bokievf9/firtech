@@ -1,10 +1,14 @@
 'use client'
 
-import { FileText } from '@phosphor-icons/react'
+import { FileText, PencilSimpleLine } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { admin } from '@/content/admin'
 import { formatUsd, groupDocumentsByKind, relativeDate, statusChips, visibleDocuments, type CrmDocument } from '@/lib/admin-crm-hq'
-import { fill } from './api'
+import { DocEditor } from '@/components/admin/review/doc-editor'
+import { btn, useHqView, useHub } from '@/components/admin/hub/ui'
+import { documentField, firstVersionText, reviewItemForDocument, versionSavePayload } from '@/lib/doc-editor'
+import { normalizeItem, normalizeReview, replaceItem, withText, type ReviewItem } from '@/lib/review'
+import { errText, fill, hq } from './api'
 import { CcPanel } from './cc-panel'
 import type { CrmFeed } from './crm-hq-data'
 import { Chips, Count, FeedBody, label, Pill, Search, t } from './crm-hq-ui'
@@ -17,6 +21,29 @@ export function DocumentsPanel({ feed, badge, now, className }: { feed: CrmFeed<
   const [kind, setKind] = useState('all')
   const [status, setStatus] = useState('all')
   const [q, setQ] = useState('')
+  // Documents HQ waits on (a contract, an invoice draft) open in the same full-screen editor as the review centre.
+  const { notify } = useHub()
+  const review = useHqView('review?status=pending&limit=200', normalizeReview, { visible: 30_000, hidden: 120_000 })
+  const [editing, setEditing] = useState<string | null>(null)
+  const pending = useMemo(() => review.view?.items ?? [], [review.view])
+  const editItem = editing ? (pending.find((x) => x.id === editing) ?? null) : null
+  const saveDoc = async (it: ReviewItem, text: string) => {
+    const payload = versionSavePayload(it, text)
+    if (!payload) {
+      notify('Текст не изменился')
+      return true
+    }
+    const res = await hq<{ item?: unknown }>(`review/${encodeURIComponent(it.id)}`, payload)
+    if (!res.ok) {
+      notify(fill('Не получилось: {e}.', { e: errText(res.error) }), 'error')
+      return false
+    }
+    const fresh = normalizeItem(res.item)
+    review.mutate((v) => ({ ...v, items: fresh ? replaceItem(v.items, fresh) : v.items.map((x) => (x.id === it.id ? withText(x, payload.text) : x)) }))
+    notify(fresh ? `Сохранено как версия v${fresh.currentVersion}` : 'Правка сохранена, версия добавлена')
+    feed.reload()
+    return true
+  }
   const items = useMemo(() => feed.list?.items ?? [], [feed.list])
   const shown = useMemo(() => visibleDocuments(items, { kind, status, q }), [items, kind, status, q])
   const groups = useMemo(() => groupDocumentsByKind(shown), [shown])
@@ -60,6 +87,15 @@ export function DocumentsPanel({ feed, badge, now, className }: { feed: CrmFeed<
                                 <span className="truncate">{d.client || k.noClient}</span>
                                 {d.amountUsd !== null ? <span className="font-mono tabular-nums text-fg">{formatUsd(d.amountUsd)}</span> : null}
                               </span>
+                              {(() => {
+                                const it = reviewItemForDocument(d.id, pending)
+                                return it ? (
+                                  <button type="button" className={`${btn} mt-2 min-h-9`} onClick={() => setEditing(it.id)}>
+                                    <PencilSimpleLine size={15} aria-hidden="true" />
+                                    Править в редакторе
+                                  </button>
+                                ) : null
+                              })()}
                               {d.excerpt && d.excerpt !== d.title ? <span className="mt-1 line-clamp-2 block text-sm text-faint">{d.excerpt}</span> : null}
                               <span className="mt-1 block font-mono text-xs text-faint">
                                 {[d.number ? fill(k.number, { n: d.number }) : '', relativeDate(d.createdAt, now)].filter(Boolean).join(' · ')}
@@ -76,6 +112,18 @@ export function DocumentsPanel({ feed, badge, now, className }: { feed: CrmFeed<
           )}
         </FeedBody>
       </div>
+      {editItem && documentField(editItem) ? (
+        <DocEditor
+          key={editItem.id}
+          title={editItem.title || editItem.summary}
+          subtitle="Документ"
+          initial={documentField(editItem)!.value}
+          baseText={firstVersionText(editItem)}
+          storageId={editItem.id}
+          onSave={(text) => saveDoc(editItem, text)}
+          onClose={() => setEditing(null)}
+        />
+      ) : null}
     </CcPanel>
   )
 }

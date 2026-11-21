@@ -2,21 +2,21 @@
 
 import { useState } from 'react'
 import { LeadDrawer } from '@/components/admin/lead-drawer'
+import { Assignments } from '@/components/admin/control/assignments'
 import { ApprovalsPanel } from '@/components/admin/control/approvals-panel'
 import { CallsPanel } from '@/components/admin/control/calls-panel'
 import { BarePanel } from '@/components/admin/control/cc-panel'
 import { useCrmLeads } from '@/components/admin/control/crm-data'
 import { LIST_LIMIT, useFeed } from '@/components/admin/control/crm-hq-data'
-import { DirectorChat } from '@/components/admin/control/director-chat'
 import { DocumentsPanel } from '@/components/admin/control/documents-panel'
 import { DrillPanel } from '@/components/admin/control/drill-panel'
 import { LeadsPanel } from '@/components/admin/control/leads-panel'
 import { ProspectsPanel } from '@/components/admin/control/prospects-panel'
 import { ReferralsPanel } from '@/components/admin/control/referrals-panel'
 import { ReviewsPanel } from '@/components/admin/control/reviews-panel'
-import { TasksPanel, type BoardFilter } from '@/components/admin/control/tasks-panel'
 import { normalizeDocuments, normalizeProspects, normalizeReferrals, normalizeReviews } from '@/lib/admin-crm-hq'
 import type { Approval, HqDepartment, HqTask, Id } from '@/lib/hq-admin-view'
+import type { PersonFilter } from '@/lib/orders'
 import type { OfficeData } from '@/lib/office-view'
 import type { HubInboxItem, PanelId, PanelLink } from '@/lib/pult'
 import { ClientsTab } from '@/components/admin/pult/clients'
@@ -49,8 +49,8 @@ export type DirectorProps = {
   tasks: HqTask[] | null
   tasksError: string | null
   tz: string
-  filter: BoardFilter
-  onFilter: (f: BoardFilter) => void
+  filter: PersonFilter
+  onFilter: (f: PersonFilter) => void
   departments: HqDepartment[]
   onOpenTask: (id: Id) => void
   onRetry: (task: HqTask) => Promise<void>
@@ -116,20 +116,17 @@ function DirectorTab({ tab, d }: { tab: string; d: DirectorProps }) {
       )
     case 'tasks':
       return (
-        <TasksPanel
-          items={d.tasks}
+        <Assignments
+          tasks={d.tasks}
           error={d.tasksError}
           now={now}
-          tz={d.tz}
-          filter={d.filter}
-          departments={d.departments}
-          onFilter={d.onFilter}
-          onOpen={d.onOpenTask}
-          onRetry={d.onRetry}
+          person={d.filter}
+          onPerson={d.onFilter}
+          onOpenTask={d.onOpenTask}
+          onStart={d.onRetry}
+          onSent={d.onSent}
         />
       )
-    case 'chat':
-      return <DirectorChat onOpenTask={d.onOpenTask} onSent={d.onSent} />
     case 'feed':
       return <Feed data={d.office} fresh={d.fresh} now={now} />
     case 'drill':

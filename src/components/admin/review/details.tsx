@@ -4,10 +4,12 @@ import { ArrowSquareOut, Warning } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { btn, btnPrimary, inputClass } from '@/components/admin/hub/ui'
 import { Chip } from '@/components/admin/pult/bits'
+import { LeadBreakdown } from '@/components/admin/pult/lead-breakdown'
 import { cn } from '@/lib/cn'
 import {
   comparePair,
   fieldsOf,
+  leadBreakdownInput,
   metaCards,
   metaChips,
   publishedUrl,
@@ -50,6 +52,7 @@ export function Details(p: DetailsProps) {
   const url = publishedUrl(item)
   const revision = item.meta.revision as { state?: string; reviewId?: string | null } | undefined
   const editing = p.editing && !version
+  const breakdown = leadBreakdownInput(item)
 
   return (
     <div className="grid content-start gap-5 p-4">
@@ -191,6 +194,8 @@ export function Details(p: DetailsProps) {
           ))}
         </section>
       ) : null}
+
+      {breakdown ? <LeadBreakdown input={breakdown} /> : null}
 
       {cards.map((c) => (
         <section key={c.id} className="grid gap-1.5 rounded-2xl border border-line bg-inset p-3">

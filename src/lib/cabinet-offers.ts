@@ -19,9 +19,9 @@ export type OfferStage = 'start' | 'waiting' | 'grow'
 
 export type OfferPlan = {
   stage: OfferStage
-  // The cards of the «Обзор» block, one CTA each.
+  // The offers for the visitor's state (the strip shows the first two of `strip`).
   cards: Offer[]
-  // Two cards for the slim strip at the bottom of the other tabs.
+  // Two cards for the slim strip at the bottom of every tab.
   strip: Offer[]
 }
 
@@ -61,16 +61,3 @@ export const offerState = (d: {
   projectCount: d.projects.length,
   projectInWork: d.projects.some((p) => p.status !== 'done'),
 })
-
-// The newest three for the blog block: only what the client needs.
-export type OfferArticle = { slug: string; title: string; date: string }
-export function latestArticles(
-  articles: readonly { slug: string; date: string; ru: { title: string }; en: { title: string } }[],
-  locale: 'ru' | 'en',
-  max = 3,
-): OfferArticle[] {
-  return [...articles]
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, max)
-    .map((a) => ({ slug: a.slug, title: a[locale].title, date: a.date }))
-}

@@ -2,7 +2,6 @@ import { ArrowRight, ArrowUpRight } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ContactSection } from '@/components/contact-section'
 import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
@@ -143,8 +142,6 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
           </div>
         </Reveal>
       </section>
-
-      <ContactSection dict={dict} locale={locale} />
     </>
   )
 }

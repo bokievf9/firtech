@@ -2,17 +2,15 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Hourglass, Lightning } from
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { AgentDiscuss } from '@/components/ai-team/agent-discuss'
 import { AgentRow } from '@/components/ai-team/agent-list'
 import { QuoteLine, TeamGlyph } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
-import { ContactSection } from '@/components/contact-section'
-import { Faq } from '@/components/faq'
 import { HeroIntro } from '@/components/hero-intro'
-import { JsonLd, faqJsonLd } from '@/components/json-ld'
+import { JsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
 import { getDict } from '@/content'
 import {
+  agentSource,
   agentCopy,
   agentIds,
   agentOffer,
@@ -85,7 +83,6 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
   return (
     <>
       <JsonLd data={service} />
-      <JsonLd data={faqJsonLd(page.faq)} />
 
       <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-8">
@@ -114,7 +111,13 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
               {t.ctaBuild}
               <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
-            <AgentDiscuss id={id} label={t.ctaDiscuss} className={buttonStyles.secondary} />
+            <ChatOpenButton
+              source={agentSource(id)}
+              fallbackHref={`/${locale}#demo`}
+              className={buttonStyles.secondary}
+            >
+              {t.ctaChat}
+            </ChatOpenButton>
           </div>
         </HeroIntro>
         <Reveal className="lg:col-span-4" delay={0.3}>
@@ -223,8 +226,6 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
         </Reveal>
       </section>
 
-      <Faq title={t.page.faqTitle} items={page.faq} />
-
       <section className="mx-auto max-w-7xl px-4 pb-10 md:px-8">
         <Reveal>
           <div className="flex flex-col gap-6 rounded-card border border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 md:flex-row md:items-center md:justify-between md:p-8">
@@ -236,15 +237,13 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
               <Link href={aiTeamBuilderHref(locale)} data-cta={`agent_${id}_final`} className={buttonStyles.primary}>
                 {t.ctaBuild}
               </Link>
-              <ChatOpenButton source={`aiteam_${id}`.slice(0, 40)} fallbackHref="#contact" className={buttonStyles.secondary}>
+              <ChatOpenButton source={`aiteam_${id}`.slice(0, 40)} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
                 {t.ctaChat}
               </ChatOpenButton>
             </div>
           </div>
         </Reveal>
       </section>
-
-      <ContactSection dict={dict} locale={locale} />
 
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8" aria-label={ta.page.othersTitle}>
         <h2 className="text-xl font-semibold tracking-tight">{siblings.length ? ta.page.othersTitle : t.page.othersTitle}</h2>

@@ -295,6 +295,7 @@ export function createCrmMock(start = Date.now()) {
   ]
   const documents: Row[] = [
     { id: 'bl:5', source: 'billing', kind: 'invoice', status: 'issued', client: 'Алиса', title: 'Сайт, этап 1', excerpt: 'Сайт, этап 1', amountUsd: 300, number: 'FT-2026-001', createdAt: ago(60 * 20), link: null },
+    { id: 'bl:7', source: 'billing', kind: 'invoice', status: 'draft', client: 'Sadaf Clinic', title: 'Сайт и бот, этап 1', excerpt: 'Счёт FT-2026-007, сайт и бот, этап 1', amountUsd: 600, number: 'FT-2026-007', createdAt: ago(300), link: null },
     { id: 'ps:4', source: 'presales', kind: 'kp', status: 'draft', client: 'Боб', title: 'КП на Telegram-бота', excerpt: 'Бот для записи клиентов: меню, напоминания, оплата.', amountUsd: null, number: null, createdAt: ago(60 * 26), link: null },
     { id: 'bo:2', source: 'back_office', kind: 'contract', status: 'pending', client: 'Алиса', title: 'Договор на разработку сайта', excerpt: 'Исполнитель обязуется разработать сайт...', amountUsd: null, number: null, createdAt: ago(60 * 50), link: null },
   ]
@@ -491,6 +492,20 @@ export function createHqMock(start = Date.now()) {
 
   const say = (text: string, now: number) => {
     const lower = text.toLowerCase()
+    // «Отмени поручение #12» and «Напомни мне про поручение #12»: the Director acts on an existing task.
+    const word = /^(отмени|напомни)[^#]*#(\d+)/i.exec(text.trim())
+    if (word) {
+      const target = findTask(word[2]!)
+      if (!target) return { replies: [`Не нашёл поручение #${word[2]}.`] }
+      if (word[1]!.toLowerCase() === 'отмени') {
+        target.status = 'cancelled'
+        target.updatedAt = iso(now)
+        pushEvent(target, { at: iso(now), kind: 'task.cancelled', actor: 'owner', body: 'Владелец отменил поручение' })
+        return { replies: [`Отменил поручение #${target.id}: «${target.title}». Исполнитель снят.`] }
+      }
+      addInbox(now, 'progress', `Напоминание: поручение #${target.id} «${target.title}».`, { taskId: target.id, read: false })
+      return { replies: [`Напомню про поручение #${target.id}: «${target.title}». Пришлю в уведомления.`] }
+    }
     const dept = /клиент|кп|продаж|заявк/.test(lower)
       ? 'sales'
       : /счёт|счет|оплат|договор/.test(lower)

@@ -38,6 +38,35 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   300 s (`revalidate` in the locale layout, `/llms.txt`); the save handler calls `revalidatePath('/', 'layout')`. Changing a
   default in `pricing.ts` still needs the owner's word and a deploy; live edits do not.
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
+- **Front v3 (owner review 2026-11-22, supersedes the home notes below where they differ).** Product names (ids and prices
+  unchanged): `admin` ИИ-администратор, `receptionist` ИИ-менеджер заявок, `automation` Автоматизация процессов, `content` Контент на
+  автопилоте, `miniapp` Telegram Mini App, `agent` Персональный ИИ-ассистент, `implementation` ИИ-отдел под ключ (EN in `products.items`
+  and `builder-catalog.ts`); «бот» stays only as a delivery channel. The builder is «Сборка проекта» everywhere (nav, titles, buttons;
+  the word «калькулятор» is gone from the site; the `cabinet` dictionary section still says «конструктор», it belongs to the cabinet
+  builder). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
+  and «Спросить агента», third item the link to `/ai-team`, then the guarantee and the 5-minute line), products (`#products`: seven
+  cards each with «Подробнее» to `/[locale]/products/[id]`, the ladder `#levels`, the departments strip), demo (`#demo` «Попробуйте
+  сейчас», tabs, `components/demo/`), proof, solutions (`#solutions`: salon, clinic, shop on the first row, three niches per catalogue
+  category, «Ещё» expands), process (`#process`, short, links to `/how-we-work`), pricing, faq (`#faq`: the only FAQ besides the
+  per-product ones, with the «Остались вопросы? Спросите агента» strip), footer.
+  **Product pages** `/[locale]/products/[id]` (`productPage` dictionary section, `lib/product-page.ts`, `components/products/
+  capability-mock.tsx`): what it does as a list with a one-line example and a small CSS mock, first day/week/month, what we need,
+  what it does not do, the live price (`ProductPriceTag`) and the stage table of the product's template (`productPayment`,
+  `StageTable`), FAQ 4-5 (FAQ is allowed there because of that page's own content), CTAs «Собрать проект» (product preselected) and
+  «Спросить агента». **Ladder** (`lib/ladder.ts`, `components/ladder.tsx`, `ladder` section): per direction one agent -> on autopilot
+  -> whole department (content: Контент-мейкер -> Контент на автопилоте -> Отдел маркетинга; sales: ИИ-менеджер заявок -> Продажи на
+  автопилоте (agent page of the prospector) -> Отдел продаж; support: Служба поддержки -> Поддержка на автопилоте (monitoring) ->
+  Отдел поддержки), on the home products section and on `/ai-team`; `/ai-team` is in the header as «ИИ-отделы». **Demo**: the receptionist
+  tab is the real chat (`POST /api/chat` with `persona` = salon|clinic|shop; HQ ignores unknown fields today, TODO(agents) in
+  `lib/chat.ts`; a demo request never creates a lead, the route answers contacts itself); the booking tab is the state machine in
+  `lib/demo-booking.ts` (labelled «Пример»); the content tab shows the three newest published articles (neither `/api/office/public`
+  nor the blog API carries a reel poster, so no poster); the department tab shows the live office counts. No demo-salon Telegram deep
+  link anywhere (`lib/demo.ts` is deleted). **`/[locale]/how-we-work`** (`how` section): stages with what the client does, sees in the
+  cabinet and who answers, acceptance, payment, guarantee, what if not liked, tools, approvals. **Tails**: the footer carries the two
+  actions «Собрать проект» / «Спросить агента» on every page, Telegram is a small third link there only; the contact form is not a
+  page section any more (only on the builder page, as the hand-off target `#contact`, and in the cabinet); `Estimator` hands its pick
+  to the builder. Solution pages show the full stage table, the first-stage price and the main part's timeline, CTAs «Собрать это
+  решение» / «Спросить агента». Tests: `tests/front-v3.test.mjs`, `tests/products-pages.test.mjs`. Design notes: `docs/site-design-notes.md`.
 - Home page order (stage B1, products lead; `homeSections` in `src/lib/home.ts`, tested): hero
   (`#top`, kinetic headline over a 3D product stage; on lg a 250vh scroll track brings the seven
   products forward one by one, phones rotate them on a timer), products bento (`#products`, old
@@ -167,9 +196,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   Every lead path (contact form, builder hand-off, PDF estimate, audit, chat contact) needs a signed-in account: 401
   `auth_required` from `/api/lead` and `/api/audit` (`leadGate`, open while the cabinet is off), inline sign-in step with a
   24 h draft (`lead-draft.ts`, `draft=1`), identity `clientEmail/cabinetId/clientName` to HQ, redirect to
-  `/<locale>/cabinet?lead=<leadId>`. Cabinet home is tabs (2026-11-21, `?tab=`, `lib/cabinet-tabs.ts`; default «Заявки» with requests or `?lead=`, else «Обзор»; the
-  30 s refresh of Заявки runs only on its tab) with offers picked from the client's state in `lib/cabinet-offers.ts` (Обзор and a strip under
-  the other tabs; clicks `cabinet_offer_click`). The Google button has the «G» mark. The cabinet link reads «Личный кабинет» / «Get started»
+  `/<locale>/cabinet?lead=<leadId>`. Cabinet v3 (2026-11-22, `docs/cabinet.md` «Кабинет v3»; HQ contract `agents/docs/admin-crm-api.md` «Кабинет v3»): the home is the CLIENT'S project, never our office status. Tabs (`?tab=`, `lib/cabinet-tabs.ts`): Проекты (state in words, the one big `nextAction` button: accept the quote, sign the contract, pay or accept a stage, stage track or the road to the start, recent documents and messages; view model `lib/cabinet-view.ts`), Документы (viewer through the session-checked file proxy, «Принять КП», drawn e-signature pad `signature-pad.tsx`, payload `buildSignaturePayload` in `lib/cabinet-docs.ts`), Сообщения (messenger by threads `lib/cabinet-chat.ts`, 15 s refresh, unread badges), Ваш агент (only with an HQ playground agent, `lib/cabinet-agent.ts`), Материалы (uploads into the project thread), Рекомендации, Профиль. HQ calls and the full dev mock: `lib/cabinet-hq.ts` + `cabinet-hq-mock.ts`; routes `src/app/api/cabinet/{threads,documents,uploads,media,agent}`. The profile now saves for real (`lib/cabinet-profile.ts`, root cause in the docs; owner runs `supabase/migrations/0002_profiles_update.sql`) and reaches the CRM through `POST /admin/clients/:id`. Offers (`lib/cabinet-offers.ts`) are a slim strip under every tab (clicks `cabinet_offer_click`); the e-signature paragraph is `terms` section `esign`. The Google button has the «G» mark. The cabinet link reads «Личный кабинет» / «Get started»
   while signed out. Details: `docs/cabinet.md`.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
@@ -257,7 +284,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `HQ_ADMIN_URL` (default `http://127.0.0.1:8787/admin`, header `x-admin-token: HQ_ADMIN_TOKEN`, falls back to
   `HQ_OFFICE_TOKEN`); unset in development = in-memory mock. Renders: `/api/admin/files/[...path]` (`src/lib/hq-files.ts`,
   `safeRenderPath`, Range passed, type from the extension, dev SVG placeholder). Go-live plan (owner 2026-11-21): a countdown chip in the top bar, key `8` and ⌘K open the full-screen page `/admin/golive` (shader stage with an odometer `DD : HH : MM : SS` and the 41-item checklist with notes below it, `src/components/admin/golive/`) for the 72-hour timer, stored in `$DATA_DIR/golive.json` (back it up with `leads.json`); API `/api/admin/golive`, logic `src/lib/golive.ts`, list `src/content/golive.ts`, notes in `docs/pult.md`.
-- Review centre and chats (owner 2026-11-21, `docs/pult.md` «Ревью-центр и чаты»): `/admin/review` is a full-screen editing-room page (departments rail with `counts`, 9:16 video / carousel / document stage, text fields read-only until `E`, versions v1/v2, revise note, keys A E R X P T S C J K, the optimistic decision flow, the Trendwatcher link composer) and `/admin/chats` the client threads with owner replies, both over the same whitelist proxy (`REVIEW_ENDPOINTS` in `src/lib/hq-admin.ts`, view models `src/lib/review.ts` and `src/lib/chats.ts`, dev mock `src/lib/review-mock.ts`). The office top bar has the chips «Ревью N» and «Чаты N» (keys `9`, `0`, ⌘K); the old approvals list in the Director panel links to the review centre.
+- Review centre and chats (owner 2026-11-21, `docs/pult.md` «Ревью-центр и чаты»): `/admin/review` is a full-screen editing-room page (departments rail with `counts`, 9:16 video / carousel / document stage, text fields read-only until `E`, versions v1/v2, revise note, keys A E R X P T S C J K, the optimistic decision flow, the Trendwatcher link composer) and `/admin/chats` the client threads with owner replies, both over the same whitelist proxy (`REVIEW_ENDPOINTS` in `src/lib/hq-admin.ts`, view models `src/lib/review.ts` and `src/lib/chats.ts`, dev mock `src/lib/review-mock.ts`). The office top bar has the chips «Ревью N» and «Чаты N» (keys `9`, `0`, ⌘K); the old approvals list in the Director panel links to the review centre. Since 2026-11-22 `E` on a text document opens a full-screen Word-like editor (`review/doc-editor.tsx`, helpers `lib/doc-editor.ts` and `lib/diff.ts`: toolbar, ⌘F find and replace, word diff against v1, local draft every 5 s, «Сохранить как версию» = `edit` v+1, also on the back-office Documents tab); the Director's «Задачи» and «Чат» tabs are one «Поручения» view (`control/assignments.tsx`, `lib/orders.ts`: composer, `/commands`, one timeline) and leads show a «Разбор заявки» block parsed from the builder link (`lib/lead-breakdown.ts`). Details: `docs/pult.md`.
 - Site events (pult v3 part C): `trackEvent(name)` (`src/lib/track-event.ts`, pure helpers `src/lib/site-events.ts`) POSTs
   same-origin to `/api/events` (JSON only, origin check, 120 per IP per minute), which forwards to HQ `POST /events` (header
   `x-site-token` = `SITE_EVENTS_TOKEN`, else `HQ_CHAT_TOKEN`; URL `HQ_EVENTS_URL`, else the origin of `HQ_CHAT_URL` + `/events`;

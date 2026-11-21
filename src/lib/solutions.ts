@@ -1,6 +1,7 @@
 import type { Dict } from '@/content'
 import { genericFaq, kindCatalog } from '../content/builder-catalog'
-import { businessKinds, encodeBuild, presets, quote, type BusinessKind } from './builder'
+import { businessKinds, encodeBuild, presets, quote, type Build, type BusinessKind } from './builder'
+import { serviceSlugs, type ServiceSlug } from './site'
 import { defaultPricing, formatUsd, type Pricing } from './pricing'
 
 // Niche landing pages ("solutions"): one per business kind from the builder, except "other". Each
@@ -36,11 +37,13 @@ export type SolutionCopy = {
 // Meta descriptions stay within 120-160 characters (tested): the longest closing line that fits.
 const metaTails = {
   ru: [
-    'Состав стартового набора, цена и сроки на одной странице. Цену считает наш калькулятор.',
+    'Состав стартового набора, цена, сроки и этапы оплаты на одной странице. Всё видно до заявки.',
+    'Состав стартового набора, цена, сроки и этапы оплаты на одной странице.',
     'Состав стартового набора, цена и сроки на одной странице.',
   ],
   en: [
-    'Contents of the starting set, price and timing on one page. Our calculator works out the price.',
+    'Contents of the starting set, price, timing and payment stages on one page. All of it is clear before you apply.',
+    'Contents of the starting set, price, timing and payment stages on one page.',
     'Contents of the starting set, price and timing on one page.',
   ],
 }
@@ -74,4 +77,23 @@ export function solutionCopy(
     problems: pains.map((pain, i) => ({ pain, fix: gets[i] ?? '' })),
     faq: genericFaq(locale, name, from),
   }
+}
+
+// The term of the build's main part: the most expensive service line and its format's term from the
+// dictionary (`estimator.catalog`). Terms stay per part, like in the builder, so this names the one
+// that sets the pace; null when the build has no service part.
+export function mainPartTerm(
+  build: Build,
+  lines: readonly { id: string; price: number }[],
+  dict: Dict,
+): string | null {
+  let best: { slug: ServiceSlug; price: number } | null = null
+  for (const line of lines) {
+    if (!(serviceSlugs as readonly string[]).includes(line.id) || !build.parts[line.id as ServiceSlug]) continue
+    if (!best || line.price > best.price) best = { slug: line.id as ServiceSlug, price: line.price }
+  }
+  if (!best) return null
+  const variant = build.parts[best.slug]!.variant
+  const variants = dict.estimator.catalog[best.slug].variants as Record<string, { term: string }>
+  return variants[variant]?.term ?? null
 }
