@@ -402,3 +402,23 @@ Observed, not a bug: the 404 pages answer with `<html id="__next_error__">` in `
 `notFound()` after data fetching).
 
 | 3 | chat textarea | Enter pressed while the greeting request was in flight returned silently (`submit` bailed on `pending`) and kept the text; reproduced with a delayed first `/api/chat` answer | fixed: the message is queued and sent when the chat is free (`chat-panel.tsx`); `E:chat-enter` |
+
+## Front v3 (2026-11-22), replaces the rows above where they differ
+
+| Block | Element | What it does | Leads to / calls | Verified by | Status |
+|---|---|---|---|---|---|
+| header, mobile bar, footer | «Собрать проект» | builder | `/{locale}/builder` | `E:links`, `U:front-v3` | pass |
+| footer, hero, FAQ strip, pages | «Спросить агента» | opens the chat | chat widget | `E:chat-open`, `U:front-v3` | pass |
+| hero | «ИИ-отделы: целое направление на агентах» | AI team page | `/{locale}/ai-team` | `E:hero` | pass |
+| hero | «Подробнее о продукте» | product page | `/{locale}/products/<id>` | `U:products-pages` | pass |
+| products | «Подробнее» on each card | product page | `/{locale}/products/<id>` | `E:hero` (href), `U:products-pages` | pass |
+| products | ladder rungs (9) | agent, product or department page | see `lib/ladder.ts` | `E:ladder`, `U:products-pages` | pass |
+| products | «Все ИИ-отделы», «Агенты по одному» | AI team page, its agents section | `/{locale}/ai-team`, `#agents` | `U:products-pages` | pass |
+| demo | four tabs | switch the demo | client state | `E:demo` | pass |
+| demo | niche chips, hint chips, input | real chat with `persona` | `POST /api/chat` | `E:demo` (mock), `U:front-v3` | pass |
+| demo | booking options | state machine, no request | `lib/demo-booking.ts` | `E:demo`, `U:front-v3` | pass |
+| solutions | «Ещё» | expands every category list | client state | `E:ladder` | pass |
+| process | «Подробнее: кабинет, приёмка, оплата, гарантия» | how we work | `/{locale}/how-we-work` | `U:front-v3` | pass |
+| product page | «Собрать проект», «Спросить агента», FAQ | builder with the product, chat, accordion | `/{locale}/builder?b=…p.<id>` | `E:product-page` | pass |
+| solution page | «Собрать это решение», «Спросить агента» | builder with the preset, chat | `/{locale}/builder?b=…` | `E:solution` | pass |
+| estimate block | «Собрать проект» | builder with the picked format | `/{locale}/builder?b=…` | none | untested |

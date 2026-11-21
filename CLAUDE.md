@@ -38,6 +38,35 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   300 s (`revalidate` in the locale layout, `/llms.txt`); the save handler calls `revalidatePath('/', 'layout')`. Changing a
   default in `pricing.ts` still needs the owner's word and a deploy; live edits do not.
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
+- **Front v3 (owner review 2026-11-22, supersedes the home notes below where they differ).** Product names (ids and prices
+  unchanged): `admin` ИИ-администратор, `receptionist` ИИ-менеджер заявок, `automation` Автоматизация процессов, `content` Контент на
+  автопилоте, `miniapp` Telegram Mini App, `agent` Персональный ИИ-ассистент, `implementation` ИИ-отдел под ключ (EN in `products.items`
+  and `builder-catalog.ts`); «бот» stays only as a delivery channel. The builder is «Сборка проекта» everywhere (nav, titles, buttons;
+  the word «калькулятор» is gone from the site; the `cabinet` dictionary section still says «конструктор», it belongs to the cabinet
+  builder). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
+  and «Спросить агента», third item the link to `/ai-team`, then the guarantee and the 5-minute line), products (`#products`: seven
+  cards each with «Подробнее» to `/[locale]/products/[id]`, the ladder `#levels`, the departments strip), demo (`#demo` «Попробуйте
+  сейчас», tabs, `components/demo/`), proof, solutions (`#solutions`: salon, clinic, shop on the first row, three niches per catalogue
+  category, «Ещё» expands), process (`#process`, short, links to `/how-we-work`), pricing, faq (`#faq`: the only FAQ besides the
+  per-product ones, with the «Остались вопросы? Спросите агента» strip), footer.
+  **Product pages** `/[locale]/products/[id]` (`productPage` dictionary section, `lib/product-page.ts`, `components/products/
+  capability-mock.tsx`): what it does as a list with a one-line example and a small CSS mock, first day/week/month, what we need,
+  what it does not do, the live price (`ProductPriceTag`) and the stage table of the product's template (`productPayment`,
+  `StageTable`), FAQ 4-5 (FAQ is allowed there because of that page's own content), CTAs «Собрать проект» (product preselected) and
+  «Спросить агента». **Ladder** (`lib/ladder.ts`, `components/ladder.tsx`, `ladder` section): per direction one agent -> on autopilot
+  -> whole department (content: Контент-мейкер -> Контент на автопилоте -> Отдел маркетинга; sales: ИИ-менеджер заявок -> Продажи на
+  автопилоте (agent page of the prospector) -> Отдел продаж; support: Служба поддержки -> Поддержка на автопилоте (monitoring) ->
+  Отдел поддержки), on the home products section and on `/ai-team`; `/ai-team` is in the header as «ИИ-отделы». **Demo**: the receptionist
+  tab is the real chat (`POST /api/chat` with `persona` = salon|clinic|shop; HQ ignores unknown fields today, TODO(agents) in
+  `lib/chat.ts`; a demo request never creates a lead, the route answers contacts itself); the booking tab is the state machine in
+  `lib/demo-booking.ts` (labelled «Пример»); the content tab shows the three newest published articles (neither `/api/office/public`
+  nor the blog API carries a reel poster, so no poster); the department tab shows the live office counts. No demo-salon Telegram deep
+  link anywhere (`lib/demo.ts` is deleted). **`/[locale]/how-we-work`** (`how` section): stages with what the client does, sees in the
+  cabinet and who answers, acceptance, payment, guarantee, what if not liked, tools, approvals. **Tails**: the footer carries the two
+  actions «Собрать проект» / «Спросить агента» on every page, Telegram is a small third link there only; the contact form is not a
+  page section any more (only on the builder page, as the hand-off target `#contact`, and in the cabinet); `Estimator` hands its pick
+  to the builder. Solution pages show the full stage table, the first-stage price and the main part's timeline, CTAs «Собрать это
+  решение» / «Спросить агента». Tests: `tests/front-v3.test.mjs`, `tests/products-pages.test.mjs`. Design notes: `docs/site-design-notes.md`.
 - Home page order (stage B1, products lead; `homeSections` in `src/lib/home.ts`, tested): hero
   (`#top`, kinetic headline over a 3D product stage; on lg a 250vh scroll track brings the seven
   products forward one by one, phones rotate them on a timer), products bento (`#products`, old
