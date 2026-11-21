@@ -4,6 +4,7 @@ import { Check, LockSimple, PencilSimple, SealCheck, X } from '@phosphor-icons/r
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
+import { DocEditor } from '@/components/admin/review/doc-editor'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { approvalsView, sameId, type Approval, type Id } from '@/lib/hq-admin-view'
@@ -17,77 +18,48 @@ const deptName = (id: string) => (admin.office.depts as Record<string, string>)[
 type Act = (a: Approval, action: 'approve' | 'reject', part?: Id) => void
 type Edit = (a: Approval, text: string, part?: Id) => Promise<boolean>
 
+// The text of a card: read-only here, «Править» opens the same full-screen editor as the review centre
+// (find and replace, comparison, local draft). Without a v1 the comparison is against the text as it is now.
 function EditableText({
   value,
   label,
+  storageId,
   onSave,
 }: {
   value: string
   label?: string
+  storageId: string
   onSave: (text: string) => Promise<boolean>
 }) {
-  const [draft, setDraft] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-  const area = useRef<HTMLTextAreaElement>(null)
-  const editing = draft !== null
-  useEffect(() => {
-    if (editing) area.current?.focus()
-  }, [editing])
+  const [open, setOpen] = useState(false)
   return (
     <div className="grid gap-1.5">
       {label ? <p className="text-xs text-faint">{label}</p> : null}
-      {editing ? (
-        <>
-          <textarea
-            ref={area}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              e.stopPropagation()
-              if (e.key === 'Escape') setDraft(null)
-            }}
-            rows={Math.min(10, Math.max(3, Math.ceil(draft.length / 60)))}
-            className="ym-disable-keys w-full resize-y rounded-xl border border-line-strong bg-field p-3 text-sm leading-relaxed outline-none focus:border-accent"
-          />
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={busy || !draft.trim()}
-              onClick={async () => {
-                setBusy(true)
-                const ok = await onSave(draft)
-                setBusy(false)
-                if (ok) setDraft(null)
-              }}
-              className="inline-flex min-h-10 items-center rounded-full bg-fg px-4 text-sm font-medium text-bg disabled:opacity-50"
-            >
-              {t.save}
-            </button>
-            <button
-              type="button"
-              onClick={() => setDraft(null)}
-              className="inline-flex min-h-10 items-center rounded-full px-4 text-sm text-muted hover:text-fg"
-            >
-              {t.cancel}
-            </button>
-          </div>
-        </>
-      ) : (
-        <div className="group/text relative">
-          <p className="rounded-xl bg-inset p-3 pr-12 text-sm leading-relaxed whitespace-pre-wrap break-words">
-            {value || <span className="text-faint">{t.emptyText}</span>}
-          </p>
-          <button
-            type="button"
-            onClick={() => setDraft(value)}
-            aria-label={label ? `${t.edit}: ${label}` : t.edit}
-            title={t.edit}
-            className="absolute top-1.5 right-1.5 grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg"
-          >
-            <PencilSimple size={16} aria-hidden="true" />
-          </button>
-        </div>
-      )}
+      <div className="group/text relative">
+        <p className="rounded-xl bg-inset p-3 pr-12 text-sm leading-relaxed whitespace-pre-wrap break-words">
+          {value || <span className="text-faint">{t.emptyText}</span>}
+        </p>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label={label ? `${t.edit}: ${label}` : t.edit}
+          title={t.edit}
+          className="absolute top-1.5 right-1.5 grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg"
+        >
+          <PencilSimple size={16} aria-hidden="true" />
+        </button>
+      </div>
+      {open ? (
+        <DocEditor
+          title={label ?? t.title}
+          subtitle={t.title}
+          initial={value}
+          baseText={value}
+          storageId={storageId}
+          onSave={onSave}
+          onClose={() => setOpen(false)}
+        />
+      ) : null}
     </div>
   )
 }
@@ -188,7 +160,7 @@ function ApprovalCard({
           })}
         </div>
       ) : null}
-      <EditableText value={a.text} onSave={(text) => onEdit(a, text, part)} />
+      <EditableText value={a.text} storageId={`approval-${String(a.id)}${part === undefined ? '' : `-${String(part)}`}`} onSave={(text) => onEdit(a, text, part)} />
       {a.locked ? <p className="text-xs text-danger">{lockHint}</p> : null}
       <div className="flex flex-wrap gap-2">
         <button
@@ -222,84 +194,83 @@ function ApprovalCard({
   )
 }
 
-export function ApprovalsPanel({
-  items,
-  error,
-  now,
-  badge,
-  focus,
-  queued,
-  className,
-  onAct,
-  onEdit,
-  onRelease,
-}: {
+export type ApprovalsProps = {
   items: Approval[] | null
   error: string | null
   now: number
-  badge: string | null
   focus: { id: Id; key: number } | null
   queued: number
-  className?: string
   onAct: Act
   onEdit: Edit
   onRelease: () => Promise<void>
-}) {
+}
+
+// The approvals: the queue release, the link to the review centre and one card per approval. `limit`
+// shows only the first cards with a «Показать все» button (a focused approval always opens the whole list).
+export function ApprovalsSection({ items, error, now, focus, queued, onAct, onEdit, onRelease, limit }: ApprovalsProps & { limit?: number }) {
   const [releasing, setReleasing] = useState(false)
+  const [all, setAll] = useState(false)
   const list = items ? approvalsView(items) : null
+  const cut = limit !== undefined && !all && !focus && !!list && list.length > limit
+  const shown = list ? (cut ? list.slice(0, limit) : list) : null
   return (
-    <CcPanel
-      id="approvals"
-      title={t.title}
-      icon={<SealCheck size={18} aria-hidden="true" />}
-      badge={badge}
-      className={className}
-    >
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 lg:max-h-[30rem] min-[120rem]:max-h-[46rem]">
-        {queued > 0 ? (
-          <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-line-strong p-3">
-            <p className="min-w-0 flex-1 text-sm">
-              {fill(t.queued, { n: queued })}
-              <span className="block text-xs text-faint">{t.queuedHint}</span>
-            </p>
-            <button
-              type="button"
-              disabled={releasing}
-              onClick={async () => {
-                setReleasing(true)
-                await onRelease()
-                setReleasing(false)
-              }}
-              className="inline-flex min-h-10 items-center rounded-full bg-fg px-4 text-sm font-medium text-bg disabled:opacity-50"
-            >
-              {t.release}
-            </button>
-          </div>
-        ) : null}
-        <p className="mb-3 px-1 text-sm">
-          <Link href="/admin/review" className="inline-flex min-h-9 items-center text-accent-text underline">
-            Открыть в ревью-центре
-          </Link>
-          <span className="text-faint">: читать, править и выкладывать на весь экран</span>
-        </p>
-        {error && !list ? <p className="p-2 text-sm text-danger">{errText(error)}</p> : null}
-        {!list && !error ? <div className="h-40 animate-pulse rounded-xl bg-surface-2/60" /> : null}
-        {list && !list.length ? <p className="p-2 text-sm text-muted">{t.empty}</p> : null}
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
-          <AnimatePresence initial={false} mode="popLayout">
-            {list?.map((a) => (
-              <ApprovalCard
-                key={String(a.id)}
-                a={a}
-                now={now}
-                focusKey={focus && sameId(focus.id, a.id) ? focus.key : null}
-                onAct={onAct}
-                onEdit={onEdit}
-              />
-            ))}
-          </AnimatePresence>
+    <>
+      {queued > 0 ? (
+        <div className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl border border-dashed border-line-strong p-3">
+          <p className="min-w-0 flex-1 text-sm">
+            {fill(t.queued, { n: queued })}
+            <span className="block text-xs text-faint">{t.queuedHint}</span>
+          </p>
+          <button
+            type="button"
+            disabled={releasing}
+            onClick={async () => {
+              setReleasing(true)
+              await onRelease()
+              setReleasing(false)
+            }}
+            className="inline-flex min-h-10 items-center rounded-full bg-fg px-4 text-sm font-medium text-bg disabled:opacity-50"
+          >
+            {t.release}
+          </button>
         </div>
-        {list?.length ? <p className="mt-3 hidden px-1 text-xs text-faint sm:block">{t.keys}</p> : null}
+      ) : null}
+      <p className="mb-3 px-1 text-sm">
+        <Link href="/admin/review" className="inline-flex min-h-9 items-center text-accent-text underline">
+          Открыть в ревью-центре
+        </Link>
+        <span className="text-faint">: читать, править и выкладывать на весь экран</span>
+      </p>
+      {error && !list ? <p className="p-2 text-sm text-danger">{errText(error)}</p> : null}
+      {!list && !error ? <div className="h-40 animate-pulse rounded-xl bg-surface-2/60" /> : null}
+      {list && !list.length ? <p className="p-2 text-sm text-muted">{t.empty}</p> : null}
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
+        <AnimatePresence initial={false} mode="popLayout">
+          {shown?.map((a) => (
+            <ApprovalCard key={String(a.id)} a={a} now={now} focusKey={focus && sameId(focus.id, a.id) ? focus.key : null} onAct={onAct} onEdit={onEdit} />
+          ))}
+        </AnimatePresence>
+      </div>
+      {cut && list ? (
+        <button type="button" onClick={() => setAll(true)} className="mt-3 inline-flex min-h-10 items-center rounded-full border border-line-strong px-4 text-sm text-muted hover:border-accent hover:text-fg">
+          {fill(admin.orders.approvals.more, { n: list.length })}
+        </button>
+      ) : null}
+      {limit !== undefined && all && list && list.length > limit ? (
+        <button type="button" onClick={() => setAll(false)} className="mt-3 inline-flex min-h-10 items-center rounded-full px-4 text-sm text-muted hover:text-fg">
+          {admin.orders.approvals.less}
+        </button>
+      ) : null}
+      {list?.length ? <p className="mt-3 hidden px-1 text-xs text-faint sm:block">{t.keys}</p> : null}
+    </>
+  )
+}
+
+export function ApprovalsPanel({ badge, className, ...rest }: ApprovalsProps & { badge: string | null; className?: string }) {
+  return (
+    <CcPanel id="approvals" title={t.title} icon={<SealCheck size={18} aria-hidden="true" />} badge={badge} className={className}>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 lg:max-h-[30rem] min-[120rem]:max-h-[46rem]">
+        <ApprovalsSection {...rest} />
       </div>
     </CcPanel>
   )

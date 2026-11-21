@@ -155,6 +155,13 @@ test('pay page: wrong key and unknown number show the not-found state', async ({
 
 // ---- cabinet login ------------------------------------------------------------------------------
 
+test('cabinet login: ?email= prefills the email field (HQ links to bot-lead clients), junk is ignored', async ({ page }) => {
+  await open(page, '/ru/cabinet/login?email=anna%40example.com')
+  await expect(page.locator('input[type=email]')).toHaveValue('anna@example.com')
+  await open(page, '/ru/cabinet/login?email=%3Cscript%3E')
+  await expect(page.locator('input[type=email]')).toHaveValue('')
+})
+
 test('cabinet login: Google button with the G mark, email form, sign-up and forgot tabs', async ({ page }) => {
   await open(page, '/ru/cabinet/login')
   const google = page.getByRole('button', { name: 'Продолжить с Google' })

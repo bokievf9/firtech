@@ -1,52 +1,126 @@
-import { editPayload, fieldsOf, type ReviewItem, type ReviewVersion } from './review'
+import { editPayload, fieldsOf, withText, type ReviewItem, type ReviewVersion } from './review'
 
 // The full-screen document editor (review centre «E», back-office Documents): pure helpers. The
 // component only wires them to a textarea. Nothing here touches the DOM, storage or the network.
 
 // ---- which items open the editor ---------------------------------------------------------------------
 
-// A text document: any editable item whose text is the `draft` (КП answer, договор, счёт, ответ...).
-// Content items (reels, carousels) keep the side editor: they have several short fields, not a page.
+// A text document: any non-content item whose text is the `draft` (answer, договор, счёт...) and for which
+// HQ lists `edit` in `actions` right now. That is also true for approved documents the client has not acted
+// on yet (HQ's `editApproved`): the status is HQ's call, not ours. Content items (reels, carousels) keep the
+// side editor: they have several short fields, not a page.
 export function documentField(item: ReviewItem): { key: 'draft'; value: string } | null {
-  if (item.kind === 'content_item' || item.status !== 'pending') return null
+  if (item.kind === 'content_item' || item.kind === 'presales_pack') return null
   const f = fieldsOf(item).find((x) => x.key === 'draft' && x.editable)
   return f ? { key: 'draft', value: f.value } : null
 }
 
 export const versionText = (v: Pick<ReviewVersion, 'text'> | undefined): string => v?.text.draft ?? v?.text.body ?? ''
 
-// The text v1 had: the snapshot before the owner's first edit (or the only version there is).
-export const firstVersionText = (item: ReviewItem): string => {
-  const first = [...item.versions].sort((a, b) => a.v - b.v)[0]
-  return first ? versionText(first) : (item.text.draft ?? item.text.body ?? '')
+// The documents of a presales pack the editor can open (`doc` of the `edit` call).
+export const PACK_DOCS = ['kp', 'estimate', 'contract'] as const
+export type PackDoc = (typeof PACK_DOCS)[number]
+const isPackDoc = (v: unknown): v is PackDoc => (PACK_DOCS as readonly unknown[]).includes(v)
+
+// One thing the editor can open: a whole item (`doc: null`) or one document of a presales pack.
+export type DocTarget = { item: ReviewItem; doc: PackDoc | null; title: string; value: string; storageId: string }
+
+// The targets of an item. A presales pack gives its КП, смета and договор (when HQ allows `edit`; the
+// contract of an approved pack is a document of its own, edited through its back-office card), anything
+// else gives itself through `documentField`.
+export function editableTargets(item: ReviewItem): DocTarget[] {
+  if (item.kind === 'presales_pack') {
+    if (!item.actions.includes('edit')) return []
+    const out: DocTarget[] = []
+    for (const d of item.text.documents ?? []) {
+      if (!isPackDoc(d.key) || !d.body) continue
+      if (d.key === 'contract' && item.status !== 'pending') continue
+      out.push({ item, doc: d.key, title: d.title || d.key, value: d.body, storageId: `${item.id}:${d.key}` })
+    }
+    return out
+  }
+  const f = documentField(item)
+  return f ? [{ item, doc: null, title: item.title || item.summary, value: f.value, storageId: item.id }] : []
 }
 
-// The body of the `edit` call that «Сохранить как версию» sends: the same shape as the side editor,
-// null when nothing changed (HQ would answer 409 `not_applied`).
-export function versionSavePayload(item: ReviewItem, value: string): { action: 'edit'; text: { draft: string } } | null {
+// The target for a key like `ap_5:kp` (or `ap_5`) on an item, null when it is gone or not editable now.
+export function targetOf(item: ReviewItem | null | undefined, key: string | null | undefined): DocTarget | null {
+  if (!item || !key) return null
+  const all = editableTargets(item)
+  return all.find((t) => t.storageId === key) ?? (key === item.id ? all[0] ?? null : null)
+}
+
+// The text v1 had: the snapshot before the owner's first edit (or the only version there is).
+export const firstVersionText = (item: ReviewItem, doc: PackDoc | null = null): string => {
+  const first = [...item.versions].sort((a, b) => a.v - b.v)[0]
+  if (doc) return first?.text.documents?.find((d) => d.key === doc)?.body ?? item.text.documents?.find((d) => d.key === doc)?.body ?? ''
+  return first ? versionText(first) : (item.text.draft ?? item.text.body ?? '')
+}
+export const targetBase = (t: DocTarget): string => firstVersionText(t.item, t.doc) || t.value
+
+// The body of the `edit` call that «Сохранить как версию» sends: the same shape as the side editor
+// (plus `doc` for a presales pack), null when nothing changed (HQ would answer 409 `not_applied`).
+export type VersionPayload = { action: 'edit'; doc?: PackDoc; text: { draft: string } }
+export function versionSavePayload(item: ReviewItem, value: string, doc: PackDoc | null = null): VersionPayload | null {
+  if (doc) {
+    const current = item.text.documents?.find((d) => d.key === doc)?.body
+    return value.trim() && value !== current ? { action: 'edit', doc, text: { draft: value } } : null
+  }
   const p = editPayload(item, { draft: value })
   const draft = p?.text.draft
   return typeof draft === 'string' ? { action: 'edit', text: { draft } } : null
 }
 
-// The pending review item behind a row of the Documents tab (`bo:<n>` back-office document, `bl:<n>`
-// invoice), when HQ is waiting for the owner on it and its text can be edited.
-export function reviewItemForDocument(docId: string, items: ReviewItem[]): ReviewItem | null {
-  const m = /^(bo|bl):(\d{1,12})$/.exec(docId)
-  if (!m) return null
-  const kind = m[1] === 'bo' ? 'bo_document' : 'billing_invoice'
-  const key = m[1] === 'bo' ? 'document' : 'invoice'
-  return (
-    items.find((it) => {
-      if (it.kind !== kind || it.status !== 'pending' || !documentField(it)) return false
-      const ref = it.meta[key]
-      return !!ref && typeof ref === 'object' && String((ref as Record<string, unknown>).id) === m[2]
-    }) ?? null
-  )
+// The item with the edited text in place (the optimistic update): a pack's document, or the draft.
+export function withDocText(item: ReviewItem, value: string, doc: PackDoc | null): ReviewItem {
+  if (!doc) return withText(item, { draft: value })
+  const documents = (item.text.documents ?? []).map((d) => (d.key === doc ? { ...d, body: value } : d))
+  return { ...item, text: { ...item.text, documents, ...(doc === 'kp' ? { body: value } : {}) } }
 }
 
-// HQ refuses a draft longer than this (400 invalid), so the editor stops before it.
-export const DOC_MAX = 8000
+// The review item and target behind a row of the Documents tab: `bo:<n>` back-office document,
+// `bl:<n>` invoice (HQ only lets a draft be edited), `ps:<n>` a КП, смета or договор of a presales
+// pack (matched by the document id HQ may send, else by kind and client name).
+export type DocRow = { id: string; kind: string; client: string }
+const norm = (v: unknown) => (typeof v === 'string' ? v.trim().toLowerCase() : '')
+export function targetForRow(row: DocRow, items: ReviewItem[]): DocTarget | null {
+  const m = /^(bo|bl|ps):(\d{1,12})$/.exec(row.id)
+  if (!m) return null
+  if (m[1] === 'ps') {
+    if (!isPackDoc(row.kind)) return null
+    const client = norm(row.client)
+    let named: DocTarget | null = null
+    for (const it of items) {
+      if (it.kind !== 'presales_pack') continue
+      const docs = it.text.documents ?? []
+      const t = editableTargets(it).find((x) => x.doc === row.kind)
+      if (!t) continue
+      if (docs.some((d) => d.key === row.kind && String((d as { id?: unknown }).id ?? '') === m[2])) return t
+      const lead = it.meta.lead as { name?: unknown } | null | undefined
+      if (!named && client && (norm(lead?.name) === client || norm(it.title).includes(client))) named = t
+    }
+    return named
+  }
+  const kind = m[1] === 'bo' ? 'bo_document' : 'billing_invoice'
+  const key = m[1] === 'bo' ? 'document' : 'invoice'
+  for (const it of items) {
+    if (it.kind !== kind) continue
+    const ref = it.meta[key]
+    if (!ref || typeof ref !== 'object' || String((ref as Record<string, unknown>).id) !== m[2]) continue
+    const t = editableTargets(it)[0]
+    if (t) return t
+  }
+  return null
+}
+
+// Why a row cannot be edited, for the disabled button.
+export function whyNotEditable(row: Pick<DocRow, 'id' | 'kind'>): string {
+  if (row.kind === 'invoice') return 'Выставленный счёт не правится: отмените его и выставьте новый.'
+  return 'HQ не даёт править этот документ: клиент уже принял или подписал его, либо карточки нет.'
+}
+
+// HQ refuses a draft longer than this (400 invalid), so the editor stops before it (contracts are long).
+export const DOC_MAX = 40000
 
 // ---- counts ------------------------------------------------------------------------------------------
 

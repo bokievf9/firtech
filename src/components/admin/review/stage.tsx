@@ -1,9 +1,10 @@
 'use client'
 
-import { CaretLeft, CaretRight, FileText, FilmSlate, Pause, Play, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react'
+import { CaretLeft, CaretRight, FileText, FilmSlate, Pause, PencilSimpleLine, Play, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react'
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
 import { Markdown } from '@/components/admin/pult/markdown'
 import { cn } from '@/lib/cn'
+import { editableTargets, type PackDoc } from '@/lib/doc-editor'
 import { documentText, emptyMediaReason, renderState, renderStateText, type ReviewItem, type ReviewMedia } from '@/lib/review'
 
 // The centre of the review screen: what the owner looks at. A 9:16 video with its own controls, a
@@ -171,9 +172,11 @@ function Empty({ item }: { item: ReviewItem }) {
   )
 }
 
-function Doc({ item }: { item: ReviewItem }) {
+function Doc({ item, onEditDoc }: { item: ReviewItem; onEditDoc?: (doc: PackDoc) => void }) {
   const text = documentText(item)
-  const docs = item.text.documents ?? []
+  // A pack's КП is also the item's body, shown above: list only the other documents then.
+  const docs = (item.text.documents ?? []).filter((d) => !(d.key === 'kp' && d.body === text))
+  const editable = new Set(editableTargets(item).flatMap((t) => (t.doc ? [t.doc] : [])))
   const markdown = MARKDOWN_KINDS.includes(item.kind)
   return (
     <article className="mx-auto h-full max-w-2xl overflow-y-auto overscroll-contain rounded-2xl border border-line bg-surface p-5 sm:p-7">
@@ -183,9 +186,21 @@ function Doc({ item }: { item: ReviewItem }) {
       </p>
       <h2 className="mt-1 mb-4 text-lg leading-snug font-semibold">{item.text.subject || item.title}</h2>
       {markdown ? <Markdown text={text} /> : <p className="text-[0.95rem] leading-relaxed whitespace-pre-wrap">{text}</p>}
+      {onEditDoc && editable.has('kp') ? (
+        <button type="button" onClick={() => onEditDoc('kp')} className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm text-muted hover:border-accent hover:text-fg">
+          <PencilSimpleLine size={14} aria-hidden="true" /> Править КП
+        </button>
+      ) : null}
       {docs.map((d) => (
         <section key={d.key} className="mt-6 border-t border-line pt-4">
-          <h3 className="mb-2 text-sm font-semibold">{d.title}</h3>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold">{d.title}</h3>
+            {onEditDoc && editable.has(d.key as PackDoc) ? (
+              <button type="button" onClick={() => onEditDoc(d.key as PackDoc)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm text-muted hover:border-accent hover:text-fg">
+                <PencilSimpleLine size={14} aria-hidden="true" /> Править
+              </button>
+            ) : null}
+          </div>
           <Markdown text={d.body} />
         </section>
       ))}
@@ -193,7 +208,7 @@ function Doc({ item }: { item: ReviewItem }) {
   )
 }
 
-export const MediaStage = forwardRef<StageHandle, { item: ReviewItem }>(function MediaStage({ item }, handle) {
+export const MediaStage = forwardRef<StageHandle, { item: ReviewItem; onEditDoc?: (doc: PackDoc) => void }>(function MediaStage({ item, onEditDoc }, handle) {
   const video = item.media.find((m) => m.type === 'video')
   const images = item.media.filter((m) => m.type === 'image')
   const inner = useRef<StageHandle>(null)
@@ -208,5 +223,5 @@ export const MediaStage = forwardRef<StageHandle, { item: ReviewItem }>(function
       </div>
     )
   if (item.kind === 'content_item') return <Empty item={item} />
-  return <Doc item={item} />
+  return <Doc item={item} onEditDoc={onEditDoc} />
 })

@@ -53,7 +53,7 @@ export type PanelId = (typeof PANELS)[number]
 
 // Tabs of each panel, in order. The first one opens by default.
 export const PANEL_TABS: Record<PanelId, readonly string[]> = {
-  director: ['inbox', 'approvals', 'tasks', 'feed', 'drill'],
+  director: ['inbox', 'tasks', 'documents', 'feed', 'drill'],
   marketing: ['content', 'metrics'],
   sales: ['leads', 'clients', 'site', 'calls', 'prospects'],
   support: ['tickets'],
@@ -62,10 +62,11 @@ export const PANEL_TABS: Record<PanelId, readonly string[]> = {
   company: ['company', 'prices'],
 }
 
-// The tab a link or a key asks for, or the panel's first one. The Director's old «Чат» tab now lives in «Поручения».
+// The tab a link or a key asks for, or the panel's first one. The Director's old «Чат» and «Одобрения» tabs
+// now live in «Поручения» (approvals are the section on top of its feed).
 export function panelTab(panel: PanelId, tab: string | null | undefined): string {
   const tabs = PANEL_TABS[panel]
-  const wanted = panel === 'director' && tab === 'chat' ? 'tasks' : tab
+  const wanted = panel === 'director' && (tab === 'chat' || tab === 'approvals') ? 'tasks' : tab
   return wanted && tabs.includes(wanted) ? wanted : tabs[0]!
 }
 
@@ -192,6 +193,34 @@ export const LEAD_STAGES = ['new', 'qualified', 'proposal', 'contract', 'paid', 
 export const ALL_LEAD_STAGES = [...LEAD_STAGES, 'lost'] as const
 export type LeadStage = (typeof ALL_LEAD_STAGES)[number]
 
+// «Разбор заявки» input, one resolver for the Sales drawer and the review centre (2026-11-22). HQ's lead
+// object (a `crm/leads` row or `meta.lead`) carries `estimate`, `builderUrl` and `message` when it can;
+// otherwise the link comes from `enrichment.builderLink` and then from the first builder link in the
+// lead's own words (`message`, `summary`, `task`, `brief`, the quote text).
+export type BreakdownSource = { estimate: string; message: string; builderUrl: string | null }
+const BUILDER_LINK = /[^\s"'<>()[\]]*builder(?:\/estimate)?\?[^\s"'<>]*\bb=[\w.~%-]{1,2000}[^\s"'<>]*/
+export const firstBuilderLink = (...texts: unknown[]): string | null => {
+  for (const t of texts) {
+    if (typeof t !== 'string' || !t) continue
+    const m = BUILDER_LINK.exec(t)
+    if (m) return m[0].replace(/[.,;)\]]+$/, '').slice(0, 2000)
+  }
+  return null
+}
+export function breakdownSource(leadRaw: unknown): BreakdownSource | null {
+  const lead = rec(leadRaw)
+  if (!Object.keys(lead).length) return null
+  const own = lead.builderUrl ?? lead.builder_url ?? rec(lead.builder).url
+  const estimate = typeof lead.estimate === 'string' ? lead.estimate.slice(0, 2000) : ''
+  const message = str(lead.message ?? lead.summary ?? lead.task ?? lead.brief, 2000)
+  const link =
+    (typeof own === 'string' && own.trim() ? own.slice(0, 2000) : null) ??
+    (typeof rec(lead.enrichment).builderLink === 'string' && rec(lead.enrichment).builderLink ? str(rec(lead.enrichment).builderLink, 2000) : null) ??
+    firstBuilderLink(message, lead.task, lead.brief, estimate)
+  const out = { estimate, message, builderUrl: link }
+  return out.estimate || out.message || out.builderUrl ? out : null
+}
+
 export type LeadNote = { at: string | null; text: string }
 export type Lead = {
   id: number
@@ -230,8 +259,7 @@ export function leadRow(raw: unknown): Lead | null {
           .filter((n) => n.text)
   // HQ keeps one owner note per lead in `note` (contract deviation 2026-11-20); shown first.
   if (typeof r.note === 'string' && r.note.trim() && !notes.some((n) => n.text === r.note)) notes.unshift({ at: null, text: r.note.slice(0, 2000) })
-  const link = r.builderUrl ?? r.builder_url ?? rec(r.builder).url
-  const builderUrl = typeof link === 'string' ? link.slice(0, 2000) : ''
+  const source = breakdownSource(r)
   return {
     id: r.id,
     name: str(r.name, 200),
@@ -254,7 +282,7 @@ export function leadRow(raw: unknown): Lead | null {
     createdAt: when(r.createdAt),
     message: str(r.message ?? r.summary, 2000),
     estimateText: typeof r.estimate === 'string' ? r.estimate.slice(0, 2000) : '',
-    builderUrl: builderUrl || null,
+    builderUrl: source?.builderUrl ?? null,
   }
 }
 

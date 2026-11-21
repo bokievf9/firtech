@@ -1,28 +1,40 @@
 'use client'
 
-import { ArrowLeft, ChatCircleText, PaperPlaneTilt, Paperclip } from '@phosphor-icons/react'
+import { ArrowBendUpLeft, ArrowLeft, ChatCircleText, EnvelopeSimple, MagnifyingGlass, PaperPlaneTilt, Paperclip, X } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import { errText, hq } from '@/components/admin/control/api'
+import { errText, hq, storedValue } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btnPrimary, inputClass, modalOpen, Offline, typingIn, useHqView } from '@/components/admin/hub/ui'
 import { Chip } from '@/components/admin/pult/bits'
 import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { cn } from '@/lib/cn'
 import {
+  applyUnreadMarks,
+  canReplyTo,
   CHANNEL_LABELS,
+  choiceLabel,
+  choicesFrom,
+  defaultChoice,
+  fallbackChoices,
   mergeMessages,
   normalizeChats,
   normalizeReply,
+  normalizeThreadChoices,
   normalizeThreadView,
+  replyBody,
   replyNote,
+  searchThreads,
   sendsOnEnter,
+  sortThreads,
   threadLinks,
+  toggleMark,
   type Channel,
   type ChatMessage,
   type ChatThread,
   type ChatThreadView,
+  type ThreadChoice,
 } from '@/lib/chats'
 
 const desktopQuery = '(min-width: 1024px)'
@@ -39,6 +51,21 @@ const time = (iso: string | null) => {
   const same = d.toDateString() === new Date().toDateString()
   return same ? d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
 }
+// The owner's «mark unread» flags (HQ has no such call) live in this browser: a list of thread ids.
+const unreadMarks = storedValue<string[]>(
+  'fir-chats-unread',
+  'local',
+  (raw) => {
+    try {
+      const v: unknown = JSON.parse(raw ?? '[]')
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 500) : []
+    } catch {
+      return []
+    }
+  },
+  [],
+)
+const t422 = 'У клиента несколько тредов: выберите, куда отправить ответ.'
 const NO_TEXTS =
   'Тексты анонимных диалогов сайта и бота не хранятся: у такого чата есть только короткая обезличенная сводка. Сообщения появятся, когда человек станет лидом, тикетом или клиентом кабинета.'
 
@@ -63,15 +90,38 @@ export function ChatsPage() {
   const [sel, setSel] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
   const [sending, setSending] = useState(false)
+  const [query, setQuery] = useState('')
+  // The owner's «mark unread» flags (HQ has no such call): kept in this browser.
+  const markList = useSyncExternalStore(unreadMarks.subscribe, unreadMarks.get, unreadMarks.server)
+  const marks = useMemo(() => new Set(markList), [markList])
+  const setMarks = (next: ReadonlySet<string>) => unreadMarks.set([...next])
+  // Reply target: the thread picked in the composer (per chat) and the message answered.
+  const [pickedThread, setPickedThread] = useState<Record<string, string>>({})
+  const [replyTo, setReplyTo] = useState<ChatMessage | null>(null)
+  const [pickerHot, setPickerHot] = useState(false)
+  const [hqChoices, setHqChoices] = useState<{ for: string; list: ThreadChoice[] } | null>(null)
+  const picker = useRef<HTMLSelectElement>(null)
 
   const list = useHqView(`chats?status=${scope}&limit=100`, normalizeChats, { visible: 30_000, hidden: 120_000 })
-  const threads = useMemo(() => (list.view?.items ?? []).filter((t) => channel === 'all' || t.channels.includes(channel)), [list.view, channel])
+  const threads = useMemo(
+    () => searchThreads(sortThreads(applyUnreadMarks(list.view?.items ?? [], marks)), query).filter((t) => channel === 'all' || t.channels.includes(channel)),
+    [list.view, channel, marks, query],
+  )
   const activeId = sel ?? (desktop ? (threads[0]?.id ?? null) : null)
   // Only the open thread refreshes (30 s), and not at all while the tab is hidden.
   const open = useHqView(activeId ? `chats/${encodeURIComponent(activeId)}` : null, normalizeThreadView, { visible: 30_000, hidden: 86_400_000 })
   const thread: ChatThread | null = open.view && !open.stale ? open.view.thread : (threads.find((t) => t.id === activeId) ?? null)
   const messages = open.view && !open.stale ? open.view.messages : []
-  const unread = list.view?.unread ?? 0
+  const unread = (list.view?.unread ?? 0) + [...marks].filter((id) => (list.view?.items ?? []).some((t) => t.id === id && t.unread === 0)).length
+  // The client's threads (lead, support, project-N) for the reply picker; a client without a cabinet falls back to what the row shows.
+  const clientId = thread?.client.id ?? null
+  const threadsRes = useHqView(clientId !== null ? `clients/${clientId}/threads` : null, normalizeThreadChoices, { visible: 120_000, hidden: 86_400_000 })
+  const choices: ThreadChoice[] = useMemo(() => {
+    const fromHq = clientId !== null && threadsRes.view && !threadsRes.stale ? threadsRes.view : null
+    const known = hqChoices && thread && hqChoices.for === thread.id ? hqChoices.list : fromHq
+    return known && known.length ? known : thread ? fallbackChoices(thread) : []
+  }, [hqChoices, threadsRes.view, threadsRes.stale, thread, clientId])
+  const chosen = thread ? (pickedThread[thread.id] ?? defaultChoice(choices)) : null
 
   const end = useRef<HTMLDivElement>(null)
   const last = messages.at(-1)?.id
@@ -91,15 +141,28 @@ export function ChatsPage() {
     const local: ChatMessage = { id, at: new Date().toISOString(), from: 'owner', channel: thread.channels.includes('cabinet') ? 'cabinet' : (thread.channels[0] ?? 'web'), text, attachments: [] }
     setDraft('')
     mutateOpen((v) => ({ ...v, messages: [...v.messages, local] }))
-    const res = await hq<Record<string, unknown>>(`chats/${encodeURIComponent(thread.id)}/reply`, { text })
+    // `thread` goes along when the client has several threads (the picked one) or the owner chose; `replyTo` when a message is being answered.
+    const target = choices.length > 1 || pickedThread[thread.id] ? chosen : null
+    const res = await hq<Record<string, unknown>>(`chats/${encodeURIComponent(thread.id)}/reply`, replyBody(text, { thread: target, replyTo: replyTo?.id }))
     setSending(false)
     const out = res.ok ? normalizeReply(res) : null
     if (!out) {
       mutateOpen((v) => ({ ...v, messages: v.messages.filter((m) => m.id !== id) }))
       setDraft(text)
+      if (!res.ok && res.error === 'thread_required') {
+        // HQ cannot tell which thread the client wrote in last: open the picker with the names it sent, nothing was saved.
+        const named = choicesFrom((res as { threads?: unknown }).threads, choices)
+        if (named.length) setHqChoices({ for: thread.id, list: named })
+        setPickerHot(true)
+        notify(t422, 'error')
+        setTimeout(() => picker.current?.focus(), 0)
+        return
+      }
       notify(res.ok ? errText('hq_bad_response') : errText(res.error), 'error')
       return
     }
+    setReplyTo(null)
+    setPickerHot(false)
     mutateOpen((v: ChatThreadView) => ({
       thread: out.thread ?? v.thread,
       messages: mergeMessages(
@@ -168,15 +231,33 @@ export function ChatsPage() {
                 </button>
               ))}
             </div>
+            <div className="border-b border-line p-2">
+              <label className="relative block">
+                <span className="sr-only">Поиск по клиентам</span>
+                <MagnifyingGlass size={16} aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint" />
+                <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} maxLength={80} placeholder="Поиск: имя, контакт, почта, текст" className={cn(inputClass, 'pl-9')} />
+              </label>
+            </div>
             <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               {list.error && !list.view ? <li><Offline error={list.error} onRetry={() => void list.reload()} /></li> : null}
               {!list.view && !list.error ? <li role="status" className="p-4 text-sm text-muted">Загружаю чаты</li> : null}
-              {list.view && !threads.length ? <li className="p-4 text-sm text-muted">Чатов нет.</li> : null}
+              {list.view && !threads.length ? <li className="p-4 text-sm text-muted">{query.trim() ? 'По запросу никого нет.' : 'Чатов нет.'}</li> : null}
               {threads.map((t) => {
                 const active = t.id === activeId
                 return (
                   <li key={t.id} className="border-b border-line">
-                    <button type="button" onClick={() => setSel(t.id)} aria-current={active} className={cn('grid w-full gap-1 p-3 text-left transition-colors', active ? 'bg-surface-2' : 'hover:bg-surface-2/60')}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSel(t.id)
+                        setReplyTo(null)
+                        setPickerHot(false)
+                        if (marks.has(t.id)) {
+                          const next = toggleMark(marks, t.id, false)
+                          setMarks(next)
+                        }
+                      }}
+                      aria-current={active} className={cn('grid w-full gap-1 p-3 text-left transition-colors', active ? 'bg-surface-2' : 'hover:bg-surface-2/60')}>
                       <span className="flex items-center justify-between gap-2">
                         <span className={cn('truncate text-sm', t.unread ? 'font-semibold' : 'font-medium')}>{t.client.name}</span>
                         <span className="shrink-0 font-mono text-xs text-faint">{time(t.lastAt)}</span>
@@ -213,7 +294,19 @@ export function ChatsPage() {
                     <p className="truncate text-xs text-muted">{[thread.client.contact, thread.client.email].filter(Boolean).join(' · ') || 'Контактов нет'}</p>
                   </div>
                   <ChannelChips channels={thread.channels} />
-                  <div className="ml-auto flex flex-wrap gap-x-3">
+                  <div className="ml-auto flex flex-wrap items-center gap-x-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = toggleMark(marks, thread.id, true)
+                        setMarks(next)
+                        if (!desktop) setSel(null)
+                        notify('Отмечено непрочитанным', 'info')
+                      }}
+                      className="inline-flex min-h-9 items-center gap-1 text-sm text-muted hover:text-fg"
+                    >
+                      <EnvelopeSimple size={14} aria-hidden="true" /> Отметить непрочитанным
+                    </button>
                     {threadLinks(thread).map((l) => (
                       <Link key={l.href} href={l.href} className="inline-flex min-h-9 items-center text-sm text-accent-text underline">{l.label}</Link>
                     ))}
@@ -242,8 +335,13 @@ export function ChatsPage() {
                                 </span>
                               ))}
                             </div>
-                            <span className="mt-0.5 px-1 font-mono text-xs text-faint">
+                            <span className="mt-0.5 flex items-center gap-2 px-1 font-mono text-xs text-faint">
                               {m.from === 'hq' ? 'Fir Tech' : m.from === 'owner' ? 'Вы' : 'Клиент'}, {CHANNEL_LABELS[m.channel]}, {time(m.at)}
+                              {canReplyTo(m) ? (
+                                <button type="button" onClick={() => setReplyTo(m)} aria-label="Ответить на это сообщение" className="inline-flex min-h-6 items-center gap-1 font-sans text-accent-text underline">
+                                  <ArrowBendUpLeft size={12} aria-hidden="true" /> Ответить
+                                </button>
+                              ) : null}
                             </span>
                           </li>
                         )
@@ -260,6 +358,37 @@ export function ChatsPage() {
                   }}
                   className="border-t border-line bg-bg p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
                 >
+                  {choices.length > 1 || replyTo ? (
+                    <div className="mx-auto mb-2 flex max-w-2xl flex-wrap items-center gap-2 text-sm">
+                      {choices.length > 1 ? (
+                        <label className="flex items-center gap-2">
+                          <span className={cn('text-xs', pickerHot ? 'text-warn' : 'text-faint')}>Ответить в тред</span>
+                          <select
+                            ref={picker}
+                            value={chosen ?? ''}
+                            onChange={(e) => {
+                              setPickedThread((p) => ({ ...p, [thread.id]: e.target.value }))
+                              setPickerHot(false)
+                            }}
+                            className={cn(inputClass, 'min-h-9 w-auto py-1', pickerHot && 'border-warn ring-1 ring-warn')}
+                          >
+                            {choices.map((c) => (
+                              <option key={c.id} value={c.id}>{c.label || choiceLabel(c.id)}</option>
+                            ))}
+                          </select>
+                        </label>
+                      ) : null}
+                      {replyTo ? (
+                        <span className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-full bg-surface-2 py-1 pr-1 pl-3 text-xs text-muted">
+                          <ArrowBendUpLeft size={12} aria-hidden="true" />
+                          <span className="truncate">Ответ на: {replyTo.text.slice(0, 60)}</span>
+                          <button type="button" onClick={() => setReplyTo(null)} aria-label="Не отвечать на сообщение" className="grid size-6 place-items-center rounded-full hover:bg-surface-3">
+                            <X size={12} aria-hidden="true" />
+                          </button>
+                        </span>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <div className="mx-auto flex max-w-2xl items-end gap-2">
                     <label className="min-w-0 flex-1">
                       <span className="sr-only">Ответ клиенту</span>

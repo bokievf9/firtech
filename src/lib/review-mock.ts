@@ -42,7 +42,8 @@ export function mockActions(it: Pick<Item, 'kind' | 'status' | 'media' | 'meta'>
   const isItem = it.kind === 'content_item'
   const profile = it.meta.format === 'profile'
   if (pending) out.push('approve')
-  if (pending && EDITABLE.includes(it.kind)) out.push('edit')
+  // Pending items with a text, and approved documents the client has not acted on yet (HQ's `editApproved`).
+  if ((pending && (EDITABLE.includes(it.kind) || it.kind === 'presales_pack')) || (it.status === 'approved' && it.meta.editApproved === true)) out.push('edit')
   if (pending && ((isItem && !profile) || it.kind === 'article')) out.push('revise')
   if (pending) out.push('reject')
   const reel = it.meta.format === 'reel'
@@ -52,6 +53,8 @@ export function mockActions(it: Pick<Item, 'kind' | 'status' | 'media' | 'meta'>
   if (it.meta.lead) out.push('call')
   return out
 }
+
+const PACK_KP = '## Коммерческое предложение\n\nTelegram-бот для записи клиентов: меню, напоминания, оплата. Срок 10 дней, стоимость **$600** в два этапа.'
 
 export function createReviewMock(start = Date.now()) {
   const iso = (t: number) => new Date(t).toISOString()
@@ -163,6 +166,31 @@ export function createReviewMock(start = Date.now()) {
       currentVersion: 1, parentId: null, taskId: 60, error: null,
     },
     {
+      id: 'ap_209', kind: 'presales_pack', dept: 'sales', createdAt: ago(70), status: 'pending',
+      title: 'КП: Боб, Telegram-бот для записи', summary: 'Пакет: КП, смета, договор (черновик)',
+      media: [],
+      text: {
+        body: PACK_KP,
+        documents: [
+          { key: 'kp', title: 'Коммерческое предложение', body: PACK_KP },
+          { key: 'estimate', title: 'Смета', body: '## Смета\n\n| Этап | Что входит | Сумма |\n|---|---|---|\n| 1 | Меню и запись | $300 |\n| 2 | Напоминания и оплата | $300 |\n\nИтого: **$600**.' },
+          { key: 'contract', title: 'Договор (черновик)', body: '## Договор на разработку Telegram-бота\n\n1. Предмет договора.\n2. Стоимость и порядок оплаты по этапам.\n3. Сроки и приёмка этапов.\n4. Ответственность сторон.' },
+        ],
+      },
+      meta: { lead: { id: 2, name: 'Боб', contact: '@bob', service: 'bot', budget: '600', stage: 'proposal', source: 'telegram', temperature: 'warm', taskId: 42, callAt: null, cabinet: false, message: MOCK_MESSAGES[5], estimate: MOCK_ESTIMATES[5], builderUrl: mockBuilderUrl(5) }, client: { id: null, email: null, cabinet: false }, pack: { id: 4, direction: 'bot', totalUsd: 600, prepayUsd: 180, prepayPercent: 30, stages: null, timeline: '10 дней' } },
+      versions: [ver(1, 70, { body: PACK_KP }, '', 'worker')],
+      currentVersion: 1, parentId: null, taskId: 42, error: null,
+    },
+    {
+      id: 'ap_210', kind: 'bo_document', dept: 'backoffice', createdAt: ago(60 * 50), status: 'approved',
+      title: 'Документ contract: Алиса, версия 1', summary: 'Договор на разработку сайта (одобрен, клиент ещё не подписал)',
+      media: [],
+      text: { draft: '## Договор на разработку сайта\n\n1. Исполнитель обязуется разработать сайт для Заказчика.\n2. Оплата по этапам: 30 / 40 / 30.\n3. Срок: 10 рабочих дней с оплаты первого этапа.', body: '## Договор на разработку сайта\n\n1. Исполнитель обязуется разработать сайт для Заказчика.\n2. Оплата по этапам: 30 / 40 / 30.\n3. Срок: 10 рабочих дней с оплаты первого этапа.' },
+      meta: { document: { id: 2, type: 'contract', client: 'Алиса', version: 1, projectId: 2 }, editApproved: true },
+      versions: [ver(1, 60 * 50, { draft: 'Договор на разработку сайта.' }, '', 'worker')],
+      currentVersion: 1, parentId: null, taskId: 71, error: null,
+    },
+    {
       id: 'ap_199', kind: 'content_item', dept: 'marketing', createdAt: ago(60 * 26), status: 'published',
       title: 'Сайт за 10 дней', summary: 'Пост: как проходит работа над сайтом',
       media: [png('39/post.png')],
@@ -210,6 +238,8 @@ export function createReviewMock(start = Date.now()) {
     if (alias) return threads.find((t) => String(t.leadId) === alias[1])
     return threads.find((t) => t.id === id)
   }
+  // The cabinet threads a reply can land in (the mock's client 3 has a lead thread, support and a project).
+  const replyThreads = (t: Row): string[] => (t.id === 'c3' ? ['lead', 'support', 'project-4'] : [])
   let nextMsg = 100
   let nextTrend = 5
 
@@ -241,7 +271,7 @@ export function createReviewMock(start = Date.now()) {
         if (action === 'reject' && it.status === 'rejected') return { ok: true, item: view(it) }
         if (['approve', 'reject'].includes(action) && it.status === 'failed') return bad('not_pending', { status: it.status })
         if (['approve', 'reject'].includes(action) && it.status !== 'pending') return bad('already_decided', { status: it.status })
-        if (['edit', 'revise', 'send'].includes(action) && it.status !== 'pending') return bad('not_pending', { status: it.status })
+        if (['edit', 'revise', 'send'].includes(action) && it.status !== 'pending' && !(action === 'edit' && it.meta.editApproved === true && it.status === 'approved')) return bad('not_pending', { status: it.status })
         if (!allowed.includes(action)) return bad('not_applicable', { status: it.status, actions: allowed })
         switch (action) {
           case 'approve':
@@ -253,6 +283,22 @@ export function createReviewMock(start = Date.now()) {
             return { ok: true, item: view(it) }
           case 'edit': {
             const t = text as Row
+            // A КП pack edits one document at a time: `doc` names it, `text.draft` is the new text.
+            if (it.kind === 'presales_pack') {
+              const docKey = str(body.doc)
+              if (!['kp', 'estimate', 'contract'].includes(docKey) || typeof t.draft !== 'string' || !t.draft.trim()) return bad('invalid', { hint: 'doc is required for a КП pack: kp, estimate or contract' })
+              const docs = (it.text.documents as Row[] | undefined) ?? []
+              const target = docs.find((d) => d.key === docKey)
+              if (!target || target.body === t.draft) return bad('not_applied', { reason: 'текст не изменился' })
+              const beforePack = clone(it.text)
+              target.body = t.draft
+              if (docKey === 'kp') it.text.body = t.draft
+              const vp = it.currentVersion + 1
+              if (it.versions.length === 1 && it.versions[0]!.v === 1) it.versions[0]!.text = beforePack
+              it.versions.push({ v: vp, createdAt: iso(now), text: clone(it.text), media: [], note: `владелец (${docKey})`, author: 'owner' })
+              it.currentVersion = vp
+              return { ok: true, item: view(it) }
+            }
             const before = clone(it.text)
             const next = { ...it.text }
             for (const k of ['draft', 'body', 'caption', 'hashtags'] as const) if (t[k] !== undefined) next[k] = t[k]
@@ -318,6 +364,20 @@ export function createReviewMock(start = Date.now()) {
       return null
     }
 
+    // ---- a cabinet client's threads (clients/:id/threads) ----
+    if (method === 'GET' && seg[0] === 'clients' && seg[2] === 'threads' && seg.length === 3) {
+      if (seg[1] !== '3') return { ok: true, items: [] }
+      return {
+        ok: true,
+        items: [
+          { id: 'lead-12', kind: 'lead', refId: 12, title: 'Заявка #12: сайт для студии', unread: 0, lastAt: ago(12) },
+          { id: 'project-4', kind: 'project', refId: 4, title: 'Проект #4: сайт студии', unread: 1, lastAt: ago(60 * 3) },
+          { id: 'support', kind: 'support', refId: null, title: 'Поддержка', unread: 0, lastAt: null },
+          { id: 'agent-1', kind: 'agent', refId: 1, title: 'Лина', unread: 0, lastAt: null },
+        ],
+      }
+    }
+
     // ---- chats ----
     if (seg[0] === 'chats') {
       if (method === 'GET' && seg.length === 1) {
@@ -331,6 +391,11 @@ export function createReviewMock(start = Date.now()) {
       if (method === 'POST' && seg[2] === 'reply') {
         const text = str(body.text).trim()
         if (!text || text.length > 2000) return bad('invalid')
+        // Cabinet thread (contract 2026-11-22): with several threads and no hint the answer is 422 thread_required.
+        const names = replyThreads(t)
+        const wanted = typeof body.thread === 'string' ? body.thread : null
+        if (wanted && !names.includes(wanted)) return bad('not_found')
+        if (names.length > 1 && !wanted && !body.replyTo && t.id === 'c3') return { ok: false, error: 'thread_required', threads: names }
         const list = messages.get(String(t.id)) ?? []
         const cabinet = (t.channels as string[]).includes('cabinet')
         const via = t.textsStored === false ? 'none' : cabinet ? 'cabinet' : 'telegram'

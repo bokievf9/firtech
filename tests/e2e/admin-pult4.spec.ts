@@ -166,17 +166,66 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  test('back office: a document HQ waits on opens in the same full-screen editor from the Documents tab', async ({ page }) => {
+  test('back office: every document row opens the full-screen editor, pending or approved, a КП too', async ({ page }) => {
     await open(page, '/admin/office')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
     await page.keyboard.press('6')
     await page.getByRole('tab', { name: /^Документы/ }).click()
-    await page.getByRole('button', { name: 'Править в редакторе' }).first().click()
     const dialog = page.getByRole('dialog', { name: 'Редактор документа' })
-    await expect(dialog).toBeVisible()
+    const row = (text: string) => page.getByRole('listitem').filter({ hasText: text })
+    // A pending invoice draft.
+    await row('Sadaf Clinic').getByRole('button', { name: 'Править' }).click()
     await expect(dialog.getByRole('textbox', { name: 'Текст документа' })).toHaveValue(/Счёт FT-2026-007/)
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
+    // An approved contract the client has not signed.
+    await row('Договор на разработку сайта').getByRole('button', { name: 'Править' }).click()
+    await expect(dialog.getByRole('textbox', { name: 'Текст документа' })).toHaveValue(/Договор на разработку сайта/)
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    // A КП of a presales pack.
+    await row('КП на Telegram-бота').getByRole('button', { name: 'Править' }).click()
+    await expect(dialog.getByRole('textbox', { name: 'Текст документа' })).toHaveValue(/Коммерческое предложение/)
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    // An issued invoice cannot be edited: the button is there, disabled, with the reason.
+    await expect(row('FT-2026-001').getByRole('button', { name: 'Править' })).toBeDisabled()
+  })
+
+  test('Director: the «Документы» tab lists documents by client with «Править»; approvals are part of Поручения', async ({ page }) => {
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('1')
+    await page.getByRole('tab', { name: /^Документы/ }).click()
+    await expect(page.getByRole('heading', { name: 'Боб' })).toBeVisible()
+    await page.getByRole('listitem').filter({ hasText: 'КП на Telegram-бота' }).getByRole('button', { name: 'Править' }).click()
+    await expect(page.getByRole('dialog', { name: 'Редактор документа' })).toBeVisible()
+  })
+
+  test('review: E on a КП pack opens its first document, the stage has «Править» for each document', async ({ page }) => {
+    await open(page, '/admin/review?id=ap_209')
+    await expect(page.getByRole('button', { name: 'Править КП' })).toBeVisible()
+    await page.getByRole('button', { name: 'Править', exact: true }).first().click()
+    const dialog = page.getByRole('dialog', { name: 'Редактор документа' })
+    await expect(dialog).toBeVisible()
+    await expect(dialog.getByRole('textbox', { name: 'Текст документа' })).toHaveValue(/Смета/)
+    await page.keyboard.press('Escape')
+    await expect(dialog).toBeHidden()
+    await page.keyboard.press('e')
+    await expect(dialog.getByRole('textbox', { name: 'Текст документа' })).toHaveValue(/Коммерческое предложение/)
+  })
+
+  test('⌘K: a Director command answers inside the Поручения timeline, not in a toast', async ({ page }) => {
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('Control+k')
+    const box = page.locator('input.ym-disable-keys').first()
+    await box.fill('Отчёт')
+    await page.keyboard.press('Enter')
+    await expect(page.getByRole('tab', { name: /^Поручения/ })).toHaveAttribute('aria-selected', 'true')
+    const log = page.getByRole('log')
+    await expect(log.getByText('/status').first()).toBeVisible()
+    await expect(log.locator('li').first()).toBeVisible()
   })
 
   test('phone: the editor has its toolbar at the bottom and Поручения fits the screen', async ({ page }) => {

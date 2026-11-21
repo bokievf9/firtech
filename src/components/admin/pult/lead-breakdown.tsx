@@ -1,6 +1,7 @@
 'use client'
 
-import { ArrowSquareOut, Cube, ListChecks } from '@phosphor-icons/react'
+import { ArrowSquareOut, Cube, Eye, ListChecks } from '@phosphor-icons/react'
+import dynamic from 'next/dynamic'
 import { useEffect, useState } from 'react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -39,19 +40,34 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
   )
 }
 
-// A tiny page in the colours of the picked style: the builder link carries the style, not a screenshot.
-function Swatch({ s }: { s: NonNullable<Breakdown['swatch']> }) {
+const BreakdownPreview = dynamic(() => import('./breakdown-preview'), { ssr: false, loading: () => <p role="status" className="text-xs text-muted">{t.loading}</p> })
+
+// A small real preview: the builder's mockup rendered from the decoded `?b=` (on demand, it is heavy),
+// plus the link to the builder's final step in a new tab.
+function Preview({ b }: { b: Breakdown }) {
+  const [shown, setShown] = useState(false)
+  if (!b.build) return null
+  const sw = b.swatch
   return (
-    <figure className="flex items-center gap-3">
-      <div aria-hidden="true" className="grid h-14 w-24 shrink-0 gap-1 rounded-lg border border-line-strong p-1.5" style={{ background: s.bg }}>
-        <span className="h-2 w-10 rounded-sm" style={{ background: s.accent }} />
-        <span className="h-3 rounded-sm" style={{ background: s.surface }} />
-        <span className="h-1.5 w-14 rounded-sm opacity-60" style={{ background: s.fg }} />
+    <div className="grid gap-2">
+      {shown ? <BreakdownPreview build={b.build} locale={b.locale} /> : null}
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" aria-pressed={shown} onClick={() => setShown((v) => !v)} className={link}>
+          <Eye size={14} aria-hidden="true" /> {shown ? t.hidePreview : t.showPreview}
+        </button>
+        {b.previewHref ? (
+          <a href={b.previewHref} target="_blank" rel="noreferrer noopener" className={link}>
+            <ArrowSquareOut size={14} aria-hidden="true" /> {t.openPreview}
+          </a>
+        ) : null}
+        {sw ? (
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted">
+            <span aria-hidden="true" className="inline-block size-3 rounded-full border border-line-strong" style={{ background: sw.accent }} />
+            {sw.mode === 'dark' ? 'тёмная' : 'светлая'} тема{sw.look ? `, ${sw.look}` : ''}
+          </span>
+        ) : null}
       </div>
-      <figcaption className="min-w-0 text-xs text-muted">
-        {t.preview}: {s.mode === 'dark' ? 'тёмная' : 'светлая'} тема{s.look ? `, ${s.look}` : ''}
-      </figcaption>
-    </figure>
+    </div>
   )
 }
 
@@ -184,9 +200,9 @@ export function LeadBreakdown({ input, className }: { input: BreakdownInput; cla
             </Block>
           ) : null}
 
-          {b.style.length || b.swatch ? (
+          {b.style.length || b.build ? (
             <Block title={t.style}>
-              {b.swatch ? <Swatch s={b.swatch} /> : null}
+              <Preview b={b} />
               {b.style.length ? (
                 <dl className="grid grid-cols-[minmax(0,auto)_minmax(0,1fr)] gap-x-3 gap-y-0.5 text-sm">
                   {b.style.map((r) => (
