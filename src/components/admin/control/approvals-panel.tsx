@@ -37,7 +37,7 @@ function EditableText({
     <div className="grid gap-1.5">
       {label ? <p className="text-xs text-faint">{label}</p> : null}
       <div className="group/text relative">
-        <p className="rounded-xl bg-inset p-3 pr-12 text-sm leading-relaxed whitespace-pre-wrap break-words">
+        <p className="rounded-xl bg-inset p-3 pr-12 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">
           {value || <span className="text-faint">{t.emptyText}</span>}
         </p>
         <button
@@ -124,7 +124,7 @@ function ApprovalCard({
       )}
     >
       <header className="flex flex-wrap items-start gap-x-3 gap-y-1">
-        <p className="min-w-0 flex-1 text-sm font-medium break-words">{a.summary}</p>
+        <p className="min-w-0 flex-1 text-sm font-medium wrap-anywhere">{a.summary}</p>
         {a.locked ? (
           <span
             title={lockHint}
@@ -151,7 +151,7 @@ function ApprovalCard({
                 aria-pressed={active}
                 onClick={() => setPart(pid)}
                 className={cn(
-                  'inline-flex min-h-8 items-center rounded-full border px-3 text-xs transition-colors',
+                  'inline-flex min-h-8 max-w-full items-center rounded-full border px-3 py-1 text-left text-xs wrap-anywhere transition-colors',
                   active ? 'border-fg bg-fg text-bg' : 'border-line text-muted hover:text-fg',
                 )}
               >

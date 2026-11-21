@@ -38,7 +38,7 @@ export function Notifications({ items, now, onOpen }: { items: HubInboxItem[]; n
               className={cn('mt-0.5 shrink-0', item.kind === 'alert' ? 'text-danger' : item.kind === 'approval' || item.kind === 'payment' ? 'text-accent-text' : 'text-muted')}
             />
             <span className="min-w-0 flex-1">
-              <span className="block text-sm leading-snug">{item.title || n.kinds[item.kind]}</span>
+              <span className="block text-sm leading-snug wrap-anywhere">{item.title || n.kinds[item.kind]}</span>
               <span className="mt-0.5 flex flex-wrap gap-x-2 text-xs text-faint">
                 <span>{n.kinds[item.kind]}</span>
                 {item.dept ? <span>· {h.panels[item.dept]}</span> : null}

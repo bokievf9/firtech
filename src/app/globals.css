@@ -311,6 +311,18 @@
 }
 
 @layer base {
+  /* Owner panel: a bare `grid` is one column that may shrink (long names and e-mails wrap or truncate
+     instead of widening the track and pushing the panel sideways). Any grid-cols-* utility still wins. */
+  .admin-root .grid,
+  .cabinet-root .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Client cabinet: long names, e-mails and links break anywhere instead of pushing the page sideways. */
+  .cabinet-root,
+  .admin-root {
+    overflow-wrap: anywhere;
+  }
+
   html {
     color-scheme: light;
     scroll-behavior: smooth;

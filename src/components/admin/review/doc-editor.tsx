@@ -1,5 +1,6 @@
 'use client'
 
+import { createPortal } from 'react-dom'
 import {
   ArrowLeft,
   CaretDown,
@@ -531,7 +532,9 @@ export function DocEditor({
     </div>
   )
 
-  return (
+  // The Pult opens this editor from inside the sliding side panel, whose transform would make `fixed` mean
+  // "the panel" (440 px wide). A portal to <body> keeps it full-screen everywhere.
+  const editor = (
     <div
       role="dialog"
       aria-modal="true"
@@ -639,7 +642,7 @@ export function DocEditor({
               }}
               className="ym-disable-keys min-h-10 min-w-0 flex-1 basis-40 rounded-xl border border-line-strong bg-field px-3 text-base outline-none focus:border-accent md:text-sm"
             />
-            <div className="flex items-center gap-1 sm:ml-auto">
+            <div className="flex flex-wrap items-center gap-1 sm:ml-auto">
               <span className="min-w-16 font-mono text-xs tabular-nums text-faint" role="status">
                 {findNote ||
                   (find.q
@@ -842,4 +845,5 @@ export function DocEditor({
       {dialog}
     </div>
   )
+  return typeof document === 'undefined' ? editor : createPortal(editor, document.body)
 }

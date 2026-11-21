@@ -107,7 +107,7 @@ export function ContentTab({ focus }: { focus: string | null }) {
       {!data ? (
         feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading />
       ) : (
-        <div className={cn('-mx-1 grid gap-2 overflow-x-auto px-1 pb-2 transition-opacity md:grid-cols-[repeat(7,minmax(8.5rem,1fr))]', feed.stale && 'opacity-50')}>
+        <div className={cn('-mx-1 grid grid-cols-[minmax(0,1fr)] gap-2 overflow-x-auto px-1 pb-2 transition-opacity md:grid-cols-[repeat(7,minmax(8.5rem,1fr))]', feed.stale && 'opacity-50')}>
           {dates.map((date) => {
             const day = data.days.find((d) => d.date === date)
             return (
@@ -152,7 +152,7 @@ function ContentCard({ item, onOpen }: { item: ContentItem; onOpen: () => void }
         </span>
       )}
       <span className="block p-1.5">
-        <span className="line-clamp-2 text-xs leading-snug">{item.title || k.kinds[item.kind]}</span>
+        <span className="line-clamp-2 wrap-anywhere text-xs leading-snug">{item.title || k.kinds[item.kind]}</span>
         <span className="mt-1 flex flex-wrap gap-1">
           <Chip tone={statusTone[item.status]}>{k.statuses[item.status]}</Chip>
         </span>
@@ -200,7 +200,7 @@ function KitCard({ kit }: { kit: ProfileKit }) {
                   <span className="text-xs text-faint">{fill(k.kitBlock, { n: i + 1 })}</span>
                   <CopyButton text={b} />
                 </div>
-                <p className="text-sm break-words whitespace-pre-wrap">{b}</p>
+                <p className="text-sm wrap-anywhere whitespace-pre-wrap">{b}</p>
               </div>
             ))}
           </>

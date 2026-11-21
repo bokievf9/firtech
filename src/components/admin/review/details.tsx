@@ -57,7 +57,7 @@ export function Details(p: DetailsProps) {
   return (
     <div className="grid content-start gap-5 p-4">
       <header className="grid gap-1.5">
-        <h2 className="text-base leading-snug font-semibold">{item.title || item.summary}</h2>
+        <h2 className="text-base leading-snug font-semibold wrap-anywhere">{item.title || item.summary}</h2>
         {item.summary && item.summary !== item.title ? <p className="text-sm text-muted">{item.summary}</p> : null}
         <p className="font-mono text-xs text-faint">
           {item.id} · {when(item.createdAt)}
@@ -146,7 +146,7 @@ export function Details(p: DetailsProps) {
                   className={cn(inputClass, 'resize-y leading-relaxed')}
                 />
               ) : (
-                <p id={`f-${f.key}`} className="rounded-xl bg-inset px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap">{f.value || 'пусто'}</p>
+                <p id={`f-${f.key}`} className="rounded-xl bg-inset px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">{f.value || 'пусто'}</p>
               )}
             </div>
           ))
@@ -199,7 +199,7 @@ export function Details(p: DetailsProps) {
 
       {cards.map((c) => (
         <section key={c.id} className="grid gap-1.5 rounded-2xl border border-line bg-inset p-3">
-          <h3 className="text-sm font-medium">{c.title}</h3>
+          <h3 className="text-sm font-medium wrap-anywhere">{c.title}</h3>
           {c.lines.map((l) => (
             <p key={l} className="text-xs break-words text-muted">{l}</p>
           ))}
@@ -220,7 +220,7 @@ export function Details(p: DetailsProps) {
       {item.versions[0]?.note && item.meta.source === 'owner_link' ? (
         <section className="grid gap-1.5">
           <h3 className="text-xs text-faint">Разбор ссылки</h3>
-          <p className="rounded-xl bg-inset px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap">{item.versions[0].note}</p>
+          <p className="rounded-xl bg-inset px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">{item.versions[0].note}</p>
         </section>
       ) : null}
     </div>

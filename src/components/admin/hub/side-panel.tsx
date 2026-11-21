@@ -135,7 +135,7 @@ export function SidePanel({
             id="hub-tabpanel"
             role={tabs.length > 1 ? 'tabpanel' : undefined}
             aria-labelledby={tabs.length > 1 ? `hub-tab-${tab}` : undefined}
-            className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(5rem+env(safe-area-inset-bottom))]"
+            className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] content-start overflow-y-auto overscroll-contain pb-[calc(5rem+env(safe-area-inset-bottom))]"
           >
             {children}
           </div>
