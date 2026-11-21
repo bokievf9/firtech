@@ -320,7 +320,7 @@ test('versionSavePayload: the edit call carries only the draft, nothing when unc
   assert.equal(d.versionSavePayload(it, it.text.draft), null)
   // The payload passes the proxy whitelist as it is.
   const body = d.versionSavePayload(it, 'Новый текст')
-  assert.equal(proxy.resolveHqRequest('POST', 'review/ap_204', new URLSearchParams(), body).ok, true)
+  assert.equal(proxy.resolveEndpoint('POST', ['review', 'ap_204'], new URLSearchParams(), body).ok, true)
 })
 
 test('saving through the mock adds version v+1 and the diff against v1 sees the change', async () => {
