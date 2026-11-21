@@ -41,10 +41,10 @@ test.describe('with a session', () => {
   })
 
   test('a soon section says so and links to the old screen; the office still opens', async ({ page }) => {
-    await open(page, '/admin/finance')
+    await open(page, '/admin/tasks')
     await expect(page.getByText('Soon').first()).toBeVisible()
     await page.getByRole('link', { name: 'Open the old screen' }).click()
-    await expect(page).toHaveURL(/\/admin\/office\?panel=backoffice/)
+    await expect(page).toHaveURL(/\/admin\/office\?panel=director/)
     await open(page, '/admin/office')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
   })

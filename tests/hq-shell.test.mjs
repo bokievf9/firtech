@@ -6,9 +6,9 @@ import { test } from 'node:test'
 const s = await import('../src/lib/hq-shell.ts')
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
-test('sections: thirteen English names, eight built, keys 1-9', () => {
+test('sections: thirteen English names, nine built, keys 1-9', () => {
   assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Agents', 'Processes', 'Content', 'Finance', 'Settings'])
-  assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), ['inbox', 'clients', 'projects', 'documents', 'agents', 'processes', 'content', 'settings'])
+  assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), ['inbox', 'clients', 'projects', 'documents', 'agents', 'processes', 'content', 'finance', 'settings'])
   assert.equal(s.sectionForKey('1').id, 'inbox')
   assert.equal(s.sectionForKey('9').id, 'agents')
   assert.equal(s.sectionForKey('0'), null)
@@ -40,7 +40,7 @@ test('pages exist, the old office stays, /admin opens HQ, no «Пульт» in a
 })
 
 test('HQ components have no empty catch and no long dashes', () => {
-  for (const f of ['src/components/admin/hq/hq-shell.tsx', 'src/components/admin/hq/processes-view.tsx', 'src/lib/processes.ts', 'src/components/admin/hq/sections.tsx', 'src/components/admin/hq/section-view.tsx', 'src/components/admin/hq/content-studio.tsx', 'src/components/admin/hq/agents-section.tsx', 'src/lib/agents-hq.ts', 'src/lib/agents-mock.ts', 'src/components/admin/hq/settings-section.tsx', 'src/lib/settings-hq.ts', 'src/lib/settings-mock.ts', 'src/components/admin/hq/use-approvals.ts', 'src/lib/hq-shell.ts']) {
+  for (const f of ['src/components/admin/hq/hq-shell.tsx', 'src/components/admin/hq/finance-view.tsx', 'src/lib/finance.ts', 'src/components/admin/hq/processes-view.tsx', 'src/lib/processes.ts', 'src/components/admin/hq/sections.tsx', 'src/components/admin/hq/section-view.tsx', 'src/components/admin/hq/content-studio.tsx', 'src/components/admin/hq/agents-section.tsx', 'src/lib/agents-hq.ts', 'src/lib/agents-mock.ts', 'src/components/admin/hq/settings-section.tsx', 'src/lib/settings-hq.ts', 'src/lib/settings-mock.ts', 'src/components/admin/hq/use-approvals.ts', 'src/lib/hq-shell.ts']) {
     const t = read(f)
     assert.doesNotMatch(t, /catch\s*(\([^)]*\))?\s*\{\s*\}/, f)
     assert.doesNotMatch(t, /[–—]/, f)

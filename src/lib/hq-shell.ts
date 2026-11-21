@@ -42,7 +42,7 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'agents', label: 'Agents', state: 'ready', href: '/admin/agents', legacy: office('company', 'company') },
   { id: 'processes', label: 'Processes', state: 'ready', href: '/admin/processes', legacy: office('company', 'company') },
   { id: 'content', label: 'Content', state: 'ready', href: '/admin/content', legacy: office('marketing', 'content') },
-  { id: 'finance', label: 'Finance', state: 'soon', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
+  { id: 'finance', label: 'Finance', state: 'ready', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
   { id: 'settings', label: 'Settings', state: 'ready', href: '/admin/settings', legacy: office('company', 'prices') },
 ] as const
 
@@ -65,6 +65,7 @@ export const HQ_TABS = {
   projects: ['projects', 'payments'],
   documents: ['documents', 'referrals', 'reviews'],
   content: ['feed', 'calendar', 'orders'],
+  finance: ['invoices', 'payments', 'costs'],
 } as const satisfies Partial<Record<HqSectionId, readonly string[]>>
 
 export type HqTabbed = keyof typeof HQ_TABS
