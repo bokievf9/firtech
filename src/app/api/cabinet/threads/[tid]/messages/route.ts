@@ -29,5 +29,5 @@ export async function POST(request: Request, ctx: RouteContext<'/api/cabinet/thr
   if (!text) return reply({ ok: false, error: 'invalid' }, 400)
   const sent = await postThreadMessage(who.clientId, tid, text)
   if (!sent.ok) return hqFailure(sent.error)
-  return reply({ ok: true, item: sent.data.item, reply: sent.data.reply })
+  return reply({ ok: true, item: sent.data.item, reply: sent.data.reply, ticketId: sent.data.ticketId })
 }

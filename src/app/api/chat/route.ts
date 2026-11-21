@@ -51,7 +51,7 @@ async function handle(request: NextRequest) {
   const answer = await askReceptionist(parsed.data, process.env, fetch, ip, identity)
   if (!answer.ok) {
     if (answer.error !== 'demo_limit') console.error(`[chat] receptionist unavailable: ${answer.error}`)
-    return apiError(answer.error, answer.error === 'rate_limited' || answer.error === 'demo_limit' ? 429 : answer.error === 'hq_timeout' ? 504 : 502, {
+    return apiError(answer.error, answer.error === 'auth_required' ? 401 : answer.error === 'rate_limited' || answer.error === 'demo_limit' ? 429 : answer.error === 'hq_timeout' ? 504 : 502, {
       'x-chat-mode': chatMode(process.env),
     })
   }

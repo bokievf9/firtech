@@ -5,7 +5,7 @@ import { agentChatUrl } from '@/lib/agent-demo'
 import { apiError } from '@/lib/api-error'
 import { stripHtml } from '@/lib/chat'
 import { DEMO_TEXT_MAX, demoKeyOf, isPublicId } from '@/lib/demo-chat'
-import { demoFields } from '@/lib/demo-gate'
+import { chatTokenHeader, demoFields } from '@/lib/demo-gate'
 import { leadGate } from '@/lib/lead-identity'
 import { peekLeadUser } from '@/lib/lead-session'
 import { checkPublicPost, visitorIp, visitorIpHeader } from '@/lib/public-post'
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/demo-ag
   try {
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'content-type': 'application/json', ...visitorIpHeader(visitorIp(request.headers)) },
+      headers: { 'content-type': 'application/json', ...chatTokenHeader(process.env), ...visitorIpHeader(visitorIp(request.headers)) },
       body: JSON.stringify({ ...parsed.data, ...demoFields(gate.identity) }),
       cache: 'no-store',
       signal: AbortSignal.timeout(20_000),
@@ -54,12 +54,14 @@ export async function POST(request: NextRequest, ctx: RouteContext<'/api/demo-ag
           ...(typeof body.conversationId === 'string' ? { conversationId: body.conversationId.slice(0, 64) } : {}),
           ...(typeof body.limit === 'number' ? { limit: body.limit } : {}),
           ...(typeof body.remaining === 'number' ? { remaining: body.remaining } : {}),
-          ...(usage ? { usage: { calls: usage.calls, left: usage.left, limit: usage.limit, used: usage.used } } : {}),
+          ...(usage ? { usage: { calls: usage.calls, left: usage.left, limit: usage.limit, used: usage.used, remaining: usage.remaining } } : {}),
         },
         { headers },
       )
     }
     // 401 here is HQ rejecting the demo key (the session gate answered `auth_required` above).
+    // Strict mode of HQ (`DEMO_REQUIRE_CLIENT`): no known client; the page takes the visitor to the sign-in.
+    if (res.status === 401 && body?.error === 'login_required') return apiError('auth_required', 401)
     if (res.status === 401 || res.status === 403) return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401, headers })
     if (res.status === 429) {
       return NextResponse.json({ ok: false, error: body?.error === 'rate_limited' ? 'rate_limited' : 'limit_reached' }, { status: 429, headers })

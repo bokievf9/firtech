@@ -206,7 +206,7 @@ function parseTicket(r: Record<string, unknown>): CabinetTicket | null {
   return {
     id,
     text: str(r.text),
-    status: str(r.status, 20) === 'answered' ? 'answered' : 'open',
+    status: ['answered', 'closed'].includes(str(r.status, 20)) ? str(r.status, 20) : 'open',
     createdAt: strOrNull(r.createdAt),
     answeredAt: strOrNull(r.answeredAt),
   }

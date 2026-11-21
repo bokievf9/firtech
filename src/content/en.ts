@@ -2597,7 +2597,11 @@ const en: Dict = {
         estimate: 'Estimate',
         invoice: 'Invoice',
       },
-      ticketStatus: { open: 'Open', answered: 'Answered' },
+      ticketStatus: { open: 'Open', answered: 'Answered', closed: 'Resolved' },
+      ticketResolve: 'Question resolved',
+      ticketResolveHint: 'If the question is settled, close it. A new message opens a new one.',
+      ticketResolving: 'Closing...',
+      ticketResolveError: 'Could not close it. Try again later.',
       referralStatus: { proposed: 'Awaiting payment', paid: 'Paid', rewarded: 'Reward paid out' },
     },
     support: {

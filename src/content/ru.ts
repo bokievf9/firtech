@@ -2610,7 +2610,11 @@ const ru = {
         estimate: 'Смета',
         invoice: 'Счёт',
       },
-      ticketStatus: { open: 'Открыто', answered: 'Есть ответ' },
+      ticketStatus: { open: 'Открыто', answered: 'Есть ответ', closed: 'Вопрос решён' },
+      ticketResolve: 'Вопрос решён',
+      ticketResolveHint: 'Если вопрос решён, закройте его. Новое сообщение откроет новый.',
+      ticketResolving: 'Закрываем...',
+      ticketResolveError: 'Не получилось закрыть. Попробуйте позже.',
       referralStatus: { proposed: 'Ждёт оплаты', paid: 'Оплатил', rewarded: 'Награда выплачена' },
     },
     support: {
