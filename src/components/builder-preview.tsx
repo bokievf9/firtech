@@ -17,7 +17,7 @@ import {
   UserCircle,
 } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import { useContext, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import {
   builderUi,
@@ -31,7 +31,7 @@ import {
 } from '@/content/builder-catalog'
 import type { Build, BuildStyle } from '@/lib/builder'
 import { motionOf, styleVars } from '@/lib/builder-style'
-import { ThemedSite } from './builder-motion'
+import { ParallaxLayers, PresetContext, ThemedSite, usePointerParallax } from './builder-motion'
 import { cn } from '@/lib/cn'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { useSiteTheme } from '@/lib/use-site-theme'
@@ -63,6 +63,7 @@ export function BuilderPreview({
   const c = pick(previewCopy, locale)
   // The theme's motion (or the closest theme's, for an old link); the key replays the reveal when it changes.
   const preset = motionOf(build.style)
+  const parallax = usePointerParallax(preset)
   const themeKey = `${build.style?.themeId ?? build.style?.kit ?? 'n'}-${build.style?.themeMood ?? ''}`
   const site = build.parts.websites
   const bot = build.parts.bots
@@ -82,393 +83,420 @@ export function BuilderPreview({
     <div
       aria-hidden="true"
       style={styleVars(build.style, siteTheme)}
+      onPointerMove={parallax.onMove}
       className={cn(
         'pv-root relative min-h-[420px] overflow-hidden rounded-card border border-line bg-surface-2 p-4 transition-[background-color,border-color] duration-500 md:p-5',
         className,
       )}
     >
-      <AnimatePresence mode="popLayout" initial={false}>
-        {empty && (
-          <Item key="empty" className="grid min-h-[380px] place-items-center">
-            <p className="max-w-[26ch] text-center text-sm text-faint">{dict.builder.empty}</p>
-          </Item>
-        )}
+      <ParallaxLayers
+        mx={parallax.mx}
+        my={parallax.my}
+        depth={parallax.depth}
+        idle={parallax.idle}
+      />
+      <PresetContext.Provider value={preset}>
+        <AnimatePresence mode="popLayout" initial={false}>
+          {empty && (
+            <Item key="empty" className="grid min-h-[380px] place-items-center">
+              <p className="max-w-[26ch] text-center text-sm text-faint">{dict.builder.empty}</p>
+            </Item>
+          )}
 
-        {frame && (
-          <Item key="site">
-            <div
-              className={cn(
-                'relative overflow-hidden rounded-xl bg-bg',
-                BORDER,
-                'border-line-strong',
-                SHADOW,
-              )}
-            >
-              <div className="flex items-center gap-1.5 border-b border-line px-3 py-2">
-                <span className="size-2 rounded-full bg-fg/15" />
-                <span className="size-2 rounded-full bg-fg/15" />
-                <span className="size-2 rounded-full bg-fg/15" />
-                <span className="ml-2 truncate rounded-full bg-fg/5 px-2.5 py-0.5 font-mono text-[10px] text-faint">
-                  {p.url}
-                </span>
-                <Flag show={Boolean(site?.addons.includes('language'))} className="ml-auto">
-                  <span className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[9px] text-muted">
-                    RU · EN
-                  </span>
-                </Flag>
-              </div>
-              <div className="grid gap-(--pv-gap) p-(--pv-pad)">
-                <ThemedSite
-                  preset={preset}
-                  themeKey={themeKey}
-                  brand={brand}
-                  menu={[]}
-                  headline={c.headline}
-                  cta={c.cta}
-                  headClass={HEAD}
-                  heroClass="[font-size:calc(16px*var(--pv-hero))]"
-                />
-                <AnimatePresence mode="popLayout" initial={false}>
-                  {site?.variant === 'shop' ? (
-                    <Item key="shop" className="grid grid-cols-3 gap-1.5">
-                      {['$12', '$18', '$9'].map((price) => (
-                        <span
-                          key={price}
-                          className={cn('grid gap-1 rounded-md p-1.5', BORDER, 'border-line')}
-                        >
-                          <span className="h-9 rounded-sm bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]" />
-                          <span className="font-mono text-[9px] text-fg">{price}</span>
-                          <span className="rounded-sm bg-fg/10 py-0.5 text-center text-[8px] text-muted">
-                            {p.buy}
-                          </span>
-                        </span>
-                      ))}
-                    </Item>
-                  ) : (
-                    <Item key={`kind-${mock}`}>
-                      <KindBlock mock={mock} c={c} />
-                    </Item>
-                  )}
-                  {site?.variant === 'company' && (
-                    <Item key="company" className="grid grid-cols-3 gap-1.5">
-                      {[0, 1, 2].map((i) => (
-                        <span
-                          key={i}
-                          className={cn('grid gap-1 rounded-md p-2', BORDER, 'border-line')}
-                        >
-                          <span className="size-3 rounded-sm bg-accent/60" />
-                          <Bar className="w-full" />
-                          <Bar className="w-2/3" />
-                        </span>
-                      ))}
-                    </Item>
-                  )}
-                </AnimatePresence>
-                <Flag show={Boolean(site?.addons.includes('payments'))}>
-                  <span className="block w-24">
-                    <Pay label={p.pay} />
-                  </span>
-                </Flag>
-              </div>
-              <Flag show={Boolean(site?.addons.includes('cms'))} className="absolute top-10 right-2">
-                <Badge>
-                  <PencilSimple size={10} weight="bold" />
-                  {p.edit}
-                </Badge>
-              </Flag>
-              <Flag
-                show={Boolean(site?.addons.includes('telegram'))}
-                className="absolute right-2 bottom-2"
+          {frame && (
+            <Item key={`site-${themeKey}`}>
+              <div
+                className={cn(
+                  'relative overflow-hidden rounded-xl bg-bg',
+                  BORDER,
+                  'border-line-strong',
+                  SHADOW,
+                )}
               >
-                <span className="flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-[10px] shadow-card">
-                  <TelegramLogo size={12} weight="fill" className="text-tg" />
-                  {p.toTelegram}
-                </span>
-              </Flag>
-            </div>
-          </Item>
-        )}
-
-        {(bot || app) && (
-          <Item key="phones" className="mt-3 flex flex-wrap justify-center gap-3">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {bot && (
-                <Item key="bot">
-                  <Phone>
-                    <div className="flex items-center gap-1.5 border-b border-line pb-2">
-                      <span className="grid size-5 place-items-center rounded-full bg-accent text-[9px] font-bold text-accent-ink">
-                        F
-                      </span>
-                      <span className={cn(HEAD, 'text-[10px]')}>{p.bot}</span>
-                      <Flag show={bot.addons.includes('ai')} className="ml-auto">
-                        <Badge>
-                          <Sparkle size={9} weight="fill" />
-                          {p.ai}
-                        </Badge>
-                      </Flag>
-                    </div>
-                    <Flag show={bot.addons.includes('broadcasts')}>
-                      <span className="mt-2 flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-1 text-[9px] text-accent-text">
-                        <Bell size={9} weight="fill" />
-                        {p.broadcast}
-                      </span>
-                    </Flag>
-                    <div className="mt-2 grid gap-1.5">
-                      <AnimatePresence mode="popLayout" initial={false}>
-                        {bot.variant === 'faq' && (
-                          <Item key="faq" className="grid gap-1.5">
-                            <Bubble mine>{products.includes('intake') ? c.chatQ : p.botFaq}</Bubble>
-                            <Bubble>{products.includes('intake') ? c.chatA : p.botFaqAnswer}</Bubble>
-                          </Item>
-                        )}
-                        {bot.variant === 'booking' && (
-                          <Item key="booking" className="grid gap-1.5">
-                            <Bubble mine>{c.chatQ}</Bubble>
-                            <span className="flex gap-1">
-                              {['11:00', '14:30', '17:00'].map((t, i) => (
-                                <span
-                                  key={t}
-                                  className={cn(
-                                    'rounded-md border px-1.5 py-1 font-mono text-[9px]',
-                                    i === 1
-                                      ? 'border-accent-text text-accent-text'
-                                      : 'border-line text-muted',
-                                  )}
-                                >
-                                  {t}
-                                </span>
-                              ))}
+                <div className="flex items-center gap-1.5 border-b border-line px-3 py-2">
+                  <span className="size-2 rounded-full bg-fg/15" />
+                  <span className="size-2 rounded-full bg-fg/15" />
+                  <span className="size-2 rounded-full bg-fg/15" />
+                  <span className="ml-2 truncate rounded-full bg-fg/5 px-2.5 py-0.5 font-mono text-[10px] text-faint">
+                    {p.url}
+                  </span>
+                  <Flag show={Boolean(site?.addons.includes('language'))} className="ml-auto">
+                    <span className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[9px] text-muted">
+                      RU · EN
+                    </span>
+                  </Flag>
+                </div>
+                <div className="grid gap-(--pv-gap) p-(--pv-pad)">
+                  <ThemedSite
+                    preset={preset}
+                    themeKey={themeKey}
+                    brand={brand}
+                    menu={[]}
+                    headline={c.headline}
+                    cta={c.cta}
+                    headClass={HEAD}
+                    heroClass="[font-size:calc(16px*var(--pv-hero))]"
+                  />
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    {site?.variant === 'shop' ? (
+                      <Item key="shop" className="grid grid-cols-3 gap-1.5">
+                        {['$12', '$18', '$9'].map((price) => (
+                          <span
+                            key={price}
+                            className={cn('grid gap-1 rounded-md p-1.5', BORDER, 'border-line')}
+                          >
+                            <span className="h-9 rounded-sm bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]" />
+                            <span className="font-mono text-[9px] text-fg">{price}</span>
+                            <span className="rounded-sm bg-fg/10 py-0.5 text-center text-[8px] text-muted">
+                              {p.buy}
                             </span>
-                          </Item>
-                        )}
-                        {bot.variant === 'miniapp' && (
-                          <Item key="miniapp" className="grid gap-1.5">
-                            <span className={cn(HEAD, 'text-[10px]')}>{p.botMenu}</span>
-                            <span className="grid grid-cols-2 gap-1">
+                          </span>
+                        ))}
+                      </Item>
+                    ) : (
+                      <Item key={`kind-${mock}`}>
+                        <KindBlock mock={mock} c={c} />
+                      </Item>
+                    )}
+                    {site?.variant === 'company' && (
+                      <Item key="company" className="grid grid-cols-3 gap-1.5">
+                        {[0, 1, 2].map((i) => (
+                          <span
+                            key={i}
+                            className={cn('grid gap-1 rounded-md p-2', BORDER, 'border-line')}
+                          >
+                            <span className="size-3 rounded-sm bg-accent/60" />
+                            <Bar className="w-full" />
+                            <Bar className="w-2/3" />
+                          </span>
+                        ))}
+                      </Item>
+                    )}
+                  </AnimatePresence>
+                  <Flag show={Boolean(site?.addons.includes('payments'))}>
+                    <span className="block w-24">
+                      <Pay label={p.pay} />
+                    </span>
+                  </Flag>
+                </div>
+                <Flag
+                  show={Boolean(site?.addons.includes('cms'))}
+                  className="absolute top-10 right-2"
+                >
+                  <Badge>
+                    <PencilSimple size={10} weight="bold" />
+                    {p.edit}
+                  </Badge>
+                </Flag>
+                <Flag
+                  show={Boolean(site?.addons.includes('telegram'))}
+                  className="absolute right-2 bottom-2"
+                >
+                  <span className="flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-[10px] shadow-card">
+                    <TelegramLogo size={12} weight="fill" className="text-tg" />
+                    {p.toTelegram}
+                  </span>
+                </Flag>
+              </div>
+            </Item>
+          )}
+
+          {(bot || app) && (
+            <Item key={`phones-${themeKey}`} className="mt-3 flex flex-wrap justify-center gap-3">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {bot && (
+                  <Item key="bot">
+                    <Phone>
+                      <div className="flex items-center gap-1.5 border-b border-line pb-2">
+                        <span className="grid size-5 place-items-center rounded-full bg-accent text-[9px] font-bold text-accent-ink">
+                          F
+                        </span>
+                        <span className={cn(HEAD, 'text-[10px]')}>{p.bot}</span>
+                        <Flag show={bot.addons.includes('ai')} className="ml-auto">
+                          <Badge>
+                            <Sparkle size={9} weight="fill" />
+                            {p.ai}
+                          </Badge>
+                        </Flag>
+                      </div>
+                      <Flag show={bot.addons.includes('broadcasts')}>
+                        <span className="mt-2 flex items-center gap-1 rounded-md bg-accent/15 px-1.5 py-1 text-[9px] text-accent-text">
+                          <Bell size={9} weight="fill" />
+                          {p.broadcast}
+                        </span>
+                      </Flag>
+                      <div className="mt-2 grid gap-1.5">
+                        <AnimatePresence mode="popLayout" initial={false}>
+                          {bot.variant === 'faq' && (
+                            <Item key="faq" className="grid gap-1.5">
+                              <Bubble mine>
+                                {products.includes('intake') ? c.chatQ : p.botFaq}
+                              </Bubble>
+                              <Bubble>
+                                {products.includes('intake') ? c.chatA : p.botFaqAnswer}
+                              </Bubble>
+                            </Item>
+                          )}
+                          {bot.variant === 'booking' && (
+                            <Item key="booking" className="grid gap-1.5">
+                              <Bubble mine>{c.chatQ}</Bubble>
+                              <span className="flex gap-1">
+                                {['11:00', '14:30', '17:00'].map((t, i) => (
+                                  <span
+                                    key={t}
+                                    className={cn(
+                                      'rounded-md border px-1.5 py-1 font-mono text-[9px]',
+                                      i === 1
+                                        ? 'border-accent-text text-accent-text'
+                                        : 'border-line text-muted',
+                                    )}
+                                  >
+                                    {t}
+                                  </span>
+                                ))}
+                              </span>
+                            </Item>
+                          )}
+                          {bot.variant === 'miniapp' && (
+                            <Item key="miniapp" className="grid gap-1.5">
+                              <span className={cn(HEAD, 'text-[10px]')}>{p.botMenu}</span>
+                              <span className="grid grid-cols-2 gap-1">
+                                {[0, 1, 2, 3].map((i) => (
+                                  <span
+                                    key={i}
+                                    className="h-10 rounded-md bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]"
+                                  />
+                                ))}
+                              </span>
+                            </Item>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      <div className="mt-auto grid gap-1.5 pt-2">
+                        <Flag show={bot.addons.includes('payments')}>
+                          <Pay label={p.pay} />
+                        </Flag>
+                        <Flag show={bot.addons.includes('admin')}>
+                          <span className="block text-center font-mono text-[9px] text-faint">
+                            {p.admin}
+                          </span>
+                        </Flag>
+                      </div>
+                    </Phone>
+                  </Item>
+                )}
+                {app && (
+                  <Item key="app">
+                    <Phone>
+                      <Flag show={app.addons.includes('push')}>
+                        <span className="mb-2 flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-1.5 py-1.5 text-[9px]">
+                          <Bell size={10} weight="fill" className="text-accent-text" />
+                          {p.push}
+                        </span>
+                      </Flag>
+                      <div className="flex items-center justify-between border-b border-line pb-2">
+                        <span className={cn(HEAD, 'text-[10px]')}>{p.app}</span>
+                        <Flag show={app.addons.includes('accounts')}>
+                          <UserCircle size={14} className="text-accent-text" />
+                        </Flag>
+                      </div>
+                      <div className="mt-2 grid gap-1.5">
+                        <AnimatePresence mode="popLayout" initial={false}>
+                          {app.variant === 'internal' ? (
+                            <Item key="internal" className="grid gap-1">
                               {[0, 1, 2, 3].map((i) => (
                                 <span
                                   key={i}
-                                  className="h-10 rounded-md bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]"
-                                />
+                                  className="grid grid-cols-[1fr_auto] items-center gap-2 rounded-md border border-line px-1.5 py-1"
+                                >
+                                  <Bar className="w-full" />
+                                  <span
+                                    className={cn(
+                                      'size-1.5 rounded-full',
+                                      i % 2 ? 'bg-accent' : 'bg-fg/30',
+                                    )}
+                                  />
+                                </span>
                               ))}
-                            </span>
-                          </Item>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                    <div className="mt-auto grid gap-1.5 pt-2">
-                      <Flag show={bot.addons.includes('payments')}>
-                        <Pay label={p.pay} />
-                      </Flag>
-                      <Flag show={bot.addons.includes('admin')}>
-                        <span className="block text-center font-mono text-[9px] text-faint">
-                          {p.admin}
-                        </span>
-                      </Flag>
-                    </div>
-                  </Phone>
-                </Item>
-              )}
-              {app && (
-                <Item key="app">
-                  <Phone>
-                    <Flag show={app.addons.includes('push')}>
-                      <span className="mb-2 flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-1.5 py-1.5 text-[9px]">
-                        <Bell size={10} weight="fill" className="text-accent-text" />
-                        {p.push}
-                      </span>
-                    </Flag>
-                    <div className="flex items-center justify-between border-b border-line pb-2">
-                      <span className={cn(HEAD, 'text-[10px]')}>{p.app}</span>
-                      <Flag show={app.addons.includes('accounts')}>
-                        <UserCircle size={14} className="text-accent-text" />
-                      </Flag>
-                    </div>
-                    <div className="mt-2 grid gap-1.5">
-                      <AnimatePresence mode="popLayout" initial={false}>
-                        {app.variant === 'internal' ? (
-                          <Item key="internal" className="grid gap-1">
-                            {[0, 1, 2, 3].map((i) => (
-                              <span
-                                key={i}
-                                className="grid grid-cols-[1fr_auto] items-center gap-2 rounded-md border border-line px-1.5 py-1"
-                              >
-                                <Bar className="w-full" />
-                                <span
-                                  className={cn(
-                                    'size-1.5 rounded-full',
-                                    i % 2 ? 'bg-accent' : 'bg-fg/30',
-                                  )}
-                                />
+                            </Item>
+                          ) : (
+                            <Item key="cards" className="grid gap-1.5">
+                              <span className="h-14 rounded-lg bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]" />
+                              <span className="grid grid-cols-2 gap-1">
+                                <span className="h-8 rounded-md border border-line" />
+                                <span className="h-8 rounded-md border border-line" />
                               </span>
-                            ))}
-                          </Item>
-                        ) : (
-                          <Item key="cards" className="grid gap-1.5">
-                            <span className="h-14 rounded-lg bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]" />
-                            <span className="grid grid-cols-2 gap-1">
-                              <span className="h-8 rounded-md border border-line" />
-                              <span className="h-8 rounded-md border border-line" />
-                            </span>
-                          </Item>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                    <div className="mt-auto grid gap-1.5 pt-2">
-                      <Flag show={app.addons.includes('payments')}>
-                        <Pay label={p.pay} />
-                      </Flag>
-                      <span className="flex justify-around border-t border-line pt-1.5">
-                        {[0, 1, 2, 3].map((i) => (
-                          <span
-                            key={i}
-                            className={cn('size-2 rounded-sm', i === 0 ? 'bg-accent' : 'bg-fg/20')}
-                          />
-                        ))}
-                      </span>
-                      <Flag show={app.addons.includes('admin')}>
-                        <span className="block text-center font-mono text-[9px] text-faint">
-                          {p.admin}
+                            </Item>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      <div className="mt-auto grid gap-1.5 pt-2">
+                        <Flag show={app.addons.includes('payments')}>
+                          <Pay label={p.pay} />
+                        </Flag>
+                        <span className="flex justify-around border-t border-line pt-1.5">
+                          {[0, 1, 2, 3].map((i) => (
+                            <span
+                              key={i}
+                              className={cn(
+                                'size-2 rounded-sm',
+                                i === 0 ? 'bg-accent' : 'bg-fg/20',
+                              )}
+                            />
+                          ))}
                         </span>
-                      </Flag>
-                    </div>
-                  </Phone>
-                </Item>
-              )}
-            </AnimatePresence>
-          </Item>
-        )}
-
-        {auto && (
-          <Item key="auto" className="mt-3">
-            <div className="rounded-xl border border-line-strong bg-bg p-3">
-              <AnimatePresence mode="popLayout" initial={false}>
-                {auto.variant === 'crm' ? (
-                  <Item key="crm" className="grid grid-cols-3 gap-1.5">
-                    {p.crm.map((col, i) => (
-                      <span
-                        key={col}
-                        className="grid content-start gap-1 rounded-md bg-fg/[0.04] p-1.5"
-                      >
-                        <span className="text-[9px] text-muted">{col}</span>
-                        {Array.from({ length: 3 - i }, (_, k) => (
-                          <span
-                            key={k}
-                            className={cn(
-                              'h-3.5 rounded-sm border border-line',
-                              i === 1 && k === 0 && 'border-accent-text/60 bg-accent/10',
-                            )}
-                          />
-                        ))}
-                      </span>
-                    ))}
-                  </Item>
-                ) : auto.variant === 'assistant' ? (
-                  <Item key="assistant" className="flex items-center gap-2 text-[11px]">
-                    <Sparkle size={14} weight="fill" className="text-accent-text" />
-                    {p.assistant}
-                  </Item>
-                ) : (
-                  <Item key="integration" className="flex items-center gap-1.5 text-[10px]">
-                    <Chip>{dict.hero.demo.site}</Chip>
-                    <Flow />
-                    <Chip>
-                      <TelegramLogo size={10} weight="fill" className="text-tg" />
-                      Telegram
-                    </Chip>
-                    <Flow />
-                    <Chip>{dict.hero.demo.crm}</Chip>
+                        <Flag show={app.addons.includes('admin')}>
+                          <span className="block text-center font-mono text-[9px] text-faint">
+                            {p.admin}
+                          </span>
+                        </Flag>
+                      </div>
+                    </Phone>
                   </Item>
                 )}
               </AnimatePresence>
-              <Chips
-                items={[
-                  auto.addons.includes('sheets') && p.sheets,
-                  auto.addons.includes('alerts') && p.alerts,
-                  auto.addons.includes('training') && p.training,
-                  auto.addons.includes('support') &&
-                    dict.estimator.catalog.automation.addons.support,
-                ]}
-              />
-            </div>
-          </Item>
-        )}
+            </Item>
+          )}
 
-        {extraCards.length > 0 && (
-          <Item key="cards" className="mt-3 grid gap-3">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {extraCards.map((id) => (
-                <Item key={id}>
-                  <ProductCard id={id} c={c} />
-                </Item>
+          {auto && (
+            <Item key="auto" className="mt-3">
+              <div className="rounded-xl border border-line-strong bg-bg p-3">
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {auto.variant === 'crm' ? (
+                    <Item key="crm" className="grid grid-cols-3 gap-1.5">
+                      {p.crm.map((col, i) => (
+                        <span
+                          key={col}
+                          className="grid content-start gap-1 rounded-md bg-fg/[0.04] p-1.5"
+                        >
+                          <span className="text-[9px] text-muted">{col}</span>
+                          {Array.from({ length: 3 - i }, (_, k) => (
+                            <span
+                              key={k}
+                              className={cn(
+                                'h-3.5 rounded-sm border border-line',
+                                i === 1 && k === 0 && 'border-accent-text/60 bg-accent/10',
+                              )}
+                            />
+                          ))}
+                        </span>
+                      ))}
+                    </Item>
+                  ) : auto.variant === 'assistant' ? (
+                    <Item key="assistant" className="flex items-center gap-2 text-[11px]">
+                      <Sparkle size={14} weight="fill" className="text-accent-text" />
+                      {p.assistant}
+                    </Item>
+                  ) : (
+                    <Item key="integration" className="flex items-center gap-1.5 text-[10px]">
+                      <Chip>{dict.hero.demo.site}</Chip>
+                      <Flow />
+                      <Chip>
+                        <TelegramLogo size={10} weight="fill" className="text-tg" />
+                        Telegram
+                      </Chip>
+                      <Flow />
+                      <Chip>{dict.hero.demo.crm}</Chip>
+                    </Item>
+                  )}
+                </AnimatePresence>
+                <Chips
+                  items={[
+                    auto.addons.includes('sheets') && p.sheets,
+                    auto.addons.includes('alerts') && p.alerts,
+                    auto.addons.includes('training') && p.training,
+                    auto.addons.includes('support') &&
+                      dict.estimator.catalog.automation.addons.support,
+                  ]}
+                />
+              </div>
+            </Item>
+          )}
+
+          {extraCards.length > 0 && (
+            <Item key="cards" className="mt-3 grid gap-3">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {extraCards.map((id) => (
+                  <Item key={id}>
+                    <ProductCard id={id} c={c} />
+                  </Item>
+                ))}
+              </AnimatePresence>
+            </Item>
+          )}
+
+          {products.length > 0 && (
+            <Item key="chips" className="mt-3 flex flex-wrap gap-1.5">
+              {products.map((id) => (
+                <Chip key={id}>
+                  <CheckCircle size={11} weight="fill" className="text-accent-text" />
+                  {pick(productCatalog[id].name, locale)}
+                  {!productCatalog[id].priced && (
+                    <span className="text-faint">· {pick(builderUi.onRequestShort, locale)}</span>
+                  )}
+                </Chip>
               ))}
-            </AnimatePresence>
-          </Item>
-        )}
+            </Item>
+          )}
 
-        {products.length > 0 && (
-          <Item key="chips" className="mt-3 flex flex-wrap gap-1.5">
-            {products.map((id) => (
-              <Chip key={id}>
-                <CheckCircle size={11} weight="fill" className="text-accent-text" />
-                {pick(productCatalog[id].name, locale)}
-                {!productCatalog[id].priced && (
-                  <span className="text-faint">· {pick(builderUi.onRequestShort, locale)}</span>
+          {build.extras.length > 0 && (
+            <Item key="extras" className="mt-3 flex flex-wrap gap-1.5">
+              <AnimatePresence mode="popLayout" initial={false}>
+                {build.extras.includes('seo') && (
+                  <Item key="seo">
+                    <Chip>
+                      <MapPin size={11} weight="fill" className="text-accent-text" />
+                      {p.seo}
+                    </Chip>
+                  </Item>
                 )}
-              </Chip>
-            ))}
-          </Item>
-        )}
-
-        {build.extras.length > 0 && (
-          <Item key="extras" className="mt-3 flex flex-wrap gap-1.5">
-            <AnimatePresence mode="popLayout" initial={false}>
-              {build.extras.includes('seo') && (
-                <Item key="seo">
-                  <Chip>
-                    <MapPin size={11} weight="fill" className="text-accent-text" />
-                    {p.seo}
-                  </Chip>
-                </Item>
-              )}
-              {build.extras.includes('design') && (
-                <Item key="design">
-                  <Chip>
-                    <span className="flex -space-x-1">
-                      <span className="size-2.5 rounded-full bg-accent ring-1 ring-bg" />
-                      <span className="size-2.5 rounded-full bg-[var(--color-pine)] ring-1 ring-bg" />
-                      <span className="size-2.5 rounded-full bg-fg ring-1 ring-bg" />
-                    </span>
-                    {p.design}
-                  </Chip>
-                </Item>
-              )}
-              {build.extras.includes('support') && (
-                <Item key="support">
-                  <Chip>
-                    <Lifebuoy size={11} className="text-accent-text" />
-                    {p.support}
-                  </Chip>
-                </Item>
-              )}
-            </AnimatePresence>
-          </Item>
-        )}
-      </AnimatePresence>
+                {build.extras.includes('design') && (
+                  <Item key="design">
+                    <Chip>
+                      <span className="flex -space-x-1">
+                        <span className="size-2.5 rounded-full bg-accent ring-1 ring-bg" />
+                        <span className="size-2.5 rounded-full bg-[var(--color-pine)] ring-1 ring-bg" />
+                        <span className="size-2.5 rounded-full bg-fg ring-1 ring-bg" />
+                      </span>
+                      {p.design}
+                    </Chip>
+                  </Item>
+                )}
+                {build.extras.includes('support') && (
+                  <Item key="support">
+                    <Chip>
+                      <Lifebuoy size={11} className="text-accent-text" />
+                      {p.support}
+                    </Chip>
+                  </Item>
+                )}
+              </AnimatePresence>
+            </Item>
+          )}
+        </AnimatePresence>
+      </PresetContext.Provider>
     </div>
   )
 }
 
 function Item({ children, className }: { children: ReactNode; className?: string }) {
   const reduce = useReducedMotion()
+  const preset = useContext(PresetContext)
+  // The theme's reveal: fade, rise, slide or scale, at its speed.
+  const from = {
+    fade: { opacity: 0 },
+    rise: { opacity: 0, y: 16 },
+    slide: { opacity: 0, x: -24 },
+    scale: { opacity: 0, scale: 0.88 },
+  }[preset?.reveal ?? 'scale']
   return (
     <motion.div
       layout={!reduce}
       className={className}
-      initial={reduce ? false : { opacity: 0, scale: 0.92, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
+      initial={reduce ? false : from}
+      animate={{ opacity: 1, scale: 1, y: 0, x: 0 }}
       exit={reduce ? undefined : { opacity: 0, scale: 0.92 }}
-      transition={{ duration: 0.45, ease }}
+      transition={{ duration: preset?.duration ?? 0.45, ease }}
     >
       {children}
     </motion.div>
@@ -652,8 +680,7 @@ type Copy = PreviewCopy
 // The niche's own block on the page: a menu, a booking widget, a catalogue, a lesson, listings,
 // trips, a service list, a price quote or a chat. Generic copy, so every kind has something to show.
 function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
-  const tile =
-    'h-9 rounded-sm bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]'
+  const tile = 'h-9 rounded-sm bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]'
   const card = cn('rounded-md p-1.5', BORDER, 'border-line')
   switch (mock) {
     case 'menu':

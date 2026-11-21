@@ -533,7 +533,7 @@ const en: Dict = {
       open: 'Open the estimate',
       free: 'The project builder and its link work without any contacts.',
       // Goes into the owner's Telegram message, which is always in Russian.
-      leadNote: 'Запросил смету в PDF из конструктора',
+      leadNote: 'Запросил смету в PDF из сборки проекта',
     },
     stepLabel: 'Step',
     of: 'of',

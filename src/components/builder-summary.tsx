@@ -85,9 +85,12 @@ export function SummaryStep({
                 </span>
                 <span className="block text-sm text-muted">
                   {brief.style
-                    .filter((row) => row.id !== 'look')
+                    .filter((row) => row.id !== 'look' && row.id !== 'theme')
                     .map((row) => row.value)
-                    .join(' · ') || t.nothingYet}
+                    .join(' · ') ||
+                    (build.style?.themeId
+                      ? themeText[build.style.themeId].hint[locale === 'ru' ? 'ru' : 'en']
+                      : t.nothingYet)}
                 </span>
               </span>
             </div>

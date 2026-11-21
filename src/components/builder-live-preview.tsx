@@ -146,7 +146,7 @@ function SitePreview({
           headClass={HEAD}
           heroClass="[font-size:calc(19px*var(--pv-hero))] md:[font-size:calc(24px*var(--pv-hero))]"
           block={
-            shop ? (
+            shop && preset.hero !== 'cards' ? (
               <span className="grid grid-cols-3 gap-1.5">
                 {copy[4].map((name) => (
                   <span key={name} className={cn('grid gap-1 rounded-md p-1.5', BORDER, 'border-line')}>

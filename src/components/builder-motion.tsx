@@ -140,6 +140,45 @@ export function Cta({
   )
 }
 
+// Pointer parallax for any box: `onMove` goes on the box, `<ParallaxLayers>` inside it.
+export function usePointerParallax(preset: MotionPreset) {
+  const reduce = useReducedMotion()
+  const mx = useMotionValue(0)
+  const my = useMotionValue(0)
+  const depth = preset.parallax === 'deep' ? 16 : preset.parallax === 'soft' ? 7 : 0
+  const idle = !reduce && depth > 0
+  function onMove(event: PointerEvent<HTMLElement>) {
+    if (!depth || reduce) return
+    const rect = event.currentTarget.getBoundingClientRect()
+    mx.set(((event.clientX - rect.left) / rect.width) * 2 - 1)
+    my.set(((event.clientY - rect.top) / rect.height) * 2 - 1)
+  }
+  return { mx, my, depth, idle, onMove }
+}
+
+export function ParallaxLayers({
+  mx,
+  my,
+  depth,
+  idle,
+}: {
+  mx: MotionValue<number>
+  my: MotionValue<number>
+  depth: number
+  idle: boolean
+}) {
+  if (!depth) return null
+  return (
+    <>
+      <Layer mx={mx} my={my} depth={depth} idle={idle} className="-top-6 -right-6 size-28 rounded-full bg-accent/25 blur-[2px]" />
+      <Layer mx={mx} my={my} depth={depth * 1.8} idle={idle} className="right-10 -bottom-8 size-20 rounded-full bg-[var(--color-pine)]" />
+    </>
+  )
+}
+
+// What the mockup's items do when they appear: the theme's reveal.
+export const PresetContext = createContext<MotionPreset | null>(null)
+
 export type SiteSection = { title: string; items: string[] }
 
 // A page in the theme's motion: nav, a hero of the theme's kind, an optional niche block, sections.
@@ -170,27 +209,8 @@ export function ThemedSite({
   heroClass: string
   className?: string
 }) {
-  const reduce = useReducedMotion()
-  const mx = useMotionValue(0)
-  const my = useMotionValue(0)
-  const depth = preset.parallax === 'deep' ? 16 : preset.parallax === 'soft' ? 7 : 0
-  const idle = !reduce && depth > 0
-  function onMove(event: PointerEvent<HTMLDivElement>) {
-    if (!depth || reduce) return
-    const rect = event.currentTarget.getBoundingClientRect()
-    mx.set(((event.clientX - rect.left) / rect.width) * 2 - 1)
-    my.set(((event.clientY - rect.top) / rect.height) * 2 - 1)
-  }
-  const art = (
-    <>
-      {depth > 0 && (
-        <>
-          <Layer mx={mx} my={my} depth={depth} idle={idle} className="-top-6 -right-6 size-28 rounded-full bg-accent/25 blur-[2px]" />
-          <Layer mx={mx} my={my} depth={depth * 1.8} idle={idle} className="right-10 -bottom-8 size-20 rounded-full bg-[var(--color-pine)]" />
-        </>
-      )}
-    </>
-  )
+  const { mx, my, depth, idle, onMove } = usePointerParallax(preset)
+  const art = <ParallaxLayers mx={mx} my={my} depth={depth} idle={idle} />
   const title = (
     <span className={cn(headClass, heroClass, 'block max-w-[20ch] leading-[1.1]')}>{headline}</span>
   )

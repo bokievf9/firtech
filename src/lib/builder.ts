@@ -42,7 +42,7 @@ import {
 } from './builder-ids'
 
 // The project builder: a visitor combines several services and extras into one quote. All prices
-// come from pricing.ts, so the builder, the calculator and the showcase always agree.
+// come from pricing.ts, so the builder and the showcase always agree.
 
 // Extras that make sense as a part of a build. The others are already a format or option of a main
 // service (AI assistant, CRM, payments, internal systems) or are not something you "build" (rescue).
@@ -399,7 +399,8 @@ export function encodeBuild(build: Build) {
   if (build.products?.length) parts.push(`p.${build.products.join('-')}`)
   if (build.goals?.length) parts.push(`g.${build.goals.join('-')}`)
   if (build.channels?.length) parts.push(`c.${build.channels.join('-')}`)
-  if (build.delivery?.length) parts.push(`l.${build.delivery.join('-')}`)
+  // An empty list is a choice too (nothing ticked yet), told apart from "never asked" by `l.none`.
+  if (build.delivery) parts.push(`l.${build.delivery.length ? build.delivery.join('-') : 'none'}`)
   if (build.siteNeed) parts.push(`z.${build.siteNeed}`)
   const style = build.style
   if (style && (style.look || style.accent || style.theme || style.font)) {
@@ -529,7 +530,7 @@ export function decodeBuild(value: string | null | undefined): Build | null {
     }
     if (head === 'l') {
       const delivery = keepKnown(second, deliveryChannels)
-      if (delivery.length) build.delivery = delivery
+      if (delivery.length || second === 'none') build.delivery = delivery
       continue
     }
     if (head === 'z') {

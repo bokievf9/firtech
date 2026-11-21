@@ -2,7 +2,6 @@ import 'server-only'
 import { z } from 'zod'
 import { demoNiches } from '../content/builder-v2'
 import { stripHtml } from './chat'
-import { createLimiter } from './chat-hq'
 import { visitorIpHeader } from './public-post'
 
 // Server side of POST /api/agent-demo: the final screen of the project builder lets the visitor talk
@@ -19,7 +18,22 @@ export const agentDemoSchema = z.object({
 })
 export type AgentDemoRequest = z.infer<typeof agentDemoSchema>
 
-export const agentDemoLimited = createLimiter(20, 10 * 60 * 1000)
+// A per-IP sliding window in memory (one PM2 process), like the chat's limiter.
+export function createDemoLimiter(max: number, windowMs: number) {
+  const hits = new Map<string, number[]>()
+  return function limited(key: string, now = Date.now()): boolean {
+    const recent = (hits.get(key) ?? []).filter((t) => now - t < windowMs)
+    if (recent.length >= max) {
+      hits.set(key, recent)
+      return true
+    }
+    recent.push(now)
+    hits.set(key, recent)
+    if (hits.size > 5000) hits.clear()
+    return false
+  }
+}
+export const agentDemoLimited = createDemoLimiter(20, 10 * 60 * 1000)
 export const AGENT_DEMO_TIMEOUT_MS = 20_000
 
 export type AgentDemoAnswer = { ok: true; reply: string } | { ok: false; error: string }

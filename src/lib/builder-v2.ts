@@ -197,9 +197,7 @@ export function applySiteNeed(build: Build, need: SiteNeed): Build {
     else delete next.products
   }
   if (need === 'no' && next.delivery) {
-    const delivery = next.delivery.filter((id) => id !== 'widget')
-    if (delivery.length) next.delivery = delivery
-    else delete next.delivery
+    next.delivery = next.delivery.filter((id) => id !== 'widget')
   }
   return next
 }
@@ -212,10 +210,7 @@ export function reapplySiteNeed(build: Build): Build {
 export function toggleDelivery(build: Build, id: DeliveryChannel): Build {
   const now = effectiveDelivery(build)
   const next = now.includes(id) ? now.filter((x) => x !== id) : [...now, id]
-  const out: Build = { ...build }
-  if (next.length) out.delivery = next
-  else delete out.delivery
-  return out
+  return { ...build, delivery: next }
 }
 
 // ------------------------------------------------------------------ required
@@ -280,7 +275,8 @@ export function stepIssues(build: Build, step: number): StepIssue[] {
 
 export type PreviewMode = 'site' | 'agent' | 'playground' | 'department' | 'miniapp' | 'content' | 'automation'
 
-// The views the final screen offers, the most fitting first.
+// The views the final screen offers, the most fitting first: an agent's chat leads, the rest follow
+// the order the products were picked in, then parts that no product brought.
 export function previewModes(build: Build): PreviewMode[] {
   const modes: PreviewMode[] = []
   if (hasAgent(build)) {
@@ -289,11 +285,17 @@ export function previewModes(build: Build): PreviewMode[] {
     if (!playgroundOnly) modes.push('agent')
     if (delivery.includes('playground')) modes.push('playground')
   }
-  if (has(build, 'aiteam')) modes.push('department')
-  if (has(build, 'miniapp') || build.parts.bots?.variant === 'miniapp') modes.push('miniapp')
-  if (has(build, 'content')) modes.push('content')
-  if (build.parts.websites || (has(build, 'site') && effectiveSiteNeed(build) !== 'no')) modes.push('site')
-  if (has(build, 'automation') || build.parts.automation) modes.push('automation')
+  const siteAllowed = effectiveSiteNeed(build) !== 'no'
+  for (const id of build.products ?? []) {
+    if (id === 'aiteam') modes.push('department')
+    else if (id === 'miniapp') modes.push('miniapp')
+    else if (id === 'content') modes.push('content')
+    else if (id === 'site' && siteAllowed) modes.push('site')
+    else if (id === 'automation') modes.push('automation')
+  }
+  if (build.parts.bots?.variant === 'miniapp') modes.push('miniapp')
+  if (build.parts.websites) modes.push('site')
+  if (build.parts.automation) modes.push('automation')
   const unique = [...new Set(modes)]
   if (unique.length) return unique
   return [effectiveSiteNeed(build) === 'no' ? 'playground' : 'site']

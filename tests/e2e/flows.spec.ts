@@ -3,63 +3,70 @@ import { watchErrors, open } from './helpers'
 
 // ---- builder: all 8 steps in one scenario -------------------------------------------------------
 
-test('builder: walk through all 8 steps to the summary, estimate and PDF page', async ({ page, context }) => {
+test('builder: walk through all 8 steps to the preview, estimate and PDF page', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])
   const errors = watchErrors(page)
   await open(page, '/ru/builder')
   const step = () => page.locator('[aria-current="step"]')
-  const next = () => page.locator('button', { hasText: /^Дальше/ }).first()
+  const next = () => page.getByRole('button', { name: /^Дальше/ })
 
-  // 1. Business: pick a niche (a category filter first), it moves on to step 2.
+  // 1. Niche: the explainer, three common niches, «Ещё ниши» opens the rest by category.
   await expect(step()).toHaveAttribute('aria-label', /^1\./)
-  await page.getByRole('tab', { name: 'Еда', exact: true }).click()
-  await page.locator('button', { hasText: 'Кафе и ресторан' }).first().click()
+  await page.getByRole('button', { name: 'Ещё ниши' }).click()
+  await page.getByRole('radio', { name: /^Кафе и ресторан/ }).click()
   await expect(page).toHaveURL(/k\.cafe/)
   await expect(step()).toHaveAttribute('aria-label', /^2\./)
 
-  // 2. Products: toggle one off and on again.
-  const product = page.locator('button', { hasText: 'ИИ-менеджер заявок' }).first()
+  // 2. Products: toggle one off and on again; the agent asks about a site.
+  const product = page.getByRole('checkbox', { name: /^ИИ-менеджер заявок/ })
   await product.click()
   await product.click()
+  await page.getByRole('radio', { name: /Сайт нужен/ }).click()
   await next().click()
 
-  // 3. Goal: pick a goal and a channel.
+  // 3. Goals: pick a goal and a channel.
   await expect(step()).toHaveAttribute('aria-label', /^3\./)
-  await page.locator('button', { hasText: 'Запись клиентов' }).first().click()
-  await page.locator('button', { hasText: /^Instagram$/ }).click()
+  await page.getByRole('checkbox', { name: /Запись без звонков/ }).click()
+  await page.getByRole('checkbox', { name: /^Instagram/ }).click()
   await next().click()
 
-  // 4. Parts: open a service group and add a part.
+  // 4. Set: what the products include, then a separate part is added.
   await expect(step()).toHaveAttribute('aria-label', /^4\./)
-  await page.locator('button', { hasText: 'Интернет-магазин' }).first().click()
+  await page.getByRole('button', { name: 'Показать отдельные части' }).click()
+  await page.getByRole('checkbox', { name: /^Приложения/ }).click()
   await next().click()
 
-  // 5. Features: the total moves with an extra.
+  // 5. Features: the total moves with an option.
   await expect(step()).toHaveAttribute('aria-label', /^5\./)
   await page.locator('main button', { hasText: /\+\$\d+/ }).first().click()
   await next().click()
 
-  // 6. Style: a ready look, then the custom panel opens.
+  // 6. Theme: a theme and a mood, then the fine tuning opens.
   await expect(step()).toHaveAttribute('aria-label', /^6\./)
-  await page.locator('button', { hasText: 'Люкс' }).first().click()
-  await page.getByRole('button', { name: 'Настроить' }).click()
+  await page.getByRole('radio', { name: /^Кофейня/ }).click()
+  await page.getByRole('radio', { name: /^Премиум/ }).click()
+  await page.getByRole('button', { name: 'Тонкая настройка' }).click()
   await next().click()
 
-  // 7. Details: pages, language, assets, deadline, notes.
+  // 7. Details: the required ones.
   await expect(step()).toHaveAttribute('aria-label', /^7\./)
-  await page.locator('input[type=range]').fill('5')
-  await page.locator('main button', { hasText: 'Как можно скорее' }).click()
+  await page.getByLabel('Название вашего бизнеса').fill('Зерно')
+  await page.getByRole('checkbox', { name: 'Частные лица' }).click()
+  await page.getByLabel('Кто отвечает за проект с вашей стороны').fill('Азиза')
+  await page.getByRole('radio', { name: 'Как можно скорее' }).click()
+  await page.getByRole('checkbox', { name: 'Сообщить мне сразу' }).click()
   await page.getByLabel('Пожелания').fill('Тест сквозной проверки')
-  await page.locator('button', { hasText: /^(К итогу|Дальше)/ }).first().click()
+  await next().click()
 
-  // 8. Summary: the quote, share link, PDF.
+  // 8. Preview: the live preview, share link, PDF.
   await expect(step()).toHaveAttribute('aria-label', /^8\./)
+  await expect(page.locator('[data-live-preview]')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Скачать смету (PDF)' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Отправить сборку' }).first()).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Отправить проект' }).first()).toBeVisible()
   await page.getByRole('button', { name: 'Скопировать ссылку' }).click()
   expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('/ru/builder?b=')
 
-  // «Изменить» goes back to the step it belongs to, Back walks one step.
+  // «Изменить» goes back to the step it belongs to.
   await page.getByRole('button', { name: 'Изменить' }).first().click()
   await expect(step()).not.toHaveAttribute('aria-label', /^8\./)
   expect(errors).toEqual([])
