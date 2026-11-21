@@ -1112,16 +1112,7 @@ const en: Dict = {
     },
   },
   estimator: {
-    eyebrow: 'Estimate',
-    title: 'Estimate the cost in a minute',
-    sub: 'Pick what you need and see an approximate price and timeline.',
-    service: 'What we build',
     variant: 'Format',
-    addons: 'Extras',
-    total: 'Cost',
-    term: 'Timeline',
-    note: 'The price is exact for the selected options. We fix it in the quote when you confirm. Domain, hosting and paid third-party services are not included.',
-    cta: 'Build a project',
     catalog: {
       websites: {
         variants: {
@@ -2609,12 +2600,12 @@ const en: Dict = {
     included: "What's included",
     variants: 'Formats and prices',
     fits: 'Good fit for',
-    faq: 'Questions',
     others: 'Other services',
     term: 'Timeline',
-    estimate: 'Build a project',
     calc: 'Build a project',
     calcLabel: 'Build a project:',
+    priceTitle: 'Price and payment',
+    priceSub: 'The price comes from the project builder. Paid in stages, each stage before it starts.',
     steps: 'How the work goes',
     concepts: 'What it could look like',
     conceptsSub:
@@ -2660,27 +2651,13 @@ const en: Dict = {
         'Construction and renovation',
         'Shops and manufacturers',
       ],
-      faq: [
-        {
-          q: "What's the difference between a landing page and a company website?",
-          a: 'A landing page is one page built for one action, such as an enquiry. A company website has several sections: services, prices, about, contacts.',
-        },
-        {
-          q: 'Who hosts the website?',
-          a: 'We do the setup. We help you buy the domain and hosting in your name and configure everything. The domain, hosting and paid third-party services are not in the price of the site, the client pays for them directly, and their prices vary.',
-        },
-        {
-          q: 'Can I add pages later?',
-          a: 'Yes. We build the site so it can grow without a rebuild.',
-        },
-      ],
     },
     bots: {
-      metaTitle: 'Telegram bot development from {price} | Fir Tech',
+      metaTitle: 'Agents in Telegram from {price} | Fir Tech',
       metaDescription:
-        'Telegram bots for bookings, orders and customer questions, Telegram Mini Apps, in-bot payments and AI answers. From {price}, from 3 days.',
-      title: 'A Telegram bot that works for you',
-      sub: 'Takes orders, books clients and answers common questions around the clock. A simple bot is ready in 3-5 days.',
+        'Agents in Telegram for bookings, orders and customer questions, Telegram Mini Apps, in-chat payments and AI answers. From {price}, from 3 days.',
+      title: 'An agent in Telegram that works for you',
+      sub: 'Takes orders, books clients and answers common questions around the clock. The first agent is ready in 3-5 days.',
       included: [
         'A conversation flow designed for your business',
         'Buttons and menus that are clear at first glance',
@@ -2712,20 +2689,6 @@ const en: Dict = {
         'Food orders and delivery',
         'Shops inside Telegram',
         'Customer support',
-      ],
-      faq: [
-        {
-          q: 'What is a Telegram Mini App?',
-          a: 'A full app inside Telegram: catalogue, cart, payment. Clients do not need to download anything.',
-        },
-        {
-          q: 'Can the bot reply on its own, like a person?',
-          a: 'Yes, with AI replies. The bot answers from your materials (price list, terms, FAQ) politely and to the point. What is not in the materials it does not invent, it passes the question to you.',
-        },
-        {
-          q: 'How much does it cost to run a bot?',
-          a: 'Usually a few dollars a month for the server. With AI, there is also a per-request cost, which we estimate up front.',
-        },
       ],
     },
     apps: {
@@ -2766,20 +2729,6 @@ const en: Dict = {
         'Order and stock tracking',
         'Apps for your staff',
       ],
-      faq: [
-        {
-          q: "What's the difference between a web app and a mobile app?",
-          a: 'A web app opens in the browser and installs on a phone without an app store. It is cheaper and faster to build. A mobile app is published in the App Store and Google Play.',
-        },
-        {
-          q: 'What is a minimal version?',
-          a: 'An app with only the core features. It launches sooner, you test it with real clients, then keep improving it.',
-        },
-        {
-          q: 'Who owns the code?',
-          a: 'You do. We hand over the source code and all access.',
-        },
-      ],
     },
     automation: {
       metaTitle: 'Business automation and AI assistants from {price} | Fir Tech',
@@ -2818,20 +2767,6 @@ const en: Dict = {
         'Booking-based services',
         'Online stores',
         'Businesses with manual reporting',
-      ],
-      faq: [
-        {
-          q: 'Which tools do you work with?',
-          a: 'Telegram, WhatsApp, Google Sheets, amoCRM, Bitrix24, 1C and any service with an API. If unsure, ask on the call.',
-        },
-        {
-          q: 'What can the AI assistant do?',
-          a: 'Answer clients using your materials, help staff find information and sort incoming requests.',
-        },
-        {
-          q: 'How do I know what to automate?',
-          a: 'Start with what your team does by hand every day. On the free call we point out what will make the biggest difference.',
-        },
       ],
     },
   },

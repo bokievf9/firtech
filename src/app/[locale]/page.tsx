@@ -69,7 +69,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     proof: <Proof dict={dict} />,
     solutions: <SolutionsHome dict={dict} locale={locale} />,
     process: <WorkTimeline dict={dict} locale={locale} />,
-    pricing: <PricingSection dict={dict} locale={locale} teaser />,
+    pricing: <PricingSection dict={dict} locale={locale} />,
     faq: <FaqContact dict={dict} locale={locale} />,
     footer: null,
   }

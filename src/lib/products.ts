@@ -8,7 +8,7 @@ import { productIds, type ProductId } from './product-ids'
 export type AgentPlanId = 'dono' | 'polly'
 
 export type ProductPrice =
-  // A starting price taken from pricing.ts (the calculator's own numbers).
+  // A starting price taken from pricing.ts (the builder's own numbers).
   | { kind: 'from'; from: number }
   // Setup plus a subscription per plan.
   | { kind: 'plans'; plans: readonly Plan[] }
@@ -32,7 +32,7 @@ export function productBuild(id: ProductId): Build {
 }
 
 // Prices only from the live pricing (pricing.ts defaults + the owner's overrides), the same way the
-// builder counts them: a priced catalogue product costs what its parts cost in the calculator
+// builder counts them: a priced catalogue product costs what its parts cost in the builder
 // (quote()), so the card and the opened builder show the same number. Unpriced ones say «по смете»;
 // the personal agent and the content subscription show the approved plans (setup + monthly) and stay
 // «по смете» inside the builder.

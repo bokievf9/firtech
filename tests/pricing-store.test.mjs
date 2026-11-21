@@ -401,8 +401,8 @@ test('no component or page computes with the default price constants; client cod
     }
   }
   assert.deepEqual(offenders, [])
-  // The seven client components of the calculators take the live pricing from the provider.
-  for (const f of ['builder', 'builder-brief', 'builder-steps', 'builder-summary', 'estimator', 'service-concepts', 'estimate-gate', 'estimate-sheet'])
+  // The client components of the builder take the live pricing from the provider.
+  for (const f of ['builder', 'builder-brief', 'builder-steps', 'builder-summary', 'service-concepts', 'estimate-gate', 'estimate-sheet'])
     assert.match(readFileSync(`src/components/${f}.tsx`, 'utf8'), /usePricing\(\)/, f)
   assert.match(readFileSync('src/app/[locale]/layout.tsx', 'utf8'), /<PricingProvider pricing=\{pricing\}>/)
   assert.match(readFileSync('src/app/[locale]/layout.tsx', 'utf8'), /export const revalidate = 300/)

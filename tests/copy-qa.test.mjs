@@ -217,7 +217,7 @@ test('copy-qa: one set of product names, no old names, only the three CTAs for t
   assert.equal(ru.nav.ask, 'Спросить агента')
   assert.equal(ru.nav.builder, 'Сборка проекта')
   for (const [locale, dict] of [['ru', ru], ['en', en]]) {
-    for (const at of ['hero.primary', 'hero.chatCta', 'products.build', 'products.discuss', 'extras.discuss', 'showcase.cta', 'payHow.ctaBuilder', 'comparePage.ctaBuilder', 'referral.ctaBuilder', 'servicePage.conceptCta', 'servicePage.estimate'])
+    for (const at of ['hero.primary', 'hero.chatCta', 'products.build', 'products.discuss', 'extras.discuss', 'showcase.cta', 'payHow.ctaBuilder', 'comparePage.ctaBuilder', 'referral.ctaBuilder', 'servicePage.conceptCta', 'servicePage.calc'])
       assert.ok([dict.nav.cta, dict.nav.ask].includes(at.split('.').reduce((o, k) => o[k], dict)), `${locale} ${at}`)
   }
 })

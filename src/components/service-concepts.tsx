@@ -13,7 +13,7 @@ import { CafeDemo, DeliveryDemo, SalesDemo, SalonDemo } from './showcase-demos'
 
 type CaseId = keyof Dict['showcase']['items']
 
-// The home showcase concepts that belong to one service page. Same calculator inputs as the home
+// The home showcase concepts that belong to one service page. Same builder inputs as the home
 // showcase (src/components/showcase.tsx), so the price always matches `estimate()`. The Mini App
 // is a bot under the hood, but it is the "app" a visitor of the apps page is most likely to want.
 const cases: Record<CaseId, { service: ServiceSlug; variant: string; addons: string[] }> = {

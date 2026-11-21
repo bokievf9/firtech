@@ -341,8 +341,13 @@ test('demo booking: a full dialogue walks service, master, time, reminder, revie
 })
 
 test('leftovers 2026-11-22: the home has no estimator, the cabinet stub points to the builder, the chat button hides on scroll', () => {
-  const pricing = read('src/components/pricing-section.tsx')
-  assert.match(pricing, /\{!teaser && \(/, 'the estimator is not rendered on the home page')
+  assert.ok(!existsSync('src/components/estimator.tsx'), 'the estimator component is deleted')
+  assert.doesNotMatch(read('src/components/pricing-section.tsx'), /Estimator/)
+  const service = read('src/app/[locale]/services/[slug]/page.tsx')
+  assert.doesNotMatch(service, /Estimator|PricingSection|ContactSection|FaqSection/, 'service pages have no estimator, FAQ or contact section')
+  assert.match(service, /StageTable/)
+  assert.match(service, /ChatOpenButton/)
+  assert.doesNotMatch(read('src/components/service-variants.tsx'), /pickInCalculator|firtech:pick/)
   assert.doesNotMatch(read('src/components/cabinet/cabinet-soon.tsx'), /#contact|homeAnchor/)
   assert.match(read('src/components/cabinet/cabinet-soon.tsx'), /\/builder/)
   const widget = read('src/components/chat/chat-widget.tsx')

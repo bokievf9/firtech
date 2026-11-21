@@ -1,35 +1,26 @@
-'use client'
-
-import { Calculator, Clock } from '@phosphor-icons/react'
-import { pickInCalculator } from '@/lib/estimate-event'
+import { Calculator, Clock } from '@phosphor-icons/react/ssr'
+import Link from 'next/link'
+import { encodeBuild } from '@/lib/builder'
 import { formatUsd } from '@/lib/pricing'
 import type { ServiceSlug } from '@/lib/site'
-import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { Reveal } from './reveal'
 import { SpotlightCard } from './spotlight-card'
 
 type Variant = { id: string; name: string; term: string; price: number }
 
-// Formats of one service as spotlight cards. "Estimate" opens the calculator below with that
-// format picked (through a window event the calculator listens to).
+// Formats of one service as spotlight cards. «Собрать проект» opens the builder with that format
+// already picked (`?b=<service>.<format>`).
 export function ServiceVariants({
   service,
   items,
+  locale,
   labels,
 }: {
   service: ServiceSlug
   items: Variant[]
+  locale: string
   labels: { term: string; from: string; calc: string; calcLabel: string }
 }) {
-  const reduce = useReducedMotion()
-
-  function openCalculator(variant: string) {
-    pickInCalculator({ service, variant })
-    document
-      .getElementById('pricing')
-      ?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
-  }
-
   return (
     <div className="mt-12 grid gap-4 lg:grid-cols-3">
       {items.map((v, i) => (
@@ -51,15 +42,15 @@ export function ServiceVariants({
               {formatUsd(v.price)}
             </p>
             <span className="min-h-6 flex-1 md:min-h-8" aria-hidden="true" />
-            <button
-              type="button"
-              onClick={() => openCalculator(v.id)}
+            <Link
+              href={`/${locale}/builder?b=${encodeBuild({ parts: { [service]: { variant: v.id, addons: [] } }, extras: [] })}`}
+              data-cta={`service_${service}_${v.id}`}
               aria-label={`${labels.calcLabel} ${v.name}`}
               className="inline-flex w-fit items-center gap-2 rounded-full border border-line-strong px-4 py-2 text-sm font-medium transition-[border-color,background-color,color] duration-300 group-hover:border-accent-text/60 hover:bg-accent hover:text-accent-ink active:scale-[0.98]"
             >
-              <Calculator size={16} />
+              <Calculator size={16} aria-hidden="true" />
               {labels.calc}
-            </button>
+            </Link>
           </SpotlightCard>
         </Reveal>
       ))}

@@ -47,7 +47,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   and «Спросить агента», third item the link to `/ai-team`, then the guarantee and the 5-minute line), products (`#products`: seven
   cards each with «Подробнее» to `/[locale]/products/[id]`, the ladder `#levels`, the departments strip), demo (`#demo` «Попробуйте
   сейчас», tabs, `components/demo/`), proof, solutions (`#solutions`: salon, clinic, shop on the first row, three niches per catalogue
-  category, «Ещё» expands), process (`#process`, short, links to `/how-we-work`), pricing (builder teaser and payment line only, the estimator is gone from the home page; service pages keep it), faq (`#faq`: the only FAQ, with the «Остались вопросы? Спросите агента» strip), footer.
+  category, «Ещё» expands), process (`#process`, short, links to `/how-we-work`), pricing (builder teaser and payment line only; the estimator is gone everywhere), faq (`#faq`: the only FAQ, with the «Остались вопросы? Спросите агента» strip), footer.
   **Product pages** `/[locale]/products/[id]` (`productPage` dictionary section, `lib/product-page.ts`, `components/products/
   capability-mock.tsx`): what it does as a list with a one-line example and a small CSS mock, first day/week/month, what we need,
   what it does not do, the live price (`ProductPriceTag`) and the stage table of the product's template (`productPayment`,
@@ -139,10 +139,14 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `/agent/demo-<niche>/chat`, 20 per IP per 10 minutes, scripted lines when HQ is unreachable), playground window, department
   scheme, Mini App phone, content plan, process flow; «Отправить проект» still hands the lead to the contact form (sign-in gate).
   Tests: `tests/builder-v2.test.mjs`, `tests/e2e/builder-v2.spec.ts` (`SBORKA_SHOTS=<dir>` saves a screenshot of every step).
-- Service pages (`services/[slug]`): hero with the service's live miniature, included, formats
-  (`ServiceVariants`; "Estimate" picks the format in the calculator via `pickInCalculator`), steps
-  (`Process` with `serviceDetails.<slug>.steps`), concepts (`ServiceConcepts`, labelled as
-  concepts), pricing, FAQ, contact, other services.
+- Service pages (`services/[slug]`): hero with the service's live miniature (CTAs: «Собрать проект» to the builder with the
+  service's product, `p.site` / `p.bot` / `p.app` / `p.automation`, then «Спросить агента» opens the chat), included, formats
+  (`ServiceVariants`: «Собрать проект» on a format card is a link to `?b=<service>.<format>`), steps (`Process` with
+  `serviceDetails.<slug>.steps`), concepts (`ServiceConcepts`, labelled as concepts), `#pricing` (live «от $» from
+  `getPricing().startingPrice` plus the `StageTable` of the service's template, then the same two CTAs), other services.
+  No estimator, no FAQ, no contact section (owner 2026-11-22; the only FAQ is on the home page). `Estimator`,
+  `pickInCalculator` and the `estimator` copy are deleted; `dict.estimator` now holds only the catalogue (`catalog`, `variant`)
+  that the builder reads. `/services/bots` is titled «Агенты в Telegram» (the word «бот» stays only as the channel in body copy).
 - Solutions (`/[locale]/solutions`, `/[locale]/solutions/[kind]`, kinds in `src/lib/solutions.ts` =
   builder `businessKinds` without `other`; `allSolutionKinds`, copy via `solutionCopy`, the footer lists only the original five): niche pages for search built on `presets[kind]`
   (price from `quote()`, CTA opens the builder with that preset, mockup `BuilderPreview` labelled

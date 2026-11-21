@@ -66,7 +66,7 @@ Legend of `E:` tags (file : test title):
 | `E:chat-open` | flows.spec : «chat opens from the hero button and from the #demo link» |
 | `E:chat-enter` | flows.spec : «chat: Enter sends right after opening (queued behind the greeting), Shift+Enter makes a new line» |
 | `E:chat-api` | flows.spec : «chat API: validation (400) and mock answer (200)» |
-| `E:service` | flows.spec : «service page: «Посчитать» picks the format in the calculator» |
+| `E:service` | flows.spec : «service page: the format link «Собрать проект: …» opens the builder with that format» |
 | `E:solution` | flows.spec : «solution page opens the builder with its preset» |
 | `E:adm-login` | admin.spec : «admin login page renders the code form for a visitor without a session» |
 | `E:adm-guard` | admin.spec : «admin pages and API refuse a visitor without a session» |
@@ -142,7 +142,6 @@ Legend of `E:` tags (file : test title):
 | pricing `#pricing` | «Условия гарантии» | terms anchor | `/{locale}/terms#terms-guarantee` | none | untested |
 | pricing | «Почему дешевле агентства» | compare | `/{locale}/compare` | `E:matrix` (page renders) | untested (click) |
 | pricing | «Открыть конструктор» | builder | `/{locale}/builder` | none | untested |
-| pricing | calculator: 4 service tabs, variant radios (Лендинг, Сайт компании, Интернет-магазин), extras (Второй язык, Заявки в Telegram, Онлайн-оплата, Панель для правок) | live price from `pricing.ts`, hand-off to the contact form | `firtech:estimate` event | `U:logic`, `U:builder` (prices), `E:service` (variant pick) | pass (variant), untested (extras clicks) |
 | pricing (home) | «Собрать проект» (builder teaser); the estimator block is removed from the home page | builder | `/builder` | none | untested |
 | demo | 7 tabs (receptionist, admin, automation, content, Mini App, assistant, department); automation, Mini App and assistant are «Пример» | tab panels | none | `U:front-v3` | untested (click) |
 | chat button | hides on scroll down, back on scroll up or after 1.5 s; on `/builder` and `/cabinet` hidden until the last step or 8 s idle | opens the chat | none | `U:front-v3` | screenshots 390 px |
@@ -202,11 +201,10 @@ Legend of `E:` tags (file : test title):
 | estimate | «Сохранить как PDF» | `window.print()` | print dialog | `E:estimate` (button visible) | pass (visible), untested (print dialog) |
 | estimate | «Назад в конструктор», build link | back to the build | `/{locale}/builder?b=` | `E:estimate` (link present) | pass |
 | estimate | `noindex` | robots meta | - | `E:estimate` | pass |
-| services (4) | hero CTA «Обсудить проект» | contact | `#contact` | `E:matrix` | untested (click) |
-| services | «Рассчитать точнее» | scrolls to the calculator | `#pricing` | `E:matrix` | untested (click) |
-| services | «Посчитать в калькуляторе: <format>» | picks the format in the calculator | `firtech:pick` event | `E:service` | pass |
-| services | «Хочу так же» (concepts) | contact | `#contact` | none | untested |
-| services | service FAQ | expand | - | `E:faq` (home FAQ, same component) | pass |
+| services (4) | hero «Собрать проект» | builder with the service product (`p.site`, `p.bot`, `p.app`, `p.automation`) | `/{locale}/builder?b=` | `U:front-v3` | untested (click) |
+| services | hero and price block «Спросить агента» | opens the chat (`service_<slug>`), falls back to `#pricing` | chat event | `U:front-v3` | untested (click) |
+| services | «Собрать проект: <format>» (format cards) | builder with that format picked | `/{locale}/builder?b=<service>.<format>` | `E:service` | pass |
+| services | «Собрать проект» (concepts) | builder | `/{locale}/builder` | none | untested |
 | services | «Нужно несколько услуг сразу?» | builder | `/{locale}/builder` | none | untested |
 | solutions list | 56 niche cards | niche pages | `/{locale}/solutions/<kind>` | `E:matrix` (list), `U:solutions` | pass |
 | solution `<kind>` | «Собрать такой проект» | builder with the preset | `/{locale}/builder?b=...k.<kind>` | `E:solution`, `U:solutions` | pass |

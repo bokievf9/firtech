@@ -12,12 +12,12 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { BotChatDemo } from '@/components/bot-chat-demo'
 import { HeroIntro } from '@/components/hero-intro'
 import { HeroStage } from '@/components/hero-stage'
 import { JsonLd } from '@/components/json-ld'
 import { Magnetic } from '@/components/magnetic'
-import { PricingSection } from '@/components/pricing-section'
 import { Process } from '@/components/process'
 import { Reveal } from '@/components/reveal'
 import { RiseText } from '@/components/rise-text'
@@ -25,8 +25,11 @@ import { ServiceConcepts } from '@/components/service-concepts'
 import { ServiceVariants } from '@/components/service-variants'
 import { FlowChain, PhoneFan, SiteAssembly } from '@/components/service-visuals'
 import { SpotlightCard } from '@/components/spotlight-card'
+import { StageTable } from '@/components/stage-table'
 import { getDict, type Dict } from '@/content'
 import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
+import { emptyBuild, encodeBuild, toggleProduct, type ProductId } from '@/lib/builder'
+import { stagesFor } from '@/lib/payment-stages'
 import { isLocale, locales } from '@/lib/i18n'
 import { formatUsd, type Pricing } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
@@ -68,6 +71,15 @@ export async function generateMetadata({
   }
 }
 
+// The catalogue product each service starts from (`p.<id>` in the builder link) and its stage template.
+const serviceProduct: Record<ServiceSlug, ProductId> = {
+  websites: 'site',
+  bots: 'bot',
+  apps: 'app',
+  automation: 'automation',
+}
+const serviceTemplate = { websites: 'site', bots: 'bot', apps: 'app', automation: 'automation' } as const
+
 const icons = { websites: Browser, bots: TelegramLogo, apps: DeviceMobile, automation: Lightning }
 
 const sectionTitle = 'text-4xl font-semibold tracking-[-0.035em] md:text-6xl'
@@ -84,6 +96,13 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
   >
   const pricing = await getPricing()
   const prices = pricing.catalog[slug].variants
+  const buildHref = `/${locale}/builder?b=${encodeBuild(toggleProduct(emptyBuild, serviceProduct[slug]))}`
+  const startPrice = pricing.startingPrice[slug]
+  const stages = stagesFor(
+    startPrice < pricing.smallProjectMaxUsd ? 'small' : serviceTemplate[slug],
+    startPrice,
+    pricing,
+  )
 
   const service = {
     '@context': 'https://schema.org',
@@ -133,7 +152,8 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                 <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Magnetic>
                     <Link
-                      href={`/${locale}/builder`}
+                      href={buildHref}
+                      data-cta={`service_${slug}_build`}
                       className={cn(buttonStyles.primary, 'group w-full sm:w-auto')}
                     >
                       {dict.nav.cta}
@@ -143,9 +163,9 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                       />
                     </Link>
                   </Magnetic>
-                  <Link href="#pricing" className={buttonStyles.secondary}>
-                    {t.estimate}
-                  </Link>
+                  <ChatOpenButton source={`service_${slug}`} fallbackHref="#pricing" className={buttonStyles.secondary}>
+                    {dict.nav.ask}
+                  </ChatOpenButton>
                 </div>
               </HeroIntro>
             </>
@@ -204,6 +224,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
             term: v.term,
             price: prices[id] ?? 0,
           }))}
+          locale={locale}
           labels={{ term: t.term, from: dict.services.from, calc: t.calc, calcLabel: t.calcLabel }}
         />
       </section>
@@ -222,7 +243,41 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
         </div>
       </section>
 
-      <PricingSection dict={dict} locale={locale} initialService={slug} />
+      <section id="pricing" className="mx-auto max-w-7xl px-4 py-section md:px-8" aria-labelledby="service-price">
+        <Reveal>
+          <h2 id="service-price" className="font-display text-title font-semibold">
+            {t.priceTitle}
+          </h2>
+          <p className="mt-5 max-w-[56ch] text-lead text-muted">{t.priceSub}</p>
+        </Reveal>
+        <Reveal delay={0.08} className="mt-10">
+          <div className="rounded-card border border-line bg-surface p-6 md:p-8">
+            <p className="font-mono text-sm text-muted">
+              {dict.services.from} <span className="text-3xl text-accent-text">{formatUsd(startPrice)}</span>
+            </p>
+            {stages.length > 0 && (
+              <div className="mt-8">
+                <StageTable
+                  stages={stages}
+                  dict={dict}
+                  locale={locale}
+                  title={dict.productPage.stageTitle}
+                  note={dict.productPage.stageNote}
+                />
+              </div>
+            )}
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href={buildHref} data-cta={`service_${slug}_price_build`} className={cn(buttonStyles.primary, 'group')}>
+                {dict.nav.cta}
+                <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+              <ChatOpenButton source={`service_${slug}_price`} fallbackHref="#pricing" className={buttonStyles.secondary}>
+                {dict.nav.ask}
+              </ChatOpenButton>
+            </div>
+          </div>
+        </Reveal>
+      </section>
 
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8 md:pb-32" aria-label={t.others}>
         <RiseText
