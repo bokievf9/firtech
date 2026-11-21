@@ -3231,9 +3231,9 @@ const en: Dict = {
     nav: 'A team of AI agents',
     metaTitle: 'A team of AI agents for your business | Fir Tech',
     metaDescription:
-      'A marketing, sales or support team, or a whole company of AI agents on your own bots. Agents prepare the work, you approve in Telegram. Priced by quote.',
+      'A marketing, sales or support team, or a whole company of AI agents in your own Telegram. Agents prepare, you approve with a button. Price by quote.',
     eyebrow: 'A team of AI agents',
-    title: 'A team of agents instead of new hires',
+    title: 'A team of AI agents: they prepare, you decide',
     sub: 'Agents prepare the work, you approve it in Telegram. Take one department or the whole company.',
     ctaBuild: 'Build a project',
     ctaChat: 'Ask an agent',
@@ -3246,7 +3246,7 @@ const en: Dict = {
         { title: 'The agent acts', text: 'It publishes, sends and reports back to you.' },
       ],
     },
-    deptsTitle: 'Six ways to start',
+    deptsTitle: 'Teams and the whole company',
     deptsSub: 'Each department works on its own. When you need the whole set, take the company.',
     forWhom: 'Who it is for',
     inside: 'What is inside',
@@ -3266,10 +3266,10 @@ const en: Dict = {
       },
       {
         title: 'Trust grows step by step',
-        text: 'A new task starts at the level where you decide. After a run of approvals without edits it can move to working alone. Money, prices and contracts always stay with you.',
+        text: 'A new task first goes through your approval. When there are no edits for a long time it can move to working alone, but only by your decision. Money, prices and contracts always stay with you.',
       },
       {
-        title: 'The control panel shows everything',
+        title: 'The control panel shows who is doing what',
         text: 'An owner panel: who is doing what, the approval queue and the daily summary.',
       },
     ],
@@ -3280,7 +3280,7 @@ const en: Dict = {
     },
     proof: {
       title: 'What a working company looks like',
-      sub: 'This is our own office, not yours. The same HQ we set up for clients runs Fir Tech.',
+      sub: 'This is our own office. The same HQ that we deploy for clients runs Fir Tech.',
       label: 'This is our own office',
       note: 'We show counters only. No names, tasks or client data on the site.',
     },
@@ -3292,7 +3292,7 @@ const en: Dict = {
       needsTitle: 'What we need from you',
       deliveryTitle: 'Delivery',
       delivery:
-        'We deploy a separate HQ instance on your bots and your keys. Timing and scope go into the quote.',
+        'We deploy a separate HQ instance with your Telegram group and your access keys. Timing and scope go into the quote.',
       scopeNote:
         'The scope follows the roles in our own company. What exactly goes into your delivery is fixed in the quote.',
       faqTitle: 'Questions',
@@ -3398,10 +3398,10 @@ const en: Dict = {
         },
         publisher: {
           title: 'Publisher',
-          promise: 'Schedules ready materials and posts them in your channels after you approve.',
+          promise: 'Puts ready materials on a schedule and publishes after your approval: YouTube Shorts by itself, other platforms through a posting queue.',
           does: [
             'Builds the publishing schedule',
-            'Posts to Telegram, Instagram, YouTube Shorts and VK',
+            'Uploads YouTube Shorts itself and prepares the posts for other platforms',
             'Reports what went out and when',
             'Moves a post when you ask',
           ],
@@ -3416,7 +3416,7 @@ const en: Dict = {
           faq: [
             {
               q: 'Which channels can be connected?',
-              a: 'Telegram, Instagram, YouTube Shorts and VK. The exact list for you goes into the quote.',
+              a: 'YouTube Shorts are uploaded automatically. Instagram, Telegram and other platforms go through a posting queue: the agent prepares the post, and publishing depends on the access the platform gives. We do not connect VK yet. What works for you is written in the quote.',
             },
             {
               q: 'Where does the content come from?',
@@ -3428,7 +3428,7 @@ const en: Dict = {
             },
           ],
           metaTitle: 'Publisher: an AI agent for social media posting | Fir Tech',
-          metaDescription: 'The Publisher AI agent keeps the schedule and posts your content to Telegram, Instagram, YouTube Shorts and VK after approval. Priced by quote.',
+          metaDescription: 'The Publisher AI agent keeps the schedule: it uploads YouTube Shorts itself and queues other platforms, all after your approval. Price by quote.',
         },
         analyst: {
           title: 'Analyst',
@@ -3450,7 +3450,7 @@ const en: Dict = {
           faq: [
             {
               q: 'Which numbers does it see?',
-              a: 'The ones you give access to: channel and site statistics and the list of leads. Nothing else.',
+              a: 'Those you give access to. Today the agent reads YouTube statistics and the list of requests. We connect Instagram and site statistics when the platform gives official access, and the quote says so.',
             },
             {
               q: 'Do I need other agents?',
@@ -3509,17 +3509,17 @@ const en: Dict = {
             'Nudges the people who went quiet',
           ],
           needs: [
-            'A bot or account where customers write',
+            'An account or chat where customers write',
             'A description of your services and answers to common questions',
             'Your working slots for calls',
           ],
-          worksNote: 'The lead card can go to the presales agent, who builds the proposal. Without it the card comes to you.',
+          worksNote: 'This is the same agent as the product AI lead manager. The lead card can go to the presales agent, who builds the proposal. Without it the card comes to you.',
           alone: 'Holds the conversation with the customer and reports to you.',
           waits: 'Prices, discounts and promises about deadlines stay with you.',
           faq: [
             {
               q: 'Does the agent quote prices to customers?',
-              a: 'No. Prices, quotes and contracts always sit at the level where you decide.',
+              a: 'No. You decide prices, quotes and contracts, and the agent waits for your answer.',
             },
             {
               q: 'What if the agent does not know the answer?',
@@ -3671,15 +3671,15 @@ const en: Dict = {
         },
         monitoring: {
           title: 'Monitoring',
-          promise: 'Watches that your sites and bots keep working and sends an alert the moment something fails.',
+          promise: 'Watches that your sites and services keep working and sends an alert the moment something fails.',
           does: [
-            'Checks the availability of sites and bots from a list',
+            'Checks the availability of sites and services from a list',
             'Notices errors in how they run',
             'Sends an alert to Telegram',
             'Reports when the service is back',
           ],
           needs: [
-            'A list of site and bot addresses',
+            'A list of site and service addresses',
             'A Telegram chat for alerts',
             'Who should be told when something fails',
           ],
@@ -3693,15 +3693,15 @@ const en: Dict = {
             },
             {
               q: 'What can be checked?',
-              a: 'Sites and bots from a list of addresses. The exact scope goes into the quote.',
+              a: 'Sites and services that have an address to check. The exact scope goes into the quote.',
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of sites and bots.',
+              a: 'We quote the price after a short call. It depends on the number of sites and services.',
             },
           ],
           metaTitle: 'Monitoring: an AI agent that watches your sites | Fir Tech',
-          metaDescription: 'The Monitoring AI agent checks that your sites and bots are available and sends a Telegram alert the moment something fails. Available on its own.',
+          metaDescription: 'The Monitoring AI agent checks that your sites and services are up and sends a Telegram alert the moment something fails. Can be taken alone. Price by quote.',
         },
         billing: {
           title: 'Billing',
@@ -3723,7 +3723,7 @@ const en: Dict = {
           faq: [
             {
               q: 'Do invoices go out by themselves?',
-              a: 'The agent prepares the invoice and the reminder, and you approve. Amounts and money always stay on your side.',
+              a: 'The agent prepares the invoice and the reminder, and you approve. Amounts and money stay on your side.',
             },
             {
               q: 'Do I need a payment system?',
@@ -3943,7 +3943,7 @@ const en: Dict = {
         },
         director: {
           title: 'Director: the managing agent',
-          promise: 'The one bot you talk to: hands tasks to the departments and collects the approvals and the morning summary.',
+          promise: 'The one agent you talk to: hands tasks to the departments and collects the approvals and the morning summary.',
           does: [
             'Takes your tasks in one chat',
             'Hands them to the department heads',
@@ -3952,7 +3952,7 @@ const en: Dict = {
           ],
           needs: [
             'At least one department or a few agents',
-            'The Director Telegram bot (we create it together)',
+            'The Director chat in Telegram (we create it together)',
             'Rules: what only you decide',
           ],
           worksNote: 'The Director needs at least one department. Without working agents there is nothing to assign. It plugs into what already runs.',
@@ -3982,15 +3982,15 @@ const en: Dict = {
         title: 'Marketing team',
         card: 'Content and the weekly plan are ready, you only approve.',
         promise:
-          'Agents look for topics, make reels, carousels and articles, publish and count the numbers. You decide.',
+          'Agents find topics, make reels, carousels and articles, prepare publishing and count the numbers. The decision is yours.',
         forWhom: 'Small businesses and studios without a marketer or time for regular content.',
         metaTitle: 'A marketing team of AI agents | Fir Tech',
         metaDescription:
-          'Trend scout, content maker, publisher and analyst: reels, carousels, articles and a weekly plan. You approve in Telegram. Priced by quote, on your own bots.',
+          'Trend scout, content maker, publisher and analyst: reels, carousels, articles and a weekly plan. You approve in Telegram. Price by quote, in your Telegram.',
         agents: [
           { name: 'Trend Scout', does: 'Collects rising topics and formats from social networks and search every day for the content maker.', trust: 'auto' },
           { name: 'Content Maker', does: 'Makes reels, carousels and articles from topics and trends in the languages you need.', trust: 'propose' },
-          { name: 'Publisher', does: 'Schedules the finished material and publishes to your channels after approval.', trust: 'propose' },
+          { name: 'Publisher', does: 'Puts finished material on a schedule: uploads YouTube Shorts itself and queues the rest for posting.', trust: 'propose' },
           { name: 'Analyst', does: 'Collects channel and lead numbers and sends a weekly report with a plan for the week.', trust: 'auto' },
         ],
         routines: [
@@ -4001,13 +4001,13 @@ const en: Dict = {
         how: 'The content maker sends material in a batch. You press approve, edit or reject. The publisher goes live after your yes, and once the quality suits you, some tasks can move to working alone.',
         needs: [
           'Access to the channels you choose: Instagram, Telegram, YouTube or others',
-          'A Telegram bot for talking to the team (we create it together)',
+          'A Telegram chat or group for talking to the team (we create it together)',
           'A description of the business, examples of posts you like and a list of topics to avoid',
           'Access keys for the AI model and services that you pay for',
         ],
         faq: [
-          { q: 'Do the agents publish without my permission?', a: 'Not by default. The content maker and the publisher work at the level where you approve each batch. Working alone is switched on only by your decision.' },
-          { q: 'Which channels can be connected?', a: 'Telegram, Instagram, YouTube Shorts and VK. The exact list for your team goes into the quote.' },
+          { q: 'Do the agents publish without my permission?', a: 'Not by default. The content maker and the publisher send each batch to you for approval. Working alone is switched on only by your decision.' },
+          { q: 'Which channels can be connected?', a: 'YouTube Shorts are uploaded automatically. Instagram, Telegram and other platforms go through a posting queue, and publishing depends on the access the platform gives. We do not connect VK yet. The exact list for your team is fixed in the quote.' },
           { q: 'Do agents make video too?', a: 'Reels are part of the scope. Complex videos are built by our developers as a separate task, and the quote says so.' },
           { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the team and the number of channels.' },
         ],
@@ -4020,7 +4020,7 @@ const en: Dict = {
         forWhom: 'Service businesses and shops where requests arrive in messengers and some get lost.',
         metaTitle: 'A sales team of AI agents | Fir Tech',
         metaDescription:
-          'Lead handler, prospector, proposals and estimates, follow-ups to clients who went quiet. Prices and contracts stay with you. Priced by quote, on your own bots.',
+          'Lead handler, prospector, proposals and quotes, nudges for silent clients. Prices and contracts stay with you. Price by quote, delivered in your Telegram.',
         agents: [
           { name: 'Lead Handler', does: 'Answers the first message, asks clarifying questions, offers a call slot and creates the lead card. Nudges those who went quiet.', trust: 'both' },
           { name: 'Prospector', does: 'Collects suitable businesses in the niches and cities you choose and prepares a personal offer.', trust: 'propose' },
@@ -4033,13 +4033,13 @@ const en: Dict = {
         ],
         how: 'The agent handles the first reply and the clarifying questions itself and reports back. Prices, estimates and contracts it only prepares: the decision and the button stay with you.',
         needs: [
-          'A bot or messenger account where clients write',
+          'A messenger account or chat where clients write',
           'A price list, a description of services and answers to common questions',
           'Your working slots for calls',
           'Niches and cities for prospecting, if you need it',
         ],
         faq: [
-          { q: 'Does the agent quote prices to clients?', a: 'No. Prices, estimates and contracts always stay at the level where you decide. The agent prepares a draft and waits for approval.' },
+          { q: 'Does the agent quote prices to clients?', a: 'No. You decide prices, estimates and contracts. The agent prepares a draft and waits for approval.' },
           { q: 'Does the prospector write to people on its own?', a: 'It collects a list and prepares the offer text. Sending happens after your approval.' },
           { q: 'What if the agent does not know the answer?', a: 'The team can hand a question over to the owner. We agree with you at the start when that should happen.' },
           { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the channels and the volume of requests.' },
@@ -4049,33 +4049,33 @@ const en: Dict = {
         title: 'Support team',
         card: 'Tickets do not get lost, clients get answers from your own base.',
         promise:
-          'Agents answer from your base of replies, keep tickets on a clock, watch your sites and bots and prepare invoices.',
+          'Agents answer from your base of replies, keep tickets on a clock, watch your sites and services and prepare invoices.',
         forWhom: 'Companies with regular clients, subscriptions or project support.',
         metaTitle: 'A support team of AI agents | Fir Tech',
         metaDescription:
-          'Tickets, a base of answers, reply deadlines, monitoring, invoices and payment reminders. Agents prepare, you approve. Priced by quote, on your own bots.',
+          'Tickets, a base of answers, reply deadlines, monitoring, invoices and payment reminders. Agents prepare, you approve. Price by quote, in your Telegram.',
         agents: [
           { name: 'Customer Support', does: 'Answers questions from the base of replies, keeps tickets with reply deadlines (SLA) and passes hard cases to you.', trust: 'propose' },
-          { name: 'Monitoring', does: 'Watches your sites and bots and sends an alert when something breaks.', trust: 'auto' },
+          { name: 'Monitoring', does: 'Watches your sites and services and sends an alert when something breaks.', trust: 'auto' },
           { name: 'Billing', does: 'Prepares invoices and payment reminders for your subscriptions.', trust: 'propose' },
           { name: 'Onboarding', does: 'Collects a new client\'s access and walks them through the first week by your instructions.', trust: 'propose' },
         ],
         routines: [
           'Morning: a summary of tickets and reply deadlines',
-          'An alert when a site or a bot goes down',
+          'An alert when a site or a service goes down',
           'Payment reminders on the subscription schedule',
         ],
         how: 'The agent answers questions that are in the base from the base. When there is no answer, it opens a ticket and passes it to you. Invoices and reminders are prepared in advance and go out after your approval.',
         needs: [
-          'A support bot or a channel where clients ask questions',
+          'A channel where clients ask questions: a Telegram chat or a site chat',
           'Your answers to common questions, rules and policies',
-          'A list of sites and bots to watch',
+          'A list of sites and services to watch',
           'Subscription and invoice data in the sheet or service you use',
         ],
         faq: [
-          { q: 'Does the bot answer any question?', a: 'It answers from your base of replies. When the answer is not in the base, the agent opens a ticket and passes it to you.' },
+          { q: 'Does the agent answer any question?', a: 'It answers from your base of replies. When the answer is not in the base, the agent opens a ticket and passes it to you.' },
           { q: 'Where does the base of replies come from?', a: 'From your documents and conversations. We build it together at the start, and it grows as the team works.' },
-          { q: 'Do invoices go out on their own?', a: 'The agent prepares the invoice and the reminder, you approve. Amounts and money stay on your side.' },
+          { q: 'Do invoices go out on their own?', a: 'The agent prepares the invoice and the reminder, and you approve. Amounts and money stay on your side.' },
         ],
       },
       production: {
@@ -4086,7 +4086,7 @@ const en: Dict = {
         forWhom: 'Studios and teams that build projects to order and lose time on statuses and approvals.',
         metaTitle: 'A production team of AI agents: projects and stages | Fir Tech',
         metaDescription:
-          'A project manager runs briefs, stages and client statuses, a reviewer prepares remarks for acceptance. Doers work separately. Priced by quote, on your bots.',
+          'A project manager runs briefs, stages and client statuses, a reviewer prepares remarks for acceptance. Doers work separately. Priced by quote, in your Telegram.',
         agents: [
           { name: 'Project Manager', does: 'Builds the brief, the plan and the tasks from a signed proposal and sends the client a status for each stage.', trust: 'propose' },
           { name: 'Reviewer', does: 'Checks the result of a stage against a checklist and prepares remarks before hand-over.', trust: 'propose' },
@@ -4100,7 +4100,7 @@ const en: Dict = {
         needs: [
           'A proposal template or a description of how you take an order',
           'Access to the task tracker or sheet where the work is kept',
-          'A channel to clients: a bot or a work chat',
+          'A channel to clients: a Telegram chat or a work chat',
           'Acceptance rules: what counts as done',
         ],
         faq: [
@@ -4117,7 +4117,7 @@ const en: Dict = {
         forWhom: 'Owners whose paperwork piles up in personal folders and in their heads.',
         metaTitle: 'A back office of AI agents: documents and reports | Fir Tech',
         metaDescription:
-          'Documents from your templates, a knowledge base and monthly reports on costs and income. Signing and money stay with you. Priced by quote, on your own bots.',
+          'Documents from your templates, a knowledge base and monthly reports on costs and income. Signing and money stay with you. Priced by quote, in your Telegram.',
         agents: [
           { name: 'Documents', does: 'Prepares contracts, offers, policies and proposals from your templates.', trust: 'propose' },
           { name: 'Finance', does: 'Counts costs and income, watches limits and sends a monthly report.', trust: 'both' },
@@ -4143,15 +4143,15 @@ const en: Dict = {
       },
       company: {
         title: 'The whole company',
-        card: 'A Director, every team and a control panel. You talk to one bot.',
+        card: 'A Director, every team and a control panel. You talk to one agent.',
         promise:
           'The Director hands tasks to the teams and collects the approval queue. You run the company from one chat and one panel.',
         forWhom: 'An owner who wants to run a company from Telegram and not keep ten processes in mind.',
         metaTitle: 'A company of AI agents: the Director and every team | Fir Tech',
         metaDescription:
-          'A Director, marketing, sales, support, production and back office teams, a control panel and owner approvals. A separate HQ on your bots. Priced by quote.',
+          'A Director, marketing, sales, support, production and back office teams, a control panel and owner approvals. A separate HQ in your Telegram. Price by quote.',
         agents: [
-          { name: 'Director', does: 'The only bot you talk to. Hands tasks to the teams and collects the morning summary.', trust: 'auto' },
+          { name: 'Director', does: 'The only agent you talk to. Hands tasks to the teams and collects the morning summary.', trust: 'auto' },
           { name: 'Team heads', does: 'Each team has a head. It writes to you itself only with a summary, a batch for approval and alerts.', trust: 'auto' },
           { name: 'Doers', does: 'The roles of all five departments: trend scout, lead handler, support, project manager, documents and others.', trust: 'propose' },
           { name: 'Control panel', does: 'The owner panel: who is doing what, the approval queue, events and costs.', trust: 'auto' },
@@ -4163,14 +4163,14 @@ const en: Dict = {
         ],
         how: 'All teams work in one HQ. Approvals gather in one queue: Telegram for quick decisions, the panel for the full picture. Money, prices and contracts stay with you.',
         needs: [
-          'The Director\'s Telegram bot (we create it together)',
+          'The Director\'s chat in Telegram (we create it together)',
           'Access to the channels, messengers and sheets we connect',
           'Material about the business: services, price list, templates, answers to common questions',
           'Access keys for the AI model and services that you pay for',
         ],
         faq: [
           { q: 'Do I have to take everything at once?', a: 'No. You can start with one team and add the rest later, and the Director and the panel connect to what already works.' },
-          { q: 'How is it different from a set of teams?', a: 'It has a Director, one approval queue and a shared summary. Separate teams each work through their own bot.' },
+          { q: 'How is it different from a set of teams?', a: 'The Director, one approval queue and a shared summary. Separate teams each work in their own chat.' },
           { q: 'Who sets the rules?', a: 'We do, together with you, at the start. The rules are written down and changed on your word.' },
           { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the set of teams and the connected systems.' },
         ],
