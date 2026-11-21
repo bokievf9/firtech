@@ -20,6 +20,8 @@ export type FaceLayout = {
   lidBias: number
   lidTilt: number
   browLift: number
+  /** How much of the surprised wide-eye scale this face can take (the flame head is narrow). */
+  wideK: number
   order: number
 }
 export type Spec2 = { scale: number; face: FaceLayout; zz: [number, number]; shadow: number }
@@ -50,14 +52,14 @@ function profileFrom(points: [number, number][]): Profile {
 // D: a flame head. A round bulb (radius .52) and a tip that tapers in a concave curve; the shader bends
 // the tip sideways. y runs 0 (bottom) to FLAME_H (tip).
 export const FLAME_R = 0.58
-export const FLAME_H = 1.55
+export const FLAME_H = 1.7
 export const flameProfile = (() => {
   const out: [number, number][] = [[0, 0]]
   for (let i = 1; i <= 22; i++) {
     const th = -Math.PI / 2 + (i / 22) * (Math.PI / 2 + Math.PI / 6)
     out.push([FLAME_R * Math.cos(th), FLAME_R + FLAME_R * Math.sin(th)])
   }
-  const tip = bez([0.502, 0.87], [0.41, 1.08], [0.13, 1.28], [0.0, FLAME_H], 26)
+  const tip = bez([0.502, 0.87], [0.42, 1.12], [0.16, 1.4], [0.0, FLAME_H], 30)
   tip.shift()
   return profileFrom([...out, ...tip])
 })()
@@ -93,27 +95,27 @@ const petalProfile = profileOf((t) => {
 export const specs2: Record<'d' | 'e' | 'f' | 'g' | 'h', Spec2> = {
   d: {
     scale: 1.12,
-    face: { profile: flameProfile, eye: { x: 0.225, y: 0.6, s: 0.28, aspect: 0.92 }, mouthY: 0.26, mouthS: 0.25, cheek: { x: 0.41, y: 0.34, k: 0.8 }, lift: 0.012, lidBias: 0, lidTilt: 0, browLift: 0.5, order: 3 },
+    face: { profile: flameProfile, eye: { x: 0.225, y: 0.6, s: 0.28, aspect: 0.92 }, mouthY: 0.26, mouthS: 0.25, cheek: { x: 0.41, y: 0.34, k: 0.8 }, lift: 0.012, lidBias: 0, lidTilt: 0, browLift: 0.5, wideK: 0.45, order: 3 },
     zz: [0.55, 1.9], shadow: 0.95,
   },
   e: {
     scale: 1.14,
-    face: { profile: seedProfile, eye: { x: 0.36, y: 1.02, s: 0.285, aspect: 1, }, mouthY: 0.62, mouthS: 0.26, cheek: { x: 0.64, y: 0.78, k: 0.9 }, lift: 0.012, lidBias: 0.3, lidTilt: -0.25, browLift: 0.45, order: 3 },
+    face: { profile: seedProfile, eye: { x: 0.36, y: 1.02, s: 0.285, aspect: 1, }, mouthY: 0.62, mouthS: 0.26, cheek: { x: 0.64, y: 0.78, k: 0.9 }, lift: 0.012, lidBias: 0.3, lidTilt: -0.25, browLift: 0.45, wideK: 1, order: 3 },
     zz: [0.95, 1.9], shadow: 1.1,
   },
   f: {
     scale: 1.28,
-    face: { profile: ballProfile, eye: { x: 0.34, y: 0.02, s: 0.27, aspect: 1.02 }, mouthY: -0.36, mouthS: 0.25, cheek: { x: 0.64, y: -0.2, k: 1 }, lift: 0.012, lidBias: 0.04, lidTilt: 0, browLift: 0.5, order: 3 },
+    face: { profile: ballProfile, eye: { x: 0.34, y: 0.02, s: 0.27, aspect: 1.02 }, mouthY: -0.36, mouthS: 0.25, cheek: { x: 0.64, y: -0.2, k: 1 }, lift: 0.012, lidBias: 0.04, lidTilt: 0, browLift: 0.5, wideK: 1, order: 3 },
     zz: [1.0, 2.0], shadow: 0.95,
   },
   g: {
     scale: 1.14,
-    face: { profile: catDropProfile, eye: { x: 0.36, y: 0.98, s: 0.275, aspect: 0.95 }, mouthY: 0.58, mouthS: 0.25, cheek: { x: 0.66, y: 0.74, k: 0.9 }, lift: 0.012, lidBias: 0, lidTilt: 0, browLift: 0.5, order: 3 },
+    face: { profile: catDropProfile, eye: { x: 0.36, y: 0.98, s: 0.275, aspect: 0.95 }, mouthY: 0.58, mouthS: 0.25, cheek: { x: 0.66, y: 0.74, k: 0.9 }, lift: 0.012, lidBias: 0, lidTilt: 0, browLift: 0.5, wideK: 1, order: 3 },
     zz: [0.9, 2.0], shadow: 1.15,
   },
   h: {
     scale: 1.3,
-    face: { profile: ballProfile, eye: { x: 0.33, y: 0.06, s: 0.28, aspect: 1, }, mouthY: -0.34, mouthS: 0.25, cheek: { x: 0.6, y: -0.18, k: 0.9 }, lift: 0.01, lidBias: 0, lidTilt: 0, browLift: 0.5, order: 1 },
+    face: { profile: ballProfile, eye: { x: 0.33, y: 0.06, s: 0.28, aspect: 1, }, mouthY: -0.34, mouthS: 0.25, cheek: { x: 0.6, y: -0.18, k: 0.9 }, lift: 0.01, lidBias: 0, lidTilt: 0, browLift: 0.5, wideK: 1, order: 1 },
     zz: [1.05, 2.0], shadow: 1.1,
   },
 }
@@ -123,7 +125,7 @@ export function makeKit2(variant: Variant) {
   const g = <T extends BufferGeometry>(x: T) => (geo.push(x), x)
 
   const body = clayMaterial({ rim: 0.34, spec: 0.1, sss: 0.45 })
-  const flame = clayMaterial({ rim: 0.34, spec: 0.1, sss: 0.45, bend: 0.1, bendY: 0.7 })
+  const flame = clayMaterial({ rim: 0.34, spec: 0.1, sss: 0.45, bend: 0.1, bendY: 0.7, tipY: 0.85, tipAmt: 0.75 })
   const deep = clayMaterial({ rim: 0.2, spec: 0.08, sss: 0.3 })
   const ink = clayMaterial({ rim: 0.05, spec: 0.2, sss: 0 })
   const cream = clayMaterial({ rim: 0, spec: 0.1, sss: 0.1 })
@@ -154,6 +156,8 @@ export function makeKit2(variant: Variant) {
   const browG = g(new TorusGeometry(R, 0.13, 8, 22, 1.2).rotateZ(Math.PI / 2 - 0.6).translate(0, -0.91 * R, 0))
   const geos = {
     ball: g(new SphereGeometry(1, 64, 48)),
+    // Small parts (feet, tail, ears, dots) do not need the high-poly sphere.
+    low: g(new SphereGeometry(1, 28, 18)),
     flame: lathe(flameProfile),
     seed: lathe(seedProfile),
     catDrop: lathe(catDropProfile),
@@ -162,7 +166,7 @@ export function makeKit2(variant: Variant) {
     plane: g(new PlaneGeometry(2, 2)),
     disc: g(new CircleGeometry(1, 40)),
     brow: browG,
-    arm: { d: limb(0.3, 0.1), e: limb(0.28, 0.1), f: limb(0.36, 0.12), g: limb(0.24, 0.1), h: limb(0.22, 0.09) },
+    arm: { d: limb(0.34, 0.1), e: limb(0.34, 0.1), f: limb(0.36, 0.12), g: limb(0.32, 0.1), h: limb(0.28, 0.09) },
     zbar: g(new CapsuleGeometry(0.032, 0.2, 6, 10).rotateZ(Math.PI / 2)),
     zdiag: g(new CapsuleGeometry(0.032, 0.27, 6, 10).rotateZ(-0.65)),
   }

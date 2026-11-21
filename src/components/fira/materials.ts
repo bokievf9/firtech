@@ -104,7 +104,7 @@ const clay = {
     void main() {
       vec3 p = position;
       float u = max(p.y - uBendY, 0.0);
-      p.x += uBend * u * u;
+      p.x += uBend * u * u * (1.0 - 0.42 * u);
       vec4 mv = modelViewMatrix * vec4(p, 1.0);
       vN = normalize(normalMatrix * normal);
       vV = -mv.xyz;
@@ -116,6 +116,7 @@ const clay = {
     uniform vec3 uKey; uniform vec3 uFill; uniform vec3 uBack;
     uniform float uRimPow; uniform float uRimAmt; uniform float uSpec; uniform float uGlow;
     uniform float uOpacity; uniform float uAlphaRim; uniform float uSssAmt; uniform float uEdge;
+    uniform vec3 uTipCol; uniform float uTipY; uniform float uTipAmt;
     varying vec3 vN; varying vec3 vV; varying vec3 vP;
     void main() {
       vec3 n = normalize(vN); vec3 v = normalize(vV);
@@ -123,6 +124,7 @@ const clay = {
       float fill = clamp(dot(n, normalize(uFill)) * 0.5 + 0.5, 0.0, 1.0);
       float lit = smoothstep(0.1, 0.96, key * 0.8 + fill * 0.2);
       vec3 col = mix(uShade, uColor, lit);
+      col = mix(col, uTipCol * (0.7 + 0.3 * lit), smoothstep(uTipY, uTipY + 0.55, vP.y) * uTipAmt);
       float band = exp(-pow((key - 0.4) / 0.2, 2.0));
       col = mix(col, uSss, band * uSssAmt);
       col *= 0.82 + 0.18 * smoothstep(-0.95, 0.35, n.y);
@@ -150,7 +152,7 @@ const lid = {
     void main() {
       vec2 p = vUv * 2.0 - 1.0;
       vec2 r = vec2(0.8 * uAspect, 0.8) * uScale;
-      float d = ell(p, r) - 0.07;
+      float d = ell(p, r) - 0.03;
       float edgeY = r.y - uLid * 2.0 * r.y + uTilt * uSide * p.x * 0.9;
       float dl = p.y - edgeY;
       float w = fwidth(d) * 1.3 + 1e-4;
@@ -290,7 +292,7 @@ export function paint(
   }
 }
 
-export type ClayOpts = SoftOpts & { sss?: number; edge?: number; bend?: number; bendY?: number }
+export type ClayOpts = SoftOpts & { sss?: number; edge?: number; bend?: number; bendY?: number; tipY?: number; tipAmt?: number }
 
 // The round-two body material (see the clay shader above). Same uniform names as Soft where they
 // overlap, so `paint` can colour both.
@@ -318,6 +320,9 @@ export function clayMaterial(o: ClayOpts = {}) {
       uAlphaRim: { value: o.alphaRim ?? 0 },
       uSssAmt: { value: o.sss ?? 0.4 },
       uEdge: { value: o.edge ?? 0 },
+      uTipCol: { value: c('#f2ffb0') },
+      uTipY: { value: o.tipY ?? 99 },
+      uTipAmt: { value: o.tipAmt ?? 0 },
     },
   })
   m.userData.base = o.color ?? 'accent'
@@ -372,7 +377,7 @@ export function mouthMaterial() {
 // lime for the glowing dot, the shell of the bubble. The body shade leans green, the terminator band
 // a saturated yellow-green, lids take the body colour.
 export function paintClay(
-  m: { bodies: ShaderMaterial[]; deep: ShaderMaterial; ink: ShaderMaterial; cream: ShaderMaterial; dot: ShaderMaterial; shell: ShaderMaterial; lids: ShaderMaterial[]; mouth: ShaderMaterial },
+  m: { bodies: ShaderMaterial[]; flame: ShaderMaterial; deep: ShaderMaterial; ink: ShaderMaterial; cream: ShaderMaterial; dot: ShaderMaterial; shell: ShaderMaterial; lids: ShaderMaterial[]; mouth: ShaderMaterial },
   p: Palette,
 ) {
   const accent = c(p.accent), ink = c(p.ink), cream = c(p.cream), strong = c(p.strong)
@@ -391,6 +396,7 @@ export function paintClay(
   set(m.ink, ink, ink.clone().lerp(accent, 0.1), ink.clone().lerp(accent, 0.3), ink)
   set(m.cream, cream, cream.clone().lerp(accent, 0.3), cream, cream.clone().lerp(accent, 0.15))
   const dot = accent.clone().lerp(cream, 0.72)
+  uni(m.flame).uTipCol!.value.copy(accent.clone().lerp(c('#f6ff5a'), 0.55).lerp(cream, 0.25))
   set(m.dot, dot, accent.clone().lerp(cream, 0.3), cream, dot)
   const shell = strong.clone().lerp(cream, p.dark ? 0.15 : 0.3)
   set(m.shell, shell, accent.clone().lerp(ink, p.dark ? 0.1 : 0.2), cream.clone().lerp(strong, 0.1), accent)

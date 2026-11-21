@@ -77,7 +77,7 @@ export function driveFace(api: Partial<FaceApi>, kit: Kit2, layout: FaceLayout, 
   // Eyes: wide scale, blink, happy and sleepy arches (moon), the lid hidden while arched.
   const eu = uni(kit.eye)
   const moon = P.moon.x
-  const wide = P.wide.x
+  const wide = 1 + (P.wide.x - 1) * layout.wideK
   eu.uScale!.value = wide
   eu.uOpen!.value = Math.max(f.open, 0.07)
   eu.uLid!.value = 0

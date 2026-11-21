@@ -49,7 +49,7 @@ function Rig({ variant, live, theme, onReady }: { variant: V2; live: React.RefOb
     }
     const apply = () => {
       const p = pal(theme)
-      paintClay({ bodies: [kit.mats.body, kit.mats.flame], deep: kit.mats.deep, ink: kit.mats.ink, cream: kit.mats.cream, dot: kit.mats.dot, shell: kit.mats.shell, lids: [kit.lidL, kit.lidR], mouth: kit.mouth }, p)
+      paintClay({ bodies: [kit.mats.body, kit.mats.flame], flame: kit.mats.flame, deep: kit.mats.deep, ink: kit.mats.ink, cream: kit.mats.cream, dot: kit.mats.dot, shell: kit.mats.shell, lids: [kit.lidL, kit.lidR], mouth: kit.mouth }, p)
       paint({ body: [], ink: [], cream: [], strong: [], mark: kit.zMats }, [kit.eye], p)
     }
     apply()

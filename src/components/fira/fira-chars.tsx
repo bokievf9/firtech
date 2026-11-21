@@ -82,11 +82,11 @@ export function CharD({ kit, register, face }: CharProps) {
       // The flame leans away from the way the head turns, flickers, and its tip lags (secondary spring).
       stepSpring(spr.current, -c.roll * 1.4 - c.P.lean.x * 1.2 - c.hopY * 0.0, c.dt, 55, 0.22)
       spr.current.v += (c.sy - 1) * -0.9
-      const bend = 0.34 + spr.current.x * 0.6 + Math.sin(c.clock * 2.3) * 0.025 + Math.sin(c.clock * 5.1) * 0.012
+      const bend = 0.5 + spr.current.x * 0.6 + Math.sin(c.clock * 2.3) * 0.025 + Math.sin(c.clock * 5.1) * 0.012
       uni(mats.flame).uBend!.value = bend
       const u = FLAME_H - 0.7
-      if (tip.current) tip.current.position.set(bend * u * u, FLAME_H, 0.02)
-      pulseDot(kit, dot.current, halo.current, c, [0.15, 0.15, 0.15], 0.62)
+      if (tip.current) tip.current.position.set(bend * u * u * (1 - 0.42 * u), FLAME_H, 0.02)
+      pulseDot(kit, dot.current, halo.current, c, [0.085, 0.085, 0.085], 0.7)
       if (body.current) body.current.rotation.z = -c.roll * 0.25 - c.P.lean.x * 0.4
       applyArms(c, -1.15, armR.current, armL.current)
     })
@@ -96,9 +96,8 @@ export function CharD({ kit, register, face }: CharProps) {
     <>
       <group ref={body} position={[0, 0.7, 0]}>
         <mesh geometry={geos.ball} material={mats.body} scale={[0.76, 0.7, 0.72]} />
-        <mesh geometry={geos.disc} material={kit.belly} position={[0, -0.14, 0.725]} scale={[0.34, 0.32, 1]} rotation={[0.12, 0, 0]} renderOrder={1} />
         {([1, -1] as const).map((sd) => (
-          <mesh key={sd} geometry={geos.ball} material={mats.deep} position={[sd * 0.3, -0.62, 0.22]} scale={[0.2, 0.12, 0.27]} />
+          <mesh key={sd} geometry={geos.low} material={mats.deep} position={[sd * 0.3, -0.62, 0.22]} scale={[0.2, 0.12, 0.27]} />
         ))}
       </group>
       {([1, -1] as const).map((sd) => (
@@ -109,10 +108,12 @@ export function CharD({ kit, register, face }: CharProps) {
       <group ref={headR} position={[0, 1.38, 0]}>
         <group position={[0, -FLAME_R, 0]}>
           <mesh geometry={geos.flame} material={mats.flame} />
+          <mesh geometry={geos.flame} material={mats.flame} position={[-0.2, 0.7, -0.02]} rotation={[0, 0, 0.6]} scale={[0.5, 0.5, 0.5]} />
+          <mesh geometry={geos.flame} material={mats.flame} position={[0.22, 0.66, -0.02]} rotation={[0, 0, -0.62]} scale={[0.42, 0.4, 0.42]} />
           <Face kit={kit} layout={spec.face} api={face} />
           <group ref={tip}>
-            <mesh ref={halo} geometry={geos.plane} material={kit.halo} position={[0, 0.06, 0.03]} scale={0.62} renderOrder={5} />
-            <mesh ref={dot} geometry={geos.ball} material={mats.dot} position={[0, 0.06, 0]} scale={0.15} />
+            <mesh ref={halo} geometry={geos.plane} material={kit.halo} position={[0, 0.0, 0.03]} scale={0.7} renderOrder={5} />
+            <mesh ref={dot} geometry={geos.low} material={mats.dot} position={[0, 0.0, 0]} scale={0.085} />
           </group>
         </group>
       </group>
@@ -153,7 +154,7 @@ export function CharE({ kit, register, face }: CharProps) {
     <group ref={sway} position={[0, 0, 0]}>
       {([1, -1] as const).map((sd) => (
         <group key={sd} ref={sd > 0 ? legR : legL} position={[sd * 0.38, 0.0, 0.05]}>
-          <mesh geometry={geos.ball} material={mats.deep} position={[0, 0.17, 0.1]} scale={[0.24, 0.17, 0.32]} />
+          <mesh geometry={geos.low} material={mats.deep} position={[0, 0.17, 0.1]} scale={[0.24, 0.17, 0.32]} />
         </group>
       ))}
       <group ref={seed} position={[0, 0.2, 0]}>
@@ -172,7 +173,7 @@ export function CharE({ kit, register, face }: CharProps) {
             <mesh geometry={geos.petal} material={mats.deep} scale={[0.52, 0.66, 0.16]} />
           </group>
           <mesh ref={halo} geometry={geos.plane} material={kit.halo} position={[0, 0.2, 0.12]} scale={0.34} renderOrder={5} />
-          <mesh ref={dot} geometry={geos.ball} material={mats.dot} position={[0, 0.2, 0.06]} scale={0.1} />
+          <mesh ref={dot} geometry={geos.low} material={mats.dot} position={[0, 0.2, 0.06]} scale={0.1} />
         </group>
       </group>
     </group>
@@ -207,22 +208,27 @@ export function CharF({ kit, register, face }: CharProps) {
   return (
     <>
       {([1, -1] as const).map((sd) => (
-        <mesh key={sd} ref={sd > 0 ? footR : footL} geometry={geos.ball} material={mats.deep} position={[sd * 0.27, 0.1, 0.12]} scale={[0.22, 0.12, 0.32]} />
+        <mesh key={sd} ref={sd > 0 ? footR : footL} geometry={geos.low} material={mats.deep} position={[sd * 0.27, 0.1, 0.12]} scale={[0.22, 0.12, 0.32]} />
       ))}
       <group ref={body} position={[0, 0.06, 0]}>
         <mesh geometry={geos.pear} material={mats.body} />
         <mesh geometry={geos.disc} material={kit.belly} position={[0, 0.5, 0.5]} scale={[0.26, 0.26, 1]} renderOrder={1} />
         <mesh ref={halo} geometry={geos.plane} material={kit.halo} position={[0, 0.5, 0.54]} scale={0.5} renderOrder={2} />
-        <mesh ref={dot} geometry={geos.ball} material={mats.dot} position={[0, 0.5, 0.52]} scale={[0.14, 0.14, 0.06]} />
+        <mesh ref={dot} geometry={geos.low} material={mats.dot} position={[0, 0.5, 0.52]} scale={[0.14, 0.14, 0.06]} />
         {([1, -1] as const).map((sd) => (
           <group key={sd} ref={sd > 0 ? armR : armL} position={[sd * 0.44, 0.74, 0.04]}>
             <mesh geometry={geos.arm.f} material={mats.body} />
-            <mesh ref={sd > 0 ? handR : handL} geometry={geos.ball} material={mats.body} position={[0.46, 0, 0]} scale={0.15} />
+            <mesh ref={sd > 0 ? handR : handL} geometry={geos.low} material={mats.body} position={[0.46, 0, 0]} scale={0.15} />
           </group>
         ))}
       </group>
       <group ref={head} position={[0, 1.45, 0]}>
         <mesh geometry={geos.ball} material={mats.body} scale={0.86} />
+        {([1, -1] as const).map((sd) => (
+          <group key={sd} position={[sd * 0.62, 0.62, -0.05]}>
+            <mesh geometry={geos.low} material={mats.body} scale={[0.3, 0.3, 0.2]} />
+          </group>
+        ))}
         <group scale={0.86}>
           <Face kit={kit} layout={spec.face} api={face} />
         </group>
@@ -274,16 +280,15 @@ export function CharG({ kit, register, face }: CharProps) {
       <group position={[0.78, 0.34, -0.1]}>
         <group ref={tail}>
           {Array.from({ length: TAIL_N }, (_, i) => (
-            <mesh key={i} geometry={geos.ball} material={i > TAIL_N - 3 ? mats.deep : mats.body} scale={0.15 - i * 0.0065} />
+            <mesh key={i} geometry={geos.low} material={i > TAIL_N - 3 ? mats.deep : mats.body} scale={0.15 - i * 0.0065} />
           ))}
         </group>
       </group>
       {([1, -1] as const).map((sd) => (
-        <mesh key={sd} geometry={geos.ball} material={mats.deep} position={[sd * 0.3, 0.1, 0.62]} scale={[0.19, 0.12, 0.25]} />
+        <mesh key={sd} geometry={geos.low} material={mats.deep} position={[sd * 0.3, 0.1, 0.62]} scale={[0.19, 0.12, 0.25]} />
       ))}
       <group ref={body} position={[0, 0.06, 0]}>
         <mesh geometry={geos.catDrop} material={mats.body} />
-        <mesh geometry={geos.disc} material={kit.belly} position={[0, 0.3, 0.95]} scale={[0.3, 0.24, 1]} rotation={[-0.1, 0, 0]} renderOrder={1} />
         <Face kit={kit} layout={spec.face} api={face} />
         {([1, -1] as const).map((sd) => (
           <group key={sd} ref={sd > 0 ? earR : earL} position={[sd * 0.46, DROP_H - 0.34, 0]} rotation={[0, 0, sd * -0.5]}>
@@ -297,7 +302,7 @@ export function CharG({ kit, register, face }: CharProps) {
           </group>
         ))}
         <mesh ref={halo} geometry={geos.plane} material={kit.halo} position={[0, 1.42, spec.face.profile.r(1.42) + 0.03]} scale={0.3} renderOrder={5} />
-        <mesh ref={dot} geometry={geos.ball} material={mats.dot} position={[0, 1.42, spec.face.profile.r(1.42) + 0.01]} scale={[0.1, 0.1, 0.05]} />
+        <mesh ref={dot} geometry={geos.low} material={mats.dot} position={[0, 1.42, spec.face.profile.r(1.42) + 0.01]} scale={[0.1, 0.1, 0.05]} />
       </group>
     </group>
   )
