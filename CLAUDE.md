@@ -391,6 +391,13 @@ procedural React Three Fiber variants on one rig (A «Капля», B «Свет
 `idle thinking happy talking point sleep`. Deps pinned exactly: `three`, `@react-three/fiber`, `@react-three/drei` (not yet
 imported), `@types/three`. Procedural only, no textures; keep the code under 220 KB (tested). Round two (2026-11-22, after the owner rejected A to C as generic spheres): five new characters D to H on an improved rig, A to C only behind `?all=1` in the lab, references and rules in `docs/fira-references.md`; emotions now also `wave surprised`. Round three (2026-11-22, «взрослая милота», after the owner called D to H childish and identical): five grown-up face systems I to M (`pose3.ts`, `fira-kit3.ts`, `fira-scene3.tsx`, `fira-fallback3.tsx`), the lab default and the `Fira` default `i`, emotions also `listening sorry`, eyes under 12% of the face height (tested), code budget 220 KB. Details, numbers and the glTF and
 Remotion plan: `docs/fira.md`. Tests: `tests/fira.test.mjs`.
+**Home film (owner 2026-11-22, supersedes the home order above where they differ):** the home page is eight scenes (`filmScenes` in
+`src/lib/film.ts`: hello/hero, pains `#pains` (new), demo, team/products, office `#office` (new, words only, no live numbers), solutions,
+process+pricing, final + FAQ; `homeSections` follows that order). Each scene has Fira's mark (flat `FiraFallback3` in server HTML) and her
+line (`film.scenes` in the dictionaries); on lg with motion and WebGL, after load and idle, ONE WebGL Fira (`components/film/film-overlay.tsx`)
+flies between the marks and docks bottom right as the chat launcher. Inner pages: Fira is the face of the chat button and says one line per
+page and session (`film.companion`, `companionKind`). The face everywhere is the constant `firaFace` (`src/lib/fira/face.ts`). Notes:
+`docs/site-design-notes.md` «Главная-фильм»; tests `tests/film.test.mjs`, `tests/companion.test.mjs`, e2e «home film» / «companion».
 
 ## Commands
 - `npm run dev` (http://localhost:3001), `npm run typecheck`, `npm run lint`, `npm test`,

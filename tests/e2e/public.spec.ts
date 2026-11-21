@@ -199,15 +199,16 @@ test('bare paths of known pages redirect to a language (contracts link /terms an
 test('home: «Попробуйте сейчас» tabs switch, the booking sample walks to the end and the chat answers in mock mode', async ({ page }) => {
   await open(page, '/ru#demo')
   const tabs = page.locator('[data-demo-tab]')
-  await expect(tabs).toHaveCount(4)
-  await tabs.nth(1).click()
+  // One tab per product (demoTabIds): receptionist, admin, automation, content, Mini App, assistant, department.
+  await expect(tabs).toHaveCount(7)
+  await page.locator('[data-demo-tab="admin"]').click()
   const booking = page.locator('[data-demo-booking]')
   await expect(booking).toContainText('ИИ-администратор')
   for (let i = 0; i < 3; i++) await booking.locator('[data-booking-option="0"]').click()
   await expect(booking).toContainText('Записал')
-  await tabs.nth(2).click()
+  await page.locator('[data-demo-tab="content"]').click()
   await expect(page.locator('[data-demo-articles] a').first()).toBeVisible()
-  await tabs.nth(0).click()
+  await page.locator('[data-demo-tab="receptionist"]').click()
   await page.locator('[data-niche="clinic"]').click()
   await page.locator('[data-demo-chat]').getByRole('button', { name: 'Работаете в выходные?' }).click()
   await expect(page.locator('[data-demo-chat]')).toContainText('Работаете в выходные?')
@@ -231,4 +232,52 @@ test('product page: price, stage table, FAQ and the builder with the product pic
   await expect(page.locator('#faq button[aria-expanded]').first()).toBeVisible()
   await page.locator('main').getByRole('link', { name: 'Собрать проект' }).first().click()
   await expect(page).toHaveURL(/\/ru\/builder\?b=.*p\.intake/)
+})
+
+// ---- home film and Fira (owner 2026-11-22) -------------------------------------------------------
+
+test('home film: eight scenes, each with Fira on her mark and her line in the HTML', async ({ page }) => {
+  await open(page, '/ru')
+  await expect(page.locator('[data-film-scene]')).toHaveCount(8)
+  await expect(page.locator('[data-film-mark]')).toHaveCount(8)
+  await expect(page.locator('[data-film-mark] svg')).toHaveCount(8)
+  await expect(page.locator('[data-film-line]').first()).toContainText('Привет, я Фира')
+  await expect(page.locator('#pains [data-pain]')).toHaveCount(3)
+  await expect(page.locator('#office [data-office-room]')).toHaveCount(6)
+  await expect(page.locator('#products [data-film-intro]')).toHaveCount(7)
+  await expect(page.locator('[data-film-finale] [data-cta="film_build"]')).toHaveAttribute('href', '/ru/builder')
+  await expect(page.locator('h1')).toHaveCount(1)
+})
+
+test('home film: on a wide screen one WebGL Fira lands on the marks and opens the chat; the launcher steps aside', async ({ page }) => {
+  await page.setViewportSize(SIZES.desktop)
+  await open(page, '/ru')
+  await page.waitForFunction(() => document.documentElement.dataset.film === 'on', null, { timeout: 30_000 })
+  await expect(page.locator('[data-film-fira]')).toHaveCount(1)
+  await expect(page.locator('[data-cta="chat_fab"]')).toHaveCSS('opacity', '0')
+  await page.locator('#office').scrollIntoViewIfNeeded()
+  await expect(page.locator('[data-film-scene="office"]')).toHaveAttribute('data-active', '')
+  await page.locator('[data-film-fira]').click()
+  await expect(page.locator('[role=dialog]')).toBeVisible()
+})
+
+test('home film: phones get the plain sections with the flat Fira and the ordinary launcher', async ({ page }) => {
+  await page.setViewportSize(SIZES.mobile)
+  await open(page, '/ru')
+  await page.waitForTimeout(2500)
+  await expect(page.locator('[data-film-fira]')).toHaveCount(0)
+  expect(await page.evaluate(() => document.documentElement.dataset.film ?? null)).toBeNull()
+  await expect(page.locator('[data-film-mark="hello"] svg')).toBeVisible()
+  await noHorizontalOverflow(page, '/ru film phone')
+})
+
+test('companion: a product page shows one line of Fira, a click opens the chat, the same page stays quiet after that', async ({ page }) => {
+  await open(page, '/ru/products/admin')
+  const line = page.locator('[data-companion="product"]')
+  await expect(line).toHaveAttribute('data-open', 'true', { timeout: 6000 })
+  await line.locator('[data-cta="companion_line"]').click()
+  await expect(page.locator('[role=dialog]')).toBeVisible()
+  await open(page, '/ru/products/admin')
+  await page.waitForTimeout(2500)
+  await expect(page.locator('[data-companion="product"]')).toHaveAttribute('data-open', 'false')
 })

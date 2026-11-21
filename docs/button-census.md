@@ -106,6 +106,11 @@ Legend of `E:` tags (file : test title):
 | `U:cabinet-milestones` | node:test `tests/cabinet-milestones.test.mjs`: milestone parsing, track rows, the accept call and its 409 codes, mock, route, Пульт whitelist and drawer helpers |
 | `U:cabinet-stage-render` | node:test `tests/cabinet-stage-render.test.mjs`: the real `ProjectsCard` and `LeadsSection` rendered to markup with the dev mock (the cabinet needs a Supabase session, which e2e does not have) |
 | `U:bare-paths` | node:test `tests/bare-paths.test.mjs`: the proxy redirect for every bare page |
+| `E:film` | public.spec : «home film: eight scenes, each with Fira on her mark and her line in the HTML» |
+| `E:film-gl` | public.spec : «home film: on a wide screen one WebGL Fira lands on the marks and opens the chat; the launcher steps aside» |
+| `E:film-phone` | public.spec : «home film: phones get the plain sections with the flat Fira and the ordinary launcher» |
+| `E:companion` | public.spec : «companion: a product page shows one line of Fira, a click opens the chat, the same page stays quiet after that» |
+| `U:film` | node:test `tests/film.test.mjs` and `tests/companion.test.mjs`: scenes over the sections, lines, placement helpers, page kinds, the face constant |
 
 ## 1. Public site: every page
 
@@ -461,3 +466,18 @@ Observed, not a bug: the 404 pages answer with `<html id="__next_error__">` in `
 | product page | «Собрать проект», «Спросить агента», FAQ | builder with the product, chat, accordion | `/{locale}/builder?b=…p.<id>` | `E:product-page` | pass |
 | solution page | «Собрать это решение», «Спросить агента» | builder with the preset, chat | `/{locale}/builder?b=…` | `E:solution` | pass |
 | estimate block | «Собрать проект» | builder with the picked format | `/{locale}/builder?b=…` | none | untested |
+
+## Главная-фильм (2026-11-22), adds to the rows above
+
+| Block | Element | What it does | Leads to / calls | Verified by | Status |
+|---|---|---|---|---|---|
+| every scene | Fira on her mark (wide screens: the one WebGL Fira, a button «Фира: спросить агента») | opens the chat | chat widget | `E:film-gl` | pass |
+| corner (wide screens, home) | docked Fira, replaces the chat button | opens the chat | chat widget | `E:film-gl` | pass |
+| pains `#pains` | «Подробнее: <продукт>» (3) | product page | `/{locale}/products/{admin,receptionist,content}` | `E:film` (cards), `E:links` no | untested (click) |
+| office `#office` | «Как устроены ИИ-отделы» | AI team page | `/{locale}/ai-team` | `E:film` (rooms) | untested (click) |
+| final | «Собрать проект» | builder | `/{locale}/builder` | `E:film` (href) | pass |
+| final | «Договориться о созвоне» | opens the chat (the agent offers slots there) | chat widget | none | untested |
+| final | «Написать в Telegram» | Telegram, `data-place="film_final"` | `t.me/...` | none | untested |
+| inner pages | Fira's line next to the chat button | opens the chat | chat widget | `E:companion` | pass |
+| inner pages | «Скрыть подсказку» | hides the line | - | none | untested |
+

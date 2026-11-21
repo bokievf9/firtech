@@ -91,3 +91,11 @@ export async function open(page: Page, url: string) {
   await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => {})
   return response
 }
+
+// The home film (wide screens, motion allowed, WebGL) replaces the floating chat button with its own
+// travelling Fira once it is drawn, a moment after the load. Chat tests are not about the film, so they
+// open the home page with reduced motion: the plain sections and the ordinary launcher.
+export async function openHomeForChat(page: Page, url = '/ru') {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  return open(page, url)
+}
