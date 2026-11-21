@@ -10,7 +10,7 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 type Msg = { id: number; from: 'me' | 'agent' | 'sys'; text: string }
 type Copy = Dict['demoSection']['receptionist']
 
-const NICHES: readonly Persona[] = ['salon', 'clinic', 'shop']
+const NICHES: readonly Persona[] = ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses']
 const MIN_GAP_MS = 1500
 
 function uuid(): string {

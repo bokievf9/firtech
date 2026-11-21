@@ -171,15 +171,27 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     return () => window.removeEventListener('popstate', onPop)
   }, [total])
 
-  // The send button sits in the last step: the bottom bar steps aside while it is on screen.
+  // The send button sits in the last step (it mounts after the screen animation): the bottom bar steps
+  // aside while it is on screen.
   useEffect(() => {
-    const target = document.getElementById('contact')
-    if (!target) return
-    const io = new IntersectionObserver(([entry]) => setAtForm(entry?.isIntersecting ?? false), {
-      rootMargin: '0px 0px -30% 0px',
-    })
-    io.observe(target)
-    return () => io.disconnect()
+    let io: IntersectionObserver | undefined
+    let timer = 0
+    let tries = 0
+    const attach = () => {
+      const target = document.getElementById('contact')
+      if (target) {
+        io = new IntersectionObserver(([entry]) => setAtForm(entry?.isIntersecting ?? false), {
+          rootMargin: '0px 0px -30% 0px',
+        })
+        io.observe(target)
+      } else if (tries++ < 20) timer = window.setTimeout(attach, 100)
+    }
+    attach()
+    return () => {
+      io?.disconnect()
+      window.clearTimeout(timer)
+      setAtForm(false)
+    }
   }, [step, ready])
 
   // A new screen starts at the top, with focus on its title for keyboard and screen readers.

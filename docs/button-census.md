@@ -143,7 +143,10 @@ Legend of `E:` tags (file : test title):
 | pricing | «Почему дешевле агентства» | compare | `/{locale}/compare` | `E:matrix` (page renders) | untested (click) |
 | pricing | «Открыть конструктор» | builder | `/{locale}/builder` | none | untested |
 | pricing | calculator: 4 service tabs, variant radios (Лендинг, Сайт компании, Интернет-магазин), extras (Второй язык, Заявки в Telegram, Онлайн-оплата, Панель для правок) | live price from `pricing.ts`, hand-off to the contact form | `firtech:estimate` event | `U:logic`, `U:builder` (prices), `E:service` (variant pick) | pass (variant), untested (extras clicks) |
-| pricing | «Обсудить проект» | contact | `#contact` | none | untested |
+| pricing (home) | «Собрать проект» (builder teaser); the estimator block is removed from the home page | builder | `/builder` | none | untested |
+| demo | 7 tabs (receptionist, admin, automation, content, Mini App, assistant, department); automation, Mini App and assistant are «Пример» | tab panels | none | `U:front-v3` | untested (click) |
+| chat button | hides on scroll down, back on scroll up or after 1.5 s; on `/builder` and `/cabinet` hidden until the last step or 8 s idle | opens the chat | none | `U:front-v3` | screenshots 390 px |
+| product pages | «Частые вопросы» removed | - | - | `U:products-pages` | pass |
 | FAQ `#faq` | 9 question buttons | expand/collapse | - | `E:faq` | pass |
 | FAQ | «Сравнение: фрилансер, агентство или мы», «Порекомендуйте нас…», «Бесплатный аудит вашего сайта» | links | compare, referral, audit | `E:matrix` (pages render) | untested (click) |
 
@@ -187,7 +190,7 @@ Legend of `E:` tags (file : test title):
 | 8 Превью | 4 x «Изменить» | back to the step | `E:builder` (first one) | pass (one), untested (other 3) |
 | 8 Превью | «Скопировать ссылку» | copies `/{locale}/builder?b=...` | `E:builder` (clipboard) | pass |
 | 8 Превью | «Скачать смету (PDF)» | name + contact gate, then the estimate page | `E:pdf-gate` (sign-in step shown) | pass (gate); untested (signed-in open of the estimate) |
-| 8 Превью | «Отправить проект» (bottom bar and actions panel) | hands the project to the contact form (lead `bundle`, sign-in gate stays) | `E:builder` (visible), `U:cabinet-leads` | untested (click and send) |
+| 8 Превью | «Отправить проект в работу» (actions panel, `#contact`; the bottom bar button scrolls to it) | sends the lead itself via `/api/lead` (sign-in gate and 24 h draft stay, no second form) | `E:builder` (visible), `E:flows` (gate) | untested (send) |
 | 8 Превью | «Условия гарантии» | terms | none | untested |
 | link | `?b=...&step=8`, old `s.`/`y.`/`d.5` chunks | decodes the build, old styles map to the closest theme | `E:builder-link`, `E:builder-v2` (legacy link), `U:builder-v2` | pass |
 

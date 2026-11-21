@@ -276,7 +276,11 @@ test('demo: tabs per product, the chat persona is validated and forwarded, the b
   assert.match(demo, /role="tablist"/)
   assert.doesNotMatch(read('src/components/demo-section.tsx') + demo + read('src/components/demo/demo-booking.tsx'), /t\.me\//)
   assert.equal(ru.demoSection.title, 'Попробуйте сейчас')
-  assert.deepEqual([...personas], ['salon', 'clinic', 'shop'])
+  assert.deepEqual([...personas], ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses'])
+  for (const [, dict] of dicts) for (const id of personas) assert.ok(dict.demoSection.receptionist.niches[id] && dict.demoSection.receptionist.hints[id].length === 3 && dict.demoSection.receptionist.chips[id] && dict.chat.demoChip[id], id)
+  // The Telegram pull-back reply: builder button first, then Telegram.
+  const { ctaActions } = await import('../src/lib/chat-cta.ts')
+  assert.deepEqual(ctaActions({ builderLink: '/ru/builder?b=k.cafe', cta: ['builder', 'telegram'] }, 'https://t.me/x').map((a) => a.kind), ['builder', 'telegram'])
   const base = { sessionId: '6f1c2b3a-4d5e-4f60-8a7b-9c0d1e2f3a4b', locale: 'ru', message: 'hi', page: '/' }
   assert.equal(chatRequestSchema.safeParse({ ...base, persona: 'salon' }).success, true)
   assert.equal(chatRequestSchema.safeParse({ ...base, persona: 'bank' }).success, false)
