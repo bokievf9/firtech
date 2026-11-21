@@ -32,6 +32,15 @@ export type StoredLead = Omit<Lead, 'website' | 'slot'> & {
   notes?: string
   // Email of the cabinet account that sent the lead (since 2026-11-20); older leads lack it.
   account?: string
+  // P-01: the copy for HQ (Lead Intake). `false` until HQ confirmed it; undelivered leads are retried
+  // (`lead-retry.ts`). Older leads lack the field and are never retried.
+  hqForwarded?: boolean
+  hqAttempts?: number
+  hqLastAttemptAt?: string
+  // HQ's lead id once confirmed; the cabinet link uses it.
+  hqLeadId?: number
+  // Who sent it (cabinet account), kept so a retry carries the same identity as the first try.
+  hqIdentity?: { clientEmail: string; cabinetId: string; clientName: string }
 }
 
 type Db = { nextId: number; leads: StoredLead[] }
@@ -79,7 +88,11 @@ function serialize<T>(task: () => Promise<T>): Promise<T> {
 const activeSlot = (lead: StoredLead) =>
   lead.booking && lead.booking.state !== 'released' ? lead.booking.slot : null
 
-export function createLead(lead: Lead & { account?: string }, slot?: string): Promise<StoredLead> {
+export function createLead(
+  lead: Lead & { account?: string },
+  slot?: string,
+  identity?: StoredLead['hqIdentity'] | null,
+): Promise<StoredLead> {
   return serialize(async () => {
     const db = await load()
     // Checked inside the queue, so two visitors can't take the same slot at the same moment.
@@ -93,6 +106,8 @@ export function createLead(lead: Lead & { account?: string }, slot?: string): Pr
       createdAt: new Date().toISOString(),
       status: 'new',
       notified: false,
+      hqForwarded: false,
+      ...(identity ? { hqIdentity: identity } : {}),
       ...(slot ? { booking: { slot, state: 'pending' as const } } : {}),
     }
     db.nextId += 1
@@ -132,6 +147,11 @@ export async function allLeads() {
 
 export async function bookedSlots() {
   return (await load()).leads.map(activeSlot).filter((s): s is string => Boolean(s))
+}
+
+// P-01: leads HQ has not confirmed yet (explicit `false`, so leads from before the field are skipped).
+export async function unforwardedLeads() {
+  return (await load()).leads.filter((l) => l.hqForwarded === false)
 }
 
 export async function unnotifiedLeads(exceptId?: number) {

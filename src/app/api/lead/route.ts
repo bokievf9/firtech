@@ -8,6 +8,7 @@ import { cabinetLeadPath, leadGate } from '@/lib/lead-identity'
 import { forwardLeadDetailed, withinMs } from '@/lib/lead-forward'
 import { currentLeadUser } from '@/lib/lead-session'
 import { flushPending, notifyOwner } from '@/lib/lead-bot'
+import { recordForward } from '@/lib/lead-retry'
 import { bookedSlots, createLead, SlotTakenError, type StoredLead } from '@/lib/store'
 import { leadToken, sendMessage, telegramEnv } from '@/lib/telegram'
 
@@ -66,7 +67,7 @@ async function handle(request: NextRequest) {
   // Saved first, so the lead survives a Telegram outage.
   let stored: StoredLead | null = null
   try {
-    stored = await createLead(lead, slot)
+    stored = await createLead(lead, slot, identity)
   } catch (error) {
     if (error instanceof SlotTakenError) {
       return apiError('slot_taken', 409)
@@ -77,6 +78,12 @@ async function handle(request: NextRequest) {
   // Copy for the Lead Intake agent, fail-open. Its answer (HQ's lead id, for the cabinet link) is
   // awaited at most 3 s further down; the forward itself never blocks the lead.
   const forwarded = forwardLeadDetailed(lead, stored?.booking?.slot ?? slot, process.env, fetch, ip, identity)
+  // P-01: the outcome is written down whenever HQ answers (even after the visitor got the reply); a
+  // lead HQ did not confirm stays `hqForwarded:false` and the background retry delivers it.
+  if (stored) {
+    const id = stored.id
+    void forwarded.then((r) => recordForward(id, r)).catch((error) => console.error('[lead] could not record the forward', error instanceof Error ? error.message : 'unknown'))
+  }
 
   if (!telegramReady) {
     console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))
@@ -115,6 +122,8 @@ async function handle(request: NextRequest) {
     token: followToken,
     slot: stored.booking?.slot ?? null,
     hqLeadId: hq.id,
+    // True while HQ has not confirmed: the lead is saved and goes to work on its own (retried).
+    queued: !hq.ok,
     cabinet,
   })
 }
