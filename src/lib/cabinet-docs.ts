@@ -6,10 +6,12 @@ import { httpsUrl, idStr, intOrNull, isObj, list, str, strOrNull, unwrapList } f
 // Pure: no network, no secrets, so tests import it directly.
 
 export type DocKind = 'quote' | 'contract' | 'invoice' | 'act' | 'other'
-export type DocState = 'awaiting_client' | 'accepted' | 'awaiting_signature' | 'signed' | 'issued' | 'paid' | 'void'
+// `declined` (the client declined or wants to discuss) and `expired` (the term ran out) are quote states since
+// agents P-11; the site shows them as they are and offers no button on them.
+export type DocState = 'awaiting_client' | 'accepted' | 'declined' | 'expired' | 'awaiting_signature' | 'signed' | 'issued' | 'paid' | 'void'
 
 export const docKinds: DocKind[] = ['quote', 'contract', 'invoice', 'act', 'other']
-export const docStates: DocState[] = ['awaiting_client', 'accepted', 'awaiting_signature', 'signed', 'issued', 'paid', 'void']
+export const docStates: DocState[] = ['awaiting_client', 'accepted', 'declined', 'expired', 'awaiting_signature', 'signed', 'issued', 'paid', 'void']
 
 // A document as the SERVER holds it: `pdfUrl` is HQ's signed link (7 days) and never leaves
 // the server (the browser gets `PublicDoc` and fetches the file through the session-checked proxy).
@@ -81,12 +83,12 @@ export const docStateKey = (d: Pick<ClientDoc, 'kind' | 'state'>): DocState | 'd
 export const docNeedsClient = (d: Pick<ClientDoc, 'kind' | 'state'>) =>
   d.state === 'awaiting_client' || d.state === 'awaiting_signature' || (d.kind === 'invoice' && d.state === 'issued')
 
-export type DocAction = 'accept' | 'sign' | 'pay' | 'download'
+export type DocAction = 'accept' | 'reject' | 'sign' | 'pay' | 'download'
 
 // The buttons of a document, from its kind and state. Paying needs a link; downloading needs a file.
 export function docActions(d: Pick<PublicDoc, 'kind' | 'state' | 'payUrl' | 'hasPdf'>): DocAction[] {
   const out: DocAction[] = []
-  if (d.kind === 'quote' && d.state === 'awaiting_client') out.push('accept')
+  if (d.kind === 'quote' && d.state === 'awaiting_client') out.push('accept', 'reject')
   if (d.kind === 'contract' && d.state === 'awaiting_signature') out.push('sign')
   if (d.kind === 'invoice' && d.state === 'issued' && d.payUrl) out.push('pay')
   if (d.hasPdf) out.push('download')
@@ -100,6 +102,21 @@ export function sortDocs<T extends Pick<ClientDoc, 'kind' | 'state' | 'createdAt
 }
 
 export const docsNeedingClient = (docs: readonly Pick<ClientDoc, 'kind' | 'state'>[]) => docs.filter(docNeedsClient).length
+
+// ---- rejecting a quote (P-11) ---------------------------------------------------------------------
+
+export type RejectMode = 'decline' | 'discuss'
+export const REJECT_REASON_MAX = 1000
+
+// What the browser sends to `POST /api/cabinet/documents/:id/reject` (the server re-checks it): a reason of
+// 1..1000 characters and the mode, `decline` by default.
+export function buildRejectPayload(input: { reason: unknown; mode: unknown }): { ok: true; payload: { reason: string; mode: RejectMode } } | { ok: false; error: 'reason' | 'mode' } {
+  const reason = typeof input.reason === 'string' ? input.reason.trim() : ''
+  if (reason.length < 1 || reason.length > REJECT_REASON_MAX) return { ok: false, error: 'reason' }
+  const mode = input.mode === undefined || input.mode === null ? 'decline' : input.mode
+  if (mode !== 'decline' && mode !== 'discuss') return { ok: false, error: 'mode' }
+  return { ok: true, payload: { reason, mode } }
+}
 
 // ---- e-signature ---------------------------------------------------------------------------------
 

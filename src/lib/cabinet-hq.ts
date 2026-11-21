@@ -15,10 +15,12 @@ import {
 } from './cabinet-data'
 import { parseAgentItem, parseAgents, parseConversations, type AgentConversation, type ClientAgent } from './cabinet-agent'
 import { labelTag, parseMessageItem, parseMessages, parseThreads, type ChatMessage, type ChatThread } from './cabinet-chat'
-import { parseClientDocs, signBodyForHq, type ClientDoc, type SignaturePayload } from './cabinet-docs'
+import { parseClientDocs, signBodyForHq, type ClientDoc, type RejectMode, type SignaturePayload } from './cabinet-docs'
 import type { CabinetExtras } from './cabinet-view'
 import {
   mockAcceptQuote,
+  mockRejectQuote,
+  mockReview,
   mockMessages as mockThreadMessages,
   mockPatchAgent,
   mockRead,
@@ -206,6 +208,7 @@ export async function syncClientToHq(
 export type HqV3Error =
   | CabinetError
   | 'not_awaiting'
+  | 'exists'
   | 'bad_signature'
   | 'no_signature'
   | 'too_big'
@@ -243,7 +246,7 @@ async function callV3(
     if (res.ok) return { ok: true, body }
     const code = body && typeof body === 'object' ? String((body as { error?: unknown }).error ?? '') : ''
     if (res.status === 404) return { ok: false, error: 'not_found' }
-    if (res.status === 409) return { ok: false, error: code === 'not_awaiting' ? 'not_awaiting' : 'hq_error' }
+    if (res.status === 409) return { ok: false, error: code === 'not_awaiting' ? 'not_awaiting' : code === 'exists' ? 'exists' : 'hq_error' }
     if (res.status === 422) {
       // `bad_signature` carries a `reason`: blank (nothing drawn), too_large, not_png, bad_size.
       const reason = body && typeof body === 'object' ? String((body as { reason?: unknown }).reason ?? '') : ''
@@ -282,6 +285,42 @@ export async function acceptClientDocument(clientId: number, docId: string, env:
   if (!res.ok) return res
   const next = (res.body as { next?: unknown } | null)?.next
   return { ok: true, data: { next: typeof next === 'string' ? next.slice(0, 20) : '' } }
+}
+
+// «Отклонить / обсудить» (P-11): the client's words go to the request's thread, HQ answers `{ ok, state: 'declined' }`;
+// 409 `not_awaiting` when the quote is not waiting for the client any more.
+export async function rejectClientDocument(
+  clientId: number,
+  docId: string,
+  body: { reason: string; mode: RejectMode },
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<{ state: string }>> {
+  if (!okId(clientId) || !docId) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    const r = mockRejectQuote(docId, body.reason, body.mode)
+    return r === 'ok' ? { ok: true, data: { state: 'declined' } } : { ok: false, error: r }
+  }
+  const res = await callV3(`/clients/${clientId}/documents/${enc(docId)}/reject`, { method: 'POST', json: body }, env, fetcher)
+  if (!res.ok) return res
+  const state = (res.body as { state?: unknown } | null)?.state
+  return { ok: true, data: { state: typeof state === 'string' ? state.slice(0, 20) : 'declined' } }
+}
+
+// The review of a project (P-16): 400 `invalid`, 404 a foreign or unknown project, 409 `exists` (one review per project).
+export async function postClientReview(
+  clientId: number,
+  body: { projectId: number; rating: number; text: string },
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<true>> {
+  if (!okId(clientId) || !okId(body.projectId)) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    const r = mockReview(body.projectId, body.rating, body.text)
+    return r === 'ok' ? { ok: true, data: true } : { ok: false, error: r }
+  }
+  const res = await callV3(`/clients/${clientId}/reviews`, { method: 'POST', json: body }, env, fetcher)
+  return res.ok ? { ok: true, data: true } : res
 }
 
 // «Подписать»: the PNG, the typed name, the consent, the signer's IP and browser. HQ stores the

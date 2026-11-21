@@ -1,0 +1,183 @@
+import { expect, test } from '@playwright/test'
+import { adminContext, fakeSessionCookie, noHorizontalOverflow, open, SIZES, watchErrors } from './helpers'
+
+// Site under the new HQ contracts (agents «Деньги и документы» and «Клиент заметит», 2026-11-23): the HQ booking
+// route, the cabinet (?thread=, the review form, rejecting a quote, the demo page) and the Пульт (call buttons, the
+// stage «готов» with HQ's hint, cabinet documents with a resend, reviews). Dev mock of HQ; the mocks keep their state
+// for the life of the dev server, so every test only moves it forward.
+
+const noise = [/WebGL|GPU stall|swiftshader|Failed to load resource/i]
+
+test('HQ books a call window: 401 without the token, 200, the window leaves the free list, 409 for another lead', async ({ request }) => {
+  const days = (await (await request.get('/api/slots')).json()).days as { slots: string[] }[]
+  const slot = days[days.length - 1]!.slots[days[days.length - 1]!.slots.length - 1]!
+  const body = { slot, leadId: 4242, name: 'Али', contact: '@ali', locale: 'ru', source: 'chat' }
+  expect((await request.post('/api/slots', { data: body })).status()).toBe(401)
+  expect((await request.post('/api/slots', { data: body, headers: { 'x-hq-token': 'wrong' } })).status()).toBe(401)
+  const headers = { 'x-hq-token': 'e2e-booking-token' }
+  expect((await request.post('/api/slots', { data: body, headers })).status()).toBe(200)
+  const after = (await (await request.get('/api/slots')).json()).days as { slots: string[] }[]
+  expect(after.some((d) => d.slots.includes(slot))).toBe(false)
+  expect((await request.post('/api/slots', { data: { ...body, leadId: 4243 }, headers })).status()).toBe(409)
+})
+
+test.describe('cabinet, signed in', () => {
+  test.beforeEach(async ({ context, baseURL }) => {
+    await context.addCookies([{ ...fakeSessionCookie(), url: baseURL! }])
+  })
+
+  test('?thread= opens the messages tab with that thread', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/ru/cabinet?thread=project-1')
+    await expect(page.locator('#cabinet-tab-messages')).toHaveAttribute('aria-selected', 'true')
+    await expect(page.locator('[data-thread-item="project-1"]')).toHaveAttribute('aria-current', 'true')
+    expect(errors).toEqual([])
+  })
+
+  test('a quote can be declined or discussed: the state, the hint and the thread line', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/ru/cabinet?tab=documents&doc=q-14')
+    const viewer = page.locator('[data-doc-open="q-14"]')
+    await expect(viewer.locator('[data-doc-accept]')).toBeVisible()
+    await viewer.locator('[data-doc-reject]').click()
+    // An empty answer is refused before anything is sent.
+    await viewer.getByRole('button', { name: 'Отправить', exact: true }).click()
+    await expect(viewer.getByText('Напишите несколько слов.')).toBeVisible()
+    await viewer.getByRole('radio', { name: 'Обсудить условия' }).check()
+    await viewer.getByRole('textbox', { name: /Ваш ответ менеджеру/ }).fill('Хочу обсудить срок и цену этапа 1')
+    await viewer.getByRole('button', { name: 'Отправить', exact: true }).click()
+    await expect(viewer.getByText(/Ответ отправлен/)).toBeVisible()
+    await expect(viewer.getByText('Отклонено', { exact: true })).toBeVisible()
+    await expect(viewer.locator('[data-doc-hint="declined"]')).toBeVisible()
+    await expect(viewer.locator('[data-doc-accept]')).toHaveCount(0)
+    await expect(viewer.locator('[data-doc-reject]')).toHaveCount(0)
+    // Expired quotes say what to do next, with no buttons.
+    await page.locator('[data-doc="q-6"]').click()
+    await expect(page.locator('[data-doc-open="q-6"] [data-doc-hint="expired"]')).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('review form: rating and text, thanks with the referral link, a second one is refused kindly', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/ru/cabinet?review=2')
+    const form = page.locator('[data-review-form]')
+    await expect(form).toBeVisible()
+    // No rating, no text: nothing is sent.
+    await form.getByRole('button', { name: 'Отправить отзыв' }).click()
+    await expect(form.getByRole('alert')).toContainText('Поставьте оценку')
+    await form.locator('[data-rating="5"]').click()
+    await form.getByRole('textbox', { name: 'Ваш отзыв' }).fill('Всё сделали вовремя, спасибо')
+    await form.getByRole('button', { name: 'Отправить отзыв' }).click()
+    const done = page.locator('[data-review-done]')
+    await expect(done).toContainText('Спасибо за отзыв')
+    await expect(done.getByRole('textbox')).toHaveValue(/\/ru\/\?ref=test-client$/)
+    // The same project again: HQ says 409 `exists`.
+    await open(page, '/ru/cabinet?review=2')
+    await page.locator('[data-rating="4"]').click()
+    await page.getByRole('textbox', { name: 'Ваш отзыв' }).fill('Ещё раз')
+    await page.getByRole('button', { name: 'Отправить отзыв' }).click()
+    await expect(page.locator('[data-review-form]').getByRole('alert')).toContainText('уже отправлен')
+    expect(errors).toEqual([])
+  })
+})
+
+test.describe('demo page', () => {
+  test('the chat sends ?k= as demoKey, shows HQ\'s limit and a wrong key says so', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    const requests: unknown[] = []
+    page.on('request', (r) => {
+      if (r.url().includes('/agent/') && r.method() === 'POST') requests.push(r.postDataJSON())
+    })
+    await open(page, '/ru/demo/ag_demo1?k=demo-key-0001')
+    await page.getByRole('textbox', { name: 'Ваше сообщение' }).fill('Сколько стоит стрижка?')
+    await page.getByRole('button', { name: 'Отправить' }).click()
+    await expect(page.locator('[data-demo-msg="agent"]')).toContainText('Демо-ответ агента')
+    await expect(page.locator('[data-demo-limit]')).toContainText('Осталось сообщений: 4 из 5')
+    expect(requests).toHaveLength(1)
+    expect(requests[0]).toMatchObject({ demoKey: 'demo-key-0001', text: 'Сколько стоит стрижка?' })
+    await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', /noindex/)
+
+    await open(page, '/ru/demo/ag_demo1?k=wrong-key-9999')
+    await page.getByRole('textbox', { name: 'Ваше сообщение' }).fill('Привет')
+    await page.getByRole('button', { name: 'Отправить' }).click()
+    await expect(page.locator('[data-demo-error]')).toContainText('Ссылка демо не подошла')
+
+    // No key at all: a sentence, no chat.
+    await open(page, '/ru/demo/ag_demo1')
+    await expect(page.locator('[data-demo-nokey]')).toBeVisible()
+    await noHorizontalOverflow(page, 'demo')
+    expect(errors).toEqual([])
+  })
+})
+
+test.describe('Пульт', () => {
+  test.beforeEach(async ({ context, baseURL }) => adminContext(context, baseURL!))
+
+  test('lead: confirm and cancel the call, the booking, what the client was told', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('3')
+    await page.getByRole('button', { name: /Боб/ }).first().click()
+    const booking = page.locator('[data-call-booking]')
+    await expect(booking).toBeVisible()
+    await booking.locator('[data-call-action="confirm"]').click()
+    await expect(page.locator('[data-call-booking="confirmed"]')).toBeVisible()
+    await expect(page.locator('[data-call-told]')).toContainText('тред в кабинете, письмо')
+    await page.locator('[data-call-action="cancel"]').click()
+    await expect(page.locator('[data-call-booking="cancelled"]')).toBeVisible()
+    await expect(page.locator('[data-call-action]')).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('production: «Этап готов» moves a paid stage on; an unpaid one shows HQ\'s hint', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('5')
+    await page.getByRole('button', { name: /Алиса/ }).first().click()
+    await page.locator('[data-ready-stage="2"]').click()
+    await expect(page.getByText(/Этап 2 ещё не оплачен: сначала счёт этапа/)).toBeVisible()
+    await page.keyboard.press('Escape')
+    await page.getByRole('button', { name: /Pulse Gym/ }).first().click()
+    await page.locator('[data-ready-stage="1"]').click()
+    await expect(page.getByText('Этап 1 готов, клиент получил приёмку.')).toBeVisible()
+    await expect(page.locator('[data-ready-stage="1"]')).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  test('back office: cabinet documents with a failed letter get «Отправить снова»; reviews are listed', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('6')
+    await page.getByRole('tab', { name: /^Документы/ }).click()
+    const block = page.locator('[data-cabinet-docs-problems]')
+    await expect(block.locator('[data-cabinet-doc="7"]')).toContainText('письмо не ушло')
+    await expect(block.locator('[data-cabinet-doc="7"]')).toContainText('нет PDF')
+    await expect(block.locator('[data-cabinet-doc="9"]')).toHaveCount(0)
+    await block.locator('[data-resend="7"]').click()
+    await expect(page.getByText('Письмо отправлено.')).toBeVisible()
+    await expect(block.locator('[data-cabinet-doc="7"]')).not.toContainText('письмо не ушло')
+    // HQ fails again for the second one: the mark stays and the reason is said.
+    await block.locator('[data-resend="8"]').click()
+    await expect(page.getByText(/письмо снова не ушло/)).toBeVisible()
+    await expect(block.locator('[data-cabinet-doc="8"]')).toContainText('письмо не ушло')
+
+    await page.getByRole('tab', { name: /^Отзывы/ }).click()
+    await expect(page.locator('[data-review="2"]')).toContainText('Алиса')
+    await expect(page.locator('[data-review="2"]')).toContainText('приносит заявки')
+    await expect(page.locator('[data-reviews-average]')).toContainText('4,5')
+    expect(errors).toEqual([])
+  })
+
+  test('phone: the lead drawer with the booking fits the screen', async ({ page }) => {
+    await page.setViewportSize(SIZES.mobile)
+    await open(page, '/admin/office')
+    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await page.keyboard.press('3')
+    await page.getByRole('button', { name: /Боб/ }).first().click()
+    await expect(page.locator('[data-call-booking]')).toBeVisible()
+    await noHorizontalOverflow(page, 'lead drawer')
+  })
+})

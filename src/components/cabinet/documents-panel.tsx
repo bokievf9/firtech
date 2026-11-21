@@ -6,13 +6,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { formatDate } from '@/lib/cabinet-data'
-import { docActions, docNeedsClient, docStateKey, docsNeedingClient, sortDocs, type PublicDoc, type SignaturePayload } from '@/lib/cabinet-docs'
+import { REJECT_REASON_MAX, docActions, docNeedsClient, docStateKey, docsNeedingClient, sortDocs, type PublicDoc, type SignaturePayload } from '@/lib/cabinet-docs'
 import { buttonStyles, cn } from '@/lib/cn'
 import { COUNTS_EVENT } from './cabinet-tabs'
 import { useWide } from './use-wide'
 import { SignaturePad } from './signature-pad'
 import { TabLink } from './tab-link'
-import { Chip, Empty, FormMessage, fill } from './ui'
+import { Chip, Empty, FormMessage, fill, inputClass } from './ui'
 
 // «Документы» (cabinet v3): the list with its states, the viewer (the PDF in an iframe through the
 // session-checked proxy, or the HTML version), «Принять КП», «Подписать» with the signature pad, «Оплатить»
@@ -28,7 +28,7 @@ const toneOf = (d: Pick<PublicDoc, 'state' | 'kind'>) =>
 // Documents of an old HQ (invoices and documents without the v3 endpoint) have no file to open.
 const isReal = (d: PublicDoc) => !d.id.startsWith('inv:') && !d.id.startsWith('doc:')
 
-const knownErrors = ['not_awaiting', 'not_found', 'unauthorized', 'no_signature', 'bad_signature', 'too_big', 'name', 'consent']
+const knownErrors = ['invalid', 'not_awaiting', 'not_found', 'unauthorized', 'no_signature', 'bad_signature', 'too_big', 'name', 'consent']
 const errorKey = (code: unknown): string => (typeof code === 'string' && knownErrors.includes(code) ? code : 'hq')
 
 export function DocumentsPanel({
@@ -49,7 +49,9 @@ export function DocumentsPanel({
   const [docs, setDocs] = useState(() => sortDocs(initial))
   const [openId, setOpenId] = useState<string | null>(null)
   const [signing, setSigning] = useState(false)
-  const [busy, setBusy] = useState<'accept' | 'sign' | null>(null)
+  const [busy, setBusy] = useState<'accept' | 'sign' | 'reject' | null>(null)
+  const [rejecting, setRejecting] = useState(false)
+  const [rejectError, setRejectError] = useState('')
   const [error, setError] = useState('')
   const [signError, setSignError] = useState('')
   const [notice, setNotice] = useState('')
@@ -63,6 +65,8 @@ export function DocumentsPanel({
   function choose(id: string | null) {
     setOpenId(id)
     setSigning(false)
+    setRejecting(false)
+    setRejectError('')
     setError('')
     setNotice('')
     setSignError('')
@@ -113,6 +117,23 @@ export function DocumentsPanel({
       }
     } catch {
       setError('network')
+    }
+    setBusy(null)
+  }
+
+  async function reject(doc: PublicDoc, payload: { reason: string; mode: 'decline' | 'discuss' }) {
+    setBusy('reject')
+    setRejectError('')
+    try {
+      const failed = await post(`/api/cabinet/documents/${encodeURIComponent(doc.id)}/reject`, payload)
+      if (failed) setRejectError(failed)
+      else {
+        setRejecting(false)
+        setNotice(t.reject.done)
+        await refresh()
+      }
+    } catch {
+      setRejectError('network')
     }
     setBusy(null)
   }
@@ -213,11 +234,19 @@ export function DocumentsPanel({
               dict={dict}
               locale={locale}
               signing={signing}
+              rejecting={rejecting}
+              rejectError={rejectError ? (errors[rejectError] ?? errors.hq ?? '') : ''}
               busy={busy}
               error={error ? (errors[error] ?? errors.hq ?? '') : ''}
               notice={notice}
               onBack={() => choose(null)}
               onAccept={() => void accept(open)}
+              onReject={() => {
+                setRejecting(true)
+                setRejectError('')
+              }}
+              onRejectCancel={() => setRejecting(false)}
+              onRejectSend={(payload) => void reject(open, payload)}
               onSign={() => {
                 setSigning(true)
                 setSignError('')
@@ -247,11 +276,16 @@ function Viewer({
   dict,
   locale,
   signing,
+  rejecting,
+  rejectError,
   busy,
   error,
   notice,
   onBack,
   onAccept,
+  onReject,
+  onRejectCancel,
+  onRejectSend,
   onSign,
   pad,
 }: {
@@ -259,11 +293,16 @@ function Viewer({
   dict: Dict
   locale: string
   signing: boolean
-  busy: 'accept' | 'sign' | null
+  rejecting: boolean
+  rejectError: string
+  busy: 'accept' | 'sign' | 'reject' | null
   error: string
   notice: string
   onBack: () => void
   onAccept: () => void
+  onReject: () => void
+  onRejectCancel: () => void
+  onRejectSend: (payload: { reason: string; mode: 'decline' | 'discuss' }) => void
   onSign: () => void
   pad: ReactNode
 }) {
@@ -301,7 +340,16 @@ function Viewer({
           </div>
           <Chip tone={toneOf(doc)}>{t.state[docStateKey(doc)]}</Chip>
         </div>
-        {hint && docNeedsClient(doc) && <p className="mt-3 text-sm text-muted">{hint}</p>}
+        {hint && (docNeedsClient(doc) || doc.state === 'declined' || doc.state === 'expired') && (
+          <p className="mt-3 text-sm text-muted" data-doc-hint={doc.state}>
+            {hint}
+          </p>
+        )}
+        {real && doc.deliveredAt === null && doc.state !== 'void' && (
+          <p className="mt-2 text-[13px] text-faint" data-doc-preparing>
+            {t.preparingMail}
+          </p>
+        )}
         {doc.kind === 'invoice' && doc.state === 'issued' && (
           <p className="mt-2 text-[13px] leading-relaxed text-muted" data-pay-help>
             <Link
@@ -335,7 +383,12 @@ function Viewer({
               {t.pay}
             </a>
           )}
-          {doc.kind === 'quote' && doc.state === 'awaiting_client' && (
+          {actions.includes('reject') && !rejecting && (
+            <button type="button" onClick={onReject} disabled={busy !== null} className={buttonStyles.secondary} data-doc-reject>
+              {t.reject.open}
+            </button>
+          )}
+          {doc.kind === 'quote' && (doc.state === 'awaiting_client' || doc.state === 'declined' || doc.state === 'expired') && (
             <TabLink tab="messages" extra={doc.leadId !== null ? { ref: `lead-${doc.leadId}` } : {}} className={buttonStyles.secondary}>
               {t.ask}
             </TabLink>
@@ -370,7 +423,80 @@ function Viewer({
         <div className="rounded-card border border-dashed border-line-strong p-8 text-center text-sm text-muted">{t.noPreview}</div>
       )}
 
+      {rejecting && <RejectForm dict={dict} busy={busy === 'reject'} error={rejectError} onSend={onRejectSend} onCancel={onRejectCancel} />}
+
       {pad}
     </div>
+  )
+}
+
+// «Отклонить или обсудить»: the mode and the client's words; HQ writes them to the request's thread.
+function RejectForm({
+  dict,
+  busy,
+  error,
+  onSend,
+  onCancel,
+}: {
+  dict: Dict
+  busy: boolean
+  error: string
+  onSend: (payload: { reason: string; mode: 'decline' | 'discuss' }) => void
+  onCancel: () => void
+}) {
+  const t = dict.cabinet.v3.docs.reject
+  const [mode, setMode] = useState<'decline' | 'discuss'>('discuss')
+  const [reason, setReason] = useState('')
+  const [empty, setEmpty] = useState(false)
+  return (
+    <form
+      className="grid gap-4 rounded-card border border-line bg-surface p-5 md:p-6"
+      data-doc-reject-form
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (!reason.trim()) {
+          setEmpty(true)
+          return
+        }
+        setEmpty(false)
+        onSend({ reason: reason.trim(), mode })
+      }}
+    >
+      <h4 className="text-base font-medium">{t.title}</h4>
+      <fieldset className="grid gap-2">
+        <legend className="text-sm text-muted">{t.modeLabel}</legend>
+        {(['discuss', 'decline'] as const).map((m) => (
+          <label key={m} className="flex items-center gap-2 text-[15px]">
+            <input type="radio" name="reject-mode" value={m} checked={mode === m} onChange={() => setMode(m)} />
+            {t[m]}
+          </label>
+        ))}
+      </fieldset>
+      <div className="grid gap-2">
+        <label htmlFor="reject-reason" className="text-sm text-muted">
+          {t.reason}
+        </label>
+        <textarea
+          id="reject-reason"
+          rows={4}
+          maxLength={REJECT_REASON_MAX}
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          aria-invalid={empty}
+          className={inputClass}
+        />
+        <p className="text-[13px] text-faint">{t.reasonHelp}</p>
+      </div>
+      {empty && <FormMessage kind="error">{t.empty}</FormMessage>}
+      {error && <FormMessage kind="error">{error}</FormMessage>}
+      <div className="flex flex-wrap gap-3">
+        <button type="submit" disabled={busy} className={buttonStyles.primary}>
+          {busy ? t.sending : t.submit}
+        </button>
+        <button type="button" onClick={onCancel} className={buttonStyles.secondary}>
+          {t.cancel}
+        </button>
+      </div>
+    </form>
   )
 }

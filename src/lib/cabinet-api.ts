@@ -60,6 +60,7 @@ const statusOf: Record<HqV3Error, number> = {
   hq_error: 502,
   not_found: 404,
   not_awaiting: 409,
+  exists: 409,
   bad_signature: 422,
   invalid: 400,
   rate_limited: 429,

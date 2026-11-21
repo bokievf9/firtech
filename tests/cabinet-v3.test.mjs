@@ -72,7 +72,7 @@ test('documents: the browser copy never carries HQ links', () => {
 
 test('documents: states decide the buttons', () => {
   const act = (o) => docs.docActions({ kind: 'other', state: 'accepted', payUrl: null, hasPdf: false, ...o })
-  assert.deepEqual(act({ kind: 'quote', state: 'awaiting_client', hasPdf: true }), ['accept', 'download'])
+  assert.deepEqual(act({ kind: 'quote', state: 'awaiting_client', hasPdf: true }), ['accept', 'reject', 'download'])
   assert.deepEqual(act({ kind: 'quote', state: 'accepted', hasPdf: true }), ['download'])
   assert.deepEqual(act({ kind: 'contract', state: 'awaiting_signature', hasPdf: true }), ['sign', 'download'])
   assert.deepEqual(act({ kind: 'contract', state: 'signed', hasPdf: true }), ['download'])

@@ -49,6 +49,7 @@ export function withTab(search: string, tab: CabinetTab, extra: Record<string, s
   const params = new URLSearchParams(search.startsWith('?') ? search.slice(1) : search)
   params.delete('doc')
   params.delete('ref')
+  params.delete('thread')
   params.set('tab', tab)
   for (const [key, value] of Object.entries(extra)) {
     if (value === null) params.delete(key)

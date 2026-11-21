@@ -5,11 +5,11 @@ import { isFreeSlot } from '@/lib/booking'
 import { checkPublicPost, visitorIp } from '@/lib/public-post'
 import { formatLead, leadSchema } from '@/lib/lead'
 import { cabinetLeadPath, leadGate } from '@/lib/lead-identity'
-import { forwardLeadDetailed, withinMs } from '@/lib/lead-forward'
+import { forwardLeadDetailed, hqNotified, withinMs } from '@/lib/lead-forward'
 import { currentLeadUser } from '@/lib/lead-session'
 import { flushPending, notifyOwner } from '@/lib/lead-bot'
 import { recordForward } from '@/lib/lead-retry'
-import { bookedSlots, createLead, SlotTakenError, type StoredLead } from '@/lib/store'
+import { bookedSlots, createLead, SlotTakenError, updateLead, type StoredLead } from '@/lib/store'
 import { leadToken, sendMessage, telegramEnv } from '@/lib/telegram'
 
 // Simple per-IP limit: enough against a script hammering the form, without a database.
@@ -85,7 +85,17 @@ async function handle(request: NextRequest) {
     void forwarded.then((r) => recordForward(id, r)).catch((error) => console.error('[lead] could not record the forward', error instanceof Error ? error.message : 'unknown'))
   }
 
-  if (!telegramReady) {
+  // HQ's answer decides the owner channel (P-02): `notified: true` means HQ tells the owner itself, so
+  // the site's own bot stays quiet; no answer within 3 s, `queued` or an error: the bot is the fallback.
+  const hq = await withinMs(forwarded, 3000, { ok: false, id: null })
+  if (hqNotified(hq)) {
+    if (stored) {
+      // Marked as notified so the resend of "unsent" leads does not pick it up later.
+      await updateLead(stored.id, (l) => {
+        l.notified = true
+      }).catch((error) => console.error('[lead] could not mark the lead', error instanceof Error ? error.message : 'unknown'))
+    }
+  } else if (!telegramReady) {
     console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))
   } else {
     try {
@@ -110,7 +120,6 @@ async function handle(request: NextRequest) {
     }
   }
 
-  const hq = await withinMs(forwarded, 3000, { ok: false, id: null })
   const followToken = stored ? leadToken(stored.id) : ''
   const cabinet = identity
     ? cabinetLeadPath(lead.locale, hq.id, stored ? { id: stored.id, token: followToken } : undefined)

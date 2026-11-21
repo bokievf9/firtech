@@ -20,7 +20,11 @@ import { pickOffers, offerState } from '@/lib/cabinet-offers'
 import { defaultTab } from '@/lib/cabinet-tabs'
 import { fetchClientByEmail, fetchCabinetExtras, fetchThreadMessages } from '@/lib/cabinet-hq'
 import { buildCabinetView, noExtras } from '@/lib/cabinet-view'
-import { followLink, pickLead, type CabinetData } from '@/lib/cabinet-data'
+import { cabinetRefLink, followLink, pickLead, type CabinetData } from '@/lib/cabinet-data'
+import { reviewProjectId } from '@/lib/cabinet-review'
+import { getPricing } from '@/lib/pricing-store'
+import { fillReferralPercent } from '@/lib/referral'
+import { ReviewCard } from '@/components/cabinet/review-card'
 import { requireCabinetUser, syncAfterSignIn } from '@/lib/cabinet-session'
 import { isLocale } from '@/lib/i18n'
 import { defaultTelegramBot } from '@/lib/site'
@@ -86,6 +90,9 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
     }),
   )
   const focus = pickLead(data.leads, leadParam)
+  // `?review=<projectId>`: the link of the «Как вам работа с Fir Tech?» email opens the review form.
+  const reviewId = reviewProjectId(query.review)
+  const reviewPricing = reviewId ? await getPricing() : null
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
@@ -133,6 +140,14 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
           projects: (
             <>
               <RefreshWhileVisible />
+              {reviewId !== null && reviewPricing && (
+                <ReviewCard
+                  dict={dict}
+                  projectId={reviewId}
+                  refLink={cabinetRefLink(locale, data.referralSlug)}
+                  thanksSub={fillReferralPercent(t.v3.review.thanksSub, reviewPricing)}
+                />
+              )}
               {view.projects.length === 0 && view.leads.length === 0 && !leadParam && <EmptyProjects dict={dict} locale={locale} />}
               {view.projects.length > 0 && (
                 <section aria-labelledby="cabinet-projects-title" data-cabinet-projects>

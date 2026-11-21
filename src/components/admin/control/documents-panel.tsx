@@ -11,6 +11,7 @@ import { normalizeItem, normalizeReview, replaceItem } from '@/lib/review'
 import { errText, fill, hq } from './api'
 import { CcPanel } from './cc-panel'
 import type { CrmFeed } from './crm-hq-data'
+import { CabinetDocsBlock } from './cabinet-docs-block'
 import { Chips, Count, FeedBody, label, Pill, Search, t } from './crm-hq-ui'
 
 const k = admin.crm.hq.documents
@@ -80,6 +81,7 @@ export function DocumentsPanel({
     <CcPanel id="documents" title={k.title} icon={<FileText size={18} aria-hidden="true" />} badge={badge} className={className}>
       <div className="grid gap-3 p-3 sm:p-4">
         <p className="text-xs text-faint">{k.hint}</p>
+        {by === 'kind' ? <CabinetDocsBlock now={now} /> : null}
         <FeedBody feed={feed}>
           {(list) => (
             <>

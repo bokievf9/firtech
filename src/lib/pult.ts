@@ -221,6 +221,45 @@ export function breakdownSource(leadRaw: unknown): BreakdownSource | null {
   return out.estimate || out.message || out.builderUrl ? out : null
 }
 
+// The call booking HQ keeps for a lead (agents P-02/P-18): `pending` waits for the owner, `confirmed`, `cancelled`;
+// `site` tells what the site said about the window (`site` booked there by the visitor, `booked` HQ booked it on the
+// site, `not_accepted`, `taken`, `failed`).
+export const CALL_STATES = ['pending', 'confirmed', 'cancelled'] as const
+export type CallBooking = { at: string | null; state: (typeof CALL_STATES)[number]; site: string }
+export const callBookingOf = (raw: unknown): CallBooking | null => {
+  const b = rec(raw)
+  if (!Object.keys(b).length) return null
+  return { at: when(b.at), state: oneOf(b.state, CALL_STATES, 'pending'), site: str(b.site, 20) }
+}
+
+export type CallAction = 'confirm' | 'reschedule' | 'cancel'
+// «Подтвердить / Перенести / Отменить»: the body of `POST crm/leads/:id/call` (`at` only for the move).
+export function callBody(action: CallAction, at?: string | null): { action: CallAction; at?: string } | null {
+  if (action === 'reschedule') return at && !Number.isNaN(Date.parse(at)) ? { action, at: new Date(at).toISOString() } : null
+  return { action }
+}
+// What can be done with a booking in this state.
+export const callActionsFor = (b: CallBooking | null): CallAction[] =>
+  !b || b.state === 'cancelled' ? [] : b.state === 'pending' ? ['confirm', 'reschedule', 'cancel'] : ['reschedule', 'cancel']
+
+// The answer of `POST crm/leads/:id/call`: the booking and what the client was told (`told`: cabinet = the thread,
+// email, telegram, web = the chat session); an empty `told` means nothing new was sent (a repeat).
+export const TOLD_CHANNELS = ['cabinet', 'email', 'telegram', 'web'] as const
+export type CallAnswer = { booking: CallBooking | null; told: (typeof TOLD_CHANNELS)[number][] }
+export function normalizeCallAnswer(body: unknown): CallAnswer {
+  const b = rec(body)
+  const told = arr(b.told, 8).filter((x): x is (typeof TOLD_CHANNELS)[number] => (TOLD_CHANNELS as readonly string[]).includes(x as string))
+  return { booking: callBookingOf(b.booking), told: [...new Set(told)] }
+}
+
+// HQ's refusals of a project action carry a `hint` sentence (409 `not_paid`, `not_ready`, `stages_open`, `placeholder`):
+// that sentence is shown when there is one, else the panel's own text for the code.
+export const HINT_CODES = ['not_paid', 'not_ready', 'stages_open', 'placeholder'] as const
+export function failureText(res: { error: string; hint?: unknown }, own: (code: string) => string): string {
+  const hint = typeof res.hint === 'string' ? res.hint.trim().slice(0, 300) : ''
+  return hint && (HINT_CODES as readonly string[]).includes(res.error) ? hint : own(res.error)
+}
+
 export type LeadNote = { at: string | null; text: string }
 export type Lead = {
   id: number
@@ -240,6 +279,7 @@ export type Lead = {
   notes: LeadNote[]
   clientId: string | null
   callAt: string | null
+  booking: CallBooking | null
   lostReason: string
   createdAt: string | null
   // «Разбор заявки»: the client's own words, the quote text and the builder link the lead came with.
@@ -278,6 +318,7 @@ export function leadRow(raw: unknown): Lead | null {
     notes,
     clientId: idOf(r.clientId),
     callAt: when(r.callAt),
+    booking: callBookingOf(r.booking),
     lostReason: str(r.lostReason ?? r.lost_reason, 300),
     createdAt: when(r.createdAt),
     message: str(r.message ?? r.summary, 2000),
@@ -484,6 +525,11 @@ export type Milestone = {
 }
 
 // The owner can accept a stage only when the client's side is ready: paid and done, not accepted yet.
+// «Этап готов» (`ready_milestone`): a stage of the payment plan that is not ready yet. A stage still waiting for payment
+// is offered too: HQ refuses it with 409 `not_paid` and a hint, which is shown as it is.
+export const canReadyStage = (m: Pick<Milestone, 'stageNo' | 'state'>): boolean =>
+  m.stageNo !== null && (m.state === 'in_progress' || m.state === 'awaiting_payment')
+
 export const canAcceptStage = (m: Pick<Milestone, 'stageNo' | 'state'>): boolean => m.stageNo !== null && m.state === 'awaiting_acceptance'
 
 // HQ path of the accept call (numeric client id only).

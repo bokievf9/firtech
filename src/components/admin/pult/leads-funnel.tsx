@@ -14,7 +14,12 @@ import {
   moveLead,
   normalizeLeadItem,
   normalizeLeads,
+  callActionsFor,
+  callBody,
+  normalizeCallAnswer,
   normalizeReply,
+  type CallAction,
+  type CallAnswer,
   stageMove,
   type Lead,
   type LeadStage,
@@ -83,6 +88,18 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
     return false
   }
 
+  // The call booking (P-18/P-19): confirm, move or cancel; the answer carries the booking and what the client was told.
+  const call = async (l: Lead, body: Record<string, unknown>): Promise<CallAnswer | null> => {
+    const res = await hq<{ item?: unknown }>(`crm/leads/${l.id}/call`, body)
+    if (res.ok) {
+      const item = normalizeLeadItem(res)
+      if (item) feed.mutate((v) => ({ ...v, items: v.items.map((x) => (x.id === item.id ? item : x)) }))
+      return normalizeCallAnswer(res)
+    }
+    notify(fill(k.failed, { e: errText(res.error) }), 'error')
+    return null
+  }
+
   const move = async (l: Lead, to: string, extra: Record<string, unknown> = {}) => {
     const check = stageMove(l.stage, to)
     if (!check.ok) {
@@ -130,6 +147,7 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
         onClose={() => setOpenId(null)}
         onMove={move}
         onWrite={write}
+        onCall={call}
         onClient={(id) => openPanel('sales', 'clients', id)}
         onDocuments={() => openPanel('backoffice', 'documents')}
       />
@@ -140,6 +158,7 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
 type DrawerProps = {
   onMove: (l: Lead, to: string, extra?: Record<string, unknown>) => Promise<void>
   onWrite: (l: Lead, body: Record<string, unknown>, path?: string) => Promise<boolean>
+  onCall: (l: Lead, body: Record<string, unknown>) => Promise<CallAnswer | null>
   onClient: (id: string) => void
   onDocuments: () => void
 }
@@ -153,7 +172,7 @@ function LeadDrawer({ lead, onClose, ...rest }: DrawerProps & { lead: Lead | nul
 }
 
 // Keyed by the lead, so the reply, note and reason fields start empty for every lead.
-function LeadBody({ lead, onMove, onWrite, onClient, onDocuments }: DrawerProps & { lead: Lead }) {
+function LeadBody({ lead, onMove, onWrite, onCall, onClient, onDocuments }: DrawerProps & { lead: Lead }) {
   const { notify } = useHub()
   const [note, setNote] = useState('')
   const [reply, setReply] = useState('')
@@ -161,6 +180,21 @@ function LeadBody({ lead, onMove, onWrite, onClient, onDocuments }: DrawerProps 
   const [callAt, setCallAt] = useState(() => localInput(lead.callAt))
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
+  // What HQ answered to the last call action: shows `told` (what the client heard) under the booking.
+  const [answer, setAnswer] = useState<CallAnswer | null>(null)
+  const booking = answer?.booking ?? lead.booking
+
+  const callAction = async (action: CallAction) => {
+    const body = callBody(action, callAt ? new Date(callAt).toISOString() : null)
+    if (!body) return
+    setBusy(`call-${action}`)
+    const res = await onCall(lead, body)
+    setBusy(null)
+    if (res) {
+      setAnswer(res)
+      notify(action === 'confirm' ? k.callConfirmed : action === 'cancel' ? k.callCancelled : k.callMoved)
+    }
+  }
 
   const sendReply = async () => {
     if (!reply.trim()) return
@@ -273,6 +307,29 @@ function LeadBody({ lead, onMove, onWrite, onClient, onDocuments }: DrawerProps 
                 {k.callSet}
               </button>
             </div>
+            {booking ? (
+              <div className="grid gap-2 rounded-xl bg-inset p-3 text-sm" data-call-booking={booking.state}>
+                <p className="flex flex-wrap items-center gap-x-2">
+                  <span className="text-xs text-faint">{k.callBooking}</span>
+                  <span className="font-medium">{k.callState[booking.state] ?? booking.state}</span>
+                  {booking.at ? <span className="font-mono text-xs text-muted">{new Date(booking.at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</span> : null}
+                </p>
+                {booking.site ? <p className="text-xs text-muted">{k.callSite[booking.site] ?? booking.site}</p> : null}
+                {answer ? (
+                  <p className="text-xs text-muted" data-call-told>
+                    {answer.told.length ? `${k.told}: ${answer.told.map((c) => k.toldChannel[c] ?? c).join(', ')}.` : k.toldNone}
+                  </p>
+                ) : null}
+                <div className="flex flex-wrap gap-2">
+                  {callActionsFor(booking).map((a) => (
+                    <button key={a} type="button" className={a === 'confirm' ? btnPrimary : btn} disabled={busy !== null} onClick={() => void callAction(a)} data-call-action={a}>
+                      {a === 'confirm' ? k.callConfirm : a === 'reschedule' ? k.callReschedule : k.callCancel}
+                    </button>
+                  ))}
+                </div>
+                {callActionsFor(booking).includes('reschedule') ? <p className="text-xs text-faint">{k.callRescheduleHint}</p> : null}
+              </div>
+            ) : null}
           </section>
 
           <section className="grid gap-2 border-t border-line pt-4">

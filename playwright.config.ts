@@ -51,6 +51,7 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_URL: `http://127.0.0.1:${supabasePort}`,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'e2e-anon-key',
       SUPABASE_SERVICE_ROLE_KEY: 'e2e-service-key',
+      SITE_BOOKING_TOKEN: 'e2e-booking-token',
       UNSUBSCRIBE_SECRET: 'e2e-unsubscribe-secret-0123456789',
       HQ_CHAT_URL: '',
       HQ_ADMIN_URL: '',

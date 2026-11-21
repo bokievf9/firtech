@@ -73,14 +73,8 @@ export function ownerKeyboard(lead: StoredLead): InlineKeyboard {
     statusButtons.slice(0, 2).map(button),
     statusButtons.slice(2).map(button),
   ]
-  if (lead.booking && lead.booking.state !== 'released') {
-    rows.push([
-      ...(lead.booking.state === 'pending'
-        ? [{ text: 'Подтвердить', callback_data: `bk:${lead.id}:ok` }]
-        : []),
-      { text: 'Перенести', callback_data: `bk:${lead.id}:move` },
-    ])
-  }
+  // Confirm / move buttons for a call are not shown any more (2026-11-23): HQ's Pult owns the call
+  // (`POST /admin/crm/leads/:id/call`). `bookingAction` and the `bk:` callback stay for old messages.
   return rows
 }
 

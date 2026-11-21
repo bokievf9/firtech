@@ -18,6 +18,7 @@ import {
   type Project,
   type Prospect,
   type Referral,
+  type Review,
   type Ticket,
 } from '@/lib/admin-crm-hq'
 import { usePoll } from './api'
@@ -64,7 +65,7 @@ export type CrmHq = {
   documents: CrmFeed<CrmDocument>
   projects: CrmFeed<Project>
   referrals: CrmFeed<Referral>
-  reviews: CrmFeed<never>
+  reviews: CrmFeed<Review>
 }
 
 // The data of the seven CRM panels: HQ's /admin/crm/* lists (newest first, up to 200 rows, filtered

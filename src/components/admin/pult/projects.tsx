@@ -14,6 +14,8 @@ import {
   normalizeProjectItem,
   acceptStagePath,
   canAcceptStage,
+  canReadyStage,
+  failureText,
   pickProjectClient,
   PROJECT_STATUSES,
   projectColumn,
@@ -67,7 +69,8 @@ export function ProjectsBoard({ focus }: { focus: string | null }) {
       if (item) replace(item)
       return true
     }
-    notify(fill(k.failed, { e: errText(res.error) }), 'error')
+    // 409 answers with a `hint` (not_paid, not_ready, stages_open, placeholder) show HQ's own sentence.
+    notify(fill(k.failed, { e: failureText(res, errText) }), 'error')
     return false
   }
   const move = async (p: Project, to: string) => {
@@ -175,6 +178,17 @@ function ProjectBody({
     }
     setAccepting(null)
   }
+  // «Этап готов» (P-14): the stage is done without the builder chain, the client gets «Принять этап».
+  const ready = async (m: Milestone) => {
+    if (m.stageNo === null) return
+    setAccepting(m.id)
+    const ok = await onAct({ action: 'ready_milestone', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id })
+    if (ok) {
+      onMilestone(m, { state: 'awaiting_acceptance' })
+      notify(fill(k.readyDone, { n: m.stageNo }))
+    }
+    setAccepting(null)
+  }
   const toggle = async (m: Milestone) => {
     const before = m.doneAt
     onMilestone(m, { doneAt: before ? null : new Date().toISOString() })
@@ -217,6 +231,11 @@ function ProjectBody({
                   <span className={cn('truncate', m.doneAt && 'text-muted line-through')}>{m.title || m.kind}</span>
                 </button>
                 {m.state ? <Chip tone={m.state === 'accepted' ? 'accent' : m.state === 'awaiting_acceptance' ? 'warn' : 'plain'}>{k.stageState[m.state]}</Chip> : null}
+                {canReadyStage(m) ? (
+                  <button type="button" className={btn} disabled={accepting !== null} title={k.readyHint} onClick={() => void ready(m)} data-ready-stage={m.stageNo}>
+                    {accepting === m.id ? k.readying : k.ready}
+                  </button>
+                ) : null}
                 {canAcceptStage(m) ? (
                   <button type="button" className={btn} disabled={accepting !== null} title={k.acceptHint} onClick={() => void accept(m)}>
                     {accepting === m.id ? k.accepting : k.accept}

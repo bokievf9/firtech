@@ -32,7 +32,9 @@ test('lists: a body that is not an object is an error (null), available:false st
   assert.deepEqual(none.items, [])
   // No items array at all is not data either.
   assert.equal(c.normalizeTickets({ ok: true }).available, false)
-  assert.equal(c.normalizeReviews({ ok: true, available: true, items: [{ id: 1 }] }).items.length, 0)
+  // Reviews are real since agents P-16: a row with an id is kept, rating outside 1..5 becomes 0.
+  assert.equal(c.normalizeReviews({ ok: true, available: true, items: [{ id: 1, rating: 9 }, { name: 'no id' }] }).items.length, 1)
+  assert.equal(c.normalizeReviews({ ok: true, available: true, items: [{ id: 1, rating: 9 }] }).items[0].rating, 0)
   assert.equal(c.normalizeReviews({ ok: true, available: false, items: [], nextCursor: null }).available, false)
 })
 
@@ -194,7 +196,7 @@ test('mock CRM: lists, filters, the prospect state machine and tickets', () => {
 
   const sum = get('crm/summary')
   assert.equal(sum.ok, true)
-  assert.equal(sum.reviews.available, false)
+  assert.equal(sum.reviews.available, true)
   assert.equal(c.normalizeSummary(sum).prospects.fresh, 1)
 
   const pr = c.normalizeProspects(get('crm/prospects'))
@@ -236,7 +238,7 @@ test('mock CRM: lists, filters, the prospect state machine and tickets', () => {
   const proj = c.normalizeProjects(get('crm/projects')).items[0]
   assert.equal(proj.tasksTotal, 4)
   assert.equal(c.normalizeReferrals(get('crm/referrals')).items.length, 1)
-  assert.equal(c.normalizeReviews(get('crm/reviews')).available, false)
+  assert.equal(c.normalizeReviews(get('crm/reviews')).available, true)
   assert.equal(c.normalizeClients(get('crm/clients')).chats.web, 12)
   assert.equal(get('crm/nope').error, 'not_found')
 })
