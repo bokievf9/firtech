@@ -33,8 +33,14 @@ export async function GET() {
     // AI-team pages: the index, each department and each agent, one line each (prices by quote).
     const aiTeam = [
       `- ${dict.aiTeams.nav}: ${siteUrl}/${locale}${aiTeamsPath}`,
-      ...aiTeamIds.map((id) => `- ${dict.aiTeams.items[id].title}: ${siteUrl}/${locale}${aiTeamPath(id)}`),
-      ...agentOffers.map((a) => `- ${dict.aiTeams.agents.items[a.id].title}: ${siteUrl}/${locale}${agentPath(a.id)}`),
+      ...aiTeamIds.map((id) => {
+        const item = dict.aiTeams.items[id]
+        return `- ${item.title}: ${item.promise} ${siteUrl}/${locale}${aiTeamPath(id)}`
+      }),
+      ...agentOffers.map((a) => {
+        const item = dict.aiTeams.agents.items[a.id]
+        return `- ${item.title}: ${item.promise} ${siteUrl}/${locale}${agentPath(a.id)}`
+      }),
     ]
     const services = serviceSlugs.map(
       (slug) =>
@@ -71,7 +77,7 @@ export async function GET() {
   const body = [
     '# Fir Tech',
     '',
-    '> Fir Tech builds AI agents, Telegram bots and websites for small business. Taking orders from Tashkent, Almaty, Dushanbe, Bishkek and other cities of the CIS. Prices in US dollars, fixed before the work starts. The site is in Russian and English.',
+    '> Fir Tech is a studio of AI agents. It builds AI booking assistants, AI lead managers, process automation, Telegram Mini Apps and websites for small business. Orders come from Tashkent, Almaty, Dushanbe, Bishkek and other cities of the CIS. Prices are in US dollars and fixed before the work starts. The site is in Russian and English.',
     '',
     `- Russian: ${siteUrl}/ru`,
     `- English: ${siteUrl}/en`,
