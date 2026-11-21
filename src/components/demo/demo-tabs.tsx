@@ -14,7 +14,8 @@ import { DemoOffice } from './demo-office'
 
 export type DemoArticle = { slug: string; title: string; description: string; date: string; dateLabel: string }
 
-export const demoTabIds = ['receptionist', 'admin', 'automation', 'content', 'miniapp', 'agent', 'implementation'] as const
+// `personal` (2026-11-22) replaced the old personal-assistant tab and sits right after the two live booking demos.
+export const demoTabIds = ['receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'implementation'] as const
 export type DemoTabId = (typeof demoTabIds)[number]
 
 // The tabs of #demo (owner 2026-11-22), one per product, all seven: the receptionist chat with a niche
@@ -94,8 +95,8 @@ export function DemoTabs({
         <div role="tabpanel" id={`${base}-panel-miniapp`} aria-labelledby={`${base}-tab-miniapp`} hidden={active !== 'miniapp'}>
           {active === 'miniapp' && <DemoBuilt dict={dict} locale={locale} product="miniapp" intro={t.miniapp.intro} badge={t.exampleBadge} />}
         </div>
-        <div role="tabpanel" id={`${base}-panel-agent`} aria-labelledby={`${base}-tab-agent`} hidden={active !== 'agent'}>
-          {active === 'agent' && <DemoAssistant copy={t.agent} badge={t.exampleBadge} />}
+        <div role="tabpanel" id={`${base}-panel-personal`} aria-labelledby={`${base}-tab-personal`} hidden={active !== 'personal'}>
+          {active === 'personal' && <DemoAssistant copy={t.personal} badge={t.exampleBadge} />}
         </div>
         <div role="tabpanel" id={`${base}-panel-content`} aria-labelledby={`${base}-tab-content`} hidden={active !== 'content'}>
           {active === 'content' && (

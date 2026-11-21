@@ -25,9 +25,11 @@ import {
   moodText,
   siteNeedText,
   sourceText,
+  flagshipText,
   themeText,
   toolText,
 } from '../content/builder-v2'
+import { flagshipPrice } from './flagships'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
 import { usesAxes } from './builder-style'
 import { effectiveDelivery, effectiveSiteNeed, hasAgent } from './builder-v2'
@@ -119,13 +121,28 @@ export function estimateDoc(
     }
   }
   const quoteWord = pick(builderUi.onRequest, locale)
-  const onRequest: EstimateRow[] = productsOnRequest(build).map((id) => ({
-    id,
-    name: pick(productCatalog[id].name, locale),
-    detail: pick(productCatalog[id].hint, locale),
-    term: '',
-    price: quoteWord,
-  }))
+  // The flagships carry their plan: the Personal AI its level, the AI company its starting price «по смете».
+  const onRequest: EstimateRow[] = productsOnRequest(build).map((id) => {
+    if (id === 'personal' || id === 'company') {
+      const f = flagshipPrice(build, id, pricing)
+      const loc = locale === 'ru' ? 'ru' : 'en'
+      const level = id === 'personal' ? `${flagshipText.levels[f.plan.id as 'basic' | 'plus' | 'max'][loc]}: ` : `${locale === 'ru' ? 'от' : 'from'} `
+      return {
+        id,
+        name: pick(productCatalog[id].name, locale),
+        detail: f.options.map((o) => pick(flagshipText.options[o as keyof typeof flagshipText.options].name, locale)).join(', '),
+        term: '',
+        price: `${level}${formatUsd(f.plan.setup)} + ${formatUsd(f.plan.monthly)}${flagshipText.perMonth[loc]}${f.byQuote ? `, ${flagshipText.byQuote[loc]}` : ''}`,
+      }
+    }
+    return {
+      id,
+      name: pick(productCatalog[id].name, locale),
+      detail: pick(productCatalog[id].hint, locale),
+      term: '',
+      price: quoteWord,
+    }
+  })
   return {
     kind: build.kind ? kindName(build.kind, locale) : null,
     products: (build.products ?? []).map((id) => pick(productCatalog[id].name, locale)),
@@ -357,7 +374,9 @@ export function leadSummary(
   // Products without a price are listed apart and never summed.
   if (doc.onRequest.length)
     lines.push(
-      `${pick(ui.onRequestLabel, locale)}: ${doc.onRequest.map((row) => row.name).join(', ')}`,
+      `${pick(ui.onRequestLabel, locale)}: ${doc.onRequest
+        .map((row) => (row.price === pick(ui.onRequest, locale) ? row.name : `${row.name} (${row.detail}; ${row.price})`))
+        .join(', ')}`,
     )
   if (doc.monthly) lines.push(`${dict.extras.items.support.name}: ${doc.monthly}`)
   if (doc.stages.length)

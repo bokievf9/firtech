@@ -7,6 +7,7 @@ import { kindCatalog, kindName, pick, previewCopy, productCatalog } from '@/cont
 import {
   deliveryText,
   detailLabels,
+  flagshipText,
   previewUi,
   scripted,
   siteSteps,
@@ -16,6 +17,7 @@ import { motionOf, styleVars } from '@/lib/builder-style'
 import { kindTheme } from '@/lib/builder-themes'
 import { agentProducts, demoNicheOf, departmentOf, effectiveDelivery, previewModes, type PreviewMode } from '@/lib/builder-v2'
 import { cn } from '@/lib/cn'
+import { optionsOf, personalLevel } from '@/lib/flagships'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { useSiteTheme } from '@/lib/use-site-theme'
 import { Cta, Reveal, RevealGroup, ThemedSite } from './builder-motion'
@@ -91,6 +93,7 @@ export function LivePreview({
         {mode === 'miniapp' && <MiniAppPreview build={build} locale={locale} company={company} preset={preset} themeKey={themeKey} />}
         {mode === 'content' && <ContentPreview build={build} locale={locale} company={company} preset={preset} themeKey={themeKey} />}
         {mode === 'automation' && <AutomationPreview locale={locale} preset={preset} themeKey={themeKey} />}
+        {mode === 'personal' && <PersonalPreview build={build} locale={locale} />}
       </div>
       <p className="text-[13px] leading-relaxed text-faint">
         {pick(previewUi.concept, locale)}
@@ -481,5 +484,38 @@ function AutomationPreview({ locale, preset, themeKey }: { locale: string; prese
         </Reveal>
       ))}
     </RevealGroup>
+  )
+}
+
+// ------------------------------------------------------------------- personal AI
+
+// The Personal AI: its morning brief in Telegram, one line per service picked, and the level they make.
+function PersonalPreview({ build, locale }: { build: Build; locale: string }) {
+  const loc = locale === 'ru' ? 'ru' : 'en'
+  const picked = optionsOf(build, 'personal')
+  const rows = picked.map((id) => flagshipText.previewRows[id as keyof typeof flagshipText.previewRows]?.[loc]).filter(Boolean)
+  return (
+    <div className={cn('mx-auto grid max-w-md gap-3 rounded-xl bg-bg p-4', BORDER, 'border-line-strong', SHADOW)} data-personal-preview>
+      <div className="flex items-center gap-2.5">
+        <span className="grid size-9 place-items-center rounded-full bg-accent text-accent-ink">
+          <UserCircle size={18} weight="fill" />
+        </span>
+        <div className="min-w-0">
+          <p className={cn(HEAD, 'text-sm')}>{flagshipText.previewTitle[loc]}</p>
+          <p className="font-mono text-[11px] text-muted">
+            {flagshipText.personal.level[loc]}: {flagshipText.levels[personalLevel(picked)][loc]}
+          </p>
+        </div>
+        <span className="ml-auto font-mono text-[11px] text-faint">07:30</span>
+      </div>
+      <ul className="grid gap-1.5 rounded-xl bg-surface-2 p-3 text-[13px]">
+        {rows.map((row) => (
+          <li key={row} className="flex items-center gap-2">
+            <span className="size-1.5 shrink-0 rounded-full bg-accent" />
+            {row}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

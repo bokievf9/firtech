@@ -11,6 +11,20 @@ import {
   ReadinessBlock,
   ScopeBlock,
 } from './common-blocks'
+import {
+  CasesBlock,
+  KnowledgeBlock,
+  LivesBlock,
+  MemoryBlock,
+  MyDayBlock,
+  PilotBlock,
+  PultBlock,
+  RolloutBlock,
+  SetupBlock,
+  StructureBlock,
+  TeamGetsBlock,
+  TrustBlock,
+} from './flagship-blocks'
 import type { ProductSectionContext } from './shell'
 import {
   BeforeAfterBlock,
@@ -79,6 +93,30 @@ export function ProductSection({ section, ctx, band }: { section: ProductSection
       return page.org ? <OrgBlock copy={page.org} band={band} /> : null
     case 'grow':
       return page.grow ? <GrowBlock copy={page.grow} band={band} href={`/${locale}/ai-team#levels`} /> : null
+    case 'myday':
+      return page.myday ? <MyDayBlock copy={page.myday} band={band} note={t.mockNote} /> : null
+    case 'memory':
+      return page.memory ? <MemoryBlock copy={page.memory} band={band} /> : null
+    case 'lives':
+      return page.lives ? <LivesBlock copy={page.lives} band={band} /> : null
+    case 'setup':
+      return page.setup ? <SetupBlock copy={page.setup} band={band} /> : null
+    case 'cases':
+      return page.cases ? <CasesBlock copy={page.cases} band={band} /> : null
+    case 'structure':
+      return page.structure ? <StructureBlock copy={page.structure} band={band} /> : null
+    case 'pult':
+      return page.pult ? <PultBlock copy={page.pult} band={band} /> : null
+    case 'knowledge':
+      return page.knowledge ? <KnowledgeBlock copy={page.knowledge} band={band} /> : null
+    case 'trust':
+      return page.trust ? <TrustBlock copy={page.trust} band={band} /> : null
+    case 'teamgets':
+      return page.teamgets ? <TeamGetsBlock copy={page.teamgets} band={band} /> : null
+    case 'rollout':
+      return page.rollout ? <RolloutBlock copy={page.rollout} band={band} /> : null
+    case 'pilot':
+      return page.pilot ? <PilotBlock copy={page.pilot} band={band} id={ctx.id} /> : null
   }
 }
 

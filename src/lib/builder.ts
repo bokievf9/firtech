@@ -1,6 +1,7 @@
 import {
   kindCatalog,
   kindIds,
+  legacyBuilderProducts,
   productCatalog,
   productIds,
   type KindId,
@@ -18,6 +19,9 @@ import {
   clientTypes,
   deliveryChannels,
   detailAssets,
+  flagshipOptionIds,
+  flagshipProducts,
+  type FlagshipProduct,
   detailDeadlines,
   detailLangs,
   fears,
@@ -233,6 +237,9 @@ export type Build = {
   // whether it gets a website at all. Neither changes a price.
   delivery?: DeliveryChannel[]
   siteNeed?: SiteNeed
+  // Options of the flagships (services of the Personal AI, departments of the AI company), chunk `f.`.
+  // They pick the plan level shown in the builder; the one-time total never includes them.
+  options?: Partial<Record<FlagshipProduct, string[]>>
 }
 
 export const emptyBuild: Build = { parts: {}, extras: [] }
@@ -312,6 +319,13 @@ export function toggleProduct(build: Build, id: ProductId): Build {
   const out: Build = { ...build, parts }
   if (next.length) out.products = next
   else delete out.products
+  // A flagship that leaves the build takes its options with it.
+  if (out.options && !next.includes(id) && (flagshipProducts as readonly string[]).includes(id)) {
+    const options = { ...out.options }
+    delete options[id as FlagshipProduct]
+    if (Object.keys(options).length) out.options = options
+    else delete out.options
+  }
   return withSiteLanguage(out)
 }
 
@@ -403,6 +417,10 @@ export function encodeBuild(build: Build) {
   // An empty list is a choice too (nothing ticked yet), told apart from "never asked" by `l.none`.
   if (build.delivery) parts.push(`l.${build.delivery.length ? build.delivery.join('-') : 'none'}`)
   if (build.siteNeed) parts.push(`z.${build.siteNeed}`)
+  for (const id of flagshipProducts) {
+    const picked = build.options?.[id]
+    if (picked?.length) parts.push(`f.${id}.${picked.join('-')}`)
+  }
   const style = build.style
   if (style && (style.look || style.accent || style.theme || style.font)) {
     const s = [style.look, style.accent, style.theme, style.font].map((v) => v ?? '_')
@@ -525,8 +543,22 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       continue
     }
     if (head === 'p') {
-      const products = keepKnown(second, productIds)
+      const products = keepKnown(
+        second
+          .split('-')
+          .map((id) => legacyBuilderProducts[id] ?? id)
+          .join('-'),
+        productIds,
+      )
       if (products.length) build.products = products
+      continue
+    }
+    if (head === 'f') {
+      const product = oneOf(second, flagshipProducts)
+      if (product) {
+        const picked = keepKnown(third, flagshipOptionIds[product] as readonly string[])
+        if (picked.length) build.options = { ...build.options, [product]: picked }
+      }
       continue
     }
     if (head === 'l') {

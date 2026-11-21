@@ -40,7 +40,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
 - **Front v3 (owner review 2026-11-22, supersedes the home notes below where they differ).** Product names (ids and prices
   unchanged): `admin` ИИ-администратор, `receptionist` ИИ-менеджер заявок, `automation` Автоматизация процессов, `content` Контент на
-  автопилоте, `miniapp` Telegram Mini App, `agent` Персональный ИИ-ассистент, `implementation` ИИ-отдел под ключ (EN in `products.items`
+  автопилоте, `miniapp` Telegram Mini App, `implementation` ИИ-отдел под ключ, plus the flagships `personal` Персональный ИИ and `company` ИИ-компания (see «Flagships») (EN in `products.items`
   and `builder-catalog.ts`); «бот» stays only as a delivery channel. The builder is «Сборка проекта» everywhere (nav, titles, buttons;
   the words «калькулятор» and «конструктор» are gone everywhere, the cabinet and the Пульт included (test in `copy-qa`); «приёмщик» is
   gone too, the lead agent is «Менеджер заявок» / «Lead manager»; the classic bots service reads «Агенты в Telegram»). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
@@ -393,6 +393,19 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `ECHO_DAILY_USD` (default $3).
 - Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri
   10:00-18:00, 30 min), free slots at `/api/slots`, picked in the form, double booking blocked.
+
+## Flagships (owner 2026-11-22, review item 14)
+Two flagships lead every product list: **«Персональный ИИ»** (`personal`, EN Personal AI) and **«ИИ-компания»** (`company`, AI company);
+`agent` («Персональный ИИ-ассистент») is gone, `/products/agent` redirects to `/products/personal` (`next.config.ts`,
+`legacyProductRedirects`), old `p.agent` links decode as `p.personal`. Dono and Polly are not sold any more: live founder cases on the
+Personal AI page. Prices (owner): `personalPlans` (basic $290+$29, plus and max proposed by the builder, owner to confirm) and
+`companyPlan` ($1,490+$149, «от», exact sum by the quote) in `pricing.ts`, editable in the Пульт; the AI company pays by its own
+four-stage template `company` (25x4); `agentPlans` stays only because HQ's price schema requires it (deprecated). Builder: chunk
+`f.<product>.<ids>` with the flagship options and the Personal AI level (`lib/flagships.ts`, UI `components/builder-flagships.tsx`),
+never summed into the one-time total. Pages: own blocks in `components/product-sections/flagship-blocks.tsx` (`my-day.tsx`
+interactive day, `pult-tour.tsx`), plan cards `components/products/plan-levels.tsx`, Fira hero `components/products/fira-hero.tsx`
+(SVG, WebGL only on wide screens when idle), pilot offer «первые 1-2 пилота бесплатно за кейс и отзыв» only on the flagships.
+HQ contract: `docs/products-contract.md`; playbook section «Флагманы»; tests `tests/flagships.test.mjs`.
 
 ## Fira (2026-11-22)
 Brand mascot «Фира» (the lime dot of the logo come alive; cute and soft, not a tree, not a robot), concept stage: three

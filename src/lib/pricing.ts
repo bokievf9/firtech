@@ -11,10 +11,16 @@ import type { ExtraSlug, ServiceSlug } from './site'
 
 type Catalog = { variants: Record<string, number>; addons: Record<string, number> }
 
-export type Plan = { id: 'dono' | 'polly' | 'content'; setup: number; monthly: number }
+// Plan ids: the personal AI levels, the AI company, the content subscription and the retired agent plans
+// (Dono and Polly are the founder's live cases since 2026-11-22, no longer sold; HQ still reads them).
+export const personalLevels = ['basic', 'plus', 'max'] as const
+export type PersonalLevel = (typeof personalLevels)[number]
+export type PlanId = PersonalLevel | 'company' | 'content' | 'dono' | 'polly'
+export type Plan = { id: PlanId; setup: number; monthly: number }
 export type PlanAmounts = { setup: number; monthly: number }
 
-export const stageTemplateIds = ['site', 'bot', 'automation', 'app', 'small'] as const
+// `company` (2026-11-22): the AI company, four stages like an app. Templates are only ever appended.
+export const stageTemplateIds = ['site', 'bot', 'automation', 'app', 'small', 'company'] as const
 export type StageTemplateId = (typeof stageTemplateIds)[number]
 
 export type StageDef = { id: string; title: { ru: string; en: string }; share: number }
@@ -46,6 +52,12 @@ const stageTitles: Record<StageTemplateId, { id: string; title: { ru: string; en
     { id: 'start', title: { ru: 'Старт', en: 'Start' } },
     { id: 'launch', title: { ru: 'Запуск', en: 'Launch' } },
   ],
+  company: [
+    { id: 'map', title: { ru: 'Карта компании и Директор', en: 'Company map and the Director' } },
+    { id: 'depts', title: { ru: 'Первые отделы на ваших данных', en: 'First departments on your data' } },
+    { id: 'pult', title: { ru: 'Пульт, база знаний и каналы', en: 'Control room, knowledge base and channels' } },
+    { id: 'launch', title: { ru: 'Обучение команды и запуск', en: 'Team training and launch' } },
+  ],
 }
 
 export const stageIds: Record<StageTemplateId, string[]> = Object.fromEntries(
@@ -58,6 +70,12 @@ export type Pricing = {
   startingPrice: Record<ServiceSlug, number>
   catalog: Record<ServiceSlug, Catalog>
   extras: { support: number; seo: number; design: number; rescue: number }
+  // Flagships (owner 2026-11-22): «Персональный ИИ» in three levels (connected services and memory) and
+  // «ИИ-компания» (a starting setup and monthly, the exact sum by the quote).
+  personalPlans: Record<PersonalLevel, PlanAmounts>
+  companyPlan: Record<'company', PlanAmounts>
+  // DEPRECATED 2026-11-22: Dono and Polly are not sold any more (no link from the site). Kept because HQ's
+  // price schema still requires `agentPlans.dono|polly` in GET /api/prices; drop it after HQ stops reading it.
   agentPlans: Record<'dono' | 'polly', PlanAmounts>
   contentPlans: Record<'content', PlanAmounts>
   // Share, 0 to 50 percent, off the one-time total when a build has two or more parts.
@@ -89,7 +107,16 @@ export const defaultPricing: Pricing = {
     },
   },
   extras: { support: 20, seo: 50, design: 90, rescue: 60 },
-  // Personal agents (owner decision 2026-11-19): Dono, a study assistant, and Polly, a language
+  // Flagships (owner decision 2026-11-22): Personal AI from $290 setup + $29 a month; the two upper
+  // levels are the builder's proposal pending the owner's word (editable in the Пульт). The AI company
+  // starts at $1,490 setup + $149 a month, the exact sum is set by the quote.
+  personalPlans: {
+    basic: { setup: 290, monthly: 29 },
+    plus: { setup: 490, monthly: 49 },
+    max: { setup: 790, monthly: 79 },
+  },
+  companyPlan: { company: { setup: 1490, monthly: 149 } },
+  // Personal agents (owner decision 2026-11-19, retired from sale 2026-11-22): Dono, a study assistant, and Polly, a language
   // teacher. Content on autopilot: setup of the channels and the plan, then posts every month.
   agentPlans: { dono: { setup: 150, monthly: 15 }, polly: { setup: 100, monthly: 10 } },
   contentPlans: { content: { setup: 90, monthly: 60 } },
@@ -110,6 +137,8 @@ export const defaultPricing: Pricing = {
     automation: { map: 20, integrate: 50, launch: 30 },
     app: { design: 25, core: 25, full: 25, launch: 25 },
     small: { start: 50, launch: 50 },
+    // The AI company is paid like an app, four equal stages (owner 2026-11-22).
+    company: { map: 25, depts: 25, pult: 25, launch: 25 },
   },
 }
 
@@ -141,6 +170,14 @@ export function extraPrices(pricing: Pricing = defaultPricing): Record<ExtraSlug
 
 export function agentPlanList(pricing: Pricing = defaultPricing): Plan[] {
   return (['dono', 'polly'] as const).map((id) => ({ id, ...pricing.agentPlans[id] }))
+}
+
+export function personalPlanList(pricing: Pricing = defaultPricing): Plan[] {
+  return personalLevels.map((id) => ({ id, ...pricing.personalPlans[id] }))
+}
+
+export function companyPlanOf(pricing: Pricing = defaultPricing): Plan {
+  return { id: 'company', ...pricing.companyPlan.company }
 }
 
 export function contentPlanList(pricing: Pricing = defaultPricing): Plan[] {
@@ -176,6 +213,8 @@ export const catalog = defaultPricing.catalog
 export const extraPrice = extraPrices(defaultPricing)
 export const agentPlans = agentPlanList(defaultPricing)
 export const contentPlans = contentPlanList(defaultPricing)
+export const personalPlans = personalPlanList(defaultPricing)
+export const companyPlan = companyPlanOf(defaultPricing)
 export const bundleDiscount = defaultPricing.bundleDiscount / 100
 export const referralPercent = defaultPricing.referralPercent
 export const smallProjectMaxUsd = defaultPricing.smallProjectMaxUsd

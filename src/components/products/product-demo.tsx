@@ -218,24 +218,55 @@ const demos: Record<ProductId, (t: DemoCopy) => ReactNode> = {
       </div>
     </div>
   ),
-  agent: (t) => (
+  personal: (t) => (
     <div className="grid gap-2">
       <div className="flex items-center gap-2 text-[12px]">
         <span className="grid size-6 place-items-center rounded-full bg-pine font-brand text-[10px] text-accent-text">
-          D
+          ft
         </span>
-        <span className="font-medium">{t.agent.name}</span>
-        <span className="ml-auto size-1.5 rounded-full bg-accent" />
+        <span className="font-medium">{t.personal.title}</span>
+        <span className="ml-auto font-mono text-[10px] text-muted">{t.personal.time}</span>
       </div>
-      <Step ms={150} className={bubbleIn}>
-        {t.agent.text}
+      <ul className="grid gap-1.5 rounded-xl border border-line bg-surface-2/60 p-2.5">
+        {t.personal.rows.map((row, i) => (
+          <Step as="li" key={row} ms={150 + i * 250} className="flex items-center gap-2 text-[12px]">
+            <span className="size-1.5 shrink-0 rounded-full bg-accent" />
+            <span className="truncate">{row}</span>
+          </Step>
+        ))}
+      </ul>
+      <Step ms={1050} className={bubbleIn}>
+        {t.personal.ask}
       </Step>
-      <Step ms={800} className={bubbleOut}>
-        {t.agent.yes}
-      </Step>
-      <Step ms={1250} className={ok}>
+      <Step ms={1500} className={ok}>
         <Tick />
-        {t.agent.done}
+        {t.personal.done}
+      </Step>
+    </div>
+  ),
+  company: (t) => (
+    <div className="grid gap-2">
+      <Step ms={100} className="mx-auto rounded-full bg-accent px-3 py-1 text-[11px] font-medium text-accent-ink">
+        {t.company.director}
+      </Step>
+      <div className="grid grid-cols-3 gap-1.5">
+        {t.company.depts.map((dept, i) => (
+          <Step
+            key={dept}
+            ms={350 + i * 180}
+            className="truncate rounded-lg border border-line-strong px-2 py-1.5 text-center text-[11px]"
+          >
+            {dept}
+          </Step>
+        ))}
+      </div>
+      <Step ms={1050} className="flex items-center justify-between rounded-xl border border-line bg-surface-2/60 px-3 py-2 text-[12px]">
+        <span>{t.company.waiting}</span>
+        <span className={chip}>{t.company.approve}</span>
+      </Step>
+      <Step ms={1450} className={ok}>
+        <Tick />
+        {t.company.done}
       </Step>
     </div>
   ),

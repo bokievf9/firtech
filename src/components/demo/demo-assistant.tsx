@@ -5,9 +5,10 @@ import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
-// The «Персональный ИИ-ассистент» demo tab: a scripted conversation, three questions the visitor taps.
+// The «Персональный ИИ» demo tab: a scripted conversation, five questions the visitor taps (brief, mail,
+// promises from memory, time for a task, a language lesson).
 // Labelled «Пример»; nothing is sent anywhere.
-export function DemoAssistant({ copy, badge }: { copy: Dict['demoSection']['agent']; badge: string }) {
+export function DemoAssistant({ copy, badge }: { copy: Dict['demoSection']['personal']; badge: string }) {
   const reduce = useReducedMotion()
   const [asked, setAsked] = useState<number[]>([])
   const listRef = useRef<HTMLOListElement>(null)

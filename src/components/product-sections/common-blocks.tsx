@@ -17,6 +17,8 @@ import { DemoBooking } from '../demo/demo-booking'
 import { DemoChat } from '../demo/demo-chat'
 import { HeroIntro } from '../hero-intro'
 import { CapabilityMock, type MockKind } from '../products/capability-mock'
+import { FiraHero } from '../products/fira-hero'
+import { PlanLevels } from '../products/plan-levels'
 import { productIcons } from '../products/product-icons'
 import { ProductPriceTag } from '../products/product-price'
 import { Reveal } from '../reveal'
@@ -28,12 +30,23 @@ type Props = { ctx: ProductSectionContext; band?: boolean }
 
 // First screen: the client's result is the headline, the product name sits above it, then the lead, the two main
 // actions and the live price card.
+// Flagships: the AI company shows Fira as its face and puts the call first (owner 2026-11-22).
 export function ProductHero({ ctx }: Props) {
-  const { id, locale, dict, page, buildHref } = ctx
+  const { id, locale, dict, page, buildHref, layout, telegramUrl } = ctx
   const t = dict.productPage
   const item = dict.products.items[id]
   const rung = ladderOfProduct(id)
   const Glyph = productIcons[id]
+  const build = (
+    <Link
+      href={buildHref}
+      data-cta={`product_page_${id}_build`}
+      className={cn(layout.callFirst ? buttonStyles.secondary : buttonStyles.primary, 'group')}
+    >
+      {t.cta}
+      <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
+    </Link>
+  )
   return (
     <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12" data-product-section="hero">
       <HeroIntro className="lg:col-span-8">
@@ -57,17 +70,27 @@ export function ProductHero({ ctx }: Props) {
         </h1>
         <p className="mt-6 max-w-[56ch] text-lead text-muted">{page.lead}</p>
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-          <Link href={buildHref} data-cta={`product_page_${id}_build`} className={cn(buttonStyles.primary, 'group')}>
-            {t.cta}
-            <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-          <ChatOpenButton source={`product_${id}`} fallbackHref="#price" className={buttonStyles.secondary}>
-            {t.ask}
-          </ChatOpenButton>
+          {layout.callFirst ? (
+            <>
+              <ChatOpenButton source={`product_${id}_call`} fallbackHref={telegramUrl ?? '#price'} className={buttonStyles.primary}>
+                <ChatCircleDots size={18} weight="fill" aria-hidden="true" />
+                {t.readiness.hot.call}
+              </ChatOpenButton>
+              {build}
+            </>
+          ) : (
+            <>
+              {build}
+              <ChatOpenButton source={`product_${id}`} fallbackHref="#price" className={buttonStyles.secondary}>
+                {t.ask}
+              </ChatOpenButton>
+            </>
+          )}
         </div>
       </HeroIntro>
       <Reveal className="lg:col-span-4" delay={0.3}>
-        <div className="rounded-card border border-line bg-surface p-7">
+        {layout.face === 'fira' && <FiraHero label={dict.film.name} />}
+        <div className={cn('rounded-card border border-line bg-surface p-7', layout.face === 'fira' && '-mt-6 relative')}>
           <ProductPriceTag id={id} copy={dict.products} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
           <p className="mt-6 border-t border-line pt-5 text-sm leading-relaxed text-muted">{item.forWhom}</p>
           <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-faint">
@@ -90,7 +113,7 @@ export function DemoBlock({ ctx, band }: Props) {
       <div className="rounded-card border border-line bg-surface p-4 md:p-8" data-product-demo={ctx.layout.demo}>
         {ctx.layout.demo === 'chat' && <DemoChat copy={d.receptionist} locale={ctx.locale} />}
         {ctx.layout.demo === 'booking' && <DemoBooking copy={d.admin} badge={d.exampleBadge} />}
-        {ctx.layout.demo === 'assistant' && <DemoAssistant copy={d.agent} badge={d.exampleBadge} />}
+        {ctx.layout.demo === 'assistant' && <DemoAssistant copy={d.personal} badge={d.exampleBadge} />}
       </div>
     </SectionShell>
   )
@@ -199,7 +222,10 @@ export function PriceBlock({ ctx, band }: Props) {
       <Reveal>
         <div className="rounded-card border border-line bg-surface p-6 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <ProductPriceTag id={id} copy={dict.products} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
+            {/* The Personal AI shows its three levels as cards below instead of the plan lines. */}
+            {id !== 'personal' && (
+              <ProductPriceTag id={id} copy={dict.products} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
+            )}
             {term && (
               <div className="md:text-right" data-product-term>
                 <p className="text-sm text-faint">{t.termLabel}</p>
@@ -207,6 +233,12 @@ export function PriceBlock({ ctx, band }: Props) {
               </div>
             )}
           </div>
+          {id === 'personal' && (
+            <div className="mt-8">
+              <PlanLevels products={dict.products} copy={t.planLevels} />
+            </div>
+          )}
+          {payment.kind === 'stages' && payment.byQuote && <p className="mt-6 max-w-[60ch] text-sm leading-relaxed text-muted">{t.fromNote}</p>}
           {payment.kind === 'stages' && (
             <div className="mt-8">
               <StageTable stages={payment.stages} dict={dict} locale={locale} title={t.stageTitle} note={t.stageNote} />

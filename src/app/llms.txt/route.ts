@@ -10,9 +10,13 @@ import { serviceSlugs, siteUrl, telegramHandle } from '@/lib/site'
 // The prices are the live ones (owner edits in the Пульт), so it is rebuilt at most every 5 minutes.
 export const revalidate = 300
 
-function priceText(pricing: Pricing, id: ProductId, t: { from: string; perMonth: string; quote: string; plans: Record<string, string> }) {
+function priceText(pricing: Pricing, id: ProductId, t: { from: string; perMonth: string; quote: string; byQuote: string; plans: Record<string, string> }) {
   const price = productPrices(pricing)[id]
   if (price.kind === 'from') return `${t.from} ${formatUsd(price.from)}`
+  if (price.kind === 'plans' && price.byQuote) {
+    const plan = price.plans[0]!
+    return `${t.from} ${formatUsd(plan.setup)} + ${formatUsd(plan.monthly)}${t.perMonth}; ${t.byQuote}`
+  }
   if (price.kind === 'plans') {
     return price.plans
       .map((p) => `${t.plans[p.id]}: ${formatUsd(p.setup)} + ${formatUsd(p.monthly)}${t.perMonth}`)

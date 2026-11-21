@@ -4,7 +4,8 @@ import { formatUsd } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
 import { productPrices, type ProductId } from '@/lib/products'
 
-// The price line of a product: «от $300», the two agent plans (setup + monthly), or «По смете».
+// The price line of a product: «от $300», the plans (setup + monthly; the AI company «от» one plan with the
+// «по смете» line), or «По смете».
 // Numbers come from the live pricing (productPrices), never from copy.
 export async function ProductPriceTag({
   id,
@@ -27,12 +28,14 @@ export async function ProductPriceTag({
       <div className={cn('grid gap-0.5 font-mono text-xs text-muted', className)}>
         {price.plans.map((plan) => (
           <p key={plan.id}>
-            {copy.plans[plan.id]}:{' '}
+            {price.byQuote ? copy.from : copy.plans[plan.id]}
+            {price.byQuote ? ' ' : ': '}
             <span className="text-sm text-accent-text">{formatUsd(plan.setup)}</span> +{' '}
             <span className="text-fg">{formatUsd(plan.monthly)}</span>
             {copy.perMonth}
           </p>
         ))}
+        {price.byQuote && <p className="font-sans text-xs text-faint">{copy.byQuote}</p>}
       </div>
     )
   return (

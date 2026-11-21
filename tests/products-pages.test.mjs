@@ -100,11 +100,20 @@ test('product pages: price comes from the live pricing, stages from the template
       assert.equal(pay.total, price.from, id)
       assert.equal(pay.stages.reduce((sum, s) => sum + s.amountUsd, 0), price.from, `${id} stages add up`)
       assert.equal(pay.stages.reduce((sum, s) => sum + s.share, 0), 100, `${id} shares`)
+    } else if (price.kind === 'plans' && price.byQuote) {
+      // The AI company: four stages of its own template at the starting setup price, «по смете».
+      assert.equal(pay.kind, 'stages', id)
+      assert.equal(pay.template, 'company', id)
+      assert.equal(pay.byQuote, true, id)
+      assert.equal(pay.total, price.plans[0].setup, id)
+      assert.equal(pay.stages.length, 4, id)
+      assert.equal(pay.stages.reduce((sum, s) => sum + s.amountUsd, 0), price.plans[0].setup, `${id} stages add up`)
     } else if (price.kind === 'plans') assert.equal(pay.kind, 'subscription', id)
     else assert.equal(pay.kind, 'quote', id)
   }
   assert.equal(productPayment('content').kind, 'subscription')
-  assert.equal(productPayment('agent').kind, 'subscription')
+  assert.equal(productPayment('personal').kind, 'subscription')
+  assert.equal(productPayment('company').kind, 'stages')
   // A higher price in the live set changes the table (no typed numbers anywhere).
   const live = structuredClone(defaultPricing)
   live.catalog.bots.variants.faq = 400

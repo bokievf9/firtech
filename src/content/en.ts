@@ -196,11 +196,32 @@ const en: Dict = {
     discuss: 'Ask an agent',
     flagship: 'Flagship',
     concept: 'Sample interface',
-    plans: { dono: 'Dono, study', polly: 'Polly, languages', content: 'Subscription' },
+    plans: { basic: 'Start', plus: 'Plus', max: 'Max', company: 'Rollout', dono: 'Dono, study', polly: 'Polly, languages', content: 'Subscription' },
+    byQuote: 'The exact sum is fixed in the quote',
     classicTitle: 'The foundation the agents run on',
     classicSub: 'We also build websites, Telegram Mini Apps and apps on their own.',
     more: 'Learn more',
     items: {
+      personal: {
+        name: 'Personal AI',
+        benefit: 'Knows your work, your people and your deadlines and runs the day with you',
+        forWhom: 'Business owners, managers, freelancers, students',
+        inside: [
+          'Mail, calendar, tasks and study in one Telegram chat',
+          'Remembers people, habits and promises',
+          'By voice or text, in its own container',
+        ],
+      },
+      company: {
+        name: 'AI company',
+        benefit: 'Agents run the routine by department, you make the decisions',
+        forWhom: 'Companies where routine eats the day of several people',
+        inside: [
+          'Fira as the Director and departments for your business',
+          'The control room, a knowledge base and client channels',
+          'Team training, trust in the agents grows step by step',
+        ],
+      },
       admin: {
         name: 'AI booking assistant',
         benefit: 'Books clients, sends reminders, collects reviews',
@@ -251,16 +272,6 @@ const en: Dict = {
           'Loyalty program and bonuses',
         ],
       },
-      agent: {
-        name: 'Personal AI assistant',
-        benefit: 'Remembers deadlines and tasks for you',
-        forWhom: 'Students, freelancers, business owners',
-        inside: [
-          'Dono: deadlines, mail and calendar',
-          'Polly: language lessons in Telegram',
-          'Reminds you at the right moment',
-        ],
-      },
       implementation: {
         name: 'AI department, turnkey',
         benefit: 'Role-based agents run a whole direction: marketing, sales or support',
@@ -273,6 +284,20 @@ const en: Dict = {
       },
     },
     demo: {
+      personal: {
+        title: 'Morning brief',
+        time: '07:30',
+        rows: ['Two emails wait for a reply', 'Call at 11:00', 'Report due on Friday'],
+        ask: 'A reply to Aziz is drafted. Send it?',
+        done: 'Sent after your yes',
+      },
+      company: {
+        director: 'Fira, Director',
+        depts: ['Sales', 'Marketing', 'Support'],
+        waiting: 'Waiting for you: 2',
+        approve: 'Approve',
+        done: 'Daily brief with the owner',
+      },
       admin: {
         title: 'Booking',
         day: 'Saturday',
@@ -303,12 +328,6 @@ const en: Dict = {
         items: ['Cappuccino', 'Croissant', 'Cheesecake'],
         cart: 'In the cart',
         pay: 'Pay',
-      },
-      agent: {
-        name: 'Dono',
-        text: 'Essay due tomorrow at 10:00. Set aside an hour tonight?',
-        yes: 'Yes, at 19:00',
-        done: 'Added to the calendar',
       },
       implementation: {
         q: 'How do I process a product return?',
@@ -2902,6 +2921,16 @@ const en: Dict = {
     priceTitle: 'Price and payment',
     priceSub: 'The amount comes from the current prices. The final price and timeline are fixed in the quote.',
     subscription: 'This is a subscription: setup and a monthly payment a month ahead. The amounts are above.',
+    planLevels: {
+      title: 'Three levels',
+      basic: 'Up to two services, for example mail and calendar. Morning brief, reminders and an evening summary.',
+      plus: 'Three or four services and voice: add tasks, study or messengers.',
+      max: 'Every service and a long memory of people, habits and promises.',
+      setup: 'setup',
+      monthly: 'a month',
+      pick: 'You can change the level when you need more services. The terms of the move are written in the quote.',
+    },
+    fromNote: 'This is the starting price. The exact sum and the departments are fixed in the quote after a call, the monthly payment is made a month in advance.',
     quoteNote: 'We name the price after a short review: it depends on the scope and your channels.',
     stageTitle: 'Payment stages',
     stageNote: 'Each stage is paid before it starts, the last one before handover.',
@@ -2946,6 +2975,248 @@ const en: Dict = {
       },
     },
     items: {
+      personal: {
+        metaTitle: 'Personal AI: mail, calendar, tasks and memory | Fir Tech',
+        metaDescription:
+          'A Personal AI set up for you: a morning brief, reminders, email drafts, tasks and study in Telegram. It remembers people and promises. Levels, price, terms.',
+        result: 'An AI that knows you, specifically',
+        lead: 'It brings your mail, calendar, tasks and study into one Telegram chat, remembers people and promises and reminds you before you would remember yourself. We set it up for one person: your work, your day and your tone.',
+        capabilities: [
+          { title: 'Morning brief', text: 'Mail, meetings and the day’s deadlines in one Telegram message, at the hour you choose.', example: 'Three meetings, two emails wait for a reply.', mock: 'checks', chips: ['Mail', 'Meetings', 'Deadlines'] },
+          { title: 'Reminders on time', text: 'It writes before it is too late and attaches what you will need.', example: 'Call in 20 minutes, the price list is attached.', mock: 'chat', chips: ['Got it', 'Remind me later'] },
+          { title: 'Reply drafts', text: 'It drafts replies in your tone and waits for your yes.', example: 'The reply to the bank is drafted.', mock: 'chat', chips: ['Send', 'Edit'] },
+          { title: 'Tasks and study', text: 'Deadlines from mail, the study system and projects in one list, with time for them in the calendar.', example: 'Statistics assignment, due on Wednesday.', mock: 'cards', chips: ['Study', 'Projects', 'Home'] },
+          { title: 'A memory of people and promises', text: 'It remembers what you promised and to whom, how each person likes to talk and what your habits are.', example: 'You promised Aziz the price list by Wednesday.', mock: 'bars', chips: ['People', 'Habits', 'Promises'] },
+        ],
+        first: {
+          day: 'A 20-minute interview, we connect the first services and send the first morning brief built from your real work.',
+          week: 'A week of tuning: you say what is extra and what is missing, and we adjust the rules every day.',
+          month: 'The brief and reminders are part of your day, the AI remembers people and promises, and you decide what to connect next.',
+        },
+        needs: ['20 minutes for an interview about your day', 'Access to the services you are ready to connect', 'The hours when you must not be disturbed', 'Short remarks in the first week'],
+        not: ['Never writes on your behalf without your yes', 'Never gets access you did not grant', 'Never decides money or contracts for you', 'Never shares your data with other clients'],
+        myday: {
+          title: 'One day with your AI',
+          sub: 'Pick who you are and scroll through the day hour by hour: what the AI does on its own and where it waits for your word.',
+          pick: 'Who you are',
+          prev: 'Earlier',
+          next: 'Next',
+          personas: [
+            {
+              id: 'owner',
+              name: 'Business owner',
+              who: 'A coffee shop, salon or studio, dozens of messages a day',
+              moments: [
+                { time: '07:30', label: 'Morning brief', ai: 'Good morning. Three meetings today, the first at 10:00 with a supplier. Two emails wait for a reply, one from the bank. The rent invoice is due by Friday.', you: 'Show me the bank email', done: 'Email opened, a reply is drafted' },
+                { time: '10:40', label: 'Reminder', ai: 'Call with Aziz in 20 minutes. Last time you promised to send him the price list, it is attached.', you: 'Send it before the call', done: 'Price list sent to Aziz' },
+                { time: '13:00', label: 'Reply drafts', ai: 'Five messages this morning. I answered three by your rules, two wait for you: a complaint and a discount question. Drafts are ready.', you: 'Soften the complaint reply and send it', done: 'Sent after your yes' },
+                { time: '16:00', label: 'Tasks', ai: 'Next week’s supply order is not placed yet. Put it on tomorrow at 9:00 and remind you?', you: 'Yes', done: 'Task in the calendar' },
+                { time: '21:30', label: 'Evening summary', ai: 'Today: three meetings done, two promises kept, the review for Dilnora moves to tomorrow. Your first meeting tomorrow is at 9:30.', you: 'Thanks', done: 'Quiet hours until 7:30' },
+              ],
+            },
+            {
+              id: 'student',
+              name: 'Student',
+              who: 'Classes, a part-time job and deadlines in three different systems',
+              moments: [
+                { time: '07:45', label: 'Morning brief', ai: 'Class at 9:00 today, room 214. A new statistics assignment in the study system, due on Wednesday. Your teacher replied to your email.', you: 'What did he say?', done: 'The email in two lines' },
+                { time: '11:30', label: 'A gap in the schedule', ai: 'You have 40 minutes between classes. Enough for the first part of the statistics assignment. Book it?', you: 'Book it', done: 'Block in the calendar 11:40-12:20' },
+                { time: '14:00', label: 'Email draft', ai: 'A draft to your tutor about moving the test is ready: short, polite and with the reason.', you: 'Send it', done: 'Sent on your command' },
+                { time: '18:00', label: 'Language lesson', ai: 'English time: 10 minutes and three words you mixed up last time.', you: 'Let us start', done: 'Lesson done, the hard words come back on Friday' },
+                { time: '22:00', label: 'Evening summary', ai: 'Today: assignment started, email to the tutor sent, lesson done. Two days left for statistics, tomorrow I will suggest another slot.', you: 'Ok', done: 'Quiet until morning' },
+              ],
+            },
+            {
+              id: 'freelancer',
+              name: 'Freelancer',
+              who: 'Several clients, projects and invoices',
+              moments: [
+                { time: '08:00', label: 'Morning brief', ai: 'Three projects running. The client from Almaty expects the mockup today, the second paid the invoice, the third has been silent for four days.', you: 'Nudge the third one gently', done: 'Reminder drafted' },
+                { time: '10:15', label: 'Focus', ai: 'No meetings before lunch, the best time for the mockup. Turn on focus and hold everything until 13:00?', you: 'Turn it on', done: 'Focus until 13:00' },
+                { time: '13:10', label: 'Mail', ai: 'Two emails came while you worked. I answered one with your timing template, the other waits for you: contract edits.', you: 'Show me the edits', done: 'Edits listed point by point' },
+                { time: '17:00', label: 'Invoice', ai: 'Mockup sent. Issue the invoice for this stage? Last time this client asked for an invoice in dollars.', you: 'Yes, in dollars', done: 'Invoice ready to send' },
+                { time: '21:00', label: 'Evening summary', ai: 'Today: mockup delivered, invoice issued, reminder sent. Call tomorrow at 11:00, I will send the agenda in the morning.', you: 'Good', done: 'Brief tomorrow at 8:00' },
+              ],
+            },
+          ],
+        },
+        memory: {
+          title: 'What it remembers about you',
+          sub: 'The memory grows from day one out of what you say and allow it to read. The longer you work together, the less you have to explain.',
+          groups: [
+            {
+              name: 'People',
+              items: [
+                { fact: 'Aziz, supplier: writes briefly, answers faster in the morning', use: 'The email to Aziz goes out in the morning, short' },
+                { fact: 'Mom: birthday on March 14', use: 'A reminder a week ahead and a gift idea' },
+                { fact: 'The course tutor likes emails with a clear subject', use: 'Every draft has a clear subject' },
+              ],
+            },
+            {
+              name: 'Habits',
+              items: [
+                { fact: 'No meetings before 10:00', use: 'Suggests call times from 10:00' },
+                { fact: 'Sport on Tuesdays and Thursdays', use: 'Keeps those evenings free' },
+                { fact: 'Do not disturb after 22:00', use: 'Anything not urgent waits for the morning brief' },
+              ],
+            },
+            {
+              name: 'Promises',
+              items: [
+                { fact: '“I will send the price list by Wednesday”', use: 'Reminds you on Tuesday and attaches the file' },
+                { fact: '“A review for Dilnora this week”', use: 'Drafts it by Friday' },
+                { fact: '“I will call the accountant after the report”', use: 'Reminds you the day the report is in' },
+              ],
+            },
+          ],
+          control: 'You control the memory: say “forget this” and the note is deleted. You can ask for the list of what it remembers at any time.',
+        },
+        lives: {
+          title: 'Where it lives',
+          sub: 'Where you already spend your day, and apart from other clients.',
+          items: [
+            { title: 'Telegram', text: 'Briefs, reminders and drafts come to Telegram. You answer with a button or one word.' },
+            { title: 'Voice', text: 'You can dictate: it understands “move the meeting to tomorrow”. Voice replies come with the Plus and Max levels.' },
+            { title: 'Its own container', text: 'Your AI runs in a separate isolated container on the server. Its memory and access never mix with other clients.' },
+            { title: 'Your data stays yours', text: 'You grant access and can revoke any of it. We never sell or pass your data to third parties, and on request we delete the memory and the access.' },
+          ],
+        },
+        setup: {
+          title: 'How we set it up',
+          sub: 'We start with a talk about your day and take the technical setup on ourselves.',
+          steps: [
+            { when: '20 minutes', title: 'Interview', text: 'We ask what your day looks like, what you forget most often, whom you answer and how. The answers become the rules of your AI.' },
+            { when: 'First days', title: 'We connect the services', text: 'Mail, calendar and the other services of your level are connected with your access. We test them on your real work.' },
+            { when: 'First week', title: 'Tuning', text: 'Every day you say what is extra and what is missing. We adjust the rules until the brief really feels like yours.' },
+            { when: 'After that', title: 'It grows with you', text: 'A new project, a new habit, a new service: the AI remembers and adapts. When you need more services, you move up a level.' },
+          ],
+        },
+        cases: {
+          title: 'How a personal AI works for our founder',
+          sub: 'The founder of Fir Tech uses two personal AIs every day: one for study and mail, one for a language. We show them as a live example of the setup, they are not sold on their own.',
+          label: 'Live example',
+          items: [
+            { name: 'Dono', role: 'Study, mail and calendar', does: ['Signs in to Moodle and collects assignment deadlines', 'Goes through Outlook mail and drafts replies', 'Puts tasks in the Apple calendar and reminds in Telegram'], runs: 'Runs in its own container on the Fir Tech server' },
+            { name: 'Polly', role: 'Language', does: ['Short lessons in Telegram on a schedule', 'Explains mistakes in plain words', 'Brings hard words back a few days later'], runs: 'Adapts to the level and the goal' },
+          ],
+          note: 'Your Personal AI is built from the same parts, set up for your services and your day.',
+        },
+        pilot: {
+          title: 'A free pilot for a case study and a review',
+          text: 'We set up the first one or two Personal AI pilots for free. In return we ask to describe your setup as a case study without personal data, and for an honest review.',
+          terms: ['We write down the pilot terms before the work starts', 'The case study goes public only after you approve it', 'When the pilot places are taken, we will say so plainly'],
+          cta: 'Ask about the pilot',
+        },
+        inPrice: ['The interview and a setup made for you', 'The services of your level connected', 'Morning brief, reminders and evening summary in Telegram', 'A memory of people, tasks and promises', 'A week of tuning by your remarks'],
+        notInPrice: ['Paid subscriptions of third-party services', 'Services we cannot get access to or connect: we check them at the interview', 'Services beyond your level: they come with the level above'],
+        objections: [
+          { q: 'I am wary of giving access to my mail and calendar', a: 'You grant only the access you are ready to give and can revoke any of it. Emails and messages on your behalf go out only after your yes. The AI lives in a separate container and we never pass data to third parties.' },
+          { q: 'What if it makes a mistake', a: 'It proposes anything important and you act: an email, a moved meeting, a message to a person all wait for your confirmation. A mistake in a brief or a reminder takes one word to flag, and the rule is fixed. For 30 days after handover we fix errors for free.' },
+          { q: 'This sounds hard, I am not a technical person', a: 'We do the setup. You give 20 minutes of interview and the access, then you write in Telegram as you would to a person. By voice too.' },
+          { q: 'What if my services do not connect', a: 'At the interview we check each of your services and say honestly what will connect. Outlook mail, the Apple calendar and Moodle already work, the rest we check before you pay.' },
+        ],
+      },
+      company: {
+        metaTitle: 'AI company: Fira, departments of agents and a control room | Fir Tech',
+        metaDescription:
+          'Fira inside your company: a Director and departments of AI agents, a control room, a knowledge base from your documents and team training. Four stages.',
+        result: 'A company where agents run the routine and you make the decisions',
+        lead: 'We install Fira in your company: the Director hands out tasks, departments of agents run sales, marketing and support, and you watch the control room and approve what matters. Trust in the agents grows step by step, as with new staff.',
+        capabilities: [
+          { title: 'Director and departments', text: 'Fira as the Director hands tasks to the departments and gathers one queue of decisions for you.', example: 'Marketing drafts posts, sales answer leads.', mock: 'cards', chips: ['Sales', 'Marketing', 'Support'] },
+          { title: 'Control room', text: 'You see who does what, what waits for a decision and what got done today.', example: 'Waiting for you: two replies and one invoice.', mock: 'bars', chips: ['In progress', 'Waiting', 'Done'] },
+          { title: 'Knowledge base', text: 'Answers from your documents, site and chats, with a link to the source.', example: 'Returns within 14 days. Rules, section 2.', mock: 'chat', chips: ['Rules', 'Price list'] },
+          { title: 'Trust levels', text: 'First the agent proposes, then acts after approval, then does the routine on its own.', example: 'Answers about opening hours go out without you.', mock: 'checks', chips: ['Proposes', 'After approval', 'On its own'] },
+          { title: 'Client channels', text: 'Agents answer clients in Telegram and in the site chat, other channels are added in the quote.', example: 'A chat request got an answer within a minute.', mock: 'chat', chips: ['Telegram', 'Site'] },
+        ],
+        first: {
+          day: 'A call and the company map: which departments you need, who approves and what the agents never touch.',
+          week: 'The Director sends the morning brief, the first department works on your real leads through approval.',
+          month: 'The control room, knowledge base and channels are connected, the team is trained, and routine moves to independent work by your decision.',
+        },
+        needs: ['One person who approves decisions', 'Documents, rules and examples of work', 'Access to channels and services', 'Staff time for training'],
+        not: ['Money, prices and contracts stay with people', 'Never starts a new task without your approval', 'Never works with data it has no access to', 'Never rates or dismisses your staff for you'],
+        structure: {
+          title: 'The map of your AI company',
+          sub: 'A sample for a service company. We pick the departments and roles for your business in the first stage and write them into the quote.',
+          owner: { name: 'You', does: 'Set goals, approve what matters, decide on money, prices and contracts.' },
+          director: { name: 'Fira, Director', does: 'Every morning gathers the brief, hands tasks to the departments and brings you one queue of decisions.' },
+          depts: [
+            { name: 'Sales', roles: ['Lead manager', 'Presales: proposals and quotes', 'Client reminders'], example: 'A lead from Instagram got an answer and a proposal, you only approve the price.' },
+            { name: 'Marketing', roles: ['Content maker', 'Publisher', 'Analyst'], example: 'Posts for the week wait for approval on Friday.' },
+            { name: 'Support', roles: ['Support desk', 'Knowledge base', 'Deadline control'], example: 'A return question closed by the rules, with a link.' },
+            { name: 'Back office', roles: ['Invoices', 'Documents', 'Reports'], example: 'Invoice issued, a payment reminder went to the client.' },
+          ],
+          note: 'You can start with one department. The rest join in later stages without rework.',
+        },
+        pult: {
+          title: 'The control room: a tour of our own workplace',
+          sub: 'This is how we work ourselves. Fir Tech runs as a company of agents, and your control room repeats ours, with your departments.',
+          label: 'Control room screen',
+          tabs: [
+            { id: 'office', name: 'Office', caption: 'Who does what right now: every agent has a desk and its status shows in how it behaves.', rows: [{ who: 'Director', what: 'Gathers the morning brief', state: 'In progress' }, { who: 'Sales', what: 'Answers a lead from the site', state: 'In progress' }, { who: 'Marketing', what: 'Three posts for the week', state: 'Waiting' }, { who: 'Back office', what: 'Invoice to a client', state: 'Done' }] },
+            { id: 'review', name: 'Review centre', caption: 'Everything that waits for your word in one window: approve, edit or send back.', rows: [{ who: 'Marketing', what: 'Video about a new service, version 2', state: 'Approve' }, { who: 'Sales', what: 'Proposal for a clinic', state: 'Edit' }, { who: 'Support', what: 'Reply to a complaint', state: 'Approve' }] },
+            { id: 'orders', name: 'Assignments', caption: 'You write a task as you would to an employee, the Director hands it to the departments and shows the progress.', rows: [{ who: 'You', what: 'Prepare a holiday promotion', state: 'Accepted' }, { who: 'Director', what: 'Posts to marketing, a mailing to sales', state: 'In progress' }, { who: 'Marketing', what: 'A two-week plan', state: 'Waiting' }] },
+          ],
+          note: 'Sample interface. Names and data are made up.',
+        },
+        knowledge: {
+          title: 'Knowledge from your documents, site and chats',
+          sub: 'Agents answer with what your company knows and show where the answer came from.',
+          sources: [
+            { name: 'Documents', text: 'Rules, price lists, contracts and manuals' },
+            { name: 'Site', text: 'Services, prices, addresses and hours' },
+            { name: 'Chats', text: 'Frequent client questions and good answers of your managers' },
+          ],
+          ask: 'Can I return an item after a month?',
+          answer: 'We accept returns within 14 days with a receipt. After a month we can offer an exchange under warranty.',
+          source: 'Return rules, section 2',
+        },
+        trust: {
+          title: 'Trust grows step by step',
+          sub: 'An agent earns independence like a new employee: after a run of good decisions and only where you allow it.',
+          levels: [
+            { name: 'Proposes', text: 'The agent prepares a reply, a post or an invoice, and you send it.', example: 'A reply to a client waits in the review centre.' },
+            { name: 'Acts after approval', text: 'The agent acts itself, but every action goes through your button.', example: 'A post goes out after Approve.' },
+            { name: 'Acts on its own', text: 'After a run of approvals without edits the routine can be let go. You decide how many approvals it takes.', example: 'Answers about opening hours go out without you.' },
+          ],
+          note: 'Money, prices and contracts stay with people at every level.',
+        },
+        teamgets: {
+          title: 'What your team gets',
+          sub: 'Agents take the routine, and people get a clear place in the new setup.',
+          items: [
+            { title: 'Training', text: 'Short sessions: how to give an agent a task, how to check the result and when to step in.' },
+            { title: 'Rules', text: 'We write down what agents do alone, what they agree first and who owns each decision.' },
+            { title: 'Roles of people', text: 'Every employee has a clear area: decisions, difficult clients, quality control.' },
+            { title: 'Support after launch', text: 'For 30 days we fix errors for free, after that support is part of the monthly payment.' },
+          ],
+        },
+        rollout: {
+          title: 'Four stages of the rollout',
+          sub: 'Each stage is paid before it starts, and the result of each one is visible in the cabinet and in the control room.',
+          stages: [
+            { title: 'Company map and the Director', text: 'We go through your processes, pick departments and roles, set up the Director and the morning brief.', see: 'The company map and the first brief in Telegram' },
+            { title: 'First departments on your data', text: 'We launch the first departments on your real leads and tasks, everything goes through approval.', see: 'Agents at work, you approve in the review centre' },
+            { title: 'Control room, knowledge base and channels', text: 'We connect the control room, build the knowledge base from your documents and bring the agents to client channels.', see: 'A control room with your departments and answers with a source link' },
+            { title: 'Team training and launch', text: 'We train your staff, write the rules down and move the routine to independent work where you allow it.', see: 'The team works with the agents, the rules are yours' },
+          ],
+        },
+        pilot: {
+          title: 'A free pilot for a case study and a review',
+          text: 'We roll out the first one or two AI company pilots for free. In return we ask to describe the rollout as a case study without your clients’ data, and for an honest review.',
+          terms: ['We write down the pilot scope and timing before the work starts', 'The case study goes public only after you approve it', 'When the pilot places are taken, we will say so plainly'],
+          cta: 'Ask about the pilot',
+        },
+        inPrice: ['The company map and the Director', 'Departments and roles from the quote', 'The control room and the review centre', 'A knowledge base from your documents', 'Team training and rules'],
+        notInPrice: ['Paid third-party services and their subscriptions', 'Departments beyond the quote: a separate part', 'Changes to systems we have no access to'],
+        objections: [
+          { q: 'It is expensive', a: 'Compare it with the salaries of the people who do this routine now. The starting price is visible before you apply, the exact sum is fixed in the quote, you pay in four stages and the first one is under guarantee. You can start with one department.' },
+          { q: 'I do not trust AI', a: 'At first the agents only propose and you decide. Independence comes after a run of approvals and only where you allow it. Money, prices and contracts always stay with people.' },
+          { q: 'What if it all breaks', a: 'An agent reports a failure to the control room and to you in Telegram, the work is not lost. We run on this system ourselves every day. For 30 days after handover we fix errors for free.' },
+          { q: 'Who is responsible for the result', a: 'We are responsible for the setup and the work of the agents, by the contract and the stages. Decisions in your company stay yours: agents prepare them, you make them.' },
+        ],
+      },
       admin: {
         metaTitle: 'AI booking assistant: bookings, reminders, reviews | Fir Tech',
         metaDescription:
@@ -3178,51 +3449,6 @@ const en: Dict = {
           { q: 'How do I take payments', a: 'We tell you at the review which methods work in your country and bank, and write them into the quote.' },
         ],
       },
-      agent: {
-        metaTitle: 'Personal AI assistant: deadlines, mail, lessons | Fir Tech',
-        metaDescription:
-          'Dono tracks deadlines, mail and calendar, Polly teaches a language in Telegram. What the assistant does, how it starts, subscription price and FAQ.',
-        result: 'Deadlines, emails and tasks no longer live in your head',
-        lead: 'Remembers deadlines and tasks for you: watches mail and calendar, reminds at the right moment, runs language lessons.',
-        capabilities: [
-          { title: 'Deadlines', text: 'The assistant signs in to your study system or work mailbox with your access and gathers the deadlines into one list. Today it works with Moodle and Outlook.', example: 'The essay is due tomorrow at 10:00.', mock: 'checks', chips: ['Essay', 'Report', 'Payment'] },
-          { title: 'Calendar', text: 'Puts tasks in your calendar and suggests a time to do them. Today it works with the Apple calendar, and we check other calendars at the review.', example: 'Block an hour this evening?', mock: 'chat', chips: ['Yes, at 19:00', 'Later'] },
-          { title: 'Reminders', text: 'Writes in Telegram at the right moment and stays quiet in your quiet hours.', example: 'A client call in an hour.', mock: 'chat', chips: ['Got it', 'Remind me later'] },
-          { title: 'Mail triage', text: 'Marks the letters that need an answer and prepares a draft.', example: 'Two letters are waiting for a reply.', mock: 'checks', chips: ['Needs a reply', 'Read'] },
-          { title: 'Language lessons with Polly', text: 'Short tasks in Telegram, mistake review and repetition on schedule.', example: 'Translate: I have been waiting for an hour.', mock: 'chat', chips: ['A hint', 'Skip'] },
-        ],
-        first: {
-          day: 'We connect mail and calendar and agree what to remind about and when not to disturb you.',
-          week: 'The assistant sends a morning brief and reminders, and you tell it what is extra.',
-          month: 'The habits have set: you do not keep deadlines in your head, and the rules are tuned by a month of use.',
-        },
-        needs: ['Access to mail and calendar that you are ready to give', 'A list of services with deadlines', 'Hours when not to disturb you', 'For Polly: your language level and goal'],
-        not: ['It does not send letters without your confirmation', 'It does not get access you did not give', 'It does not write in your name without a command', 'It does not decide about money and contracts'],
-        scenarios: {
-          title: 'How the assistant works: three scenarios',
-          sub: 'Each scenario starts with an event and ends with a message to you in Telegram.',
-          items: [
-            { title: 'A deadline is coming', trigger: 'A deadline appeared in your study system or mail', steps: ['The assistant adds it to one list', 'Suggests a time to work on it', 'Puts it in the calendar after your yes'], result: 'Reminds you in Telegram ahead of time and stays quiet in your quiet hours.' },
-            { title: 'An important email arrived', trigger: 'A letter from a teacher, a client or the bank', steps: ['Marks it as waiting for a reply', 'Drafts a reply', 'Waits for your confirmation'], result: 'The email goes out only on your command.' },
-            { title: 'A language lesson with Polly', trigger: 'Lesson time on your schedule', steps: ['Sends a short task', 'Goes through the mistakes', 'Brings back the hard parts a few days later'], result: 'Review runs on schedule until the material sticks.' },
-          ],
-        },
-        demo: { title: 'A morning with the assistant', sub: 'Ask what your week looks like, or have it sort your mail and find time for a report.' },
-        knows: {
-          title: 'What it knows and what it never promises',
-          knowsTitle: 'Knows',
-          knows: ['Deadlines from the study system and mail you gave access to: Moodle and Outlook today', 'Your calendar: Apple Calendar today', 'The hours when you must not be disturbed', 'For Polly lessons: your language level and goal'],
-          notTitle: 'Never promises',
-          not: ['To send an email without your confirmation', 'To get access you did not give', 'To write in your name without a command', 'To decide money and contract questions for you'],
-        },
-        inPrice: ['Connecting mail, calendar and services with deadlines', 'A morning summary and reminders in Telegram', 'Quiet hours on your rules', 'Language lessons in the Polly plan'],
-        notInPrice: ['Services that do not connect yet: we check at the review', 'Paid subscriptions to third-party services', 'Connecting a new service: quoted separately'],
-        objections: [
-          { q: 'Giving access to my mail is scary', a: 'You give only the access you are ready to give. No email goes out without your confirmation, and the assistant never writes in your name without a command.' },
-          { q: 'It will distract me with messages', a: 'You set the quiet hours. In the first week we remove everything extra from your notes.' },
-          { q: 'My services are not supported', a: 'Today the assistant works with Moodle, Outlook and Apple Calendar. We check other services at the review and say honestly what will work.' },
-        ],
-      },
       implementation: {
         metaTitle: 'AI department, turnkey: role-based agents for your business | Fir Tech',
         metaDescription:
@@ -3340,18 +3566,20 @@ const en: Dict = {
     miniapp: {
       intro: 'This is a shop inside Telegram: a catalogue, a cart and payment in one window. A sample, no real order is created.',
     },
-    agent: {
-      intro: 'This is how a personal assistant works: it gathers deadlines, puts tasks on the calendar and writes in Telegram. A scripted sample, no real data is connected.',
-      name: 'Assistant',
-      sub: 'Personal AI assistant',
-      greet: 'Good morning. What shall I show?',
+    personal: {
+      intro: 'This is how a Personal AI works: the morning brief, mail, your promises, time for tasks and a language lesson. A scripted sample for a coffee shop owner, no real data is connected.',
+      name: 'Personal AI',
+      sub: 'Sample: a coffee shop owner',
+      greet: 'Good morning. Today’s brief is ready. Where shall we start?',
       prompts: [
-        { q: 'What is on this week?', a: 'Three deadlines: the coursework on Wednesday, the client report on Thursday, hosting payment on Friday. The coursework is urgent, start there.' },
-        { q: 'Go through my mail', a: 'Two letters wait for a reply: from the dean office and from a client. Drafts are ready, open and check them.' },
-        { q: 'Find time for the report', a: 'I put the report on Tuesday, 15:00, two hours. I will remind you an hour before.' },
+        { q: 'What is on today?', a: 'Three meetings, the first at 10:00 with a supplier. Two emails wait for a reply, one from the bank. The rent invoice is due by Friday.' },
+        { q: 'Go through my mail', a: 'Five emails: three are just for your information, two wait for you. Replies to the bank and to Aziz are drafted, open and check them.' },
+        { q: 'What did I promise this week?', a: 'The price list to Aziz by Wednesday, a review for Dilnora by Friday and a call to the accountant once the report is in.' },
+        { q: 'Find an hour for the report', a: 'I put the report on Tuesday, 15:00. I will remind you an hour before and attach last month’s sheet.' },
+        { q: 'English lesson, please', a: 'Ten minutes, three words you mixed up last time. First one: deadline. How do you say the report is due on Friday?' },
       ],
       you: 'You',
-      end: 'Want an assistant like this for yourself?',
+      end: 'Want an AI like this for yourself?',
       restart: 'Start over',
     },
     content: {
@@ -3485,12 +3713,13 @@ const en: Dict = {
     },
     team: {
       label: 'Fira:',
+      personal: 'A personal AI for one person: it remembers your work, your people and your promises.',
+      company: 'This is me, inside your company: a Director, departments and the control room. Decisions stay with you.',
       admin: 'Greets clients, books them and sends reminders. No days off.',
       receptionist: 'Sorts leads from every channel and hands them to you ready.',
       automation: 'Takes the routine: sheets, reports, moving data between services.',
       content: 'Writes posts to a plan and brings them to you for approval.',
       miniapp: 'A shop or bookings right inside Telegram, with no separate app.',
-      agent: 'A personal helper for one task of yours: study, languages, errands.',
       implementation: 'A whole department of agents with a head and one approval queue.',
     },
     office: {
@@ -3545,6 +3774,13 @@ const en: Dict = {
     ctaBuild: 'Build a project',
     ctaChat: 'Ask an agent',
     ctaDiscuss: 'Ask an agent',
+    // The top of the ladder (owner 2026-11-22): agent, department, the whole AI company.
+    topRung: {
+      label: 'Top of the ladder',
+      title: 'AI company: every department and a Director',
+      text: 'A role, then a department, then the whole company. At the top Fira as the Director runs departments for your business, and you watch the control room and approve what matters.',
+      cta: 'See the AI company',
+    },
     flow: {
       title: 'One working cycle',
       steps: [

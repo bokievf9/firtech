@@ -205,14 +205,14 @@ test('copy-qa: the 5-minute promise and the guarantee are word for word the same
 
 test('copy-qa: one set of product names, no old names, only the three CTAs for the builder and the agent', () => {
   const names = {
-    ru: ['ИИ-администратор', 'ИИ-менеджер заявок', 'Автоматизация процессов', 'Контент на автопилоте', 'Telegram Mini App', 'Персональный ИИ-ассистент', 'ИИ-отдел под ключ'],
-    en: ['AI booking assistant', 'AI lead manager', 'Process automation', 'Content on autopilot', 'Telegram Mini App', 'Personal AI assistant', 'AI department, turnkey'],
+    ru: ['Персональный ИИ', 'ИИ-компания', 'ИИ-администратор', 'ИИ-менеджер заявок', 'Автоматизация процессов', 'Контент на автопилоте', 'Telegram Mini App', 'ИИ-отдел под ключ'],
+    en: ['Personal AI', 'AI company', 'AI booking assistant', 'AI lead manager', 'Process automation', 'Content on autopilot', 'Telegram Mini App', 'AI department, turnkey'],
   }
   for (const [locale, dict] of [['ru', ru], ['en', en]]) {
     assert.deepEqual(Object.values(dict.products.items).map((i) => i.name), names[locale])
     const hits = []
     for (const [at, text] of strings(publicOf(dict)))
-      if (/ИИ-приёмщик|ИИ-ресепшн|AI receptionist/i.test(text)) hits.push(`${locale} ${at}: ${text.slice(0, 100)}`)
+      if (/ИИ-приёмщик|ИИ-ресепшн|AI receptionist|Персональный ИИ-ассистент|Personal AI assistant/i.test(text)) hits.push(`${locale} ${at}: ${text.slice(0, 100)}`)
     none(hits)
   }
   assert.equal(ru.nav.cta, 'Собрать проект')

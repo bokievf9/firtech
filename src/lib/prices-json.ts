@@ -1,4 +1,4 @@
-import { agentPlanList, contentPlanList, extraPrices, stageDefs, stageTemplateIds, type Pricing, type StageDef, type StageTemplateId } from './pricing'
+import { agentPlanList, companyPlanOf, contentPlanList, personalPlanList, extraPrices, stageDefs, stageTemplateIds, type Pricing, type StageDef, type StageTemplateId } from './pricing'
 import { productIds, productPrices, type ProductPrice } from './products'
 
 // Public machine-readable prices (GET /api/prices): the one source the agents read instead of
@@ -21,6 +21,10 @@ export function pricesJson(pricing: Pricing, updatedAt: string = PRICES_UPDATED_
     startingPrice: pricing.startingPrice,
     catalog: pricing.catalog,
     extraPrice: extraPrices(pricing),
+    // Flagships (2026-11-22): the three Personal AI levels and the AI company's starting plan (exact sum by the quote).
+    personalPlans: personalPlanList(pricing),
+    companyPlan: companyPlanOf(pricing),
+    // DEPRECATED: Dono and Polly are no longer sold; kept while HQ's schema still requires them.
     agentPlans: agentPlanList(pricing),
     contentPlans: contentPlanList(pricing),
     referralPercent: pricing.referralPercent,

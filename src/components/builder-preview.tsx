@@ -77,7 +77,9 @@ export function BuilderPreview({
   // A kind or a product with no website part still gets a page to show: header, hero and the
   // block that suits the niche.
   const frame = Boolean(site) || (!bot && !app && !auto && !empty)
-  const extraCards = products.filter((id) => id === 'content' || id === 'agent' || id === 'aiteam')
+  const extraCards = products.filter(
+    (id): id is 'content' | 'personal' | 'aiteam' => id === 'content' || id === 'personal' || id === 'aiteam',
+  )
 
   return (
     <div
@@ -822,7 +824,7 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
 
 // Mini screens for the products that have no part of their own: a content plan, a personal agent
 // and a company knowledge base.
-function ProductCard({ id, c }: { id: 'content' | 'agent' | 'aiteam'; c: Copy }) {
+function ProductCard({ id, c }: { id: 'content' | 'personal' | 'aiteam'; c: Copy }) {
   const wrap = cn('grid gap-1.5 rounded-xl bg-bg p-(--pv-pad)', BORDER, 'border-line-strong')
   if (id === 'content')
     return (
@@ -849,7 +851,7 @@ function ProductCard({ id, c }: { id: 'content' | 'agent' | 'aiteam'; c: Copy })
         </span>
       </div>
     )
-  if (id === 'agent')
+  if (id === 'personal')
     return (
       <div className={wrap}>
         <span className="flex items-center gap-1.5 text-[10px]">

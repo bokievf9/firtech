@@ -5,7 +5,7 @@ import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
-import { productAnchor, productBuilderHref, productIds, productPath, type ProductId } from '@/lib/products'
+import { isFlagship, productAnchor, productBuilderHref, productIds, productPath, type ProductId } from '@/lib/products'
 import { serviceSlugs } from '@/lib/site'
 import { Ladder } from '../ladder'
 import { Reveal } from '../reveal'
@@ -14,16 +14,17 @@ import { ProductDemo } from './product-demo'
 import { ProductPriceTag } from './product-price'
 import { productIcons } from './product-icons'
 
-// Bento of the seven products (#products). lg: 12 columns, rows 7+5, 4+4+4, 6+6; from 1920 the
-// rows become 6+3+3 and 3+3+3+3 (four across). Each card's demo replays on hover and focus.
+// Bento of the eight products (#products). lg: 12 columns, the two flagships first as 6+6 (owner
+// 2026-11-22), then 4+4+4 and 4+4+4. Each card's demo replays on hover and focus.
 const spans: Record<ProductId, string> = {
-  admin: 'md:col-span-2 lg:col-span-7 min-[1920px]:col-span-6',
-  receptionist: 'lg:col-span-5 min-[1920px]:col-span-3',
-  automation: 'lg:col-span-4 min-[1920px]:col-span-3',
-  content: 'lg:col-span-4 min-[1920px]:col-span-3',
-  miniapp: 'lg:col-span-4 min-[1920px]:col-span-3',
-  agent: 'lg:col-span-6 min-[1920px]:col-span-3',
-  implementation: 'lg:col-span-6 min-[1920px]:col-span-3',
+  personal: 'lg:col-span-6',
+  company: 'lg:col-span-6',
+  admin: 'lg:col-span-4',
+  receptionist: 'lg:col-span-4',
+  automation: 'lg:col-span-4',
+  content: 'lg:col-span-4',
+  miniapp: 'lg:col-span-4',
+  implementation: 'lg:col-span-4',
 }
 
 export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Dict }) {
@@ -131,9 +132,17 @@ function ProductCard({
   const t = dict.products
   const item = t.items[id]
   const Glyph = productIcons[id]
-  const wide = id === 'admin'
+  const wide = false
+  const flagship = isFlagship(id)
   return (
-    <SpotlightCard className="group h-full rounded-card border border-line bg-surface transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong">
+    <SpotlightCard
+      className={cn(
+        'group h-full rounded-card border transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1',
+        flagship
+          ? 'border-accent-text/40 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_60%)] hover:border-accent-text'
+          : 'border-line bg-surface hover:border-line-strong',
+      )}
+    >
       <article
         className={cn('flex h-full flex-col', wide && 'lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]')}
         aria-labelledby={`${productAnchor(id)}-name`}
@@ -156,7 +165,7 @@ function ProductCard({
                 <Glyph size={20} aria-hidden="true" />
               </span>
               <div className="min-w-0">
-                {wide && (
+                {flagship && (
                   <p className="font-mono text-[11px]">
                     <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent-text">{t.flagship}</span>
                   </p>

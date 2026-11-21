@@ -278,7 +278,7 @@ test('home film: eight scenes, each with Fira on her mark and her line in the HT
   await expect(page.locator('[data-film-line]').first()).toContainText('Привет, я Фира')
   await expect(page.locator('#pains [data-pain]')).toHaveCount(3)
   await expect(page.locator('#office [data-office-room]')).toHaveCount(6)
-  await expect(page.locator('#products [data-film-intro]')).toHaveCount(7)
+  await expect(page.locator('#products [data-film-intro]')).toHaveCount(8)
   await expect(page.locator('[data-film-finale] [data-cta="film_build"]')).toHaveAttribute('href', '/ru/builder')
   await expect(page.locator('h1')).toHaveCount(1)
 })

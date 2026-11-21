@@ -2,7 +2,9 @@ import { z } from 'zod'
 import ru from '../content/ru'
 import {
   agentPlanList,
+  companyPlanOf,
   contentPlanList,
+  personalPlanList,
   defaultPricing,
   stageDefs,
   stageIds,
@@ -35,6 +37,7 @@ const stageTemplateNames: Record<StageTemplateId, string> = {
   automation: 'Автоматизация',
   app: 'Приложение и Mini App',
   small: 'Малый проект',
+  company: 'ИИ-компания',
 }
 const extraNames: Record<string, string> = {
   support: 'Поддержка',
@@ -43,8 +46,12 @@ const extraNames: Record<string, string> = {
   rescue: 'Спасение проекта',
 }
 const planNames: Record<string, string> = {
-  dono: 'Dono, личный агент-учёба',
-  polly: 'Polly, учитель языка',
+  basic: 'Персональный ИИ, уровень «Старт»',
+  plus: 'Персональный ИИ, уровень «Плюс»',
+  max: 'Персональный ИИ, уровень «Максимум»',
+  company: 'ИИ-компания, цена «от»',
+  dono: 'Dono (снят с продажи, нужен HQ)',
+  polly: 'Polly (снят с продажи, нужен HQ)',
   content: 'Контент на автопилоте',
 }
 const stageTitleRu: Record<string, string> = {}
@@ -83,6 +90,8 @@ function field(path: string, def: number): PriceField {
         label: a === 'support' ? 'Поддержка, в месяц' : (extraNames[a] ?? a),
         ...usd, unit: a === 'support' ? 'usd_month' : 'usd', step: 5,
       }
+    case 'personalPlans':
+    case 'companyPlan':
     case 'agentPlans':
     case 'contentPlans':
       return {
@@ -271,7 +280,12 @@ export function editorView(state: PricesState) {
     stages: Object.fromEntries(
       stageTemplateIds.map((id) => [id, { name: stageTemplateNames[id], ids: stageIds[id] }]),
     ),
-    plans: { agent: agentPlanList(merged), content: contentPlanList(merged) },
+    plans: {
+      personal: personalPlanList(merged),
+      company: [companyPlanOf(merged)],
+      agent: agentPlanList(merged),
+      content: contentPlanList(merged),
+    },
   }
 }
 

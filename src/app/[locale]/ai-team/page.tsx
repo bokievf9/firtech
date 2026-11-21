@@ -26,6 +26,7 @@ import {
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
+import { productPath } from '@/lib/product-ids'
 import { siteUrl } from '@/lib/site'
 
 // Bento of the six offers: 7+5, 4+4+4, then the whole company across. Under 768 px one column.
@@ -144,6 +145,22 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         <div className="mt-10">
           <Ladder locale={locale} dict={dict} heading="h3" />
         </div>
+        <Reveal className="mt-gutter">
+          <div
+            data-top-rung
+            className="flex flex-col gap-5 rounded-card border border-accent-text/40 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 md:p-8 lg:flex-row lg:items-center lg:justify-between"
+          >
+            <div>
+              <p className="font-mono text-xs tracking-[0.14em] text-accent-text uppercase">{t.topRung.label}</p>
+              <p className="mt-2 font-display text-2xl font-semibold tracking-tight">{t.topRung.title}</p>
+              <p className="mt-2 max-w-[60ch] text-muted">{t.topRung.text}</p>
+            </div>
+            <Link href={`/${locale}${productPath('company')}`} data-cta="aiteam_top_company" className={cn(buttonStyles.primary, 'group shrink-0')}>
+              {t.topRung.cta}
+              <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </Reveal>
       </section>
 
       <section id="teams" className="mx-auto max-w-7xl px-4 pb-24 md:px-8">

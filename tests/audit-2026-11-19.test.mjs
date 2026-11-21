@@ -234,7 +234,7 @@ test('/api/prices carries the payment stages and the small-project limit (2026-1
   const body = await (await (await import('../src/app/api/prices/route.ts')).GET()).json()
   assert.equal(body.smallProjectMaxUsd, 300)
   assert.equal(body.updatedAt, '2026-11-21')
-  assert.deepEqual(Object.keys(body.stages), ['site', 'bot', 'automation', 'app', 'small'])
+  assert.deepEqual(Object.keys(body.stages), ['site', 'bot', 'automation', 'app', 'small', 'company'])
   for (const stages of Object.values(body.stages)) {
     assert.equal(stages.reduce((s, x) => s + x.share, 0), 100)
     for (const st of stages) assert.ok(st.id && st.title.ru && st.title.en && st.share > 0)
