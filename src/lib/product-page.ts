@@ -1,7 +1,10 @@
 import { stagesFor, stageTemplateForProduct, type PaymentStage } from './payment-stages'
 import { defaultPricing, type Pricing, type StageTemplateId } from './pricing'
 import { ladderIds, ladderLevels, ladders, type LadderId, type LadderLevel } from './ladder'
-import { productPrices, type ProductId } from './products'
+import type { Dict } from '../content/ru'
+import { quote } from './builder'
+import { productBuild, productPrices, type ProductId } from './products'
+import { mainPartTerm } from './solutions'
 
 // What the «Цена и оплата» block of a product page shows (owner 2026-11-22), all from the live
 // pricing: a priced product gets the stage table of its template at its own price; the content and
@@ -31,4 +34,11 @@ export function ladderOfProduct(id: ProductId): { track: LadderId; level: Ladder
       if (target.kind === 'product' && target.id === id) return { track, level }
     }
   return null
+}
+
+// The term of the product's main part, the same way solution pages count it: the most expensive service line of the
+// product's build and its format's term from the dictionary. Null when the build has no service part (subscriptions).
+export function productTerm(id: ProductId, dict: Dict, pricing: Pricing = defaultPricing): string | null {
+  const build = productBuild(id)
+  return mainPartTerm(build, quote(build, pricing).lines, dict)
 }

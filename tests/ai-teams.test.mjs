@@ -277,3 +277,19 @@ test('agents: department pages list their agents and the index has the strip and
   assert.match(index, /stripTitle/)
   for (const [, dict] of dicts) assert.ok(dict.aiTeams.agents.stripTitle && dict.aiTeams.agents.page.listTitle)
 })
+
+// Owner review 2026-11-22: headlines speak about the client's result; the department or role name sits above.
+test('ai-team pages: every department and agent has a result headline in both languages, used as the h1', () => {
+  for (const [locale, dict] of [['ru', ru], ['en', en]]) {
+    for (const id of teams.aiTeamIds) {
+      const item = dict.aiTeams.items[id]
+      assert.ok(item.headline && item.headline !== item.title, `${locale} ${id}`)
+    }
+    for (const id of teams.agentIds) {
+      const item = dict.aiTeams.agents.items[id]
+      assert.ok(item.headline && item.headline !== item.title, `${locale} agent ${id}`)
+    }
+  }
+  assert.match(readFileSync('src/app/[locale]/ai-team/[id]/page.tsx', 'utf8'), /\{page\.headline\}/)
+  assert.match(readFileSync('src/app/[locale]/ai-team/agent/[id]/page.tsx', 'utf8'), /\{page\.headline\}/)
+})
