@@ -10,7 +10,7 @@ export const notFoundText = {
     bot: 'Похоже, эта страница ушла на обед и не вернулась.',
     bot2: 'Я ИИ-агент Fir Tech. Найдём, что вы искали:',
     search: 'Поиск по сайту',
-    placeholder: 'Например: запись, бот, цены',
+    placeholder: 'Например: запись, заявки, цены',
     empty: 'Ничего не нашли. Спросите агента в чате, он подскажет.',
     chat: 'Спросить агента',
     links: {
@@ -78,7 +78,7 @@ export const notFoundText = {
     bot: 'Looks like this page went out for lunch and never came back.',
     bot2: 'I am the Fir Tech AI agent. Let us find what you were after:',
     search: 'Search the site',
-    placeholder: 'For example: booking, bot, prices',
+    placeholder: 'For example: booking, leads, prices',
     empty: 'Nothing found. Ask the agent in the chat, it will help.',
     chat: 'Ask an agent',
     links: {
