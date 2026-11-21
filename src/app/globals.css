@@ -1117,3 +1117,79 @@
     animation: none !important;
   }
 }
+
+/*
+  Home film (docs/site-design-notes.md «Главная-фильм»). The flat Fira on each mark is server SVG;
+  once the travelling WebGL Fira is drawn (FilmOverlay sets html[data-film='on']) the flat ones fade
+  out and the lines of scenes off screen dim a little. The «camera» glow drifts per scene.
+*/
+.film-flat {
+  transition: opacity 220ms var(--ease-out-quint);
+}
+html[data-film='on'] .film-flat {
+  opacity: 0;
+}
+/* Where she lands: a soft shadow on the empty marks while she is elsewhere. */
+html[data-film='on'] .film-mark::after {
+  content: '';
+  position: absolute;
+  inset: auto 22% 2% 22%;
+  height: 6%;
+  border-radius: 50%;
+  background: var(--color-accent-ink);
+  opacity: 0.12;
+}
+.film-line {
+  transition: opacity 400ms var(--ease-out-quint);
+}
+html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
+  opacity: 0.6;
+}
+.film-fira {
+  transition: opacity 220ms var(--ease-out-quint);
+  will-change: transform;
+}
+.film-camera-glow {
+  transition:
+    transform 1400ms var(--ease-in-out-soft),
+    opacity 1400ms var(--ease-in-out-soft);
+}
+.film-say,
+.companion-say {
+  opacity: 0;
+  transform: translateY(6px) scale(0.97);
+  transform-origin: bottom right;
+  transition:
+    opacity 200ms var(--ease-out-quint),
+    transform 200ms var(--ease-out-quint);
+}
+.film-say[data-film-say='on'],
+.companion-say[data-open='true'] {
+  opacity: 1;
+  transform: none;
+}
+.office-agent {
+  display: block;
+  width: 10px;
+  height: 13px;
+  border-radius: 3px 3px 2px 2px;
+  background: color-mix(in oklab, var(--room) 75%, transparent);
+}
+.office-agent-busy {
+  animation: office-type 1.8s var(--ease-in-out-soft) infinite;
+  animation-delay: calc(var(--i, 0) * 240ms);
+}
+@keyframes office-type {
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .office-agent-busy {
+    animation: none;
+  }
+  .film-say,
+  .companion-say {
+    transform: none;
+  }
+}

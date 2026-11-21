@@ -72,9 +72,9 @@ test('«Собрать проект» opens the builder with the product picked'
   }
 })
 
-test('home page: eight sections in order, page.tsx renders homeSections', () => {
-  assert.deepEqual(homeSections, ['hero', 'products', 'demo', 'solutions', 'process', 'pricing', 'faq', 'footer'])
-  for (const id of ['top', 'products', 'demo', 'solutions', 'process', 'pricing', 'faq', 'services'])
+test('home page: the film sections in order, page.tsx renders homeSections', () => {
+  assert.deepEqual(homeSections, ['hero', 'pains', 'demo', 'products', 'office', 'solutions', 'process', 'pricing', 'faq', 'footer'])
+  for (const id of ['top', 'pains', 'office', 'products', 'demo', 'solutions', 'process', 'pricing', 'faq', 'services'])
     assert.ok(homeAnchors.includes(id), id)
   assert.equal(homeAnchors.includes('contact'), false)
   assert.equal(sectionAnchor.faq, 'faq')

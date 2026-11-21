@@ -1,5 +1,6 @@
 import { ArrowRight, ChatCircleDots, Clock } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
@@ -15,7 +16,8 @@ import { HeroSequence } from './hero-sequence'
 // scroll sequence that brings the seven products forward one by one (HeroSequence). The headline,
 // sub and buttons are server HTML animated in CSS, so the headline is the LCP and everything reads
 // without JavaScript; the stage, captions and parallax are the client island.
-export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
+// `cue` is scene one of the home film (Fira greets the visitor), shown above the buttons.
+export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: ReactNode }) {
   const h = dict.hero
   const products = productIds.map((id) => ({
     id,
@@ -52,6 +54,7 @@ export function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
       }
       actions={
         <HeroIntro delay={0.64}>
+          {cue ? <div className="mb-6">{cue}</div> : null}
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Magnetic>
               <Link

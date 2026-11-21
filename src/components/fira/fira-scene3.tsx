@@ -279,6 +279,8 @@ export default function FiraScene3({ variant, emotion, lookAt, mouth, theme, act
     <Canvas
       data-fira-canvas=""
       dpr={[1, 1.5]}
+      // Layout size, not the on-screen box: the home film scales the figure with a transform.
+      resize={{ offsetSize: true }}
       frameloop={active ? 'always' : 'never'}
       camera={{ position: [0, 0.1, 8.4], fov: 26 }}
       gl={{ antialias: true, alpha: true, powerPreference: 'low-power', preserveDrawingBuffer: false }}

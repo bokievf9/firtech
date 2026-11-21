@@ -178,7 +178,7 @@ test('new pages: how-we-work and the product pages are registered everywhere', a
 })
 
 test('home: sections in order with solutions and FAQ, anchors, no contact section', () => {
-  assert.deepEqual([...homeSections], ['hero', 'products', 'demo', 'solutions', 'process', 'pricing', 'faq', 'footer'])
+  assert.deepEqual([...homeSections], ['hero', 'pains', 'demo', 'products', 'office', 'solutions', 'process', 'pricing', 'faq', 'footer'])
   const page = read('src/app/[locale]/page.tsx')
   assert.match(page, /SolutionsHome/)
   assert.match(page, /DemoSection/)

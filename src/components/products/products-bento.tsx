@@ -170,6 +170,11 @@ function ProductCard({
           </div>
 
           <p className="text-lg leading-snug">{item.benefit}</p>
+          {/* Scene four of the home film: Fira introduces each member of the team in one line. */}
+          <p data-film-intro={id} className="-mt-2 flex gap-2 text-sm leading-snug text-muted">
+            <span className="shrink-0 font-mono text-[11px] leading-5 text-accent-text">{dict.film.team.label}</span>
+            <span>{dict.film.team[id]}</span>
+          </p>
 
           <dl className="grid gap-4 text-sm">
             <div>

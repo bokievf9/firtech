@@ -28,6 +28,8 @@ export type FiraProps = {
   style?: CSSProperties
   /** Accessible name; without it the figure is decorative. */
   label?: string
+  /** Called once the WebGL figure has drawn its first frame (the home film waits for it). */
+  onReady?: () => void
 }
 
 // The scene is a separate chunk: three.js and R3F load only when Fira is shown with WebGL.
@@ -51,7 +53,7 @@ function hasWebGL(): boolean {
 
 // Fira, the lime dot of the logo come alive. WebGL (R3F) when the device allows it, a still-ish SVG
 // otherwise (no WebGL, or prefers-reduced-motion). Draws only while on screen and the tab is visible.
-export function Fira({ variant = 'i', emotion = 'idle', size = 240, lookAt = true, mouth, theme, clock, spin, className, style, label }: FiraProps) {
+export function Fira({ variant = 'i', emotion = 'idle', size = 240, lookAt = true, mouth, theme, clock, spin, className, style, label, onReady }: FiraProps) {
   const reduce = useReducedMotion()
   const host = useRef<HTMLDivElement>(null)
   const [gl, setGl] = useState(false)
@@ -77,6 +79,10 @@ export function Fira({ variant = 'i', emotion = 'idle', size = 240, lookAt = tru
   }, [])
 
   const use3d = gl && !reduce
+  const ready = () => {
+    setShown(true)
+    onReady?.()
+  }
   return (
     <div
       ref={host}
@@ -97,11 +103,11 @@ export function Fira({ variant = 'i', emotion = 'idle', size = 240, lookAt = tru
       {use3d ? (
         <div style={{ position: 'absolute', inset: 0, opacity: shown ? 1 : 0, transition: 'opacity 220ms cubic-bezier(0.23, 1, 0.32, 1)' }}>
           {isRoundThree(variant) ? (
-            <Scene3 variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} spin={spin} active={seen && tab} onReady={() => setShown(true)} />
+            <Scene3 variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} spin={spin} active={seen && tab} onReady={ready} />
           ) : isRoundTwo(variant) ? (
-            <Scene2 variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} spin={spin} active={seen && tab} onReady={() => setShown(true)} />
+            <Scene2 variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} spin={spin} active={seen && tab} onReady={ready} />
           ) : (
-            <Scene variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} spin={spin} active={seen && tab} onReady={() => setShown(true)} />
+            <Scene variant={variant} emotion={emotion} lookAt={lookAt} mouth={mouth} theme={theme} clock={clock} spin={spin} active={seen && tab} onReady={ready} />
           )}
         </div>
       ) : null}
