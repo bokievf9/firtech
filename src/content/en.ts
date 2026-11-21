@@ -3159,7 +3159,7 @@ const en: Dict = {
       'The stages of a project, what you see in the cabinet, who answers and how fast, how acceptance and payment by stages work. A guarantee on the first stage.',
     eyebrow: 'How we work',
     title: 'From the first message to launch',
-    sub: 'What you see in the cabinet at every stage, who answers, how we hand over the work and how payment by stages goes.',
+    sub: 'What you see in the cabinet at every stage, who answers, and how acceptance and payment work.',
     stagesTitle: 'Project stages',
     you: 'What you do',
     cabinet: 'What shows in the cabinet',
@@ -3170,7 +3170,7 @@ const en: Dict = {
         text: '30 minutes, free. We go through the task and propose a solution, even if you end up going elsewhere.',
         you: 'You tell us about the business and the task.',
         cabinet: 'A request with a status and the conversation with us.',
-        who: 'The first reply comes within 5 minutes, around the clock. After that the founder is in touch.',
+        who: 'First reply within 5 minutes, around the clock. After that the founder is in touch.',
       },
       {
         title: 'Quote',
@@ -3210,13 +3210,13 @@ const en: Dict = {
     dislikeTitle: 'If something is not to your liking',
     dislike: [
       'Send remarks as a list: two rounds of revisions are in the quote.',
-      'If you did not like the first screen or the first scenario, we return the payment for the first stage.',
+      'If you do not like the first screen of the website or the first bot scenario, we return the first stage payment.',
       'New features beyond the quote are estimated separately and only with your consent.',
     ],
     toolsTitle: 'What we work with',
     toolsText: 'We run on AI agents ourselves: the company is managed through our own system. For your projects we use familiar tools.',
     tools: [
-      { name: 'Telegram', text: 'The bot, notifications and approvals.' },
+      { name: 'Telegram', text: 'Notifications, approvals and replies to clients.' },
       { name: 'Personal cabinet', text: 'Stages, invoices, documents and requests.' },
       { name: 'Sheets and CRM', text: 'Data and leads, if you already have them.' },
       { name: 'Your accounts', text: 'Domain, hosting and services are registered to you.' },
