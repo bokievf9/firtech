@@ -7,14 +7,14 @@ import type { HqResult } from '@/lib/hq-admin-view'
 
 // Browser side of the пульт: every call goes to the session-checked proxy /api/admin/hq/*.
 // GET without a body, POST with one. Never throws: failures are { ok: false, error } codes.
-export async function hq<T extends object>(path: string, body?: unknown): Promise<HqResult<T>> {
+export async function hq<T extends object>(path: string, body?: unknown, method: 'POST' | 'PATCH' = 'POST'): Promise<HqResult<T>> {
   try {
     const res = await fetch(
       `/api/admin/hq/${path}`,
       body === undefined
         ? { cache: 'no-store', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }
         : {
-            method: 'POST',
+            method,
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify(body),
             signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
@@ -143,3 +143,6 @@ export function storedValue<T>(key: string, kind: 'local' | 'session', parse: (r
     },
   }
 }
+
+// A PATCH through the proxy (HQ settings): same envelope and error codes as `hq`.
+export const hqPatch = <T extends object>(path: string, body: unknown) => hq<T>(path, body, 'PATCH')

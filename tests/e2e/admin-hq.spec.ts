@@ -41,10 +41,10 @@ test.describe('with a session', () => {
   })
 
   test('a soon section says so and links to the old screen; the office still opens', async ({ page }) => {
-    await open(page, '/admin/settings')
+    await open(page, '/admin/finance')
     await expect(page.getByText('Soon').first()).toBeVisible()
     await page.getByRole('link', { name: 'Open the old screen' }).click()
-    await expect(page).toHaveURL(/\/admin\/office\?panel=company/)
+    await expect(page).toHaveURL(/\/admin\/office\?panel=backoffice/)
     await open(page, '/admin/office')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
   })
@@ -82,6 +82,55 @@ test.describe('with a session', () => {
   })
 
 
+  test('Settings: autopilot, saving by field with feedback and errors, trust, restart note, session journal', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/settings')
+    await expect(page.getByRole('heading', { name: 'Settings', level: 1 })).toBeVisible()
+    for (const g of ['autopilot', 'schedule', 'notices', 'alerts', 'trust', 'limits', 'calls', 'kp', 'playground', 'service', 'journal']) await expect(page.locator(`[data-group="${g}"]`)).toBeVisible()
+    // Autopilot: policy by default, switch to autopilot
+    const modes = page.getByRole('radiogroup', { name: 'Lead manager mode' })
+    await expect(modes.getByRole('radio', { name: 'Зови меня по политике' })).toHaveAttribute('aria-checked', 'true')
+    await modes.getByRole('radio', { name: /^Автопилот/ }).click()
+    await expect(modes.getByRole('radio', { name: /^Автопилот/ })).toHaveAttribute('aria-checked', 'true')
+    await expect(page.locator('[data-group="autopilot"] [data-status="saved"]')).toBeVisible()
+    // A time field saves on blur and shows «Saved»
+    const summary = page.locator('[data-field="schedule.summaryTime"] input')
+    await summary.fill('09:30')
+    await summary.blur()
+    await expect(page.locator('[data-field="schedule.summaryTime"] [data-status="saved"]')).toBeVisible()
+    // A wrong number is refused with a visible reason and nothing is sent
+    const duration = page.locator('[data-field="calls.durationMin"] input')
+    await duration.fill('1')
+    await duration.blur()
+    await expect(page.locator('[data-field="calls.durationMin"] [role="alert"]')).toContainText('Outside the allowed range')
+    // A switch saves at once
+    await page.getByRole('switch', { name: 'New lead' }).click()
+    await expect(page.getByRole('switch', { name: 'New lead' })).toHaveAttribute('aria-checked', 'false')
+    // A time zone HQ does not know comes back as HQ's own error
+    const tz = page.locator('[data-field="schedule.tz"] input')
+    await tz.fill('Mars/Olympus')
+    await tz.blur()
+    await expect(page.locator('[data-field="schedule.tz"] [role="alert"]')).toBeVisible()
+    // Spend sits next to the limit
+    await expect(page.locator('[data-field="limits.deptBudgetUsd.marketing"] [data-usage]')).toContainText('$4.20')
+    // Trust: raising a level asks first
+    await page.getByRole('switch', { name: 'content_item: Level' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Level 1' }).click()
+    await expect(page.getByRole('switch', { name: 'content_item: Level' })).toHaveAttribute('aria-checked', 'true')
+    // A service flag needs a restart and says so
+    await page.getByRole('switch', { name: 'Approval cards in Telegram' }).click()
+    await expect(page.locator('[data-restart]')).toContainText('service.tgApprovalCards')
+    // The session journal lists what changed with old and new values
+    const journal = page.locator('[data-journal]')
+    await expect(journal).toContainText('autopilot.leadManager: policy -> autopilot')
+    await expect(journal).toContainText('schedule.summaryTime: 08:00 -> 09:30')
+    await expect(journal).toContainText('trust.levels.content_item: 0 -> 1')
+    // It survives a reload (HQ keeps it)
+    await page.reload()
+    await expect(page.locator('[data-field="schedule.summaryTime"] input')).toHaveValue('09:30')
+    expect(errors).toEqual([])
+  })
+
   test('Content: feed, item drawer with the player and Studio buttons, «Промпт» order, orders tab, calendar', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/content')
@@ -117,7 +166,7 @@ test.describe('with a session', () => {
   for (const [name, size] of Object.entries(SIZES)) {
     test(`no horizontal overflow ${name}`, async ({ page }) => {
       await page.setViewportSize(size)
-      for (const url of ['/admin/inbox', '/admin/clients', '/admin/projects', '/admin/documents', '/admin/agents', '/admin/agents?agent=client-bot', '/admin/content', '/admin/content?tab=orders', '/admin/tasks']) {
+      for (const url of ['/admin/inbox', '/admin/clients', '/admin/projects', '/admin/documents', '/admin/agents', '/admin/agents?agent=client-bot', '/admin/content', '/admin/content?tab=orders', '/admin/settings', '/admin/tasks']) {
         await open(page, url)
         await noHorizontalOverflow(page, url)
       }
