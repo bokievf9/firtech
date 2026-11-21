@@ -45,7 +45,7 @@ test('unknown path gives the branded 404 with a search (ru, en and outside the l
 test('404 search filters the page list', async ({ page }) => {
   await open(page, '/ru/no-such-page')
   const search = page.locator('input[type=search]').first()
-  await search.fill('конструктор')
+  await search.fill('сборка')
   await expect(page.locator('main a[href="/ru/builder"]').first()).toBeVisible()
   await search.fill('qqqzzz')
   await expect(page.locator('main a[href="/ru/builder"]')).toHaveCount(0)
@@ -108,8 +108,9 @@ test('home: hero and bento calls to action lead where they say', async ({ page }
   await open(page, '/ru')
   const builder = page.locator('#products a[href^="/ru/builder"]').first()
   await expect(builder).toBeVisible()
-  await expect(page.locator('a[href="https://t.me/firtech_bot?start=demo_salon"]').first()).toBeAttached()
-  await expect(page.locator('a[href="/ru/audit"]').first()).toBeAttached()
+  await expect(page.locator('a[href*="demo_salon"]')).toHaveCount(0)
+  await expect(page.locator('#products a[href="/ru/products/admin"]').first()).toBeAttached()
+  await expect(page.locator('#top a[href="/ru/ai-team"]').first()).toBeAttached()
   await builder.click()
   await expect(page).toHaveURL(/\/ru\/builder/)
 })
@@ -145,7 +146,7 @@ test('header and footer anchors on the home page point at sections that exist', 
   const anchors = await page.evaluate(() =>
     [...new Set([...document.querySelectorAll('header a[href^="/ru#"], footer a[href^="/ru#"], main a[href^="#"]')].map((a) => a.getAttribute('href')!.split('#')[1]!))].filter(Boolean),
   )
-  expect(anchors.length).toBeGreaterThan(5)
+  expect(anchors.length).toBeGreaterThanOrEqual(3)
   for (const id of anchors) await expect(page.locator(`[id="${id}"]`), `#${id}`).toHaveCount(1)
 })
 
@@ -193,4 +194,42 @@ test('bare paths of known pages redirect to a language (contracts link /terms an
     expect(new URL(res.headers().location!, 'http://localhost').pathname, path).toBe(to)
     expect((await request.get(to)).status(), to).toBe(200)
   }
+})
+
+test('home: «Попробуйте сейчас» tabs switch, the booking sample walks to the end and the chat answers in mock mode', async ({ page }) => {
+  await open(page, '/ru#demo')
+  const tabs = page.locator('[data-demo-tab]')
+  await expect(tabs).toHaveCount(4)
+  await tabs.nth(1).click()
+  const booking = page.locator('[data-demo-booking]')
+  await expect(booking).toContainText('ИИ-администратор')
+  for (let i = 0; i < 3; i++) await booking.locator('[data-booking-option="0"]').click()
+  await expect(booking).toContainText('Записал')
+  await tabs.nth(2).click()
+  await expect(page.locator('[data-demo-articles] a').first()).toBeVisible()
+  await tabs.nth(0).click()
+  await page.locator('[data-niche="clinic"]').click()
+  await page.locator('[data-demo-chat]').getByRole('button', { name: 'Работаете в выходные?' }).click()
+  await expect(page.locator('[data-demo-chat]')).toContainText('Работаете в выходные?')
+  await expect(page.locator('[data-demo-chat] li').nth(1)).toBeVisible()
+})
+
+test('home: the ladder, the solutions block with «Ещё» and the ask strip are there', async ({ page }) => {
+  await open(page, '/ru')
+  await expect(page.locator('[data-ladder-track]')).toHaveCount(3)
+  await expect(page.locator('[data-ladder-rung="content-auto"]')).toHaveAttribute('href', '/ru/products/content')
+  const more = page.locator('#solutions button[aria-expanded]')
+  await more.scrollIntoViewIfNeeded()
+  await more.click()
+  await expect(more).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.locator('#faq [data-ask-strip]')).toContainText('Остались вопросы?')
+})
+
+test('product page: price, stage table, FAQ and the builder with the product picked', async ({ page }) => {
+  await open(page, '/ru/products/receptionist')
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('ИИ-менеджер заявок')
+  await expect(page.locator('[data-stage-table] tbody tr').first()).toBeVisible()
+  await expect(page.locator('#faq button[aria-expanded]').first()).toBeVisible()
+  await page.locator('main').getByRole('link', { name: 'Собрать проект' }).first().click()
+  await expect(page).toHaveURL(/\/ru\/builder\?b=.*p\.intake/)
 })

@@ -79,12 +79,11 @@ test('staged payment copy matches the terms: stages, each before it starts (owne
 
 test('audit promise: a working day, no hard 24 hours, no automation promise', () => {
   for (const [dict, day, hours] of [[ru, /рабочего дня/, /24 час/], [en, /working day/, /24 hours?/]]) {
-    for (const [at, text] of strings([dict.auditPage, dict.hero.auditLink, dict.faq]))
+    for (const [at, text] of strings([dict.auditPage, dict.faq]))
       assert.doesNotMatch(text, hours, at)
     assert.match(dict.auditPage.successText, day)
     assert.match(dict.auditPage.successText, /@firtech_bot/)
     assert.doesNotMatch(dict.auditPage.successTextOther, /@firtech_bot/)
-    assert.match(dict.hero.auditLink, day)
   }
 })
 

@@ -122,7 +122,7 @@ test('ai teams: no price anywhere, the quote pattern and the delivery note are i
     assert.match(dict.aiTeams.page.delivery, /HQ/)
   }
   assert.equal(ru.aiTeams.quote, 'По смете')
-  assert.equal(ru.aiTeams.ctaDiscuss, 'Обсудить')
+  assert.equal(ru.aiTeams.ctaDiscuss, 'Спросить агента')
   const files = [
     'src/app/[locale]/ai-team/page.tsx',
     'src/app/[locale]/ai-team/[id]/page.tsx',
@@ -162,9 +162,9 @@ test('ai teams: one footer link in the Products column, labelled in both languag
     const products = footerColumns(locale).find((c) => c.id === 'products')
     const links = products.links.filter((l) => l.href === `/${locale}/ai-team`)
     assert.equal(links.length, 1)
-    assert.equal(dict.footer.pages['ai-team'], dict.aiTeams.nav)
+    assert.equal(dict.footer.pages['ai-team'], dict.nav.aiTeams)
   }
-  assert.equal(ru.footer.pages['ai-team'], 'Отдел из ИИ-агентов')
+  assert.equal(ru.footer.pages['ai-team'], 'ИИ-отделы')
 })
 
 test('ai teams: the index shows the live proof from the public office feed, labelled as our own', () => {
@@ -245,7 +245,7 @@ test('agents: pages exist, static for both locales, in the sitemap with alternat
   const page = readFileSync('src/app/[locale]/ai-team/agent/[id]/page.tsx', 'utf8')
   assert.match(page, /generateStaticParams/)
   assert.match(page, /dynamicParams = false/)
-  assert.match(page, /AgentDiscuss/)
+  assert.match(page, /ChatOpenButton/)
   assert.doesNotMatch(page, /formatUsd|from '@\/lib\/pricing'|\$\d/)
   const urls = (await sitemap()).map((e) => e.url)
   for (const locale of ['ru', 'en'])
@@ -262,11 +262,11 @@ test('agents: pages exist, static for both locales, in the sitemap with alternat
   for (const p of teams.allAiTeamPaths) assert.ok(llms.includes(`/en${p}`) && llms.includes(`/ru${p}`), `llms ${p}`)
 })
 
-test('agents: the discuss button hands the agent to the contact form as the lead source', () => {
-  const button = readFileSync('src/components/ai-team/agent-discuss.tsx', 'utf8')
-  assert.match(button, /agentSource\(id\)/)
-  assert.match(button, /\?agent=\$\{id\}#contact/)
-  assert.match(button, /sendEstimate/)
+test('agents: the ask button opens the chat with the agent as the source (the contact form is not a page section)', () => {
+  const page = readFileSync('src/app/[locale]/ai-team/agent/[id]/page.tsx', 'utf8')
+  assert.match(page, /source=\{agentSource\(id\)\}/)
+  assert.doesNotMatch(page, /ContactSection|#contact/)
+  assert.equal(existsSync('src/components/ai-team/agent-discuss.tsx'), false)
 })
 
 test('agents: department pages list their agents and the index has the strip and the agents section', () => {
