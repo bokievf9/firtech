@@ -240,11 +240,13 @@ test('chat API: validation (400) and mock answer (200)', async ({ request, baseU
 
 // ---- services ------------------------------------------------------------------------------------
 
-test('service page: «Оценить стоимость» picks the format in the estimate block', async ({ page }) => {
+test('service page: the format button «Собрать проект: …» picks the format in the estimate block, whose button opens the builder with it', async ({ page }) => {
   await open(page, '/ru/services/websites')
-  await page.getByRole('button', { name: /Оценить стоимость: Сайт компании/ }).click()
+  await page.getByRole('button', { name: /Собрать проект: Сайт компании/ }).click()
   const picked = page.locator('#pricing [role=radio][aria-checked=true]').first()
   await expect(picked).toContainText('Сайт компании')
+  await page.locator('#pricing').getByRole('button', { name: 'Собрать проект', exact: true }).click()
+  await expect(page).toHaveURL(/\/ru\/builder\?b=.*websites\.company/)
 })
 
 test('solution page opens the builder with its preset', async ({ page }) => {
