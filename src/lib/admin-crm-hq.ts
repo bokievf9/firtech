@@ -316,8 +316,76 @@ export const normalizeReferrals = (body: unknown) =>
     }
   })
 
-// Reviews have no table yet: whatever HQ sends, the list stays empty and unavailable until it says otherwise.
-export const normalizeReviews = (body: unknown) => list<never>(body, () => null)
+// Reviews of finished projects (`GET /admin/crm/reviews`, agents P-16): rating 1..5 and the client's words.
+export type Review = { id: number; clientId: number | null; client: string; projectId: number | null; rating: number; text: string; at: string | null }
+
+export const normalizeReviews = (body: unknown) =>
+  list<Review>(body, (r) => {
+    const id = idOf(r.id)
+    if (id === null) return null
+    const rating = Math.round(num(r.rating))
+    return {
+      id,
+      clientId: idOf(r.clientId),
+      client: str(r.client, 200),
+      projectId: idOf(r.projectId),
+      rating: rating >= 1 && rating <= 5 ? rating : 0,
+      text: str(r.text, 4000),
+      at: when(r.at),
+    }
+  })
+
+// ---- the client's cabinet documents (P-07) -----------------------------------------------------
+
+// `GET /admin/crm/cabinet-docs?problem=1`: documents the client got in the cabinet with the state of their email and PDF.
+// `mail.state`: sent, failed (the letter did not go out), off (no mailer: delivery = the thread line), null (not tried yet).
+export type CabinetDoc = {
+  id: number
+  clientId: number | null
+  client: string
+  kind: string
+  title: string
+  number: string
+  leadId: number | null
+  projectId: number | null
+  state: string
+  createdAt: string | null
+  deliveredAt: string | null
+  mail: { state: string | null; error: string; attempts: number }
+  pdf: boolean
+  signedPdf: boolean
+  problems: string[]
+  actions: string[]
+}
+
+export const normalizeCabinetDocs = (body: unknown) =>
+  list<CabinetDoc>(body, (r) => {
+    const id = idOf(r.id)
+    if (id === null) return null
+    const mail = rec(r.mail)
+    return {
+      id,
+      clientId: idOf(r.clientId),
+      client: str(r.client, 200),
+      kind: str(r.kind, 32),
+      title: str(r.title, 300),
+      number: str(r.number, 40),
+      leadId: idOf(r.leadId),
+      projectId: idOf(r.projectId),
+      state: str(r.state, 32),
+      createdAt: when(r.createdAt),
+      deliveredAt: when(r.deliveredAt),
+      mail: { state: typeof mail.state === 'string' ? mail.state.slice(0, 20) : null, error: str(mail.error, 60), attempts: num(mail.attempts) },
+      pdf: r.pdf !== false,
+      signedPdf: bool(r.signedPdf),
+      problems: strs(r.problems),
+      actions: strs(r.actions),
+    }
+  })
+
+// The owner's marks: «письмо не ушло» / «нет PDF» / «нет подписанного PDF» for the problem codes HQ sends.
+export const problemLabel = (code: string): string =>
+  (admin.crm.hq.cabinetDocs.problems as Record<string, string>)[code] ?? code
 
 // ---- summary and badges ----------------------------------------------------------------------
 

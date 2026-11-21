@@ -45,7 +45,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   const leads: Row[] = [
     { id: 7, name: 'Нигина', contact: '@nigina_beauty', service: 'bot', niche: 'beauty', brief: 'Бот для записи в салон, напоминания клиентам за день.', budget: '300-500', source: 'site', temperature: 'hot', stage: 'new', nextAction: 'Ответить и уточнить сроки', estimateUsd: 350, hasDomain: false, hasHosting: false, notes: [], clientId: null, callAt: null, createdAt: ago(25), message: MOCK_MESSAGES[7], estimate: MOCK_ESTIMATES[7], builderUrl: mockBuilderUrl(7) },
     { id: 6, name: 'Фаррух', contact: '+992 90 111 22 33', service: 'site', niche: 'auto', brief: 'Сайт автосервиса с онлайн-записью.', budget: '', source: 'telegram', temperature: 'warm', stage: 'qualified', nextAction: 'Назначить созвон', estimateUsd: 470, hasDomain: true, hasHosting: false, notes: [{ at: ago(300), text: 'Хочет запуск до Нового года.' }], clientId: null, callAt: null, createdAt: ago(60 * 9), message: MOCK_MESSAGES[6], estimate: MOCK_ESTIMATES[6], builderUrl: mockBuilderUrl(6) },
-    { id: 5, name: 'Боб', contact: '@bob', service: 'bot', niche: '', brief: 'Бот для записи клиентов', budget: '', source: 'telegram', temperature: 'warm', stage: 'proposal', nextAction: 'КП отправлено, ждём ответа', estimateUsd: 100, hasDomain: null, hasHosting: null, notes: [], clientId: 'c:Боб', callAt: ahead(1), createdAt: ago(60 * 26), message: MOCK_MESSAGES[5], builderUrl: mockBuilderUrl(5) },
+    { id: 5, name: 'Боб', contact: '@bob', service: 'bot', niche: '', brief: 'Бот для записи клиентов', budget: '', source: 'telegram', temperature: 'warm', stage: 'proposal', nextAction: 'КП отправлено, ждём ответа', estimateUsd: 100, hasDomain: null, hasHosting: null, notes: [], clientId: 'c:Боб', callAt: ahead(1), booking: { id: 5, at: ahead(1), state: 'pending', site: 'booked' }, createdAt: ago(60 * 26), message: MOCK_MESSAGES[5], builderUrl: mockBuilderUrl(5) },
     { id: 4, name: 'Sadaf Clinic', contact: 'hello@sadaf.example', service: 'site', niche: 'clinic', brief: 'Новый сайт клиники и бот для записи.', budget: '1000+', source: 'ref:c1a1b2c3', temperature: 'warm', stage: 'contract', nextAction: 'Договор на подписи', estimateUsd: 780, hasDomain: true, hasHosting: true, notes: [], clientId: null, callAt: null, createdAt: ago(60 * 50), message: MOCK_MESSAGES[4], estimate: MOCK_ESTIMATES[4], builderUrl: mockBuilderUrl(4) },
     { id: 3, name: 'Алиса', contact: '@alice', service: 'site', niche: 'studio', brief: 'Сайт для студии', budget: '', source: 'site', temperature: 'hot', stage: 'paid', nextAction: null, estimateUsd: 600, hasDomain: false, hasHosting: false, notes: [], clientId: '1', callAt: null, createdAt: ago(60 * 70), message: MOCK_MESSAGES[3], estimate: 'Итого: $600' },
     { id: 2, name: 'Pulse Gym', contact: '@pulse.gym', service: 'automation', niche: 'gym', brief: 'Автоматизация абонементов.', budget: '', source: 'site', temperature: 'warm', stage: 'project', nextAction: null, estimateUsd: 900, hasDomain: true, hasHosting: true, notes: [], clientId: null, callAt: null, createdAt: ago(60 * 24 * 6) },
@@ -80,9 +80,11 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       { id: 32, kind: 'prototype', title: 'Прототип', dueAt: ago(60 * 24 * 3), doneAt: ago(60 * 24 * 3) },
       { id: 33, kind: 'delivery', title: 'Сдача', dueAt: ahead(6), doneAt: ago(60) },
       { id: 34, kind: 'payment', title: 'Финальный платёж', dueAt: ahead(8), doneAt: null },
+      { id: 35, kind: 'stage', title: 'Этап 1: настройка и запуск', dueAt: ahead(6), doneAt: null, stageNo: 1, amountUsd: 400, state: 'in_progress', paidAt: ago(60 * 24 * 5), acceptedAt: null },
     ]],
   ])
   const projectNotes = new Map<string, string[]>()
+  const callBookings = new Map<string, { at: string; state: string; site: string }>()
 
   const tickets: Row[] = [
     { id: 3, clientName: 'Алиса', contact: '@alice', text: 'Бот не отвечает с утра, клиенты жалуются.', clientId: 1, status: 'open', money: true, slaAlerted: true, answer: null, createdAt: ago(250) },
@@ -281,8 +283,25 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
         return ok({ sent: via !== 'none', via })
       }
       if (seg[3] === 'call') {
-        lead.callAt = String(body.at)
-        return ok({ item: lead })
+        // P-18/P-19: one living booking per lead; confirm and cancel need one (409 `no_call`), a repeat of the same time tells nobody.
+        const action = String(body.action ?? 'book')
+        const current = callBookings.get(String(lead.id)) ?? (lead.callAt ? { at: String(lead.callAt), state: 'pending', site: 'booked' } : null)
+        const told = ['cabinet', 'email']
+        if ((action === 'confirm' || action === 'cancel') && (!current || current.state === 'cancelled')) return bad('no_call')
+        if (action === 'confirm') callBookings.set(String(lead.id), { ...current!, state: 'confirmed' })
+        else if (action === 'cancel') {
+          callBookings.set(String(lead.id), { ...current!, state: 'cancelled' })
+          lead.callAt = null
+        } else {
+          const at = String(body.at)
+          const same = current && current.state !== 'cancelled' && current.at === at
+          callBookings.set(String(lead.id), { at, state: 'pending', site: 'booked' })
+          lead.callAt = at
+          if (same) told.length = 0
+        }
+        const booking = { id: Number(lead.id), ...callBookings.get(String(lead.id))! }
+        lead.booking = booking
+        return ok({ item: lead, booking, told })
       }
       return bad('not_found')
     }
@@ -357,6 +376,13 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
             m.doneAt = m.doneAt ? null : iso(now)
             p.tasksDone = ms.filter((x) => x.doneAt).length
             break
+          case 'ready_milestone': {
+            // P-14: an unpaid stage is refused with a hint, a repeat is a success.
+            if (!m) return bad('not_found')
+            if (m.state === 'awaiting_payment') return bad('not_paid', { hint: `Этап ${m.stageNo} ещё не оплачен: сначала счёт этапа, потом отметка «готов».` })
+            if (m.state === 'in_progress') m.state = 'awaiting_acceptance'
+            break
+          }
           case 'set_deadline':
             if (!m) return bad('not_found')
             m.dueAt = String(body.dueAt)

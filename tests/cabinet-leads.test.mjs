@@ -82,7 +82,7 @@ test('lead payload to HQ carries clientEmail, cabinetId, clientName; HQ id comes
     seen = JSON.parse(init.body)
     return new Response(JSON.stringify({ ok: true, id: 7, leadId: 42 }), { status: 200 })
   }, undefined, identity)
-  assert.deepEqual(r, { ok: true, id: 42 })
+  assert.deepEqual(r, { ok: true, id: 42, notified: false })
   assert.equal(seen.clientEmail, 'alice@example.com')
   assert.equal(seen.cabinetId, alice.id)
   assert.equal(seen.clientName, 'Алиса')
@@ -93,7 +93,7 @@ test('lead payload to HQ carries clientEmail, cabinetId, clientName; HQ id comes
   assert.ok(!('clientEmail' in plain) && !('cabinetId' in plain))
   // An odd id is dropped, a slow HQ never holds the visitor.
   const odd = await forward.forwardLeadDetailed(lead, undefined, { LEAD_INTAKE_URL: 'http://hq.test', LEAD_INTAKE_TOKEN: 't' }, async () => new Response('{"ok":true,"id":7,"leadId":"x"}'))
-  assert.deepEqual(odd, { ok: true, id: null })
+  assert.deepEqual(odd, { ok: true, id: null, notified: false })
   const slow = await forward.withinMs(new Promise(() => {}), 10, { ok: false, id: null })
   assert.deepEqual(slow, { ok: false, id: null })
   // The owner's Telegram card names the account.

@@ -68,7 +68,7 @@ export const ENDPOINTS: readonly Endpoint[] = [
 // «Пульт» stage 2: the read-mostly CRM views (agents/docs/admin-crm-api.md) and the two writes
 // (a prospect's status and note, a ticket's status and note). Ids are numeric. A reply to a client
 // is never sent from here; it goes through the Director command `ticket` on /command.
-const crmQuery = ['limit', 'cursor', 'q', 'status', 'kind', 'niche', 'stage'] as const
+const crmQuery = ['limit', 'cursor', 'q', 'status', 'kind', 'niche', 'stage', 'problem', 'clientId'] as const
 const crmNote = z.string().max(2000)
 const crmWrite = (statuses: [string, ...string[]]) =>
   z
@@ -77,7 +77,9 @@ const crmWrite = (statuses: [string, ...string[]]) =>
     .refine((b) => b.status !== undefined || b.note !== undefined, 'status or note')
 export const CRM_ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^crm\/summary$/ },
-  { method: 'GET', path: /^crm\/(prospects|leads|clients|tickets|documents|projects|referrals|reviews)$/, query: crmQuery },
+  { method: 'GET', path: /^crm\/(prospects|leads|clients|tickets|documents|projects|referrals|reviews|cabinet-docs)$/, query: crmQuery },
+  // P-07: «Отправить снова» a cabinet document whose email did not go out (HQ answers 502 `email_failed`, 409 `no_email`).
+  { method: 'POST', path: /^crm\/cabinet-docs\/\d{1,12}$/, body: z.object({ action: z.literal('resend') }).strict() },
   {
     method: 'POST',
     path: /^crm\/prospects\/\d{1,12}$/,
@@ -103,7 +105,15 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
       .refine((b) => b.stage !== undefined || b.note !== undefined, 'stage or note'),
   },
   { method: 'POST', path: /^crm\/leads\/\d{1,12}\/reply$/, body: z.object({ text: z.string().trim().min(1).max(2000) }).strict() },
-  { method: 'POST', path: /^crm\/leads\/\d{1,12}\/call$/, body: z.object({ at: isoTime }).strict() },
+  // The call booking (P-18/P-19): `{at}` or `{action:'book', at}` books, `confirm` / `cancel` need no time, `reschedule` needs one.
+  {
+    method: 'POST',
+    path: /^crm\/leads\/\d{1,12}\/call$/,
+    body: z
+      .object({ at: isoTime.optional(), action: z.enum(['book', 'confirm', 'reschedule', 'cancel']).optional() })
+      .strict()
+      .refine((b) => (b.action === 'confirm' || b.action === 'cancel' ? b.at === undefined : b.at !== undefined), 'at only with book or reschedule'),
+  },
   { method: 'GET', path: /^crm\/clients\/[^/]+$/ },
   { method: 'GET', path: /^crm\/projects\/\d{1,12}$/ },
   {
@@ -111,6 +121,7 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
     path: /^crm\/projects\/\d{1,12}$/,
     body: z.discriminatedUnion('action', [
       z.object({ action: z.literal('complete_milestone'), milestoneId }).strict(),
+      z.object({ action: z.literal('ready_milestone'), milestoneId }).strict(),
       z.object({ action: z.literal('set_deadline'), milestoneId, dueAt: isoTime }).strict(),
       z.object({ action: z.literal('set_status'), status: z.enum(['draft', 'active', 'done', 'paused']) }).strict(),
       z.object({ action: z.literal('note'), text: z.string().trim().min(1).max(2000) }).strict(),

@@ -21,7 +21,7 @@ import {
 
 type Query = Record<string, string>
 type Json = Record<string, unknown>
-export type MockReply = { ok: true; [k: string]: unknown } | { ok: false; error: string; allowed?: string[]; from?: unknown }
+export type MockReply = { ok: true; [k: string]: unknown } | { ok: false; error: string; allowed?: string[]; from?: unknown; mail?: unknown }
 
 type DrillRow = { id: string; title: string; startedAt: number; answerAfterS: number; fails: boolean }
 
@@ -302,6 +302,13 @@ export function createCrmMock(start = Date.now()) {
   const projects: Row[] = [
     { id: 2, client: 'Алиса', what: 'Сайт', product: 'site', status: 'active', source: 'owner', taskId: null, stage: 'brief', deadline: ahead(3), nextMilestone: { kind: 'brief', title: 'Бриф', dueAt: ahead(3) }, tasksTotal: 4, tasksDone: 1, createdAt: ago(60 * 60) },
   ]
+  // P-07: the client's cabinet documents; two have a problem (id 7: the letter did not go out and a resend works, id 8: it fails
+  // again), id 9 is fine.
+  const cabinetDocs: { id: number; [k: string]: unknown; mail: { state: string | null; error: string; attempts: number }; problems: string[]; actions: string[] }[] = [
+    { id: 9, clientId: 1, client: 'Алиса', kind: 'contract', title: 'Договор на сайт', number: 'Д-9', leadId: 3, projectId: 2, state: 'signed', createdAt: ago(60 * 50), deliveredAt: ago(60 * 50), mail: { state: 'sent', error: '', attempts: 1 }, pdf: true, signedPdf: true, problems: [], actions: ['resend'] },
+    { id: 8, clientId: 2, client: 'Боб', kind: 'invoice', title: 'Счёт, этап 1', number: 'FT-2026-008', leadId: 5, projectId: null, state: 'issued', createdAt: ago(60 * 3), deliveredAt: ago(60 * 3), mail: { state: 'failed', error: 'http_500', attempts: 3 }, pdf: true, signedPdf: false, problems: ['email_failed'], actions: ['resend'] },
+    { id: 7, clientId: 1, client: 'Алиса', kind: 'quote', title: 'Коммерческое предложение', number: 'КП-12', leadId: 3, projectId: null, state: 'awaiting_client', createdAt: ago(60 * 2), deliveredAt: null, mail: { state: 'failed', error: 'http_500', attempts: 1 }, pdf: false, signedPdf: false, problems: ['email_failed', 'no_pdf'], actions: ['resend'] },
+  ]
   const referrals: Row[] = [
     { id: 1, referrer: 'Алиса', referred: 'Боб', leadId: null, source: 'owner', status: 'proposed', reward: '10%', rewardRequested: false, createdAt: ago(60 * 48), paidAt: null, rewardedAt: null },
   ]
@@ -353,6 +360,20 @@ export function createCrmMock(start = Date.now()) {
 
   return function handle(method: 'GET' | 'POST', seg: string[], q: Record<string, string>, body: Json, now: number): MockReply {
     const name = seg[1] ?? ''
+    if (method === 'POST' && name === 'cabinet-docs') {
+      const doc = cabinetDocs.find((d) => String(d.id) === seg[2])
+      if (!doc) return { ok: false, error: 'not_found' }
+      if (body.action !== 'resend') return { ok: false, error: 'invalid', allowed: ['resend'] }
+      if (!doc.actions.includes('resend')) return { ok: false, error: 'not_sendable' }
+      // The second document keeps failing (HQ answers 502 `email_failed` and the mark stays).
+      if (doc.id === 8) {
+        doc.mail.attempts += 1
+        return { ok: false, error: 'email_failed', mail: doc.mail }
+      }
+      doc.mail = { state: 'sent', error: '', attempts: doc.mail.attempts + 1 }
+      doc.problems = doc.problems.filter((p) => p !== 'email_failed')
+      return { ok: true, mail: doc.mail }
+    }
     if (method === 'POST') {
       if (seg.length !== 3 || !/^\d+$/.test(seg[2]!)) return { ok: false, error: 'not_found' }
       if (name === 'prospects') return write('p', prospects, seg[2]!, body, now)
@@ -371,7 +392,7 @@ export function createCrmMock(start = Date.now()) {
           documents: { available: true, pending: documents.length, byKind: { contract: { pending: 1 }, kp: { draft: 1 }, invoice: { issued: 1 } } },
           projects: { available: true, active: projects.filter((p) => p.status === 'active').length, byStatus: count(projects, 'status', ['draft', 'active', 'done']) },
           referrals: { available: true, total: referrals.length, byStatus: count(referrals, 'status', ['proposed', 'paid', 'rewarded']) },
-          reviews: { available: false, pending: 0 },
+          reviews: { available: true, pending: 0 },
           chats: { available: true, web: 12, telegram: 3 },
         }
       case 'prospects':
@@ -404,7 +425,20 @@ export function createCrmMock(start = Date.now()) {
       case 'referrals':
         return list(referrals, q, ['referrer', 'referred'], ['status'], { statuses: ['proposed', 'paid', 'rewarded'] })
       case 'reviews':
-        return { ok: true, available: false, items: [], nextCursor: null }
+        return {
+          ok: true,
+          available: true,
+          items: [
+            { id: 2, clientId: 1, client: 'Алиса', projectId: 1, rating: 5, text: 'Сделали быстро и без лишних вопросов, сайт уже приносит заявки.', at: ago(60 * 5) },
+            { id: 1, clientId: 2, client: 'Pulse Gym', projectId: 3, rating: 4, text: 'Хорошо, но хотелось бы больше правок в пакете.', at: ago(60 * 30) },
+          ],
+          nextCursor: null,
+        }
+      case 'cabinet-docs':
+        return {
+          ok: true,
+          items: cabinetDocs.filter((d) => q.problem !== '1' || d.problems.length > 0),
+        }
       default:
         return { ok: false, error: 'not_found' }
     }

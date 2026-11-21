@@ -38,6 +38,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   300 s (`revalidate` in the locale layout, `/llms.txt`); the save handler calls `revalidatePath('/', 'layout')`. Changing a
   default in `pricing.ts` still needs the owner's word and a deploy; live edits do not.
 - `src/app/api/lead/route.ts`: contact form endpoint, sends the lead to Telegram.
+  Since 2026-11-23 (agents P-02): when HQ answers `/lead` with `notified: true` the site bot stays quiet (it is the fallback for
+  `queued`, no answer or an error), and call confirm/move buttons are gone from the bot message (the Пульт owns calls).
+  `POST /api/slots` (header `x-hq-token` = `SITE_BOOKING_TOKEN`, `lib/hq-booking.ts`) lets HQ book a window for its own lead: 200, 409
+  taken, 401, 400; kept in `leads.json` (`hqBookings`) and excluded from `GET /api/slots`. Cabinet and Пульт changes of the same day:
+  `docs/cabinet.md` and `docs/pult.md`, section «2026-11-23».
 - **Front v3 (owner review 2026-11-22, supersedes the home notes below where they differ).** Product names (ids and prices
   unchanged): `admin` ИИ-администратор, `receptionist` ИИ-менеджер заявок, `automation` Автоматизация процессов, `content` Контент на
   автопилоте, `miniapp` Telegram Mini App, `agent` Персональный ИИ-ассистент, `implementation` ИИ-отдел под ключ (EN in `products.items`
