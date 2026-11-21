@@ -227,7 +227,7 @@ function Switch({
           <p id={`${id}-text`} className="mt-1 text-[13px] leading-relaxed text-faint">
             {text}
           </p>
-          <FieldStatus status={status} t={ctx.t.status} />
+          {status ? <FieldStatus status={status} t={ctx.t.status} /> : null}
         </div>
         <button
           id={id}
