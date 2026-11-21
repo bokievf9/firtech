@@ -14,6 +14,18 @@ import {
   type StyleShape,
   type StyleType,
 } from './builder'
+import {
+  kitTheme,
+  kindTheme,
+  neutralMotion,
+  themeAxes,
+  themeIds,
+  themeMotion,
+  type MotionPreset,
+  type ThemeId,
+  type ThemeMood,
+} from './builder-themes'
+import type { KindId } from '../content/builder-catalog'
 
 // The builder's style step restyles the mockup only: these CSS variables override the site tokens
 // (Tailwind reads colours and radii from them) inside the preview, never on the page around it.
@@ -221,7 +233,8 @@ function pickLegacy(style: BuildStyle | undefined): BuildStyle {
 // Order: defaults, then the old fields, then the ready look, then the axes set one by one.
 // `siteTheme` is the page's own theme: with no palette, kit or old `theme` picked, the mockup follows it
 // (light page, light mockup) instead of the dark studio default. It is never part of the encoded build.
-export function resolveLook(style: BuildStyle | undefined, siteTheme?: 'light' | 'dark'): ResolvedStyle {
+export function resolveLook(rawStyle: BuildStyle | undefined, siteTheme?: 'light' | 'dark'): ResolvedStyle {
+  const style = withThemeAxes(rawStyle)
   const legacy = resolveStyle(style)
   if (!style?.theme && siteTheme) legacy.theme = siteTheme
   const kit = style?.kit ? kits[style.kit] : undefined
@@ -327,6 +340,9 @@ export function applyKit(build: Build, kit: StyleKit): Build {
 export function setAxis(build: Build, patch: Partial<StyleAxes>): Build {
   const axes = { ...currentAxes(build.style), ...patch }
   const kit = styleKits.find((id) => sameAxes(kits[id], axes))
+  const { themeId, themeMood } = build.style ?? {}
+  // Inside a theme the axes are the visitor's fine tuning and no ready look name is attached.
+  if (themeId) return { ...build, style: { themeId, ...(themeMood ? { themeMood } : {}), ...axes } }
   return { ...build, style: { ...axes, ...(kit ? { kit } : {}) } }
 }
 
@@ -340,4 +356,72 @@ export function clearStyle(build: Build): Build {
 export const hasStyle = (style: BuildStyle | undefined) => Boolean(style && Object.keys(style).length)
 // True when the new axes (not the old four) drive the look.
 export const usesAxes = (style: BuildStyle | undefined) =>
-  Boolean(style && (style.palette || style.type || style.shape || style.density || style.mood || style.kit))
+  Boolean(
+    style &&
+      (style.palette || style.type || style.shape || style.density || style.mood || style.kit || style.themeId),
+  )
+
+// ------------------------------------------------------------------- themes
+
+// A theme fills the five axes the visitor has not set by hand (the fine tuning wins).
+export function withThemeAxes(style: BuildStyle | undefined): BuildStyle | undefined {
+  if (!style?.themeId) return style
+  const base = themeAxes(style.themeId, style.themeMood)
+  return {
+    ...style,
+    palette: style.palette ?? base.palette,
+    type: style.type ?? base.type,
+    shape: style.shape ?? base.shape,
+    density: style.density ?? base.density,
+    mood: style.mood ?? base.mood,
+  }
+}
+
+// Picking a theme replaces the whole style: ready look, old fields and fine tuning go.
+export function applyTheme(build: Build, themeId: ThemeId, themeMood: ThemeMood = 'calm'): Build {
+  return { ...build, style: { themeId, themeMood } }
+}
+export function setThemeMood(build: Build, themeMood: ThemeMood): Build {
+  const themeId = build.style?.themeId
+  return themeId ? applyTheme(build, themeId, themeMood) : build
+}
+
+// The theme an old link (`s.` or `y.` chunk, a ready look) is closest to. The link itself is never
+// rewritten; this only decides which motion and name the mockup shows. Without any style it is the
+// niche's own theme, when a niche is known.
+export function closestTheme(
+  style: BuildStyle | undefined,
+  kind?: KindId,
+): { id: ThemeId; mood: ThemeMood } | null {
+  if (style?.themeId) return { id: style.themeId, mood: style.themeMood ?? 'calm' }
+  if (style?.kit && kitTheme[style.kit]) return { id: kitTheme[style.kit]!, mood: moodOfAxes(kits[style.kit].mood) }
+  if (style && Object.keys(style).length) {
+    const look = resolveLook(style)
+    let best: { id: ThemeId; mood: ThemeMood; score: number } | null = null
+    for (const id of themeIds) {
+      for (const mood of ['calm', 'vivid', 'premium'] as const) {
+        const a = themeAxes(id, mood)
+        let score = 0
+        if (look.palette && a.palette === look.palette) score += 4
+        if (palettes[a.palette].mode === look.colors.mode) score += 2
+        if (a.type === look.type) score += 2
+        if (a.shape === look.shape) score += 1
+        if (look.density && a.density === look.density) score += 1
+        if (a.mood === look.mood) score += 2
+        if (!best || score > best.score) best = { id, mood, score }
+      }
+    }
+    return best ? { id: best.id, mood: best.mood } : null
+  }
+  return kind ? { id: kindTheme[kind], mood: 'calm' } : null
+}
+
+const moodOfAxes = (mood: StyleMood): ThemeMood =>
+  mood === 'premium' ? 'premium' : mood === 'minimal' ? 'calm' : 'vivid'
+
+// The motion the mockup plays: the chosen theme's, the closest theme's for an old link, else nearly still.
+export function motionOf(style: BuildStyle | undefined): MotionPreset {
+  if (!style || !Object.keys(style).length) return neutralMotion
+  const theme = closestTheme(style)
+  return theme ? themeMotion(theme.id, theme.mood) : neutralMotion
+}

@@ -221,21 +221,22 @@ export function PreviewSheet({
   )
 }
 
+// `blocked` keeps the button pressable: a press explains what is missing instead of doing nothing.
 export function NextButton({
   label,
-  disabled,
+  blocked,
   onClick,
 }: {
   label: string
-  disabled?: boolean
+  blocked?: boolean
   onClick: () => void
 }) {
   return (
     <button
       type="button"
-      disabled={disabled}
+      aria-disabled={blocked || undefined}
       onClick={onClick}
-      className={cn(buttonStyles.primary, 'h-12 shrink-0 px-5 md:px-7 disabled:opacity-40')}
+      className={cn(buttonStyles.primary, 'h-12 shrink-0 px-5 md:px-7', blocked && 'opacity-50')}
     >
       {label}
       <ArrowRight size={16} />

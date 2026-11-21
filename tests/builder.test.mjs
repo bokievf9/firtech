@@ -28,9 +28,8 @@ const full = {
   channels: ['instagram', 'telegram', 'search', 'word'],
   style: { look: 'premium', accent: 'coral', theme: 'light', font: 'soft' },
   details: {
-    pages: 20,
     langs: ['ru', 'en', 'tj', 'uz'],
-    has: ['logo', 'texts', 'photos', 'domain', 'hosting'],
+    has: ['logo', 'texts', 'photos', 'domain', 'hosting', 'access'],
     examples: ['https://example.com/very/long/path/' + 'a'.repeat(60), 'кафе.tj/меню'],
     deadline: 'asap',
     wish: 'Нужен раздел с меню, доставкой по городу и оплатой картой. '.repeat(6).slice(0, 300),
@@ -64,14 +63,14 @@ test('builder link: old links decode as before, presets stay compact', () => {
 
 test('builder link: unknown values are dropped', () => {
   const build = decodeBuild(
-    'websites.landing~g.leads-hack~c.tiktok~s.ugly.lime.neon.soft~d.999.ru-xx.logo-cash.never~u.!!!~w.%%%~z.1',
+    'websites.landing~g.leads-hack~c.snapchat~s.ugly.lime.neon.soft~d.999.ru-xx.logo-cash.never~u.!!!~w.%%%~z.1',
   )
   assert.deepEqual(build, {
     parts: { websites: { variant: 'landing', addons: [] } },
     extras: [],
     goals: ['leads'],
     style: { accent: 'lime', font: 'soft' },
-    details: { pages: 20, langs: ['ru'], has: ['logo'] },
+    details: { langs: ['ru'], has: ['logo'] },
   })
   // A text chunk that is not a link is dropped.
   assert.equal(decodeBuild(encodeBuild({ ...full, details: { examples: ['<script>'] } })).details, undefined)
@@ -119,7 +118,7 @@ test('estimate doc: brief sections for style, goals and details', () => {
   assert.equal(doc.brief.goals.length, 2)
   assert.deepEqual(
     doc.brief.details.map((r) => r.id),
-    ['pages', 'langs', 'has', 'deadline', 'examples', 'wish'],
+    ['deadline', 'has', 'langs', 'examples', 'wish'],
   )
   assert.equal(estimateDoc(presets.shop, en, 'en').brief.style.length, 0)
 })
@@ -161,7 +160,7 @@ test('starting sets (card links) are told apart from a configured build', () => 
   assert.equal(isStartingSet(presets.salon), true)
   assert.equal(isStartingSet(toggleProduct(emptyBuild, 'adminbot')), true)
   assert.equal(isStartingSet(toggleProduct(emptyBuild, 'content')), true)
-  assert.equal(isStartingSet(withDetails(presets.salon, { pages: 5 })), false)
+  assert.equal(isStartingSet(withDetails(presets.salon, { wish: 'x' })), false)
   assert.equal(isStartingSet(decodeBuild('websites.shop~bots.faq')), false)
 })
 

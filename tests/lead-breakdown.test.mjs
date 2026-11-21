@@ -34,7 +34,7 @@ test('leadBreakdown: a full builder link gives niche, products, goals, channels,
   assert.ok(labels.kind, 'niche')
   assert.ok(labels.products.includes(','), 'two products')
   assert.ok(labels.goals && labels.channels, 'goals and channels')
-  assert.equal(labels.pages, '5')
+  assert.equal(labels.pages, undefined, 'the page count is no longer asked')
   assert.equal(labels.langs, 'RU, EN')
   assert.ok(labels.has && labels.deadline)
   assert.equal(labels.wish, 'Хочу сайт как у конкурента')
@@ -46,7 +46,8 @@ test('leadBreakdown: a full builder link gives niche, products, goals, channels,
   assert.ok(b.doc.monthly, 'support is the monthly line')
   assert.ok(b.doc.parts.every((p) => p.price.startsWith('$')))
   assert.ok(b.doc.stages.length >= 2, 'stages')
-  assert.equal(b.doc.link.endsWith(`builder?b=${withWish}`), true)
+  // The page count is dropped on re-encoding (2026-11-22), so the canonical link decodes to the same build.
+  assert.deepEqual(decodeBuild(b.doc.link.split('builder?b=')[1]), decodeBuild(withWish))
   assert.equal(b.message, 'Нужен сайт и бот для барбершопа')
 })
 

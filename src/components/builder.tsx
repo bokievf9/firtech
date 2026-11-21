@@ -7,6 +7,7 @@ import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
 import { trackEvent } from '@/lib/track-event'
 import { builderUi, pick } from '@/content/builder-catalog'
+import { detailsUi, faceUi, issueText, themeUi } from '@/content/builder-v2'
 import {
   applyKind,
   decodeBuild,
@@ -21,8 +22,17 @@ import {
   type Build,
   type BuildExtra,
   type BusinessKind,
+  type DeliveryChannel,
   type ProductId,
+  type SiteNeed,
 } from '@/lib/builder'
+import {
+  applySiteNeed,
+  hasContentOf,
+  reapplySiteNeed,
+  stepIssues,
+  toggleDelivery,
+} from '@/lib/builder-v2'
 import { buttonStyles, cn } from '@/lib/cn'
 import { leadSummary } from '@/lib/estimate-doc'
 import { sendEstimate } from '@/lib/estimate-event'
@@ -31,10 +41,10 @@ import { formatUsd } from '@/lib/pricing'
 import { usePricing } from './pricing-provider'
 import type { ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
-import { DetailsStep, StyleStep } from './builder-brief'
+import { DetailsStep, ThemeStep } from './builder-brief'
 import { BottomNav, NextButton, PreviewSheet, StepBar } from './builder-nav'
 import { BuilderPreview } from './builder-preview'
-import { FeaturesStep, GoalsStep, KindStep, PartsStep, ProductsStep } from './builder-steps'
+import { FeaturesStep, GoalsStep, KindStep, ProductsStep, SetStep } from './builder-steps'
 import { SummaryStep } from './builder-summary'
 import { Screen } from './builder-ui'
 
@@ -54,7 +64,7 @@ const legacyStep = [0, 2, 3, 4, 5, 6, 7]
 // so refresh and the browser Back button work while the page itself stays static.
 export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const t = dict.builder
-  const steps = pick(builderUi.steps, locale)
+  const steps = pick(faceUi.steps, locale)
   const total = steps.length
   const reduce = useReducedMotion()
   const pricing = usePricing()
@@ -66,6 +76,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const [atForm, setAtForm] = useState(false)
   const [sheet, setSheet] = useState(false)
   const [ready, setReady] = useState(false)
+  const [attempted, setAttempted] = useState(false)
   const focusNext = useRef(false)
   const moved = useRef(false)
   // The new screen mounts after the old one has left (AnimatePresence "wait"), so its title is
@@ -79,7 +90,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const kind = build.kind ?? null
   const hasParts = Object.keys(build.parts).length > 0
   // Something to quote: parts with prices, or products that are only listed "on quote".
-  const hasContent = hasParts || (build.products?.length ?? 0) > 0
+  const hasContent = hasContentOf(build)
   const onRequest = productsOnRequest(build)
   const reachable = useCallback((i: number) => i <= PARTS || hasContent, [hasContent])
 
@@ -172,6 +183,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
       if (next === step || next < 0 || next >= total) return
       setDir(next > step ? 1 : -1)
       setStep(next)
+      setAttempted(false)
       setSheet(false)
       moved.current = true
       window.history.pushState(window.history.state, '', urlFor(build, next))
@@ -180,18 +192,37 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     [build, step, total, urlFor],
   )
 
-  const canGo = step === 0 ? kind !== null || hasContent : step >= PARTS ? hasContent : true
+  const issues = stepIssues(build, step)
+  const canGo = issues.length === 0
   const last = step === SUMMARY
 
   function pickKind(next: BusinessKind) {
     // The preset replaces the kind, products and parts; goals, style and details already given stay.
-    setBuildState((b) => applyKind(b, next))
+    setBuildState((b) => reapplySiteNeed(applyKind(b, next)))
     go(PRODUCTS)
   }
 
   function pickProduct(id: ProductId) {
-    setBuildState((b) => toggleProduct(b, id))
+    setBuildState((b) => reapplySiteNeed(toggleProduct(b, id)))
   }
+
+  function pickSiteNeed(need: SiteNeed) {
+    setBuildState((b) => applySiteNeed(b, need))
+  }
+
+  function pickDelivery(id: DeliveryChannel) {
+    setBuildState((b) => toggleDelivery(b, id))
+  }
+
+  // «Дальше» with something missing explains what, instead of staying silent.
+  const next = useCallback(() => {
+    if (!canGo) {
+      setAttempted(true)
+      requestAnimationFrame(() => document.getElementById('builder-issue')?.focus())
+      return
+    }
+    go(step + 1)
+  }, [canGo, go, step])
 
   function toggleService(slug: ServiceSlug) {
     setBuildState((b) => {
@@ -255,24 +286,24 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
       if (el?.closest('button, a, textarea, select, [role="dialog"]')) return
       if (el && el !== document.body && !el.closest('[data-builder]')) return
       e.preventDefault()
-      go(step + 1)
+      next()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [canGo, go, last, sheet, step])
+  }, [canGo, go, last, sheet, step, next])
 
   const q = quote(build, pricing)
   const preview = withPreview.has(step)
   const ui = builderUi
   const titles = [
-    { title: pick(ui.kindTitle, locale), sub: `${pick(ui.kindSub, locale)} ${pick(ui.intro, locale)}` },
-    { title: pick(ui.productsTitle, locale), sub: pick(ui.productsSub, locale) },
-    { title: t.goalsTitle, sub: t.goalsSub },
-    { title: t.partsTitle, sub: t.partsSub },
-    { title: t.featuresTitle, sub: t.featuresSub },
-    { title: pick(ui.styleTitle, locale), sub: pick(ui.styleSub, locale) },
-    { title: t.detailsTitle, sub: t.detailsSub },
-    { title: t.summaryTitle, sub: t.summarySub },
+    { title: pick(faceUi.explainTitle, locale), sub: pick(faceUi.explain, locale) },
+    { title: pick(faceUi.productsTitle, locale), sub: pick(faceUi.productsSub, locale) },
+    { title: pick(faceUi.goalsTitle, locale), sub: pick(faceUi.goalsSub, locale) },
+    { title: pick(faceUi.partsTitle, locale), sub: pick(faceUi.partsSub, locale) },
+    { title: pick(faceUi.featuresTitle, locale), sub: pick(faceUi.featuresSub, locale) },
+    { title: pick(themeUi.title, locale), sub: pick(themeUi.sub, locale) },
+    { title: pick(detailsUi.title, locale), sub: pick(detailsUi.sub, locale) },
+    { title: pick(faceUi.previewTitle, locale), sub: '' },
   ] as const
   const screen = titles[step] ?? titles[0]
 
@@ -313,29 +344,45 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                   <KindStep locale={locale} kind={kind} onPick={pickKind} />
                 )}
                 {step === PRODUCTS && (
-                  <ProductsStep locale={locale} build={build} onToggle={pickProduct} />
+                  <ProductsStep
+                    locale={locale}
+                    build={build}
+                    onToggle={pickProduct}
+                    onSiteNeed={pickSiteNeed}
+                  />
                 )}
-                {step === 2 && <GoalsStep dict={dict} build={build} setBuild={setBuild} />}
+                {step === 2 && <GoalsStep locale={locale} build={build} setBuild={setBuild} />}
                 {step === PARTS && (
-                  <PartsStep
+                  <SetStep
                     dict={dict}
+                    locale={locale}
                     build={build}
                     onToggle={toggleService}
                     onVariant={setVariant}
+                    onDelivery={pickDelivery}
                   />
                 )}
                 {step === 4 && (
                   <FeaturesStep
                     dict={dict}
+                    locale={locale}
                     build={build}
                     onAddon={toggleAddon}
                     onExtra={toggleExtra}
                   />
                 )}
                 {step === STYLE && (
-                  <StyleStep dict={dict} locale={locale} build={build} setBuild={setBuild} />
+                  <ThemeStep dict={dict} locale={locale} build={build} setBuild={setBuild} />
                 )}
-                {step === 6 && <DetailsStep dict={dict} build={build} setBuild={setBuild} />}
+                {step === 6 && (
+                  <DetailsStep
+                    dict={dict}
+                    locale={locale}
+                    build={build}
+                    setBuild={setBuild}
+                    showErrors={attempted}
+                  />
+                )}
                 {step === SUMMARY &&
                   (hasContent ? (
                     <SummaryStep
@@ -351,11 +398,28 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                   ) : (
                     <div className="grid justify-items-start gap-5">
                       <p className="text-muted">{t.pickOne}</p>
-                      <button type="button" onClick={() => go(PARTS)} className={buttonStyles.primary}>
-                        {t.partsTitle}
+                      <button type="button" onClick={() => go(PRODUCTS)} className={buttonStyles.primary}>
+                        {pick(faceUi.productsTitle, locale)}
                       </button>
                     </div>
                   ))}
+                {!last && issues.length > 0 && (
+                  <p
+                    id="builder-issue"
+                    tabIndex={-1}
+                    role="status"
+                    className={cn(
+                      'mt-8 flex max-w-[60ch] items-start gap-2.5 rounded-xl border px-4 py-3 text-sm leading-snug outline-none',
+                      attempted ? 'border-danger/60 bg-danger/[0.06] text-fg' : 'border-line bg-surface text-muted',
+                    )}
+                  >
+                    <span aria-hidden="true" className={cn('mt-1.5 size-1.5 shrink-0 rounded-full', attempted ? 'bg-danger' : 'bg-faint')} />
+                    <span>
+                      {pick(faceUi.required, locale)}:{' '}
+                      {issues.map((id) => pick(issueText[id]!, locale)).join('. ')}
+                    </span>
+                  </p>
+                )}
               </Screen>
             </div>
 
@@ -403,9 +467,9 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
         }
         primary={
           last ? (
-            hasContent && <NextButton label={t.send} onClick={handOff} />
+            hasContent && <NextButton label={pick(faceUi.send, locale)} onClick={handOff} />
           ) : (
-            <NextButton label={t.next} disabled={!canGo} onClick={() => go(step + 1)} />
+            <NextButton label={t.next} blocked={!canGo} onClick={next} />
           )
         }
       />

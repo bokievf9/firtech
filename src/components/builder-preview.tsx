@@ -30,7 +30,8 @@ import {
   type KindMock,
 } from '@/content/builder-catalog'
 import type { Build, BuildStyle } from '@/lib/builder'
-import { styleVars } from '@/lib/builder-style'
+import { motionOf, styleVars } from '@/lib/builder-style'
+import { ThemedSite } from './builder-motion'
 import { cn } from '@/lib/cn'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { useSiteTheme } from '@/lib/use-site-theme'
@@ -60,6 +61,9 @@ export function BuilderPreview({
   const siteTheme = useSiteTheme()
   const p = dict.builder.preview
   const c = pick(previewCopy, locale)
+  // The theme's motion (or the closest theme's, for an old link); the key replays the reveal when it changes.
+  const preset = motionOf(build.style)
+  const themeKey = `${build.style?.themeId ?? build.style?.kit ?? 'n'}-${build.style?.themeMood ?? ''}`
   const site = build.parts.websites
   const bot = build.parts.bots
   const app = build.parts.apps
@@ -114,25 +118,16 @@ export function BuilderPreview({
                 </Flag>
               </div>
               <div className="grid gap-(--pv-gap) p-(--pv-pad)">
-                <div className="flex items-center justify-between gap-2">
-                  <span className={cn(HEAD, 'min-w-0 truncate text-[11px]')}>{brand}</span>
-                  <span className="flex shrink-0 gap-1.5">
-                    <Bar className="w-6" />
-                    <Bar className="w-6" />
-                    <Bar className="w-6" />
-                  </span>
-                </div>
-                <div className="grid gap-1.5">
-                  <span
-                    className={cn(HEAD, 'max-w-[22ch] leading-[1.1] [font-size:calc(17px*var(--pv-hero))]')}
-                  >
-                    {c.headline}
-                  </span>
-                  <Bar className="w-1/2" />
-                  <span className="mt-1.5 w-fit rounded-[var(--pv-button)] bg-accent px-2.5 py-1 text-[10px] font-medium text-accent-ink">
-                    {c.cta}
-                  </span>
-                </div>
+                <ThemedSite
+                  preset={preset}
+                  themeKey={themeKey}
+                  brand={brand}
+                  menu={[]}
+                  headline={c.headline}
+                  cta={c.cta}
+                  headClass={HEAD}
+                  heroClass="[font-size:calc(16px*var(--pv-hero))]"
+                />
                 <AnimatePresence mode="popLayout" initial={false}>
                   {site?.variant === 'shop' ? (
                     <Item key="shop" className="grid grid-cols-3 gap-1.5">

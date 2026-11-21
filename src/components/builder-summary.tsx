@@ -4,11 +4,12 @@ import { ArrowRight, Check, Link as LinkIcon, PencilSimple } from '@phosphor-ico
 import type { Dict } from '@/content'
 import { quote, type Build } from '@/lib/builder'
 import { builderUi, kitNames, pick } from '@/content/builder-catalog'
-import { resolveLook, resolveStyle, usesAxes } from '@/lib/builder-style'
+import { closestTheme, resolveLook, resolveStyle, usesAxes } from '@/lib/builder-style'
 import { buttonStyles, cn } from '@/lib/cn'
 import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
 import { usePricing } from './pricing-provider'
-import { BuilderPreview } from './builder-preview'
+import { LivePreview } from './builder-live-preview'
+import { faceUi, themeText, moodText } from '@/content/builder-v2'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
 import { Panel } from './builder-ui'
@@ -51,9 +52,80 @@ export function SummaryStep({
     </button>
   )
 
+  const theme = closestTheme(build.style, build.kind)
+  const themeName = theme
+    ? `${themeText[theme.id].name[locale === 'ru' ? 'ru' : 'en']}, ${moodText[theme.mood].name[locale === 'ru' ? 'ru' : 'en'].toLowerCase()}`
+    : ''
   return (
     <div className="grid gap-4 lg:grid-cols-12">
       <div className="grid content-start gap-4 lg:col-span-7">
+        <div className="grid gap-3">
+          <p className="text-sm text-muted">{pick(faceUi.previewSub, locale)}</p>
+          <LivePreview build={build} dict={dict} locale={locale} />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Panel title={t.styleLabel} action={edit(5)}>
+            <div className="flex items-center gap-4">
+              <span
+                aria-hidden="true"
+                className="grid size-14 shrink-0 place-items-center rounded-2xl border border-line-strong"
+                style={{ background: look.colors.bg }}
+              >
+                <span className="size-7 rounded-full" style={{ background: look.colors.accent }} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-lg font-medium">
+                  {build.style?.themeId
+                    ? themeName
+                    : build.style?.kit
+                    ? pick(kitNames[build.style.kit].name, locale)
+                    : usesAxes(build.style)
+                      ? pick(ui.customStyle, locale)
+                      : t.looks[resolveStyleLook(build)].name}
+                </span>
+                <span className="block text-sm text-muted">
+                  {brief.style
+                    .filter((row) => row.id !== 'look')
+                    .map((row) => row.value)
+                    .join(' · ') || t.nothingYet}
+                </span>
+              </span>
+            </div>
+          </Panel>
+          <Panel title={t.goalsLabel} action={edit(2)}>
+            <Rows rows={brief.goals} empty={t.nothingYet} />
+          </Panel>
+        </div>
+
+        <Panel title={t.detailsLabel} action={edit(6)}>
+          <Rows rows={brief.details} empty={t.nothingYet} />
+        </Panel>
+
+        {brief.setup.length > 0 && (
+          <Panel title={pick(faceUi.partsTitle, locale)} action={edit(3)}>
+            <Rows rows={brief.setup} empty={t.nothingYet} />
+          </Panel>
+        )}
+      </div>
+
+      <div className="grid content-start gap-4 lg:col-span-5">
+        <Panel title={t.actionsTitle}>
+          <div className="grid gap-3">
+            <button type="button" onClick={onSend} className={buttonStyles.primary}>
+              {pick(faceUi.send, locale)}
+              <ArrowRight size={16} />
+            </button>
+            <p className="text-[12px] leading-snug text-faint">{pick(faceUi.sendHint, locale)}</p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+              <button type="button" onClick={onCopy} className={buttonStyles.secondary}>
+                {copied ? <Check size={16} /> : <LinkIcon size={16} />}
+                <span aria-live="polite">{copied ? t.copied : t.copy}</span>
+              </button>
+              <EstimateGate dict={dict} locale={locale} build={build} estimateHref={estimateHref} />
+            </div>
+          </div>
+        </Panel>
+
         <Panel title={t.quoteTitle} action={edit(3)}>
           {(doc.kind || doc.products.length > 0) && (
             <dl className="mb-5 grid gap-1.5 text-sm">
@@ -163,63 +235,6 @@ export function SummaryStep({
           </ul>
         </Panel>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <Panel title={t.styleLabel} action={edit(5)}>
-            <div className="flex items-center gap-4">
-              <span
-                aria-hidden="true"
-                className="grid size-14 shrink-0 place-items-center rounded-2xl border border-line-strong"
-                style={{ background: look.colors.bg }}
-              >
-                <span className="size-7 rounded-full" style={{ background: look.colors.accent }} />
-              </span>
-              <span className="min-w-0">
-                <span className="block text-lg font-medium">
-                  {build.style?.kit
-                    ? pick(kitNames[build.style.kit].name, locale)
-                    : usesAxes(build.style)
-                      ? pick(ui.customStyle, locale)
-                      : t.looks[resolveStyleLook(build)].name}
-                </span>
-                <span className="block text-sm text-muted">
-                  {brief.style
-                    .filter((row) => row.id !== 'look')
-                    .map((row) => row.value)
-                    .join(' · ') || t.nothingYet}
-                </span>
-              </span>
-            </div>
-          </Panel>
-          <Panel title={t.goalsLabel} action={edit(2)}>
-            <Rows rows={brief.goals} empty={t.nothingYet} />
-          </Panel>
-        </div>
-
-        <Panel title={t.detailsLabel} action={edit(6)}>
-          <Rows rows={brief.details} empty={t.nothingYet} />
-        </Panel>
-      </div>
-
-      <div className="grid content-start gap-4 lg:col-span-5">
-        <div className="grid gap-3">
-          <p className="text-sm text-muted">{t.previewLabel}</p>
-          <BuilderPreview build={build} dict={dict} locale={locale} />
-        </div>
-        <Panel title={t.actionsTitle}>
-          <div className="grid gap-3">
-            <button type="button" onClick={onSend} className={buttonStyles.primary}>
-              {t.send}
-              <ArrowRight size={16} />
-            </button>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              <button type="button" onClick={onCopy} className={buttonStyles.secondary}>
-                {copied ? <Check size={16} /> : <LinkIcon size={16} />}
-                <span aria-live="polite">{copied ? t.copied : t.copy}</span>
-              </button>
-              <EstimateGate dict={dict} locale={locale} build={build} estimateHref={estimateHref} />
-            </div>
-          </div>
-        </Panel>
       </div>
     </div>
   )

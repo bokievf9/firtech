@@ -8,6 +8,38 @@ import {
 } from '../content/builder-catalog'
 import { bundleFraction, defaultPricing, estimate, extraPrices, type Pricing } from './pricing'
 import { serviceSlugs, type ServiceSlug } from './site'
+import {
+  afterSteps,
+  budgets,
+  buildChannels,
+  buildGoals,
+  clientSources,
+  clientTools,
+  clientTypes,
+  deliveryChannels,
+  detailAssets,
+  detailDeadlines,
+  detailLangs,
+  fears,
+  siteNeeds,
+  themeIds,
+  themeMoods,
+  type AfterStep,
+  type Budget,
+  type BuildChannel,
+  type BuildGoal,
+  type ClientSource,
+  type ClientTool,
+  type ClientType,
+  type DeliveryChannel,
+  type DetailAsset,
+  type DetailDeadline,
+  type DetailLang,
+  type Fear,
+  type SiteNeed,
+  type ThemeId,
+  type ThemeMood,
+} from './builder-ids'
 
 // The project builder: a visitor combines several services and extras into one quote. All prices
 // come from pricing.ts, so the builder, the calculator and the showcase always agree.
@@ -21,10 +53,38 @@ export type BuildPart = { variant: string; addons: string[] }
 
 // The brief around the parts: goals, look and details. None of it changes the price; it travels
 // with the build (link, lead, PDF) so the first call starts from what the visitor already said.
-export const buildGoals = ['leads', 'sales', 'booking', 'routine', 'brand'] as const
-export type BuildGoal = (typeof buildGoals)[number]
-export const buildChannels = ['instagram', 'telegram', 'search', 'word'] as const
-export type BuildChannel = (typeof buildChannels)[number]
+export {
+  buildGoals,
+  buildChannels,
+  detailLangs,
+  detailAssets,
+  detailDeadlines,
+  clientTypes,
+  clientSources,
+  afterSteps,
+  clientTools,
+  fears,
+  budgets,
+  deliveryChannels,
+  siteNeeds,
+  themeIds,
+  themeMoods,
+  type BuildGoal,
+  type BuildChannel,
+  type DetailLang,
+  type DetailAsset,
+  type DetailDeadline,
+  type ClientType,
+  type ClientSource,
+  type AfterStep,
+  type ClientTool,
+  type Fear,
+  type Budget,
+  type DeliveryChannel,
+  type SiteNeed,
+  type ThemeId,
+  type ThemeMood,
+} from './builder-ids'
 
 // Style has two layers. The old four (`look`, `accent`, `theme`, `font`) still decode, so old links
 // keep their look. The new axes (palette, type, shape, density, mood) combine freely, and a ready
@@ -116,6 +176,10 @@ export type BuildStyle = {
   density?: StyleDensity
   mood?: StyleMood
   kit?: StyleKit
+  // The theme by genre and its mood (2026-11-22). Palette, type, shape, density and mood above, when
+  // set next to a theme, are the visitor's fine tuning inside it.
+  themeId?: ThemeId
+  themeMood?: ThemeMood
 }
 // What the mockup shows until the visitor picks: the studio's own look.
 export const defaultStyle: Required<Pick<BuildStyle, 'look' | 'accent' | 'theme' | 'font'>> = {
@@ -125,21 +189,34 @@ export const defaultStyle: Required<Pick<BuildStyle, 'look' | 'accent' | 'theme'
   font: 'strict',
 }
 
-export const detailLangs = ['ru', 'en', 'tj', 'uz'] as const
-export type DetailLang = (typeof detailLangs)[number]
-export const detailAssets = ['logo', 'texts', 'photos', 'domain', 'hosting'] as const
-export type DetailAsset = (typeof detailAssets)[number]
-export const detailDeadlines = ['asap', 'month', 'relaxed'] as const
-export type DetailDeadline = (typeof detailDeadlines)[number]
 export const pagesRange = { min: 1, max: 20 } as const
-export const textLimits = { wish: 300, example: 100, examples: 2 } as const
+export const textLimits = {
+  wish: 300,
+  example: 100,
+  examples: 2,
+  company: 40,
+  clients: 160,
+  owner: 80,
+  detailsJson: 900,
+} as const
 export type BuildDetails = {
+  // Kept for old links only: the question was removed from the screen (2026-11-22).
   pages?: number
   langs?: DetailLang[]
   has?: DetailAsset[]
   examples?: string[]
   deadline?: DetailDeadline
   wish?: string
+  // Details that save the first call (2026-11-22); they ride in one base64url JSON chunk `u.{...}`.
+  company?: string
+  clients?: string
+  clientTypes?: ClientType[]
+  sources?: ClientSource[]
+  after?: AfterStep[]
+  tools?: ClientTool[]
+  owner?: string
+  fears?: Fear[]
+  budget?: Budget
 }
 
 export type Build = {
@@ -151,6 +228,10 @@ export type Build = {
   channels?: BuildChannel[]
   style?: BuildStyle
   details?: BuildDetails
+  // Where an agent lives (Telegram, a site widget, WhatsApp later, the Fir Tech playground) and
+  // whether it gets a website at all. Neither changes a price.
+  delivery?: DeliveryChannel[]
+  siteNeed?: SiteNeed
 }
 
 export const emptyBuild: Build = { parts: {}, extras: [] }
@@ -301,10 +382,12 @@ export function quote(build: Build, pricing: Pricing = defaultPricing): Quote {
 // `websites.landing.telegram-payments~bots.booking~x.support-seo`, then the brief:
 // `k.barber` the business kind, `p.adminbot-site` the products, `g.leads-sales` goals,
 // `c.instagram` channels, `s.minimal.coral.light.soft` the old style (`_` = not picked),
-// `y.noir.serif.sharp.airy.premium.luxe` the new style axes (palette, type, shape, density, mood,
-// ready look), `d.5.ru-en.logo-texts.month` details, and the free texts as base64url: `u.<url>` (one
-// chunk per example) and `w.<wish>`. Old links (parts and extras only) decode as before; anything
-// unknown is dropped.
+// `y.noir.serif.sharp.airy.premium.luxe` the style axes (palette, type, shape, density, mood, ready
+// look), `t.clinic.calm` the theme and its mood (2026-11-22), `d._.ru-en.logo-texts.month` details
+// (the first field, once the page count, is always `_` now), `l.telegram-playground` where the agent
+// lives, `z.no` whether it gets a site, and the free texts as base64url: `u.<url>` (one chunk per
+// example), `u.<json>` (the new details as a capped JSON object, told apart by its opening brace)
+// and `w.<wish>`. Old links decode as before; anything unknown is dropped.
 export function encodeBuild(build: Build) {
   const parts = serviceSlugs.flatMap((slug) => {
     const part = build.parts[slug]
@@ -316,6 +399,8 @@ export function encodeBuild(build: Build) {
   if (build.products?.length) parts.push(`p.${build.products.join('-')}`)
   if (build.goals?.length) parts.push(`g.${build.goals.join('-')}`)
   if (build.channels?.length) parts.push(`c.${build.channels.join('-')}`)
+  if (build.delivery?.length) parts.push(`l.${build.delivery.join('-')}`)
+  if (build.siteNeed) parts.push(`z.${build.siteNeed}`)
   const style = build.style
   if (style && (style.look || style.accent || style.theme || style.font)) {
     const s = [style.look, style.accent, style.theme, style.font].map((v) => v ?? '_')
@@ -330,24 +415,106 @@ export function encodeBuild(build: Build) {
     )
     parts.push(`y.${y.join('.')}`)
   }
+  if (style?.themeId) parts.push(`t.${style.themeId}.${style.themeMood ?? 'calm'}`)
   const d = build.details
-  if (d && (d.pages || d.langs?.length || d.has?.length || d.deadline)) {
-    const fields = [d.pages ? String(d.pages) : '_', list(d.langs), list(d.has), d.deadline ?? '_']
+  if (d && (d.langs?.length || d.has?.length || d.deadline)) {
+    const fields = ['_', list(d.langs), list(d.has), d.deadline ?? '_']
     parts.push(`d.${fields.join('.')}`)
   }
   for (const url of d?.examples ?? []) if (url) parts.push(`u.${toBase64Url(url)}`)
+  const json = detailsJson(d)
+  if (json) parts.push(`u.${toBase64Url(json)}`)
   if (d?.wish) parts.push(`w.${toBase64Url(d.wish)}`)
   return parts.join('~')
 }
 
 const list = (ids: readonly string[] | undefined) => (ids?.length ? ids.join('-') : '_')
 
+// The new details as a compact JSON object (short keys), capped so the link stays short: when it is
+// too long the free texts are shortened first, then the chip lists are dropped from the end.
+function detailsJson(d: BuildDetails | undefined): string {
+  if (!d) return ''
+  const obj: Record<string, unknown> = {}
+  if (d.company) obj.co = d.company
+  if (d.clients) obj.cl = d.clients
+  if (d.clientTypes?.length) obj.ct = d.clientTypes
+  if (d.sources?.length) obj.so = d.sources
+  if (d.after?.length) obj.af = d.after
+  if (d.tools?.length) obj.to = d.tools
+  if (d.owner) obj.ow = d.owner
+  if (d.fears?.length) obj.fe = d.fears
+  if (d.budget) obj.bu = d.budget
+  if (!Object.keys(obj).length) return ''
+  let text = JSON.stringify(obj)
+  if (text.length > textLimits.detailsJson) {
+    for (const key of ['cl', 'ow', 'co'] as const)
+      if (typeof obj[key] === 'string') obj[key] = (obj[key] as string).slice(0, 40)
+    text = JSON.stringify(obj)
+  }
+  for (const key of ['fe', 'to', 'af', 'so', 'ct'] as const) {
+    if (text.length <= textLimits.detailsJson) break
+    delete obj[key]
+    text = JSON.stringify(obj)
+  }
+  return text.slice(0, textLimits.detailsJson)
+}
+
+function parseDetailsJson(text: string): Partial<BuildDetails> | undefined {
+  let raw: unknown
+  try {
+    raw = JSON.parse(text)
+  } catch {
+    return undefined
+  }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined
+  const o = raw as Record<string, unknown>
+  const str = (key: string, max: number) => {
+    const v = o[key]
+    return typeof v === 'string' ? cleanLine(v, max) : undefined
+  }
+  const ids = <T extends string>(key: string, known: readonly T[]): T[] => {
+    const v = o[key]
+    return Array.isArray(v) ? keepKnown(v.filter((x) => typeof x === 'string').join('-'), known) : []
+  }
+  const out: Partial<BuildDetails> = {}
+  const company = str('co', textLimits.company)
+  if (company) out.company = company
+  const clients = str('cl', textLimits.clients)
+  if (clients) out.clients = clients
+  const owner = str('ow', textLimits.owner)
+  if (owner) out.owner = owner
+  const ct = ids('ct', clientTypes)
+  if (ct.length) out.clientTypes = ct
+  const so = ids('so', clientSources)
+  if (so.length) out.sources = so
+  const af = ids('af', afterSteps)
+  if (af.length) out.after = af
+  const to = ids('to', clientTools)
+  if (to.length) out.tools = to
+  const fe = ids('fe', fears)
+  if (fe.length) out.fears = fe
+  const bu = typeof o.bu === 'string' ? oneOf(o.bu, budgets) : undefined
+  if (bu) out.budget = bu
+  return Object.keys(out).length ? out : undefined
+}
+
+// One line of free text: control characters out, spaces collapsed, at most `max` characters.
+export function cleanLine(text: string, max: number) {
+  return (
+    text
+      .replace(/[\u0000-\u001f\u007f]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, max) || undefined
+  )
+}
+
 export function decodeBuild(value: string | null | undefined): Build | null {
   if (!value) return null
   const build: Build = { parts: {}, extras: [] }
   const style: BuildStyle = {}
   const details: BuildDetails = {}
-  for (const chunk of value.slice(0, 2000).split('~')) {
+  for (const chunk of value.slice(0, 4000).split('~')) {
     const [head = '', second = '', third = '', fourth = '', fifth = '', sixth = ''] =
       chunk.split('.')
     if (head === 'k') {
@@ -358,6 +525,24 @@ export function decodeBuild(value: string | null | undefined): Build | null {
     if (head === 'p') {
       const products = keepKnown(second, productIds)
       if (products.length) build.products = products
+      continue
+    }
+    if (head === 'l') {
+      const delivery = keepKnown(second, deliveryChannels)
+      if (delivery.length) build.delivery = delivery
+      continue
+    }
+    if (head === 'z') {
+      const need = oneOf(second, siteNeeds)
+      if (need) build.siteNeed = need
+      continue
+    }
+    if (head === 't') {
+      const id = oneOf(second, themeIds)
+      if (id) {
+        style.themeId = id
+        style.themeMood = oneOf(third, themeMoods) ?? 'calm'
+      }
       continue
     }
     if (head === 'y') {
@@ -400,8 +585,7 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       continue
     }
     if (head === 'd') {
-      const pages = clampPages(Number(second))
-      if (pages) details.pages = pages
+      // The page count (second field) is no longer asked or kept: old links still parse.
       const langs = keepKnown(third, detailLangs)
       if (langs.length) details.langs = langs
       const has = keepKnown(fourth, detailAssets)
@@ -412,7 +596,9 @@ export function decodeBuild(value: string | null | undefined): Build | null {
     }
     if (head === 'u' || head === 'w') {
       const text = fromBase64Url(chunk.slice(2))
-      if (head === 'u') {
+      if (head === 'u' && text?.startsWith('{')) {
+        Object.assign(details, parseDetailsJson(text) ?? {})
+      } else if (head === 'u') {
         const url = cleanExample(text ?? '')
         const examples = details.examples ?? []
         if (url && examples.length < textLimits.examples && !examples.includes(url))
@@ -433,7 +619,14 @@ export function decodeBuild(value: string | null | undefined): Build | null {
   if (Object.keys(style).length) build.style = style
   if (Object.keys(details).length) build.details = details
   const hasBrief = Boolean(
-    build.kind || build.products || build.goals || build.channels || build.style || build.details,
+    build.kind ||
+      build.products ||
+      build.goals ||
+      build.channels ||
+      build.style ||
+      build.details ||
+      build.delivery ||
+      build.siteNeed,
   )
   return Object.keys(build.parts).length || build.extras.length || hasBrief ? build : null
 }
@@ -491,10 +684,11 @@ function fromBase64Url(value: string) {
 // Languages on the details screen. With a website in the build, two or more languages turn on its
 // existing paid "second language" option (one option, its price from pricing.ts); one language
 // turns it off, none leaves it as it is. Without a website the languages are only a note.
-export function withLangs(build: Build, langs: DetailLang[]): Build {
+// `paid: false` (the owner's price rule hides the option, see builder-v2.ts) only records the languages.
+export function withLangs(build: Build, langs: DetailLang[], paid = true): Build {
   const next = withDetails(build, { langs })
   const site = build.parts.websites
-  if (site && langs.length) {
+  if (paid && site && langs.length) {
     const has = site.addons.includes('language')
     const want = langs.length >= 2
     if (has !== want) {
