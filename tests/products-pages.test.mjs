@@ -115,12 +115,21 @@ test('product pages: price comes from the live pricing, stages from the template
 
 test('product pages: route, static params, price tag, stage table, preselected builder, chat, no FAQ', () => {
   const page = readFileSync('src/app/[locale]/products/[id]/page.tsx', 'utf8')
+  // The page assembles section blocks (src/components/product-sections/) in the order of product-pages.ts.
+  const blocks = ['index.tsx', 'shell.tsx', 'common-blocks.tsx', 'story-blocks.tsx']
+    .map((f) => readFileSync(`src/components/product-sections/${f}`, 'utf8'))
+    .join('\n')
   assert.match(page, /generateStaticParams/)
   assert.match(page, /dynamicParams = false/)
-  for (const part of ['ProductPriceTag', 'StageTable', 'productBuilderHref', 'ChatOpenButton', 'productPayment', 'CapabilityMock'])
+  assert.match(page, /productPages\[id\]/)
+  for (const part of ['productBuilderHref', 'productPayment', 'productTerm', 'ProductSection'])
     assert.match(page, new RegExp(part), part)
-  assert.doesNotMatch(page, /<Faq|faqJsonLd/)
-  assert.doesNotMatch(page, /formatUsd|from '@\/lib\/pricing'|\$\d|ContactSection|#contact/)
+  for (const part of ['ProductPriceTag', 'StageTable', 'ChatOpenButton', 'CapabilityMock', 'dict.guarantee.line', 'DemoChat', 'DemoBooking', 'DemoAssistant'])
+    assert.match(blocks, new RegExp(part.replace('.', '\\.')), part)
+  for (const source of [page, blocks]) {
+    assert.doesNotMatch(source, /<Faq|faqJsonLd/)
+    assert.doesNotMatch(source, /formatUsd|from '@\/lib\/pricing'|\$\d|ContactSection|#contact/)
+  }
   assert.match(readFileSync('src/components/stage-table.tsx', 'utf8'), /stage\.share|stage\.amountUsd/)
 })
 
@@ -188,4 +197,50 @@ test('ladder: on the products section and on /ai-team, the products section ends
   const bento = readFileSync('src/components/products/products-bento.tsx', 'utf8')
   assert.ok(bento.indexOf('data-departments-strip') > bento.indexOf('<Ladder '))
   assert.match(bento, /ai-team#agents/)
+})
+
+// Owner review 2026-11-22: «у каждого продукта свой подход, а не один шаблон». The pages are assembled from blocks in
+// the order of src/content/product-pages.ts; every page has its own structure and the shared selling blocks.
+test('product pages: each product has its own section order, every block has copy, the selling blocks are on every page', async () => {
+  const { productPages, productSectionIds, sectionCopyKey } = await import('../src/content/product-pages.ts')
+  assert.deepEqual(Object.keys(productPages).sort(), [...productIds].sort())
+  const shared = ['hero', 'included', 'price', 'offer', 'objections', 'readiness']
+  const signatures = new Set()
+  const ownBlocks = new Set()
+  for (const id of productIds) {
+    const { sections, demo } = productPages[id]
+    assert.equal(sections[0], 'hero', id)
+    assert.equal(sections.at(-1), 'readiness', id)
+    assert.equal(new Set(sections).size, sections.length, `${id} has a section twice`)
+    for (const s of sections) assert.ok(productSectionIds.includes(s), `${id} ${s}`)
+    for (const s of shared) assert.ok(sections.includes(s), `${id} misses ${s}`)
+    assert.equal(sections.includes('demo'), Boolean(demo), `${id} demo kind`)
+    // The product's own blocks (not shared, not the older generic ones) come right after the hero.
+    const own = sections.filter((s) => !shared.includes(s) && !['capabilities', 'first', 'scope', 'demo'].includes(s))
+    assert.ok(own.length >= 1, `${id} has no block of its own`)
+    for (const s of own) ownBlocks.add(`${id}:${s}`)
+    signatures.add(sections.join(','))
+    for (const [locale, dict] of dicts) {
+      const page = dict.productPage.items[id]
+      for (const s of sections) {
+        const key = sectionCopyKey[s]
+        if (key) assert.ok(page[key], `${locale} ${id}: ${s} needs copy ${key}`)
+      }
+      assert.ok(page.result.length > 10 && page.result !== dict.products.items[id].name, `${locale} ${id} result headline`)
+      assert.ok(page.inPrice.length >= 3 && page.notInPrice.length >= 3, `${locale} ${id} in/out of price`)
+      assert.ok(page.objections.length >= 3, `${locale} ${id} objections`)
+      for (const o of page.objections) assert.ok(o.q && o.a, `${locale} ${id} objection`)
+    }
+  }
+  assert.equal(signatures.size, productIds.length, 'two products share the same structure')
+  // No two products are built around the same own block.
+  const firstOwn = productIds.map((id) => productPages[id].sections.find((s) => ownBlocks.has(`${id}:${s}`)))
+  assert.equal(new Set(firstOwn).size, productIds.length, `own blocks: ${firstOwn}`)
+  // Facts are open data with a source each, never our own numbers.
+  for (const [, dict] of dicts) for (const f of dict.productPage.items.miniapp.facts.items) assert.ok(f.source.length > 5)
+  // The offer quotes the terms and the guarantee word for word; the readiness block has the three levels.
+  const blocks = readFileSync('src/components/product-sections/common-blocks.tsx', 'utf8')
+  assert.match(blocks, /dict\.guarantee\.line/)
+  for (const level of ['cold', 'warm', 'hot']) assert.match(blocks, new RegExp(`t\\.${level}\\.`))
+  assert.match(blocks, /telegramUrl/)
 })

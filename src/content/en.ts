@@ -2839,15 +2839,52 @@ const en: Dict = {
     quoteNote: 'We name the price after a short review: it depends on the scope and your channels.',
     stageTitle: 'Payment stages',
     stageNote: 'Each stage is paid before it starts, the last one before handover.',
-    finalTitle: 'Build this product',
-    finalText: 'The product is already picked in the project builder. Remove what you do not need, add what you do, and see the price. Or ask an agent.',
     cta: 'Build a project',
     ask: 'Ask an agent',
+    includedTitle: 'What the price includes',
+    notIncludedTitle: 'What is paid separately',
+    termLabel: 'Timeline of the main part',
+    termNote: 'The exact timeline goes into the quote. It runs from the first stage payment and the materials we need from you.',
+    offerTitle: 'Terms that protect you',
+    offerSub: 'All of this is already in the terms of service, there is nothing extra to negotiate.',
+    offer: {
+      guarantee: 'First stage guarantee',
+      stages: { title: 'Payment by stages', text: 'Each stage is paid before it starts, the last one before handover. You never pay the whole sum up front.' },
+      revisions: { title: 'Two rounds of revisions', text: 'You send your notes as a list and we apply them. Both rounds are already in the quote.' },
+      acceptance: { title: 'Seven days to accept', text: 'Take your time with the result. If there are no notes within 7 days, the stage counts as accepted.' },
+      support: { title: '30 days after handover', text: 'We fix errors in the delivered work for free.' },
+      terms: 'All terms of service',
+    },
+    objectionsTitle: 'The doubts we hear most often',
+    sourceLabel: 'Source',
+    readiness: {
+      title: 'Pick your next step',
+      sub: 'Start with the step you are ready for today. The others will still be here.',
+      cold: {
+        label: 'Just looking',
+        title: 'See how it works',
+        text: 'Try the demo on the site or ask our AI lead manager a question. It answers right away.',
+        demo: 'Open the demo',
+      },
+      warm: {
+        label: 'Weighing the budget',
+        title: 'Build the project and see the price',
+        text: 'The product is already picked. Remove what you do not need, add what you do, and the price and stages update at once.',
+      },
+      hot: {
+        label: 'Ready to start',
+        title: 'Talk it through on a call',
+        text: '30 minutes, free. We go through the task and say where to start. The agent in the chat offers a time.',
+        call: 'Arrange a call',
+        telegram: 'Message us on Telegram',
+      },
+    },
     items: {
       admin: {
         metaTitle: 'AI booking assistant: bookings, reminders, reviews | Fir Tech',
         metaDescription:
           'The AI booking assistant takes client bookings in Telegram, sends reminders and collects reviews. What it does, how work starts, price and payment stages.',
+        result: 'Clients book themselves while your staff keep working',
         lead: 'Takes client bookings in Telegram, reminds about the visit and asks for a review after. Your front desk keeps the live conversations.',
         capabilities: [
           { title: 'Booking by free slots', text: 'The client picks a service, a specialist and a time. The agent takes free slots from your calendar or spreadsheet, so two bookings never land on the same time. No site is needed: the agent opens from a link or a QR code. WhatsApp and Instagram are a separate line of the estimate.', example: 'Saturday, 14:30, with Diana. Booked.', mock: 'slots', chips: ['11:00', '14:30', '17:00'] },
@@ -2863,11 +2900,33 @@ const en: Dict = {
         },
         needs: ['A list of services and specialists', 'Working hours and rescheduling rules', 'Access to a calendar or a booking sheet, if you have one', 'The tone: formal or friendly'],
         not: ['It does not take payments: they are a separate option', 'In hard cases it hands the dialogue to your front desk', 'It never changes your prices or booking rules itself', 'It works in Telegram, other channels are agreed separately'],
+        demo: { title: 'Book a visit at the Lime salon yourself', sub: 'Walk the client path: service, stylist, time, reminder and review. This is how booking looks to your clients in Telegram.' },
+        day: {
+          title: 'One Saturday at a salon with the AI booking assistant',
+          sub: 'The front desk looks after guests in the room. Messages, reminders and reviews are on the agent.',
+          items: [
+            { time: '07:40', who: 'Client', text: 'On the way to work she writes in Telegram: "Any manicure slot today?" The agent offers 14:30 and 17:00 and books her.' },
+            { time: '09:00', who: 'Agent', text: 'Reminds everyone booked for today. Two confirm with a button, one client asks to move.' },
+            { time: '09:02', who: 'Agent', text: 'Moves her visit to Friday, 16:00. The freed slot shows up in the schedule again.' },
+            { time: '13:20', who: 'Client', text: 'Asks about the price of colouring and the address. The agent answers from your price list.' },
+            { time: '16:00', who: 'Agent', text: 'Asks the morning guests for a rating. A low rating goes to you personally.' },
+            { time: '21:30', who: 'Client', text: 'Books for tomorrow after the salon has closed. In the morning the visit is already in the schedule.' },
+            { time: '22:00', who: 'You', text: 'You open tomorrow\'s schedule: every visit is in place and nobody needs a call.' },
+          ],
+        },
+        inPrice: ['A booking scenario for your services and staff', 'Free slots from your calendar or spreadsheet', 'Reminders a day and an hour before the visit', 'A review request after the visit', 'Mailings to clients who already wrote to you in Telegram', 'Launch and a check on test clients'],
+        notInPrice: ['WhatsApp and Instagram: a separate line in the quote', 'Taking payments: a separate option', 'A website, if you need one: built separately', 'Domain, hosting and paid third-party services'],
+        objections: [
+          { q: 'Clients will not want to write to an agent', a: 'Clients write where they always did, in Telegram. They want a time fast, and the agent answers at once, day and night. A hard question goes to your front desk.' },
+          { q: 'What if the agent books two people for one slot?', a: 'The agent takes free slots from your calendar or spreadsheet. It never offers a taken time.' },
+          { q: 'Will my front desk lose their job?', a: 'Your front desk stops living in the chat and looks after guests in the room. Prices, exceptions and hard cases stay with them and with you.' },
+        ],
       },
       receptionist: {
         metaTitle: 'AI lead manager: a reply within a minute, then handover | Fir Tech',
         metaDescription:
           'The AI lead manager answers clients in Telegram and on your site, asks the right questions and hands you a ready request. Price, payment stages and FAQ.',
+        result: 'No request waits until morning for an answer',
         lead: 'Answers clients in Telegram and in your site chat within a minute, clarifies the task and hands you a ready request.',
         capabilities: [
           { title: 'A reply within a minute', text: 'The first message gets a reply at any hour, nights and weekends included. It answers from the services and terms you gave us at launch. Telegram and the site chat are connected right away, WhatsApp and Instagram as a separate line of the estimate.', example: 'Hello. Yes, we work on Sunday from 10:00 to 18:00.', mock: 'chat', chips: ['Prices', 'Address', 'Booking'] },
@@ -2883,11 +2942,31 @@ const en: Dict = {
         },
         needs: ['Services, terms and common client questions', 'Access to the channels where clients write', 'The manager\'s Telegram that receives the leads', 'Rules: what the agent may not promise'],
         not: ['It names only the prices and timelines you allow', 'It does not sign contracts or take money', 'When it does not know, it hands the question to a manager', 'It never writes first to strangers'],
+        demo: { title: 'Write to the agent as a client would', sub: 'Ask the question your clients ask you most often and see how the agent answers it.' },
+        flow: {
+          title: 'What happens to a request next',
+          sub: 'From the client\'s first message to a ready card with your manager.',
+          steps: [
+            { title: 'The client writes', text: 'In Telegram or in the site chat, at any hour. The agent answers at once from your services and terms.' },
+            { title: 'The agent clarifies', text: 'It finds out what is needed, by when and what budget the client has in mind.' },
+            { title: 'The request gets a mark', text: 'Hot, warm or still looking. You see at once whom to call first.' },
+            { title: 'A card for the manager', text: 'Name, contact, task and the whole chat arrive in Telegram. The manager picks up where the agent stopped.' },
+            { title: 'A nudge for the silent', text: 'If the client goes quiet, the agent reminds them once, gently. Then it is your call.' },
+          ],
+        },
+        inPrice: ['Answers from your services, terms and common questions', 'Telegram and the site chat', 'Clarifying questions and a mark on the request', 'A request card for the manager in Telegram', 'Answers tuned on the first chats'],
+        notInPrice: ['WhatsApp and Instagram: a separate line in the quote', 'CRM connection: a separate part of the quote', 'A website, if you have none: built separately', 'Domain, hosting and paid third-party services'],
+        objections: [
+          { q: 'Clients will see it is AI and leave', a: 'Clients care more about a fast and correct answer. The agent answers at once, and when the talk goes beyond its rules, it hands the client to a manager.' },
+          { q: 'The agent will promise what we do not do', a: 'It names only the prices, timelines and terms you gave at launch. It signs no contracts and takes no money.' },
+          { q: 'We get few requests, why bother', a: 'When requests are few, each one counts. The agent answers at night and on weekends, when clients go to whoever answered first.' },
+        ],
       },
       automation: {
         metaTitle: 'Process automation: reports, mailings, leads | Fir Tech',
         metaDescription:
           'We connect spreadsheets, CRM and messengers so reports, mailings and leads move without manual work. What is included, how we start, price and payment stages.',
+        result: 'Reports, requests and mailings run themselves while your team does the work',
         lead: 'We connect spreadsheets, CRM and messengers so reports, mailings and alerts run without manual work.',
         capabilities: [
           { title: 'Leads straight to the right place', text: 'A lead from a form, a chat or e-mail lands in a sheet or a CRM and notifies the person in charge. Works with Google Sheets, CRM, e-mail and messengers, and the list goes into the estimate.', example: 'New lead: a site for a coffee shop, Madina.', mock: 'cards', chips: ['Sheet', 'CRM', 'Telegram'] },
@@ -2903,11 +2982,44 @@ const en: Dict = {
         },
         needs: ['A description of the process: who does what and when today', 'Access to sheets, CRM and channels', 'One responsible person on your side', 'Samples of the reports and messages you use'],
         not: ['It never changes your processes without agreement', 'It does not work with services you did not give access to', 'Paid third-party services are not in the price', 'It does not replace your CRM: it connects to the one you have'],
+        beforeAfter: {
+          title: 'One process before and after',
+          sub: 'A service company as an example: requests, reminders and the weekly report.',
+          beforeLabel: 'Before',
+          afterLabel: 'After',
+          rows: [
+            { before: 'A request lands in the inbox and a manager copies it into a spreadsheet by hand.', after: 'A request from a form, chat or email lands in the spreadsheet or CRM by itself.' },
+            { before: 'The person in charge learns about it when they check their mail.', after: 'The person in charge gets a Telegram message at once.' },
+            { before: 'On Friday someone builds a report from three spreadsheets.', after: 'The weekly report arrives in the chat on schedule.' },
+            { before: 'Clients are reminded about visits by phone.', after: 'The reminder goes out by itself and respects unsubscribes.' },
+            { before: 'A process broke and you heard it from an unhappy client.', after: 'You hear about a failure first, in a Telegram message.' },
+          ],
+        },
+        routines: {
+          title: 'Routine that goes away',
+          sub: 'What people now do on a schedule or from memory. We list yours at the first review.',
+          items: [
+            { task: 'Copying requests into a spreadsheet', now: 'Now: every day, by hand' },
+            { task: 'The summary report for the owner', now: 'Now: every Friday' },
+            { task: 'Reminders to clients', now: 'Now: calls and messages' },
+            { task: 'Matching the spreadsheet and the CRM', now: 'Now: once a week' },
+            { task: 'Telling the team about a new order', now: 'Now: forwarding to a chat' },
+            { task: 'A mailing to the client list', now: 'Now: copy and paste, one by one' },
+          ],
+        },
+        inPrice: ['A process review and a diagram before work starts', 'Spreadsheets, CRM, email and messengers from the quote connected', 'A report on schedule', 'Failure alerts', 'Training for the person in charge on your side'],
+        notInPrice: ['Paid third-party services and their subscriptions', 'A new CRM: we connect to yours', 'Services without access or an API', 'Further processes: quoted separately'],
+        objections: [
+          { q: 'Our data is all over the place, it cannot be connected', a: 'That is where we start: at the review we draw where the data lives and who touches it. The quote lists only what we know connects.' },
+          { q: 'If the automation breaks, we stop', a: 'A failure sends you a message. The first process runs next to the manual one, and manual checks stop when you are happy with the result.' },
+          { q: 'The team will not use it', a: 'We change no process without agreement and we train the person in charge. People get the same spreadsheets and messages, only nobody builds them by hand.' },
+        ],
       },
       content: {
         metaTitle: 'Content on autopilot: posts and videos on plan | Fir Tech',
         metaDescription:
           'An agent prepares posts, cards and short videos on a monthly plan and you approve in Telegram. What is included, how we start, the subscription and FAQ.',
+        result: 'Your social media runs on a plan, and approving it takes you minutes',
         lead: 'An agent prepares posts, cards and short videos on a monthly plan. You approve with one button in Telegram.',
         capabilities: [
           { title: 'A posting plan', text: 'Topics and dates a month ahead, for your business and your channels.', example: 'Monday: the new item of the week. Wednesday: a question to followers.', mock: 'cards', chips: ['Mon', 'Wed', 'Fri', 'Sun'] },
@@ -2923,11 +3035,41 @@ const en: Dict = {
         },
         needs: ['A description of the business, products and clients', 'Examples of posts you like', 'Access to the accounts for publishing', 'Photos and materials, if you have them'],
         not: ['It publishes nothing without your approval', 'It does not buy ads or run budgets', 'It does not chat with your followers', 'It does not shoot live video at your place'],
+        week: {
+          title: 'A week of content',
+          sub: 'A coffee shop\'s week as an example. Every piece comes to you for approval in Telegram first.',
+          days: [
+            { day: 'Mon', format: 'Post', title: 'New this week: pistachio croissant', status: 'Approved' },
+            { day: 'Tue', format: 'Carousel', title: 'How to order coffee ahead and skip the queue', status: 'Approved' },
+            { day: 'Wed', format: 'Question', title: 'Which dessert should join the menu?', status: 'Waiting for you' },
+            { day: 'Thu', format: 'Video', title: 'A barista\'s morning: a half-minute script', status: 'In progress' },
+            { day: 'Fri', format: 'Post', title: 'Weekend hours and table booking', status: 'In progress' },
+            { day: 'Sun', format: 'Report', title: 'What went out this week and how it landed', status: 'Monday morning' },
+          ],
+        },
+        roles: {
+          title: 'Who makes your content',
+          sub: 'There are several roles inside the product. You talk to them through one window in Telegram.',
+          items: [
+            { name: 'Content maker', does: 'Writes posts, carousels and video scripts in your voice on a monthly plan.' },
+            { name: 'Publisher', does: 'Schedules what you approved and posts it on time where the platform allows.' },
+            { name: 'Weekly summary', does: 'Once a week tells you what went out and how it landed: reach, reactions, clicks.' },
+            { name: 'You', does: 'Approve, edit or reject with one button. Nothing goes out without your approval.' },
+          ],
+        },
+        inPrice: ['A monthly publishing plan', 'Posts, cards and short video scripts', 'Approval of every piece in Telegram', 'Scheduled posting where the platform allows', 'A short weekly report'],
+        notInPrice: ['Buying ads and the ad budget', 'Shooting live video at your place', 'Replies to followers in comments and direct messages', 'Paid services and stock photos, if needed'],
+        objections: [
+          { q: 'The texts will sound like a robot', a: 'We set the voice from your examples and tune it on your notes in the first week. You see every piece before it goes out.' },
+          { q: 'How much of my time will it take', a: 'On day one, an intro and the first plan. After that, a few minutes a day to approve with a button in Telegram.' },
+          { q: 'What if a post goes out with a mistake', a: 'Nothing is published without your approval. A rejected piece is redone from your comment.' },
+        ],
       },
       miniapp: {
         metaTitle: 'Telegram Mini App: a shop and booking inside Telegram | Fir Tech',
         metaDescription:
           'A catalog, cart, payment and bonuses in one window inside Telegram. Nothing for the client to install. What is included, how we start, price and payment stages.',
+        result: 'Customers order in Telegram, where they already spend their day',
         lead: 'A shop, booking and bonuses in one window inside Telegram. Nothing for the client to install.',
         capabilities: [
           { title: 'Catalog and cart', text: 'The client browses goods or services and builds an order in one window. The client installs nothing: the window opens inside Telegram.', example: 'Cappuccino, croissant, cheesecake: into the cart.', mock: 'cards', chips: ['Cappuccino', 'Croissant', 'Cheesecake'] },
@@ -2943,11 +3085,38 @@ const en: Dict = {
         },
         needs: ['The catalog: names, photos, descriptions', 'Delivery and order rules', 'A way to take payment', 'A Telegram account for the shop: if you have none, we set it up together'],
         not: ['It does not replace a site for Google search', 'It does not open outside Telegram', 'Payment services and their fees are not in the price', 'It does not keep stock records: it connects to yours, if you have them'],
+        phones: {
+          title: 'The customer path on three screens',
+          sub: 'A coffee shop as an example. The window opens right inside Telegram, nothing to install.',
+          screens: [
+            { title: 'Catalogue', caption: 'The customer browses the menu and adds to the cart.', rows: ['Cappuccino', 'Croissant', 'Cheesecake'], action: 'Add to cart' },
+            { title: 'Cart and payment', caption: 'The order is ready, payment in the same window.', rows: ['Cappuccino, two cups', 'Croissant', 'Use bonus points'], action: 'Pay' },
+            { title: 'Order status', caption: 'The customer sees the stage, you get a notification.', rows: ['Accepted', 'Preparing', 'Ready to pick up'], action: 'Order again' },
+          ],
+        },
+        facts: {
+          title: 'Why Telegram',
+          sub: 'Open data from the platform itself. We quote no figures about ourselves.',
+          items: [
+            { value: 'Over 1 billion', label: 'people use Telegram every month', source: 'Pavel Durov, March 2025' },
+            { value: 'Over 500 million', label: 'people open Mini Apps every month', source: 'Telegram, June 2024' },
+            { value: 'No install', label: 'A Mini App opens inside Telegram from a button or a link', source: 'Telegram Mini Apps documentation' },
+          ],
+          note: 'These are figures for the whole platform. They are not a forecast for your business.',
+        },
+        inPrice: ['Catalogue, cart and order status', 'Payment in the window by the methods available in your country', 'New order notifications', 'Launch and a check on test orders'],
+        notInPrice: ['Payment service fees', 'Stock records: we connect to yours', 'A website for Google search: built separately', 'Domain, hosting and paid third-party services'],
+        objections: [
+          { q: 'My customers do not know what a Mini App is', a: 'They do not need to: they tap a button in Telegram and the shop opens. Put the link in your channel, your stories and a QR code at the till.' },
+          { q: 'Why bother when there are delivery aggregators', a: 'The customers stay yours: contact, order history and bonuses are with you. The aggregator can stay alongside.' },
+          { q: 'How do I take payments', a: 'We tell you at the review which methods work in your country and bank, and write them into the quote.' },
+        ],
       },
       agent: {
         metaTitle: 'Personal AI assistant: deadlines, mail, lessons | Fir Tech',
         metaDescription:
           'Dono tracks deadlines, mail and calendar, Polly teaches a language in Telegram. What the assistant does, how it starts, subscription price and FAQ.',
+        result: 'Deadlines, emails and tasks no longer live in your head',
         lead: 'Remembers deadlines and tasks for you: watches mail and calendar, reminds at the right moment, runs language lessons.',
         capabilities: [
           { title: 'Deadlines', text: 'The assistant signs in to your study system or work mailbox with your access and gathers the deadlines into one list. Today it works with Moodle and Outlook.', example: 'The essay is due tomorrow at 10:00.', mock: 'checks', chips: ['Essay', 'Report', 'Payment'] },
@@ -2963,11 +3132,36 @@ const en: Dict = {
         },
         needs: ['Access to mail and calendar that you are ready to give', 'A list of services with deadlines', 'Hours when not to disturb you', 'For Polly: your language level and goal'],
         not: ['It does not send letters without your confirmation', 'It does not get access you did not give', 'It does not write in your name without a command', 'It does not decide about money and contracts'],
+        scenarios: {
+          title: 'How the assistant works: three scenarios',
+          sub: 'Each scenario starts with an event and ends with a message to you in Telegram.',
+          items: [
+            { title: 'A deadline is coming', trigger: 'A deadline appeared in your study system or mail', steps: ['The assistant adds it to one list', 'Suggests a time to work on it', 'Puts it in the calendar after your yes'], result: 'Reminds you in Telegram ahead of time and stays quiet in your quiet hours.' },
+            { title: 'An important email arrived', trigger: 'A letter from a teacher, a client or the bank', steps: ['Marks it as waiting for a reply', 'Drafts a reply', 'Waits for your confirmation'], result: 'The email goes out only on your command.' },
+            { title: 'A language lesson with Polly', trigger: 'Lesson time on your schedule', steps: ['Sends a short task', 'Goes through the mistakes', 'Brings back the hard parts a few days later'], result: 'Review runs on schedule until the material sticks.' },
+          ],
+        },
+        demo: { title: 'A morning with the assistant', sub: 'Ask what your week looks like, or have it sort your mail and find time for a report.' },
+        knows: {
+          title: 'What it knows and what it never promises',
+          knowsTitle: 'Knows',
+          knows: ['Deadlines from the study system and mail you gave access to: Moodle and Outlook today', 'Your calendar: Apple Calendar today', 'The hours when you must not be disturbed', 'For Polly lessons: your language level and goal'],
+          notTitle: 'Never promises',
+          not: ['To send an email without your confirmation', 'To get access you did not give', 'To write in your name without a command', 'To decide money and contract questions for you'],
+        },
+        inPrice: ['Connecting mail, calendar and services with deadlines', 'A morning summary and reminders in Telegram', 'Quiet hours on your rules', 'Language lessons in the Polly plan'],
+        notInPrice: ['Services that do not connect yet: we check at the review', 'Paid subscriptions to third-party services', 'Connecting a new service: quoted separately'],
+        objections: [
+          { q: 'Giving access to my mail is scary', a: 'You give only the access you are ready to give. No email goes out without your confirmation, and the assistant never writes in your name without a command.' },
+          { q: 'It will distract me with messages', a: 'You set the quiet hours. In the first week we remove everything extra from your notes.' },
+          { q: 'My services are not supported', a: 'Today the assistant works with Moodle, Outlook and Apple Calendar. We check other services at the review and say honestly what will work.' },
+        ],
       },
       implementation: {
         metaTitle: 'AI department, turnkey: role-based agents for your business | Fir Tech',
         metaDescription:
           'Role-based agents take over a whole function: marketing, sales or support. A knowledge base, team training, price and payment stages.',
+        result: 'A whole function runs on agents, the decisions stay with you',
         lead: 'Role-based agents take over a whole function: marketing, sales or support. You approve in Telegram.',
         capabilities: [
           { title: 'Agents by role', text: 'Content maker, lead manager, support, documents: we pick the roles for your business.', example: 'The lead manager answers, the content maker writes posts.', mock: 'cards', chips: ['Leads', 'Content', 'Support'] },
@@ -2983,6 +3177,34 @@ const en: Dict = {
         },
         needs: ['Documents, policies and examples of work', 'One responsible person who approves', 'Access to channels and services', 'Staff time for training'],
         not: ['Money, prices and contracts stay with you', 'It does not start without a knowledge base from your documents', 'It does not work with data it has no access to', 'We name the price per function after a review, not from a template'],
+        org: {
+          title: 'Org chart of an AI department',
+          sub: 'A service company as an example. We pick the roles for your business and write them into the quote. The Director appears when there is more than one department.',
+          owner: { name: 'You', does: 'Approve in Telegram and decide on money, prices and contracts.' },
+          director: { name: 'Director', does: 'Hands out tasks to the agents and gathers the approvals into one window.' },
+          depts: [
+            { name: 'Sales', roles: ['Lead manager', 'Prospector', 'Presales: proposals and quotes'] },
+            { name: 'Marketing', roles: ['Content maker', 'Publisher', 'Analyst'] },
+            { name: 'Support', roles: ['Support desk', 'Knowledge base', 'Documents'] },
+          ],
+        },
+        grow: {
+          title: 'How the department grows',
+          sub: 'Start with one agent and move up without rebuilding: the knowledge base and the rules carry over as you grow.',
+          link: 'Every level by direction',
+          steps: [
+            { level: 'One agent', title: 'You fill one position', text: 'For example, the lead manager answers clients. You approve its replies and watch how it works.' },
+            { level: 'On autopilot', title: 'The agent does the routine itself', text: 'When there have been no edits for a while, the routine can run on its own, on your decision. A second agent joins.' },
+            { level: 'Whole department', title: 'The function runs as a team', text: 'Roles pass work to each other, and the control panel shows who is busy with what and what waits for a decision.' },
+          ],
+        },
+        inPrice: ['Role-based agents for the chosen function', 'A knowledge base from your documents', 'Approval in Telegram', 'The owner\'s control panel', 'Training your team to work with agents'],
+        notInPrice: ['Paid third-party services and their subscriptions', 'The next function: a separate part of the quote', 'Changes to systems we have no access to'],
+        objections: [
+          { q: 'Agents will make mistakes in what matters', a: 'A new task goes through your approval first. Money, prices and contracts always stay with you.' },
+          { q: 'The team will push back', a: 'We train staff to give tasks to agents and check the result. Agents take the routine, people keep the decisions and the talks with clients.' },
+          { q: 'How do I know it works', a: 'We work this way ourselves: the Fir Tech office of agents is shown on the site. Your control panel shows who is busy with what, what waits for a decision and what got done today.' },
+        ],
       },
     },
   },
