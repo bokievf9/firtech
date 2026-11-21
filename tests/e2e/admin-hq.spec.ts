@@ -41,7 +41,7 @@ test.describe('with a session', () => {
   })
 
   test('a soon section says so and links to the old screen; the office still opens', async ({ page }) => {
-    await open(page, '/admin/processes')
+    await open(page, '/admin/settings')
     await expect(page.getByText('Soon').first()).toBeVisible()
     await page.getByRole('link', { name: 'Open the old screen' }).click()
     await expect(page).toHaveURL(/\/admin\/office\?panel=company/)
@@ -81,10 +81,43 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
+
+  test('Content: feed, item drawer with the player and Studio buttons, «Промпт» order, orders tab, calendar', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/content')
+    await expect(page.getByRole('heading', { name: 'Content', level: 1 })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Feed', selected: true })).toBeVisible()
+    const cards = page.locator('[data-feed] li button')
+    await expect(cards.first()).toBeVisible()
+    // a status filter narrows the feed
+    await page.getByLabel('Статус').selectOption('pending')
+    await expect(page.locator('[data-feed] li').first()).toBeVisible()
+    // a reel opens with the player; «Ещё вариант» takes the order and the toast says so
+    await page.getByLabel('Формат').first().selectOption('clip')
+    await cards.first().click()
+    const drawer = page.getByRole('dialog')
+    await expect(drawer.locator('video')).toBeVisible()
+    await drawer.getByRole('button', { name: 'Ещё вариант' }).click()
+    await expect(page.getByText('Заказ принят: ещё один вариант готовится.')).toBeVisible()
+    // «Промпт» from any tab
+    await page.getByRole('button', { name: 'Промпт' }).click()
+    const prompt = page.getByRole('dialog', { name: 'Новый материал для Content Maker' })
+    await prompt.getByLabel('О чём материал').fill('Про ночные заявки в барбершопе')
+    await prompt.getByRole('button', { name: 'Отправить Content Maker' }).click()
+    await expect(page).toHaveURL(/tab=orders/)
+    const orders = page.locator('[data-orders] li')
+    await expect(orders).toHaveCount(2)
+    await expect(orders.first()).toContainText('Про ночные заявки')
+    await expect(orders.first().getByRole('link', { name: 'Открыть в ленте' })).toBeVisible()
+    await page.getByRole('tab', { name: 'Calendar' }).click()
+    await expect(page).toHaveURL(/tab=calendar/)
+    expect(errors).toEqual([])
+  })
+
   for (const [name, size] of Object.entries(SIZES)) {
     test(`no horizontal overflow ${name}`, async ({ page }) => {
       await page.setViewportSize(size)
-      for (const url of ['/admin/inbox', '/admin/clients', '/admin/projects', '/admin/documents', '/admin/agents', '/admin/agents?agent=client-bot', '/admin/tasks']) {
+      for (const url of ['/admin/inbox', '/admin/clients', '/admin/projects', '/admin/documents', '/admin/agents', '/admin/agents?agent=client-bot', '/admin/content', '/admin/content?tab=orders', '/admin/tasks']) {
         await open(page, url)
         await noHorizontalOverflow(page, url)
       }

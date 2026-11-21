@@ -130,6 +130,18 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^crm\/invoices$/, query: crmQuery },
   { method: 'POST', path: /^crm\/invoices\/\d{1,12}$/, body: z.object({ action: z.enum(['remind', 'mark_paid', 'void']) }).strict() },
   { method: 'GET', path: /^content$/, query: ['week'] },
+  // Content Studio (2026-11-23): one feed of everything and the owner's orders for the Content Maker.
+  { method: 'GET', path: /^content\/feed$/, query: ['status', 'kind', 'limit', 'cursor'] },
+  { method: 'GET', path: /^content\/orders$/, query: ['limit'] },
+  {
+    method: 'POST',
+    path: /^content\/orders$/,
+    body: z.discriminatedUnion('mode', [
+      z.object({ mode: z.literal('prompt'), prompt: z.string().trim().min(3).max(1000), type: z.enum(['clip', 'post', 'carousel', 'story']).optional() }).strict(),
+      z.object({ mode: z.literal('variant'), fromItemId: z.number().int().positive(), note: z.string().trim().max(500).optional() }).strict(),
+      z.object({ mode: z.literal('niche'), fromItemId: z.number().int().positive(), niche: z.string().trim().min(1).max(60), note: z.string().trim().max(500).optional() }).strict(),
+    ]),
+  },
   {
     method: 'POST',
     path: /^content\/[\w-]{1,64}$/,
@@ -152,6 +164,9 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/\d{1,6}$/ },
   { method: 'POST', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions$/, body: z.object({ text: z.string().min(1).max(20000), note: z.string().max(200).optional() }).strict() },
   { method: 'POST', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/rollback$/, body: z.object({ version: z.number().int().min(1).max(999999), note: z.string().max(200).optional() }).strict() },
+  // HQ «Processes»: the chain map with step health, and the existing drill (start / clear).
+  { method: 'GET', path: /^processes$/ },
+  { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
   { method: 'POST', path: /^company\/routines\/[\w-]{1,64}$/, body: z.object({ enabled: z.boolean() }).strict() },

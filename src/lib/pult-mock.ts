@@ -102,6 +102,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   // Content: the current week gets a full pack; other weeks only a couple of published items.
   const currentWeek = isoWeek(start)
   const items = new Map<string, Row>()
+  const orders: Row[] = []
   const content = (week: string) => {
     const dates = weekDates(week)
     const full = week === currentWeek
@@ -210,6 +211,8 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   const playbookText = (role: string) =>
     `# Плейбук: ${role}\n\nИсточники: seo-audit, ai-seo\n\n## Правила\n\n- Один материал, одна мысль.\n- Цифры только из \`metrics/week\`, **без выдумок**.\n- Цены не пишем.\n\n## Порядок\n\n1. Прочитать задачу.\n2. Собрать черновик.\n3. Отправить на одобрение.\n\n## Площадки\n\n| Площадка | Длина | Формат |\n|---|---|---|\n| Instagram | 2200 | карусель |\n| YouTube | 100 | Shorts |\n\n\`\`\`\n/playbook ${role}\n\`\`\`\n\n<script>alert(1)</script>\n`
 
+  let drillStartedAt: number | null = null
+  let drillRows: Row[] = []
   const ok = (extra: Json = {}): Reply => ({ ok: true, ...extra })
   const bad = (error: string, extra: Json = {}): Reply => ({ ok: false, error, ...extra })
   const byId = (list: Row[], id: string) => list.find((r) => String(r.id) === id)
@@ -429,6 +432,75 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       return ok({ item: inv })
     }
 
+    // ---- content studio: the feed of everything and the orders (a working order is delivered on the next read)
+    if (seg[0] === 'content' && seg[1] === 'feed' && method === 'GET' && seg.length === 2) {
+      if (!items.size) content(currentWeek)
+      const all = [...items.values()].reverse().filter((i) => (!query.status || i.status === query.status) && (!query.kind || i.kind === query.kind))
+      const offset = /^\d{1,6}$/.test(String(query.cursor ?? '')) ? Number(query.cursor) : 0
+      const limit = Math.min(Math.max(Number(query.limit) || 50, 1), 200)
+      const origin = (id: unknown) => {
+        const o = orders.find((x) => x.itemId === id)
+        return o ? { orderId: o.id, mode: o.mode, fromItemId: o.fromItemId } : null
+      }
+      return ok({
+        items: all.slice(offset, offset + limit).map((i) => ({ ...i, reviewId: `ap_${i.id}`, origin: origin(i.id) })),
+        nextCursor: all.length > offset + limit ? String(offset + limit) : null,
+        total: all.length,
+      })
+    }
+    if (seg[0] === 'content' && seg[1] === 'orders' && seg.length === 2) {
+      if (method === 'GET') {
+        if (!items.size) content(currentWeek)
+        for (const o of orders.filter((x) => x.state === 'working')) {
+          const from = o.fromItemId !== null ? [...items.values()].find((i) => i.id === o.fromItemId) : undefined
+          const id = 900000 + Number(o.id)
+          items.set(String(id), {
+            id,
+            kind: from?.kind ?? o.type ?? 'post',
+            platform: 'instagram',
+            status: 'pending',
+            title: o.mode === 'prompt' ? String(o.prompt).slice(0, 80) : `${from?.title ?? 'Материал'} (${o.mode === 'niche' ? `под нишу: ${o.niche}` : 'ещё вариант'})`,
+            hook: 'Новый хук от Content Maker.',
+            caption: { instagram: 'Пример подписи от Content Maker.', tiktok: '', shorts: '', dzen: '' },
+            files: [png(`order-${o.id}`)],
+            sourceSlug: null,
+            approvalId: null,
+            publishedUrl: null,
+            error: null,
+            kit: null,
+          })
+          o.state = 'delivered'
+          o.itemId = id
+          o.reviewId = `ap_${id}`
+          o.itemStatus = 'pending'
+        }
+        return ok({ items: [...orders].reverse() })
+      }
+      if (method === 'POST') {
+        const mode = String(body.mode)
+        if (mode === 'prompt' && String(body.prompt ?? '').trim().length < 3) return bad('invalid')
+        if (mode !== 'prompt' && !Number.isInteger(body.fromItemId)) return bad('invalid')
+        if (mode === 'niche' && !String(body.niche ?? '').trim()) return bad('invalid')
+        if (!['prompt', 'variant', 'niche'].includes(mode)) return bad('invalid')
+        const order: Row = {
+          id: 700 + orders.length,
+          mode,
+          prompt: mode === 'prompt' ? String(body.prompt).trim() : String(body.note ?? ''),
+          type: mode === 'prompt' ? String(body.type ?? 'clip') : null,
+          niche: mode === 'niche' ? String(body.niche) : null,
+          fromItemId: mode === 'prompt' ? null : Number(body.fromItemId),
+          state: 'working',
+          error: null,
+          createdAt: iso(Date.now()),
+          itemId: null,
+          reviewId: null,
+          itemStatus: null,
+        }
+        orders.push(order)
+        return ok({ order })
+      }
+      return null
+    }
     // ---- content
     if (seg[0] === 'content') {
       if (method === 'GET' && seg.length === 1) {
@@ -470,6 +542,74 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
         return { date, site: Object.fromEntries(Object.entries(cur.site).map(([k, v]) => [k, part(v)])), blog: { hits: part(cur.blog.hits) }, leads: part(cur.funnel.leads) }
       })
       return ok({ week, ...cur, days, prevWeek: block(Number(shiftWeek(week, -1).slice(-2)) || 1) })
+    }
+
+    // ---- processes
+    if (seg[0] === 'processes') {
+      const step = (id: string, title: string, hint: string, health: string, lastMin: number | null, failures = 0, stuck = 0, failure: string | null = null) => ({
+        id, title, hint, health, lastOkAt: lastMin === null ? null : ago(lastMin), failures7d: failures, stuck, lastFailure: failure ? { at: ago(90), text: failure } : null,
+      })
+      const view = () => {
+        const chains = [
+          { id: 'client', title: 'Заявка, КП, договор, оплата, производство, приёмка', health: 'fail', steps: [
+            step('lead', 'Заявка принята', 'Сайт, чат или Telegram: лид и задача Продаж', 'ok', 12),
+            step('quote', 'КП у клиента', 'Одобрено владельцем, ушло в кабинет и на почту', 'warn', 300, 1, 0, 'письмо не ушло: timeout'),
+            step('accept', 'КП принято', 'Клиент нажал «Принять»', 'ok', 60 * 26),
+            step('contract', 'Договор у клиента', 'Черновик одобрен, ушёл на подпись', 'ok', 60 * 30),
+            step('sign', 'Договор подписан', 'Подпись мышью и подписанный PDF', 'fail', 60 * 50, 1, 0, 'подписан, но PDF не собран'),
+            step('invoice', 'Счёт выставлен', 'Счёт этапа, ссылка на оплату, письмо', 'ok', 60 * 10),
+            step('paid', 'Оплата получена', 'Сеть или вручную', 'warn', 60 * 20, 0, 1),
+            step('project', 'Проект в работе', 'Проект и вехи, ТЗ, строитель', 'ok', 60 * 24 * 2),
+            step('stage', 'Этап принят', 'Готов этап, клиент принял', 'idle', null),
+            step('act', 'Акт выдан', 'Последний этап принят, акт в документах', 'idle', null),
+          ] },
+          { id: 'support', title: 'Поддержка', health: 'ok', steps: [
+            step('ticket', 'Тикет принят', 'Кабинет, Telegram или чат агента', 'ok', 60 * 3),
+            step('answer', 'Ответ клиенту', 'SLA 4 часа', 'ok', 60 * 4),
+          ] },
+          { id: 'content', title: 'Контент-конвейер', health: 'ok', steps: [
+            step('trends', 'Тренды', 'Разведка трендов дня и недели', 'ok', 60 * 7),
+            step('make', 'Материал недели', 'Тексты и визуал, затем ревью', 'ok', 60 * 9),
+            step('publish', 'Публикация', 'Пакет публикации только из одобренного', 'idle', null),
+          ] },
+          { id: 'letters', title: 'Письма и уведомления клиентам', health: 'ok', steps: [step('mail', 'Письма ушли', 'Сбои пишутся в журнал и раз в час владельцу', 'ok', 40)] },
+          { id: 'infra', title: 'Рутины, одобрения, учёт', health: 'ok', steps: [
+            step('routines', 'Рутины по расписанию', 'Каждая включённая рутина отрабатывает и не зависает', 'ok', 15),
+            step('approvals', 'Одобрения исполняются', 'Решение владельца доходит до действия', 'ok', 130),
+          ] },
+        ]
+        const counts: Record<string, number> = { ok: 0, warn: 0, fail: 0, idle: 0 }
+        for (const c of chains) for (const s of c.steps) counts[s.health] = (counts[s.health] ?? 0) + 1
+        const rows = drillRows
+        const c = { ok: 0, wait: 0, fail: 0, run: 0 } as Record<string, number>
+        for (const r of rows) c[String(r.state)] = (c[String(r.state)] ?? 0) + 1
+        const state = drillStartedAt === null ? 'none' : c.run ? 'running' : 'done'
+        return { generatedAt: iso(now), windowDays: 7, counts, chains, drill: { state, startedAt: drillStartedAt === null ? null : iso(drillStartedAt), elapsedMs: drillStartedAt === null ? 0 : now - drillStartedAt, openApprovals: 0, counts: c, rows } }
+      }
+      if (method === 'GET' && seg.length === 1) {
+        // the mock drill finishes by itself 20 s after the start
+        if (drillStartedAt !== null && now - drillStartedAt > 20_000) drillRows = drillRows.map((r) => (r.state === 'run' ? { ...r, state: 'ok', ms: 4000, text: 'готово' } : r))
+        return ok(view())
+      }
+      if (method === 'POST' && seg[1] === 'drill') {
+        if (body.action === 'clear') {
+          drillStartedAt = null
+          drillRows = []
+          return ok({ action: 'clear', text: 'Учения очищены: задач 17, неотвеченных одобрений отклонено 0. Данные, помеченные «Тест учения», удалены.', drill: view().drill })
+        }
+        if (body.action !== 'start') return bad('bad_request')
+        if (drillStartedAt === null) {
+          drillStartedAt = now
+          drillRows = [
+            { worker: 'trend-scout', title: 'Trend Scout', state: 'run', ms: -1, text: 'ещё не начато' },
+            { worker: 'lead-intake', title: 'Lead manager', state: 'run', ms: -1, text: 'ещё не начато' },
+            { worker: 'customer-support', title: 'Support agent', state: 'run', ms: -1, text: 'ещё не начато' },
+            { worker: 'monitoring', title: 'Monitor', state: 'ok', ms: 1200, text: 'проверки выполнены, всё в норме' },
+          ]
+        }
+        return ok({ action: 'start', text: 'Учения начались: задач 17, до 30 секунд на первые результаты.', drill: view().drill })
+      }
+      return bad('not_found')
     }
 
     // ---- company

@@ -790,6 +790,8 @@ export function normalizeContent(body: unknown): ContentWeek | null {
   }
 }
 export const normalizeContentItem = (body: unknown) => contentItem(rec(body).item)
+// One content row as HQ sends it (the calendar and the Content Studio feed share the shape).
+export const parseContentItem = (raw: unknown): ContentItem | null => contentItem(raw)
 
 export const replaceContentItem = (week: ContentWeek, item: ContentItem): ContentWeek => ({
   ...week,

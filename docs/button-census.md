@@ -531,3 +531,30 @@ Tag `E:hq` = `tests/e2e/admin-hq.spec.ts`; `U:hq-shell` = `tests/hq-shell.test.m
 | `/admin/agents` card | version «Show» | text of that version as a line diff against the current one | `GET agents/<id>/instructions/<n>` | `E:hq`, `U:agents-hq` (diff) | pass |
 | `/admin/agents` card | version «Roll back to this» | confirm, then a NEW version with the old text (history stays) | `POST agents/<id>/instructions/rollback` | `E:hq`, `U:agents-hq` (mock) | pass |
 | `/admin/agents` card | trust, tools, budget, Fira pack, recent decisions | read-only blocks (ids and counters only) | `GET agents/<id>` | `E:hq` (blocks visible), `U:agents-hq` | pass (shown), manual (live HQ numbers) |
+
+## 2026-11-23: Content (HQ Content Studio)
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/content` | tabs Feed, Calendar, Orders | `?tab=`; Calendar is the week panel of marketing, Orders the Content Maker queue | `GET content/feed`, `GET content?week=`, `GET content/orders` | `E:hq` («Content»), `U:content-studio` | pass |
+| Content / Feed | filters Статус, Формат | reload the feed from page one for the filter | `GET content/feed?status=&kind=` | `E:hq`, `U:content-studio` (mock filters) | pass (status), untested (kind in browser) |
+| Content / Feed | card | opens the item drawer: player or slides, captions, the same buttons as the calendar (Одобрить, Правки, Отклонить, Пересобрать, Опубликовано) | `POST content/<id>` | `E:hq` (player visible), `E:panels` (shared body) | pass (open), untested (decisions here) |
+| Content / Feed | «Показать ещё» | next page by `cursor` | `GET content/feed?cursor=` | `U:content-studio` (mock cursor) | untested (browser) |
+| Content / item drawer | «Ещё вариант» (with the optional note) | a Content Maker order, the new card arrives in Approvals | `POST content/orders` `{mode:'variant'}` | `E:hq` (toast), `U:content-studio` (whitelist, mock) | pass |
+| Content / item drawer | «Переписать под нишу» (niche field with suggestions) | a Content Maker order for the niche | `POST content/orders` `{mode:'niche'}` | `U:content-studio` (whitelist, body), HQ test | untested (browser) |
+| Content / item drawer | «Решить в Approvals» (pending items) | link to `/admin/approvals?tab=content` | - | - | untested (click) |
+| Content (every tab) | «Промпт» | drawer with a topic field and a format; «Отправить Content Maker» posts the order and opens Orders | `POST content/orders` `{mode:'prompt'}` | `E:hq`, `U:content-studio` | pass |
+| Content / Orders | list (state, mode, link to the item), «Открыть в ленте», «Решить в Approvals» | polls every 8 s; a delivered order opens its item in the feed | `GET content/orders` | `E:hq` (order, link), `U:content-studio` | pass (list, link), untested (Approvals link) |
+
+## HQ, Processes (2026-11-23), adds to the rows above
+Tag `E:processes` = `tests/e2e/admin-processes.spec.ts`; `U:processes` = `tests/processes.test.mjs`. The section is built (no longer «Soon»); it reads `GET processes` every 30 s.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/processes` | section menu link «Processes» (10th item, no number key) | opens the page instead of the placeholder | - | `E:processes`, `U:hq-shell` | pass |
+| Processes | chain blocks and step cards | health (Работает / Внимание / Сбой / Нет данных), last success, failures of the week, stuck, last failure text | `GET processes` | `E:processes`, `U:processes` (view model, defaults, unknown values) | pass (render) |
+| Processes | «Обновить» | reloads the map | `GET processes` | `E:processes` (present), `U:processes` | untested (click) |
+| Processes | «Прогнать дрилл» | starts the existing drill; disabled while it runs; shows the table as it fills | `POST processes/drill {action:'start'}` | `E:processes` (start, running table, second start blocked), `U:processes` (whitelist, mock) | pass |
+| Processes | «Очистить тестовые данные» | asks to confirm, then runs `/drill clear`; disabled when no drill exists | `POST processes/drill {action:'clear'}` | `E:processes` (confirm, reset), `U:processes` | pass |
+| Processes | failed call | toast «Не получилось: ...», the map stays | - | `U:processes` (error codes via `errText`) | untested (browser) |
+
