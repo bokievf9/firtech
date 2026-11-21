@@ -126,7 +126,7 @@ test('reply: POST /clients/:id/leads/:leadId/messages with the token; errors map
 
 test('home order (v3): projects with requests and recent items, documents, messages, agent, materials, referrals, profile', () => {
   const page = readFileSync('src/app/[locale]/cabinet/page.tsx', 'utf8')
-  const order = ['<ProjectCard', '<LeadsSection', '<RecentBlock', '<DocumentsPanel', '<MessagesPanel', '<AgentPanel', '<MaterialsPanel', '<ReferralsCard', '<ProfileForm']
+  const order = ['<ProjectCard', '<LeadsSection', '<RecentBlock', '<DocumentsPanel', '<MessagesPanel', '<AgentPanel', '<MaterialsPanel', '<ReferralsCard', '<ProfilePanel']
   const at = order.map((tag) => page.indexOf(tag))
   assert.ok(at.every((i) => i > 0), JSON.stringify(at))
   assert.deepEqual([...at].sort((a, b) => a - b), at)

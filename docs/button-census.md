@@ -163,6 +163,8 @@ Legend of `E:` tags (file : test title):
 | demo | 7 tabs (receptionist, admin, automation, content, Mini App, assistant, department); automation, Mini App and assistant are «Пример» | tab panels | none | `U:front-v3` | untested (click) |
 | chat button | hides on scroll down, back on scroll up or after 1.5 s; on `/builder` and `/cabinet` hidden until the last step or 8 s idle | opens the chat | none | `U:front-v3` | screenshots 390 px |
 | product pages | «Частые вопросы» removed | - | - | `U:products-pages` | pass |
+| product pages (2026-11-22, blocks in the order of `content/product-pages.ts`) | hero «Собрать проект» / «Спросить агента»; demo block (admin booking, receptionist live chat, assistant); «Все условия в оферте», «Условия гарантии»; ИИ-отдел «Все ступени по направлениям» | builder with `p.<id>`, chat, demo state, terms, `/ai-team#levels` | `/{locale}/builder?b=`, `/{locale}/terms` | `U:products-pages` (config, copy, hrefs in source) | untested (click) |
+| product pages: «Выберите свой следующий шаг» | «Открыть демо» (`#demo` on the page or `/{locale}#demo`), «Спросить агента», «Собрать проект», «Договориться о созвоне» (chat, source `product_<id>_call`), «Написать в Telegram» (`data-place product_<id>`) | demo, chat, builder, Telegram | `t.me/firtech_bot` | `U:products-pages` | untested (click) |
 | FAQ `#faq` | 9 question buttons | expand/collapse | - | `E:faq` | pass |
 | FAQ | «Сравнение: фрилансер, агентство или мы», «Порекомендуйте нас…», «Бесплатный аудит вашего сайта» | links | compare, referral, audit | `E:matrix` (pages render) | untested (click) |
 
@@ -283,10 +285,17 @@ Legend of `E:` tags (file : test title):
 | offers (in Обзор and under the other tabs) | state-based offers, `cabinet_offer_click` | `lib/cabinet-offers.ts` | `U:cabinet-offers` | pass (unit), untested (browser) |
 | ticket form «Написать менеджеру» | `POST /api/cabinet/tickets` -> HQ `createClientTicket` | HQ | `U:cabinet`, `U:cabinet-hq` | untested (browser) |
 | lead reply box (Заявки) | reply to a request | `/api/cabinet/leads/[id]` | `U:cabinet-leads` | untested (browser) |
-| profile form «Сохранить» | `updateProfileAction` (`public.profiles`) | Supabase | `U:cabinet` | untested |
+| Профиль: text fields (Вы, Компания, Для документов) | save on blur / Enter, status «Сохраняем... / Сохранено», `ErrorNote` with «Повторить», typed text kept on error | `POST /api/cabinet/profile` (patch, row read back) | `U:cabinet-profile`, `U:cabinet-stage-render`, `E:profile` (company saved, bad website reason) | pass |
+| Профиль: language and niche selects | save on change, rollback on error | `POST /api/cabinet/profile` | `U:cabinet-profile` | pass (unit), untested (browser) |
+| Уведомления: switches «Новости и акции», «Рекомендации» | `role=switch`, optimistic, rollback with the reason | `POST /api/cabinet/profile` (`marketing`, `recommendations`) | `E:profile` (stays on after reload, RLS refusal rolls back) | pass |
+| Уведомления: channel Почта / Telegram / оба | radio, Telegram disabled without a nick; clearing the nick moves to email | `POST /api/cabinet/profile` (`notifyChannel`) | `U:cabinet-profile`, `E:profile` | pass |
+| Безопасность: «Сменить пароль» | current password checked (email accounts), `updateUser` | `changePasswordAction` | `U:cabinet-profile` (source) | untested (browser) |
+| Безопасность: «Сменить почту» | Supabase confirmation letter | `changeEmailAction` | none | untested (sends mail) |
+| Безопасность: «Выйти везде» | `signOut({scope:'global'})` | `signOutEverywhereAction` | `U:cabinet-profile` (source) | untested |
+| `/cabinet/unsubscribe?token=` «Отписаться» | GET changes nothing, the button POSTs; one-click `POST /api/cabinet/unsubscribe?token=` | service role update of one column | `U:cabinet-profile` (token), `E:profile` (unsubscribe) | pass |
 | referral link copy | copies `/<locale>/?ref=<slug>` | clipboard | `U:cabinet` (`cabinetRefLink`) | untested (browser) |
 | «Выйти» | `logoutAction` | Supabase | none | untested |
-| account deletion: «Удалить аккаунт» -> confirm / cancel | `deleteAccountAction` (service role, else a ticket) | Supabase admin | `U:cabinet-auth` | untested (destructive, needs a throwaway account) |
+| account deletion: «Удалить аккаунт» -> type УДАЛИТЬ / DELETE -> «Удалить навсегда» / cancel | `deleteAccountAction` (word checked on the server too; service role, else a ticket) | Supabase admin | `U:cabinet-auth` | untested (destructive, needs a throwaway account) |
 | all cabinet pages | `noindex`, `cache-control: private, no-store` | `proxy.ts` | `E:cab-noindex` | pass |
 
 ## 10. 404 and chat

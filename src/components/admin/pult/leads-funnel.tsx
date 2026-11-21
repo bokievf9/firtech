@@ -96,7 +96,7 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
     else feed.mutate((v) => ({ ...v, items: moveLead(v.items, l.id, before) }))
   }
 
-  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading />
+  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading />
   if (!feed.view.available) return <div className="p-4"><Empty>{k.unavailable}</Empty></div>
 
   return (

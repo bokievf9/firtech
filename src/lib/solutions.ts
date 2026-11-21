@@ -1,5 +1,6 @@
 import type { Dict } from '@/content'
 import { genericFaq, kindCatalog } from '../content/builder-catalog'
+import { solutionPromises } from '../content/solution-promises'
 import { businessKinds, encodeBuild, presets, quote, type Build, type BusinessKind } from './builder'
 import { serviceSlugs, type ServiceSlug } from './site'
 import { defaultPricing, formatUsd, type Pricing } from './pricing'
@@ -27,7 +28,10 @@ export function solutionBuilderHref(locale: string, kind: SolutionKind) {
 export type SolutionCopy = {
   metaTitle: string
   metaDescription: string
+  // What we build for this niche (cards, meta, JSON-LD).
   title: string
+  // The niche page headline: the result the owner of this business gets (content/solution-promises.ts).
+  promise: string
   sub: string
   card: string
   problems: { pain: string; fix: string }[]
@@ -63,8 +67,9 @@ export function solutionCopy(
   dict: Dict,
   pricing: Pricing = defaultPricing,
 ): SolutionCopy {
-  const written = (dict.solutions.items as Record<string, SolutionCopy | undefined>)[kind]
-  if (written) return written
+  const promise = solutionPromises[kind][locale === 'ru' ? 'ru' : 'en']
+  const written = (dict.solutions.items as Record<string, Omit<SolutionCopy, 'promise'> | undefined>)[kind]
+  if (written) return { ...written, promise }
   const entry = kindCatalog[kind]
   const [name, title, sub, pains, gets] = locale === 'ru' ? entry.ru : entry.en
   const from = formatUsd(quote(presets[kind], pricing).total)
@@ -72,6 +77,7 @@ export function solutionCopy(
     metaTitle: title,
     metaDescription: metaDescription(sub, locale),
     title,
+    promise,
     sub,
     card: sub,
     problems: pains.map((pain, i) => ({ pain, fix: gets[i] ?? '' })),

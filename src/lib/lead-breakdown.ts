@@ -61,7 +61,9 @@ export function findBuildCode(...sources: (string | null | undefined)[]): { code
       let code = m[1]!
       try {
         code = decodeURIComponent(code)
-      } catch {}
+      } catch {
+        // A malformed percent sequence: keep the code as written.
+      }
       return { code, locale: lang(LINK_LOCALE.exec(src)?.[1]) }
     }
   }

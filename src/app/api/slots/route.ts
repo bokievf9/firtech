@@ -1,5 +1,6 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
+import { apiError } from '@/lib/api-error'
 import { bookingConfig, generateSlots } from '@/lib/booking'
 import { bookedSlots } from '@/lib/store'
 
@@ -15,6 +16,6 @@ export async function GET() {
     )
   } catch (error) {
     console.error('[slots] could not read bookings', error)
-    return NextResponse.json({ ok: false, error: 'unavailable' }, { status: 503 })
+    return apiError('unavailable', 503)
   }
 }

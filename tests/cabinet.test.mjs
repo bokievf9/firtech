@@ -117,7 +117,7 @@ test('createClientTicket: POST body, item parsing, errors', async () => {
 test('HQ client sync: body shape and POST', async () => {
   const profile = { email: ' A@B.co ', name: ' Алиса ', telegram: null, locale: 'en', marketing_consent: true }
   const body = data.clientSyncBody('uid-1', profile)
-  assert.deepEqual(body, { email: 'a@b.co', name: 'Алиса', telegram: '', locale: 'en', supabaseId: 'uid-1', marketingConsent: true })
+  assert.deepEqual(body, { email: 'a@b.co', name: 'Алиса', telegram: '', locale: 'en', supabaseId: 'uid-1', marketingConsent: true, recommendationsConsent: false, notifyChannel: 'email', phone: '', company: '' })
   assert.equal(data.clientSyncBody('u', { ...profile, locale: 'de', marketing_consent: null }).locale, 'ru')
   assert.equal(data.clientSyncBody('u', { ...profile, marketing_consent: null }).marketingConsent, false)
   let seen

@@ -317,7 +317,7 @@ function Bubble({ mine, children }: { mine?: boolean; children: React.ReactNode 
   return (
     <span
       className={cn(
-        'max-w-[85%] rounded-[var(--radius-lg)] px-3.5 py-2.5 text-[14px] leading-snug',
+        'max-w-[85%] rounded-[var(--radius-lg)] px-3.5 py-2.5 text-[14px] leading-snug [overflow-wrap:anywhere]',
         mine ? 'ml-auto bg-accent text-accent-ink' : 'bg-surface-2 text-fg',
       )}
     >

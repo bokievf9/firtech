@@ -100,7 +100,7 @@ export function FeedBody<T>({
         </button>
       </p>
     ) : (
-      <div className="h-32 animate-pulse rounded-xl bg-surface-2/60" role="status" aria-label={t.loading} />
+      <div className="h-32 skeleton skeleton-block" role="status" aria-label={t.loading} />
     )
   }
   if (!list.available) {

@@ -102,8 +102,9 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
               </Link>
             </p>
           </div>
-          <h1 className="mt-5 max-w-[18ch] font-display text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
-            {page.title}
+          <p className="mt-5 text-sm font-medium">{page.title}</p>
+          <h1 className="mt-3 max-w-[20ch] font-display text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+            {page.headline}
           </h1>
           <p className="mt-6 max-w-[56ch] text-lead text-muted">{page.promise}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">

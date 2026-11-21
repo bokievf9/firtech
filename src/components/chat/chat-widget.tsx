@@ -42,7 +42,9 @@ function readSeen(): string[] {
 function writeSeen(list: string[]) {
   try {
     window.sessionStorage.setItem(COMPANION_SEEN_KEY, JSON.stringify(list))
-  } catch {}
+  } catch {
+    // Storage blocked (private mode): the line may come back on this page, nothing else changes.
+  }
 }
 
 // Floating launcher bottom right (above the phone CTA bar on small screens) plus the panel. Opens

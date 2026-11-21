@@ -5,6 +5,9 @@ import { AnimatePresence, motion } from 'motion/react'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { SlotPicker } from '@/components/slot-picker'
+import { ErrorNote } from '@/components/ui/error-note'
+import { Pending } from '@/components/ui/pending'
+import { fetchJson, type ErrorInfo } from '@/lib/errors'
 import type { Dict } from '@/content'
 import { track } from '@/lib/analytics'
 import { trackEvent } from '@/lib/track-event'
@@ -29,7 +32,7 @@ const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || defaultTel
   '',
 )
 
-type Sent = { id?: number; token?: string; slot?: string | null; cabinet?: string | null }
+type Sent = { id?: number; token?: string; slot?: string | null; cabinet?: string | null; queued?: boolean }
 
 // 16px on phones: iOS Safari zooms into any field with smaller text when it gets focus.
 // ym-disable-keys: Metrika's Webvisor never records what is typed here.
@@ -58,6 +61,7 @@ export function ContactForm({
   const [slotTaken, setSlotTaken] = useState(false)
   const [takenSlots, setTakenSlots] = useState<string[]>([])
   const [sent, setSent] = useState<Sent>({})
+  const [failure, setFailure] = useState<ErrorInfo | null>(null)
   // Leads need a cabinet account (owner 2026-11-20): who is signed in, the inline sign-in step,
   // and a draft that survives the sign-in.
   const { state: me, refresh } = useCabinetUser()
@@ -166,8 +170,10 @@ export function ContactForm({
 
     setStatus('sending')
     setSlotTaken(false)
-    try {
-      const response = await fetch('/api/lead', {
+    setFailure(null)
+    {
+      const result = await fetchJson<Sent>('/api/lead', {
+        locale,
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -182,7 +188,7 @@ export function ContactForm({
           slot,
         }),
       })
-      if (response.status === 409) {
+      if (!result.ok && result.status === 409) {
         // Someone booked the same time a moment earlier: ask for another one, keep the rest.
         setTakenSlots((list) => [...list, slot])
         setSlot('')
@@ -190,14 +196,19 @@ export function ContactForm({
         setStatus('idle')
         return
       }
-      if (response.status === 401) {
+      if (!result.ok && result.status === 401) {
         // The session ended between the check and the send.
         meRef.current = { status: 'out' }
         askToSignIn()
         return
       }
-      if (!response.ok) throw new Error(String(response.status))
-      const answer = (await response.json().catch(() => ({}))) as Sent
+      if (!result.ok) {
+        // Nothing is cleared: the visitor retries with the same text.
+        setFailure(result.error)
+        setStatus('error')
+        return
+      }
+      const answer = result.data
       setSent(answer)
       clearDraft(draftStorage(window), 'lead')
       window.history.replaceState(window.history.state, '', withoutDraftFlag(window.location.pathname, window.location.search, window.location.hash))
@@ -210,9 +221,8 @@ export function ContactForm({
       track('lead_sent', { service: data.service || 'unknown' })
       trackEvent('lead_sent')
       // The cabinet shows the request and what happens next (owner 2026-11-20).
-      if (answer.cabinet) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
-    } catch {
-      setStatus('error')
+      // A queued lead stays on the «saved» text; the cabinet is one button away.
+        if (answer.cabinet && !answer.queued) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
     }
   }
 
@@ -238,7 +248,7 @@ export function ContactForm({
             <CheckCircle size={44} weight="light" className="text-accent-text" />
             <h3 className="mt-6 text-3xl font-semibold tracking-tight">{t.successTitle}</h3>
             <p className="mt-3 max-w-[40ch] leading-relaxed text-muted">
-              {sent.cabinet ? dict.leadAuth.redirecting : t.successText}
+              {sent.queued ? t.successQueued : sent.cabinet ? dict.leadAuth.redirecting : t.successText}
             </p>
             {sent.slot && (
               <p className="mt-3 max-w-[40ch] leading-relaxed text-fg">
@@ -412,13 +422,8 @@ export function ContactForm({
               </label>
             </div>
 
-            {status === 'error' && (
-              <p
-                role="alert"
-                className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
-              >
-                {t.error}
-              </p>
+            {status === 'error' && failure && (
+              <ErrorNote error={failure} locale={locale} onRetry={() => formRef.current?.requestSubmit()} />
             )}
 
             {restored && me.status === 'in' && (
@@ -434,14 +439,15 @@ export function ContactForm({
                 <ConsentText text={t.consent} href={`/${locale}/privacy`} />
               </p>
               {!authStep && (
-                <button
+                <Pending
                   type="submit"
-                  disabled={status === 'sending'}
+                  pending={status === 'sending'}
+                  pendingLabel={t.sending}
                   className={cn(buttonStyles.primary, 'md:min-w-[200px]')}
                 >
-                  {status === 'sending' ? t.sending : restored && me.status === 'in' ? dict.leadAuth.send : t.submit}
-                  {status !== 'sending' && <ArrowRight size={16} />}
-                </button>
+                  {restored && me.status === 'in' ? dict.leadAuth.send : t.submit}
+                  <ArrowRight size={16} />
+                </Pending>
               )}
             </div>
           </motion.form>

@@ -92,6 +92,32 @@ export async function open(page: Page, url: string) {
   return response
 }
 
+// The signed-in cookie for the stand-in Supabase (tests/e2e/fake-supabase.mjs, same user and shape): a
+// project at http://127.0.0.1:<port> keeps its session in `sb-127-auth-token`.
+export const FAKE_USER_ID = '00000000-0000-4000-8000-0000000000e2'
+export function fakeSessionCookie() {
+  const b64 = (v: object) => Buffer.from(JSON.stringify(v)).toString('base64url')
+  const exp = Math.floor(Date.now() / 1000) + 30 * 86400
+  const user = {
+    id: FAKE_USER_ID,
+    aud: 'authenticated',
+    role: 'authenticated',
+    email: 'anna@example.com',
+    app_metadata: { provider: 'email', providers: ['email'] },
+    user_metadata: { name: 'Анна' },
+    identities: [{ id: FAKE_USER_ID, provider: 'email' }],
+  }
+  const session = {
+    access_token: `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: FAKE_USER_ID, exp, role: 'authenticated', aud: 'authenticated' })}.fake`,
+    refresh_token: 'fake-refresh',
+    token_type: 'bearer',
+    expires_in: 30 * 86400,
+    expires_at: exp,
+    user,
+  }
+  return { name: 'sb-127-auth-token', value: `base64-${b64(session)}` }
+}
+
 // The home film (wide screens, motion allowed, WebGL) replaces the floating chat button with its own
 // travelling Fira once it is drawn, a moment after the load. Chat tests are not about the film, so they
 // open the home page with reduced motion: the plain sections and the ordinary launcher.

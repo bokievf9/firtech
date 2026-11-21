@@ -1,5 +1,6 @@
 import 'server-only'
 import { NextResponse, type NextRequest } from 'next/server'
+import { apiError } from '@/lib/api-error'
 import { checkPublicPost, visitorIp } from '@/lib/public-post'
 import { getDict } from '@/content'
 import { chatRequestSchema, wouldCreateLead } from '@/lib/chat'
@@ -13,16 +14,16 @@ import { cabinetEnabled } from '@/lib/supabase/config'
 // visitor's text is never logged.
 export const dynamic = 'force-dynamic'
 
-export async function POST(request: NextRequest) {
+async function handle(request: NextRequest) {
   const rejected = checkPublicPost(request)
-  if (rejected) return NextResponse.json({ ok: false, error: rejected.error }, { status: rejected.status })
+  if (rejected) return apiError(rejected.error, rejected.status)
   const ip = visitorIp(request.headers)
   if (chatLimited(ip)) {
-    return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
+    return apiError('rate_limited', 429)
   }
   const parsed = chatRequestSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: 'invalid' }, { status: 400 })
+    return apiError('invalid', 400)
   }
   // Anyone may chat; a lead needs an account (owner 2026-11-20). A contact sent while signed out is
   // not forwarded (HQ would turn it into a lead): the widget asks to sign in instead.
@@ -44,10 +45,25 @@ export async function POST(request: NextRequest) {
   }
   const identity = gate.ok && !parsed.data.persona ? gate.identity : null
   const answer = await askReceptionist(parsed.data, process.env, fetch, ip, identity)
-  if (!answer.ok) console.error(`[chat] receptionist unavailable: ${answer.error}`)
+  if (!answer.ok) {
+    console.error(`[chat] receptionist unavailable: ${answer.error}`)
+    return apiError(answer.error, answer.error === 'rate_limited' ? 429 : answer.error === 'hq_timeout' ? 504 : 502, {
+      'x-chat-mode': chatMode(process.env),
+    })
+  }
   return NextResponse.json(answer, {
-    status: answer.ok ? 200 : answer.error === 'rate_limited' ? 429 : 502,
+    status: 200,
     // The widget shows «Демо-режим» when the scripted mock answered.
     headers: { 'cache-control': 'no-store', 'x-chat-mode': chatMode(process.env) },
   })
+}
+
+// Anything unexpected becomes a JSON error with a status, never an empty 500 page.
+export async function POST(request: NextRequest) {
+  try {
+    return await handle(request)
+  } catch (error) {
+    console.error('[chat] unexpected failure', error instanceof Error ? error.message : 'unknown')
+    return apiError('server_error', 500)
+  }
 }

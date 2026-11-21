@@ -356,7 +356,9 @@ test('lead route: with the cabinet on, a signed-out request gets 401 and nothing
     const before = sent('sendMessage').length
     const response = await postLead({ name: 'Ali', contact: '@ali' })
     assert.equal(response.status, 401)
-    assert.deepEqual(await response.json(), { ok: false, error: 'auth_required' })
+    const failed = await response.json()
+    assert.equal(failed.ok, false)
+    assert.equal(failed.error.code, 'auth_required')
     assert.equal((await store.listLeads()).length, 0)
     assert.equal(sent('sendMessage').length, before)
     // The honeypot still answers like a success before any check.

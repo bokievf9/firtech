@@ -76,7 +76,7 @@ export function InvoicesTab({ focus }: { focus: string | null }) {
     if (next) rowRefs.current.get(next.id)?.focus()
   }
 
-  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading />
+  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading />
   if (!feed.view.available) return <div className="p-4"><Empty>{k.unavailable}</Empty></div>
   const total = (f: Filter) => items.filter((i) => (f === 'all' ? true : f === 'overdue' ? isOverdue(i, now) : i.status === f)).length
   const waiting = items.filter((i) => i.status === 'issued').reduce((s, i) => s + i.amountUsd, 0)

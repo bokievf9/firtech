@@ -3,6 +3,7 @@
 import { Check, CloudSlash, Copy } from '@phosphor-icons/react'
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { errText, hq, POLL_HIDDEN, POLL_VISIBLE } from '@/components/admin/control/api'
+import { Pending } from '@/components/ui/pending'
 import type { ToastMessage } from '@/components/admin/control/toast'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -85,7 +86,18 @@ export function useHqView<V>(
   return { view, error: view ? null : error, failed: error, stale, reload: load, mutate }
 }
 
-export function Offline({ error, onRetry }: { error: string; onRetry: () => void }) {
+export function Offline({ error, onRetry }: { error: string; onRetry: () => void | Promise<unknown> }) {
+  // The refresh button shows that it is working and ignores a second click meanwhile.
+  const [busy, setBusy] = useState(false)
+  const retry = async () => {
+    if (busy) return
+    setBusy(true)
+    try {
+      await onRetry()
+    } finally {
+      setBusy(false)
+    }
+  }
   return (
     <div role="alert" className="m-3 flex flex-wrap items-center gap-3 rounded-card border border-danger/40 bg-surface p-4 sm:m-4">
       <CloudSlash size={24} weight="duotone" aria-hidden="true" className="shrink-0 text-danger" />
@@ -93,13 +105,14 @@ export function Offline({ error, onRetry }: { error: string; onRetry: () => void
         <p className="text-sm font-medium">{h.offline}</p>
         <p className="text-xs text-muted">{errText(error)}</p>
       </div>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="inline-flex min-h-10 items-center rounded-full bg-accent px-4 text-sm font-medium text-accent-ink"
+      <Pending
+        pending={busy}
+        pendingLabel={u.loading}
+        onClick={() => void retry()}
+        className="inline-flex min-h-10 items-center gap-2 rounded-full bg-accent px-4 text-sm font-medium text-accent-ink"
       >
         {h.retry}
-      </button>
+      </Pending>
     </div>
   )
 }
@@ -108,7 +121,7 @@ export function Loading({ rows = 3 }: { rows?: number }) {
   return (
     <div className="grid gap-2 p-3 sm:p-4" role="status" aria-label={u.loading}>
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="h-16 animate-pulse rounded-xl bg-surface-2/60" />
+        <div key={i} className="skeleton skeleton-block h-16" />
       ))}
     </div>
   )

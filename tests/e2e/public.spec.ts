@@ -199,16 +199,26 @@ test('bare paths of known pages redirect to a language (contracts link /terms an
 test('home: «Попробуйте сейчас» tabs switch, the booking sample walks to the end and the chat answers in mock mode', async ({ page }) => {
   await open(page, '/ru#demo')
   const tabs = page.locator('[data-demo-tab]')
-  // One tab per product (demoTabIds): receptionist, admin, automation, content, Mini App, assistant, department.
+  // One tab per product, in the order of `demoTabIds`; the chat has six personas.
   await expect(tabs).toHaveCount(7)
-  await page.locator('[data-demo-tab="admin"]').click()
+  expect(await tabs.evaluateAll((els) => els.map((el) => el.getAttribute('data-demo-tab')))).toEqual([
+    'receptionist', 'admin', 'automation', 'content', 'miniapp', 'agent', 'implementation',
+  ])
+  await expect(page.locator('[data-niche]')).toHaveCount(6)
+  await tabs.nth(1).click()
   const booking = page.locator('[data-demo-booking]')
   await expect(booking).toContainText('ИИ-администратор')
   for (let i = 0; i < 3; i++) await booking.locator('[data-booking-option="0"]').click()
   await expect(booking).toContainText('Записал')
-  await page.locator('[data-demo-tab="content"]').click()
+  await tabs.nth(2).click()
+  await expect(page.locator('[data-demo-built="automation"]')).toBeVisible()
+  await tabs.nth(3).click()
   await expect(page.locator('[data-demo-articles] a').first()).toBeVisible()
-  await page.locator('[data-demo-tab="receptionist"]').click()
+  await tabs.nth(4).click()
+  await expect(page.locator('[data-demo-built="miniapp"]')).toBeVisible()
+  await tabs.nth(5).click()
+  await expect(page.locator('[data-demo-assistant]')).toBeVisible()
+  await tabs.nth(0).click()
   await page.locator('[data-niche="clinic"]').click()
   await page.locator('[data-demo-chat]').getByRole('button', { name: 'Работаете в выходные?' }).click()
   await expect(page.locator('[data-demo-chat]')).toContainText('Работаете в выходные?')
@@ -225,13 +235,37 @@ test('home: the ladder, six solution cards with «Все решения» and th
   await expect(page.locator('#faq [data-ask-strip]')).toContainText('Остались вопросы?')
 })
 
-test('product page: price, stage table, FAQ and the builder with the product picked', async ({ page }) => {
-  await open(page, '/ru/products/receptionist')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('ИИ-менеджер заявок')
-  await expect(page.locator('[data-stage-table] tbody tr').first()).toBeVisible()
-  await expect(page.locator('#faq button[aria-expanded]').first()).toBeVisible()
-  await page.locator('main').getByRole('link', { name: 'Собрать проект' }).first().click()
-  await expect(page).toHaveURL(/\/ru\/builder\?b=.*p\.intake/)
+test('product pages: each one has its own result headline, price, stage table, terms, objections and the builder with its product picked', async ({ page }) => {
+  const seen: { sections: string[]; h1: string }[] = []
+  for (const [id, chunk, h1, sections] of [
+    ['receptionist', 'p.intake', 'Ни одна заявка не ждёт ответа до утра', ['hero', 'demo', 'flow', 'included', 'price', 'objections', 'offer', 'scope', 'next']],
+    ['automation', 'p.automation', 'Отчёты, заявки и рассылки идут сами, а команда занимается делом', ['hero', 'before-after', 'routines', 'first', 'scope', 'included', 'price', 'offer', 'objections', 'next']],
+  ] as const) {
+    await open(page, `/ru/products/${id}`)
+    // The headline is the client's result, not the product name.
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(h1)
+    // The block order of `productPages[id].sections` (src/content/product-pages.ts).
+    const got = await page.locator('[data-product-section]').evaluateAll((els) => els.map((el) => el.getAttribute('data-product-section')!))
+    expect(got, id).toEqual(sections)
+    seen.push({ sections: got, h1: h1 })
+    // Price, term and the stage table of the product's template.
+    await expect(page.locator('[data-product-section="price"]')).toContainText('$')
+    await expect(page.locator('[data-product-section="price"] [data-product-term]')).toBeVisible()
+    await expect(page.locator('[data-stage-table] tbody tr').first()).toBeVisible()
+    // The terms block and the objections as cards; no FAQ accordion on a product page.
+    await expect(page.locator('[data-product-section="offer"]')).toBeVisible()
+    expect(await page.locator('[data-objections] li').count()).toBeGreaterThanOrEqual(2)
+    await expect(page.locator('#faq')).toHaveCount(0)
+    await expect(page.locator('main button[aria-expanded]')).toHaveCount(0)
+    // The hero button opens the builder with this product picked.
+    const build = page.locator(`[data-cta="product_page_${id}_build"]`)
+    await expect(build).toHaveAttribute('href', new RegExp(`/ru/builder\\?b=.*${chunk.replace('.', '\\.')}(?:[~-]|$)`))
+    await build.click()
+    await expect(page).toHaveURL(new RegExp(`/ru/builder\\?b=.*${chunk.replace('.', '\\.')}`))
+  }
+  // Two products must not share one template.
+  expect(seen[0]!.h1).not.toBe(seen[1]!.h1)
+  expect(seen[0]!.sections).not.toEqual(seen[1]!.sections)
 })
 
 // ---- home film and Fira (owner 2026-11-22) -------------------------------------------------------

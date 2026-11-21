@@ -28,6 +28,7 @@ const { default: en } = await import('../src/content/en.ts')
 const { articles } = await import('../src/content/blog/index.ts')
 const { kindCatalog, productCatalog } = await import('../src/content/builder-catalog.ts')
 const { stageDefs, stageTemplateIds } = await import('../src/lib/pricing.ts')
+const { solutionPromises } = await import('../src/content/solution-promises.ts')
 
 function* strings(value, at = '') {
   if (typeof value === 'string') yield [at, value]
@@ -44,6 +45,7 @@ const scopes = [
   ['ru', publicOf(ru)],
   ['en', publicOf(en)],
   ['blog', articles.map((a) => ({ ru: a.ru, en: a.en }))],
+  ['solution promises', solutionPromises],
 ]
 
 // AI tells by sentence shape.

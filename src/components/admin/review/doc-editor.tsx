@@ -209,7 +209,9 @@ export function DocEditor({
           localStorage.setItem(key, serializeDraft({ base: s, value: v, at }))
           setDraftAt(at)
         }
-      } catch {}
+      } catch {
+        // Storage blocked or full: the autosave draft is a convenience, saving still works.
+      }
     }, AUTOSAVE_MS)
     return () => window.clearInterval(id)
   }, [key])
@@ -336,7 +338,9 @@ export function DocEditor({
       setSaved(value)
       try {
         localStorage.removeItem(key)
-      } catch {}
+      } catch {
+        // Storage blocked: nothing to clean up.
+      }
       setDraftAt(null)
       if (andClose) onClose()
       return true
@@ -727,7 +731,9 @@ export function DocEditor({
             onClick={() => {
               try {
                 localStorage.removeItem(key)
-              } catch {}
+              } catch {
+                // Storage blocked: the offer is dismissed anyway.
+              }
               setOffer(null)
             }}
           >

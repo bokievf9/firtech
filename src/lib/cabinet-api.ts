@@ -29,18 +29,29 @@ export async function cabinetCaller(request: Request, opts: { post?: boolean; js
     const bad = opts.json === false ? checkSameOrigin(request) : checkPublicPost(request)
     if (bad) return { ok: false, response: reply({ ok: false, error: bad.error }, bad.status) }
   }
-  const supabase = await createClient()
-  if (!supabase) return { ok: false, response: reply({ ok: false, error: 'unavailable' }, 503) }
-  const { data } = await supabase.auth.getUser()
-  const email = data.user?.email?.toLowerCase()
-  if (!data.user || !email) return { ok: false, response: reply({ ok: false, error: 'unauthorized' }, 401) }
+  let user: { id: string; email?: string | null } | null = null
+  try {
+    const supabase = await createClient()
+    if (!supabase) return { ok: false, response: reply({ ok: false, error: 'unavailable' }, 503) }
+    // Supabase is an outside service: a hang or a throw becomes `unavailable` (503), not a bare 500.
+    const { data } = await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('supabase timeout')), 8000)),
+    ])
+    user = data.user
+  } catch (error) {
+    console.error('[cabinet] session check failed:', error instanceof Error ? error.message : 'unknown')
+    return { ok: false, response: reply({ ok: false, error: 'unavailable' }, 503) }
+  }
+  const email = user?.email?.toLowerCase()
+  if (!user || !email) return { ok: false, response: reply({ ok: false, error: 'unauthorized' }, 401) }
   const hit = ids.get(email)
-  if (hit && hit.exp > Date.now()) return { ok: true, clientId: hit.id, email, userId: data.user.id }
+  if (hit && hit.exp > Date.now()) return { ok: true, clientId: hit.id, email, userId: user.id }
   const client = await fetchClientByEmail(email)
   if (!client.ok) return { ok: false, response: reply({ ok: false, error: client.error }, client.error === 'not_found' ? 404 : 502) }
   ids.set(email, { id: client.data.client.id, exp: Date.now() + ID_TTL_MS })
   if (ids.size > 500) for (const [k, v] of ids) if (v.exp < Date.now()) ids.delete(k)
-  return { ok: true, clientId: client.data.client.id, email, userId: data.user.id }
+  return { ok: true, clientId: client.data.client.id, email, userId: user.id }
 }
 
 const statusOf: Record<HqV3Error, number> = {

@@ -3,6 +3,9 @@
 import { ArrowRight, CheckCircle, TelegramLogo } from '@phosphor-icons/react'
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import type { Dict } from '@/content'
+import { ErrorNote } from '@/components/ui/error-note'
+import { Pending } from '@/components/ui/pending'
+import { fetchJson, type ErrorInfo } from '@/lib/errors'
 import { track } from '@/lib/analytics'
 import { trackEvent } from '@/lib/track-event'
 import { isAuditContact, isAuditUrl, normalizeAuditContact, normalizeAuditUrl } from '@/lib/audit'
@@ -34,7 +37,7 @@ export function AuditForm({
   const uid = useId()
   const [status, setStatus] = useState<Status>('idle')
   const [errors, setErrors] = useState<Errors>({})
-  const [failure, setFailure] = useState('')
+  const [failure, setFailure] = useState<ErrorInfo | null>(null)
   const [mock, setMock] = useState(false)
   // The result goes to Telegram only when the contact is a @username.
   const [viaTelegram, setViaTelegram] = useState(true)
@@ -96,7 +99,7 @@ export function AuditForm({
     if (!isAuditUrl(url)) next.url = t.errors.url
     if (!isAuditContact(contact)) next.contact = t.errors.contact
     setErrors(next)
-    setFailure('')
+    setFailure(null)
     if (Object.keys(next).length) {
       form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
       return
@@ -113,9 +116,10 @@ export function AuditForm({
     }
 
     setStatus('sending')
-    try {
+    {
       const ref = refSource(storedRef())
-      const res = await fetch('/api/audit', {
+      const result = await fetchJson<{ ok?: boolean; duplicate?: boolean; mock?: boolean; cabinet?: string | null }>('/api/audit', {
+        locale,
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
@@ -127,19 +131,13 @@ export function AuditForm({
           ...(ref ? { ref } : {}),
         }),
       })
-      const body = (await res.json().catch(() => null)) as {
-        ok?: boolean
-        duplicate?: boolean
-        mock?: boolean
-        error?: string
-        cabinet?: string | null
-      } | null
-      if (res.status === 401) {
+      if (!result.ok && result.status === 401) {
         meRef.current = { status: 'out' }
         askToSignIn()
         return
       }
-      if (res.ok && body?.ok) {
+      if (result.ok) {
+        const body = result.data
         setMock(Boolean(body.mock))
         setViaTelegram(contact.startsWith('@'))
         setStatus(body.duplicate ? 'duplicate' : 'sent')
@@ -153,10 +151,7 @@ export function AuditForm({
         if (body.cabinet) window.setTimeout(() => window.location.assign(body.cabinet!), 900)
         return
       }
-      const key = body?.error && body.error in t.failures ? body.error : 'unavailable'
-      setFailure(t.failures[key as keyof typeof t.failures])
-    } catch {
-      setFailure(t.failures.network)
+      setFailure(result.error)
     }
     setStatus('idle')
   }
@@ -261,14 +256,7 @@ export function AuditForm({
         </label>
       </div>
 
-      {failure && (
-        <p
-          role="alert"
-          className="rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-sm text-danger"
-        >
-          {failure}
-        </p>
-      )}
+      {failure && <ErrorNote error={failure} locale={locale} onRetry={() => formRef.current?.requestSubmit()} />}
 
       {restored && me.status === 'in' && (
         <p role="status" className="rounded-xl border border-accent-text/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
@@ -283,14 +271,10 @@ export function AuditForm({
           <ConsentText text={t.consent} href={`/${locale}/privacy`} />
         </p>
         {!authStep && (
-          <button
-            type="submit"
-            disabled={status === 'sending'}
-            className={cn(buttonStyles.primary, 'md:min-w-[200px]')}
-          >
-            {status === 'sending' ? t.sending : t.submit}
-            {status !== 'sending' && <ArrowRight size={16} />}
-          </button>
+          <Pending type="submit" pending={status === 'sending'} pendingLabel={t.sending} className={cn(buttonStyles.primary, 'md:min-w-[200px]')}>
+            {t.submit}
+            <ArrowRight size={16} />
+          </Pending>
         )}
       </div>
     </form>

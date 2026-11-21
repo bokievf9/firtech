@@ -906,6 +906,10 @@
   animation: shimmer 1.6s linear infinite;
 }
 
+.skeleton.skeleton-block {
+  border-radius: 0.75rem;
+}
+
 /* Chat: messages slide in, the typing indicator's dots hop in turn. */
 @keyframes chat-in {
   from {
@@ -949,7 +953,36 @@
   animation-delay: 0.3s;
 }
 
+/* The one loading animation of the site: a soft ring in the accent colour, used inside buttons
+   (Pending), panels and route loading screens. Reduced motion: a still, pulsing-free ring. */
+@keyframes spinner-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  opacity: 0.85;
+  animation: spinner-turn 0.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+.spinner-lg {
+  width: 28px;
+  height: 28px;
+  color: var(--color-accent-text);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 2.4s;
+  }
   .kinetic-word,
   .kinetic-accent .kinetic-word,
   .live-dot::after,

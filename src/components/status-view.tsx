@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
+import { ErrorNote } from '@/components/ui/error-note'
+import { fetchJson, type ErrorInfo } from '@/lib/errors'
 import type { Locale } from '@/lib/i18n'
 import {
   formatStatusClock,
@@ -42,21 +44,22 @@ export function StatusView({
   const t = dict.statusPage
   const [data, setData] = useState(initial)
   const [fetchedAt, setFetchedAt] = useState(() => new Date().toISOString())
+  // A failed refresh keeps the last data on screen and says that it may be stale.
+  const [stale, setStale] = useState<ErrorInfo | null>(null)
 
   useEffect(() => {
     async function refresh() {
       if (document.hidden) return
-      try {
-        const res = await fetch('/api/status', { cache: 'no-store' })
-        const body: unknown = await res.json()
-        // The route returns the normalized shape; a broken answer never replaces good data.
-        const next = body && typeof body === 'object' ? (body as StatusData) : null
-        if (next && Array.isArray(next.services)) {
-          setData(next)
-          setFetchedAt(new Date().toISOString())
-        }
-      } catch {
-        // Keep showing the last data.
+      const result = await fetchJson<StatusData>('/api/status', { cache: 'no-store', locale })
+      if (!result.ok) {
+        setStale(result.error)
+        return
+      }
+      // The route returns the normalized shape; a broken answer never replaces good data.
+      if (Array.isArray(result.data.services)) {
+        setData(result.data)
+        setFetchedAt(new Date().toISOString())
+        setStale(null)
       }
     }
     const timer = window.setInterval(refresh, REFRESH_MS)
@@ -68,7 +71,7 @@ export function StatusView({
       window.clearInterval(timer)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [])
+  }, [locale])
 
   const state = headline(data)
   const tone = state === 'ok' ? 'up' : state === 'issue' ? 'down' : 'unknown'
@@ -153,6 +156,7 @@ export function StatusView({
         <p className="mt-4 text-muted">{data.available ? t.incidentsEmpty : t.incidentsUnavailable}</p>
       )}
 
+      {stale && <ErrorNote error={stale} locale={locale} compact className="mt-8" />}
       <div className="mt-10 grid gap-1 text-[13px] text-faint">
         <p>
           {t.updated}: {formatStatusClock(data.generatedAt ?? fetchedAt, locale)} · {t.refresh}

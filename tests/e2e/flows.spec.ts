@@ -112,7 +112,7 @@ test('API: a lead without an account is refused (401 auth_required), bad origin 
   const body = { name: 'E2E', contact: 'e2e@example.com', service: 'bots', budget: '', message: 'test', locale: 'ru', page: '/ru', estimate: '', slot: '', source: '' }
   const res = await request.post('/api/lead', { data: body, headers: { origin: baseURL! } })
   expect(res.status()).toBe(401)
-  expect((await res.json()).error).toBe('auth_required')
+  expect((await res.json()).error.code).toBe('auth_required')
   const bad = await request.post('/api/lead', { data: body, headers: { origin: 'https://evil.example' } })
   expect(bad.status()).toBe(403)
 })

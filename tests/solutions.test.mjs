@@ -61,3 +61,20 @@ test('solutions: every preset has a priced starting set', () => {
     assert.ok(q.lines.length > 0 && q.total > 0, kind)
   }
 })
+
+// Owner review 2026-11-22: the niche page headline is one promise of the result, not a description.
+test('solutions: every niche page has a promise headline in both languages, apart from the descriptive title', async () => {
+  const { solutionPromises } = await import('../src/content/solution-promises.ts')
+  const { allSolutionKinds, solutionCopy } = await import('../src/lib/solutions.ts')
+  assert.deepEqual(Object.keys(solutionPromises).sort(), [...allSolutionKinds].sort())
+  for (const [locale, dict] of [['ru', ru], ['en', en]])
+    for (const kind of allSolutionKinds) {
+      const page = solutionCopy(kind, locale, dict)
+      assert.equal(page.promise, solutionPromises[kind][locale], `${locale} ${kind}`)
+      assert.notEqual(page.promise, page.title, `${locale} ${kind}`)
+      assert.ok(page.promise.length <= 90, `${locale} ${kind} promise too long`)
+      assert.doesNotMatch(page.promise, /[–—!$]|\d/, `${locale} ${kind}`)
+    }
+  const { readFileSync } = await import('node:fs')
+  assert.match(readFileSync('src/app/[locale]/solutions/[kind]/page.tsx', 'utf8'), /\{page\.promise\}/)
+})

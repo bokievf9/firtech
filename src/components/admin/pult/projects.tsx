@@ -78,7 +78,7 @@ export function ProjectsBoard({ focus }: { focus: string | null }) {
     else replace(before)
   }
 
-  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading />
+  if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading />
   if (!feed.view.available) return <div className="p-4"><Empty>{k.unavailable}</Empty></div>
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">
@@ -130,7 +130,7 @@ function ProjectDrawer({
           }}
         />
       ) : detail.failed ? (
-        <Offline error={detail.failed} onRetry={() => void detail.reload()} />
+        <Offline error={detail.failed} onRetry={() => detail.reload()} />
       ) : (
         <Loading />
       )}
