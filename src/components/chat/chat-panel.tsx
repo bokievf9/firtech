@@ -1,6 +1,6 @@
 'use client'
 
-import { PaperPlaneRight, X } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowRight, CalendarBlank, PaperPlaneRight, X } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { track } from '@/lib/analytics'
@@ -11,13 +11,18 @@ import {
   type ChatButton,
   type ChatResponse,
   type ChatState,
+  type Persona,
 } from '@/lib/chat'
 import type { Dict } from '@/content'
 import type { Locale } from '@/lib/i18n'
+import { ctaActions, slotMessage, type ChatAction } from '@/lib/chat-cta'
+import { telegramUrl } from '@/lib/site'
 import { draftReturnPath } from '@/lib/lead-draft'
 import { AuthForms } from '../cabinet/auth-forms'
 import { fill } from '../cabinet/ui'
 import { useCabinetUser } from '../cabinet/use-cabinet-user'
+import { ChatAvatar, type ChatAvatarComponent } from './chat-avatar'
+import { ChatSlots } from './chat-slots'
 import { storedRef } from '@/lib/referral'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
@@ -29,9 +34,23 @@ type Message = {
   link?: boolean
   // «Открыть кабинет» under the message (a lead was created).
   cabinet?: boolean
+  // «Собрать проект» / «Предложить время» / Telegram under a receptionist reply.
+  actions?: ChatAction[]
+  // The founder took over: a calm line under the reply.
+  handoff?: boolean
+  // The visitor's message that did not reach the receptionist: «Повторить» sends it again.
+  failed?: { payload: string }
 }
 // `needAuth`: the site refused to pass a contact on while signed out (owner 2026-11-20).
-type Saved = { sessionId: string; messages: Message[]; state: ChatState; mock: boolean; needAuth?: boolean }
+type Saved = {
+  sessionId: string
+  messages: Message[]
+  state: ChatState
+  mock: boolean
+  needAuth?: boolean
+  // HQ marked the session as a demo (a fictional business, no lead).
+  demo?: boolean
+}
 
 const STORE_KEY = 'firtech-chat-v1'
 // Client-side pace: one message per 2 s (the route also limits each IP to 30 an hour).
@@ -75,12 +94,18 @@ export default function ChatPanel({
   locale,
   dict,
   contactHref,
+  avatar: Avatar = ChatAvatar,
+  persona,
 }: {
   open: boolean
   onClose: () => void
   locale: Locale
   dict: Dict
   contactHref: string
+  // The header avatar slot: the flat Fira now, a 3D one later.
+  avatar?: ChatAvatarComponent
+  // Set when the chat is opened as a demo of a niche (salon, clinic, shop).
+  persona?: Persona
 }) {
   const copy = dict.chat
   const { state: me, refresh } = useCabinetUser()
@@ -97,6 +122,7 @@ export default function ChatPanel({
   const [pending, setPending] = useState(false)
   const [text, setText] = useState('')
   const [hint, setHint] = useState('')
+  const [callFor, setCallFor] = useState<string | null>(null)
   const chatRef = useRef(chat)
 
   useEffect(() => {
@@ -105,7 +131,7 @@ export default function ChatPanel({
   }, [chat])
 
   const send = useCallback(
-    async (message: string, shown: string | null) => {
+    async (message: string, shown: string | null, retryId?: string) => {
       // The pace applies to the visitor's own messages; the greeting request does not count.
       if (shown !== null) {
         const now = Date.now()
@@ -118,10 +144,14 @@ export default function ChatPanel({
       busy.current = true
       setHint('')
       setPending(true)
+      const myId = uuid()
       if (shown) {
         setChat((c) => ({
           ...c,
-          messages: [...c.messages, { id: uuid(), from: 'me', text: shown }],
+          messages: [
+            ...c.messages.filter((m) => m.id !== retryId),
+            { id: myId, from: 'me', text: shown },
+          ],
         }))
       }
       let mock = chatRef.current.mock
@@ -137,6 +167,7 @@ export default function ChatPanel({
             message,
             page: window.location.pathname,
             ...(storedRef() ? { ref: storedRef() } : {}),
+            ...(persona ? { persona } : {}),
           }),
         })
         status = res.status
@@ -149,24 +180,38 @@ export default function ChatPanel({
       setPending(false)
       setChat((c) => {
         if (answer.ok) {
+          const actions = ctaActions(answer, telegramUrl)
           return {
             ...c,
             mock,
             state: answer.state,
             needAuth: answer.authRequired === true,
+            demo: answer.demo === true || persona !== undefined,
             messages: [
               ...c.messages,
               ...(answer.ownerReplies ?? []).map((text): Message => ({ id: uuid(), from: 'owner', text })),
-              { id: uuid(), from: 'bot', text: answer.reply, buttons: answer.buttons },
+              {
+                id: uuid(),
+                from: 'bot',
+                text: answer.reply,
+                buttons: answer.buttons,
+                ...(actions.length ? { actions } : {}),
+                ...(answer.handoff ? { handoff: true } : {}),
+              },
               ...(answer.leadCreated ? [{ id: uuid(), from: 'sys' as const, text: copy.leadInCabinet, cabinet: true }] : []),
             ],
           }
         }
         const limited = status === 429 || answer.error === 'rate_limited'
+        // The greeting never reached the visitor: the dictionary line stands in for it.
+        if (shown === null && c.messages.length === 0) {
+          return { ...c, messages: [{ id: uuid(), from: 'bot', text: copy.greeting }] }
+        }
         return {
           ...c,
           messages: [
-            ...c.messages,
+            // The visitor's bubble stays and offers a retry instead of vanishing.
+            ...c.messages.map((m) => (m.id === myId && shown ? { ...m, failed: { payload: message } } : m)),
             { id: uuid(), from: 'sys', text: limited ? copy.rateLimited : copy.error, link: true },
           ],
         }
@@ -175,7 +220,7 @@ export default function ChatPanel({
         track('chat_state', { state: answer.state })
       return true
     },
-    [copy.error, copy.leadInCabinet, copy.rateLimited, copy.tooFast, locale],
+    [copy.error, copy.greeting, copy.leadInCabinet, copy.rateLimited, copy.tooFast, locale, persona],
   )
 
   // The greeting: the first open of a session asks HQ (or the mock) to start.
@@ -249,11 +294,35 @@ export default function ChatPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queued, pending])
 
+  const retry = (m: Message) => {
+    if (!m.failed || busy.current) return
+    lastSent.current = 0
+    // The error line that followed the failed bubble goes away with it.
+    setChat((c) => ({ ...c, messages: c.messages.filter((x) => !(x.from === 'sys' && x.link)) }))
+    void send(m.failed.payload, m.text, m.id)
+  }
+  // «Сбросить демо»: a fresh session and a fresh greeting.
+  const resetDemo = () => {
+    if (busy.current) return
+    const next: Saved = { sessionId: uuid(), messages: [], state: 'chat', mock: chatRef.current.mock, demo: true }
+    chatRef.current = next
+    setChat(next)
+    setCallFor(null)
+    void send(START, null)
+  }
+  const pickSlot = (label: string) => {
+    setCallFor(null)
+    lastSent.current = 0
+    const message = slotMessage(copy.slots.message, label)
+    void send(message, message)
+  }
+
   const lastBot = [...chat.messages].reverse().find((m) => m.from !== 'me')
   const chips = !pending && lastBot?.from === 'bot' ? (lastBot.buttons ?? []) : []
   // HQ asks for a contact (or the site refused one): a signed-out visitor signs in right here, a
   // signed-in one sends the request with the account email in one tap.
-  const wantsContact = !pending && (chat.state === 'contact' || chat.needAuth === true)
+  // A demo never shows the sign-in gate: it takes no contacts and creates no lead.
+  const wantsContact = !pending && !chat.demo && (chat.state === 'contact' || chat.needAuth === true)
   const askSignIn = wantsContact && me.status === 'out'
   const sendAs = wantsContact && me.status === 'in' ? me.user.email : null
 
@@ -274,8 +343,8 @@ export default function ChatPanel({
           className="print-hidden glass bg-glass-strong fixed inset-x-2 top-[max(0.5rem,env(safe-area-inset-top))] bottom-2 z-50 flex flex-col overflow-hidden rounded-panel sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:h-[min(600px,calc(100dvh-3rem))] sm:w-[400px]"
         >
           <header className="flex items-center gap-3 px-5 pt-4 pb-3">
-            <span className="relative grid size-10 shrink-0 place-items-center rounded-full bg-pine font-display text-sm font-bold text-accent-text">
-              AI
+            <span className="relative grid size-10 shrink-0 place-items-center rounded-full bg-pine">
+              <Avatar talking={pending} size={28} />
               <span
                 className="live-dot absolute -right-0.5 -bottom-0.5 border-2 border-bg"
                 aria-hidden="true"
@@ -284,12 +353,16 @@ export default function ChatPanel({
             <div className="min-w-0 flex-1">
               <h2
                 id={titleId}
-                className="truncate font-display text-base font-semibold tracking-tight"
+                className="font-display text-[15px] leading-tight font-semibold tracking-tight sm:text-base"
               >
                 {copy.title}
               </h2>
               <p className="truncate text-xs text-muted">
-                {chat.mock ? copy.mockNote : copy.subtitle}
+                {me.status === 'in'
+                  ? fill(copy.signedInAs, { name: me.user.name || me.user.email })
+                  : chat.mock
+                    ? copy.mockNote
+                    : copy.subtitle}
               </p>
             </div>
             <button
@@ -302,6 +375,24 @@ export default function ChatPanel({
             </button>
           </header>
           <div className="hairline" />
+          {chat.demo ? (
+            <div className="flex items-center justify-between gap-2 px-5 pt-3">
+              <span
+                data-chat-demo
+                className="inline-flex items-center rounded-full border border-accent-text/40 bg-accent/10 px-3 py-1 text-xs text-fg"
+              >
+                {copy.demoChip[persona ?? 'salon']}
+              </span>
+              <button
+                type="button"
+                onClick={resetDemo}
+                className="inline-flex items-center gap-1 text-xs text-muted underline-offset-4 transition-colors hover:text-fg hover:underline"
+              >
+                <ArrowClockwise size={12} aria-hidden="true" />
+                {copy.demoReset}
+              </button>
+            </div>
+          ) : null}
 
           <ol
             ref={listRef}
@@ -355,6 +446,69 @@ export default function ChatPanel({
                     >
                       {copy.contact}
                     </a>
+                  ) : null}
+                  {m.handoff ? (
+                    <span data-chat-handoff className="mt-2 block text-[13px] text-muted">
+                      {copy.handoff}
+                    </span>
+                  ) : null}
+                  {m.actions?.length ? (
+                    <span className="mt-3 flex flex-wrap items-center gap-2">
+                      {m.actions.map((a) =>
+                        a.kind === 'builder' ? (
+                          <a
+                            key="builder"
+                            href={a.href}
+                            data-chat-cta="builder"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition-[background-color,transform] duration-200 hover:bg-accent-strong active:scale-[0.97]"
+                          >
+                            {copy.buildProject}
+                            <ArrowRight size={14} weight="bold" aria-hidden="true" />
+                          </a>
+                        ) : a.kind === 'call' ? (
+                          <button
+                            key="call"
+                            type="button"
+                            data-chat-cta="call"
+                            aria-expanded={callFor === m.id}
+                            onClick={() => setCallFor((v) => (v === m.id ? null : m.id))}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-accent-text/50 px-3.5 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent-text hover:bg-accent/10 active:scale-[0.97]"
+                          >
+                            <CalendarBlank size={15} aria-hidden="true" />
+                            {copy.offerCall}
+                          </button>
+                        ) : (
+                          <a
+                            key="telegram"
+                            href={a.href}
+                            data-chat-cta="telegram"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[13px] text-muted underline-offset-4 transition-colors hover:text-fg hover:underline"
+                          >
+                            {copy.telegramLast}
+                          </a>
+                        ),
+                      )}
+                    </span>
+                  ) : null}
+                  {callFor === m.id ? (
+                    <ChatSlots
+                      copy={copy.slots}
+                      locale={locale}
+                      onPick={pickSlot}
+                      onCancel={() => setCallFor(null)}
+                    />
+                  ) : null}
+                  {m.failed ? (
+                    <button
+                      type="button"
+                      onClick={() => retry(m)}
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-bg/25 px-2.5 py-1 text-xs font-medium text-accent-ink transition-transform active:scale-[0.97]"
+                    >
+                      <ArrowClockwise size={12} aria-hidden="true" />
+                      {copy.notSent}. {copy.retry}
+                    </button>
                   ) : null}
                 </div>
               </li>

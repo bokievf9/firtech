@@ -104,6 +104,14 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
     [call, copy, niche, pending, push],
   )
 
+  // «Сбросить демо»: this niche starts over with a new session.
+  function reset() {
+    if (pending) return
+    delete sessions.current[niche]
+    setThreads((all) => ({ ...all, [niche]: [] }))
+    setButtons([])
+  }
+
   function submit(e: React.FormEvent) {
     e.preventDefault()
     const value = text.trim()
@@ -145,6 +153,22 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
 
       <div className="lg:col-span-7">
         <div className="glass flex h-[26rem] flex-col overflow-hidden rounded-panel" data-demo-chat>
+          <div className="flex items-center justify-between gap-2 border-b border-glass-line px-4 py-2.5">
+            <span
+              data-chat-demo
+              className="inline-flex items-center rounded-full border border-accent-text/40 bg-accent/10 px-3 py-1 text-xs text-fg"
+            >
+              {copy.chips[niche]}
+            </span>
+            <button
+              type="button"
+              onClick={reset}
+              disabled={pending || messages.length === 0}
+              className="text-xs text-muted underline-offset-4 transition-colors hover:text-fg hover:underline disabled:opacity-40"
+            >
+              {copy.reset}
+            </button>
+          </div>
           <ol ref={listRef} aria-live="polite" className="grid flex-1 content-start gap-2.5 overflow-y-auto p-4">
             {messages.length === 0 && (
               <li className="text-sm text-faint">{copy.empty}</li>

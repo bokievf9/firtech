@@ -123,6 +123,22 @@ and `chat_state` (never the text). Mock (`createMockReceptionist`, copy `chat.mo
 deadline, budget, contact, «Спасибо, вернёмся в течение рабочего дня»; development only, never
 creates a lead.
 
+## Чат 2.0: ИИ-менеджер заявок (2026-11-22)
+Второй главный вход после «Собрать проект»: толкает сборку, предлагает звонок, Telegram только последним.
+- Ответ HQ несёт `builderLink`, `cta` (`builder|call|telegram`), `handoff`, `demo`, `ownerReplies` (разбор в `sanitizeReply`, `lib/chat.ts`).
+  Ссылка на сборку проходит `safeBuilderLink`: только `/ru|en/builder` этого сайта, всегда относительная, открывается в той же вкладке.
+- Кнопки под сообщением (`lib/chat-cta.ts`, `ctaActions`): основная «Собрать проект», вторая «Предложить время» (раскрывает список окон из
+  `GET /api/slots` внутри сообщения; выбор уходит следующим сообщением «Мне удобно: ...»), мелкая ссылка на Telegram только если HQ её
+  предложил, `handoff` = спокойная строка «Передал основателю, ответит здесь или в кабинете».
+- Личность: аккаунт берётся на сервере из сессии кабинета (`clientEmail`, `cabinetId`, `clientName` в теле к HQ, браузер их не шлёт);
+  в шапке «Вы вошли как {имя}». Заголовок «ИИ-менеджер заявок Fir Tech», слова «бот» в тексте чата нет (тест).
+- Демо: вкладка на главной шлёт `persona`, ответ с `demo: true` включает плашку «Демо: вымышленный салон» и «Сбросить демо» (новая сессия);
+  демо не показывает вход (контакт отвечает сам маршрут, `demo: true`).
+- Аватар в шапке: слот (`chat-avatar.tsx`), по умолчанию плоский Fira (вариант A, SVG, 28 px): `talking` пока идёт ответ, иначе `idle`.
+  Пропс `avatar` панели заменит его на 3D позже; three.js в виджет не попадает.
+- Качество: Enter отправляет, Shift+Enter перенос, сообщение появляется сразу, при сбое остаётся с «Не отправлено. Повторить»;
+  первое сообщение от HQ, при сбое приветствие из словаря (`chat.greeting`); на телефоне панель на всю высоту.
+
 ## For stage B
 - Rebuild the sections below the hero into 8, each in a different layout family, using
   `font-display` + `text-title` for titles, `text-lead`, `py-section`, `.glass` only where it sits

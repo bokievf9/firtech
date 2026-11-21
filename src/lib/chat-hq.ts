@@ -9,7 +9,7 @@ import { createMockReceptionist, sanitizeReply, type ChatRequest, type ChatRespo
 //   POST ${HQ_CHAT_URL}   (default http://127.0.0.1:8787/chat)
 //   x-chat-token: ${HQ_CHAT_TOKEN}  (falls back to LEAD_INTAKE_TOKEN)
 //   x-visitor-ip: the visitor's address (HQ's per-IP limit), only when a proxy gave one
-//   { sessionId, locale, message, page, ref?, clientEmail?, cabinetId?, clientName? }
+//   { sessionId, locale, text, message (one more release), page, persona?, ref?, clientEmail?, cabinetId?, clientName? }
 // Without HQ_CHAT_URL in development the scripted mock answers, so the widget can be reviewed
 // locally. Production always talks to HQ (loopback default): a mock there would collect contacts
 // that nobody reads.
@@ -45,15 +45,16 @@ export async function askReceptionist(
       body: JSON.stringify({
         sessionId: req.sessionId,
         locale: req.locale,
+        // `text` is HQ's name for the visitor's words; `message` stays for one release.
+        text: req.message,
         message: req.message,
         page: req.page,
-        // HQ's chatSchema is not strict, so an unknown `ref` is ignored today; HQ reads it later.
-        // TODO(agents): add `ref` to chatSchema and attribute web-chat leads.
+        // Referral slug: becomes `source: ref:<slug>` of a lead.
         ...(req.ref ? { ref: req.ref } : {}),
-        // The demo niche (salon, clinic, shop). Ignored by HQ until it reads it: TODO(agents) in chat.ts.
+        // The demo niche (salon, clinic, shop): HQ answers as that fictional business, `demo: true`.
         ...(req.persona ? { persona: req.persona } : {}),
-        // The signed-in cabinet account, so a lead from the chat lands in that client's cabinet.
-        // HQ's chatSchema is not strict: ignored until HQ reads it.
+        // The signed-in cabinet account (clientEmail, cabinetId, clientName, taken from the session
+        // on the server, never from the browser): HQ routes the visitor to their own thread.
         ...identityFields(identity),
       }),
       cache: 'no-store',

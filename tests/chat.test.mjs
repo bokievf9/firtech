@@ -26,6 +26,7 @@ const chat = await import('../src/lib/chat.ts')
 const hq = await import('../src/lib/chat-hq.ts')
 const { getDict } = await import('../src/content/index.ts')
 const route = await import('../src/app/api/chat/route.ts')
+const cta = await import('../src/lib/chat-cta.ts')
 
 const SID = '6f1c2b3a-4d5e-4f60-8a7b-9c0d1e2f3a4b'
 let ipSeq = 0
@@ -166,7 +167,7 @@ test('HQ mode: contract request with the chat token, LEAD_INTAKE_TOKEN as fallba
   assert.deepEqual(answer, { ok: true, reply: 'Здравствуйте!', buttons: [{ id: 'site', label: 'Сайт' }], state: 'chat' })
   assert.equal(calls[0].url, 'http://hq.test/chat')
   assert.equal(calls[0].headers['x-chat-token'], 'chat-tok')
-  assert.deepEqual(calls[0].body, { sessionId: SID, locale: 'ru', message: 'Привет', page: '/ru' })
+  assert.deepEqual(calls[0].body, { sessionId: SID, locale: 'ru', text: 'Привет', message: 'Привет', page: '/ru' })
 
   await hq.askReceptionist(r, { HQ_CHAT_URL: 'http://hq.test/chat', LEAD_INTAKE_TOKEN: 'lead-tok' }, fetcher)
   assert.equal(calls[1].headers['x-chat-token'], 'lead-tok')
@@ -219,4 +220,103 @@ test('first-reply promise is one sentence everywhere: 5 minutes, no «рабоч
   assert.match(getDict('ru').cabinet.leads.pending, /5 минут/)
   assert.match(getDict('en').cabinet.leads.pending, /5 minutes/)
   assert.match(getDict('ru').auditPage.successText, /рабочего дня/)
+})
+
+// ---- receptionist 2.0: builder link, offers, handoff, demo, identity ----------------------------
+
+const hqReply = {
+  ok: true,
+  reply: 'Могу собрать проект под вас: вот ссылка. Или предложу время для звонка.',
+  state: 'chat',
+  builderLink: 'https://firtech.pro/ru/builder?b=k.salon~p.adminbot~g.booking',
+  cta: ['builder', 'call', 'telegram', 'junk'],
+  handoff: true,
+  demo: true,
+}
+
+test('reply parsing keeps builderLink (as a relative path), cta, handoff and demo', () => {
+  const clean = chat.sanitizeReply(hqReply)
+  assert.equal(clean.builderLink, '/ru/builder?b=k.salon~p.adminbot~g.booking')
+  assert.deepEqual(clean.cta, ['builder', 'call', 'telegram'])
+  assert.equal(clean.handoff, true)
+  assert.equal(clean.demo, true)
+  const plain = chat.sanitizeReply({ ok: true, reply: 'Привет', state: 'chat', handoff: 'yes', cta: 'builder' })
+  assert.equal('builderLink' in plain, false)
+  assert.equal('cta' in plain, false)
+  assert.equal('handoff' in plain, false)
+  assert.equal('demo' in plain, false)
+})
+
+test('builderLink: only this site\'s builder survives', () => {
+  assert.equal(chat.safeBuilderLink('/en/builder?b=k.shop'), '/en/builder?b=k.shop')
+  assert.equal(chat.safeBuilderLink('https://www.firtech.pro/ru/builder'), '/ru/builder')
+  for (const bad of ['https://evil.test/ru/builder', 'javascript:alert(1)', '//evil.test/ru/builder', '/ru/admin', 'https://firtech.pro/ru/cabinet', 42, null]) {
+    assert.equal(chat.safeBuilderLink(bad), null, String(bad))
+  }
+})
+
+test('cta mapping: builder first, call second, Telegram last and only when present', () => {
+  const reply = chat.sanitizeReply(hqReply)
+  assert.deepEqual(cta.ctaActions(reply, 'https://t.me/firtech_bot').map((a) => a.kind), ['builder', 'call', 'telegram'])
+  assert.deepEqual(cta.ctaActions(reply, null).map((a) => a.kind), ['builder', 'call'])
+  assert.deepEqual(cta.ctaActions({ cta: ['call'] }, 'https://t.me/x').map((a) => a.kind), ['call'])
+  // No link, no builder button, even when HQ lists the offer.
+  assert.deepEqual(cta.ctaActions({ cta: ['builder'] }, null), [])
+  assert.deepEqual(cta.ctaActions({}, 'https://t.me/x'), [])
+  assert.equal(cta.ctaActions(reply, null)[0].href, '/ru/builder?b=k.salon~p.adminbot~g.booking')
+  assert.equal(cta.slotMessage('Мне удобно: {time}', 'пт 22.11, 15:00'), 'Мне удобно: пт 22.11, 15:00')
+})
+
+test('HQ payload: persona, ref and the signed-in identity travel with text and message', async () => {
+  let body
+  const fetcher = async (_url, init) => {
+    body = JSON.parse(init.body)
+    return Response.json(hqReply)
+  }
+  const r = chat.chatRequestSchema.parse(req('Привет', { persona: 'salon', ref: 'dilnoza-77' }))
+  const identity = { clientEmail: 'anvar@example.com', cabinetId: 'sb-1', clientName: 'Анвар' }
+  const answer = await hq.askReceptionist(r, { HQ_CHAT_URL: 'http://hq.test/chat' }, fetcher, undefined, identity)
+  assert.equal(body.text, 'Привет')
+  assert.equal(body.message, 'Привет')
+  assert.equal(body.persona, 'salon')
+  assert.equal(body.ref, 'dilnoza-77')
+  assert.equal(body.clientEmail, 'anvar@example.com')
+  assert.equal(body.cabinetId, 'sb-1')
+  assert.equal(body.clientName, 'Анвар')
+  assert.equal(answer.builderLink, '/ru/builder?b=k.salon~p.adminbot~g.booking')
+  await hq.askReceptionist(chat.chatRequestSchema.parse(req('Привет')), { HQ_CHAT_URL: 'http://hq.test/chat' }, fetcher)
+  for (const key of ['clientEmail', 'cabinetId', 'clientName', 'persona', 'ref']) assert.equal(key in body, false, key)
+})
+
+test('route: a demo contact is answered by the route with demo: true, never forwarded', async () => {
+  process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://x.supabase.co'
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon'
+  try {
+    const body = await (await post(req('@alice_b', { persona: 'salon' }))).json()
+    assert.equal(body.demo, true)
+    assert.equal(body.state, 'chat')
+    assert.notEqual(body.authRequired, true, 'the demo never shows the sign-in gate')
+    assert.equal(body.reply, getDict('ru').demoSection.receptionist.noContacts)
+  } finally {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  }
+})
+
+test('the mock marks a persona session as a demo', async () => {
+  const body = await (await post(req(chat.START, { persona: 'clinic', sessionId: '11111111-2222-4333-8444-777777777777' }))).json()
+  assert.equal(body.demo, true)
+})
+
+test('the receptionist is «ИИ-менеджер заявок», never a bot, in the chat copy', () => {
+  const words = (value) => (typeof value === 'string' ? [value] : value && typeof value === 'object' ? Object.values(value).flatMap(words) : [])
+  for (const locale of ['ru', 'en']) {
+    const copy = getDict(locale).chat
+    assert.match(copy.title, locale === 'ru' ? /^ИИ-менеджер заявок Fir Tech$/ : /^Fir Tech AI request manager$/)
+    for (const text of words(copy)) {
+      assert.doesNotMatch(text, /бот|\bbots?\b/i, `${locale}: ${text}`)
+    }
+    assert.match(copy.greeting, locale === 'ru' ? /ИИ-менеджер заявок/ : /AI request manager/)
+    assert.match(copy.handoff, locale === 'ru' ? /Передал основателю, ответит здесь или в кабинете/ : /founder/)
+  }
 })

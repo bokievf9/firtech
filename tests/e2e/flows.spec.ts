@@ -270,3 +270,101 @@ test('chat: Enter sends right after opening (queued behind the greeting), Shift+
   await expect(box).toHaveValue('')
   await expect(dialog).toContainText('Когда хотите запуститься?')
 })
+
+// ---- receptionist 2.0 ----------------------------------------------------------------------------
+
+const hqAnswer = {
+  ok: true,
+  reply: 'Похоже, вам подойдёт ИИ-администратор. Соберите проект: цену и срок увидите сразу. Или предложу время для звонка.',
+  state: 'chat',
+  builderLink: 'https://firtech.pro/ru/builder?b=k.salon~p.adminbot~g.booking',
+  cta: ['builder', 'call', 'telegram'],
+  handoff: true,
+}
+
+test('chat: a reply with builderLink and cta shows the builder button, the call picker and the handoff line', async ({ page }) => {
+  const errors = watchErrors(page)
+  let calls = 0
+  const sent: string[] = []
+  await page.route('**/api/chat', async (route) => {
+    calls++
+    const body = route.request().postDataJSON() as { message: string }
+    sent.push(body.message)
+    await route.fulfill({
+      json: calls === 1 ? { ok: true, reply: 'Здравствуйте. Я ИИ-менеджер заявок Fir Tech.', state: 'chat' } : hqAnswer,
+      headers: { 'x-chat-mode': 'hq' },
+    })
+  })
+  await open(page, '/ru')
+  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
+  const dialog = page.locator('[role=dialog]')
+  await expect(dialog.getByRole('heading', { name: 'ИИ-менеджер заявок Fir Tech' })).toBeVisible()
+  await expect(dialog).toContainText('Я ИИ-менеджер заявок Fir Tech.')
+  await dialog.locator('textarea').fill('У меня салон, нужна запись клиентов')
+  await dialog.locator('textarea').press('Enter')
+  const build = dialog.locator('[data-chat-cta=builder]')
+  await expect(build).toHaveText('Собрать проект')
+  // The link stays on this site, relative, and opens in the same tab.
+  await expect(build).toHaveAttribute('href', '/ru/builder?b=k.salon~p.adminbot~g.booking')
+  await expect(build).not.toHaveAttribute('target', /.+/)
+  await expect(dialog.locator('[data-chat-handoff]')).toHaveText('Передал основателю, ответит здесь или в кабинете')
+  await expect(dialog.locator('[data-chat-cta=telegram]')).toBeVisible()
+  // The call picker: free slots inline, the chosen one goes out as the next message.
+  await dialog.locator('[data-chat-cta=call]').click()
+  const picker = dialog.locator('[data-chat-slots]')
+  await expect(picker).toBeVisible()
+  const firstTime = picker.locator('input[name=chatSlot]').first()
+  await expect(firstTime).toBeAttached()
+  await picker.locator('input[name=chatSlot] + span').first().click()
+  await picker.getByRole('button', { name: 'Выбрать это время' }).click()
+  await expect(picker).toBeHidden()
+  await expect(dialog).toContainText('Мне удобно:')
+  expect(sent.at(-1)).toMatch(/^Мне удобно: /)
+  expect(errors).toEqual([])
+})
+
+test('chat: a failed message keeps its bubble and retries', async ({ page }) => {
+  let fail = true
+  await page.route('**/api/chat', async (route) => {
+    const body = route.request().postDataJSON() as { message: string }
+    if (body.message !== '/start' && fail) {
+      fail = false
+      return route.abort()
+    }
+    await route.fulfill({ json: { ok: true, reply: body.message === '/start' ? 'Здравствуйте.' : 'Принял.', state: 'chat' } })
+  })
+  await open(page, '/ru')
+  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
+  const dialog = page.locator('[role=dialog]')
+  await dialog.locator('textarea').fill('Привет')
+  await dialog.locator('textarea').press('Enter')
+  await expect(dialog.getByRole('button', { name: /Не отправлено/ })).toBeVisible()
+  await dialog.getByRole('button', { name: /Не отправлено/ }).click()
+  await expect(dialog).toContainText('Принял.')
+  await expect(dialog.getByRole('button', { name: /Не отправлено/ })).toHaveCount(0)
+})
+
+test('chat: a demo reply shows the demo chip and the reset, and never the sign-in step', async ({ page }) => {
+  await page.route('**/api/chat', async (route) => {
+    await route.fulfill({ json: { ok: true, reply: 'Здравствуйте, это салон «Лилия».', state: 'contact', demo: true } })
+  })
+  await open(page, '/ru')
+  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
+  const dialog = page.locator('[role=dialog]')
+  await expect(dialog.locator('[data-chat-demo]')).toHaveText('Демо: вымышленный салон')
+  await expect(dialog.locator('[data-chat-auth]')).toHaveCount(0)
+  await dialog.getByRole('button', { name: 'Сбросить демо' }).first().click()
+  await expect(dialog.locator('[data-chat-demo]')).toBeVisible()
+})
+
+test('home demo tab: the chip names the niche and «Сбросить демо» clears the conversation', async ({ page }) => {
+  await open(page, '/ru#demo')
+  const demo = page.locator('[data-demo-chat]')
+  await expect(demo.locator('[data-chat-demo]')).toHaveText('Демо: вымышленный салон')
+  await page.locator('[data-niche="clinic"]').click()
+  await expect(demo.locator('[data-chat-demo]')).toHaveText('Демо: вымышленная клиника')
+  await demo.getByRole('button', { name: 'Работаете в выходные?' }).click()
+  await expect(demo.locator('li').nth(1)).toBeVisible()
+  await demo.getByRole('button', { name: 'Сбросить демо' }).click()
+  await expect(demo.getByText('Работаете в выходные?', { exact: true }).and(demo.locator('li'))).toHaveCount(0)
+})

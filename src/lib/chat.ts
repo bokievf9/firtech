@@ -16,11 +16,21 @@ export const btnMessage = (id: string) => `/btn ${id}`
 
 export type ChatState = 'chat' | 'intake' | 'contact' | 'done'
 export type ChatButton = { id: string; label: string }
+export type ChatCta = 'builder' | 'call' | 'telegram'
+export const CTAS: readonly ChatCta[] = ['builder', 'call', 'telegram']
 export type ChatReply = {
   ok: true
   reply: string
   buttons?: ChatButton[]
   state: ChatState
+  // The builder link HQ offered (checked by safeBuilderLink: always a relative /ru|en/builder path).
+  builderLink?: string
+  // Which offers this reply carries, in order: builder, call, telegram (see chat-cta.ts).
+  cta?: ChatCta[]
+  // The visitor asked for a person: the founder takes over.
+  handoff?: boolean
+  // A demo session (persona): nothing is saved, no lead.
+  demo?: boolean
   leadCreated?: boolean
   // Replies the owner wrote from the пульт (lead reply via 'web'), delivered with the next answer.
   ownerReplies?: string[]
@@ -56,9 +66,8 @@ export const chatRequestSchema = z.object({
     .max(300)
     .transform((p) => (p.startsWith('/') ? p.split(/[?#]/)[0]!.slice(0, 200) : '/')),
   // The niche the visitor picked in the #demo tab «ИИ-менеджер заявок» (owner 2026-11-22). Passed on to
-  // HQ as `persona`; HQ's chatSchema is not strict, so it is ignored today. TODO(agents): read
-  // `persona` in the receptionist and answer as the first line of that niche. A request with a
-  // persona never creates a lead (the route answers contacts itself).
+  // HQ as `persona` (HQ answers as that fictional business and returns `demo: true`). A request
+  // with a persona never creates a lead (the route answers contacts itself).
   persona: z.enum(personas).optional(),
   // Referral slug (sanitized by the site, see referral.ts).
   ref: z
@@ -68,6 +77,21 @@ export const chatRequestSchema = z.object({
 })
 
 export type ChatRequest = z.infer<typeof chatRequestSchema>
+
+// HQ's builder link is shown as a button that opens in the same tab: only a /ru|en/builder path of
+// this site survives (relative, or absolute on firtech.pro), anything else is dropped.
+export function safeBuilderLink(value: unknown): string | null {
+  if (typeof value !== 'string' || value.length > 600) return null
+  let url: URL
+  try {
+    url = new URL(value, 'https://firtech.pro')
+  } catch {
+    return null
+  }
+  if (url.hostname !== 'firtech.pro' && url.hostname !== 'www.firtech.pro') return null
+  if (!/^\/(ru|en)\/builder\/?$/.test(url.pathname)) return null
+  return `${url.pathname}${url.search}`
+}
 
 const STATES: readonly ChatState[] = ['chat', 'intake', 'contact', 'done']
 const BUTTON_ID = /^[a-z0-9_.:-]{1,40}$/i
@@ -100,11 +124,19 @@ export function sanitizeReply(body: unknown): ChatResponse | null {
         .filter(Boolean)
         .slice(0, 5)
     : []
+  const builderLink = safeBuilderLink(b.builderLink)
+  const cta = Array.isArray(b.cta)
+    ? CTAS.filter((c) => (b.cta as unknown[]).includes(c))
+    : []
   return {
     ok: true,
     reply,
     ...(buttons.length ? { buttons } : {}),
     state,
+    ...(builderLink ? { builderLink } : {}),
+    ...(cta.length ? { cta } : {}),
+    ...(b.handoff === true ? { handoff: true } : {}),
+    ...(b.demo === true ? { demo: true } : {}),
     ...(b.leadCreated === true ? { leadCreated: true } : {}),
     ...(ownerReplies.length ? { ownerReplies } : {}),
   }
@@ -163,9 +195,14 @@ export function createMockReceptionist(now: () => number = Date.now) {
   }
 
   return function reply(
-    req: Pick<ChatRequest, 'sessionId' | 'message'>,
+    req: Pick<ChatRequest, 'sessionId' | 'message'> & { persona?: Persona },
     copy: MockCopy,
   ): ChatReply {
+    const out = answer(req, copy)
+    return req.persona ? { ...out, demo: true } : out
+  }
+
+  function answer(req: Pick<ChatRequest, 'sessionId' | 'message'>, copy: MockCopy): ChatReply {
     const t = now()
     sweep(t)
     const msg = req.message.trim()

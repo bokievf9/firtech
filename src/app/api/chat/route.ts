@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   // forwarded, and the signed-in identity is not attached.
   if (parsed.data.persona && wouldCreateLead(parsed.data.message)) {
     return NextResponse.json(
-      { ok: true, reply: getDict(parsed.data.locale).demoSection.receptionist.noContacts, state: 'chat' },
+      { ok: true, reply: getDict(parsed.data.locale).demoSection.receptionist.noContacts, state: 'chat', demo: true },
       { headers: { 'cache-control': 'no-store', 'x-chat-mode': chatMode(process.env) } },
     )
   }
