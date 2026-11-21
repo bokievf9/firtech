@@ -102,6 +102,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   // Content: the current week gets a full pack; other weeks only a couple of published items.
   const currentWeek = isoWeek(start)
   const items = new Map<string, Row>()
+  const orders: Row[] = []
   const content = (week: string) => {
     const dates = weekDates(week)
     const full = week === currentWeek
@@ -429,6 +430,75 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       return ok({ item: inv })
     }
 
+    // ---- content studio: the feed of everything and the orders (a working order is delivered on the next read)
+    if (seg[0] === 'content' && seg[1] === 'feed' && method === 'GET' && seg.length === 2) {
+      if (!items.size) content(currentWeek)
+      const all = [...items.values()].reverse().filter((i) => (!query.status || i.status === query.status) && (!query.kind || i.kind === query.kind))
+      const offset = /^\d{1,6}$/.test(String(query.cursor ?? '')) ? Number(query.cursor) : 0
+      const limit = Math.min(Math.max(Number(query.limit) || 50, 1), 200)
+      const origin = (id: unknown) => {
+        const o = orders.find((x) => x.itemId === id)
+        return o ? { orderId: o.id, mode: o.mode, fromItemId: o.fromItemId } : null
+      }
+      return ok({
+        items: all.slice(offset, offset + limit).map((i) => ({ ...i, reviewId: `ap_${i.id}`, origin: origin(i.id) })),
+        nextCursor: all.length > offset + limit ? String(offset + limit) : null,
+        total: all.length,
+      })
+    }
+    if (seg[0] === 'content' && seg[1] === 'orders' && seg.length === 2) {
+      if (method === 'GET') {
+        if (!items.size) content(currentWeek)
+        for (const o of orders.filter((x) => x.state === 'working')) {
+          const from = o.fromItemId !== null ? [...items.values()].find((i) => i.id === o.fromItemId) : undefined
+          const id = 900000 + Number(o.id)
+          items.set(String(id), {
+            id,
+            kind: from?.kind ?? o.type ?? 'post',
+            platform: 'instagram',
+            status: 'pending',
+            title: o.mode === 'prompt' ? String(o.prompt).slice(0, 80) : `${from?.title ?? 'Материал'} (${o.mode === 'niche' ? `под нишу: ${o.niche}` : 'ещё вариант'})`,
+            hook: 'Новый хук от Content Maker.',
+            caption: { instagram: 'Пример подписи от Content Maker.', tiktok: '', shorts: '', dzen: '' },
+            files: [png(`order-${o.id}`)],
+            sourceSlug: null,
+            approvalId: null,
+            publishedUrl: null,
+            error: null,
+            kit: null,
+          })
+          o.state = 'delivered'
+          o.itemId = id
+          o.reviewId = `ap_${id}`
+          o.itemStatus = 'pending'
+        }
+        return ok({ items: [...orders].reverse() })
+      }
+      if (method === 'POST') {
+        const mode = String(body.mode)
+        if (mode === 'prompt' && String(body.prompt ?? '').trim().length < 3) return bad('invalid')
+        if (mode !== 'prompt' && !Number.isInteger(body.fromItemId)) return bad('invalid')
+        if (mode === 'niche' && !String(body.niche ?? '').trim()) return bad('invalid')
+        if (!['prompt', 'variant', 'niche'].includes(mode)) return bad('invalid')
+        const order: Row = {
+          id: 700 + orders.length,
+          mode,
+          prompt: mode === 'prompt' ? String(body.prompt).trim() : String(body.note ?? ''),
+          type: mode === 'prompt' ? String(body.type ?? 'clip') : null,
+          niche: mode === 'niche' ? String(body.niche) : null,
+          fromItemId: mode === 'prompt' ? null : Number(body.fromItemId),
+          state: 'working',
+          error: null,
+          createdAt: iso(Date.now()),
+          itemId: null,
+          reviewId: null,
+          itemStatus: null,
+        }
+        orders.push(order)
+        return ok({ order })
+      }
+      return null
+    }
     // ---- content
     if (seg[0] === 'content') {
       if (method === 'GET' && seg.length === 1) {

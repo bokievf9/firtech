@@ -22,6 +22,7 @@ import { normalizeDocuments, normalizeProspects, normalizeReferrals, normalizeRe
 import { hqHref } from '@/lib/hq-shell'
 import { normalizeHub } from '@/lib/pult'
 import { useRouter } from 'next/navigation'
+import { ContentSection } from './content-studio'
 import { useApprovals } from './use-approvals'
 
 const q = `?limit=${LIST_LIMIT}`
@@ -91,9 +92,10 @@ function Reviews() {
   return <ReviewsPanel feed={useFeed('crm/reviews', normalizeReviews)} badge={null} />
 }
 
-export function SectionBody({ section, tab, focus }: { section: 'inbox' | 'clients' | 'projects' | 'documents'; tab: string; focus: string | null }) {
+export function SectionBody({ section, tab, focus }: { section: 'inbox' | 'clients' | 'projects' | 'documents' | 'content'; tab: string; focus: string | null }) {
   let body: React.ReactNode = null
   if (section === 'inbox') body = <InboxSection tab={tab} focus={focus} />
+  else if (section === 'content') body = <ContentSection tab={tab} focus={focus} />
   else if (section === 'clients') {
     if (tab === 'clients') body = <ClientsTab focus={focus} />
     else if (tab === 'site') body = <SiteLeads calls={false} />

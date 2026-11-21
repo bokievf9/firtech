@@ -26,9 +26,9 @@ import { Chip, type Tone } from './bits'
 import { btn, btnDanger, btnPrimary, CopyButton, Empty, inputClass, Loading, Offline, useHqView, useHub } from '../hub/ui'
 
 const k = admin.pult.content
-type Action = 'approve' | 'reject' | 'revise' | 'published' | 'rerender'
+export type Action = 'approve' | 'reject' | 'revise' | 'published' | 'rerender'
 
-const statusTone: Record<ContentItem['status'], Tone> = {
+export const statusTone: Record<ContentItem['status'], Tone> = {
   draft: 'dim',
   pending: 'warn',
   approved: 'accent',
@@ -37,7 +37,7 @@ const statusTone: Record<ContentItem['status'], Tone> = {
   published: 'plain',
   rejected: 'bad',
 }
-const nextStatus: Record<Action, ContentItem['status']> = {
+export const nextStatus: Record<Action, ContentItem['status']> = {
   approve: 'approved',
   reject: 'rejected',
   revise: 'draft',
@@ -139,7 +139,7 @@ export function ContentTab({ focus }: { focus: string | null }) {
   )
 }
 
-function ContentCard({ item, onOpen }: { item: ContentItem; onOpen: () => void }) {
+export function ContentCard({ item, onOpen, badge }: { item: ContentItem; onOpen: () => void; badge?: React.ReactNode }) {
   const thumb = item.files.find((f) => f.type === 'png')
   return (
     <button type="button" onClick={onOpen} className="block w-full overflow-hidden rounded-xl border border-line bg-inset text-left transition-colors hover:border-line-strong focus-visible:border-accent">
@@ -155,6 +155,7 @@ function ContentCard({ item, onOpen }: { item: ContentItem; onOpen: () => void }
         <span className="line-clamp-2 wrap-anywhere text-xs leading-snug">{item.title || k.kinds[item.kind]}</span>
         <span className="mt-1 flex flex-wrap gap-1">
           <Chip tone={statusTone[item.status]}>{k.statuses[item.status]}</Chip>
+          {badge}
         </span>
       </span>
     </button>
@@ -212,7 +213,7 @@ function KitCard({ kit }: { kit: ProfileKit }) {
   )
 }
 
-function ContentBody({ item, onAct }: { item: ContentItem; onAct: (item: ContentItem, action: Action, extra?: { note?: string; platform?: string }) => Promise<boolean> }) {
+export function ContentBody({ item, onAct, extra }: { item: ContentItem; extra?: React.ReactNode; onAct: (item: ContentItem, action: Action, extra?: { note?: string; platform?: string }) => Promise<boolean> }) {
   const [slide, setSlide] = useState(0)
   const [revise, setRevise] = useState<string | null>(null)
   const [platform, setPlatform] = useState(item.platform || 'instagram')
@@ -324,6 +325,7 @@ function ContentBody({ item, onAct }: { item: ContentItem; onAct: (item: Content
           </button>
         </div>
       </section>
+      {extra}
     </>
   )
 }

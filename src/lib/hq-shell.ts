@@ -1,5 +1,5 @@
 // HQ, phase 1 (2026-11-23): the CRM workplace of /admin. A fixed list of sections (English names, owner
-// 2026-11-23); four of them are built from the existing panels, the rest say «soon» and link to the old
+// 2026-11-23); five of them are built from the existing panels, the rest say «soon» and link to the old
 // screen. Pure data and helpers, no React, so they are unit-tested (tests/hq-shell.test.mjs).
 
 export type HqSectionId =
@@ -41,7 +41,7 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'documents', label: 'Documents', state: 'ready', href: '/admin/documents', legacy: office('backoffice', 'documents') },
   { id: 'agents', label: 'Agents', state: 'ready', href: '/admin/agents', legacy: office('company', 'company') },
   { id: 'processes', label: 'Processes', state: 'soon', href: '/admin/processes', legacy: office('company', 'company') },
-  { id: 'content', label: 'Content', state: 'soon', href: '/admin/content', legacy: office('marketing', 'content') },
+  { id: 'content', label: 'Content', state: 'ready', href: '/admin/content', legacy: office('marketing', 'content') },
   { id: 'finance', label: 'Finance', state: 'soon', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
   { id: 'settings', label: 'Settings', state: 'soon', href: '/admin/settings', legacy: office('company', 'prices') },
 ] as const
@@ -64,6 +64,7 @@ export const HQ_TABS = {
   clients: ['pipeline', 'clients', 'site', 'calls', 'prospects'],
   projects: ['projects', 'payments'],
   documents: ['documents', 'referrals', 'reviews'],
+  content: ['feed', 'calendar', 'orders'],
 } as const satisfies Partial<Record<HqSectionId, readonly string[]>>
 
 export type HqTabbed = keyof typeof HQ_TABS

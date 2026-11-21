@@ -130,6 +130,18 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^crm\/invoices$/, query: crmQuery },
   { method: 'POST', path: /^crm\/invoices\/\d{1,12}$/, body: z.object({ action: z.enum(['remind', 'mark_paid', 'void']) }).strict() },
   { method: 'GET', path: /^content$/, query: ['week'] },
+  // Content Studio (2026-11-23): one feed of everything and the owner's orders for the Content Maker.
+  { method: 'GET', path: /^content\/feed$/, query: ['status', 'kind', 'limit', 'cursor'] },
+  { method: 'GET', path: /^content\/orders$/, query: ['limit'] },
+  {
+    method: 'POST',
+    path: /^content\/orders$/,
+    body: z.discriminatedUnion('mode', [
+      z.object({ mode: z.literal('prompt'), prompt: z.string().trim().min(3).max(1000), type: z.enum(['clip', 'post', 'carousel', 'story']).optional() }).strict(),
+      z.object({ mode: z.literal('variant'), fromItemId: z.number().int().positive(), note: z.string().trim().max(500).optional() }).strict(),
+      z.object({ mode: z.literal('niche'), fromItemId: z.number().int().positive(), niche: z.string().trim().min(1).max(60), note: z.string().trim().max(500).optional() }).strict(),
+    ]),
+  },
   {
     method: 'POST',
     path: /^content\/[\w-]{1,64}$/,
