@@ -55,7 +55,7 @@ export const websiteCost2026: Article = {
       },
       {
         type: 'p',
-        text: 'Дизайн тоже влияет на цену, но меньше, чем кажется. Аккуратный современный дизайн на продуманной сетке стоит разумно. Дорого становится, когда для каждого блока рисуют уникальные иллюстрации и сложные анимации. Малому бизнесу это нужно редко: клиенту важнее быстро понять, что вы предлагаете, и связаться с вами.',
+        text: 'Дизайн тоже влияет на цену, но меньше, чем кажется. Аккуратный современный дизайн на продуманной сетке стоит разумно. Дорого становится, когда для каждого блока рисуют отдельные иллюстрации и сложные анимации. Малому бизнесу это нужно редко: клиенту важнее быстро понять, что вы предлагаете, и связаться с вами.',
       },
       { type: 'h2', text: 'Наши стартовые цены' },
       {
@@ -86,7 +86,7 @@ export const websiteCost2026: Article = {
       },
       {
         type: 'cta',
-        text: 'Отметьте нужный формат и функции, и конструктор сразу покажет примерную цену и срок.',
+        text: 'Отметьте нужный формат и функции, и сборка проекта сразу покажет примерную цену и срок.',
       },
       { type: 'h2', text: 'Как работает фиксированная смета' },
       {
@@ -141,7 +141,7 @@ export const websiteCost2026: Article = {
       },
       {
         type: 'p',
-        text: 'Чтобы прикинуть стоимость своего проекта, соберите его в конструкторе или напишите нам: на созвоне подскажем, какой формат подойдёт именно вам.',
+        text: 'Чтобы прикинуть стоимость своего проекта, соберите его в сборке проекта или напишите нам: на созвоне подскажем, какой формат подойдёт именно вам.',
       },
     ],
   },
@@ -190,7 +190,7 @@ export const websiteCost2026: Article = {
       },
       {
         type: 'p',
-        text: 'Design affects the price too, but less than people expect. A clean, modern design on a well planned grid costs a reasonable amount. It gets expensive when every block gets unique illustrations and complex animations. A small business rarely needs that: what matters more is that a customer quickly understands what you offer and can contact you.',
+        text: 'Design affects the price too, but less than people expect. A clean, modern design on a well planned grid costs a reasonable amount. It gets expensive when every block gets custom illustrations and complex animations. A small business rarely needs that: what matters more is that a customer quickly understands what you offer and can contact you.',
       },
       { type: 'h2', text: 'Our starting prices' },
       {
@@ -276,7 +276,7 @@ export const websiteCost2026: Article = {
       },
       {
         type: 'p',
-        text: 'To get a feel for what your project costs, put it together in the builder or write to us: on a call we will suggest the format that fits you.',
+        text: 'To get a feel for what your project costs, put it together in the project builder or write to us: on a call we will suggest the format that fits you.',
       },
     ],
   },

@@ -96,7 +96,7 @@ export const websiteOrBot: Article = {
       },
       {
         type: 'cta',
-        text: `Отметьте сайт, бота или оба, и конструктор покажет цену каждой части и скидку ${p.bundle} на комплекс.`,
+        text: `Отметьте сайт, бота или оба, и сборка проекта покажет цену каждой части и скидку ${p.bundle} на комплекс.`,
       },
       { type: 'h2', text: 'Как решить за пять минут' },
       {
@@ -207,7 +207,7 @@ export const websiteOrBot: Article = {
       },
       {
         type: 'cta',
-        text: `Pick a website, a bot or both, and the builder shows the price of each part and the ${p.bundle} bundle discount.`,
+        text: `Pick a website, a bot or both, and the project builder shows the price of each part and the ${p.bundle} bundle discount.`,
       },
       { type: 'h2', text: 'How to decide in five minutes' },
       {

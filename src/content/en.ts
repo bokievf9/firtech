@@ -748,9 +748,9 @@ const en: Dict = {
     },
   },
   solutions: {
-    metaTitle: 'Solutions for small business: cafes, salons, shops, delivery and services',
+    metaTitle: 'Solutions for small business: cafes, salons, shops, delivery, services',
     metaDescription:
-      'Ready starting sets for your kind of business: website, Telegram bot, online booking, online store, Mini App and CRM. Contents, price and timing on one page.',
+      'Ready starting sets for your business: website, AI booking assistant, online booking, online store, Mini App and CRM. Contents, price and timing on one page.',
     eyebrow: 'Solutions',
     title: 'Solutions for your business',
     sub: 'Starting sets for the businesses that come to us most often. Each one shows the problems it solves, what is included, what it costs and how it could look.',
@@ -786,24 +786,24 @@ const en: Dict = {
     othersTitle: 'Other solutions',
     items: {
       cafe: {
-        metaTitle: 'Website and Telegram bot for a cafe or restaurant',
+        metaTitle: 'Website, table booking and orders in Telegram for a cafe or restaurant',
         metaDescription:
-          'A website with the menu, table bookings and orders in a Telegram bot, payment in the bot and a place on maps. Price and timing for a cafe or restaurant.',
-        title: 'Website and Telegram bot for a cafe or restaurant',
-        sub: 'The menu and contacts on the website, table bookings and orders in a Telegram bot, and you are easy to find on the maps. Guests handle it themselves, and the staff sees every request.',
-        card: 'Menu, table bookings and orders in one bot, plus a website and a place on the maps.',
+          'A website with the menu, table bookings and paid Telegram orders, and a place on maps. Contents, price and timing of the starting set for a cafe or restaurant.',
+        title: 'Website, booking and orders in Telegram for a cafe or restaurant',
+        sub: 'The menu and contacts on the website, table bookings and orders in Telegram, and you are easy to find on the maps. Guests handle it themselves, and the staff sees every request.',
+        card: 'Menu, bookings and orders in Telegram, plus a website and a place on the maps.',
         problems: [
           {
             pain: 'Bookings come by phone, and at rush hour nobody can pick up',
-            fix: 'Guests book a table in the bot themselves: date, time, number of guests. The request goes straight to the manager.',
+            fix: 'Guests book a table in Telegram themselves: date, time, number of guests. The request goes straight to the manager.',
           },
           {
             pain: 'The menu and prices on Instagram are out of date, guests keep asking the same things',
-            fix: 'An up to date menu, opening hours and address on the website and in the bot. No more answering the same questions.',
+            fix: 'An up to date menu, opening hours and address on the website and in Telegram. No more answering the same questions.',
           },
           {
             pain: 'Takeaway orders get lost in chats',
-            fix: 'Orders are placed and paid in the bot, and every order has a clear status.',
+            fix: 'Orders are placed and paid in Telegram, and every order has a clear status.',
           },
           {
             pain: 'New guests cannot find you on the maps',
@@ -813,15 +813,15 @@ const en: Dict = {
         faq: [
           {
             q: 'Can we change the menu and prices ourselves?',
-            a: 'Yes. The bot menu is edited in a simple spreadsheet or admin panel, no developer needed. The website can get an editing panel too.',
+            a: 'Yes. The menu in Telegram is edited in a simple spreadsheet or admin panel, no developer needed. The website can get an editing panel too.',
           },
           {
-            q: 'How does a guest pay in the bot?',
+            q: 'How does a guest pay for an order in Telegram?',
             a: 'We connect card payments and the local payment systems your bank supports. We will confirm which ones on a call.',
           },
           {
             q: 'Does a guest need to install anything?',
-            a: 'No. The bot opens in Telegram, which the guest already has, and the website opens in any browser.',
+            a: 'No. Booking and ordering open in Telegram, which the guest already has, and the website opens in any browser.',
           },
           {
             q: 'Where do bookings and orders arrive?',
@@ -829,25 +829,25 @@ const en: Dict = {
           },
           {
             q: 'Can we start with the website only?',
-            a: 'Yes. Remove the bot in the project builder and the price updates. The bot can be added later when you need it.',
+            a: 'Yes. Remove the Telegram part in the project builder and the price updates. We add it later when you need it.',
           },
         ],
       },
       salon: {
-        metaTitle: 'Online booking and Telegram bot for a beauty salon',
+        metaTitle: 'AI booking assistant for a beauty salon: booking in Telegram',
         metaDescription:
-          'Online booking in a Telegram bot with reminders and broadcasts, and a website with services and prices. Price and timing for a beauty salon or barbershop.',
-        title: 'Online booking and a bot for a beauty salon',
-        sub: 'Clients book a stylist in the bot at any time, get a reminder and do not forget the visit. The website shows services and prices, and its requests arrive in Telegram.',
-        card: 'Booking in a bot, reminders, broadcasts and a website with services.',
+          'An AI booking assistant takes bookings in Telegram and sends reminders and mailings. A site with services and prices. Price and timing for a beauty salon.',
+        title: 'AI booking assistant for a beauty salon',
+        sub: 'Clients book a stylist in Telegram at any time, get a reminder and do not forget the visit. The website shows services and prices, and its requests arrive in Telegram.',
+        card: 'Booking in Telegram, reminders, mailings and a website with services.',
         problems: [
           {
             pain: 'Bookings live in a notebook and the receptionist is on the phone all day',
-            fix: 'Clients pick the service, the stylist and a free slot in the bot. Two bookings never land on the same time.',
+            fix: 'Clients pick the service, the stylist and a free slot in Telegram. Two bookings never land on the same time.',
           },
           {
             pain: 'Clients forget their appointment and do not show up',
-            fix: 'The bot reminds them ahead of the visit and lets them reschedule in a couple of taps.',
+            fix: 'The agent reminds them ahead of the visit and lets them reschedule in a couple of taps.',
           },
           {
             pain: 'Regular clients disappear for months',
@@ -869,7 +869,7 @@ const en: Dict = {
           },
           {
             q: 'Will the broadcasts feel like spam?',
-            a: 'They only go to people who already use the bot, and anyone can unsubscribe. You choose how often and what to send.',
+            a: 'They only go to people who already wrote to you in Telegram, and anyone can unsubscribe. You choose how often and what to send.',
           },
           {
             q: 'Does it fit a barbershop or a nail studio?',
@@ -913,7 +913,7 @@ const en: Dict = {
           },
           {
             q: 'Can the store be connected to Telegram?',
-            a: 'Yes. Requests and orders in Telegram are an option in the project builder, and a shop bot can come later.',
+            a: 'Yes. Requests and orders in Telegram are an option in the project builder, and a Telegram Mini App with the catalog can come later.',
           },
           {
             q: 'Is the support subscription required?',
@@ -952,8 +952,8 @@ const en: Dict = {
         ],
         faq: [
           {
-            q: 'How is a Mini App different from a regular bot?',
-            a: 'A regular bot works through buttons and messages. A Mini App opens a full screen inside Telegram with a catalog, cart and payment.',
+            q: 'How is a Mini App different from a chat with buttons?',
+            a: 'A chat answers with messages and buttons. A Mini App opens a full screen inside Telegram with a catalog, cart and payment.',
           },
           {
             q: 'Do we need to publish it in the App Store and Google Play?',
