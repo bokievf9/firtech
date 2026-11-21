@@ -8,10 +8,24 @@ import {
   type LeadReply,
   type CabinetData,
   type CabinetError,
+  type CabinetLead,
   type CabinetMilestone,
   type CabinetTicket,
   type ClientSyncProfile,
 } from './cabinet-data'
+import { parseAgentItem, parseAgents, parseConversations, type AgentConversation, type ClientAgent } from './cabinet-agent'
+import { parseMessageItem, parseMessages, parseThreads, type ChatMessage, type ChatThread } from './cabinet-chat'
+import { parseClientDocs, signBodyForHq, type ClientDoc, type SignaturePayload } from './cabinet-docs'
+import {
+  mockAcceptQuote,
+  mockMessages as mockThreadMessages,
+  mockPatchAgent,
+  mockRead,
+  mockSend,
+  mockSign,
+  mockState,
+  mockUpload,
+} from './cabinet-hq-mock'
 
 const DEFAULT_URL = 'http://127.0.0.1:8787/admin'
 const TIMEOUT_MS = 4000
@@ -183,6 +197,272 @@ export async function syncClientToHq(
   return body && body.ok === true ? { ok: true, data: true } : { ok: false, error: 'hq_error' }
 }
 
+// ---- Cabinet v3 (2026-11-22): documents, messenger, uploads, agent --------------------------------
+// Built against the contract DRAFT (`cabinet-docs-contract.md`, sections 2-5); the final contract is
+// `agents/docs/admin-crm-api.md`, «Кабинет v3». Every HQ path and field name of v3 is in this block (and
+// in cabinet-docs.ts, cabinet-chat.ts, cabinet-agent.ts for the parsers) so a mismatch is fixed in one place.
+// Assumptions are listed in docs/cabinet.md, «Кабинет v3 (2026-11-22)».
+export type HqV3Error = CabinetError | 'not_awaiting' | 'bad_signature' | 'invalid' | 'rate_limited' | 'too_large'
+export type HqV3<T> = { ok: true; data: T } | { ok: false; error: HqV3Error }
+
+type RawCall = { ok: true; body: unknown } | { ok: false; error: HqV3Error }
+
+// Like `call`, but keeps HQ's refusals apart: 409 `not_awaiting`, 422 `bad_signature`, 400/422 `invalid`,
+// 413 `too_large`, 429 `rate_limited`. `form` sends multipart (uploads). Never throws.
+async function callV3(
+  path: string,
+  init: { method: 'GET' | 'POST' | 'PATCH'; json?: unknown; form?: FormData; timeoutMs?: number },
+  env: Env,
+  fetcher: typeof fetch,
+): Promise<RawCall> {
+  const cfg = setup(env)
+  if (!cfg || cfg === 'mock') return { ok: false, error: 'hq_error' }
+  try {
+    const res = await fetcher(`${cfg.base}${path}`, {
+      method: init.method,
+      headers: {
+        'x-admin-token': cfg.token,
+        ...(init.json !== undefined ? { 'content-type': 'application/json' } : {}),
+      },
+      body: init.form ?? (init.json !== undefined ? JSON.stringify(init.json) : undefined),
+      cache: 'no-store',
+      signal: AbortSignal.timeout(init.timeoutMs ?? TIMEOUT_MS),
+    })
+    const body: unknown = await res.json().catch(() => null)
+    if (res.ok) return { ok: true, body }
+    const code = body && typeof body === 'object' ? String((body as { error?: unknown }).error ?? '') : ''
+    if (res.status === 404) return { ok: false, error: 'not_found' }
+    if (res.status === 409) return { ok: false, error: code === 'not_awaiting' ? 'not_awaiting' : 'hq_error' }
+    if (res.status === 422) return { ok: false, error: code === 'bad_signature' ? 'bad_signature' : 'invalid' }
+    if (res.status === 400) return { ok: false, error: 'invalid' }
+    if (res.status === 413) return { ok: false, error: 'too_large' }
+    if (res.status === 429) return { ok: false, error: 'rate_limited' }
+    return { ok: false, error: 'hq_error' }
+  } catch (error) {
+    const timeout = error instanceof Error && error.name === 'TimeoutError'
+    return { ok: false, error: timeout ? 'hq_timeout' : 'hq_unreachable' }
+  }
+}
+
+const enc = encodeURIComponent
+const okId = (n: number) => Number.isInteger(n) && n > 0
+
+export async function fetchClientDocuments(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<ClientDoc[]>> {
+  if (!okId(clientId)) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') return { ok: true, data: mockState().docs.filter((d) => d.state !== 'void') }
+  const res = await callV3(`/clients/${clientId}/documents`, { method: 'GET' }, env, fetcher)
+  return res.ok ? { ok: true, data: parseClientDocs(res.body) } : res
+}
+
+// «Принять КП». HQ then proposes the contract (the owner approves it) and answers `{ ok, next: 'contract' }`.
+export async function acceptClientDocument(clientId: number, docId: string, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<{ next: string }>> {
+  if (!okId(clientId) || !docId) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    const r = mockAcceptQuote(docId)
+    return r === 'ok' ? { ok: true, data: { next: 'contract' } } : { ok: false, error: r }
+  }
+  const res = await callV3(`/clients/${clientId}/documents/${enc(docId)}/accept`, { method: 'POST', json: {} }, env, fetcher)
+  if (!res.ok) return res
+  const next = (res.body as { next?: unknown } | null)?.next
+  return { ok: true, data: { next: typeof next === 'string' ? next.slice(0, 20) : '' } }
+}
+
+// «Подписать»: the PNG, the typed name, the consent, the signer's IP and browser. HQ stores the
+// signature, renders the signed PDF and answers `{ ok, pdfUrl }` (the link is not passed on: the
+// viewer asks the proxy for the document again).
+export async function signClientDocument(
+  clientId: number,
+  docId: string,
+  payload: SignaturePayload,
+  meta: { ip?: string; userAgent?: string | null },
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<{ signed: true }>> {
+  if (!okId(clientId) || !docId) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    const r = mockSign(docId, payload.name, Math.floor((payload.signaturePng.length * 3) / 4))
+    return r === 'ok' ? { ok: true, data: { signed: true } } : { ok: false, error: r }
+  }
+  const res = await callV3(
+    `/clients/${clientId}/documents/${enc(docId)}/sign`,
+    { method: 'POST', json: signBodyForHq(payload, meta.ip, meta.userAgent) },
+    env,
+    fetcher,
+  )
+  return res.ok ? { ok: true, data: { signed: true } } : res
+}
+
+export async function fetchThreads(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<ChatThread[]>> {
+  if (!okId(clientId)) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    const st = mockState()
+    return { ok: true, data: st.threads.filter((t) => t.kind !== 'agent' || st.agent).map((t) => ({ ...t })) }
+  }
+  const res = await callV3(`/clients/${clientId}/threads`, { method: 'GET' }, env, fetcher)
+  return res.ok ? { ok: true, data: parseThreads(res.body) } : res
+}
+
+export async function fetchThreadMessages(
+  clientId: number,
+  threadId: string,
+  after: string | null,
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<ChatMessage[]>> {
+  if (!okId(clientId) || !threadId) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    const rows = mockThreadMessages(threadId, after)
+    return rows ? { ok: true, data: rows.map((m) => ({ ...m })) } : { ok: false, error: 'not_found' }
+  }
+  const query = after ? `?after=${enc(after)}` : ''
+  const res = await callV3(`/clients/${clientId}/threads/${enc(threadId)}/messages${query}`, { method: 'GET' }, env, fetcher)
+  return res.ok ? { ok: true, data: parseMessages(res.body) } : res
+}
+
+// The client writes: `{ text, attachments? }`. An `agent` thread is answered by the client's own agent (HQ).
+export async function postThreadMessage(
+  clientId: number,
+  threadId: string,
+  text: string,
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<ChatMessage>> {
+  if (!okId(clientId) || !threadId || !text) return { ok: false, error: 'invalid' }
+  if (setup(env) === 'mock') {
+    const sent = mockSend(threadId, text, [])
+    return sent ? { ok: true, data: { ...sent } } : { ok: false, error: 'not_found' }
+  }
+  const res = await callV3(`/clients/${clientId}/threads/${enc(threadId)}/messages`, { method: 'POST', json: { text } }, env, fetcher)
+  if (!res.ok) return res
+  const item = parseMessageItem(res.body)
+  return item ? { ok: true, data: item } : { ok: false, error: 'hq_error' }
+}
+
+export async function markThreadRead(clientId: number, threadId: string, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<true>> {
+  if (!okId(clientId) || !threadId) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') return mockRead(threadId) ? { ok: true, data: true } : { ok: false, error: 'not_found' }
+  const res = await callV3(`/clients/${clientId}/threads/${enc(threadId)}/read`, { method: 'POST', json: {} }, env, fetcher)
+  return res.ok ? { ok: true, data: true } : res
+}
+
+// A file for a thread (10 MB, images/PDF/DOCX/ZIP, checked by the route first): multipart
+// `POST /clients/:id/uploads` with `file`, `threadId`, `label`; HQ stores it under
+// `DATA_DIR/uploads/<client>/` and posts it into the thread as a client message. Answers the message.
+export async function uploadThreadFile(
+  clientId: number,
+  threadId: string,
+  file: File,
+  label: string,
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<ChatMessage>> {
+  if (!okId(clientId) || !threadId) return { ok: false, error: 'invalid' }
+  if (setup(env) === 'mock') {
+    const sent = mockUpload(threadId, file.name, file.size, label)
+    return sent ? { ok: true, data: { ...sent } } : { ok: false, error: 'not_found' }
+  }
+  const form = new FormData()
+  form.set('file', file, file.name)
+  form.set('threadId', threadId)
+  if (label) form.set('label', label)
+  const res = await callV3(`/clients/${clientId}/uploads`, { method: 'POST', form, timeoutMs: 30_000 }, env, fetcher)
+  if (!res.ok) return res
+  const item = parseMessageItem(res.body)
+  return item ? { ok: true, data: item } : { ok: false, error: 'hq_error' }
+}
+
+export async function fetchClientAgents(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<ClientAgent[]>> {
+  if (!okId(clientId)) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    const a = mockState().agent
+    return { ok: true, data: a ? [structuredClone(a)] : [] }
+  }
+  const res = await callV3(`/clients/${clientId}/agents`, { method: 'GET' }, env, fetcher)
+  return res.ok ? { ok: true, data: parseAgents(res.body) } : res
+}
+
+// `PATCH /clients/:id/agents/:aid` with the cleaned settings (agentPatchBody); a Telegram bot token
+// rides in `channels.telegram.botToken` and is stored encrypted by HQ, never read back.
+export async function patchClientAgent(
+  clientId: number,
+  agentId: string,
+  patch: Record<string, unknown>,
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<ClientAgent>> {
+  if (!okId(clientId) || !agentId) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') {
+    const a = mockPatchAgent(patch)
+    return a ? { ok: true, data: structuredClone(a) } : { ok: false, error: 'not_found' }
+  }
+  const res = await callV3(`/clients/${clientId}/agents/${enc(agentId)}`, { method: 'PATCH', json: patch }, env, fetcher)
+  if (!res.ok) return res
+  const item = parseAgentItem(res.body)
+  return item ? { ok: true, data: item } : { ok: false, error: 'hq_error' }
+}
+
+export async function fetchAgentConversations(clientId: number, agentId: string, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<AgentConversation[]>> {
+  if (!okId(clientId) || !agentId) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') return { ok: true, data: mockState().conversations.map((c) => ({ ...c })) }
+  const res = await callV3(`/clients/${clientId}/agents/${enc(agentId)}/conversations`, { method: 'GET' }, env, fetcher)
+  return res.ok ? { ok: true, data: parseConversations(res.body) } : res
+}
+
+// Everything the cabinet page needs next to the by-email body, fetched in parallel; each part fails
+// softly (an empty list) so an older HQ without v3 still shows the rest of the cabinet.
+export type CabinetExtras = { docs: ClientDoc[]; threads: ChatThread[]; agents: ClientAgent[]; conversations: AgentConversation[]; v3: boolean }
+export async function fetchCabinetExtras(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<CabinetExtras> {
+  const [docs, threads, agents] = await Promise.all([
+    fetchClientDocuments(clientId, env, fetcher),
+    fetchThreads(clientId, env, fetcher),
+    fetchClientAgents(clientId, env, fetcher),
+  ])
+  const agentList = agents.ok ? agents.data : []
+  const first = agentList[0]
+  const conversations = first ? await fetchAgentConversations(clientId, first.id, env, fetcher) : null
+  return {
+    docs: docs.ok ? docs.data : [],
+    threads: threads.ok ? threads.data : [],
+    agents: agentList,
+    conversations: conversations?.ok ? conversations.data : [],
+    v3: docs.ok || threads.ok,
+  }
+}
+
+// A file behind a link HQ sent (a document PDF/HTML, an attachment). Only HQ's own origin (or
+// `HQ_MEDIA_ORIGIN`) is ever requested, so a crafted `u` cannot make the server fetch another host.
+// `/media/...` paths are on the origin of HQ_ADMIN_URL. Without HQ (development) the mock answers.
+export function resolveMediaUrl(url: string, env: Env = process.env): string | null {
+  const cfg = setup(env)
+  if (!cfg || cfg === 'mock') return null
+  let origin: string
+  try {
+    origin = new URL(cfg.base).origin
+  } catch {
+    return null
+  }
+  const allowed = new Set([origin])
+  const extra = env.HQ_MEDIA_ORIGIN?.trim()
+  if (extra) {
+    try {
+      allowed.add(new URL(extra).origin)
+    } catch {
+      // ignored: a bad value never widens the list
+    }
+  }
+  if (/^\/media\/[^\s?#]+(\?[^\s#]*)?$/.test(url) && !url.includes('..') && !url.includes('//')) return `${origin}${url}`
+  try {
+    const u = new URL(url)
+    return u.protocol === 'https:' || u.origin === origin ? (allowed.has(u.origin) && /^\/media\//.test(u.pathname) ? u.href : null) : null
+  } catch {
+    return null
+  }
+}
+
+export function isMockMode(env: Env = process.env): boolean {
+  return setup(env) === 'mock'
+}
+
 // Development data so the cabinet renders without HQ. Messages written in the cabinet stay in
 // memory, so the reply box can be tried locally.
 const mockMessages: { leadId: number; item: LeadReply }[] = []
@@ -226,51 +506,73 @@ function acceptMock(projectId: number, stageNo: number): CabinetResult<{ already
   return { ok: true, data: { already: false, milestone: { ...m, state: 'accepted', acceptedAt: mockAccepted.get(`${projectId}:${stageNo}`) ?? null } } }
 }
 
+// Requests of the mock client: 14 has a quote to accept (or its contract after that), 12 became
+// project 2 (hidden from the list by the documents' leadId + projectId), 9 is the running project.
+function mockLeads(iso: (offset: number) => string, mine: (leadId: number) => LeadReply[]): CabinetLead[] {
+  const quote = mockState().docs.find((d) => d.id === 'q-14')
+  const lead = (l: Omit<CabinetLead, 'nextAction' | 'hasDomain' | 'hasHosting'> & Partial<CabinetLead>): CabinetLead => ({
+    hasDomain: null,
+    hasHosting: null,
+    nextAction: null,
+    ...l,
+  })
+  return [
+    lead({
+      id: 14,
+      createdAt: iso(-1),
+      service: 'automation',
+      summary: 'Заявки из Instagram директа в таблицу, около двадцати в день',
+      estimateUsd: 450,
+      stage: quote?.state === 'awaiting_client' ? 'proposal' : 'contract',
+      nextStep: '',
+      timeline: [
+        { at: iso(-1), kind: 'lead', title: 'Заявка получена' },
+        { at: iso(-0.9), kind: 'reply', title: 'Менеджер уточнил детали' },
+        { at: iso(-0.3), kind: 'kp', title: 'Коммерческое предложение готово' },
+      ],
+      replies: mine(14),
+    }),
+    lead({
+      id: 12,
+      createdAt: iso(-2),
+      service: 'bots',
+      summary: 'Бот для записи в салон',
+      estimateUsd: 340,
+      hasDomain: true,
+      hasHosting: false,
+      stage: 'contract',
+      nextStep: '',
+      timeline: [
+        { at: iso(-2), kind: 'lead', title: 'Заявка получена' },
+        { at: iso(-1.2), kind: 'kp', title: 'КП принято' },
+      ],
+      replies: mine(12),
+    }),
+    lead({
+      id: 9,
+      createdAt: iso(-14),
+      service: 'websites',
+      summary: 'Сайт для барбершопа',
+      estimateUsd: 400,
+      stage: 'project',
+      nextStep: '',
+      timeline: [
+        { at: iso(-14), kind: 'lead', title: 'Заявка получена' },
+        { at: iso(-13), kind: 'paid', title: 'Оплата этапа 1 получена' },
+        { at: iso(-13), kind: 'project', title: 'Проект запущен' },
+      ],
+      replies: mine(9),
+    }),
+  ]
+}
+
 export function cabinetMock(email: string): CabinetData {
   const day = 86_400_000
   const iso = (offset: number) => new Date(Date.now() + offset * day).toISOString()
   const mine = (leadId: number) => mockMessages.filter((m) => m.leadId === leadId).map((m) => m.item)
   return {
     client: { id: 1, name: 'Тестовый клиент', email, telegram: '@test_client', createdAt: iso(-20) },
-    leads: [
-      {
-        id: 12,
-        createdAt: iso(-1),
-        service: 'bundle',
-        summary: 'Бот для записи в салон и сайт-визитка',
-        estimateUsd: 640,
-        hasDomain: true,
-        hasHosting: false,
-        stage: 'proposal',
-        nextStep: 'КП отправлено, ждём вашего решения',
-        timeline: [
-          { at: iso(-1), kind: 'lead', title: 'Заявка получена' },
-          { at: iso(-0.8), kind: 'reply', title: 'Менеджер ответил' },
-          { at: iso(-0.2), kind: 'kp', title: 'Коммерческое предложение готово' },
-        ],
-        replies: [
-          { at: iso(-0.8), text: 'Здравствуйте! Посмотрели заявку, к вечеру пришлём КП.', from: 'manager' },
-          ...mine(12),
-        ],
-      },
-      {
-        id: 9,
-        createdAt: iso(-14),
-        service: 'websites',
-        summary: 'Сайт для барбершопа',
-        estimateUsd: 300,
-        hasDomain: null,
-        hasHosting: null,
-        stage: 'project',
-        nextStep: '',
-        timeline: [
-          { at: iso(-14), kind: 'lead', title: 'Заявка получена' },
-          { at: iso(-13), kind: 'paid', title: 'Оплата этапа 1 получена' },
-          { at: iso(-13), kind: 'project', title: 'Проект запущен' },
-        ],
-        replies: mine(9),
-      },
-    ],
+    leads: mockLeads(iso, mine),
     projects: [
       {
         id: 1,
@@ -284,6 +586,26 @@ export function cabinetMock(email: string): CabinetData {
         tasksDone: 2,
         createdAt: iso(-14),
         milestones: mockMilestones(1, iso),
+        state: 'in_progress',
+        documents: ['c-1', 'i-1-1', 'i-1-2', 'i-1-3'],
+        nextAction: null,
+      },
+      {
+        id: 2,
+        what: 'Бот для записи в салон',
+        product: 'bot',
+        status: 'draft',
+        stage: 'spec',
+        deadline: null,
+        nextMilestone: null,
+        tasksTotal: 0,
+        tasksDone: 0,
+        createdAt: iso(-1.2),
+        milestones: [],
+        // Exists since the quote was accepted, before any payment (owner 2026-11-22).
+        state: 'preparing',
+        documents: ['q-12', 'c-2'],
+        nextAction: null,
       },
     ],
     invoices: [

@@ -1,3 +1,5 @@
+import { boolOrNull, count, idNum, idStr, isObj, list, str, strOrNull } from './cabinet-parse'
+import { parseNextAction, type NextAction } from './cabinet-docs'
 import { sanitizeRefSlug } from './referral'
 import { siteUrl } from './site'
 
@@ -21,6 +23,9 @@ export type CabinetMilestone = {
   state: MilestoneState
 }
 
+export type ProjectState = 'preparing' | 'in_progress' | 'paused' | 'done'
+export const projectStates: ProjectState[] = ['preparing', 'in_progress', 'paused', 'done']
+
 export type CabinetProject = {
   id: number
   what: string
@@ -33,6 +38,12 @@ export type CabinetProject = {
   tasksDone: number
   createdAt: string | null
   milestones: CabinetMilestone[]
+  // v3: the client's own view of the project. `state` is HQ's (derived from `status` when absent),
+  // `documents` the ids of its documents, `nextAction` what the client has to do now (null = HQ
+  // did not send one; the page then derives it from documents and stages).
+  state: ProjectState
+  documents: string[]
+  nextAction: NextAction | null
 }
 export type CabinetInvoice = {
   id: string
@@ -90,6 +101,8 @@ export type CabinetLead = {
   nextStep: string
   timeline: LeadEvent[]
   replies: LeadReply[]
+  // v3: HQ's `nextStep` may be the same object as a project's `nextAction`; null when it is a sentence.
+  nextAction: NextAction | null
 }
 export type CabinetData = {
   client: CabinetClient
@@ -101,24 +114,6 @@ export type CabinetData = {
   tickets: CabinetTicket[]
   referrals: CabinetReferral[]
   referralSlug: string | null
-}
-
-const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
-const str = (v: unknown, max = 500) => (typeof v === 'string' ? v.slice(0, max) : '')
-const strOrNull = (v: unknown) => (typeof v === 'string' && v ? v.slice(0, 80) : null)
-const count = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : 0)
-const idNum = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : null)
-const idStr = (v: unknown) => (typeof v === 'string' && v ? v : typeof v === 'number' ? String(v) : null)
-
-// One list: items that do not look right are dropped, the rest are cleaned.
-function list<T>(value: unknown, parse: (row: Record<string, unknown>) => T | null): T[] {
-  if (!Array.isArray(value)) return []
-  const out: T[] = []
-  for (const row of value) {
-    const item = isObj(row) ? parse(row) : null
-    if (item) out.push(item)
-  }
-  return out
 }
 
 const milestoneStates: MilestoneState[] = ['awaiting_payment', 'in_progress', 'awaiting_acceptance', 'accepted']
@@ -162,7 +157,18 @@ function parseProject(r: Record<string, unknown>): CabinetProject | null {
     tasksDone: count(r.tasksDone),
     createdAt: strOrNull(r.createdAt),
     milestones: list(r.milestones, parseMilestone).sort((a, b) => a.stageNo - b.stageNo),
+    state: projectStates.find((x) => x === r.state) ?? projectStateFallback(str(r.status, 20), str(r.stage, 20)),
+    documents: Array.isArray(r.documents) ? r.documents.map(idStr).filter((x): x is string => x !== null).slice(0, 100) : [],
+    nextAction: parseNextAction(r.nextAction),
   }
+}
+
+// An older HQ sends `status` only: a draft is being prepared, a finished one is done, the rest works.
+export function projectStateFallback(status: string, stage: string): ProjectState {
+  if (status === 'done' || stage === 'done') return 'done'
+  if (status === 'paused') return 'paused'
+  if (status === 'draft' || stage === 'spec') return 'preparing'
+  return 'in_progress'
 }
 
 function parseInvoice(r: Record<string, unknown>): CabinetInvoice | null {
@@ -220,8 +226,6 @@ function parseReferral(r: Record<string, unknown>): CabinetReferral | null {
   }
 }
 
-const boolOrNull = (v: unknown) => (typeof v === 'boolean' ? v : null)
-
 function parseEvent(r: Record<string, unknown>): LeadEvent | null {
   const title = str(r.title, 200)
   return title ? { at: strOrNull(r.at), kind: str(r.kind, 20), title } : null
@@ -247,6 +251,7 @@ function parseLead(r: Record<string, unknown>): CabinetLead | null {
     hasHosting: boolOrNull(r.hasHosting),
     stage: str(r.stage, 20) || 'new',
     nextStep: str(r.nextStep, 300),
+    nextAction: parseNextAction(r.nextAction) ?? parseNextAction(r.nextStep),
     timeline: list(r.timeline, parseEvent).slice(0, 50),
     replies: list(r.replies, parseReply).slice(-100),
   }

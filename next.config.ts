@@ -35,6 +35,12 @@ const nextConfig: NextConfig = {
           { key: 'X-Robots-Tag', value: 'noindex' },
         ],
       },
+      // Cabinet documents (PDF/HTML) open in an iframe of the cabinet itself (2026-11-22): same-origin
+      // framing only, a later rule wins over the global DENY. The session check is in the handler.
+      {
+        source: '/api/cabinet/documents/:id/file',
+        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }],
+      },
       // Echo listens to the owner's voice: the microphone is allowed on that page only. A later
       // rule wins for the same header.
       {
