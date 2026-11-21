@@ -41,7 +41,7 @@ test.describe('with a session', () => {
   })
 
   test('a soon section says so and links to the old screen; the office still opens', async ({ page }) => {
-    await open(page, '/admin/processes')
+    await open(page, '/admin/settings')
     await expect(page.getByText('Soon').first()).toBeVisible()
     await page.getByRole('link', { name: 'Open the old screen' }).click()
     await expect(page).toHaveURL(/\/admin\/office\?panel=company/)
@@ -78,6 +78,9 @@ test.describe('with a session', () => {
     await expect(card.locator('[data-versions] li')).toHaveCount(3)
     await open(page, '/admin/agents?agent=client-bot')
     await expect(page.locator('[data-block="fira"]')).toContainText('ИИ-менеджер заявок')
+    expect(errors).toEqual([])
+  })
+
 
   test('Content: feed, item drawer with the player and Studio buttons, «Промпт» order, orders tab, calendar', async ({ page }) => {
     const errors = watchErrors(page, noise)
