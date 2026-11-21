@@ -123,6 +123,23 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   The summary also links to `/[locale]/builder/estimate?b=...` (noindex, decoded on the client,
   rows from `estimateDoc` in `src/lib/estimate-doc.ts`): an A4 estimate saved as PDF via the print
   dialog. Site chrome carries `.print-hidden`; print rules are at the end of `globals.css`.
+- **Builder v2 (owner review 2026-11-22, supersedes the builder notes above where they differ; full notes `docs/builder-v2.md`).**
+  Same eight steps and `?step=` (niche, what we build, goals, set, features, theme, details, preview). The first screen is the
+  explainer plus three niches (salon, clinic, shop) and «Ещё ниши» (full grid by category, three each with its own «ещё»).
+  What vs where: products (`what we build`) are never a place; an agent lives in a delivery channel (`delivery`: telegram, widget,
+  whatsapp later, playground «Площадка Fir Tech») and may go without a site (`siteNeed` need|no|have; «не нужен» removes the site for
+  good, `applySiteNeed` in `lib/builder-v2.ts`). Rules (goals per product family and niche, addon and extra filtering, required
+  answers, preview modes) are pure in `lib/builder-v2.ts`, texts in `content/builder-v2.ts`, ids in `lib/builder-ids.ts`. Themes
+  (10 by genre, 3 moods, motion preset) in `lib/builder-themes.ts`; palette and fonts are «тонкая настройка» inside a theme; old
+  `s.`/`y.` links map to the closest theme (`closestTheme`) and are never rewritten. New `?b=` chunks: `t.<theme>.<mood>`,
+  `l.<delivery>` (`l.none` = empty), `z.<need|no|have>`, and the new details as ONE `u.<base64url JSON>` chunk (told apart from an
+  example link by its opening brace; capped, texts shortened first); the page count is gone (old `d.5` links still decode).
+  Owner price rule: a second language cannot cost more than a lead channel; prices are untouched, the paid `language` option is
+  hidden when it breaks the rule (`languageRuleBroken`) and listed in `docs/builder-v2.md`. The final step is the live preview
+  (`builder-live-preview.tsx`): site prototype, agent chat (`POST /api/agent-demo` same-origin proxy to HQ
+  `/agent/demo-<niche>/chat`, 20 per IP per 10 minutes, scripted lines when HQ is unreachable), playground window, department
+  scheme, Mini App phone, content plan, process flow; «Отправить проект» still hands the lead to the contact form (sign-in gate).
+  Tests: `tests/builder-v2.test.mjs`, `tests/e2e/builder-v2.spec.ts` (`SBORKA_SHOTS=<dir>` saves a screenshot of every step).
 - Service pages (`services/[slug]`): hero with the service's live miniature, included, formats
   (`ServiceVariants`; "Estimate" picks the format in the calculator via `pickInCalculator`), steps
   (`Process` with `serviceDetails.<slug>.steps`), concepts (`ServiceConcepts`, labelled as
