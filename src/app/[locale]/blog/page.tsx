@@ -1,15 +1,15 @@
 import { ArrowUpRight, Notebook } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { notFound } from 'next/navigation'
 import { DraftBadge } from '@/components/article-body'
-import { ContactSection } from '@/components/contact-section'
 import { HeroIntro } from '@/components/hero-intro'
 import { Reveal } from '@/components/reveal'
 import { getDict } from '@/content'
 import { formatArticleDate, readingTime } from '@/content/blog'
 import { allArticles } from '@/lib/blog-hq'
-import { buttonStyles, homeAnchor } from '@/lib/cn'
+import { buttonStyles } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
 
@@ -66,9 +66,9 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
                 <Link href={`/${locale}/builder`} className={buttonStyles.primary}>
                   {t.ctaButton}
                 </Link>
-                <Link href={homeAnchor(locale, 'contact')} className={buttonStyles.secondary}>
-                  {dict.nav.cta}
-                </Link>
+                <ChatOpenButton source="blog" fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
+                  {dict.nav.ask}
+                </ChatOpenButton>
               </div>
             </div>
           </Reveal>
@@ -112,8 +112,6 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
           </ul>
         )}
       </section>
-
-      <ContactSection dict={dict} locale={locale} />
     </>
   )
 }

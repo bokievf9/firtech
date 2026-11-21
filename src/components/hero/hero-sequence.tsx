@@ -16,7 +16,7 @@ import {
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
-import { productAnchor, productIds, type ProductId } from '@/lib/product-ids'
+import { productIds, type ProductId } from '@/lib/product-ids'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { HeroField } from '../live/hero-field'
 import { ProductDemo } from '../products/product-demo'
@@ -50,6 +50,7 @@ function useWide() {
 export type HeroProduct = { id: ProductId; name: string; benefit: string }
 
 export function HeroSequence({
+  locale,
   intro,
   sub,
   actions,
@@ -58,6 +59,7 @@ export function HeroSequence({
   copy,
   concept,
 }: {
+  locale: string
   intro: ReactNode
   sub: ReactNode
   actions: ReactNode
@@ -220,7 +222,7 @@ export function HeroSequence({
             className="relative z-10 min-w-0 lg:col-span-5 lg:col-start-1 lg:row-start-3"
             style={scrollDriven ? { opacity: capOpacity } : undefined}
           >
-            <Caption product={current} index={active} copy={copy} reduce={reduce} />
+            <Caption product={current} locale={locale} copy={copy} reduce={reduce} />
           </motion.div>
 
         </motion.div>
@@ -284,16 +286,15 @@ function Dots({
 
 function Caption({
   product,
-  index,
+  locale,
   copy,
   reduce,
 }: {
   product: HeroProduct
-  index: number
+  locale: string
   copy: Dict['hero']['sequence']
   reduce: boolean
 }) {
-  const n = (v: number) => String(v).padStart(2, '0')
   return (
     <div aria-live="polite" className="relative min-h-[8.5rem] lg:min-h-[9.5rem]">
       <AnimatePresence mode="popLayout" initial={false}>
@@ -305,8 +306,7 @@ function Caption({
           transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
         >
           <p className="font-mono text-xs tracking-[0.16em] text-faint uppercase">
-            {copy.label} <span className="text-accent-text">{n(index + 1)}</span> {copy.of}{' '}
-            {n(productIds.length)}
+            {copy.label}
           </p>
           <p className="mt-2 font-display text-[clamp(1.75rem,1.1rem+2vw,3rem)] leading-[1.02] font-semibold tracking-[-0.035em]">
             {product.name}
@@ -314,7 +314,7 @@ function Caption({
           <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-lead text-muted">
             {product.benefit}
             <a
-              href={`#${productAnchor(product.id)}`}
+              href={`/${locale}/products/${product.id}`}
               className="inline-flex items-center gap-1 text-sm font-medium text-fg transition-colors hover:text-accent-text"
             >
               {copy.open}
@@ -384,7 +384,7 @@ function StageCard({
           <div className="min-w-0">
             <p className="truncate font-medium">{product.name}</p>
             <p className="font-mono text-[11px] text-faint">
-              {String(index + 1).padStart(2, '0')} · {concept}
+              {concept}
             </p>
           </div>
         </div>
