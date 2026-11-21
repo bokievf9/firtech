@@ -82,11 +82,39 @@ test.describe('cabinet, signed in', () => {
 })
 
 test.describe('demo page', () => {
-  test('the chat sends ?k= as demoKey, shows HQ\'s limit and a wrong key says so', async ({ page }) => {
+  test('signed out: the scripted example and «Войти» back to this page, no call to the agent', async ({ page }) => {
+    const calls: string[] = []
+    page.on('request', (r) => r.method() === 'POST' && /\/agent\/|\/api\/demo-agent/.test(r.url()) && calls.push(r.url()))
+    await open(page, '/ru/demo/ag_demo1?k=demo-key-0001')
+    await expect(page.locator('[data-demo-gate]')).toBeVisible()
+    await expect(page.locator('[data-demo-example]')).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Войдите, чтобы написать агенту' })).toBeDisabled()
+    const login = page.locator('[data-demo-login]')
+    await expect(login).toHaveAttribute('href', /next=%2Fru%2Fdemo%2Fag_demo1%3Fk%3Ddemo-key-0001/)
+    // The proxy itself refuses without a session.
+    const res = await page.request.post('/api/demo-agent/ag_demo1', { data: { demoKey: 'demo-key-0001', text: 'Привет' }, headers: { origin: page.url().split('/ru')[0]! } })
+    expect(res.status()).toBe(401)
+    expect(calls).toEqual([])
+    for (const size of Object.values(SIZES)) {
+      await page.setViewportSize(size)
+      await noHorizontalOverflow(page, `demo signed out ${size.width}`)
+    }
+  })
+})
+
+test.describe('demo page, signed in', () => {
+  test.beforeEach(async ({ context, baseURL }) => {
+    await context.addCookies([{ ...fakeSessionCookie(), url: baseURL! }])
+  })
+
+  test('the chat sends ?k= as demoKey through the site, shows HQ\'s limit and a wrong key says so', async ({ page }) => {
     const errors = watchErrors(page, noise)
     const requests: unknown[] = []
+    const direct: string[] = []
     page.on('request', (r) => {
-      if (r.url().includes('/agent/') && r.method() === 'POST') requests.push(r.postDataJSON())
+      if (r.url().includes('/api/demo-agent/') && r.method() === 'POST') requests.push(r.postDataJSON())
+      // The browser never calls HQ's /agent/ route itself: the client id is added on the server.
+      if (/\/agent\/[^/]+\/chat/.test(r.url())) direct.push(r.url())
     })
     await open(page, '/ru/demo/ag_demo1?k=demo-key-0001')
     await page.getByRole('textbox', { name: 'Ваше сообщение' }).fill('Сколько стоит стрижка?')
@@ -94,6 +122,7 @@ test.describe('demo page', () => {
     await expect(page.locator('[data-demo-msg="agent"]')).toContainText('Демо-ответ агента')
     await expect(page.locator('[data-demo-limit]')).toContainText('Осталось сообщений: 4 из 5')
     expect(requests).toHaveLength(1)
+    expect(direct).toEqual([])
     expect(requests[0]).toMatchObject({ demoKey: 'demo-key-0001', text: 'Сколько стоит стрижка?' })
     await expect(page.locator('meta[name=robots]')).toHaveAttribute('content', /noindex/)
 

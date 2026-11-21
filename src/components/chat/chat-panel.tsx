@@ -393,7 +393,7 @@ export default function ChatPanel({
                 data-chat-demo
                 className="inline-flex items-center rounded-full border border-accent-text/40 bg-accent/10 px-3 py-1 text-xs text-fg"
               >
-                {copy.demoChip[persona ?? 'salon']}
+                {copy.demoChip[persona && persona !== 'personal' ? persona : 'salon']}
               </span>
               <button
                 type="button"

@@ -278,8 +278,8 @@ test('demo: tabs per product, the chat persona is validated and forwarded, the b
   assert.match(demo, /role="tablist"/)
   assert.doesNotMatch(read('src/components/demo-section.tsx') + demo + read('src/components/demo/demo-booking.tsx'), /t\.me\//)
   assert.equal(ru.demoSection.title, 'Попробуйте сейчас')
-  assert.deepEqual([...personas], ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses'])
-  for (const [, dict] of dicts) for (const id of personas) assert.ok(dict.demoSection.receptionist.niches[id] && dict.demoSection.receptionist.hints[id].length === 3 && dict.demoSection.receptionist.chips[id] && dict.chat.demoChip[id], id)
+  assert.deepEqual([...personas], ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses', 'personal'])
+  for (const [, dict] of dicts) for (const id of personas.filter((p) => p !== 'personal')) assert.ok(dict.demoSection.receptionist.niches[id] && dict.demoSection.receptionist.hints[id].length === 3 && dict.demoSection.receptionist.chips[id] && dict.chat.demoChip[id], id)
   // The Telegram pull-back reply: builder button first, then Telegram.
   const { ctaActions } = await import('../src/lib/chat-cta.ts')
   assert.deepEqual(ctaActions({ builderLink: '/ru/builder?b=k.cafe', cta: ['builder', 'telegram'] }, 'https://t.me/x').map((a) => a.kind), ['builder', 'telegram'])
@@ -295,10 +295,11 @@ test('demo: tabs per product, the chat persona is validated and forwarded, the b
   assert.equal('persona' in sent, false)
   // A demo request never creates a lead: a contact is answered by the route.
   const route = read('src/app/api/chat/route.ts')
-  assert.match(route, /parsed\.data\.persona && wouldCreateLead/)
+  assert.match(route, /if \(parsed\.data\.persona\) \{[\s\S]*auth_required[\s\S]*wouldCreateLead/)
   // HQ reads persona and ref now (2026-11-22): the TODO(agents) notes are gone.
   assert.doesNotMatch(read('src/lib/chat.ts') + read('src/lib/chat-hq.ts'), /TODO\(agents\)/)
-  assert.match(read('src/components/demo/demo-chat.tsx'), /persona: forNiche/)
+  assert.match(read('src/components/demo/demo-chat.tsx'), /callPersona\(forNiche/)
+  assert.match(read('src/components/demo/persona-call.ts'), /persona \}\)/)
 })
 
 test('demo booking: a full dialogue walks service, master, time, reminder, review and restarts', () => {

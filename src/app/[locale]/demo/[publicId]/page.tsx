@@ -9,7 +9,7 @@ import { demoKeyOf, isPublicId } from '@/lib/demo-chat'
 import { isLocale } from '@/lib/i18n'
 
 // «Демо на ваших данных»: the chat with the draft agent HQ built for a lead (link of the first reply:
-// `/<locale>/demo/<publicId>?k=<key>`). No sign-in; the key from `?k=` is sent as `demoKey`. Private page, noindex.
+// `/<locale>/demo/<publicId>?k=<key>`). Only signed-in clients write (owner 2026-11-23); the key from `?k=` is sent as `demoKey`. Private page, noindex.
 export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/demo/[publicId]'>): Promise<Metadata> {
@@ -34,7 +34,7 @@ export default async function DemoPage({ params, searchParams }: PageProps<'/[lo
       </HeroIntro>
       <div className="mt-10">
         {key ? (
-          <DemoChat dict={dict} publicId={publicId} demoKey={key} />
+          <DemoChat dict={dict} locale={locale} publicId={publicId} demoKey={key} />
         ) : (
           <p role="alert" className="rounded-card border border-warn/40 p-6 text-sm text-muted" data-demo-nokey>
             {t.noKey}

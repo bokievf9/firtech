@@ -2,7 +2,7 @@
 
 import { ArrowRight, ArrowUpRight } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ChatOpenButton } from '../chat/chat-open-button'
@@ -39,6 +39,14 @@ export function DemoTabs({
   const base = useId()
   const [active, setActive] = useState<DemoTabId>('receptionist')
   const tabs = useRef<Record<string, HTMLButtonElement | null>>({})
+
+  // Back from the sign-in page (`/<locale>?demo=<tab>#demo`): the same tab opens again.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('demo')
+    const id = demoTabIds.find((x) => x === wanted)
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the query string is only known in the browser
+    if (id) setActive(id)
+  }, [])
 
   function onKey(e: React.KeyboardEvent, index: number) {
     const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
@@ -84,7 +92,7 @@ export function DemoTabs({
 
       <div className="mt-8">
         <div role="tabpanel" id={`${base}-panel-receptionist`} aria-labelledby={`${base}-tab-receptionist`} hidden={active !== 'receptionist'}>
-          <DemoChat copy={t.receptionist} locale={locale} />
+          <DemoChat copy={t.receptionist} gate={dict.demoGate} badge={t.exampleBadge} locale={locale} />
         </div>
         <div role="tabpanel" id={`${base}-panel-admin`} aria-labelledby={`${base}-tab-admin`} hidden={active !== 'admin'}>
           {active === 'admin' && <DemoBooking copy={t.admin} badge={t.exampleBadge} />}
@@ -96,7 +104,7 @@ export function DemoTabs({
           {active === 'miniapp' && <DemoBuilt dict={dict} locale={locale} product="miniapp" intro={t.miniapp.intro} badge={t.exampleBadge} />}
         </div>
         <div role="tabpanel" id={`${base}-panel-personal`} aria-labelledby={`${base}-tab-personal`} hidden={active !== 'personal'}>
-          {active === 'personal' && <DemoAssistant copy={t.personal} badge={t.exampleBadge} />}
+          {active === 'personal' && <DemoAssistant copy={t.personal} gate={dict.demoGate} locale={locale} badge={t.exampleBadge} />}
         </div>
         <div role="tabpanel" id={`${base}-panel-content`} aria-labelledby={`${base}-tab-content`} hidden={active !== 'content'}>
           {active === 'content' && (

@@ -69,7 +69,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   tab is the real chat (`POST /api/chat` with `persona` = salon|clinic|shop; HQ ignores unknown fields today, TODO(agents) in
   `lib/chat.ts`; a demo request never creates a lead, the route answers contacts itself); the booking tab is the state machine in
   `lib/demo-booking.ts` (labelled «Пример»); the content tab shows the three newest published articles (neither `/api/office/public`
-  nor the blog API carries a reel poster, so no poster); the department tab shows the live office counts. No demo-salon Telegram deep
+  nor the blog API carries a reel poster, so no poster); the department tab shows the live office counts. **Since 2026-11-23 every demo (home tabs incl. «Персональный ИИ» = `persona: personal`, the `/demo/<publicId>` page via `/api/demo-agent/<publicId>`, the builder preview chat) is for signed-in clients only**: signed out = scripted example + «Войти», the server adds `clientId`/`clientEmail`/`demo: true` from the session, HQ counts `demo_usage` (contract and HQ list: `docs/cabinet.md`, «Демо только для вошедших»; `lib/demo-gate.ts`). No demo-salon Telegram deep
   link anywhere (`lib/demo.ts` is deleted). **`/[locale]/how-we-work`** (`how` section): stages with what the client does, sees in the
   cabinet and who answers, acceptance, payment, guarantee, what if not liked, tools, approvals. **Tails**: the footer carries the two
   actions «Собрать проект» / «Спросить агента» on every page, Telegram is a small third link there only; the contact form is not a

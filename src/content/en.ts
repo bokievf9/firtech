@@ -1630,11 +1630,23 @@ const en: Dict = {
     llms: 'Guarantee: if you do not like the first screen of the website or the first agent scenario, the first stage payment is returned.',
   },
   // Referral page /[locale]/referral. `{percent}` is filled from `referralPercent` (pricing.ts).
+  demoGate: {
+    hint: 'Sign in to write to the agent',
+    login: 'Sign in',
+    scripted: 'A scripted example. Sign in to write yourself.',
+    left: 'Messages left today: {n}',
+    limitTitle: 'The demo is used up for today',
+    limitText: 'The limit resets tomorrow. Want an agent like this for your business? Build a project.',
+    build: 'Build a project',
+    checking: 'Checking sign-in...',
+    write: 'Write a message',
+    send: 'Send',
+  },
   demoPage: {
     metaTitle: 'Demo of your agent',
     eyebrow: 'Demo on your data',
     title: 'Talk to the agent we built from your request',
-    sub: 'This is a draft: it knows your niche and goals from the request. Ask questions the way a customer would. No sign-in needed.',
+    sub: 'This is a draft: it knows your niche and goals from the request. Ask questions the way a customer would. To write to the agent, sign in to the cabinet: that is how we see the demo usage per client.',
     badge: 'Demo mode: answers are not the finished agent',
     left: 'Messages left: {n} of {max}',
     log: 'Conversation with the agent',
@@ -1643,6 +1655,7 @@ const en: Dict = {
     placeholder: 'Your message',
     send: 'Send',
     noKey: 'The link has no demo key. Open the link from the email or the manager reply in full, including the part after "?k=".',
+    example: { q: 'How much is it and how do I book?', a: 'This is a scripted example. After you sign in, the agent answers from the data in your request.' },
     cta: 'Build a project',
     cabinet: 'To the cabinet',
     errors: {

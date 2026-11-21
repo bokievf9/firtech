@@ -1,8 +1,9 @@
 import 'server-only'
 import { getDict } from '@/content'
+import { createMockDemoCounter, demoFields } from './demo-gate'
 import { identityFields, type LeadIdentity } from './lead-identity'
 import { visitorIpHeader } from './public-post'
-import { createMockReceptionist, sanitizeReply, type ChatRequest, type ChatResponse } from './chat'
+import { createMockReceptionist, sanitizeReply, START, type ChatRequest, type ChatResponse } from './chat'
 
 // Server side of POST /api/chat: forwards one visitor message to HQ's receptionist and cleans the
 // answer. Never throws and never returns the token or the URL.
@@ -19,6 +20,7 @@ const DEFAULT_URL = 'http://127.0.0.1:8787/chat'
 export const CHAT_TIMEOUT_MS = 20_000
 
 const mock = createMockReceptionist()
+const mockCounter = createMockDemoCounter(Number(process.env.DEMO_DAILY_PER_CLIENT) > 0 ? Number(process.env.DEMO_DAILY_PER_CLIENT) : undefined)
 
 export function chatMode(env: Record<string, string | undefined>): 'mock' | 'hq' {
   return !env.HQ_CHAT_URL?.trim() && env.NODE_ENV !== 'production' ? 'mock' : 'hq'
@@ -31,7 +33,15 @@ export async function askReceptionist(
   ip?: string,
   identity: LeadIdentity | null = null,
 ): Promise<ChatResponse> {
-  if (chatMode(env) === 'mock') return mock(req, getDict(req.locale).chat.mock)
+  if (chatMode(env) === 'mock') {
+    const out = mock(req, getDict(req.locale).chat.mock)
+    // A demo message of a signed-in client counts like HQ's `demo_usage` (the greeting request does not).
+    if (req.persona && identity && req.message !== START) {
+      const hit = mockCounter(identity.cabinetId)
+      return hit.ok ? { ...out, usage: hit.usage } : { ok: false, error: 'demo_limit' }
+    }
+    return out
+  }
   const url = env.HQ_CHAT_URL?.trim() || DEFAULT_URL
   const token = (env.HQ_CHAT_TOKEN || env.LEAD_INTAKE_TOKEN || '').trim()
   try {
@@ -55,14 +65,19 @@ export async function askReceptionist(
         ...(req.persona ? { persona: req.persona } : {}),
         // The signed-in cabinet account (clientEmail, cabinetId, clientName, taken from the session
         // on the server, never from the browser): HQ routes the visitor to their own thread.
-        ...identityFields(identity),
+        // A demo message (persona) carries `clientId`, `clientEmail` and `demo: true` instead: HQ counts it
+        // per client (`demo_usage`, daily limit) and answers with `usage: { calls, left }`.
+        ...(req.persona ? demoFields(identity) : identityFields(identity)),
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
     })
     if (res.status === 401 || res.status === 403) return { ok: false, error: 'hq_unauthorized' }
-    if (res.status === 429) return { ok: false, error: 'rate_limited' }
     const body: unknown = await res.json().catch(() => null)
+    if (res.status === 429) {
+      const code = body && typeof body === 'object' ? (body as { error?: unknown }).error : undefined
+      return { ok: false, error: code === 'limit_reached' || code === 'demo_limit' ? 'demo_limit' : 'rate_limited' }
+    }
     const clean = sanitizeReply(body)
     if (!clean) return { ok: false, error: res.ok ? 'hq_bad_response' : 'hq_error' }
     return clean

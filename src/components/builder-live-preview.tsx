@@ -20,6 +20,10 @@ import { cn } from '@/lib/cn'
 import { optionsOf, personalLevel } from '@/lib/flagships'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { useSiteTheme } from '@/lib/use-site-theme'
+import { useCabinetUser } from '@/components/cabinet/use-cabinet-user'
+import { demoLoginHref } from '@/lib/demo-gate'
+import { DemoGateBar, DemoLeft, DemoLimitPlate } from './demo/demo-gate-ui'
+import { usePathname } from 'next/navigation'
 import { Cta, Reveal, RevealGroup, ThemedSite } from './builder-motion'
 
 const HEAD = 'pv-head [font-family:var(--pv-head-font)] [font-stretch:var(--pv-stretch)]'
@@ -87,8 +91,8 @@ export function LivePreview({
         className="pv-root relative overflow-hidden rounded-card border border-line bg-surface-2 p-3 transition-[background-color,border-color] duration-500 md:p-5"
       >
         {mode === 'site' && <SitePreview build={build} dict={dict} locale={locale} company={company} preset={preset} themeKey={themeKey} />}
-        {mode === 'agent' && <AgentWindow build={build} locale={locale} company={company} preset={preset} variant="chat" />}
-        {mode === 'playground' && <PlaygroundPreview build={build} locale={locale} company={company} preset={preset} />}
+        {mode === 'agent' && <AgentWindow build={build} locale={locale} company={company} preset={preset} gate={dict.demoGate} variant="chat" />}
+        {mode === 'playground' && <PlaygroundPreview build={build} locale={locale} company={company} preset={preset} gate={dict.demoGate} />}
         {mode === 'department' && <DepartmentPreview build={build} dict={dict} locale={locale} preset={preset} themeKey={themeKey} />}
         {mode === 'miniapp' && <MiniAppPreview build={build} locale={locale} company={company} preset={preset} themeKey={themeKey} />}
         {mode === 'content' && <ContentPreview build={build} locale={locale} company={company} preset={preset} themeKey={themeKey} />}
@@ -109,6 +113,7 @@ export function LivePreview({
 }
 
 type Common = { build: Build; locale: string; company: string; preset: ReturnType<typeof motionOf> }
+type Gated = Common & { gate: Dict['demoGate'] }
 
 // ------------------------------------------------------------------- site
 
@@ -181,8 +186,9 @@ function AgentWindow({
   build,
   locale,
   company,
+  gate,
   variant,
-}: Common & { variant: 'chat' | 'playground' }) {
+}: Gated & { variant: 'chat' | 'playground' }) {
   const loc = locale === 'ru' ? 'ru' : 'en'
   const reduce = useReducedMotion()
   const niche = demoNicheOf(build.kind)
@@ -195,6 +201,13 @@ function AgentWindow({
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const [live, setLive] = useState<boolean | null>(null)
+  // Only a signed-in client reaches the live persona (owner 2026-11-23, item 15); a visitor gets the scripted
+  // lines (a chip answers, labelled «Пример») and the sign-in prompt instead of the input.
+  const { state: me, refresh } = useCabinetUser()
+  const scriptMode = me.status === 'out' || me.status === 'loading'
+  const pathname = usePathname()
+  const [left, setLeft] = useState<number | null>(null)
+  const [limitHit, setLimitHit] = useState(false)
   const session = useRef('')
   const list = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -212,11 +225,17 @@ function AgentWindow({
 
   async function send(raw: string) {
     const value = raw.trim().slice(0, 500)
-    if (!value || busy) return
+    if (!value || busy || limitHit) return
     setMsgs((m) => [...m, { from: 'me', text: value }])
     setText('')
     setBusy(true)
     let reply: string | null = null
+    if (scriptMode) {
+      const i = script.chips.indexOf(value)
+      setMsgs((m) => [...m, { from: 'bot', text: i >= 0 ? (script.answers[i] ?? script.fallback) : script.fallback }])
+      setBusy(false)
+      return
+    }
     try {
       const res = await fetch('/api/agent-demo', {
         method: 'POST',
@@ -224,8 +243,24 @@ function AgentWindow({
         body: JSON.stringify({ niche, sessionId: session.current, text: value }),
         signal: AbortSignal.timeout(15_000),
       })
-      const body = (await res.json().catch(() => null)) as { ok?: boolean; reply?: string } | null
-      if (res.ok && body?.ok && typeof body.reply === 'string') reply = body.reply
+      const body = (await res.json().catch(() => null)) as { ok?: boolean; reply?: string; usage?: { left?: unknown }; error?: { code?: string } | string } | null
+      if (res.ok && body?.ok && typeof body.reply === 'string') {
+        reply = body.reply
+        if (typeof body.usage?.left === 'number') setLeft(body.usage.left)
+      } else {
+        const code = typeof body?.error === 'string' ? body.error : body?.error?.code
+        if (code === 'demo_limit') {
+          setLimitHit(true)
+          setLeft(0)
+          setBusy(false)
+          return
+        }
+        if (code === 'auth_required') {
+          void refresh()
+          setBusy(false)
+          return
+        }
+      }
     } catch {
       // HQ is unreachable: the scripted lines answer
     }
@@ -258,7 +293,7 @@ function AgentWindow({
           </span>
         </span>
         <span className="hidden rounded-full border border-line-strong px-2.5 py-1 text-[11px] text-faint sm:block">
-          {live === null ? pick(previewUi.live, locale) : live ? pick(previewUi.live, locale) : pick(previewUi.scripted, locale)}
+          {scriptMode ? pick(previewUi.scripted, locale) : live === null ? pick(previewUi.live, locale) : live ? pick(previewUi.live, locale) : pick(previewUi.scripted, locale)}
         </span>
       </div>
       <div
@@ -293,6 +328,12 @@ function AgentWindow({
             </button>
           ))}
         </div>
+        {scriptMode ? (
+          <DemoGateBar gate={gate} href={demoLoginHref(loc, pathname ?? `/${loc}/builder`)} locked={me.status === 'loading'} />
+        ) : limitHit ? (
+          <DemoLimitPlate gate={gate} locale={loc} />
+        ) : (
+          <>
         <form onSubmit={onSubmit} className="flex items-center gap-2">
           <input
             value={text}
@@ -311,6 +352,9 @@ function AgentWindow({
             <PaperPlaneRight size={16} weight="fill" />
           </button>
         </form>
+            <DemoLeft gate={gate} left={left} />
+          </>
+        )}
       </div>
     </div>
   )
@@ -330,7 +374,7 @@ function Bubble({ mine, children }: { mine?: boolean; children: React.ReactNode 
 }
 
 // The playground: the window the client gets in the cabinet, with the chat in it.
-function PlaygroundPreview(props: Common) {
+function PlaygroundPreview(props: Gated) {
   const loc = props.locale === 'ru' ? 'ru' : 'en'
   return (
     <div className="grid gap-3">

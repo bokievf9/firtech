@@ -3,17 +3,23 @@
 import { PaperPlaneRight } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
+import { useCabinetUser } from '@/components/cabinet/use-cabinet-user'
+import { DemoGateBar, DemoLimitPlate } from '@/components/demo/demo-gate-ui'
+import { demoLoginHref } from '@/lib/demo-gate'
 import { DEMO_TEXT_MAX, newConversationId, parseDemoAnswer, type DemoLimit } from '@/lib/demo-chat'
 import { buttonStyles, cn } from '@/lib/cn'
 import { inputClass } from '@/components/cabinet/ui'
 
 type Msg = { from: 'you' | 'agent'; text: string }
 
-// The demo chat of a lead's draft agent (`/<locale>/demo/<publicId>?k=`). Needs no sign-in. Each message goes to
-// HQ's public `POST /agent/<publicId>/chat` with the key from the link as `demoKey`; the demo's message limit is shown
-// from HQ's answer (and the daily limit sentence when HQ answers 429).
-export function DemoChat({ dict, publicId, demoKey }: { dict: Dict; publicId: string; demoKey: string }) {
+// The demo chat of a lead's draft agent (`/<locale>/demo/<publicId>?k=`). Each message goes to
+// the site's `POST /api/demo-agent/<publicId>` with the key from the link as `demoKey`; the server adds the signed-in
+// client (`clientId`, `clientEmail`, `demo: true`) and relays it to HQ's `POST /agent/<publicId>/chat`. Only signed-in
+// clients write (owner 2026-11-23): a visitor sees a scripted example and «Войти». The message limit is shown from HQ's answer.
+export function DemoChat({ dict, locale, publicId, demoKey }: { dict: Dict; locale: 'ru' | 'en'; publicId: string; demoKey: string }) {
   const t = dict.demoPage
+  const { state: me, refresh } = useCabinetUser()
+  const scriptMode = me.status === 'out' || me.status === 'loading'
   const [messages, setMessages] = useState<Msg[]>([])
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
@@ -38,12 +44,20 @@ export function DemoChat({ dict, publicId, demoKey }: { dict: Dict; publicId: st
     setBusy(true)
     setMessages((m) => [...m, { from: 'you', text: value }])
     try {
-      const res = await fetch(`/agent/${encodeURIComponent(publicId)}/chat`, {
+      const res = await fetch(`/api/demo-agent/${encodeURIComponent(publicId)}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ demoKey, text: value, conversationId: conversation.current }),
       })
-      const answer = parseDemoAnswer(res.status, await res.json().catch(() => null))
+      const body: unknown = await res.json().catch(() => null)
+      if (res.status === 401 && (body as { error?: { code?: string } } | null)?.error?.code === 'auth_required') {
+        // The session is gone: the sign-in bar takes the input's place.
+        setMessages((m) => m.slice(0, -1))
+        setBusy(false)
+        void refresh()
+        return
+      }
+      const answer = parseDemoAnswer(res.status, body)
       if (answer.ok) {
         setMessages((m) => [...m, { from: 'agent', text: answer.reply }])
         setLimit(answer.limit)
@@ -62,14 +76,23 @@ export function DemoChat({ dict, publicId, demoKey }: { dict: Dict; publicId: st
     <div className="overflow-hidden rounded-card border border-line bg-surface" data-demo-chat>
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3 text-[13px] text-faint">
         <span>{t.badge}</span>
-        {limit.limit !== null && limit.remaining !== null && (
+        {limit.remaining !== null && !scriptMode && (
           <span data-demo-limit className="font-mono">
-            {t.left.replace('{n}', String(limit.remaining)).replace('{max}', String(limit.limit))}
+            {limit.limit !== null
+              ? t.left.replace('{n}', String(limit.remaining)).replace('{max}', String(limit.limit))
+              : dict.demoGate.left.replace('{n}', String(limit.remaining))}
           </span>
         )}
+        {scriptMode && <span data-demo-example>{dict.demoGate.scripted}</span>}
       </div>
       <div className="grid h-[min(60dvh,520px)] min-h-[320px] content-start gap-3 overflow-y-auto p-4" aria-live="polite" aria-label={t.log}>
-        {messages.length === 0 && <p className="text-sm text-muted">{t.empty}</p>}
+        {messages.length === 0 && !scriptMode && <p className="text-sm text-muted">{t.empty}</p>}
+        {scriptMode && (
+          <>
+            <p data-demo-msg="you" className="max-w-[85%] justify-self-end rounded-2xl bg-accent px-4 py-2.5 text-[15px] leading-relaxed text-accent-ink">{t.example.q}</p>
+            <p data-demo-msg="agent" className="max-w-[85%] justify-self-start rounded-2xl bg-surface-2 px-4 py-2.5 text-[15px] leading-relaxed text-fg">{t.example.a}</p>
+          </>
+        )}
         {messages.map((m, i) => (
           <p
             key={i}
@@ -90,6 +113,15 @@ export function DemoChat({ dict, publicId, demoKey }: { dict: Dict; publicId: st
           {error}
         </p>
       )}
+      {scriptMode ? (
+        <div className="border-t border-line p-3">
+          <DemoGateBar gate={dict.demoGate} href={demoLoginHref(locale, `/${locale}/demo/${publicId}?k=${demoKey}`)} locked={me.status === 'loading'} />
+        </div>
+      ) : closed ? (
+        <div className="border-t border-line p-3">
+          <DemoLimitPlate gate={dict.demoGate} locale={locale} />
+        </div>
+      ) : (
       <form
         className="flex gap-2 border-t border-line p-3"
         onSubmit={(e) => {
@@ -110,6 +142,7 @@ export function DemoChat({ dict, publicId, demoKey }: { dict: Dict; publicId: st
           <PaperPlaneRight size={20} aria-hidden="true" />
         </button>
       </form>
+      )}
     </div>
   )
 }

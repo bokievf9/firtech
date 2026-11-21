@@ -202,7 +202,7 @@ test('home: «Попробуйте сейчас» tabs switch, the booking sampl
   // One tab per product, in the order of `demoTabIds`; the chat has six personas.
   await expect(tabs).toHaveCount(7)
   expect(await tabs.evaluateAll((els) => els.map((el) => el.getAttribute('data-demo-tab')))).toEqual([
-    'receptionist', 'admin', 'automation', 'content', 'miniapp', 'agent', 'implementation',
+    'receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'implementation',
   ])
   await expect(page.locator('[data-niche]')).toHaveCount(6)
   await tabs.nth(1).click()
@@ -211,17 +211,18 @@ test('home: «Попробуйте сейчас» tabs switch, the booking sampl
   for (let i = 0; i < 3; i++) await booking.locator('[data-booking-option="0"]').click()
   await expect(booking).toContainText('Записал')
   await tabs.nth(2).click()
-  await expect(page.locator('[data-demo-built="automation"]')).toBeVisible()
-  await tabs.nth(3).click()
-  await expect(page.locator('[data-demo-articles] a').first()).toBeVisible()
-  await tabs.nth(4).click()
-  await expect(page.locator('[data-demo-built="miniapp"]')).toBeVisible()
-  await tabs.nth(5).click()
   await expect(page.locator('[data-demo-assistant]')).toBeVisible()
+  await tabs.nth(3).click()
+  await expect(page.locator('[data-demo-built="automation"]')).toBeVisible()
+  await tabs.nth(4).click()
+  await expect(page.locator('[data-demo-articles] a').first()).toBeVisible()
+  await tabs.nth(5).click()
+  await expect(page.locator('[data-demo-built="miniapp"]')).toBeVisible()
   await tabs.nth(0).click()
   await page.locator('[data-niche="clinic"]').click()
-  await page.locator('[data-demo-chat]').getByRole('button', { name: 'Работаете в выходные?' }).click()
-  await expect(page.locator('[data-demo-chat]')).toContainText('Работаете в выходные?')
+  // Signed out the chips are the scripted example; the visitor sees the sign-in prompt instead of an input.
+  await page.locator('[data-demo-chat]').getByRole('button', { name: 'Хочу записаться к врачу' }).click()
+  await expect(page.locator('[data-demo-chat]')).toContainText('Хочу записаться к врачу')
   await expect(page.locator('[data-demo-chat] li').nth(1)).toBeVisible()
 })
 

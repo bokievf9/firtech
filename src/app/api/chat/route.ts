@@ -27,27 +27,31 @@ async function handle(request: NextRequest) {
   }
   // Anyone may chat; a lead needs an account (owner 2026-11-20). A contact sent while signed out is
   // not forwarded (HQ would turn it into a lead): the widget asks to sign in instead.
-  // The #demo tab (a persona is set) never creates a lead: a contact is answered here and not
-  // forwarded, and the signed-in identity is not attached.
-  if (parsed.data.persona && wouldCreateLead(parsed.data.message)) {
-    return NextResponse.json(
-      { ok: true, reply: getDict(parsed.data.locale).demoSection.receptionist.noContacts, state: 'chat', demo: true },
-      { headers: { 'cache-control': 'no-store', 'x-chat-mode': chatMode(process.env) } },
-    )
-  }
   const user = cabinetEnabled() ? await peekLeadUser().catch(() => null) : null
   const gate = await leadGate(async () => user)
+  // The #demo tabs (a persona is set) are for signed-in clients only (owner 2026-11-23, item 15: we must know
+  // who spends what). The demo never creates a lead: a contact is answered here and not forwarded; the
+  // identity goes to HQ as `clientId` / `clientEmail` / `demo: true` for the usage count.
+  if (parsed.data.persona) {
+    if (!gate.ok) return apiError('auth_required', 401, { 'x-chat-mode': chatMode(process.env) })
+    if (wouldCreateLead(parsed.data.message)) {
+      return NextResponse.json(
+        { ok: true, reply: getDict(parsed.data.locale).demoSection.receptionist.noContacts, state: 'chat', demo: true },
+        { headers: { 'cache-control': 'no-store', 'x-chat-mode': chatMode(process.env) } },
+      )
+    }
+  }
   if (!gate.ok && wouldCreateLead(parsed.data.message)) {
     return NextResponse.json(
       { ok: true, reply: getDict(parsed.data.locale).chat.signInFirst, state: 'contact', authRequired: true },
       { headers: { 'cache-control': 'no-store', 'x-chat-mode': chatMode(process.env) } },
     )
   }
-  const identity = gate.ok && !parsed.data.persona ? gate.identity : null
+  const identity = gate.ok ? gate.identity : null
   const answer = await askReceptionist(parsed.data, process.env, fetch, ip, identity)
   if (!answer.ok) {
-    console.error(`[chat] receptionist unavailable: ${answer.error}`)
-    return apiError(answer.error, answer.error === 'rate_limited' ? 429 : answer.error === 'hq_timeout' ? 504 : 502, {
+    if (answer.error !== 'demo_limit') console.error(`[chat] receptionist unavailable: ${answer.error}`)
+    return apiError(answer.error, answer.error === 'rate_limited' || answer.error === 'demo_limit' ? 429 : answer.error === 'hq_timeout' ? 504 : 502, {
       'x-chat-mode': chatMode(process.env),
     })
   }

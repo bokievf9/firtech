@@ -111,9 +111,9 @@ export function DemoBlock({ ctx, band }: Props) {
   return (
     <SectionShell id="demo" title={copy.title} sub={copy.sub} band={band}>
       <div className="rounded-card border border-line bg-surface p-4 md:p-8" data-product-demo={ctx.layout.demo}>
-        {ctx.layout.demo === 'chat' && <DemoChat copy={d.receptionist} locale={ctx.locale} />}
+        {ctx.layout.demo === 'chat' && <DemoChat copy={d.receptionist} gate={ctx.dict.demoGate} badge={d.exampleBadge} locale={ctx.locale} />}
         {ctx.layout.demo === 'booking' && <DemoBooking copy={d.admin} badge={d.exampleBadge} />}
-        {ctx.layout.demo === 'assistant' && <DemoAssistant copy={d.personal} badge={d.exampleBadge} />}
+        {ctx.layout.demo === 'assistant' && <DemoAssistant copy={d.personal} gate={ctx.dict.demoGate} locale={ctx.locale} badge={d.exampleBadge} />}
       </div>
     </SectionShell>
   )

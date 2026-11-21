@@ -2,6 +2,8 @@ import 'server-only'
 import { z } from 'zod'
 import { demoNiches } from '../content/builder-v2'
 import { stripHtml } from './chat'
+import { demoFields, parseUsage, type DemoUsage } from './demo-gate'
+import type { LeadIdentity } from './lead-identity'
 import { visitorIpHeader } from './public-post'
 
 // Server side of POST /api/agent-demo: the final screen of the project builder lets the visitor talk
@@ -36,11 +38,16 @@ export function createDemoLimiter(max: number, windowMs: number) {
 export const agentDemoLimited = createDemoLimiter(20, 10 * 60 * 1000)
 export const AGENT_DEMO_TIMEOUT_MS = 20_000
 
-export type AgentDemoAnswer = { ok: true; reply: string } | { ok: false; error: string }
+export type AgentDemoAnswer = { ok: true; reply: string; usage?: DemoUsage } | { ok: false; error: string }
 
 // The HQ origin: `HQ_AGENT_URL`, else the origin of `HQ_CHAT_URL`, else the loopback default. null in
 // development when neither is set (the scripted fallback answers on the screen).
 export function agentDemoUrl(env: Record<string, string | undefined>, niche: string): string | null {
+  return agentChatUrl(env, `demo-${niche}`)
+}
+
+// `${HQ origin}/agent/<id>/chat`, null in development without any HQ address.
+export function agentChatUrl(env: Record<string, string | undefined>, id: string): string | null {
   const configured = env.HQ_AGENT_URL?.trim() || env.HQ_CHAT_URL?.trim()
   if (!configured && env.NODE_ENV !== 'production') return null
   let origin = 'http://127.0.0.1:8787'
@@ -49,7 +56,7 @@ export function agentDemoUrl(env: Record<string, string | undefined>, niche: str
   } catch {
     // keep the loopback default
   }
-  return `${origin}/agent/demo-${niche}/chat`
+  return `${origin}/agent/${id}/chat`
 }
 
 export async function askDemoAgent(
@@ -57,6 +64,7 @@ export async function askDemoAgent(
   env: Record<string, string | undefined> = process.env,
   fetcher: typeof fetch = fetch,
   ip?: string,
+  identity: LeadIdentity | null = null,
 ): Promise<AgentDemoAnswer> {
   const url = agentDemoUrl(env, req.niche)
   if (!url) return { ok: false, error: 'mock' }
@@ -64,16 +72,18 @@ export async function askDemoAgent(
     const res = await fetcher(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json', ...visitorIpHeader(ip) },
-      body: JSON.stringify({ sessionId: req.sessionId, text: req.text }),
+      // `clientId`, `clientEmail` and `demo: true` from the session (never from the browser): HQ counts the usage.
+      body: JSON.stringify({ sessionId: req.sessionId, text: req.text, ...demoFields(identity) }),
       cache: 'no-store',
       signal: AbortSignal.timeout(AGENT_DEMO_TIMEOUT_MS),
     })
-    if (res.status === 429) return { ok: false, error: 'rate_limited' }
-    const body = (await res.json().catch(() => null)) as { ok?: unknown; reply?: unknown } | null
+    const body = (await res.json().catch(() => null)) as { ok?: unknown; reply?: unknown; error?: unknown } | null
+    if (res.status === 429) return { ok: false, error: body?.error === 'limit_reached' || body?.error === 'demo_limit' ? 'demo_limit' : 'rate_limited' }
     if (!res.ok || !body || body.ok !== true || typeof body.reply !== 'string')
       return { ok: false, error: 'hq_error' }
     const reply = stripHtml(body.reply).slice(0, 1200)
-    return reply ? { ok: true, reply } : { ok: false, error: 'hq_error' }
+    const usage = parseUsage(body)
+    return reply ? { ok: true, reply, ...(usage ? { usage } : {}) } : { ok: false, error: 'hq_error' }
   } catch {
     return { ok: false, error: 'hq_unreachable' }
   }

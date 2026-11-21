@@ -280,23 +280,31 @@ test('HQ payload: persona, ref and the signed-in identity travel with text and m
   assert.equal(body.message, 'Привет')
   assert.equal(body.persona, 'salon')
   assert.equal(body.ref, 'dilnoza-77')
+  // A demo message (persona) carries the client for HQ's usage count, not the thread routing fields (2026-11-23).
   assert.equal(body.clientEmail, 'anvar@example.com')
-  assert.equal(body.cabinetId, 'sb-1')
-  assert.equal(body.clientName, 'Анвар')
+  assert.equal(body.clientId, 'sb-1')
+  assert.equal(body.demo, true)
+  for (const key of ['cabinetId', 'clientName']) assert.equal(key in body, false, key)
   assert.equal(answer.builderLink, '/ru/builder?b=k.salon~p.adminbot~g.booking')
   await hq.askReceptionist(chat.chatRequestSchema.parse(req('Привет')), { HQ_CHAT_URL: 'http://hq.test/chat' }, fetcher)
-  for (const key of ['clientEmail', 'cabinetId', 'clientName', 'persona', 'ref']) assert.equal(key in body, false, key)
+  for (const key of ['clientEmail', 'clientId', 'demo', 'cabinetId', 'clientName', 'persona', 'ref']) assert.equal(key in body, false, key)
+  // A lead chat keeps the thread fields and no demo flag.
+  await hq.askReceptionist(chat.chatRequestSchema.parse(req('Привет')), { HQ_CHAT_URL: 'http://hq.test/chat' }, fetcher, undefined, identity)
+  assert.equal(body.cabinetId, 'sb-1')
+  assert.equal('demo' in body, false)
 })
 
-test('route: a demo contact is answered by the route with demo: true, never forwarded', async () => {
+test('route: a signed-out demo message is refused with auth_required, nothing reaches HQ (2026-11-23)', async () => {
   process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://x.supabase.co'
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon'
   try {
-    const body = await (await post(req('@alice_b', { persona: 'salon' }))).json()
-    assert.equal(body.demo, true)
-    assert.equal(body.state, 'chat')
-    assert.notEqual(body.authRequired, true, 'the demo never shows the sign-in gate')
-    assert.equal(body.reply, getDict('ru').demoSection.receptionist.noContacts)
+    for (const persona of ['salon', 'personal']) {
+      const res = await post(req('Привет', { persona }))
+      assert.equal(res.status, 401, persona)
+      assert.equal((await res.json()).error.code, 'auth_required')
+    }
+    // Without a persona the receptionist still answers anyone.
+    assert.equal((await post(req('Привет'))).status, 200)
   } finally {
     delete process.env.NEXT_PUBLIC_SUPABASE_URL
     delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

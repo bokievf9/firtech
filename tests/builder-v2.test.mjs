@@ -486,7 +486,8 @@ test('the playground proxy: validation, no token, scripted fallback without HQ',
   assert.equal(sent.url, 'http://127.0.0.1:8787/agent/demo-shop/chat')
   assert.equal(sent.init.headers['x-visitor-ip'], '1.2.3.4')
   assert.equal(sent.init.headers['x-chat-token'], undefined)
-  assert.deepEqual(JSON.parse(sent.init.body), { sessionId: 'abcdefgh12', text: 'есть?' })
+  // every demo call carries the flag; without an account (identity null) no client fields
+  assert.deepEqual(JSON.parse(sent.init.body), { sessionId: 'abcdefgh12', text: 'есть?', demo: true })
   const down = await askDemoAgent({ niche: 'shop', sessionId: 'abcdefgh12', text: 'a' }, { NODE_ENV: 'production' }, async () => { throw new Error('down') })
   assert.equal(down.ok, false)
   const limited = createDemoLimiter(2, 1000)

@@ -4,6 +4,7 @@
 // HQ side: docs/site-design-notes.md, section «Чат».
 
 import { z } from 'zod'
+import { parseUsage, type DemoUsage } from './demo-gate'
 
 export const MESSAGE_MAX = 1000
 export const REPLY_MAX = 2000
@@ -31,6 +32,8 @@ export type ChatReply = {
   handoff?: boolean
   // A demo session (persona): nothing is saved, no lead.
   demo?: boolean
+  // A demo reply: the signed-in client's messages today, as HQ counts them (`left` null = no limit reported).
+  usage?: DemoUsage
   leadCreated?: boolean
   // Replies the owner wrote from the пульт (lead reply via 'web'), delivered with the next answer.
   ownerReplies?: string[]
@@ -53,8 +56,10 @@ export function stripHtml(input: string): string {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-export const personas = ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses'] as const
+export const personas = ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses', 'personal'] as const
 export type Persona = (typeof personas)[number]
+// The niches of the receptionist demo; `personal` is the «Персональный ИИ» tab (accepted by HQ since 2026-11-23).
+export type NichePersona = Exclude<Persona, 'personal'>
 
 export const chatRequestSchema = z.object({
   sessionId: z.string().regex(UUID),
@@ -128,9 +133,11 @@ export function sanitizeReply(body: unknown): ChatResponse | null {
   const cta = Array.isArray(b.cta)
     ? CTAS.filter((c) => (b.cta as unknown[]).includes(c))
     : []
+  const usage = parseUsage(b)
   return {
     ok: true,
     reply,
+    ...(usage ? { usage } : {}),
     ...(buttons.length ? { buttons } : {}),
     state,
     ...(builderLink ? { builderLink } : {}),

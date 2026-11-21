@@ -92,6 +92,12 @@ const entries: Record<string, Entry> = {
     retryable: true,
     status: 429,
   },
+  demo_limit: {
+    ru: ['Демо на сегодня исчерпано', 'Лимит обновится завтра. Рабочий агент включается после оплаты первого этапа.'],
+    en: ['The demo limit for today is used up', 'It resets tomorrow. A working agent starts after the first stage is paid.'],
+    retryable: false,
+    status: 429,
+  },
   too_large: {
     ru: ['Файл слишком большой', 'Выберите файл поменьше.'],
     en: ['The file is too large', 'Pick a smaller file.'],

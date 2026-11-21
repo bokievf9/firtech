@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { watchErrors, open, openHomeForChat } from './helpers'
+import { watchErrors, open, openHomeForChat, fakeSessionCookie } from './helpers'
 
 // ---- builder: all 8 steps in one scenario -------------------------------------------------------
 
@@ -367,14 +367,78 @@ test('chat: a demo reply shows the demo chip and the reset, and never the sign-i
   await expect(dialog.locator('[data-chat-demo]')).toBeVisible()
 })
 
-test('home demo tab: the chip names the niche and «Сбросить демо» clears the conversation', async ({ page }) => {
+test('home demo tab, signed out: the scripted example, «Пример», the sign-in prompt and no call to /api/chat', async ({ page }) => {
+  const calls: string[] = []
+  page.on('request', (r) => r.url().includes('/api/chat') && calls.push(r.url()))
   await open(page, '/ru#demo')
   const demo = page.locator('[data-demo-chat]')
-  await expect(demo.locator('[data-chat-demo]')).toHaveText('Демо: вымышленный салон')
-  await page.locator('[data-niche="clinic"]').click()
-  await expect(demo.locator('[data-chat-demo]')).toHaveText('Демо: вымышленная клиника')
-  await demo.getByRole('button', { name: 'Работаете в выходные?' }).click()
-  await expect(demo.locator('li').nth(1)).toBeVisible()
-  await demo.getByRole('button', { name: 'Сбросить демо' }).click()
-  await expect(demo.getByText('Работаете в выходные?', { exact: true }).and(demo.locator('li'))).toHaveCount(0)
+  await expect(demo.locator('[data-demo-example]')).toHaveText('Пример')
+  await expect(demo.locator('[data-demo-gate]')).toBeVisible()
+  await expect(demo.getByPlaceholder('Войдите, чтобы написать агенту')).toBeDisabled()
+  await expect(demo.getByRole('textbox')).toBeDisabled()
+  await demo.getByRole('button', { name: 'Есть окно на субботу?' }).click()
+  await expect(demo.getByText('В субботу свободно 11:00 и 14:30')).toBeVisible()
+  await demo.locator('[data-demo-login]').click()
+  await expect(page).toHaveURL(/\/ru\/cabinet\/login\?next=%2Fru%3Fdemo%3Dreceptionist%23demo/)
+  expect(calls).toEqual([])
+})
+
+test('home demo tab, signed out: «Персональный ИИ» shows the example and a sign-in link that returns to the same tab', async ({ page }) => {
+  await open(page, '/ru?demo=personal#demo')
+  const tab = page.locator('[data-demo-assistant]')
+  await expect(tab).toBeVisible()
+  await expect(tab.locator('[data-demo-gate]')).toBeVisible()
+  await expect(tab.locator('[data-demo-login]')).toHaveAttribute('href', /next=%2Fru%3Fdemo%3Dpersonal%23demo/)
+})
+
+test.describe('home demo, signed in', () => {
+  test.beforeEach(async ({ context, baseURL }) => {
+    await context.addCookies([{ ...fakeSessionCookie(), url: baseURL! }])
+  })
+
+  test('the chip names the niche, the client writes freely, sees what is left, «Сбросить демо» clears it', async ({ page }) => {
+    const sent: Record<string, unknown>[] = []
+    page.on('request', (r) => r.url().includes('/api/chat') && r.method() === 'POST' && sent.push(r.postDataJSON()))
+    await open(page, '/ru#demo')
+    const demo = page.locator('[data-demo-chat]')
+    await expect(demo.locator('[data-chat-demo]')).toHaveText('Демо: вымышленный салон')
+    await expect(demo.locator('[data-demo-gate]')).toHaveCount(0)
+    await page.locator('[data-niche="clinic"]').click()
+    await expect(demo.locator('[data-chat-demo]')).toHaveText('Демо: вымышленная клиника')
+    await demo.getByRole('button', { name: 'Работаете в выходные?' }).click()
+    await expect(demo.locator('li').nth(1)).toBeVisible()
+    await expect(demo.locator('[data-demo-left]')).toContainText('Осталось сообщений сегодня:')
+    // The browser sends the persona and nothing about the client: clientId and clientEmail are added on the server.
+    expect(sent.every((b) => b.persona === 'clinic' && !('clientEmail' in b) && !('clientId' in b))).toBe(true)
+    await demo.getByRole('button', { name: 'Сбросить демо' }).click()
+    await expect(demo.getByText('Работаете в выходные?', { exact: true }).and(demo.locator('li'))).toHaveCount(0)
+  })
+
+  test('the daily limit shows the friendly plate with «Собрать проект»', async ({ page }) => {
+    await page.route('**/api/chat', async (route) => {
+      const body = route.request().postDataJSON() as { message: string }
+      if (body.message === '/start') return route.fulfill({ json: { ok: true, reply: 'Здравствуйте.', state: 'chat', demo: true } })
+      return route.fulfill({ status: 429, json: { ok: false, error: { code: 'demo_limit', message: 'x' } } })
+    })
+    await open(page, '/ru#demo')
+    const demo = page.locator('[data-demo-chat]')
+    await demo.getByRole('textbox').fill('Привет')
+    await demo.getByRole('textbox').press('Enter')
+    const plate = demo.locator('[data-demo-limit-plate]')
+    await expect(plate).toContainText('Демо на сегодня закончилось')
+    await expect(plate.getByRole('link', { name: 'Собрать проект' })).toHaveAttribute('href', '/ru/builder')
+  })
+
+  test('«Персональный ИИ»: free text goes to the persona `personal`, the answer and the counter show', async ({ page }) => {
+    const sent: Record<string, unknown>[] = []
+    page.on('request', (r) => r.url().includes('/api/chat') && r.method() === 'POST' && sent.push(r.postDataJSON()))
+    await open(page, '/ru?demo=personal#demo')
+    const tab = page.locator('[data-demo-assistant]')
+    await expect(tab.locator('[data-demo-gate]')).toHaveCount(0)
+    await tab.getByRole('textbox').fill('Что у меня сегодня по делам?')
+    await tab.getByRole('textbox').press('Enter')
+    await expect(tab.getByText('Что у меня сегодня по делам?', { exact: true }).first()).toBeVisible()
+    await expect(tab.locator('[data-demo-left]')).toContainText('Осталось сообщений сегодня:')
+    expect(sent.some((b) => b.persona === 'personal' && b.message === 'Что у меня сегодня по делам?')).toBe(true)
+  })
 })

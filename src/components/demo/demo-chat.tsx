@@ -3,17 +3,22 @@
 import { PaperPlaneRight } from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
-import { btnMessage, MESSAGE_MAX, START, type ChatButton, type ChatResponse, type Persona } from '@/lib/chat'
+import { useCabinetUser } from '@/components/cabinet/use-cabinet-user'
+import { scripted } from '@/content/builder-v2'
+import { btnMessage, MESSAGE_MAX, START, type ChatButton, type NichePersona } from '@/lib/chat'
+import { demoLoginHref, demoTabNext } from '@/lib/demo-gate'
 import { cn } from '@/lib/cn'
-import { errorLine, fetchJson, type ErrorInfo } from '@/lib/errors'
+import { errorLine } from '@/lib/errors'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { DemoGateBar, DemoLeft, DemoLimitPlate } from './demo-gate-ui'
+import { callPersona, type PersonaAnswer } from './persona-call'
 
 // `retry`: a failure line with a «Повторить» button that sends the same message again.
 type Msg = { id: number; from: 'me' | 'agent' | 'sys'; text: string; retry?: { message: string; shown: string } }
-type Answer = ChatResponse | { ok: false; error: string; info: ErrorInfo }
+type Answer = PersonaAnswer
 type Copy = Dict['demoSection']['receptionist']
 
-const NICHES: readonly Persona[] = ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses']
+const NICHES: readonly NichePersona[] = ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses']
 const MIN_GAP_MS = 1500
 
 function uuid(): string {
@@ -29,9 +34,14 @@ function uuid(): string {
 // selector. The niche goes along as `persona` (HQ reads it later, see chat.ts); a message that looks
 // like a contact is answered by the route and never reaches HQ, so the demo creates no lead. Each
 // niche has its own session and its own conversation.
-export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) {
+export function DemoChat({ copy, gate, badge, locale }: { copy: Copy; gate: Dict['demoGate']; badge: string; locale: 'ru' | 'en' }) {
   const reduce = useReducedMotion()
-  const [niche, setNiche] = useState<Persona>('salon')
+  // Only a signed-in client writes (owner 2026-11-23, item 15); a visitor gets the scripted example and «Войти».
+  const { state: me, refresh } = useCabinetUser()
+  const scriptMode = me.status === 'out' || me.status === 'loading'
+  const [left, setLeft] = useState<number | null>(null)
+  const [limitHit, setLimitHit] = useState(false)
+  const [niche, setNiche] = useState<NichePersona>('salon')
   const [threads, setThreads] = useState<Record<string, Msg[]>>({})
   const [buttons, setButtons] = useState<ChatButton[]>([])
   const [text, setText] = useState('')
@@ -47,7 +57,7 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
     if (list) list.scrollTo({ top: list.scrollHeight, behavior: reduce ? 'auto' : 'smooth' })
   }, [messages.length, pending, reduce])
 
-  const push = useCallback((forNiche: Persona, ...items: Omit<Msg, 'id'>[]) => {
+  const push = useCallback((forNiche: NichePersona, ...items: Omit<Msg, 'id'>[]) => {
     setThreads((all) => ({
       ...all,
       [forNiche]: [...(all[forNiche] ?? []), ...items.map((m) => ({ ...m, id: ++counter.current }))],
@@ -55,32 +65,33 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
   }, [])
 
   const call = useCallback(
-    async (forNiche: Persona, message: string): Promise<Answer> => {
+    async (forNiche: NichePersona, message: string): Promise<Answer> => {
       const session = (sessions.current[forNiche] ??= { id: uuid(), started: false })
-      {
-        const result = await fetchJson<ChatResponse>('/api/chat', {
-          locale,
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: session.id,
-            locale,
-            message,
-            page: window.location.pathname,
-            persona: forNiche,
-          }),
-        })
-        if (!result.ok) return { ok: false, error: result.error.code, info: result.error }
-        return result.data
-      }
+      return callPersona(forNiche, locale, session.id, message)
     },
     [locale],
   )
 
+  // Signed out: the scripted lines of the niche, a question from the chips only; nothing is sent.
+  const script = scripted[niche as keyof typeof scripted]?.[locale]
+  const answerScripted = useCallback(
+    (forNiche: NichePersona, shown: string) => {
+      const sc = scripted[forNiche as keyof typeof scripted]?.[locale]
+      if (!sc) return
+      const i = sc.chips.indexOf(shown)
+      push(forNiche, { from: 'me', text: shown }, { from: 'agent', text: i >= 0 ? (sc.answers[i] ?? sc.fallback) : sc.fallback })
+    },
+    [locale, push],
+  )
+
   const send = useCallback(
     async (message: string, shown: string) => {
+      if (scriptMode) {
+        answerScripted(niche, shown)
+        return
+      }
       const now = Date.now()
-      if (pending || now - last.current < MIN_GAP_MS) return
+      if (pending || limitHit || now - last.current < MIN_GAP_MS) return
       last.current = now
       const forNiche = niche
       setButtons([])
@@ -95,9 +106,17 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
       const answer = await call(forNiche, message)
       setPending(false)
       if (answer.ok) {
+        if (answer.usage) setLeft(answer.usage.left)
         push(forNiche, { from: 'agent', text: answer.reply })
         if (answer.state === 'contact') push(forNiche, { from: 'sys', text: copy.noContacts })
         setButtons(answer.buttons ?? [])
+      } else if (answer.error === 'demo_limit') {
+        // The daily limit of the demo: a friendly plate instead of an error line.
+        setLimitHit(true)
+        setLeft(0)
+      } else if (answer.error === 'auth_required') {
+        // The session is gone: the sign-in bar takes the input's place.
+        void refresh()
       } else {
         const info = 'info' in answer ? answer.info : undefined
         push(forNiche, {
@@ -107,7 +126,7 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
         })
       }
     },
-    [call, copy, niche, pending, push],
+    [answerScripted, call, copy, limitHit, niche, pending, push, refresh, scriptMode],
   )
 
   // «Сбросить демо»: this niche starts over with a new session.
@@ -158,7 +177,7 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
       </div>
 
       <div className="lg:col-span-7">
-        <div className="glass flex h-[26rem] flex-col overflow-hidden rounded-panel" data-demo-chat>
+        <div className={cn('glass flex flex-col overflow-hidden rounded-panel', scriptMode ? 'h-[32rem] lg:h-[26rem]' : 'h-[26rem]')} data-demo-chat>
           <div className="flex items-center justify-between gap-2 border-b border-glass-line px-4 py-2.5">
             <span
               data-chat-demo
@@ -166,6 +185,11 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
             >
               {copy.chips[niche]}
             </span>
+            {scriptMode && (
+              <span data-demo-example className="rounded-full bg-accent/15 px-3 py-1 text-xs text-accent-text">
+                {badge}
+              </span>
+            )}
             <button
               type="button"
               onClick={reset}
@@ -176,7 +200,12 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
             </button>
           </div>
           <ol ref={listRef} aria-live="polite" className="grid flex-1 content-start gap-2.5 overflow-y-auto p-4">
-            {messages.length === 0 && (
+            {messages.length === 0 && scriptMode && script && (
+              <li className="chat-in max-w-[88%] rounded-[18px] rounded-bl-md bg-surface-2 px-4 py-2.5 text-[15px] leading-snug">
+                {script.greeting.replace('{company}', copy.niches[niche])}
+              </li>
+            )}
+            {messages.length === 0 && !scriptMode && (
               <li className="text-sm text-faint">{copy.empty}</li>
             )}
             {messages.map((m) => (
@@ -218,7 +247,7 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
             )}
           </ol>
           <div className="flex flex-wrap gap-2 px-4 pb-2">
-            {(buttons.length ? buttons.map((b) => ({ key: b.id, label: b.label, message: btnMessage(b.id) })) : copy.hints[niche].map((h) => ({ key: h, label: h, message: h }))).map((chip) => (
+            {(!scriptMode && buttons.length ? buttons.map((b) => ({ key: b.id, label: b.label, message: btnMessage(b.id) })) : (scriptMode && script ? script.chips : copy.hints[niche]).map((h) => ({ key: h, label: h, message: h }))).map((chip) => (
               <button
                 key={chip.key}
                 type="button"
@@ -230,29 +259,39 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
               </button>
             ))}
           </div>
-          <form onSubmit={submit} className="border-t border-glass-line p-3">
-            <div className="flex items-end gap-2 rounded-[22px] border border-line-strong bg-bg/60 p-1.5 pl-4 focus-within:border-accent-text/60">
-              <label htmlFor="demo-chat-input" className="sr-only">
-                {copy.placeholder}
-              </label>
-              <input
-                id="demo-chat-input"
-                value={text}
-                maxLength={MESSAGE_MAX}
-                placeholder={copy.placeholder}
-                onChange={(e) => setText(e.target.value)}
-                className="ym-disable-keys min-h-10 flex-1 bg-transparent text-[15px] text-fg placeholder:text-faint focus:outline-none"
-              />
-              <button
-                type="submit"
-                disabled={pending || !text.trim()}
-                aria-label={copy.send}
-                className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-opacity disabled:opacity-40"
-              >
-                <PaperPlaneRight size={18} weight="fill" aria-hidden="true" />
-              </button>
-            </div>
-          </form>
+          <div className="border-t border-glass-line p-3">
+            {scriptMode ? (
+              <DemoGateBar gate={gate} href={demoLoginHref(locale, demoTabNext(locale, 'receptionist'))} locked={me.status === 'loading'} />
+            ) : limitHit ? (
+              <DemoLimitPlate gate={gate} locale={locale} />
+            ) : (
+            <form onSubmit={submit}>
+              <div className="flex items-end gap-2 rounded-[22px] border border-line-strong bg-bg/60 p-1.5 pl-4 focus-within:border-accent-text/60">
+                <label htmlFor="demo-chat-input" className="sr-only">
+                  {copy.placeholder}
+                </label>
+                <input
+                  id="demo-chat-input"
+                  value={text}
+                  maxLength={MESSAGE_MAX}
+                  placeholder={copy.placeholder}
+                  onChange={(e) => setText(e.target.value)}
+                  className="ym-disable-keys min-h-10 flex-1 bg-transparent text-[15px] text-fg placeholder:text-faint focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={pending || !text.trim()}
+                  aria-label={copy.send}
+                  className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-opacity disabled:opacity-40"
+                >
+                  <PaperPlaneRight size={18} weight="fill" aria-hidden="true" />
+                </button>
+              </div>
+            </form>
+
+            )}
+            {!scriptMode && !limitHit && <div className="mt-2 px-2"><DemoLeft gate={gate} left={left} /></div>}
+          </div>
         </div>
       </div>
     </div>
