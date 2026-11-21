@@ -40,7 +40,12 @@ after(() => rm(root, { recursive: true, force: true }))
 let calls = []
 let telegramDown = false
 let messageId = 100
+let hqAnswer = null
 globalThis.fetch = async (url, init) => {
+  if (String(url).startsWith('http://hq.local')) {
+    if (!hqAnswer) throw new TypeError('fetch failed')
+    return Response.json(hqAnswer)
+  }
   const method = String(url).split('/').pop()
   assert.match(String(url), /^https:\/\/api\.telegram\.org\/bottest-token\//)
   calls.push({ method, body: JSON.parse(init.body) })
@@ -58,6 +63,9 @@ beforeEach(async () => {
   process.env.DATA_DIR = path.join(root, `d${++dirCount}`)
   calls = []
   telegramDown = false
+  hqAnswer = null
+  delete process.env.LEAD_INTAKE_URL
+  delete process.env.LEAD_INTAKE_TOKEN
 })
 
 const store = await import('../src/lib/store.ts')
@@ -259,7 +267,8 @@ test('webhook: client links via /start, gets updates on the booking', async () =
   const kb = sent('editMessageText')[0]
     .body.reply_markup.inline_keyboard.flat()
     .map((b) => b.text)
-  assert.ok(kb.includes('Перенести') && !kb.includes('Подтвердить'))
+  // Since 2026-11-23 the owner message carries no call buttons (HQ's Pult manages calls).
+  assert.ok(!kb.includes('Перенести') && !kb.includes('Подтвердить'))
 
   calls = []
   await postUpdate(callback(`bk:${stored.id}:move`))
@@ -344,7 +353,8 @@ test('lead route: a call slot must be free right now', async () => {
   const ok = await postLead({ name: 'Ali', contact: '@ali', slot })
   assert.equal((await ok.json()).slot, slot)
   assert.match(sent('sendMessage')[0].body.text, /Созвон:<\/b> .+ \(Душанбе\) - ждёт подтверждения/)
-  assert.equal(sent('sendMessage')[0].body.reply_markup.inline_keyboard[2][0].text, 'Подтвердить')
+  // No call buttons any more: HQ's Pult confirms and moves calls.
+  assert.equal(sent('sendMessage')[0].body.reply_markup.inline_keyboard.length, 2)
 
   assert.equal((await postLead({ name: 'Bek', contact: '@bek', slot })).status, 409)
 })
@@ -366,5 +376,40 @@ test('lead route: with the cabinet on, a signed-out request gets 401 and nothing
   } finally {
     delete process.env.NEXT_PUBLIC_SUPABASE_URL
     delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  }
+})
+
+test('lead route: HQ notified:true means the site bot stays quiet; queued or no answer means the bot sends', async () => {
+  process.env.LEAD_INTAKE_URL = 'http://hq.local'
+  process.env.LEAD_INTAKE_TOKEN = 't'
+  const log = console.error
+  console.error = () => {}
+  try {
+    hqAnswer = { ok: true, id: 5, leadId: 9, notified: true }
+    let response = await postLead({ name: 'Ali', contact: '@ali', service: 'bots' })
+    assert.equal(response.status, 200)
+    let body = await response.json()
+    assert.equal(body.queued, false)
+    assert.equal(sent('sendMessage').length, 0)
+    const saved = await store.getLead(body.id)
+    assert.equal(saved.notified, true)
+    // Nothing is left to resend later.
+    assert.deepEqual(await store.unnotifiedLeads(), [])
+
+    // HQ answered without notified: the bot is the channel.
+    hqAnswer = { ok: true, id: 6, leadId: 10 }
+    response = await postLead({ name: 'Ali', contact: '@ali', service: 'bots' })
+    assert.equal(response.status, 200)
+    assert.equal(sent('sendMessage').length, 1)
+
+    // HQ down: the bot too.
+    calls = []
+    hqAnswer = null
+    response = await postLead({ name: 'Ali', contact: '@ali', service: 'bots' })
+    body = await response.json()
+    assert.equal(body.queued, true)
+    assert.equal(sent('sendMessage').length, 1)
+  } finally {
+    console.error = log
   }
 })

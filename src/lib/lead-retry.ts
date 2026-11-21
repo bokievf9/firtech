@@ -23,7 +23,7 @@ export function retryDue(lead: StoredLead, now: number): boolean {
 }
 
 // Records one try (also for the first, in-request one).
-export async function recordForward(id: number, result: { ok: boolean; id: number | null }, now = Date.now()) {
+export async function recordForward(id: number, result: { ok: boolean; id: number | null; notified?: boolean }, now = Date.now()) {
   return updateLead(id, (l) => {
     if (l.hqForwarded === true) return
     l.hqAttempts = (l.hqAttempts ?? 0) + 1
@@ -31,6 +31,8 @@ export async function recordForward(id: number, result: { ok: boolean; id: numbe
     if (result.ok) {
       l.hqForwarded = true
       if (result.id) l.hqLeadId = result.id
+      // HQ tells the owner itself: the bot's resend of an unsent lead is not needed any more.
+      if (result.notified) l.notified = true
     }
   })
 }

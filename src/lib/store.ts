@@ -43,7 +43,11 @@ export type StoredLead = Omit<Lead, 'website' | 'slot'> & {
   hqIdentity?: { clientEmail: string; cabinetId: string; clientName: string }
 }
 
-type Db = { nextId: number; leads: StoredLead[] }
+// A call window HQ booked for its own lead (`POST /api/slots`, P-02): lives in the same file as the
+// site's bookings and is excluded from the free list the same way, but is no site lead.
+export type HqBooking = { slot: string; leadId: number; name: string; contact: string; locale: string; source: string; at: string }
+
+type Db = { nextId: number; leads: StoredLead[]; hqBookings?: HqBooking[] }
 
 export class SlotTakenError extends Error {
   constructor() {
@@ -117,6 +121,21 @@ export function createLead(
   })
 }
 
+// Books a window for HQ: false when a site lead or another HQ booking already holds it. Same HQ lead
+// asking again for the same window is a repeat of the same booking and stays true.
+export function createHqBooking(booking: Omit<HqBooking, 'at'>): Promise<boolean> {
+  return serialize(async () => {
+    const db = await load()
+    const list = db.hqBookings ?? []
+    if (db.leads.some((l) => activeSlot(l) === booking.slot)) return false
+    const same = list.find((b) => b.slot === booking.slot)
+    if (same) return same.leadId === booking.leadId
+    db.hqBookings = [...list, { ...booking, at: new Date().toISOString() }]
+    await save(db)
+    return true
+  })
+}
+
 export function updateLead(
   id: number,
   change: (lead: StoredLead) => void,
@@ -146,7 +165,8 @@ export async function allLeads() {
 }
 
 export async function bookedSlots() {
-  return (await load()).leads.map(activeSlot).filter((s): s is string => Boolean(s))
+  const db = await load()
+  return [...db.leads.map(activeSlot).filter((s): s is string => Boolean(s)), ...(db.hqBookings ?? []).map((b) => b.slot)]
 }
 
 // P-01: leads HQ has not confirmed yet (explicit `false`, so leads from before the field are skipped).
