@@ -622,6 +622,17 @@ test('cabinet view: the mock client gets documents, actions, badges, the agent t
   mock.resetMockState()
 })
 
+test('terms carry the simple e-signature section after the guarantee, in both languages, hyphens only', () => {
+  for (const dict of [ru, en]) {
+    const ids = dict.terms.sections.map((x) => x.id)
+    assert.equal(ids[ids.indexOf('guarantee') + 1], 'esign')
+    const sec = dict.terms.sections.find((x) => x.id === 'esign')
+    assert.ok(sec.title.length > 0 && sec.text.length >= 2 && sec.list.length >= 4)
+    assert.doesNotMatch(JSON.stringify(sec), /[–—]/)
+  }
+  assert.match(ru.cabinet.v3.docs.signPad.consent, /простой электронной подписью/)
+})
+
 // ---- copy --------------------------------------------------------------------------------------
 
 const shape = (v) => (v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, shape(x)])) : typeof v)

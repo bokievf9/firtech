@@ -163,6 +163,30 @@ test('cabinet login: Google button with the G mark, email form, sign-up and forg
   await expect(page.locator('input[type=email]')).toBeVisible()
 })
 
+test('cabinet v3: signed out, every cabinet tab goes to the login page and every v3 API answers 401', async ({ page, request }) => {
+  for (const q of ['', '?tab=documents&doc=q-14', '?tab=messages&ref=lead-14', '?tab=agent', '?tab=materials', '?tab=invoices']) {
+    await open(page, `/ru/cabinet${q}`)
+    await expect(page).toHaveURL(/\/ru\/cabinet\/login/)
+  }
+  for (const path of ['/api/cabinet/threads', '/api/cabinet/threads/lead-14/messages', '/api/cabinet/documents', '/api/cabinet/documents/q-14/file', '/api/cabinet/media?u=%2Fmedia%2Fx.pdf', '/api/cabinet/agent']) {
+    const res = await request.get(path)
+    expect(res.status(), path).toBe(401)
+    expect((await res.text()).includes('media/')).toBe(false)
+  }
+  const origin = { origin: `http://localhost:${process.env.E2E_PORT ?? 3417}` }
+  const post = (path: string, data: object) => request.post(path, { data, headers: origin })
+  expect((await post('/api/cabinet/documents/q-14/accept', {})).status()).toBe(401)
+  expect((await post('/api/cabinet/documents/c-2/sign', { signaturePng: 'x', name: 'A B', consent: true })).status()).toBe(401)
+  expect((await post('/api/cabinet/threads/lead-14/messages', { text: 'hi' })).status()).toBe(401)
+  expect((await post('/api/cabinet/threads/lead-14/read', {})).status()).toBe(401)
+  expect((await post('/api/cabinet/agent/telegram', { botToken: '123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw' })).status()).toBe(401)
+  const upload = await request.post('/api/cabinet/uploads', { multipart: { threadId: 'lead-14', file: { name: 'a.png', mimeType: 'image/png', buffer: Buffer.from('x') } }, headers: origin })
+  expect(upload.status()).toBe(401)
+  // a foreign origin is refused before anything else
+  const foreign = await request.post('/api/cabinet/documents/q-14/accept', { data: {}, headers: { origin: 'https://evil.example' } })
+  expect(foreign.status()).toBe(403)
+})
+
 test('cabinet pages are noindex', async ({ page }) => {
   await open(page, '/ru/cabinet/login')
   expect(await page.locator('meta[name=robots]').getAttribute('content')).toContain('noindex')

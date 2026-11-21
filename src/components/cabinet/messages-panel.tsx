@@ -39,9 +39,10 @@ export function MessagesPanel({
   const [selected, setSelected] = useState<string | null>(null)
   const ref = search.get('ref')
 
-  const publish = useCallback((list: ChatThread[]) => {
-    window.dispatchEvent(new CustomEvent(COUNTS_EVENT, { detail: { messages: unreadTotal(list) } }))
-  }, [])
+  // The tab badge follows the list (an effect: the bar is another component, never touched while rendering).
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent(COUNTS_EVENT, { detail: { messages: unreadTotal(threads) } }))
+  }, [threads])
 
   // A link with `?ref=` picks its thread (only a NEW value decides, list updates never move the selection);
   // on wide screens the first thread is shown when none is chosen.
@@ -61,9 +62,7 @@ export function MessagesPanel({
         const res = await fetch('/api/cabinet/threads', { cache: 'no-store' })
         const body = (await res.json().catch(() => null)) as { ok?: boolean; threads?: unknown } | null
         if (alive && res.ok && body?.ok) {
-          const next = sortThreads(parseThreads(body.threads))
-          setThreads(next)
-          publish(next)
+          setThreads(sortThreads(parseThreads(body.threads)))
         }
       } catch {
         // Offline for a moment: the next tick tries again.
@@ -77,18 +76,11 @@ export function MessagesPanel({
       window.clearInterval(timer)
       document.removeEventListener('visibilitychange', onVisible)
     }
-  }, [publish])
+  }, [])
 
-  const onRead = useCallback(
-    (id: string) => {
-      setThreads((list) => {
-        const next = list.map((x) => (x.id === id ? { ...x, unread: 0 } : x))
-        publish(next)
-        return next
-      })
-    },
-    [publish],
-  )
+  const onRead = useCallback((id: string) => {
+    setThreads((list) => list.map((x) => (x.id === id ? { ...x, unread: 0 } : x)))
+  }, [])
 
   const active = threads.find((x) => x.id === selected) ?? (selected === null && wide ? (threads[0] ?? null) : null)
   const showTicket = selected === TICKET
