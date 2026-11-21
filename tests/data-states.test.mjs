@@ -130,7 +130,12 @@ test('fetchJson: ok, server error codes, bad bodies, thrown errors, timeout', as
     throw new TypeError('Failed to fetch')
   })
   assert.equal(down.error.code, 'network')
-  const slow = await errors.fetchJson('/x', { timeoutMs: 20 }, (url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason))))
+  // AbortSignal.timeout() timers are unref'd: on Node 22 nothing else keeps the event loop alive while the
+  // fake fetch waits, so the runner reported «Promise resolution is still pending». A ref'd timer holds it open.
+  const keepAlive = setInterval(() => {}, 1000)
+  const slow = await errors
+    .fetchJson('/x', { timeoutMs: 20 }, (url, init) => new Promise((_, reject) => init.signal.addEventListener('abort', () => reject(init.signal.reason))))
+    .finally(() => clearInterval(keepAlive))
   assert.equal(slow.error.code, 'timeout')
 })
 

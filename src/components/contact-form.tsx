@@ -32,7 +32,7 @@ const botUsername = (process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || defaultTel
   '',
 )
 
-type Sent = { id?: number; token?: string; slot?: string | null; cabinet?: string | null }
+type Sent = { id?: number; token?: string; slot?: string | null; cabinet?: string | null; queued?: boolean }
 
 // 16px on phones: iOS Safari zooms into any field with smaller text when it gets focus.
 // ym-disable-keys: Metrika's Webvisor never records what is typed here.
@@ -221,7 +221,8 @@ export function ContactForm({
       track('lead_sent', { service: data.service || 'unknown' })
       trackEvent('lead_sent')
       // The cabinet shows the request and what happens next (owner 2026-11-20).
-      if (answer.cabinet) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
+      // A queued lead stays on the «saved» text; the cabinet is one button away.
+        if (answer.cabinet && !answer.queued) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
     }
   }
 
@@ -247,7 +248,7 @@ export function ContactForm({
             <CheckCircle size={44} weight="light" className="text-accent-text" />
             <h3 className="mt-6 text-3xl font-semibold tracking-tight">{t.successTitle}</h3>
             <p className="mt-3 max-w-[40ch] leading-relaxed text-muted">
-              {sent.cabinet ? dict.leadAuth.redirecting : t.successText}
+              {sent.queued ? t.successQueued : sent.cabinet ? dict.leadAuth.redirecting : t.successText}
             </p>
             {sent.slot && (
               <p className="mt-3 max-w-[40ch] leading-relaxed text-fg">
