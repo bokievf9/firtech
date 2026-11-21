@@ -5,9 +5,12 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { btnMessage, MESSAGE_MAX, START, type ChatButton, type ChatResponse, type Persona } from '@/lib/chat'
 import { cn } from '@/lib/cn'
+import { errorLine, fetchJson, type ErrorInfo } from '@/lib/errors'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
-type Msg = { id: number; from: 'me' | 'agent' | 'sys'; text: string }
+// `retry`: a failure line with a «Повторить» button that sends the same message again.
+type Msg = { id: number; from: 'me' | 'agent' | 'sys'; text: string; retry?: { message: string; shown: string } }
+type Answer = ChatResponse | { ok: false; error: string; info: ErrorInfo }
 type Copy = Dict['demoSection']['receptionist']
 
 const NICHES: readonly Persona[] = ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses']
@@ -52,10 +55,11 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
   }, [])
 
   const call = useCallback(
-    async (forNiche: Persona, message: string): Promise<ChatResponse> => {
+    async (forNiche: Persona, message: string): Promise<Answer> => {
       const session = (sessions.current[forNiche] ??= { id: uuid(), started: false })
-      try {
-        const res = await fetch('/api/chat', {
+      {
+        const result = await fetchJson<ChatResponse>('/api/chat', {
+          locale,
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -66,11 +70,8 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
             persona: forNiche,
           }),
         })
-        const body = (await res.json()) as ChatResponse
-        if (res.status === 429) return { ok: false, error: 'rate_limited' }
-        return body
-      } catch {
-        return { ok: false, error: 'network' }
+        if (!result.ok) return { ok: false, error: result.error.code, info: result.error }
+        return result.data
       }
     },
     [locale],
@@ -98,7 +99,12 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
         if (answer.state === 'contact') push(forNiche, { from: 'sys', text: copy.noContacts })
         setButtons(answer.buttons ?? [])
       } else {
-        push(forNiche, { from: 'sys', text: answer.error === 'rate_limited' ? copy.rateLimited : copy.error })
+        const info = 'info' in answer ? answer.info : undefined
+        push(forNiche, {
+          from: 'sys',
+          text: info ? errorLine(info) : answer.error === 'rate_limited' ? copy.rateLimited : copy.error,
+          ...(info?.retryable !== false ? { retry: { message, shown } } : {}),
+        })
       }
     },
     [call, copy, niche, pending, push],
@@ -184,6 +190,21 @@ export function DemoChat({ copy, locale }: { copy: Copy; locale: 'ru' | 'en' }) 
                 )}
               >
                 {m.text}
+                {m.retry ? (
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => {
+                      const r = m.retry!
+                      last.current = 0
+                      setThreads((all) => ({ ...all, [niche]: (all[niche] ?? []).filter((x) => x.id !== m.id) }))
+                      void send(r.message, r.shown)
+                    }}
+                    className="mt-2 block rounded-full border border-line-strong px-3 py-1 text-[13px] text-fg transition-[background-color,transform] hover:bg-fg/5 active:scale-[0.97] disabled:opacity-40"
+                  >
+                    {copy.retry}
+                  </button>
+                ) : null}
               </li>
             ))}
             {pending && (

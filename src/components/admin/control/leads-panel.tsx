@@ -1,5 +1,6 @@
 'use client'
 
+import { PanelWait } from './panel-error'
 import { DownloadSimple, MagnifyingGlass, UsersThree } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { StatusPill } from '@/components/admin/status-pill'
@@ -112,7 +113,7 @@ export function LeadsPanel({
               </button>
             </p>
           ) : null}
-          {!leads && !error ? <div className="h-40 animate-pulse rounded-xl bg-surface-2/60" aria-label={t.loading} /> : null}
+          {!leads && !error ? <PanelWait label={t.loading} /> : null}
           {leads && !leads.length ? <p className="p-3 text-sm text-muted">{t.empty}</p> : null}
           {leads && leads.length && !shown.length ? <p className="p-3 text-sm text-muted">{t.nothing}</p> : null}
 

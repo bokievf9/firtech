@@ -1,5 +1,7 @@
 'use client'
 
+import { Spinner } from '@/components/ui/spinner'
+import { fetchJson, type ErrorInfo } from '@/lib/errors'
 import { useCallback, useEffect, useState } from 'react'
 import type { Dict } from '@/content'
 import { formatSlot, formatSlotDate, formatSlotTime, type SlotDay } from '@/lib/booking'
@@ -26,21 +28,25 @@ export function ChatSlots({
   const [days, setDays] = useState<SlotDay[]>([])
   const [day, setDay] = useState('')
   const [slot, setSlot] = useState('')
+  const [reason, setReason] = useState<ErrorInfo | null>(null)
 
   const fetchSlots = useCallback(async () => {
     setLoad('loading')
-    try {
-      const res = await fetch('/api/slots', { cache: 'no-store' })
-      if (!res.ok) throw new Error(String(res.status))
-      const data = (await res.json()) as { days: SlotDay[] }
+    setReason(null)
+    {
+      const result = await fetchJson<{ days: SlotDay[] }>('/api/slots', { cache: 'no-store', locale })
+      if (!result.ok || !Array.isArray(result.data.days)) {
+        setReason(result.ok ? null : result.error)
+        setLoad('error')
+        return
+      }
+      const data = result.data
       const visible = data.days.filter((d) => d.slots.length)
       setDays(visible)
       setDay(visible[0]?.date ?? '')
       setLoad('ready')
-    } catch {
-      setLoad('error')
     }
-  }, [])
+  }, [locale])
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- loads the slots once on mount
@@ -56,10 +62,16 @@ export function ChatSlots({
       <p className="text-[13px] text-muted">
         <span className="font-medium text-fg">{copy.title}</span> · {copy.note}
       </p>
-      {load === 'loading' ? <p className="text-[13px] text-muted">{copy.loading}</p> : null}
+      {load === 'loading' ? (
+        <p className="inline-flex items-center gap-2 text-[13px] text-muted">
+          <Spinner />
+          {copy.loading}
+        </p>
+      ) : null}
       {load === 'error' ? (
         <p className="text-[13px] text-muted">
-          {copy.failed}{' '}
+          {copy.failed}
+          {reason ? ` (${reason.message})` : ''}{' '}
           <button type="button" onClick={() => void fetchSlots()} className="text-accent-text underline underline-offset-4">
             {copy.retry}
           </button>

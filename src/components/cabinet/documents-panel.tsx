@@ -89,7 +89,8 @@ export function DocumentsPanel({
         window.dispatchEvent(new CustomEvent(COUNTS_EVENT, { detail: { documents: docsNeedingClient(body.documents) } }))
       }
     } catch {
-      // The list stays as it is; the next action refreshes it again.
+      // The list stays as it is, and the person is told it may be out of date.
+      setError('network')
     }
     router.refresh()
   }, [router])

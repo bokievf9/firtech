@@ -143,7 +143,7 @@ test('route: 30 messages per IP per hour, then 429', async () => {
   }
   const blocked = await post(req(chat.START), ip)
   assert.equal(blocked.status, 429)
-  assert.equal((await blocked.json()).error, 'rate_limited')
+  assert.equal((await blocked.json()).error.code, 'rate_limited')
   // Another visitor is not affected.
   assert.equal((await post(req(chat.START))).status, 200)
 })

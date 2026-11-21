@@ -83,7 +83,7 @@ export function MetricsTab() {
         <p className="ml-auto min-w-0 text-right text-xs text-faint">{k.vsPrev}</p>
       </div>
       {!m ? (
-        feed.error ? <Offline error={feed.error} onRetry={() => void feed.reload()} /> : <Loading rows={4} />
+        feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading rows={4} />
       ) : (
         <div className={cn('grid gap-4 transition-opacity', feed.stale && 'opacity-50')}>
           <section className="grid gap-2">

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { admin } from '@/content/admin'
+import { codeFromBody, describeError, FETCH_TIMEOUT_MS, isTimeout } from '@/lib/errors'
 import type { HqResult } from '@/lib/hq-admin-view'
 
 // Browser side of the пульт: every call goes to the session-checked proxy /api/admin/hq/*.
@@ -11,21 +12,36 @@ export async function hq<T extends object>(path: string, body?: unknown): Promis
     const res = await fetch(
       `/api/admin/hq/${path}`,
       body === undefined
-        ? { cache: 'no-store' }
-        : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) },
+        ? { cache: 'no-store', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }
+        : {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(body),
+            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+          },
     )
     if (res.status === 401) return { ok: false, error: 'unauthorized' }
     const data: unknown = await res.json().catch(() => null)
     if (!data || typeof data !== 'object' || typeof (data as { ok?: unknown }).ok !== 'boolean') {
-      return { ok: false, error: 'network' }
+      // A page, an empty body or a proxy error: the HTTP status says what it was (502 -> hq_error).
+      return { ok: false, error: codeFromBody(data) ?? describeError({ status: res.status }).code }
     }
     return data as HqResult<T>
-  } catch {
-    return { ok: false, error: 'network' }
+  } catch (thrown) {
+    return { ok: false, error: isTimeout(thrown) ? 'timeout' : 'network' }
   }
 }
 
-export const errText = (error: string) => (admin.cc.errors as Record<string, string>)[error] ?? error
+// Panel text for a failure code: the Пульт's own words first, then the site-wide map, and an unknown
+// code is still shown with the short support reference (never a bare empty string).
+export const errText = (error: string) => {
+  const own = (admin.cc.errors as Record<string, string>)[error]
+  if (own) return own
+  // Already a sentence (a panel passed its own text): show it as it is.
+  if (!/^[A-Za-z0-9_]+$/.test(error)) return error
+  const info = describeError({ code: error, locale: 'ru' })
+  return `${info.message}${info.ref ? ` (${info.ref})` : ''}`
+}
 
 export const fill = (s: string, vars: Record<string, string | number>) =>
   s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''))
@@ -120,7 +136,9 @@ export function storedValue<T>(key: string, kind: 'local' | 'session', parse: (r
       cache = { value }
       try {
         storage().setItem(key, JSON.stringify(value))
-      } catch {}
+      } catch {
+        // Storage blocked: the value lives in memory for this page view.
+      }
       for (const l of listeners) l()
     },
   }

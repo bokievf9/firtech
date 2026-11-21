@@ -17,6 +17,7 @@ import type { Dict } from '@/content'
 import type { Locale } from '@/lib/i18n'
 import { ctaActions, slotMessage, type ChatAction } from '@/lib/chat-cta'
 import { telegramUrl } from '@/lib/site'
+import { codeFromBody, describeError, errorLine, FETCH_TIMEOUT_MS, type ErrorInfo } from '@/lib/errors'
 import { draftReturnPath } from '@/lib/lead-draft'
 import { AuthForms } from '../cabinet/auth-forms'
 import { fill } from '../cabinet/ui'
@@ -157,6 +158,7 @@ export default function ChatPanel({
       let mock = chatRef.current.mock
       let answer: ChatResponse
       let status = 0
+      let failure: ErrorInfo | null = null
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
@@ -169,12 +171,20 @@ export default function ChatPanel({
             ...(storedRef() ? { ref: storedRef() } : {}),
             ...(persona ? { persona } : {}),
           }),
+          // 20 s: a silent server becomes a clear «не ответил» line with a retry.
+          signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
         })
         status = res.status
         mock = res.headers.get('x-chat-mode') === 'mock'
-        answer = (await res.json()) as ChatResponse
-      } catch {
+        const body: unknown = await res.json().catch(() => null)
+        answer = (body ?? { ok: false, error: 'bad_response' }) as ChatResponse
+        if (!answer.ok || !res.ok) {
+          answer = { ok: false, error: codeFromBody(body) ?? 'unknown' }
+          failure = describeError({ code: codeFromBody(body), status: res.status, locale })
+        }
+      } catch (thrown) {
         answer = { ok: false, error: 'network' }
+        failure = describeError({ thrown, locale })
       }
       busy.current = false
       setPending(false)
@@ -202,7 +212,7 @@ export default function ChatPanel({
             ],
           }
         }
-        const limited = status === 429 || answer.error === 'rate_limited'
+        const info = failure ?? describeError({ code: answer.ok ? undefined : answer.error, status, locale })
         // The greeting never reached the visitor: the dictionary line stands in for it.
         if (shown === null && c.messages.length === 0) {
           return { ...c, messages: [{ id: uuid(), from: 'bot', text: copy.greeting }] }
@@ -212,7 +222,9 @@ export default function ChatPanel({
           messages: [
             // The visitor's bubble stays and offers a retry instead of vanishing.
             ...c.messages.map((m) => (m.id === myId && shown ? { ...m, failed: { payload: message } } : m)),
-            { id: uuid(), from: 'sys', text: limited ? copy.rateLimited : copy.error, link: true },
+            // The reason in plain words (no connection, no answer in 20 s, too many requests...);
+            // the support code is in it for failures we have no text for.
+            { id: uuid(), from: 'sys', text: errorLine(info), link: true },
           ],
         }
       })
@@ -220,7 +232,7 @@ export default function ChatPanel({
         track('chat_state', { state: answer.state })
       return true
     },
-    [copy.error, copy.greeting, copy.leadInCabinet, copy.rateLimited, copy.tooFast, locale, persona],
+    [copy.greeting, copy.leadInCabinet, copy.tooFast, locale, persona],
   )
 
   // The greeting: the first open of a session asks HQ (or the mock) to start.

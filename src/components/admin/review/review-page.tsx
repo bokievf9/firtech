@@ -452,7 +452,7 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
           <main className="relative flex min-h-0 flex-1 flex-col bg-surface-2/40" aria-label="Материал">
             <div className="min-h-0 flex-1 p-3 sm:p-5">
               {data.error && !data.view ? (
-                <Offline error={data.error} onRetry={() => void data.reload()} />
+                <Offline error={data.error} onRetry={() => data.reload()} />
               ) : loading ? (
                 <div role="status" className="grid h-full place-items-center text-sm text-muted">Загружаю очередь</div>
               ) : empty ? (

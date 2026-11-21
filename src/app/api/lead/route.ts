@@ -1,5 +1,6 @@
 import 'server-only'
 import { NextResponse, type NextRequest } from 'next/server'
+import { apiError } from '@/lib/api-error'
 import { isFreeSlot } from '@/lib/booking'
 import { checkPublicPost, visitorIp } from '@/lib/public-post'
 import { formatLead, leadSchema } from '@/lib/lead'
@@ -7,6 +8,7 @@ import { cabinetLeadPath, leadGate } from '@/lib/lead-identity'
 import { forwardLeadDetailed, withinMs } from '@/lib/lead-forward'
 import { currentLeadUser } from '@/lib/lead-session'
 import { flushPending, notifyOwner } from '@/lib/lead-bot'
+import { recordForward } from '@/lib/lead-retry'
 import { bookedSlots, createLead, SlotTakenError, type StoredLead } from '@/lib/store'
 import { leadToken, sendMessage, telegramEnv } from '@/lib/telegram'
 
@@ -24,24 +26,24 @@ function limited(ip: string) {
   return recent.length > MAX_PER_WINDOW
 }
 
-export async function POST(request: NextRequest) {
+async function handle(request: NextRequest) {
   const rejected = checkPublicPost(request)
-  if (rejected) return NextResponse.json({ ok: false, error: rejected.error }, { status: rejected.status })
+  if (rejected) return apiError(rejected.error, rejected.status)
   const ip = visitorIp(request.headers)
   if (limited(ip)) {
-    return NextResponse.json({ ok: false, error: 'rate_limited' }, { status: 429 })
+    return apiError('rate_limited', 429)
   }
 
   const parsed = leadSchema.safeParse(await request.json().catch(() => null))
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: 'invalid' }, { status: 400 })
+    return apiError('invalid', 400)
   }
   // Bots that filled the honeypot get a normal answer, and nothing is sent.
   if (parsed.data.website) return NextResponse.json({ ok: true })
 
   // Leads come only from signed-in cabinet accounts (owner 2026-11-20); the account rides along.
   const gate = await leadGate(() => currentLeadUser(parsed.data.locale, ip))
-  if (!gate.ok) return NextResponse.json({ ok: false, error: gate.error }, { status: gate.status })
+  if (!gate.ok) return apiError(gate.error, gate.status)
   const identity = gate.identity
   const lead = { ...parsed.data, ...(identity ? { account: identity.clientEmail } : {}) }
 
@@ -49,7 +51,7 @@ export async function POST(request: NextRequest) {
   const telegramReady = Boolean(token && ownerChatId)
   if (!telegramReady && process.env.NODE_ENV === 'production') {
     console.error('[lead] TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is missing')
-    return NextResponse.json({ ok: false, error: 'not_configured' }, { status: 503 })
+    return apiError('not_configured', 503)
   }
 
   // A chosen call time must still be one of the free slots; stale or forged values are refused so
@@ -58,17 +60,17 @@ export async function POST(request: NextRequest) {
   if (slot) {
     const taken = await bookedSlots().catch(() => null)
     if (taken && !isFreeSlot(slot, new Date(), taken)) {
-      return NextResponse.json({ ok: false, error: 'slot_taken' }, { status: 409 })
+      return apiError('slot_taken', 409)
     }
   }
 
   // Saved first, so the lead survives a Telegram outage.
   let stored: StoredLead | null = null
   try {
-    stored = await createLead(lead, slot)
+    stored = await createLead(lead, slot, identity)
   } catch (error) {
     if (error instanceof SlotTakenError) {
-      return NextResponse.json({ ok: false, error: 'slot_taken' }, { status: 409 })
+      return apiError('slot_taken', 409)
     }
     console.error('[lead] could not save the lead', error, '\n' + formatLead(lead))
   }
@@ -76,6 +78,12 @@ export async function POST(request: NextRequest) {
   // Copy for the Lead Intake agent, fail-open. Its answer (HQ's lead id, for the cabinet link) is
   // awaited at most 3 s further down; the forward itself never blocks the lead.
   const forwarded = forwardLeadDetailed(lead, stored?.booking?.slot ?? slot, process.env, fetch, ip, identity)
+  // P-01: the outcome is written down whenever HQ answers (even after the visitor got the reply); a
+  // lead HQ did not confirm stays `hqForwarded:false` and the background retry delivers it.
+  if (stored) {
+    const id = stored.id
+    void forwarded.then((r) => recordForward(id, r)).catch((error) => console.error('[lead] could not record the forward', error instanceof Error ? error.message : 'unknown'))
+  }
 
   if (!telegramReady) {
     console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))
@@ -84,7 +92,7 @@ export async function POST(request: NextRequest) {
       if (stored) {
         await notifyOwner(stored)
         // Not awaited: older leads stuck during an outage shouldn't slow down this visitor.
-        void flushPending(stored.id).catch(() => {})
+        void flushPending(stored.id).catch((error) => console.error('[lead] flushPending failed', error instanceof Error ? error.message : 'unknown'))
       } else {
         // No buttons: there is nothing on the site to update.
         await sendMessage(
@@ -97,7 +105,7 @@ export async function POST(request: NextRequest) {
       // Kept in the server log (PM2) too; a stored lead is resent when Telegram answers again.
       console.error('[lead] Telegram sendMessage failed', error, '\n' + formatLead(lead))
       if (!stored) {
-        return NextResponse.json({ ok: false, error: 'delivery_failed' }, { status: 502 })
+        return apiError('delivery_failed', 502)
       }
     }
   }
@@ -114,6 +122,18 @@ export async function POST(request: NextRequest) {
     token: followToken,
     slot: stored.booking?.slot ?? null,
     hqLeadId: hq.id,
+    // True while HQ has not confirmed: the lead is saved and goes to work on its own (retried).
+    queued: !hq.ok,
     cabinet,
   })
+}
+
+// Anything unexpected becomes a JSON error with a status, never an empty 500 page.
+export async function POST(request: NextRequest) {
+  try {
+    return await handle(request)
+  } catch (error) {
+    console.error('[lead] unexpected failure', error instanceof Error ? error.message : 'unknown')
+    return apiError('server_error', 500)
+  }
 }

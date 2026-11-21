@@ -248,7 +248,7 @@ export function ChatsPage() {
               </label>
             </div>
             <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              {list.error && !list.view ? <li><Offline error={list.error} onRetry={() => void list.reload()} /></li> : null}
+              {list.error && !list.view ? <li><Offline error={list.error} onRetry={() => list.reload()} /></li> : null}
               {!list.view && !list.error ? <li role="status" className="p-4 text-sm text-muted">Загружаю чаты</li> : null}
               {list.view && !threads.length ? <li className="p-4 text-sm text-muted">{query.trim() ? 'По запросу никого нет.' : 'Чатов нет.'}</li> : null}
               {threads.map((t) => {
@@ -314,7 +314,7 @@ export function ChatsPage() {
                 </div>
 
                 <div className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4', open.stale && 'opacity-60')} aria-live="polite">
-                  {open.error && !open.view ? <Offline error={open.error} onRetry={() => void open.reload()} /> : null}
+                  {open.error && !open.view ? <Offline error={open.error} onRetry={() => open.reload()} /> : null}
                   {!thread.textsStored ? (
                     <div className="mx-auto grid max-w-md gap-2 rounded-2xl border border-dashed border-line-strong p-4 text-sm">
                       <p>{NO_TEXTS}</p>

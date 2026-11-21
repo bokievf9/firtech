@@ -3211,6 +3211,7 @@ const en: Dict = {
       error: 'The agent is not available right now. Please try later.',
       rateLimited: 'Too many messages this hour. Please try later.',
       typing: 'The agent is typing',
+      retry: 'Try again',
       you: 'Client',
       agent: 'Agent',
     },
