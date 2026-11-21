@@ -1,87 +1,53 @@
-'use client'
-
-import { TelegramLogo } from '@phosphor-icons/react'
-import Link from 'next/link'
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { TelegramLogo } from '@phosphor-icons/react/ssr'
 import type { Dict } from '@/content'
 import {
   formatDate,
   leadNextStep,
   leadTrack,
-  parseLeads,
   timelineRows,
   type CabinetLead,
-  type LeadReply,
 } from '@/lib/cabinet-data'
+import type { NextAction } from '@/lib/cabinet-docs'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
-import { Chip, FormMessage, fill, inputClass } from './ui'
+import { NextActionBlock } from './next-action'
+import { ScrollTo } from './scroll-to'
+import { TabLink } from './tab-link'
+import { Chip, fill } from './ui'
 
-const POLL_MS = 30_000
-
-// «Заявки», first on the cabinet home (owner 2026-11-20): each request with its stage track, what
-// we know, «Что дальше», the timeline, the messages and a reply box. Refreshes every 30 s while the
-// tab is visible (GET /api/cabinet/leads). `leads: null` = HQ does not send them yet.
+// «Заявки» inside the Проекты tab (cabinet v3): a request that is not a project yet, in the client's
+// words: its stage track, the sentence about where it stands, the one big button of what is needed from
+// the client (`actions`, resolved on the server from HQ's `nextAction` or the documents), the facts and
+// the timeline. The old reply box is gone: the conversation is the request's thread in «Сообщения».
 export function LeadsSection({
   dict,
   locale,
-  initial,
+  leads,
+  actions,
   focus,
   fresh,
   follow,
-  stageLine,
 }: {
   dict: Dict
   locale: Locale
-  initial: CabinetLead[] | null
+  leads: CabinetLead[]
+  actions: Record<number, NextAction>
   focus: number | null
   fresh: boolean
   follow: string | null
-  // «Этап 2: приёмка» of the client's running project, already filled (shown on requests that are projects).
-  stageLine?: string | null
 }) {
   const t = dict.cabinet.leads
-  const [leads, setLeads] = useState(initial)
-
-  useEffect(() => {
-    let alive = true
-    async function load() {
-      if (document.visibilityState !== 'visible') return
-      try {
-        const res = await fetch('/api/cabinet/leads', { cache: 'no-store' })
-        const body = (await res.json().catch(() => null)) as { ok?: boolean; leads?: unknown } | null
-        if (alive && res.ok && body?.ok) setLeads(parseLeads(body.leads))
-      } catch {
-        // Offline for a moment: the next tick tries again.
-      }
-    }
-    const timer = window.setInterval(load, POLL_MS)
-    const onVisible = () => void load()
-    document.addEventListener('visibilitychange', onVisible)
-    return () => {
-      alive = false
-      window.clearInterval(timer)
-      document.removeEventListener('visibilitychange', onVisible)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (focus !== null) document.getElementById(`lead-${focus}`)?.scrollIntoView({ block: 'start' })
-  }, [focus])
-
   const pending = fresh && focus === null
-  const list = leads ?? []
+  if (leads.length === 0 && !pending) return null
 
   return (
-    <section id="cabinet-leads" aria-labelledby="cabinet-leads-title" className="lg:col-span-2" data-cabinet-leads>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <h2 id="cabinet-leads-title" className="font-display text-2xl font-semibold tracking-tight">
-          {t.title}
-        </h2>
-        {list.length > 0 && <p className="text-[13px] text-faint">{t.live}</p>}
-      </div>
+    <section id="cabinet-leads" aria-labelledby="cabinet-leads-title" data-cabinet-leads>
+      {focus !== null && <ScrollTo id={`lead-${focus}`} />}
+      <h2 id="cabinet-leads-title" className="font-display text-2xl font-semibold tracking-tight">
+        {dict.cabinet.v3.home.requestsTitle}
+      </h2>
 
-      {(pending || (leads === null && fresh)) && (
+      {pending && (
         <div role="status" className="mt-5 rounded-card border border-accent-text/40 bg-accent/[0.06] p-5" data-lead-pending>
           <p className="font-medium">{t.pending}</p>
           <p className="mt-1 text-sm text-muted">{t.pendingText}</p>
@@ -89,35 +55,17 @@ export function LeadsSection({
         </div>
       )}
 
-      {list.length === 0 ? (
-        !fresh && (
-          <div className="mt-5 grid justify-items-start gap-4 rounded-card border border-line bg-surface p-6 md:p-8" data-leads-empty>
-            <p className="font-display text-xl font-semibold tracking-tight">{t.emptyTitle}</p>
-            <p className="max-w-[56ch] text-sm leading-relaxed text-muted">{t.emptyText}</p>
-            <div className="flex flex-wrap gap-3">
-              <Link href={`/${locale}/builder`} className={cn(buttonStyles.primary, 'text-base')}>
-                {t.emptyBuilder}
-              </Link>
-              <Link href={`/${locale}/audit`} className={buttonStyles.secondary}>
-                {t.emptyAudit}
-              </Link>
-            </div>
-          </div>
-        )
-      ) : (
+      {leads.length > 0 && (
         <ul className="mt-5 grid gap-5">
-          {list.map((lead) => (
+          {leads.map((lead) => (
             <LeadCard
               key={lead.id}
               lead={lead}
+              action={actions[lead.id] ?? null}
               dict={dict}
               locale={locale}
               focused={lead.id === focus}
               follow={lead.id === focus ? follow : null}
-              stageLine={lead.stage === 'project' ? (stageLine ?? null) : null}
-              onReply={(item) =>
-                setLeads((all) => (all ?? []).map((l) => (l.id === lead.id ? { ...l, replies: [...l.replies, item] } : l)))
-              }
             />
           ))}
         </ul>
@@ -145,20 +93,18 @@ function FollowLink({ href, label }: { href: string; label: string }) {
 
 function LeadCard({
   lead,
+  action,
   dict,
   locale,
   focused,
   follow,
-  stageLine,
-  onReply,
 }: {
   lead: CabinetLead
+  action: NextAction | null
   dict: Dict
   locale: Locale
   focused: boolean
   follow: string | null
-  stageLine: string | null
-  onReply: (item: LeadReply) => void
 }) {
   const t = dict.cabinet.leads
   const { steps, lost } = leadTrack(lead.stage)
@@ -191,7 +137,17 @@ function LeadCard({
         {lost && <Chip>{t.lost}</Chip>}
       </div>
 
-      <ol aria-label={t.trackLabel} className="mt-5 grid grid-cols-3 gap-2 text-[13px] sm:grid-cols-6" data-track>
+      <p className="mt-4 max-w-[60ch] text-lg leading-snug text-fg" data-lead-status>
+        {leadNextStep(lead, t.defaultNext)}
+      </p>
+
+      {action && !lost && (
+        <div className="mt-5">
+          <NextActionBlock action={action} dict={dict} />
+        </div>
+      )}
+
+      <ol aria-label={t.trackLabel} className="mt-6 grid grid-cols-3 gap-2 text-[13px] sm:grid-cols-6" data-track>
         {steps.map((step) => (
           <li
             key={step.stage}
@@ -208,12 +164,6 @@ function LeadCard({
         ))}
       </ol>
 
-      {stageLine && (
-        <p className="mt-3 text-sm text-accent-text" data-stage-line>
-          {fill(t.stageNow, { stage: stageLine })}
-        </p>
-      )}
-
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <dl className="grid content-start gap-3 text-sm">
           {facts
@@ -225,112 +175,32 @@ function LeadCard({
               </div>
             ))}
         </dl>
-        <div className="grid content-start gap-4">
-          <div className="rounded-xl border border-accent-text/30 bg-accent/[0.06] p-4">
-            <p className="text-[13px] text-muted">{t.nextTitle}</p>
-            <p className="mt-1 text-sm text-fg">{leadNextStep(lead, t.defaultNext)}</p>
-          </div>
-          <div>
-            <p className="text-[13px] text-muted">{t.timelineTitle}</p>
-            <ol className="mt-2 grid gap-2 text-sm" data-timeline>
-              {timeline.map((row, i) => (
-                <li key={`${row.kind}-${i}`} className="flex gap-3">
-                  <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-accent" />
-                  <span className="flex-1">{row.title}</span>
-                  {row.date && <span className="font-mono text-[12px] text-faint">{row.date}</span>}
-                </li>
-              ))}
-            </ol>
-          </div>
+        <div>
+          <p className="text-[13px] text-muted">{t.timelineTitle}</p>
+          <ol className="mt-2 grid gap-2 text-sm" data-timeline>
+            {timeline.map((row, i) => (
+              <li key={`${row.kind}-${i}`} className="flex gap-3">
+                <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-accent" />
+                <span className="flex-1">{row.title}</span>
+                {row.date && <span className="font-mono text-[12px] text-faint">{row.date}</span>}
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
 
       {follow && <FollowLink href={follow} label={t.follow} />}
 
       <div className="mt-6 border-t border-line pt-5">
-        <p className="text-[13px] text-muted">{t.repliesTitle}</p>
-        {lead.replies.length === 0 ? (
-          <p className="mt-2 text-sm text-faint">{t.noReplies}</p>
-        ) : (
-          <ul className="mt-3 grid gap-2" data-replies>
-            {lead.replies.map((r, i) => (
-              <li
-                key={`${r.at}-${i}`}
-                className={cn(
-                  'max-w-[85%] rounded-[18px] px-3.5 py-2.5 text-sm leading-snug whitespace-pre-line',
-                  r.from === 'client' ? 'justify-self-end rounded-br-md bg-accent text-accent-ink' : 'rounded-bl-md border border-accent-text/40 bg-surface-2',
-                )}
-              >
-                <span className={cn('mb-1 block text-xs font-medium', r.from === 'client' ? 'text-accent-ink/80' : 'text-accent-text')}>
-                  {r.from === 'client' ? t.you : t.manager}
-                  {r.at ? `, ${formatDate(r.at, locale)}` : ''}
-                </span>
-                {r.text}
-              </li>
-            ))}
-          </ul>
-        )}
-        <ReplyBox leadId={lead.id} dict={dict} onSent={onReply} />
+        <TabLink
+          tab="messages"
+          extra={{ ref: `lead-${lead.id}` }}
+          data-lead-thread={lead.id}
+          className="text-sm text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
+        >
+          {t.openThread}
+        </TabLink>
       </div>
     </li>
-  )
-}
-
-function ReplyBox({ leadId, dict, onSent }: { leadId: number; dict: Dict; onSent: (item: LeadReply) => void }) {
-  const t = dict.cabinet.leads
-  const uid = useId()
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent'>('idle')
-  const [error, setError] = useState('')
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = event.currentTarget
-    const text = String(new FormData(form).get('text') ?? '').trim()
-    if (text.length < 2) {
-      setError(t.replyErrors.invalid)
-      return
-    }
-    setError('')
-    setStatus('sending')
-    try {
-      const res = await fetch(`/api/cabinet/leads/${leadId}/messages`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ text }),
-      })
-      const body = (await res.json().catch(() => null)) as { ok?: boolean; item?: LeadReply; error?: string } | null
-      if (res.ok && body?.ok && body.item) {
-        form.reset()
-        onSent(body.item)
-        setStatus('sent')
-        return
-      }
-      const key = body?.error === 'rate_limited' || body?.error === 'unauthorized' || body?.error === 'invalid' ? body.error : 'hq'
-      setError(t.replyErrors[key])
-    } catch {
-      setError(t.replyErrors.network)
-    }
-    setStatus('idle')
-  }
-
-  return (
-    <form onSubmit={submit} noValidate className="mt-4 grid gap-3" data-reply-box>
-      <label htmlFor={`${uid}-text`} className="sr-only">
-        {t.replyLabel}
-      </label>
-      <textarea
-        id={`${uid}-text`}
-        name="text"
-        rows={2}
-        maxLength={2000}
-        placeholder={t.replyPlaceholder}
-        className={inputClass}
-      />
-      {error && <FormMessage kind="error">{error}</FormMessage>}
-      {status === 'sent' && <FormMessage kind="ok">{t.replySent}</FormMessage>}
-      <button type="submit" disabled={status === 'sending'} className={cn(buttonStyles.secondary, 'justify-self-start')}>
-        {status === 'sending' ? t.replySending : t.replySend}
-      </button>
-    </form>
   )
 }

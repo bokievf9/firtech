@@ -14,8 +14,9 @@ import {
   type ClientSyncProfile,
 } from './cabinet-data'
 import { parseAgentItem, parseAgents, parseConversations, type AgentConversation, type ClientAgent } from './cabinet-agent'
-import { parseMessageItem, parseMessages, parseThreads, type ChatMessage, type ChatThread } from './cabinet-chat'
+import { labelTag, parseMessageItem, parseMessages, parseThreads, type ChatMessage, type ChatThread } from './cabinet-chat'
 import { parseClientDocs, signBodyForHq, type ClientDoc, type SignaturePayload } from './cabinet-docs'
+import type { CabinetExtras } from './cabinet-view'
 import {
   mockAcceptQuote,
   mockMessages as mockThreadMessages,
@@ -202,7 +203,17 @@ export async function syncClientToHq(
 // `agents/docs/admin-crm-api.md`, «Кабинет v3». Every HQ path and field name of v3 is in this block (and
 // in cabinet-docs.ts, cabinet-chat.ts, cabinet-agent.ts for the parsers) so a mismatch is fixed in one place.
 // Assumptions are listed in docs/cabinet.md, «Кабинет v3 (2026-11-22)».
-export type HqV3Error = CabinetError | 'not_awaiting' | 'bad_signature' | 'invalid' | 'rate_limited' | 'too_large'
+export type HqV3Error =
+  | CabinetError
+  | 'not_awaiting'
+  | 'bad_signature'
+  | 'no_signature'
+  | 'too_big'
+  | 'invalid'
+  | 'rate_limited'
+  | 'limit_reached'
+  | 'too_large'
+  | 'unsupported_type'
 export type HqV3<T> = { ok: true; data: T } | { ok: false; error: HqV3Error }
 
 type RawCall = { ok: true; body: unknown } | { ok: false; error: HqV3Error }
@@ -233,10 +244,16 @@ async function callV3(
     const code = body && typeof body === 'object' ? String((body as { error?: unknown }).error ?? '') : ''
     if (res.status === 404) return { ok: false, error: 'not_found' }
     if (res.status === 409) return { ok: false, error: code === 'not_awaiting' ? 'not_awaiting' : 'hq_error' }
-    if (res.status === 422) return { ok: false, error: code === 'bad_signature' ? 'bad_signature' : 'invalid' }
+    if (res.status === 422) {
+      // `bad_signature` carries a `reason`: blank (nothing drawn), too_large, not_png, bad_size.
+      const reason = body && typeof body === 'object' ? String((body as { reason?: unknown }).reason ?? '') : ''
+      if (code !== 'bad_signature') return { ok: false, error: 'invalid' }
+      return { ok: false, error: reason === 'blank' ? 'no_signature' : reason === 'too_large' ? 'too_big' : 'bad_signature' }
+    }
     if (res.status === 400) return { ok: false, error: 'invalid' }
     if (res.status === 413) return { ok: false, error: 'too_large' }
-    if (res.status === 429) return { ok: false, error: 'rate_limited' }
+    if (res.status === 415) return { ok: false, error: 'unsupported_type' }
+    if (res.status === 429) return { ok: false, error: code === 'limit_reached' ? 'limit_reached' : 'rate_limited' }
     return { ok: false, error: 'hq_error' }
   } catch (error) {
     const timeout = error instanceof Error && error.name === 'TimeoutError'
@@ -319,23 +336,32 @@ export async function fetchThreadMessages(
   return res.ok ? { ok: true, data: parseMessages(res.body) } : res
 }
 
-// The client writes: `{ text, attachments? }`. An `agent` thread is answered by the client's own agent (HQ).
+// The client writes: `{ text, attachments? }` (attachments are upload ids). An `agent` thread is answered
+// by the client's own agent (HQ): the answer comes back as `reply`, so the page shows it at once.
+export type PostedMessage = { item: ChatMessage; reply: ChatMessage | null }
 export async function postThreadMessage(
   clientId: number,
   threadId: string,
   text: string,
+  attachments: string[] = [],
   env: Env = process.env,
   fetcher: typeof fetch = fetch,
-): Promise<HqV3<ChatMessage>> {
-  if (!okId(clientId) || !threadId || !text) return { ok: false, error: 'invalid' }
+): Promise<HqV3<PostedMessage>> {
+  if (!okId(clientId) || !threadId || (!text && attachments.length === 0)) return { ok: false, error: 'invalid' }
   if (setup(env) === 'mock') {
     const sent = mockSend(threadId, text, [])
-    return sent ? { ok: true, data: { ...sent } } : { ok: false, error: 'not_found' }
+    if (!sent) return { ok: false, error: 'not_found' }
+    const all = mockThreadMessages(threadId, sent.id) ?? []
+    return { ok: true, data: { item: { ...sent }, reply: all[0] ? { ...all[0] } : null } }
   }
-  const res = await callV3(`/clients/${clientId}/threads/${enc(threadId)}/messages`, { method: 'POST', json: { text } }, env, fetcher)
+  const json = { text, ...(attachments.length > 0 ? { attachments } : {}) }
+  const res = await callV3(`/clients/${clientId}/threads/${enc(threadId)}/messages`, { method: 'POST', json }, env, fetcher)
   if (!res.ok) return res
   const item = parseMessageItem(res.body)
-  return item ? { ok: true, data: item } : { ok: false, error: 'hq_error' }
+  if (!item) return { ok: false, error: 'hq_error' }
+  const raw = (res.body as { reply?: unknown } | null)?.reply
+  const reply = raw && typeof raw === 'object' ? parseMessageItem({ item: raw }) : null
+  return { ok: true, data: { item, reply } }
 }
 
 export async function markThreadRead(clientId: number, threadId: string, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<true>> {
@@ -345,30 +371,35 @@ export async function markThreadRead(clientId: number, threadId: string, env: En
   return res.ok ? { ok: true, data: true } : res
 }
 
-// A file for a thread (10 MB, images/PDF/DOCX/ZIP, checked by the route first): multipart
-// `POST /clients/:id/uploads` with `file`, `threadId`, `label`; HQ stores it under
-// `DATA_DIR/uploads/<client>/` and posts it into the thread as a client message. Answers the message.
+// A file for a thread (10 MB, png jpg jpeg webp pdf docx zip txt md csv; the route checked the type first):
+// `POST /clients/:id/uploads { name, dataBase64 }` (JSON, no multipart) answers `{ ok, item: { id, name, type,
+// size, url } }`, then the id goes into the thread as `POST .../messages { text, attachments: [id] }`. The
+// label (logo, texts...) has no field in HQ, so it is written into the message text as `[logo]`.
 export async function uploadThreadFile(
   clientId: number,
   threadId: string,
-  file: File,
+  file: { name: string; arrayBuffer(): Promise<ArrayBuffer> },
   label: string,
   env: Env = process.env,
   fetcher: typeof fetch = fetch,
 ): Promise<HqV3<ChatMessage>> {
   if (!okId(clientId) || !threadId) return { ok: false, error: 'invalid' }
+  const bytes = Buffer.from(await file.arrayBuffer())
   if (setup(env) === 'mock') {
-    const sent = mockUpload(threadId, file.name, file.size, label)
+    const sent = mockUpload(threadId, file.name, bytes.length, label)
     return sent ? { ok: true, data: { ...sent } } : { ok: false, error: 'not_found' }
   }
-  const form = new FormData()
-  form.set('file', file, file.name)
-  form.set('threadId', threadId)
-  if (label) form.set('label', label)
-  const res = await callV3(`/clients/${clientId}/uploads`, { method: 'POST', form, timeoutMs: 30_000 }, env, fetcher)
-  if (!res.ok) return res
-  const item = parseMessageItem(res.body)
-  return item ? { ok: true, data: item } : { ok: false, error: 'hq_error' }
+  const up = await callV3(
+    `/clients/${clientId}/uploads`,
+    { method: 'POST', json: { name: file.name, dataBase64: bytes.toString('base64') }, timeoutMs: 30_000 },
+    env,
+    fetcher,
+  )
+  if (!up.ok) return up
+  const id = (up.body as { item?: { id?: unknown } } | null)?.item?.id
+  if (typeof id !== 'string' && typeof id !== 'number') return { ok: false, error: 'hq_error' }
+  const posted = await postThreadMessage(clientId, threadId, labelTag(label), [String(id)], env, fetcher)
+  return posted.ok ? { ok: true, data: posted.data.item } : posted
 }
 
 export async function fetchClientAgents(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<ClientAgent[]>> {
@@ -408,9 +439,23 @@ export async function fetchAgentConversations(clientId: number, agentId: string,
   return res.ok ? { ok: true, data: parseConversations(res.body) } : res
 }
 
+// The profile form: `POST /clients/:id { name?, telegram?, phone?, company?, locale? }` changes only the
+// fields sent (an empty string clears one). NOT the registration upsert `POST /clients`, which overwrites
+// name, telegram and locale from the sign-up data and was the CRM half of the profile bug.
+export async function patchClientProfile(
+  clientId: number,
+  fields: { name?: string; telegram?: string; locale?: 'ru' | 'en' },
+  env: Env = process.env,
+  fetcher: typeof fetch = fetch,
+): Promise<HqV3<true>> {
+  if (!okId(clientId)) return { ok: false, error: 'not_found' }
+  if (setup(env) === 'mock') return { ok: true, data: true }
+  const res = await callV3(`/clients/${clientId}`, { method: 'POST', json: fields }, env, fetcher)
+  return res.ok ? { ok: true, data: true } : res
+}
+
 // Everything the cabinet page needs next to the by-email body, fetched in parallel; each part fails
 // softly (an empty list) so an older HQ without v3 still shows the rest of the cabinet.
-export type CabinetExtras = { docs: ClientDoc[]; threads: ChatThread[]; agents: ClientAgent[]; conversations: AgentConversation[]; v3: boolean }
 export async function fetchCabinetExtras(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<CabinetExtras> {
   const [docs, threads, agents] = await Promise.all([
     fetchClientDocuments(clientId, env, fetcher),
@@ -429,9 +474,10 @@ export async function fetchCabinetExtras(clientId: number, env: Env = process.en
   }
 }
 
-// A file behind a link HQ sent (a document PDF/HTML, an attachment). Only HQ's own origin (or
-// `HQ_MEDIA_ORIGIN`) is ever requested, so a crafted `u` cannot make the server fetch another host.
-// `/media/...` paths are on the origin of HQ_ADMIN_URL. Without HQ (development) the mock answers.
+// A file behind a link HQ sent (a document PDF, an attachment): signed links look like
+// `https://<public host>/media/<sig>/<path>?e=<unix>`. Only the PATH and query of a `/media/` link are used
+// and they are requested on HQ's own origin (the origin of HQ_ADMIN_URL), so the host in a link, or in a
+// crafted `u`, can never make the server fetch another host. Without HQ (development) the mock answers.
 export function resolveMediaUrl(url: string, env: Env = process.env): string | null {
   const cfg = setup(env)
   if (!cfg || cfg === 'mock') return null
@@ -441,22 +487,19 @@ export function resolveMediaUrl(url: string, env: Env = process.env): string | n
   } catch {
     return null
   }
-  const allowed = new Set([origin])
-  const extra = env.HQ_MEDIA_ORIGIN?.trim()
-  if (extra) {
+  let pathAndQuery = url
+  if (!url.startsWith('/')) {
     try {
-      allowed.add(new URL(extra).origin)
+      const u = new URL(url)
+      if (u.protocol !== 'https:' && u.protocol !== 'http:') return null
+      pathAndQuery = `${u.pathname}${u.search}`
     } catch {
-      // ignored: a bad value never widens the list
+      return null
     }
   }
-  if (/^\/media\/[^\s?#]+(\?[^\s#]*)?$/.test(url) && !url.includes('..') && !url.includes('//')) return `${origin}${url}`
-  try {
-    const u = new URL(url)
-    return u.protocol === 'https:' || u.origin === origin ? (allowed.has(u.origin) && /^\/media\//.test(u.pathname) ? u.href : null) : null
-  } catch {
-    return null
-  }
+  return /^\/media\/[^\s?#]+(\?[^\s#]*)?$/.test(pathAndQuery) && !pathAndQuery.includes('..') && !pathAndQuery.includes('//')
+    ? `${origin}${pathAndQuery}`
+    : null
 }
 
 export function isMockMode(env: Env = process.env): boolean {

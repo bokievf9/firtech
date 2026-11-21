@@ -27,72 +27,79 @@ const { default: ru } = await import('../src/content/ru.ts')
 const { default: en } = await import('../src/content/en.ts')
 const read = (f) => readFileSync(path.resolve(f), 'utf8')
 
-test('tab list: the eight tabs in the owner order', () => {
-  assert.deepEqual([...tabs.cabinetTabs], ['overview', 'leads', 'projects', 'invoices', 'documents', 'support', 'referrals', 'profile'])
+test('tab list (v3): projects, documents, messages, agent, materials, referrals, profile', () => {
+  assert.deepEqual([...tabs.cabinetTabs], ['projects', 'documents', 'messages', 'agent', 'materials', 'referrals', 'profile'])
   for (const dict of [ru, en]) {
     for (const id of tabs.cabinetTabs) assert.ok(dict.cabinet.tabs[id], id)
+    for (const gone of ['overview', 'leads', 'invoices', 'support']) assert.equal(gone in dict.cabinet.tabs, false, gone)
   }
-  assert.deepEqual(
-    tabs.cabinetTabs.map((id) => ru.cabinet.tabs[id]),
-    ['Обзор', 'Заявки', 'Проекты', 'Счета', 'Документы', 'Поддержка', 'Рекомендации', 'Профиль'],
-  )
-  assert.deepEqual(
-    tabs.cabinetTabs.map((id) => en.cabinet.tabs[id]),
-    ['Overview', 'Requests', 'Projects', 'Invoices', 'Documents', 'Support', 'Referrals', 'Profile'],
-  )
+  assert.deepEqual(tabs.cabinetTabs.map((id) => ru.cabinet.tabs[id]), ['Проекты', 'Документы', 'Сообщения', 'Ваш агент', 'Материалы', 'Рекомендации', 'Профиль'])
+  assert.deepEqual(tabs.cabinetTabs.map((id) => en.cabinet.tabs[id]), ['Projects', 'Documents', 'Messages', 'Your agent', 'Materials', 'Referrals', 'Profile'])
 })
 
-test('default tab: requests when there are leads or ?lead=, else the overview', () => {
-  assert.equal(tabs.defaultTab({ leadCount: 0 }), 'overview')
-  assert.equal(tabs.defaultTab({ leadCount: 2 }), 'leads')
-  assert.equal(tabs.defaultTab({ leadCount: 0, leadParam: 'new' }), 'leads')
-  assert.equal(tabs.defaultTab({ leadCount: 0, leadParam: '' }), 'overview')
-  assert.equal(tabs.defaultTab({ leadCount: 0, leadParam: undefined }), 'overview')
+test('the agent tab exists only for a client with an agent', () => {
+  assert.equal(tabs.visibleTabs({ hasAgent: true }).includes('agent'), true)
+  assert.deepEqual(tabs.visibleTabs({ hasAgent: false }), ['projects', 'documents', 'messages', 'materials', 'referrals', 'profile'])
+  assert.equal(tabs.parseTab('agent', 'projects', tabs.visibleTabs({ hasAgent: false })), 'projects', '?tab=agent without an agent falls back')
+  assert.equal(tabs.parseTab('agent', 'projects', tabs.visibleTabs({ hasAgent: true })), 'agent')
 })
 
-test('?tab parsing falls back on anything unknown', () => {
-  assert.equal(tabs.parseTab('invoices', 'overview'), 'invoices')
-  assert.equal(tabs.parseTab(['support', 'profile'], 'overview'), 'support')
-  assert.equal(tabs.parseTab('hack', 'leads'), 'leads')
-  assert.equal(tabs.parseTab(null, 'leads'), 'leads')
-  assert.equal(tabs.parseTab(undefined, 'overview'), 'overview')
-  assert.equal(tabs.parseTab('__proto__', 'overview'), 'overview')
+test('the first screen is always the project', () => {
+  assert.equal(tabs.defaultTab(), 'projects')
 })
 
-test('badges: open requests, unpaid invoices, open tickets; zero gives none', () => {
-  assert.deepEqual(tabs.tabCounts({ leads: null, invoices: [], tickets: [] }), {})
-  const counts = tabs.tabCounts({
-    leads: [{ stage: 'new' }, { stage: 'proposal' }, { stage: 'project' }, { stage: 'lost' }],
-    invoices: [{ status: 'issued' }, { status: 'paid' }, { status: 'void' }],
-    tickets: [{ status: 'open' }, { status: 'answered' }, { status: 'open' }],
-  })
-  assert.deepEqual(counts, { leads: 2, invoices: 1, support: 2 })
+test('?tab parsing: legacy names map to the new tabs, anything unknown falls back', () => {
+  assert.equal(tabs.parseTab('documents', 'projects'), 'documents')
+  assert.equal(tabs.parseTab(['messages', 'profile'], 'projects'), 'messages')
+  assert.equal(tabs.parseTab('overview', 'profile'), 'projects')
+  assert.equal(tabs.parseTab('leads', 'profile'), 'projects')
+  assert.equal(tabs.parseTab('invoices', 'projects'), 'documents')
+  assert.equal(tabs.parseTab('support', 'projects'), 'messages')
+  assert.equal(tabs.parseTab('hack', 'projects'), 'projects')
+  assert.equal(tabs.parseTab(null, 'projects'), 'projects')
+  assert.equal(tabs.parseTab(undefined, 'projects'), 'projects')
+  assert.equal(tabs.parseTab('__proto__', 'projects'), 'projects')
+  assert.equal(tabs.parseTab('constructor', 'projects'), 'projects')
 })
 
-test('withTab keeps other parameters and replaces the tab', () => {
-  assert.equal(tabs.withTab('', 'leads'), '?tab=leads')
-  assert.equal(tabs.withTab('?lead=12&follow=a.b', 'invoices'), '?lead=12&follow=a.b&tab=invoices')
-  assert.equal(tabs.withTab('?tab=profile&lead=3', 'support'), '?tab=support&lead=3')
+test('badges: documents that wait for the client and unread messages; zero gives none', () => {
+  assert.deepEqual(tabs.tabCounts({ docsNeedingClient: 0, unread: 0 }), {})
+  assert.deepEqual(tabs.tabCounts({ docsNeedingClient: 2, unread: 0 }), { documents: 2 })
+  assert.deepEqual(tabs.tabCounts({ docsNeedingClient: 1, unread: 5 }), { documents: 1, messages: 5 })
+  assert.equal(tabs.isOpenLead({ stage: 'proposal' }), true)
+  assert.equal(tabs.isOpenLead({ stage: 'project' }), false)
 })
 
-test('arrow keys wrap, Home and End jump, other keys do nothing', () => {
-  assert.equal(tabs.tabFromKey('overview', 'ArrowRight'), 'leads')
-  assert.equal(tabs.tabFromKey('profile', 'ArrowRight'), 'overview')
-  assert.equal(tabs.tabFromKey('overview', 'ArrowLeft'), 'profile')
-  assert.equal(tabs.tabFromKey('support', 'Home'), 'overview')
-  assert.equal(tabs.tabFromKey('support', 'End'), 'profile')
-  assert.equal(tabs.tabFromKey('support', 'Enter'), null)
+test('withTab keeps other parameters, replaces the tab and drops the other tab\'s parameters', () => {
+  assert.equal(tabs.withTab('', 'documents'), '?tab=documents')
+  assert.equal(tabs.withTab('?lead=12&follow=a.b', 'messages'), '?lead=12&follow=a.b&tab=messages')
+  assert.equal(tabs.withTab('?tab=profile&lead=3', 'projects'), '?tab=projects&lead=3')
+  assert.equal(tabs.withTab('?tab=documents&doc=q-14', 'messages', { ref: 'lead-14' }), '?tab=messages&ref=lead-14')
+  assert.equal(tabs.withTab('', 'documents', { doc: 'c-2' }), '?tab=documents&doc=c-2')
+  assert.equal(tabs.withTab('?doc=x', 'documents', { doc: null }), '?tab=documents')
 })
 
-test('the bar is an accessible tablist and the page uses it', () => {
+test('arrow keys wrap over the visible tabs, Home and End jump, other keys do nothing', () => {
+  assert.equal(tabs.tabFromKey('projects', 'ArrowRight'), 'documents')
+  assert.equal(tabs.tabFromKey('profile', 'ArrowRight'), 'projects')
+  assert.equal(tabs.tabFromKey('projects', 'ArrowLeft'), 'profile')
+  assert.equal(tabs.tabFromKey('documents', 'Home'), 'projects')
+  assert.equal(tabs.tabFromKey('documents', 'End'), 'profile')
+  assert.equal(tabs.tabFromKey('documents', 'Enter'), null)
+  const noAgent = tabs.visibleTabs({ hasAgent: false })
+  assert.equal(tabs.tabFromKey('messages', 'ArrowRight', noAgent), 'materials')
+  assert.equal(tabs.tabFromKey('agent', 'ArrowRight', noAgent), null)
+})
+
+test('the bar is an accessible tablist, polls the unread badge, and the page uses it', () => {
   const bar = read('src/components/cabinet/cabinet-tabs.tsx')
-  for (const needle of ['role="tablist"', 'role="tab"', 'role="tabpanel"', 'aria-selected', 'aria-controls', 'onKeyDown', 'border-accent']) {
+  for (const needle of ['role="tablist"', 'role="tab"', 'role="tabpanel"', 'aria-selected', 'aria-controls', 'onKeyDown', 'border-accent', '/api/cabinet/threads', 'COUNTS_EVENT']) {
     assert.ok(bar.includes(needle), needle)
   }
   const page = read('src/app/[locale]/cabinet/page.tsx')
   assert.match(page, /<CabinetTabs/)
-  assert.match(page, /defaultTab\(\{ leadCount/)
-  // Only the active panel is mounted, so the leads refresh stops with its tab.
+  assert.match(page, /tabs=\{view\.tabs\}/)
+  // Only the active panel is mounted, so a panel's own refresh stops with its tab.
   assert.match(bar, /id === tab &&/)
 })
 

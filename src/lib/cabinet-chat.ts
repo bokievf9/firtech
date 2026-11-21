@@ -48,19 +48,32 @@ export function parseThread(r: Record<string, unknown>): ChatThread | null {
 }
 export const parseThreads = (body: unknown): ChatThread[] => list(unwrapList(body, ['threads']), parseThread)
 
+// HQ sends `url: null` when it has no signing key: the file is listed without a link then.
 export function parseAttachment(r: Record<string, unknown>): ChatAttachment | null {
   const url = typeof r.url === 'string' && r.url.length <= 1000 ? r.url : ''
   const name = str(r.name, 160)
-  if (!url || !name) return null
-  return { name, href: url.startsWith(MEDIA_ROUTE) ? url : mediaHref(url, name), size: count(r.size), label: str(r.label, 40) }
+  if (!name) return null
+  return { name, href: !url ? '' : url.startsWith(MEDIA_ROUTE) ? url : mediaHref(url, name), size: count(r.size), label: str(r.label, 40) }
 }
+
+// HQ has no label field for a file, so the site writes it into the message: `[logo] note`. The tag is
+// read back here, put on the attachments and removed from the text.
+export const LABEL_TAG = /^\[(logo|texts|access|photos|other)\]\s*/
+export const labelTag = (label: string) => (label ? `[${label}]` : '')
 
 export function parseMessage(r: Record<string, unknown>): ChatMessage | null {
   const id = idStr(r.id)
   if (id === null) return null
   const from: ChatFrom = r.from === 'client' ? 'client' : r.from === 'agent' ? 'agent' : 'firtech'
-  const attachments = list(r.attachments, parseAttachment).slice(0, 10)
-  const text = str(r.text, 4000)
+  let attachments = list(r.attachments, parseAttachment).slice(0, 10)
+  let text = str(r.text, 4000)
+  const tag = LABEL_TAG.exec(text)
+  if (tag) {
+    text = text.slice(tag[0].length)
+    attachments = attachments.map((a) => ({ ...a, label: a.label || tag[1]! }))
+  }
+  // HQ stores «(вложение)» for a message that is only a file.
+  if (attachments.length > 0 && /^\((вложение|attachment)\)$/i.test(text)) text = ''
   if (!text && attachments.length === 0) return null
   return { id: id.slice(0, 80), at: strOrNull(r.at), from, text, attachments, readAt: strOrNull(r.readAt) }
 }
@@ -117,19 +130,23 @@ export function cleanMessage(text: string): string {
 // ---- uploads -------------------------------------------------------------------------------------
 
 export const UPLOAD_MAX_BYTES = 10 * 1024 * 1024
+// HQ's list (final contract): png jpg jpeg webp pdf docx zip txt md csv, content checked by the first bytes.
+const textMimes = ['text/plain', 'text/markdown', 'text/csv', 'text/x-markdown', 'application/vnd.ms-excel']
 export const uploadTypes: Record<string, string[]> = {
   png: ['image/png'],
   jpg: ['image/jpeg'],
   jpeg: ['image/jpeg'],
-  gif: ['image/gif'],
   webp: ['image/webp'],
+  txt: textMimes,
+  md: textMimes,
+  csv: textMimes,
   pdf: ['application/pdf'],
   docx: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
   zip: ['application/zip', 'application/x-zip-compressed'],
 }
 export type UploadError = 'type' | 'size' | 'empty'
 
-// Images, PDF, DOCX and ZIP up to 10 MB (contract §4). The extension decides; a browser may leave the
+// Images, PDF, DOCX, ZIP and plain text up to 10 MB (contract §4). The extension decides; a browser may leave the
 // MIME type empty, but a type that is present must match it.
 export function checkUpload(file: { name: string; size: number; type?: string }): { ok: true; ext: string } | { ok: false; error: UploadError } {
   const ext = /\.([A-Za-z0-9]{1,5})$/.exec(file.name.trim())?.[1]?.toLowerCase() ?? ''
@@ -173,10 +190,14 @@ export function dayKey(iso: string | null): string {
   const d = iso ? new Date(iso) : null
   return d && !Number.isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : ''
 }
-export function groupByDay(messages: readonly ChatMessage[]): { day: string; items: ChatMessage[] }[] {
+// `keyOf` lets the browser group by its own local day instead of the UTC one.
+export function groupByDay(
+  messages: readonly Pick<ChatMessage, 'at'>[] & readonly ChatMessage[],
+  keyOf: (iso: string | null) => string = dayKey,
+): { day: string; items: ChatMessage[] }[] {
   const out: { day: string; items: ChatMessage[] }[] = []
   for (const m of messages) {
-    const day = dayKey(m.at)
+    const day = keyOf(m.at)
     const last = out[out.length - 1]
     if (last && last.day === day) last.items.push(m)
     else out.push({ day, items: [m] })

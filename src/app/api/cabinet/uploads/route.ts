@@ -3,7 +3,7 @@ import { UPLOAD_MAX_BYTES, checkUpload, isMaterialLabel } from '@/lib/cabinet-ch
 import { uploadThreadFile } from '@/lib/cabinet-hq'
 
 // POST /api/cabinet/uploads (multipart: file, threadId, label?): a file for a thread, forwarded to HQ
-// (`POST /admin/clients/:id/uploads`). Images, PDF, DOCX and ZIP up to 10 MB; the type is decided by the
+// (`POST /admin/clients/:id/uploads` with the file as base64 JSON, then the id is attached to a message of the thread). Images, PDF, DOCX, ZIP and plain text up to 10 MB; the type is decided by the
 // extension and checked again here, HQ checks it too. The answer is the new client message.
 export const dynamic = 'force-dynamic'
 

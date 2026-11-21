@@ -53,6 +53,10 @@ const statusOf: Record<HqV3Error, number> = {
   invalid: 400,
   rate_limited: 429,
   too_large: 413,
+  no_signature: 422,
+  too_big: 413,
+  limit_reached: 429,
+  unsupported_type: 415,
 }
 export const hqFailure = (error: HqV3Error) => reply({ ok: false, error }, statusOf[error] ?? 502)
 

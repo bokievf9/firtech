@@ -83,7 +83,7 @@ test('pay-how: page, localePages, sitemap with alternates, 404 search, footer an
   assert.ok(body.includes('/ru/pay-how') && body.includes('/en/pay-how'))
   assert.match(readFileSync('src/components/pay/pay-view.tsx', 'utf8'), /pay-how/)
   assert.match(readFileSync('src/app/[locale]/terms/page.tsx', 'utf8'), /pay-how/)
-  assert.match(readFileSync('src/components/cabinet/cabinet-cards.tsx', 'utf8'), /pay-how/)
+  assert.match(readFileSync('src/components/cabinet/documents-panel.tsx', 'utf8'), /pay-how/)
   assert.match(readFileSync('src/components/faq-contact.tsx', 'utf8'), /pay-how/)
 })
 

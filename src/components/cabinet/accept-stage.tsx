@@ -10,7 +10,23 @@ import { FormMessage } from './ui'
 // «Принять этап»: POST /api/cabinet/projects/<pid>/milestones/<no>/accept, then the page is
 // refreshed so the stage shows as accepted and the next invoice link appears. HQ's refusals
 // (still in work, not paid) become sentences; nothing but a code reaches this component.
-export function AcceptStageButton({ dict, projectId, stageNo }: { dict: Dict; projectId: number; stageNo: number }) {
+export function AcceptStageButton({
+  dict,
+  projectId,
+  stageNo,
+  label,
+  big = false,
+  hint = true,
+}: {
+  dict: Dict
+  projectId: number
+  stageNo: number
+  // The button text (the home's «Принять этап 2»); the stage list uses the plain one.
+  label?: string
+  // The big button of the project home.
+  big?: boolean
+  hint?: boolean
+}) {
   const t = dict.cabinet.cards.milestones
   const router = useRouter()
   const [status, setStatus] = useState<'idle' | 'sending' | 'done'>('idle')
@@ -40,14 +56,14 @@ export function AcceptStageButton({ dict, projectId, stageNo }: { dict: Dict; pr
 
   return (
     <div className="grid justify-items-start gap-2" data-accept-stage={stageNo}>
-      <p className="text-[13px] text-muted">{t.acceptHint}</p>
+      {hint && <p className="text-[13px] text-muted">{t.acceptHint}</p>}
       <button
         type="button"
         onClick={() => void accept()}
         disabled={status !== 'idle'}
-        className={buttonStyles.primary}
+        className={big ? `${buttonStyles.primary} px-8 py-4 text-base` : buttonStyles.primary}
       >
-        {status === 'sending' ? t.accepting : t.accept}
+        {status === 'sending' ? t.accepting : (label ?? t.accept)}
       </button>
       {error && <FormMessage kind="error">{error}</FormMessage>}
       {status === 'done' && <FormMessage kind="ok">{t.acceptDone}</FormMessage>}

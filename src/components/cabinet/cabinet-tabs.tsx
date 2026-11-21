@@ -3,29 +3,84 @@
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { cn } from '@/lib/cn'
-import { cabinetTabs, parseTab, tabFromKey, withTab, type CabinetTab } from '@/lib/cabinet-tabs'
+import { parseTab, tabFromKey, withTab, type CabinetTab } from '@/lib/cabinet-tabs'
 import { fill } from './ui'
 
-// The cabinet home as tabs (owner 2026-11-21). The tab is in `?tab=` (history entries through the
-// History API, which Next keeps in step with useSearchParams, so the server is not asked again).
-// Only the active panel is mounted: the 30 s refresh of «Заявки» runs only while that tab is open.
+// Badge changes from the panels (a document accepted, a thread read): `{ documents?, messages? }`.
+export const COUNTS_EVENT = 'cabinet:counts'
+const UNREAD_POLL_MS = 30_000
+
+// The cabinet home as tabs (owner 2026-11-21, v3 2026-11-22). The tab is in `?tab=` (history entries
+// through the History API, which Next keeps in step with useSearchParams, so the server is not asked
+// again). Only the active panel is mounted. The badge of «Сообщения» is refreshed every 30 s while the
+// page is visible (`/api/cabinet/threads`) and by the panels through COUNTS_EVENT.
 // Panels arrive as server-rendered nodes; the bar scrolls sideways on phones with fading edges.
 export function CabinetTabs({
   labels,
-  counts,
+  tabs,
+  counts: initialCounts,
   defaultTab,
   panels,
   strip,
+  pollUnread = true,
 }: {
   labels: Record<CabinetTab | 'label' | 'badge', string>
+  tabs: readonly CabinetTab[]
   counts: Partial<Record<CabinetTab, number>>
   defaultTab: CabinetTab
-  panels: Record<CabinetTab, ReactNode>
-  // The slim «Предложения» strip under every tab except the overview.
+  panels: Partial<Record<CabinetTab, ReactNode>>
+  // The slim «Предложения» strip under every tab.
   strip: ReactNode
+  pollUnread?: boolean
 }) {
   const search = useSearchParams()
-  const tab = parseTab(search.get('tab'), defaultTab)
+  const tab = parseTab(search.get('tab'), defaultTab, tabs)
+  const [counts, setCounts] = useState(initialCounts)
+
+  useEffect(() => {
+    const onCounts = (e: Event) => {
+      const detail = (e as CustomEvent<Partial<Record<CabinetTab, number>>>).detail ?? {}
+      setCounts((c) => {
+        const next = { ...c, ...detail }
+        for (const key of Object.keys(detail) as CabinetTab[]) if (!next[key]) delete next[key]
+        return next
+      })
+    }
+    window.addEventListener(COUNTS_EVENT, onCounts)
+    return () => window.removeEventListener(COUNTS_EVENT, onCounts)
+  }, [])
+
+  useEffect(() => {
+    if (!pollUnread) return
+    let alive = true
+    async function load() {
+      if (document.visibilityState !== 'visible') return
+      try {
+        const res = await fetch('/api/cabinet/threads', { cache: 'no-store' })
+        const body = (await res.json().catch(() => null)) as { ok?: boolean; unread?: number } | null
+        if (alive && res.ok && body?.ok && typeof body.unread === 'number') {
+          const n = body.unread
+          setCounts((c) => {
+            if ((c.messages ?? 0) === n) return c
+            const next = { ...c }
+            if (n > 0) next.messages = n
+            else delete next.messages
+            return next
+          })
+        }
+      } catch {
+        // Offline for a moment: the next tick tries again.
+      }
+    }
+    const timer = window.setInterval(load, UNREAD_POLL_MS)
+    const onVisible = () => void load()
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      alive = false
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [pollUnread])
   const bar = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ left: false, right: false })
 
@@ -59,7 +114,7 @@ export function CabinetTabs({
   }
 
   function onKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
-    const next = tabFromKey(tab, e.key)
+    const next = tabFromKey(tab, e.key, tabs)
     if (!next) return
     e.preventDefault()
     select(next)
@@ -67,7 +122,7 @@ export function CabinetTabs({
   }
 
   return (
-    <div className="mt-10">
+    <div className="mt-10" id="cabinet-tabs">
       <div className="relative -mx-4 md:mx-0">
         <div
           ref={bar}
@@ -76,7 +131,7 @@ export function CabinetTabs({
           onScroll={measure}
           className="flex gap-1 overflow-x-auto border-b border-line px-4 [scrollbar-width:none] md:px-0 [&::-webkit-scrollbar]:hidden"
         >
-          {cabinetTabs.map((id) => {
+          {tabs.map((id) => {
             const active = id === tab
             const count = counts[id]
             return (
@@ -125,7 +180,7 @@ export function CabinetTabs({
         />
       </div>
 
-      {cabinetTabs.map((id) => (
+      {tabs.map((id) => (
         <div
           key={id}
           id={`cabinet-panel-${id}`}
@@ -138,7 +193,7 @@ export function CabinetTabs({
           {id === tab && (
             <div className="grid gap-gutter">
               {panels[id]}
-              {id !== 'overview' && strip}
+              {strip}
             </div>
           )}
         </div>

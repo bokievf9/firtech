@@ -1,5 +1,6 @@
-// The stage track as the client sees it (2026-11-21): the real server components rendered to static
-// markup with the dev mock data (a 3-stage project: accepted, awaiting acceptance, awaiting payment).
+// The cabinet as the client sees it (2026-11-21 stage track, 2026-11-22 v3): the real components rendered to
+// static markup with the dev mock data (a 3-stage project, a project waiting for a signature, a request with
+// a proposal to accept, documents, threads, an agent).
 // The cabinet page needs a Supabase session, which the e2e run does not have, so the components
 // are rendered here; .tsx is transpiled with TypeScript by a load hook (no new dependency).
 import assert from 'node:assert/strict'
@@ -55,58 +56,204 @@ const { renderToStaticMarkup } = await import('react-dom/server')
 const { createElement } = await import('react')
 const { default: ru } = await import('../src/content/ru.ts')
 const { default: en } = await import('../src/content/en.ts')
-const { cabinetMock } = await import('../src/lib/cabinet-hq.ts')
-const { ProjectsCard } = await import('../src/components/cabinet/cabinet-cards.tsx')
+const hq = await import('../src/lib/cabinet-hq.ts')
+const mock = await import('../src/lib/cabinet-hq-mock.ts')
+const { buildCabinetView, noExtras } = await import('../src/lib/cabinet-view.ts')
+const { ProjectCard, EmptyProjects, RecentBlock } = await import('../src/components/cabinet/projects-home.tsx')
 const { LeadsSection } = await import('../src/components/cabinet/leads-section.tsx')
+const { NextActionBlock } = await import('../src/components/cabinet/next-action.tsx')
+const { DocumentsPanel } = await import('../src/components/cabinet/documents-panel.tsx')
+const { SignaturePad } = await import('../src/components/cabinet/signature-pad.tsx')
+const { MessagesPanel } = await import('../src/components/cabinet/messages-panel.tsx')
+const { AgentPanel } = await import('../src/components/cabinet/agent-panel.tsx')
+const { MaterialsPanel } = await import('../src/components/cabinet/materials-panel.tsx')
 
-const render = (data, dict, locale) => renderToStaticMarkup(createElement(ProjectsCard, { data, dict, locale }))
+const dev = { NODE_ENV: 'development' }
 const text = (html) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
+const h = (C, props) => renderToStaticMarkup(createElement(C, props))
 
-test('Проекты: three stages in order with the right label, pay link and accept button', () => {
-  const html = render(cabinetMock('a@b.co'), ru, 'ru')
+async function load() {
+  mock.resetMockState()
+  const data = hq.cabinetMock('a@b.co')
+  const extras = {
+    docs: (await hq.fetchClientDocuments(1, dev)).data,
+    threads: (await hq.fetchThreads(1, dev)).data,
+    agents: (await hq.fetchClientAgents(1, dev)).data,
+    conversations: (await hq.fetchAgentConversations(1, 'pg-1', dev)).data,
+    v3: true,
+  }
+  return { data, extras, view: buildCabinetView(data, extras) }
+}
+const card = (view, id, dict, locale) => {
+  const p = view.projects.find((x) => x.project.id === id)
+  return h(ProjectCard, { project: p.project, action: p.action, dict, locale, threadId: p.threadId })
+}
+
+test('Проекты: the project with stages: status in words, ONE big accept button, three stages in order, pay link on stage 3', async () => {
+  const { view } = await load()
+  const html = card(view, 1, ru, 'ru')
   const rows = [...html.matchAll(/<li[^>]*data-stage="(\d)"[^>]*data-step="(\w+)"/g)].map((m) => `${m[1]}:${m[2]}`)
   assert.deepEqual(rows, ['1:accepted', '2:accept', '3:pay'])
   const flat = text(html)
-  assert.match(flat, /Этап 1: принят, принято \d{1,2} \S+ \d{4}/)
+  assert.match(flat, /Этап сдан, ждём вашей приёмки\./)
+  assert.match(flat, /Этап 1: принят/)
   assert.match(flat, /Этап 2: приёмка/)
   assert.match(flat, /Этап 3: оплата/)
-  assert.equal((html.match(/data-accept-stage="2"/g) ?? []).length, 1, 'one accept button, on stage 2')
-  assert.match(flat, /Принять этап/)
+  assert.equal((html.match(/data-accept-stage="2"/g) ?? []).length, 1, 'one accept button: the big one, not another in the row')
+  assert.match(flat, /Принять этап 2/)
+  assert.equal((html.match(/data-next-action="accept_stage"/g) ?? []).length, 1)
   const pay = /<a[^>]*data-pay-stage="3"[^>]*>/.exec(html)?.[0] ?? ''
   assert.match(pay, /href="https:\/\/firtech\.pro\/ru\/pay\/FT-2026-004/)
   assert.match(pay, /rel="noopener noreferrer"/)
-  assert.match(flat, /Оплатить этап/)
   assert.equal(/data-pay-stage="2"/.test(html), false, 'no pay link once the stage is paid')
+  assert.doesNotMatch(flat, /статус работ|офис/i, 'our own status is not part of the client cabinet')
+  assert.match(html, /data-project-state="in_progress"/)
 })
 
-test('Проекты: the same track in English, and a project without stages shows no track', () => {
-  const flat = text(render(cabinetMock('a@b.co'), en, 'en'))
-  assert.match(flat, /Stage 2: acceptance/)
-  assert.match(flat, /Stage 3: payment/)
-  assert.match(flat, /Accept the stage/)
-  assert.match(flat, /Pay the stage/)
-  const bare = cabinetMock('a@b.co')
-  bare.projects[0].milestones = []
-  const html = render(bare, ru, 'ru')
+test('Проекты: a project before payment shows the road to the start and the sign button', async () => {
+  const { view } = await load()
+  const html = card(view, 2, ru, 'ru')
+  assert.match(html, /data-project-state="preparing"/)
+  const flat = text(html)
+  assert.match(flat, /Договор готов, ждём вашу подпись\./)
+  const big = /<a[^>]*data-big-action[^>]*>/.exec(html)?.[0] ?? ''
+  assert.match(big, /href="\?tab=documents&amp;doc=c-2"/)
+  assert.match(flat, /Подписать договор/)
+  const prep = [...html.matchAll(/data-prep="(\w+)"[^>]*|aria-current="step"[^>]*data-prep="(\w+)"/g)].map((m) => m[1] ?? m[2])
+  assert.deepEqual(prep, ['quote', 'contract', 'sign', 'pay', 'work'])
+  assert.match(html, /aria-current="step"[^>]*data-prep="sign"|data-prep="sign"[^>]*aria-current="step"/)
   assert.equal(html.includes('data-stage-track'), false)
-  assert.equal(html.includes('data-accept-stage'), false)
+  assert.match(html, /\?tab=messages&amp;ref=project-2/)
+  assert.match(text(card(view, 2, en, 'en')), /The contract is ready and waits for your signature\./)
 })
 
-test('Проекты: after the last acceptance every stage reads accepted and nothing is clickable', () => {
-  const data = cabinetMock('a@b.co')
-  data.projects[0].milestones = data.projects[0].milestones.map((m) => ({ ...m, state: 'accepted', payUrl: null, acceptedAt: '2026-11-21T10:00:00Z' }))
-  const html = render(data, ru, 'ru')
-  assert.equal((html.match(/data-step="accepted"/g) ?? []).length, 3)
-  assert.equal(html.includes('data-accept-stage'), false)
-  assert.equal(html.includes('data-pay-stage'), false)
+test('Проекты: the big button follows the next action, a wait is a calm line', () => {
+  const act = (o) => ({ kind: 'wait', docId: null, stageNo: null, payUrl: null, text: '', ...o })
+  const view = (a, projectId) => h(NextActionBlock, { action: a, dict: ru, projectId })
+  const quote = view(act({ kind: 'accept_quote', docId: 'q-14' }))
+  assert.match(text(quote), /Принять КП/)
+  assert.match(quote, /href="\?tab=documents&amp;doc=q-14"/)
+  const pay = view(act({ kind: 'pay_stage', stageNo: 3, payUrl: 'https://firtech.pro/pay/x' }))
+  assert.match(text(pay), /Оплатить этап 3/)
+  assert.match(pay, /target="_blank"[^>]*rel="noopener noreferrer"|rel="noopener noreferrer"[^>]*target="_blank"/)
+  const payNoLink = view(act({ kind: 'pay_stage', docId: 'i-1' }))
+  assert.match(payNoLink, /doc=i-1/)
+  assert.match(text(payNoLink), /Оплатить этап/)
+  const wait = view(act({ text: 'Ждём вас на созвоне' }))
+  assert.match(text(wait), /Ждём вас на созвоне/)
+  assert.equal(wait.includes('data-big-action'), false)
+  assert.match(text(view(act())), /От вас сейчас ничего не нужно/)
+  assert.match(text(h(NextActionBlock, { action: act({ kind: 'sign_contract', docId: 'c-2' }), dict: en })), /Sign the contract/)
 })
 
-test('Заявки: a request that is a project shows the current stage line, other requests do not', () => {
-  const data = cabinetMock('a@b.co')
-  const view = (stageLine) => renderToStaticMarkup(createElement(LeadsSection, { dict: ru, locale: 'ru', initial: data.leads, focus: null, fresh: false, follow: null, stageLine }))
-  const html = view('Этап 2: приёмка')
-  assert.equal((html.match(/data-stage-line/g) ?? []).length, 1, 'only the lead whose stage is project')
-  assert.match(text(html), /Сейчас: Этап 2: приёмка/)
-  assert.equal(view(null).includes('data-stage-line'), false)
-  assert.equal(data.leads.filter((l) => l.stage === 'project').length, 1)
+test('Заявки: a request with a proposal shows the accept button and a link to its thread; no reply box', async () => {
+  const { view } = await load()
+  assert.deepEqual(view.leads.map((l) => l.id), [14], 'the request that became a project and the running one are not listed again')
+  const html = h(LeadsSection, { dict: ru, locale: 'ru', leads: view.leads, actions: view.leadActions, focus: null, fresh: false, follow: null })
+  assert.equal((html.match(/data-lead="/g) ?? []).length, 1)
+  const flat = text(html)
+  assert.match(flat, /КП готово, ждём вашего решения/)
+  assert.match(flat, /Принять КП/)
+  assert.match(html, /data-lead-thread="14"/)
+  assert.match(html, /\?tab=messages&amp;ref=lead-14/)
+  assert.equal(/<textarea/.test(html), false, 'the reply box moved to the messenger')
+  const none = h(LeadsSection, { dict: ru, locale: 'ru', leads: [], actions: {}, focus: null, fresh: false, follow: null })
+  assert.equal(none, '')
+  const fresh = h(LeadsSection, { dict: ru, locale: 'ru', leads: [], actions: {}, focus: null, fresh: true, follow: null })
+  assert.match(fresh, /data-lead-pending/)
+})
+
+test('Проекты: no project and no request shows the empty state with the builder and the audit', () => {
+  const html = h(EmptyProjects, { dict: ru, locale: 'ru' })
+  assert.match(html, /data-projects-empty/)
+  assert.match(html, /href="\/ru\/builder"/)
+  assert.match(html, /href="\/ru\/audit"/)
+  const view = buildCabinetView({ client: { id: 0, name: '', email: 'x@y.co', telegram: '', createdAt: null }, leads: null, projects: [], invoices: [], documents: [], tickets: [], referrals: [], referralSlug: null }, noExtras)
+  assert.deepEqual([view.projects.length, view.leads.length, view.docs.length], [0, 0, 0])
+  assert.equal(view.tabs.includes('agent'), false)
+})
+
+test('Главная: recent documents and the latest threads with unread badges', async () => {
+  const { view, extras } = await load()
+  const messages = view.recentThreads.map((thread) => ({ thread, last: { id: '1', at: null, from: 'firtech', text: 'Готово, посмотрите', attachments: [], readAt: null } }))
+  const html = h(RecentBlock, { docs: view.recentDocs, messages, dict: ru, locale: 'ru' })
+  assert.equal((html.match(/doc=/g) ?? []).length, 3)
+  assert.match(text(html), /Ждёт вас/)
+  assert.match(html, /\?tab=messages&amp;ref=/)
+  assert.match(text(html), /Готово, посмотрите/)
+  assert.equal(view.recentThreads.length, 3)
+  assert.equal(extras.threads.length, 5)
+})
+
+test('Документы: states and order, those waiting for the client first, the badge count', async () => {
+  const { view } = await load()
+  const html = h(DocumentsPanel, { dict: ru, locale: 'ru', initial: view.docs, defaultName: 'Алиса' })
+  const states = [...html.matchAll(/data-doc-state="(\w+)"/g)].map((m) => m[1])
+  assert.deepEqual(states.slice(0, 3).sort(), ['awaiting_client', 'awaiting_signature', 'issued'])
+  for (const label of ['Ждёт вас', 'Ждёт подписи', 'Выставлен', 'Оплачен', 'Подписано', 'Принято']) assert.match(text(html), new RegExp(label), label)
+  assert.match(text(html), /Ждут вас: 3/)
+  assert.equal(view.counts.documents, 3)
+  assert.match(text(h(DocumentsPanel, { dict: en, locale: 'en', initial: view.docs, defaultName: '' })), /Waiting for you/)
+  const empty = text(h(DocumentsPanel, { dict: ru, locale: 'ru', initial: [], defaultName: '' }))
+  assert.match(empty, /Документов пока нет/)
+})
+
+test('Подпись: the pad has a canvas for pointers, a prefilled name, the consent sentence and a disabled button', () => {
+  const html = h(SignaturePad, { dict: ru, defaultName: 'Алиса Иванова', onSubmit() {}, onCancel() {}, error: '', busy: false })
+  assert.match(html, /<canvas[^>]*data-signature-canvas/)
+  assert.match(html, /touch-action:none/)
+  assert.match(html, /value="Алиса Иванова"/)
+  assert.match(html, /type="checkbox"/)
+  assert.match(text(html), /простой электронной подписью/)
+  assert.match(/<button[^>]*disabled[^>]*>\s*Подписать договор/.exec(html)?.[0] ?? '', /disabled/)
+  assert.match(text(html), /Очистить/)
+  assert.match(text(h(SignaturePad, { dict: ru, defaultName: '', onSubmit() {}, onCancel() {}, error: 'bad_signature', busy: false })), /Подпись не принята/)
+  assert.match(text(h(SignaturePad, { dict: en, defaultName: '', onSubmit() {}, onCancel() {}, error: '', busy: false })), /simple electronic signature/)
+})
+
+test('Сообщения: threads of every kind with unread badges, no support button while a support thread exists', async () => {
+  const { extras } = await load()
+  const html = h(MessagesPanel, { dict: ru, locale: 'ru', initial: extras.threads, tickets: [] })
+  assert.equal((html.match(/data-thread-item=/g) ?? []).length, 5)
+  for (const kind of ['Заявка', 'Проект', 'Агент', 'Поддержка']) assert.match(text(html), new RegExp(kind), kind)
+  assert.match(html, /aria-label="Новых: 2"/)
+  assert.equal(html.includes('data-support-cta'), false)
+  const noSupport = h(MessagesPanel, { dict: ru, locale: 'ru', initial: extras.threads.filter((t) => t.kind !== 'support'), tickets: [] })
+  assert.match(noSupport, /data-support-cta/)
+  assert.match(text(h(MessagesPanel, { dict: ru, locale: 'ru', initial: [], tickets: [] })), /Диалогов пока нет/)
+  assert.match(text(html), /Обновляется сама/)
+})
+
+test('Ваш агент: chat, settings, masked Telegram token field, usage and conversations', async () => {
+  const { view, extras } = await load()
+  const html = h(AgentPanel, { dict: ru, locale: 'ru', agent: view.agent, conversations: extras.conversations, thread: view.agentThread })
+  const flat = text(html)
+  assert.match(flat, /Ваш агент: Мила/)
+  assert.match(flat, /Работает/)
+  assert.match(html, /data-thread-kind="agent"/)
+  assert.match(html, /data-agent-settings/)
+  assert.match(html, /<input[^>]*type="password"[^>]*data-bot-token|<input[^>]*data-bot-token[^>]*type="password"/)
+  assert.match(html, /autoComplete="off"|autocomplete="off"/i)
+  assert.match(flat, /Подключить Telegram/)
+  assert.match(flat, /Не подключён/)
+  assert.match(flat, /из 200/)
+  assert.equal((html.match(/data-conversations/g) ?? []).length, 1)
+  assert.match(flat, /Виджет, 6 сообщ\./)
+  assert.match(flat, /Собрано контактов: 2/)
+  assert.doesNotMatch(flat, /За месяц/, 'HQ reports only today')
+  assert.doesNotMatch(html, /AAH/, 'no token anywhere')
+  const noThread = text(h(AgentPanel, { dict: en, locale: 'en', agent: view.agent, conversations: [], thread: null }))
+  assert.match(noThread, /No conversations yet/)
+  assert.match(noThread, /opens as soon as we connect it/)
+})
+
+test('Материалы: labels, upload form into the project thread, a note without any thread', async () => {
+  const { view } = await load()
+  assert.equal(view.materialsThread.kind, 'project')
+  const html = h(MaterialsPanel, { dict: ru, locale: 'ru', thread: view.materialsThread })
+  assert.equal((html.match(/type="radio"/g) ?? []).length, 5)
+  for (const label of ['Логотип', 'Тексты', 'Доступы', 'Фото', 'Другое']) assert.match(text(html), new RegExp(label), label)
+  assert.match(html, /data-upload/)
+  assert.match(text(html), /до 10 МБ/)
+  assert.match(text(h(MaterialsPanel, { dict: ru, locale: 'ru', thread: null })), /Загрузка откроется/)
 })

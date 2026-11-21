@@ -31,14 +31,13 @@ function seed(): MockState {
     acceptedAt: null,
     signedAt: null,
     pdfUrl: `/media/mock/${d.id}.pdf`,
-    htmlUrl: null,
     amountUsd: null,
     stageNo: null,
     payUrl: null,
     ...d,
   })
   const docs: ClientDoc[] = [
-    doc({ id: 'q-14', kind: 'quote', title: 'Коммерческое предложение: автоматизация заявок', number: 'КП-2026-014', leadId: 14, state: 'awaiting_client', createdAt: at(-0.3), amountUsd: 450, htmlUrl: '/media/mock/q-14.html' }),
+    doc({ id: 'q-14', kind: 'quote', title: 'Коммерческое предложение: автоматизация заявок', number: 'КП-2026-014', leadId: 14, state: 'awaiting_client', createdAt: at(-0.3), amountUsd: 450 }),
     doc({ id: 'c-2', kind: 'contract', title: 'Договор: бот для записи в салон', number: 'Д-2026-012', leadId: 12, projectId: 2, state: 'awaiting_signature', createdAt: at(-0.6), amountUsd: 340 }),
     doc({ id: 'q-12', kind: 'quote', title: 'Коммерческое предложение: бот для записи', number: 'КП-2026-012', leadId: 12, projectId: 2, state: 'accepted', createdAt: at(-1.6), acceptedAt: at(-1.2), amountUsd: 340 }),
     doc({ id: 'c-1', kind: 'contract', title: 'Договор: сайт для барбершопа', number: 'Д-2026-009', leadId: 9, projectId: 1, state: 'signed', createdAt: at(-14), signedAt: at(-13.5), amountUsd: 400 }),
@@ -90,13 +89,13 @@ function seed(): MockState {
     channels: { web: true, telegram: false, siteWidget: null },
     state: 'live',
     limits: { msgsPerDay: 200 },
-    usage: { msgsToday: 18, msgsMonth: 412, conversations: 37 },
+    usage: { msgsToday: 18, conversations: 37 },
   }
   const conversations: AgentConversation[] = [
-    { id: 'cv-4', startedAt: at(-0.1), lastAt: at(-0.1), channel: 'web', messages: 6, preview: 'Хочу записаться на маникюр в субботу' },
-    { id: 'cv-3', startedAt: at(-0.6), lastAt: at(-0.6), channel: 'web', messages: 4, preview: 'Сколько стоит окрашивание?' },
-    { id: 'cv-2', startedAt: at(-1.2), lastAt: at(-1.2), channel: 'web', messages: 3, preview: 'Где вы находитесь?' },
-    { id: 'cv-1', startedAt: at(-2.4), lastAt: at(-2.4), channel: 'web', messages: 9, preview: 'Можно перенести запись на пятницу?' },
+    { id: 'cv-4', startedAt: at(-0.1), lastAt: at(-0.1), channel: 'widget', messages: 6, leadsCaptured: 1 },
+    { id: 'cv-3', startedAt: at(-0.6), lastAt: at(-0.6), channel: 'widget', messages: 4, leadsCaptured: 0 },
+    { id: 'cv-2', startedAt: at(-1.2), lastAt: at(-1.2), channel: 'cabinet', messages: 3, leadsCaptured: 0 },
+    { id: 'cv-1', startedAt: at(-2.4), lastAt: at(-2.4), channel: 'widget', messages: 9, leadsCaptured: 2 },
   ]
   return { seq: 100, docs, threads, messages, agent, conversations, signatures: [] }
 }
@@ -131,7 +130,6 @@ export function mockAcceptQuote(docId: string): 'ok' | 'not_found' | 'not_awaiti
     state: 'awaiting_signature',
     createdAt: new Date().toISOString(),
     acceptedAt: null,
-    htmlUrl: null,
   })
   postMock('lead-14', 'firtech', 'Спасибо, КП принято. Договор уже в разделе «Документы», подпишите его там.')
   return 'ok'
@@ -182,11 +180,6 @@ export function mockPdf(title: string): Uint8Array {
   out += `xref\n0 ${objs.length + 1}\n0000000000 65535 f \n${offsets.map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('')}`
   out += `trailer\n<< /Size ${objs.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`
   return new TextEncoder().encode(out)
-}
-
-export function mockHtml(title: string): string {
-  const safe = title.replace(/[<>&]/g, '')
-  return `<!doctype html><meta charset="utf-8"><title>${safe}</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:640px;margin:40px auto;padding:0 20px;color:#16181a}h1{font-size:22px}</style><h1>${safe}</h1><p>Демонстрационная HTML-версия документа. Настоящую отрисовывает HQ.</p>`
 }
 
 // ---- messenger -------------------------------------------------------------------------------
@@ -261,10 +254,9 @@ export function mockPatchAgent(patch: Record<string, unknown>): ClientAgent | nu
   if (Array.isArray(patch.languages)) a.languages = patch.languages as string[]
   const ch = patch.channels as Record<string, unknown> | undefined
   if (ch) {
-    if (typeof ch.web === 'boolean') a.channels.web = ch.web
-    if (ch.telegram === false) a.channels.telegram = false
+    if (ch.telegram === null) a.channels.telegram = false
     else if (ch.telegram) a.channels.telegram = true
-    if (ch.siteWidget === false) a.channels.siteWidget = null
+    if (ch.siteWidget === null) a.channels.siteWidget = null
   }
   return a
 }

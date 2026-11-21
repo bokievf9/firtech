@@ -18,7 +18,7 @@ import {
   type AuthErrorKey,
 } from '@/lib/cabinet-auth'
 import { parseProfileForm, saveProfileRow, type ProfileInput, type ProfilesClient } from '@/lib/cabinet-profile'
-import { createClientTicket, fetchClientByEmail, syncClientToHq } from '@/lib/cabinet-hq'
+import { createClientTicket, fetchClientByEmail, patchClientProfile, syncClientToHq } from '@/lib/cabinet-hq'
 import { requireCabinetUser } from '@/lib/cabinet-session'
 import { isLocale, type Locale } from '@/lib/i18n'
 import { supabaseConfig } from '@/lib/supabase/config'
@@ -177,13 +177,14 @@ export async function updateProfileAction(_: FormState, form: FormData): Promise
     return { error: 'profile' }
   }
   const email = (user.email ?? '').toLowerCase()
-  const synced = await syncClientToHq(user.id, {
-    email,
-    name: input.name,
-    telegram: input.telegram,
-    locale: input.locale,
-    marketing_consent: input.marketing,
-  })
+  // The CRM: a known client gets a PATCH-style update (`POST /admin/clients/:id`, only these fields); a client
+  // HQ does not know yet is registered with the saved data. Never the registration upsert for a known one.
+  const known = await fetchClientByEmail(email)
+  const synced = known.ok
+    ? await patchClientProfile(known.data.client.id, { name: input.name, telegram: input.telegram, locale: input.locale })
+    : known.error === 'not_found'
+      ? await syncClientToHq(user.id, { email, name: input.name, telegram: input.telegram, locale: input.locale, marketing_consent: input.marketing })
+      : known
   if (synced.ok) {
     const { error } = await supabase.from('profiles').update({ hq_synced_at: new Date().toISOString() }).eq('id', user.id)
     if (error) console.warn('[cabinet] could not store hq_synced_at')

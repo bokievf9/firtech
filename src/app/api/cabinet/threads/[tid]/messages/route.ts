@@ -13,7 +13,8 @@ export async function GET(request: Request, ctx: RouteContext<'/api/cabinet/thre
   const who = await cabinetCaller(request)
   if (!who.ok) return who.response
   const after = new URL(request.url).searchParams.get('after')
-  const rows = await fetchThreadMessages(who.clientId, tid, after && safeToken(after) ? after : null)
+  // HQ's `after` is a whole number (a message id inside the thread); anything else is dropped.
+  const rows = await fetchThreadMessages(who.clientId, tid, after && /^\d{1,12}$/.test(after) ? after : null)
   if (!rows.ok) return hqFailure(rows.error)
   return reply({ ok: true, messages: rows.data })
 }
@@ -28,5 +29,5 @@ export async function POST(request: Request, ctx: RouteContext<'/api/cabinet/thr
   if (!text) return reply({ ok: false, error: 'invalid' }, 400)
   const sent = await postThreadMessage(who.clientId, tid, text)
   if (!sent.ok) return hqFailure(sent.error)
-  return reply({ ok: true, item: sent.data })
+  return reply({ ok: true, item: sent.data.item, reply: sent.data.reply })
 }

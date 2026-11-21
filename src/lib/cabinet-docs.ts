@@ -11,7 +11,7 @@ export type DocState = 'awaiting_client' | 'accepted' | 'awaiting_signature' | '
 export const docKinds: DocKind[] = ['quote', 'contract', 'invoice', 'act', 'other']
 export const docStates: DocState[] = ['awaiting_client', 'accepted', 'awaiting_signature', 'signed', 'issued', 'paid', 'void']
 
-// A document as the SERVER holds it: `pdfUrl` and `htmlUrl` are HQ's signed links and never leave
+// A document as the SERVER holds it: `pdfUrl` is HQ's signed link (7 days) and never leaves
 // the server (the browser gets `PublicDoc` and fetches the file through the session-checked proxy).
 export type ClientDoc = {
   id: string
@@ -26,12 +26,11 @@ export type ClientDoc = {
   acceptedAt: string | null
   signedAt: string | null
   pdfUrl: string | null
-  htmlUrl: string | null
   amountUsd: number | null
   stageNo: number | null
   payUrl: string | null
 }
-export type PublicDoc = Omit<ClientDoc, 'pdfUrl' | 'htmlUrl'> & { hasPdf: boolean; hasHtml: boolean }
+export type PublicDoc = Omit<ClientDoc, 'pdfUrl'> & { hasPdf: boolean }
 
 // A file link from HQ: https, or a path on HQ's own host (`/media/...`, resolved by the proxy).
 const fileUrl = (v: unknown) =>
@@ -57,7 +56,6 @@ export function parseClientDoc(r: Record<string, unknown>): ClientDoc | null {
     acceptedAt: strOrNull(r.acceptedAt),
     signedAt: strOrNull(r.signedAt),
     pdfUrl: fileUrl(r.pdfUrl),
-    htmlUrl: fileUrl(r.htmlUrl),
     amountUsd: amount,
     stageNo: intOrNull(r.stageNo),
     payUrl: state === 'issued' ? httpsUrl(r.payUrl) : null,
@@ -71,18 +69,22 @@ export function parseClientDocs(body: unknown): ClientDoc[] {
 }
 
 export const publicDoc = (d: ClientDoc): PublicDoc => {
-  const { pdfUrl, htmlUrl, ...rest } = d
-  return { ...rest, hasPdf: pdfUrl !== null, hasHtml: htmlUrl !== null }
+  const { pdfUrl, ...rest } = d
+  return { ...rest, hasPdf: pdfUrl !== null }
 }
 
 // The client has to do something with this document: read and accept it, sign it, pay it.
+// The label key of a state: the estimate and the act are «issued» in HQ but are only received, not billed.
+export const docStateKey = (d: Pick<ClientDoc, 'kind' | 'state'>): DocState | 'delivered' =>
+  d.state === 'issued' && d.kind !== 'invoice' ? 'delivered' : d.state
+
 export const docNeedsClient = (d: Pick<ClientDoc, 'kind' | 'state'>) =>
   d.state === 'awaiting_client' || d.state === 'awaiting_signature' || (d.kind === 'invoice' && d.state === 'issued')
 
 export type DocAction = 'accept' | 'sign' | 'pay' | 'download'
 
 // The buttons of a document, from its kind and state. Paying needs a link; downloading needs a file.
-export function docActions(d: Pick<PublicDoc, 'kind' | 'state' | 'payUrl' | 'hasPdf' | 'hasHtml'>): DocAction[] {
+export function docActions(d: Pick<PublicDoc, 'kind' | 'state' | 'payUrl' | 'hasPdf'>): DocAction[] {
   const out: DocAction[] = []
   if (d.kind === 'quote' && d.state === 'awaiting_client') out.push('accept')
   if (d.kind === 'contract' && d.state === 'awaiting_signature') out.push('sign')

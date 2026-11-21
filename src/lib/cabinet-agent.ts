@@ -16,9 +16,10 @@ export type ClientAgent = {
   channels: AgentChannels
   state: AgentState
   limits: { msgsPerDay: number | null }
-  usage: { msgsToday: number; msgsMonth: number; conversations: number }
+  // The final contract has only today's count (`usageToday.messages`); the rest is filled by the page.
+  usage: { msgsToday: number; conversations: number }
 }
-export type AgentConversation = { id: string; startedAt: string | null; lastAt: string | null; channel: string; messages: number; preview: string }
+export type AgentConversation = { id: string; startedAt: string | null; lastAt: string | null; channel: string; messages: number; leadsCaptured: number }
 
 export const agentTones = ['friendly', 'formal', 'brief'] as const
 export const agentLanguages = ['ru', 'en', 'tg', 'uz'] as const
@@ -36,7 +37,7 @@ export function parseAgent(r: Record<string, unknown>): ClientAgent | null {
   if (id === null) return null
   const ch = isObj(r.channels) ? r.channels : {}
   const limits = isObj(r.limits) ? r.limits : {}
-  const usage = isObj(r.usage) ? r.usage : {}
+  const usage = isObj(r.usageToday) ? r.usageToday : isObj(r.usage) ? r.usage : {}
   return {
     id: id.slice(0, 60),
     name: str(r.name, 60) || 'Agent',
@@ -50,7 +51,7 @@ export function parseAgent(r: Record<string, unknown>): ClientAgent | null {
     },
     state: r.state === 'live' ? 'live' : 'draft',
     limits: { msgsPerDay: intOrNull(limits.msgsPerDay) },
-    usage: { msgsToday: count(usage.msgsToday), msgsMonth: count(usage.msgsMonth), conversations: count(usage.conversations) },
+    usage: { msgsToday: count(usage.messages ?? usage.msgsToday), conversations: count(usage.conversations) },
   }
 }
 export const parseAgents = (body: unknown): ClientAgent[] => list(unwrapList(body, ['agents']), parseAgent)
@@ -63,9 +64,9 @@ export function parseConversation(r: Record<string, unknown>): AgentConversation
     id: id.slice(0, 80),
     startedAt: strOrNull(r.startedAt),
     lastAt: strOrNull(r.lastAt),
-    channel: str(r.channel, 20) || 'web',
+    channel: str(r.channel, 20) || 'cabinet',
     messages: count(r.messages),
-    preview: str(r.preview, 160),
+    leadsCaptured: count(r.leadsCaptured),
   }
 }
 export const parseConversations = (body: unknown): AgentConversation[] => list(unwrapList(body, ['conversations']), parseConversation)
@@ -85,7 +86,7 @@ export function checkBotToken(input: unknown): string | null {
 export type AgentSettings = { name?: unknown; tone?: unknown; languages?: unknown; channels?: unknown }
 
 // The PATCH body: only the settings a client may change, cleaned. Anything else is dropped (state,
-// limits and the persona stay Fir Tech's). `channels.telegram` is `{ botToken }` and only with a valid token.
+// limits and the persona stay Fir Tech's). `channels.telegram` is `{ botToken }` (valid token only) or `null`.
 export function agentPatchBody(input: AgentSettings & { botToken?: unknown }): Record<string, unknown> | null {
   const out: Record<string, unknown> = {}
   if (typeof input.name === 'string') {
@@ -102,11 +103,12 @@ export function agentPatchBody(input: AgentSettings & { botToken?: unknown }): R
     if (langs.length === 0) return null
     out.languages = langs
   }
+  // `channels` takes only `telegram` and `siteWidget` (HQ answers 400 to any other key, `web` included);
+  // `null` switches a channel off.
   const channels: Record<string, unknown> = {}
   if (isObj(input.channels)) {
-    if (typeof input.channels.web === 'boolean') channels.web = input.channels.web
-    if (input.channels.telegram === false) channels.telegram = false
-    if (input.channels.siteWidget === false) channels.siteWidget = false
+    if (input.channels.telegram === false) channels.telegram = null
+    if (input.channels.siteWidget === false) channels.siteWidget = null
   }
   if (input.botToken !== undefined) {
     const token = checkBotToken(input.botToken)

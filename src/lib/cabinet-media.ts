@@ -1,6 +1,6 @@
 import 'server-only'
 import { isMockMode, resolveMediaUrl } from './cabinet-hq'
-import { mockHtml, mockPdf } from './cabinet-hq-mock'
+import { mockPdf } from './cabinet-hq-mock'
 
 // Files of the cabinet (document PDF and HTML, message attachments) streamed from HQ through the
 // site, so the browser never sees HQ's address or its signed links. The caller has already checked
@@ -9,16 +9,17 @@ type Env = Record<string, string | undefined>
 
 const types: Record<string, string> = {
   pdf: 'application/pdf',
-  html: 'text/html; charset=utf-8',
   png: 'image/png',
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
-  gif: 'image/gif',
   webp: 'image/webp',
   docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   zip: 'application/zip',
+  txt: 'text/plain; charset=utf-8',
+  md: 'text/markdown; charset=utf-8',
+  csv: 'text/csv; charset=utf-8',
 }
-const inlineTypes = new Set(['pdf', 'html', 'png', 'jpg', 'jpeg', 'gif', 'webp'])
+const inlineTypes = new Set(['pdf', 'png', 'jpg', 'jpeg', 'webp'])
 
 const extOf = (path: string) => /\.([A-Za-z0-9]{1,5})$/.exec(path.split('?')[0] ?? '')?.[1]?.toLowerCase() ?? ''
 const safeName = (name: string, fallback: string) => name.replace(/[^\p{L}\p{N}._ -]/gu, '').trim().slice(0, 100) || fallback
@@ -34,12 +35,9 @@ export function fileHeaders(ext: string, opts: { download?: boolean; name?: stri
   const download = opts.download || !inlineTypes.has(ext)
   const name = safeName(opts.name ?? '', `file.${ext || 'bin'}`)
   h.set('content-disposition', `${download ? 'attachment' : 'inline'}; filename*=UTF-8''${encodeURIComponent(name)}`)
-  // The viewer is an iframe of this site: allow only that, and keep any HTML inert (no scripts, no forms).
+  // The viewer is an iframe of this site: allow only that.
   h.set('x-frame-options', 'SAMEORIGIN')
-  h.set(
-    'content-security-policy',
-    ext === 'html' ? "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data: https:; frame-ancestors 'self'" : "frame-ancestors 'self'",
-  )
+  h.set('content-security-policy', "frame-ancestors 'self'")
   return h
 }
 
@@ -51,7 +49,7 @@ export async function streamClientFile(
   const path = url.split('?')[0] ?? ''
   const ext = extOf(path)
   if (isMockMode(env)) {
-    const m = /^\/media\/mock\/([A-Za-z0-9_-]+)\.(pdf|html)$/.exec(path)
+    const m = /^\/media\/mock\/([A-Za-z0-9_-]+)\.(pdf)$/.exec(path)
     if (!m) {
       // Uploaded files of the demo have no content: a short text stands in.
       if (!/^\/media\/mock\/upload\//.test(path)) return fail(404, 'not_found')
@@ -59,10 +57,7 @@ export async function streamClientFile(
       headers.set('content-type', 'text/plain; charset=utf-8')
       return new Response('Demo upload: the real file is stored by HQ.', { headers })
     }
-    const title = m[1]!
-    return m[2] === 'pdf'
-      ? new Response(mockPdf(`Document ${title}`) as BodyInit, { headers: fileHeaders('pdf', opts) })
-      : new Response(mockHtml(`Document ${title}`), { headers: fileHeaders('html', opts) })
+    return new Response(mockPdf(`Document ${m[1]}`) as BodyInit, { headers: fileHeaders('pdf', opts) })
   }
   const target = resolveMediaUrl(url, env)
   if (!target || !types[ext]) return fail(404, 'not_found')

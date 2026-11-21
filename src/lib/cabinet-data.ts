@@ -1,5 +1,5 @@
 import { boolOrNull, count, idNum, idStr, isObj, list, str, strOrNull } from './cabinet-parse'
-import { parseNextAction, type NextAction } from './cabinet-docs'
+import { parseNextAction, type NextAction, type NextActionKind, type PublicDoc } from './cabinet-docs'
 import { sanitizeRefSlug } from './referral'
 import { siteUrl } from './site'
 
@@ -480,4 +480,66 @@ export function followLink(param: unknown, botUsername: string): string | null {
   if (typeof param !== 'string' || !botUsername) return null
   const m = /^(\d{1,10})\.([a-f0-9]{6,64})$/.exec(param)
   return m ? `https://t.me/${botUsername}?start=lead_${m[1]}_${m[2]}` : null
+}
+
+// ---- cabinet v3: the project in the client's words -----------------------------------------------
+
+// The sentence key (`cabinet.v3.status`) for a project: its state plus what is needed from the client.
+export type ProjectStatusKey =
+  | 'preparing'
+  | 'preparing_accept'
+  | 'preparing_sign'
+  | 'preparing_pay'
+  | 'in_progress'
+  | 'in_progress_accept'
+  | 'in_progress_pay'
+  | 'paused'
+  | 'done'
+export function projectStatusKey(state: ProjectState, kind: NextActionKind): ProjectStatusKey {
+  if (state === 'done' || state === 'paused') return state
+  if (state === 'preparing') {
+    return kind === 'accept_quote' ? 'preparing_accept' : kind === 'sign_contract' ? 'preparing_sign' : kind === 'pay_stage' ? 'preparing_pay' : 'preparing'
+  }
+  return kind === 'accept_stage' ? 'in_progress_accept' : kind === 'pay_stage' ? 'in_progress_pay' : 'in_progress'
+}
+
+// The road to the start of a project that has no payment stages yet: КП, договор, подпись, оплата
+// этапа 1, работа. `now` follows the next action (wait = the contract is being prepared by us).
+export const prepStepIds = ['quote', 'contract', 'sign', 'pay', 'work'] as const
+export type PrepStepId = (typeof prepStepIds)[number]
+export function prepSteps(kind: NextActionKind): { id: PrepStepId; state: 'done' | 'now' | 'next' }[] {
+  const at = kind === 'accept_quote' ? 0 : kind === 'sign_contract' ? 2 : kind === 'pay_stage' ? 3 : kind === 'accept_stage' ? 4 : 1
+  return prepStepIds.map((id, i) => ({ id, state: i < at ? 'done' : i === at ? 'now' : 'next' }))
+}
+
+const stateRank: Record<ProjectState, number> = { in_progress: 0, preparing: 1, paused: 2, done: 3 }
+// Projects that wait for the client first, then running, preparing, paused and finished ones.
+export function sortProjects<P extends { id: number; state: ProjectState }>(projects: readonly P[], needsClient: (p: P) => boolean): P[] {
+  return [...projects].sort((a, b) => Number(needsClient(b)) - Number(needsClient(a)) || stateRank[a.state] - stateRank[b.state] || b.id - a.id)
+}
+
+// Old HQ without the v3 documents: the legacy invoices and documents shown as simple documents
+// (no viewer, no signature) so the «Документы» tab is not empty.
+export function legacyDocs(d: Pick<CabinetData, 'invoices' | 'documents'>): PublicDoc[] {
+  const base = {
+    leadId: null,
+    projectId: null,
+    deliveredAt: null,
+    acceptedAt: null,
+    signedAt: null,
+    stageNo: null,
+    payUrl: null,
+    hasPdf: false,
+  }
+  const out: PublicDoc[] = []
+  for (const i of d.invoices) {
+    if (i.status !== 'paid' && i.status !== 'issued') continue
+    out.push({ ...base, id: `inv:${i.id}`, kind: 'invoice', title: i.title, number: i.number, state: i.status, createdAt: i.createdAt, amountUsd: i.amountUsd })
+  }
+  for (const x of d.documents) {
+    if (x.kind === 'invoice' || x.status !== 'approved') continue
+    const kind = x.kind === 'contract' ? 'contract' : x.kind === 'kp' || x.kind === 'estimate' ? 'quote' : x.kind === 'act' ? 'act' : 'other'
+    out.push({ ...base, id: `doc:${x.id}`, kind, title: x.title, number: null, state: 'accepted', createdAt: x.createdAt, amountUsd: null })
+  }
+  return out
 }
