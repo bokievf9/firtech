@@ -76,7 +76,7 @@ test.describe('cabinet, signed in', () => {
     await page.locator('[data-rating="4"]').click()
     await page.getByRole('textbox', { name: 'Ваш отзыв' }).fill('Ещё раз')
     await page.getByRole('button', { name: 'Отправить отзыв' }).click()
-    await expect(page.getByRole('alert')).toContainText('уже отправлен')
+    await expect(page.locator('[data-review-form]').getByRole('alert')).toContainText('уже отправлен')
     expect(errors).toEqual([])
   })
 })
