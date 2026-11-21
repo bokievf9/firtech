@@ -88,3 +88,18 @@ export const themeIds = [
 export type ThemeId = (typeof themeIds)[number]
 export const themeMoods = ['calm', 'vivid', 'premium'] as const
 export type ThemeMood = (typeof themeMoods)[number]
+
+// Options of the two flagships (owner 2026-11-22), chunk `f.<product>.<id-id>`. Personal AI: the services it
+// connects, a voice and a long memory (they set the level); AI company: departments, the control room,
+// the knowledge base, client channels and team training (the exact sum comes from the quote).
+export const flagshipProducts = ['personal', 'company'] as const
+export type FlagshipProduct = (typeof flagshipProducts)[number]
+export const personalServices = ['mail', 'calendar', 'tasks', 'study', 'notes', 'messengers'] as const
+export const personalExtras = ['voice', 'memory'] as const
+export const companyDepts = ['sales', 'marketing', 'support', 'production', 'backoffice'] as const
+export const companyParts = ['pult', 'knowledge', 'channels', 'training'] as const
+export const flagshipOptionIds = {
+  personal: [...personalServices, ...personalExtras],
+  company: [...companyDepts, ...companyParts],
+} as const satisfies Record<FlagshipProduct, readonly string[]>
+export type FlagshipOption<P extends FlagshipProduct = FlagshipProduct> = (typeof flagshipOptionIds)[P][number]

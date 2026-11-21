@@ -7,7 +7,7 @@ import { notFoundLinks, notFoundText, searchPages } from '../src/content/not-fou
 import { productCatalog } from '../src/content/builder-catalog.ts'
 import { decodeBuild, productParts, quote } from '../src/lib/builder.ts'
 import { footerColumns, homeAnchors, homeSections, localePages, sectionAnchor } from '../src/lib/home.ts'
-import { agentPlans, contentPlans } from '../src/lib/pricing.ts'
+import { agentPlans, companyPlan, contentPlans, personalPlans } from '../src/lib/pricing.ts'
 import { builderProduct, productBuild, productBuilderHref, productIds, productPrice } from '../src/lib/products.ts'
 import { serviceSlugs } from '../src/lib/site.ts'
 import { isSolutionKind } from '../src/lib/solutions.ts'
@@ -15,8 +15,8 @@ import { isAgentId, isAiTeamId } from '../src/lib/ai-teams.ts'
 
 const dicts = { ru, en }
 
-test('products: the seven from COMPANY.md, flagship first, texts in both languages', () => {
-  assert.deepEqual(productIds, ['admin', 'receptionist', 'automation', 'content', 'miniapp', 'agent', 'implementation'])
+test('products: the two flagships first, then the products from COMPANY.md, texts in both languages', () => {
+  assert.deepEqual(productIds, ['personal', 'company', 'admin', 'receptionist', 'automation', 'content', 'miniapp', 'implementation'])
   for (const dict of [ru, en]) {
     for (const id of productIds) {
       const item = dict.products.items[id]
@@ -36,7 +36,8 @@ test('product prices come only from pricing.ts (as the builder counts them), or 
       assert.ok(entry.priced, id)
       assert.equal(price.from, quote({ parts: productParts(builderProduct[id]), extras: [] }).total, id)
     } else if (price.kind === 'plans') {
-      assert.deepEqual(price.plans, id === 'agent' ? agentPlans : contentPlans, id)
+      assert.deepEqual(price.plans, id === 'personal' ? personalPlans : id === 'company' ? [companyPlan] : contentPlans, id)
+      assert.equal(price.byQuote === true, id === 'company', `${id} byQuote`)
       assert.equal(entry.priced, false, id)
     } else assert.equal(entry.priced, false, id)
   }
@@ -49,11 +50,17 @@ test('product prices come only from pricing.ts (as the builder counts them), or 
     [['content', 90, 60]],
   )
   assert.equal(productPrice.content.kind, 'plans')
-  assert.equal(productPrice.agent.kind, 'plans')
+  assert.equal(productPrice.personal.kind, 'plans')
+  assert.equal(productPrice.company.kind, 'plans')
+  // Owner 2026-11-22: Personal AI from $290 + $29 a month in three levels, the AI company from $1,490 + $149.
+  assert.deepEqual(personalPlans[0], { id: 'basic', setup: 290, monthly: 29 })
+  assert.deepEqual(personalPlans.map((p) => p.id), ['basic', 'plus', 'max'])
+  for (let i = 1; i < personalPlans.length; i++) assert.ok(personalPlans[i].setup > personalPlans[i - 1].setup && personalPlans[i].monthly > personalPlans[i - 1].monthly)
+  assert.deepEqual(companyPlan, { id: 'company', setup: 1490, monthly: 149 })
   assert.equal(productPrice.implementation.kind, 'from')
   // Every plan id has a label in both dictionaries.
   for (const dict of [ru, en])
-    for (const p of [...agentPlans, ...contentPlans]) assert.ok(dict.products.plans[p.id], p.id)
+    for (const p of [...personalPlans, companyPlan, ...agentPlans, ...contentPlans]) assert.ok(dict.products.plans[p.id], p.id)
   // Copy never carries a price or a long dash.
   for (const dict of [ru, en]) {
     const text = JSON.stringify([dict.products, dict.work, dict.pricingHome, dict.faqContact, dict.hero.sequence, dict.footer])
@@ -103,7 +110,8 @@ test('footer: products lead, every link points to an existing route, labels exis
   for (const locale of ['ru', 'en']) {
     const cols = footerColumns(locale)
     assert.equal(cols[0].id, 'products')
-    assert.equal(cols[0].links.length, 8) // seven products + the AI-team page (2026-11-21)
+    assert.equal(cols[0].links.length, 9) // eight products + the AI-team page (2026-11-21)
+    assert.deepEqual(cols[0].links.slice(0, 2).map((l) => l.id), ['personal', 'company']) // flagships first
     for (const col of cols)
       for (const link of col.links) {
         assert.ok(resolves(link.href, locale), link.href)

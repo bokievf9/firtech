@@ -490,3 +490,16 @@ Observed, not a bug: the 404 pages answer with `<html id="__next_error__">` in `
 | inner pages | Fira's line next to the chat button | opens the chat | chat widget | `E:companion` | pass |
 | inner pages | «Скрыть подсказку» | hides the line | - | none | untested |
 
+
+## Флагманы (2026-11-22), adds to the rows above
+
+| Where | Control | Verified | Status |
+|---|---|---|---|
+| `/products/personal` | «Кто вы» персоны и часы дня (`data-myday-persona`, `data-myday-hour`, «Дальше») | `E:flagships` (persona switch, next hour, panel text) | pass |
+| `/products/personal` | «Собрать проект» (`product_page_personal_build`, `p.personal`) | `E:flagships` (href) | pass |
+| `/products/company` | «Договориться о созвоне» первой кнопкой hero (`product_company_call`), затем «Собрать проект» | `E:flagships` (visible) | pass |
+| `/products/company` | вкладки тура по Пульту (`data-pult-tab`) | `E:flagships` (review tab content) | pass |
+| `/products/personal`, `/products/company` | «Спросить про пилот» (`product_<id>_pilot`, opens the chat) | manual | untested |
+| `/ai-team#levels` | «Смотреть ИИ-компанию» (`aiteam_top_company`) | `U:flagships` (link in source) | pass |
+| `/builder` step 2 | flagship options (`data-flagship-options`), level price (`data-flagship-price`) | `U:flagships` (encode, level, estimate) | pass (UI click manual) |
+| `/products/agent` | redirect to `/products/personal` | `E:flagships` | pass |

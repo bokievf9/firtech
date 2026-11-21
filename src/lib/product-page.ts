@@ -10,12 +10,19 @@ import { mainPartTerm } from './solutions'
 // pricing: a priced product gets the stage table of its template at its own price; the content and
 // personal-assistant subscriptions say they are paid monthly in advance; unpriced ones say «по смете».
 export type ProductPayment =
-  | { kind: 'stages'; template: StageTemplateId; total: number; stages: PaymentStage[] }
+  // `byQuote`: the total is a starting price and the exact one comes from the quote (the AI company, its own
+  // four-stage template at the starting setup price, plus the monthly plan).
+  | { kind: 'stages'; template: StageTemplateId; total: number; stages: PaymentStage[]; byQuote?: boolean }
   | { kind: 'subscription' }
   | { kind: 'quote' }
 
 export function productPayment(id: ProductId, pricing: Pricing = defaultPricing): ProductPayment {
   const price = productPrices(pricing)[id]
+  if (id === 'company' && price.kind === 'plans') {
+    const total = price.plans[0]?.setup ?? 0
+    const stages = stagesFor('company', total, pricing)
+    return stages.length ? { kind: 'stages', template: 'company', total, stages, byQuote: true } : { kind: 'quote' }
+  }
   if (price.kind === 'plans') return { kind: 'subscription' }
   if (price.kind === 'quote') return { kind: 'quote' }
   const template = stageTemplateForProduct(id, pricing)

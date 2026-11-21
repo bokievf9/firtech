@@ -151,7 +151,7 @@ test('goals: the administrator, the lead manager and the assistant each have the
   const only = (id) => goalsFor(toggleProduct({ parts: {}, extras: [] }, id))
   const admin = only('adminbot')
   const lead = only('intake')
-  const assistant = only('agent')
+  const assistant = only('personal')
   assert.ok(admin.includes('noshow') && admin.includes('nocalls'))
   assert.ok(!lead.includes('noshow') && !lead.includes('nocalls'), 'no «Меньше неявок» for the lead manager')
   assert.ok(lead.includes('qualify') && lead.includes('followup'))

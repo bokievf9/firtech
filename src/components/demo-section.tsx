@@ -28,7 +28,7 @@ export async function DemoSection({ dict, locale }: { dict: Dict; locale: Locale
     automation: dict.products.items.automation.name,
     content: dict.products.items.content.name,
     miniapp: dict.products.items.miniapp.name,
-    agent: dict.products.items.agent.name,
+    personal: dict.products.items.personal.name,
     implementation: dict.products.items.implementation.name,
   }
   const buildHrefs: Record<DemoTabId, string> = {
@@ -37,7 +37,7 @@ export async function DemoSection({ dict, locale }: { dict: Dict; locale: Locale
     automation: productBuilderHref(locale, 'automation'),
     content: productBuilderHref(locale, 'content'),
     miniapp: productBuilderHref(locale, 'miniapp'),
-    agent: productBuilderHref(locale, 'agent'),
+    personal: productBuilderHref(locale, 'personal'),
     implementation: productBuilderHref(locale, 'implementation'),
   }
   return (

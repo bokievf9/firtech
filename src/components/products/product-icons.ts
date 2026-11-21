@@ -1,5 +1,6 @@
 import {
   Brain,
+  Buildings,
   CalendarCheck,
   DeviceMobile,
   FlowArrow,
@@ -12,11 +13,12 @@ import type { ProductId } from '@/lib/products'
 
 // One glyph per product, shared by the hero stage, the bento and the footer.
 export const productIcons: Record<ProductId, Icon> = {
+  personal: UserCircle,
+  company: Buildings,
   admin: CalendarCheck,
   receptionist: Headset,
   automation: FlowArrow,
   content: Newspaper,
   miniapp: DeviceMobile,
-  agent: UserCircle,
   implementation: Brain,
 }

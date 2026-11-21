@@ -18,7 +18,8 @@ import {
   MagnifyingGlass,
   MapPin,
   Megaphone,
-  Robot,
+  Buildings,
+  UserCircle,
   Signpost,
   Sparkle,
   Storefront,
@@ -83,16 +84,19 @@ import { usePricing } from './pricing-provider'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { Choice, Group, Tick } from './builder-ui'
+import { FlagshipOptions } from './builder-flagships'
+import { flagshipPrice } from '@/lib/flagships'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
 const productIcons: Record<ProductId, Icon> = {
+  personal: UserCircle,
+  company: Buildings,
   adminbot: CalendarCheck,
   intake: Headset,
   automation: FlowArrow,
   content: Sparkle,
   miniapp: DeviceMobile,
-  agent: Robot,
   aiteam: Brain,
   site: Globe,
   bot: TelegramLogo,
@@ -284,11 +288,13 @@ export function ProductsStep({
   build,
   onToggle,
   onSiteNeed,
+  setBuild,
 }: {
   locale: string
   build: Build
   onToggle: (id: ProductId) => void
   onSiteNeed: (need: SiteNeed) => void
+  setBuild?: (update: (b: Build) => Build) => void
 }) {
   const ui = builderUi
   const pricing = usePricing()
@@ -327,6 +333,11 @@ export function ProductsStep({
               const from = entry.priced
                 ? quote({ parts: productParts(id), extras: [] }, pricing).total
                 : null
+              // The flagships show their plan (setup + monthly): the Personal AI from its lowest level.
+              const flagship =
+                id === 'personal' || id === 'company'
+                  ? flagshipPrice(id === 'personal' ? { ...build, options: { personal: ['mail'] } } : build, id, pricing).plan
+                  : null
               return (
                 <Choice key={id} on={on} onClick={() => onToggle(id)} className="flex gap-4 p-5">
                   <span
@@ -343,12 +354,14 @@ export function ProductsStep({
                       <span
                         className={cn(
                           'font-mono text-xs',
-                          from === null ? 'text-muted' : 'text-accent-text',
+                          from === null && !flagship ? 'text-muted' : 'text-accent-text',
                         )}
                       >
-                        {from === null
-                          ? pick(ui.onRequest, locale)
-                          : `${locale === 'ru' ? 'от' : 'from'} ${formatUsd(from)}`}
+                        {flagship
+                          ? `${locale === 'ru' ? 'от' : 'from'} ${formatUsd(flagship.setup)} + ${formatUsd(flagship.monthly)}${locale === 'ru' ? '/мес' : '/mo'}`
+                          : from === null
+                            ? pick(ui.onRequest, locale)
+                            : `${locale === 'ru' ? 'от' : 'from'} ${formatUsd(from)}`}
                       </span>
                     </span>
                     <span className="mt-1 block text-sm leading-snug text-muted">
@@ -362,6 +375,10 @@ export function ProductsStep({
           </div>
         </section>
       ))}
+      {setBuild &&
+        (['personal', 'company'] as const)
+          .filter((id) => picked.includes(id))
+          .map((id) => <FlagshipOptions key={id} locale={locale} build={build} product={id} setBuild={setBuild} />)}
       {hasAgent(build) && (
         <Group title={pick(siteNeedUi.title, locale)} hint={pick(siteNeedUi.sub, locale)}>
           <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={pick(siteNeedUi.title, locale)}>

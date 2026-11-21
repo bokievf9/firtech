@@ -21,6 +21,20 @@ export const productSectionIds = [
   'knows', // what it knows and what it does not promise
   'org', // org chart of roles
   'grow', // how it grows: agent, autopilot, department
+  // Flagship blocks (owner 2026-11-22): Personal AI
+  'myday', // an interactive day with your AI by the hour, for three kinds of people
+  'memory', // what it remembers about you: people, habits, promises
+  'lives', // where it lives: Telegram, voice, its own container, your data stays yours
+  'setup', // how we set it up: interview, services, a week of tuning, grows with you
+  'cases', // live examples from the founder (Dono, Polly), no prices
+  // Flagship blocks: AI company
+  'structure', // the company map: Fira as the Director, departments and roles for the business
+  'pult', // a tour of the control room we work in ourselves
+  'knowledge', // knowledge from your documents, site and chats
+  'trust', // trust levels: the agent acts alone after a run of approvals
+  'teamgets', // what your team gets: training, rules, roles of people
+  'rollout', // four stages of the rollout, what you see at each
+  'pilot', // the first one or two pilots free for a case study and a review (flagships only)
   'first', // the first day, week and month
   'scope', // what we need from you and what it does not do
   'included', // what the price includes and what it does not
@@ -34,9 +48,23 @@ export type ProductSectionId = (typeof productSectionIds)[number]
 // Which working demo the `demo` block shows: the real lead-manager chat, the booking scenario or the assistant.
 export type ProductDemo = 'chat' | 'booking' | 'assistant'
 
-export type ProductPageLayout = { sections: readonly ProductSectionId[]; demo?: ProductDemo }
+// `face`: the hero shows Fira as the face of the product (AI company). `callFirst`: the call is the main action
+// and the builder the second one (owner 2026-11-22 for the AI company).
+export type ProductPageLayout = { sections: readonly ProductSectionId[]; demo?: ProductDemo; face?: 'fira'; callFirst?: boolean }
 
 export const productPages: Record<ProductId, ProductPageLayout> = {
+  // Flagship. Anyone can have an AI set up for them: show the whole day first, then what it remembers, where it
+  // lives and how we set it up, then the founder's own AIs as live examples, levels and the terms.
+  personal: {
+    sections: ['hero', 'myday', 'memory', 'lives', 'setup', 'cases', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'],
+  },
+  // Flagship. Fira installed in the client's company: the map of the company, the control room we use ourselves,
+  // knowledge, trust levels, the team, four stages and the price «от» by the quote. A call is the first action.
+  company: {
+    face: 'fira',
+    callFirst: true,
+    sections: ['hero', 'structure', 'pult', 'knowledge', 'trust', 'teamgets', 'rollout', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'],
+  },
   // The salon owner wants to see booking happen without them: the demo comes first, then a day by the hour.
   admin: {
     demo: 'booking',
@@ -58,11 +86,6 @@ export const productPages: Record<ProductId, ProductPageLayout> = {
   // The buyer doubts customers will order in Telegram: screens, the buyer's path, open data about the audience.
   miniapp: {
     sections: ['hero', 'phones', 'facts', 'capabilities', 'included', 'price', 'offer', 'objections', 'readiness'],
-  },
-  // The buyer is wary of handing over mail and calendar: scenarios step by step, what it knows, what it never promises.
-  agent: {
-    demo: 'assistant',
-    sections: ['hero', 'scenarios', 'demo', 'knows', 'included', 'price', 'objections', 'offer', 'readiness'],
   },
   // The buyer thinks in structure: an org chart of roles, how it grows, then the first month.
   implementation: {
@@ -92,6 +115,32 @@ export type ProductBlocks = {
     depts: { name: string; roles: string[] }[]
   }
   grow?: { title: string; sub: string; link: string; steps: { level: string; title: string; text: string }[] }
+  myday?: {
+    title: string
+    sub: string
+    pick: string
+    prev: string
+    next: string
+    personas: { id: string; name: string; who: string; moments: { time: string; label: string; ai: string; you: string; done: string }[] }[]
+  }
+  memory?: { title: string; sub: string; groups: { name: string; items: { fact: string; use: string }[] }[]; control: string }
+  lives?: { title: string; sub: string; items: { title: string; text: string }[] }
+  setup?: { title: string; sub: string; steps: { when: string; title: string; text: string }[] }
+  cases?: { title: string; sub: string; label: string; items: { name: string; role: string; does: string[]; runs: string }[]; note: string }
+  structure?: {
+    title: string
+    sub: string
+    owner: { name: string; does: string }
+    director: { name: string; does: string }
+    depts: { name: string; roles: string[]; example: string }[]
+    note: string
+  }
+  pult?: { title: string; sub: string; label: string; tabs: { id: string; name: string; caption: string; rows: { who: string; what: string; state: string }[] }[]; note: string }
+  knowledge?: { title: string; sub: string; sources: { name: string; text: string }[]; ask: string; answer: string; source: string }
+  trust?: { title: string; sub: string; levels: { name: string; text: string; example: string }[]; note: string }
+  teamgets?: { title: string; sub: string; items: { title: string; text: string }[] }
+  rollout?: { title: string; sub: string; stages: { title: string; text: string; see: string }[] }
+  pilot?: { title: string; text: string; terms: string[]; cta: string }
 }
 
 // Fields every product page has (on top of the older capabilities, first, needs and not).
@@ -124,4 +173,16 @@ export const sectionCopyKey: Partial<Record<ProductSectionId, keyof ProductBlock
   knows: 'knows',
   org: 'org',
   grow: 'grow',
+  myday: 'myday',
+  memory: 'memory',
+  lives: 'lives',
+  setup: 'setup',
+  cases: 'cases',
+  structure: 'structure',
+  pult: 'pult',
+  knowledge: 'knowledge',
+  trust: 'trust',
+  teamgets: 'teamgets',
+  rollout: 'rollout',
+  pilot: 'pilot',
 }

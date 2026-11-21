@@ -6,7 +6,7 @@ import { open, setTheme } from './helpers'
 // <form> wider than the form's content box. Long values are typed in first, because the defects only
 // show with a 40-character e-mail or an unbroken company name.
 
-const PAGES = ['/ru', '/en', '/ru/builder', '/ru/products/agent', '/ru/services/websites', '/ru/solutions/salon', '/ru/audit', '/ru/cabinet/login', '/ru/pay-how', '/ru/no-such-page']
+const PAGES = ['/ru', '/en', '/ru/builder', '/ru/products/personal', '/ru/products/company', '/ru/services/websites', '/ru/solutions/salon', '/ru/audit', '/ru/cabinet/login', '/ru/pay-how', '/ru/no-such-page']
 const LONG = 'Очень_длинное_название_компании_без_пробелов_ООО_Ромашка_и_партнёры_2026'
 const EMAIL = 'very.long.email.address.of.a.client.number.one@subdomain.example-company-name.com'
 

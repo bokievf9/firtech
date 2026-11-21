@@ -57,12 +57,13 @@ function* strings(value, at = '') {
 
 test('names: «бот» leaves every product name, the new names are in place', () => {
   const names = {
+    personal: ['Персональный ИИ', 'Personal AI'],
+    company: ['ИИ-компания', 'AI company'],
     admin: ['ИИ-администратор', 'AI booking assistant'],
     receptionist: ['ИИ-менеджер заявок', 'AI lead manager'],
     automation: ['Автоматизация процессов', 'Process automation'],
     content: ['Контент на автопилоте', 'Content on autopilot'],
     miniapp: ['Telegram Mini App', 'Telegram Mini App'],
-    agent: ['Персональный ИИ-ассистент', 'Personal AI assistant'],
     implementation: ['ИИ-отдел под ключ', 'AI department, turnkey'],
   }
   for (const id of productIds) {
@@ -73,7 +74,7 @@ test('names: «бот» leaves every product name, the new names are in place', 
     assert.doesNotMatch(ru.productPage.items[id].metaTitle, /бот/i, id)
     assert.doesNotMatch(en.productPage.items[id].metaTitle, /\bbot\b/i, id)
   }
-  const catalogIds = { admin: 'adminbot', receptionist: 'intake', automation: 'automation', content: 'content', miniapp: 'miniapp', agent: 'agent', implementation: 'aiteam' }
+  const catalogIds = { personal: 'personal', company: 'company', admin: 'adminbot', receptionist: 'intake', automation: 'automation', content: 'content', miniapp: 'miniapp', implementation: 'aiteam' }
   for (const id of productIds) {
     assert.equal(productCatalog[catalogIds[id]].name.ru, names[id][0], `catalogue ru ${id}`)
     assert.equal(productCatalog[catalogIds[id]].name.en, names[id][1], `catalogue en ${id}`)
@@ -268,12 +269,12 @@ test('llms.txt: the product lines carry the new names and the product page', asy
 
 test('demo: tabs per product, the chat persona is validated and forwarded, the booking dialogue is a state machine', async () => {
   const demo = read('src/components/demo/demo-tabs.tsx')
-  for (const id of ['receptionist', 'admin', 'automation', 'content', 'miniapp', 'agent', 'implementation']) assert.ok(demo.includes(`'${id}'`), id)
+  for (const id of ['receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'implementation']) assert.ok(demo.includes(`'${id}'`), id)
   // all seven products are shown, the scripted ones carry the «Пример» badge
   assert.match(demo, /DemoBuilt[^>]*product="automation"/)
   assert.match(demo, /DemoBuilt[^>]*product="miniapp"/)
   assert.match(demo, /DemoAssistant/)
-  for (const [, dict] of dicts) assert.ok(dict.demoSection.exampleBadge && dict.demoSection.agent.prompts.length === 3 && dict.demoSection.automation.intro && dict.demoSection.miniapp.intro)
+  for (const [, dict] of dicts) assert.ok(dict.demoSection.exampleBadge && dict.demoSection.personal.prompts.length === 5 && dict.demoSection.automation.intro && dict.demoSection.miniapp.intro)
   assert.match(demo, /role="tablist"/)
   assert.doesNotMatch(read('src/components/demo-section.tsx') + demo + read('src/components/demo/demo-booking.tsx'), /t\.me\//)
   assert.equal(ru.demoSection.title, 'Попробуйте сейчас')

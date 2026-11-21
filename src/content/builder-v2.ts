@@ -315,9 +315,13 @@ export const productIncludes: Record<string, L<string[]>> = {
     ru: ['Каталог или запись внутри Telegram', 'Корзина и оплата без выхода из чата', 'Бонусы и повторный заказ в два нажатия'],
     en: ['A catalogue or booking inside Telegram', 'A cart and payment without leaving the chat', 'Bonuses and a reorder in two taps'],
   },
-  agent: {
-    ru: ['Помощник владельца: сводки, дедлайны, напоминания', 'Работает в Telegram и помнит ваши дела', 'Тариф по подписке, цену называем по смете'],
-    en: ['An owner assistant: briefs, deadlines, reminders', 'Works in Telegram and remembers your tasks', 'A subscription plan, priced in the quote'],
+  personal: {
+    ru: ['Утренняя сводка, напоминания и вечерний итог в Telegram', 'Помнит людей, привычки и обещания', 'Уровень и цена зависят от сервисов ниже'],
+    en: ['Morning brief, reminders and an evening summary in Telegram', 'Remembers people, habits and promises', 'The level and price follow the services below'],
+  },
+  company: {
+    ru: ['Фира-Директор и одна очередь решений для вас', 'Отделы из агентов под ваш бизнес', 'Цена «от», точную сумму фиксируем в смете'],
+    en: ['Fira as the Director and one queue of decisions for you', 'Departments of agents for your business', 'A starting price, the exact sum is fixed in the quote'],
   },
   aiteam: {
     ru: ['База знаний из ваших документов', 'Ответы сотрудникам со ссылкой на источник', 'Обучение команды работе с агентами'],
@@ -469,6 +473,7 @@ export const previewUi = {
     miniapp: { ru: 'Mini App', en: 'Mini App' },
     content: { ru: 'Контент', en: 'Content' },
     automation: { ru: 'Процессы', en: 'Processes' },
+    personal: { ru: 'Ваш ИИ', en: 'Your AI' },
   },
   concept: { ru: 'Пример по вашим ответам, не финальный дизайн', en: 'An example from your answers, not the final design' },
   live: { ru: 'Отвечает демо-агент для вашей ниши', en: 'A demo agent for your niche is answering' },
@@ -626,3 +631,67 @@ export const siteSteps: Record<string, L<[string, string, string]>> = {
   quote: { ru: ['Описываете задачу', 'Получаете расчёт', 'Подтверждаете заказ'], en: ['Describe the task', 'Get an estimate', 'Confirm the order'] },
   chat: { ru: ['Задаёте вопрос', 'Получаете ответ', 'Оставляете контакт'], en: ['Ask a question', 'Get an answer', 'Leave a contact'] },
 }
+
+// ---------------------------------------------------------------- flagships
+
+// Options of the two flagships on the «Состав» step (owner 2026-11-22); ids in lib/builder-ids.ts, rules and
+// prices in lib/flagships.ts. Never a typed price here.
+export const flagshipText = {
+  personal: {
+    title: { ru: 'Что подключить к вашему ИИ', en: 'What to connect to your AI' },
+    sub: {
+      ru: 'Уровень считается сам: до двух сервисов «Старт», три-четыре или голос «Плюс», пять и больше или долгая память «Максимум».',
+      en: 'The level follows your picks: up to two services is Start, three or four or the voice is Plus, five or more or the long memory is Max.',
+    },
+    services: { ru: 'Сервисы', en: 'Services' },
+    extras: { ru: 'Возможности', en: 'Abilities' },
+    level: { ru: 'Ваш уровень', en: 'Your level' },
+  },
+  company: {
+    title: { ru: 'Из чего собрать вашу ИИ-компанию', en: 'What your AI company is made of' },
+    sub: {
+      ru: 'Отделы и части записываем в смету. Здесь видна цена «от», точную сумму назовём после разбора.',
+      en: 'Departments and parts go into the quote. Here you see the starting price, the exact sum comes after a review.',
+    },
+    depts: { ru: 'Отделы', en: 'Departments' },
+    parts: { ru: 'Части', en: 'Parts' },
+    from: { ru: 'Цена от', en: 'Price from' },
+  },
+  options: {
+    mail: n(['Почта', 'Разбор писем и черновики ответов'], ['Mail', 'Sorting emails and reply drafts']),
+    calendar: n(['Календарь', 'Встречи, окна и напоминания'], ['Calendar', 'Meetings, free slots and reminders']),
+    tasks: n(['Задачи', 'Дела и обещания в одном списке'], ['Tasks', 'To-dos and promises in one list']),
+    study: n(['Учёба', 'Сроки из учебной системы и уроки языка'], ['Study', 'Deadlines from the study system and language lessons']),
+    notes: n(['Заметки', 'Идеи и записи по команде'], ['Notes', 'Ideas and notes on command']),
+    messengers: n(['Мессенджеры', 'Сообщения, на которые нужно ответить'], ['Messengers', 'Messages that need a reply']),
+    voice: n(['Голос', 'Голосовые сообщения и ответы голосом'], ['Voice', 'Voice messages and spoken replies']),
+    memory: n(['Долгая память', 'Помнит людей, привычки и обещания месяцами'], ['Long memory', 'Remembers people, habits and promises for months']),
+    sales: n(['Продажи', 'Заявки, КП и напоминания клиентам'], ['Sales', 'Leads, proposals and client reminders']),
+    marketing: n(['Маркетинг', 'Контент по плану и аналитика'], ['Marketing', 'Planned content and analytics']),
+    support: n(['Поддержка', 'Ответы клиентам по базе знаний'], ['Support', 'Answers to clients from the knowledge base']),
+    production: n(['Производство', 'Проекты, этапы и сроки'], ['Production', 'Projects, stages and deadlines']),
+    backoffice: n(['Бэк-офис', 'Счета, документы и отчёты'], ['Back office', 'Invoices, documents and reports']),
+    pult: n(['Пульт', 'Офис, ревью-центр и поручения'], ['Control room', 'Office, review centre and assignments']),
+    knowledge: n(['База знаний', 'Из ваших документов, сайта и переписок'], ['Knowledge base', 'From your documents, site and chats']),
+    channels: n(['Клиентские каналы', 'Telegram и чат на сайте, другие по смете'], ['Client channels', 'Telegram and the site chat, others in the quote']),
+    training: n(['Обучение команды', 'Занятия и регламенты для сотрудников'], ['Team training', 'Sessions and rules for your staff']),
+  } satisfies Record<string, Named>,
+  levels: {
+    basic: { ru: 'Старт', en: 'Start' },
+    plus: { ru: 'Плюс', en: 'Plus' },
+    max: { ru: 'Максимум', en: 'Max' },
+  },
+  perMonth: { ru: '/мес', en: '/mo' },
+  byQuote: { ru: 'точная сумма по смете', en: 'exact sum in the quote' },
+  previewTitle: { ru: 'Утренняя сводка вашего ИИ', en: 'Your AI’s morning brief' },
+  previewRows: {
+    mail: { ru: 'Два письма ждут ответа', en: 'Two emails wait for a reply' },
+    calendar: { ru: 'Созвон в 11:00', en: 'Call at 11:00' },
+    tasks: { ru: 'Три дела на сегодня', en: 'Three tasks for today' },
+    study: { ru: 'Задание сдать в среду', en: 'Assignment due on Wednesday' },
+    notes: { ru: 'Идея из вчерашней заметки', en: 'An idea from yesterday’s note' },
+    messengers: { ru: 'Четыре сообщения ждут вас', en: 'Four messages wait for you' },
+    voice: { ru: 'Можно ответить голосом', en: 'You can reply by voice' },
+    memory: { ru: 'Вы обещали Азизу прайс до среды', en: 'You promised Aziz the price list by Wednesday' },
+  },
+} as const

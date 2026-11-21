@@ -375,6 +375,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     build={build}
                     onToggle={pickProduct}
                     onSiteNeed={pickSiteNeed}
+                    setBuild={setBuild}
                   />
                 )}
                 {step === 2 && <GoalsStep locale={locale} build={build} setBuild={setBuild} />}

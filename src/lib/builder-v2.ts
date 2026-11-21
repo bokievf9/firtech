@@ -23,10 +23,11 @@ import { serviceSlugs, type ServiceSlug } from './site'
 // ------------------------------------------------------------------- families
 
 export const productFamily: Record<ProductId, GoalFamily> = {
+  personal: 'assistant',
+  company: 'department',
   adminbot: 'admin',
   intake: 'leadmgr',
   bot: 'agent',
-  agent: 'assistant',
   automation: 'automation',
   content: 'content',
   miniapp: 'miniapp',
@@ -36,7 +37,9 @@ export const productFamily: Record<ProductId, GoalFamily> = {
 }
 
 // Agent products live somewhere (Telegram, a widget, the Fir Tech playground) and may go without a site.
-export const agentProducts: readonly ProductId[] = ['adminbot', 'intake', 'bot', 'agent']
+// The flagships are not here: the Personal AI always lives in the client's Telegram and the AI company sets
+// its channels in its own options (`lib/flagships.ts`).
+export const agentProducts: readonly ProductId[] = ['adminbot', 'intake', 'bot']
 export const hasAgent = (build: Build) => (build.products ?? []).some((id) => agentProducts.includes(id))
 const has = (build: Build, id: ProductId) => (build.products ?? []).includes(id)
 
@@ -289,7 +292,7 @@ export function stepIssues(build: Build, step: number): StepIssue[] {
 
 // ------------------------------------------------------------------- preview
 
-export type PreviewMode = 'site' | 'agent' | 'playground' | 'department' | 'miniapp' | 'content' | 'automation'
+export type PreviewMode = 'site' | 'agent' | 'playground' | 'department' | 'miniapp' | 'content' | 'automation' | 'personal'
 
 // The views the final screen offers, the most fitting first: an agent's chat leads, the rest follow
 // the order the products were picked in, then parts that no product brought.
@@ -303,7 +306,8 @@ export function previewModes(build: Build): PreviewMode[] {
   }
   const siteAllowed = effectiveSiteNeed(build) !== 'no'
   for (const id of build.products ?? []) {
-    if (id === 'aiteam') modes.push('department')
+    if (id === 'personal') modes.push('personal')
+    else if (id === 'aiteam' || id === 'company') modes.push('department')
     else if (id === 'miniapp') modes.push('miniapp')
     else if (id === 'content') modes.push('content')
     else if (id === 'site' && siteAllowed) modes.push('site')

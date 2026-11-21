@@ -161,7 +161,7 @@ test('solutions: every kind except other has a complete page in both languages',
 test('products: the product line, prices only from pricing.ts', () => {
   assert.deepEqual(
     [...productIds].sort(),
-    ['adminbot', 'agent', 'aiteam', 'app', 'automation', 'bot', 'content', 'intake', 'miniapp', 'site'].sort(),
+    ['personal', 'company', 'adminbot', 'aiteam', 'app', 'automation', 'bot', 'content', 'intake', 'miniapp', 'site'].sort(),
   )
   for (const id of productIds) {
     const p = productCatalog[id]
@@ -179,29 +179,35 @@ test('products: the product line, prices only from pricing.ts', () => {
   }
   assert.deepEqual(
     productIds.filter((id) => !productCatalog[id].priced).sort(),
-    ['agent', 'content'],
+    ['company', 'content', 'personal'],
   )
+  // The flagships lead the catalogue (owner 2026-11-22); the old `agent` id decodes as `personal`.
+  assert.deepEqual(productIds.slice(0, 2), ['personal', 'company'])
 })
 
 test('products: products without a price are listed apart and never summed', () => {
   const base = presets.barber
-  const withUnpriced = { ...base, products: [...base.products, 'content', 'agent'] }
+  const withUnpriced = { ...base, products: [...base.products, 'content', 'personal'] }
   assert.deepEqual(quote(withUnpriced), quote(base))
-  assert.deepEqual(productsOnRequest(withUnpriced), ['content', 'agent'])
-  const only = { parts: {}, extras: [], products: ['content', 'agent'] }
+  assert.deepEqual(productsOnRequest(withUnpriced), ['content', 'personal'])
+  const only = { parts: {}, extras: [], products: ['content', 'personal'] }
   const q = quote(only)
   assert.deepEqual(q.lines, [])
   assert.equal(q.total, 0)
   for (const [locale, dict] of locales) {
     const doc = estimateDoc(only, dict, locale)
     assert.equal(doc.onRequest.length, 2)
-    assert.ok(doc.onRequest.every((row) => row.price === builderUi.onRequest[locale]))
+    assert.equal(doc.onRequest[0].price, builderUi.onRequest[locale])
+    // The Personal AI row carries its level plan (setup + monthly), still never summed into the total.
+    assert.match(doc.onRequest[1].price, /\$290 \+ \$29/)
     assert.equal(doc.total, builderUi.onRequest[locale], 'no number for an unpriced build')
     const text = leadSummary(withUnpriced, dict, locale)
     const onRequestLine = text.split('\n').find((l) => l.startsWith(builderUi.onRequestLabel[locale]))
     assert.ok(onRequestLine, `${locale}: separate line`)
     assert.match(onRequestLine, new RegExp(productCatalog.content.name[locale]))
-    assert.doesNotMatch(onRequestLine, /\$/)
+    assert.match(onRequestLine, new RegExp(productCatalog.personal.name[locale]))
+    const totalLine = text.split('\n').find((l) => l.startsWith(dict.builder.total))
+    assert.doesNotMatch(totalLine ?? '', /290/)
   }
 })
 

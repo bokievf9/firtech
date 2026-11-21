@@ -49,20 +49,24 @@ export const categoryNames: Record<KindCategory, L<string>> = {
 
 // ------------------------------------------------------------------ products
 
-// Ids carry no hyphen: they travel in the link as `p.adminbot-site`.
+// Ids carry no hyphen: they travel in the link as `p.adminbot-site`. The two flagships come first
+// (owner 2026-11-22); the old `agent` id of the personal assistant still decodes, as `personal`
+// (`legacyBuilderProducts`).
 export const productIds = [
+  'personal',
+  'company',
   'adminbot',
   'intake',
   'automation',
   'content',
   'miniapp',
-  'agent',
   'aiteam',
   'site',
   'bot',
   'app',
 ] as const
 export type ProductId = (typeof productIds)[number]
+export const legacyBuilderProducts: Record<string, ProductId> = { agent: 'personal' }
 
 export type ProductEntry = {
   // An encoded build that the product pre-selects (see encodeBuild). Empty = nothing is priced.
@@ -75,6 +79,26 @@ export type ProductEntry = {
 
 // The product line from COMPANY.md "Что продаём", then the classic site, bot and app.
 export const productCatalog: Record<ProductId, ProductEntry> = {
+  // Flagships: subscriptions with setup (plans in pricing.ts), never summed into the one-time total; the
+  // builder shows the level price from the options picked (`lib/flagships.ts`).
+  personal: {
+    parts: '',
+    priced: false,
+    name: { ru: 'Персональный ИИ', en: 'Personal AI' },
+    hint: {
+      ru: 'ИИ, настроенный под одного человека: почта, календарь, задачи, учёба, память о ваших делах и людях',
+      en: 'An AI set up for one person: mail, calendar, tasks, study, a memory of your work and people',
+    },
+  },
+  company: {
+    parts: '',
+    priced: false,
+    name: { ru: 'ИИ-компания', en: 'AI company' },
+    hint: {
+      ru: 'Фира в вашей компании: Директор, отделы под ваш бизнес, Пульт, база знаний и обучение команды',
+      en: 'Fira in your company: a Director, departments for your business, the control room, a knowledge base and team training',
+    },
+  },
   adminbot: {
     parts: 'bots.booking.broadcasts',
     priced: true,
@@ -118,15 +142,6 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
     hint: {
       ru: 'Магазин, запись или лояльность внутри Telegram с оплатой',
       en: 'A shop, bookings or loyalty inside Telegram, with payments',
-    },
-  },
-  agent: {
-    parts: '',
-    priced: false,
-    name: { ru: 'Персональный ИИ-ассистент', en: 'Personal AI assistant' },
-    hint: {
-      ru: 'Помощник владельца, студента или фрилансера, как Dono и Polly',
-      en: 'An assistant for an owner, student or freelancer, like Dono and Polly',
     },
   },
   aiteam: {
@@ -375,7 +390,7 @@ export const previewCopy: L<PreviewCopy> = {
     chatA: 'Да, 11:00 и 14:30. Записать вас?',
     content: ['Пн', 'Ср', 'Пт', 'Сб'],
     contentTitle: 'План постов',
-    agentTitle: 'Персональный ИИ-ассистент',
+    agentTitle: 'Персональный ИИ',
     agentTasks: ['Утренняя сводка', 'Дедлайн в пятницу', 'Напомнить про оплату'],
     teamTitle: 'База знаний',
     teamQ: 'Какой срок возврата?',
@@ -398,7 +413,7 @@ export const previewCopy: L<PreviewCopy> = {
     chatA: 'Yes, 11:00 and 14:30. Book you in?',
     content: ['Mon', 'Wed', 'Fri', 'Sat'],
     contentTitle: 'Post plan',
-    agentTitle: 'Personal AI assistant',
+    agentTitle: 'Personal AI',
     agentTasks: ['Morning brief', 'Deadline on Friday', 'Remind about payment'],
     teamTitle: 'Knowledge base',
     teamQ: 'What is the return period?',
@@ -787,7 +802,7 @@ export const kindCatalog: Record<KindId, KindEntry> = {
       ['A print run price quote', 'Artwork upload inside the order', 'Order status in notifications']]),
 
   // ------------------------------------------------------------- education
-  tutor: k('education', '📚', 'lesson', ['booking', 'brand'], ['adminbot', 'agent'], 'websites.landing.telegram~bots.booking.payments',
+  tutor: k('education', '📚', 'lesson', ['booking', 'brand'], ['adminbot', 'personal'], 'websites.landing.telegram~bots.booking.payments',
     ['Репетитор', 'Сайт и запись на уроки для репетитора', 'Расписание, запись на пробный урок, оплата и напоминания ученикам.',
       ['Расписание ведётся в голове и в чатах', 'Родители забывают оплатить', 'Новых учеников приводит только знакомство'],
       ['Запись на пробный и обычный урок', 'Оплата и напоминания в Telegram', 'Страница репетитора с отзывами']],
@@ -838,7 +853,7 @@ export const kindCatalog: Record<KindId, KindEntry> = {
     ['Lawyers', 'A law firm site with a consultation request', 'Practice areas, cases and consultation booking, and a bot that answers off hours.',
       ['Clients do not know whom to contact and about what', 'Initial questions eat the lawyer\'s hours', 'No trust without cases and reviews'],
       ['Practice pages with clear tasks', 'A bot gathers the question before the consultation', 'Cases and reviews on the site']]),
-  accounting: k('realty', '🧾', 'services', ['leads', 'routine'], ['automation', 'agent'], 'websites.company.telegram~automation.crm.sheets',
+  accounting: k('realty', '🧾', 'services', ['leads', 'routine'], ['automation', 'personal'], 'websites.company.telegram~automation.crm.sheets',
     ['Бухгалтерия', 'Сайт бухгалтерской компании и напоминания клиентам', 'Тарифы, заявка и напоминания о сроках отчётности в Telegram.',
       ['Клиенты забывают сроки и документы', 'Тарифы объясняют каждому отдельно', 'Данные клиентов лежат в разных таблицах'],
       ['Напоминания о сроках в Telegram', 'Страница с тарифами и заявкой', 'Клиенты и сроки в одной таблице']],

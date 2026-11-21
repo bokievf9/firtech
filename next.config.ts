@@ -16,6 +16,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // app/global-not-found.tsx: the branded 404 for paths outside /ru and /en.
   experimental: { globalNotFound: true },
+  // Moved product pages (owner 2026-11-22: «Персональный ИИ-ассистент» became «Персональный ИИ», id `personal`).
+  // Keep in sync with `legacyProductRedirects` in src/lib/product-ids.ts (tested).
+  async redirects() {
+    return [
+      { source: '/:locale(ru|en)/products/agent', destination: '/:locale/products/personal', permanent: true },
+      { source: '/products/agent', destination: '/products/personal', permanent: true },
+    ]
+  },
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },
