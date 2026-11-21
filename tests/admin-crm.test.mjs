@@ -118,12 +118,12 @@ const walk = (dir) =>
     return statSync(full).isDirectory() ? walk(full) : [full]
   })
 
-test('/admin redirects to /admin/office; login lands there too', () => {
+test('/admin redirects to HQ (/admin/inbox); login lands there too', () => {
   const page = readFileSync(path.join(root, 'src/app/admin/page.tsx'), 'utf8')
-  assert.match(page, /redirect\('\/admin\/office'\)/)
+  assert.match(page, /redirect\('\/admin\/inbox'\)/)
   assert.doesNotMatch(page, /AdminShell|Pulse/)
-  assert.match(readFileSync(path.join(root, 'src/app/admin/login/page.tsx'), 'utf8'), /redirect\('\/admin\/office'\)/)
-  assert.match(readFileSync(path.join(root, 'src/components/admin/login-form.tsx'), 'utf8'), /replace\('\/admin\/office'\)/)
+  assert.match(readFileSync(path.join(root, 'src/app/admin/login/page.tsx'), 'utf8'), /redirect\('\/admin\/inbox'\)/)
+  assert.match(readFileSync(path.join(root, 'src/components/admin/login-form.tsx'), 'utf8'), /replace\('\/admin\/inbox'\)/)
 })
 
 test('removed admin routes have no page (Next answers 404); the kept ones exist', () => {
