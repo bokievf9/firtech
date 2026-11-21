@@ -17,7 +17,7 @@ const ChatPanel = dynamic(loadPanel, { ssr: false })
 export type ChatCopy = Dict['chat']
 
 // Floating launcher bottom right (above the phone CTA bar on small screens) plus the panel. Opens
-// from the button, from any ChatOpenButton (window event) and from a /<locale>#demo or #chat link.
+// from the button, from any ChatOpenButton (window event) and from a #chat link.
 export function ChatWidget({
   locale,
   dict,
@@ -52,7 +52,7 @@ export function ChatWidget({
     window.addEventListener(CHAT_OPEN_EVENT, onOpen)
     const fromHash = () => {
       // #chat: back from the sign-in the chat asked for (the conversation is in sessionStorage).
-      if (window.location.hash === '#demo' || window.location.hash === '#chat') show('hash')
+      if (window.location.hash === '#chat') show('hash')
     }
     const timer = window.setTimeout(fromHash, 400)
     window.addEventListener('hashchange', fromHash)

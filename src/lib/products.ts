@@ -2,7 +2,7 @@ import { productCatalog, type ProductId as CatalogProductId } from '../content/b
 import { emptyBuild, encodeBuild, productParts, quote, toggleProduct, type Build } from './builder'
 import { agentPlanList, contentPlanList, defaultPricing, type Plan, type Pricing } from './pricing'
 
-export { isProductId, productAnchor, productIds, type ProductId } from './product-ids'
+export { isProductId, productAnchor, productIds, productPath, type ProductId } from './product-ids'
 import { productIds, type ProductId } from './product-ids'
 
 export type AgentPlanId = 'dono' | 'polly'

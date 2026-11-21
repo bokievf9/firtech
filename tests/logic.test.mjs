@@ -33,7 +33,7 @@ test('lead schema: requires name and contact, defaults the rest', () => {
     service: 'bundle',
     estimate: 'x'.repeat(900),
   })
-  assert.match(formatLead(bundle), /Комплекс из конструктора/)
+  assert.match(formatLead(bundle), /Комплекс из сборки проекта/)
   assert.match(formatLead(bundle), /<b>Сборка:<\/b>/)
 })
 
@@ -47,7 +47,7 @@ test('dictionaries: hero, showcase and products line up in both languages', asyn
   const { default: ru } = await import('../src/content/ru.ts')
   const { default: en } = await import('../src/content/en.ts')
   for (const dict of [ru, en]) {
-    assert.equal(dict.hero.lines.length, 3)
+    assert.equal(dict.hero.lines.length, 2)
     assert.equal(dict.hero.trust.length, 3)
     assert.equal(dict.work.rules.length, 4)
   }

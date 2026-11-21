@@ -18,5 +18,8 @@ export function isProductId(value: string): value is ProductId {
   return (productIds as readonly string[]).includes(value)
 }
 
+// The product's own page, `/<locale>` + this.
+export const productPath = (id: ProductId) => `/products/${id}`
+
 // Anchor of a product card on the home page (footer and hero link here).
 export const productAnchor = (id: ProductId) => `product-${id}`

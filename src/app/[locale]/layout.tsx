@@ -90,12 +90,8 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
               {children}
             </main>
             <Footer locale={locale} dict={dict} cabinet={cabinet} />
-            <MobileCta
-              locale={locale}
-              label={dict.nav.cta}
-              telegramLabel={dict.contact.telegramCta}
-            />
-            <ChatWidget locale={locale} dict={dict} contactHref={`/${locale}#contact`} />
+            <MobileCta locale={locale} label={dict.nav.cta} />
+            <ChatWidget locale={locale} dict={dict} contactHref={`/${locale}/builder`} />
           </MotionProvider>
         </PricingProvider>
         <RefLinks />

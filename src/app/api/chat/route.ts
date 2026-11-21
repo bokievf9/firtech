@@ -26,6 +26,14 @@ export async function POST(request: NextRequest) {
   }
   // Anyone may chat; a lead needs an account (owner 2026-11-20). A contact sent while signed out is
   // not forwarded (HQ would turn it into a lead): the widget asks to sign in instead.
+  // The #demo tab (a persona is set) never creates a lead: a contact is answered here and not
+  // forwarded, and the signed-in identity is not attached.
+  if (parsed.data.persona && wouldCreateLead(parsed.data.message)) {
+    return NextResponse.json(
+      { ok: true, reply: getDict(parsed.data.locale).demoSection.receptionist.noContacts, state: 'chat' },
+      { headers: { 'cache-control': 'no-store', 'x-chat-mode': chatMode(process.env) } },
+    )
+  }
   const user = cabinetEnabled() ? await peekLeadUser().catch(() => null) : null
   const gate = await leadGate(async () => user)
   if (!gate.ok && wouldCreateLead(parsed.data.message)) {
@@ -34,7 +42,8 @@ export async function POST(request: NextRequest) {
       { headers: { 'cache-control': 'no-store', 'x-chat-mode': chatMode(process.env) } },
     )
   }
-  const answer = await askReceptionist(parsed.data, process.env, fetch, ip, gate.ok ? gate.identity : null)
+  const identity = gate.ok && !parsed.data.persona ? gate.identity : null
+  const answer = await askReceptionist(parsed.data, process.env, fetch, ip, identity)
   if (!answer.ok) console.error(`[chat] receptionist unavailable: ${answer.error}`)
   return NextResponse.json(answer, {
     status: answer.ok ? 200 : answer.error === 'rate_limited' ? 429 : 502,

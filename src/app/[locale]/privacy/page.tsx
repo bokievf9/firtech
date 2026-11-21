@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getDict } from '@/content'
 import { ymId } from '@/lib/analytics'
-import { homeAnchor } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { telegramHandle, telegramUrl } from '@/lib/site'
 import { shareBase } from '@/lib/share'
@@ -85,7 +84,7 @@ export default async function PrivacyPage({ params }: PageProps<'/[locale]/priva
                   {telegramHandle}
                 </a>
               ) : (
-                <Link href={homeAnchor(locale, 'contact')} className={linkClass}>
+                <Link href={`/${locale}/builder`} className={linkClass}>
                   {t.contactFormLink}
                 </Link>
               )}

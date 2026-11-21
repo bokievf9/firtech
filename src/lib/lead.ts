@@ -47,7 +47,7 @@ export const serviceNames: Record<Lead['service'], string> = {
   design: 'Дизайн и фирменный стиль',
   rescue: 'Доработка чужого проекта',
   internal: 'Внутренняя система',
-  bundle: 'Комплекс из конструктора',
+  bundle: 'Комплекс из сборки проекта',
   unknown: 'Не знает, нужна консультация',
 }
 
@@ -69,7 +69,7 @@ export function formatLead(lead: LeadFields, title = 'Новая заявка с
     ['Связь', lead.contact],
     ['Услуга', serviceNames[lead.service]],
     ['Бюджет', lead.budget],
-    [lead.service === 'bundle' ? 'Сборка' : 'Калькулятор', lead.estimate],
+    [lead.service === 'bundle' ? 'Сборка' : 'Оценка', lead.estimate],
     ['Задача', clip(lead.message, 1000)],
     ['Язык', lead.locale.toUpperCase()],
     ['Страница', clip(lead.page, 300)],

@@ -5,10 +5,8 @@ import { notFound } from 'next/navigation'
 import { AgentRow } from '@/components/ai-team/agent-list'
 import { QuoteLine, TeamGlyph, TrustChip } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
-import { ContactSection } from '@/components/contact-section'
-import { Faq } from '@/components/faq'
 import { HeroIntro } from '@/components/hero-intro'
-import { JsonLd, faqJsonLd } from '@/components/json-ld'
+import { JsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
@@ -76,7 +74,6 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
   return (
     <>
       <JsonLd data={service} />
-      <JsonLd data={faqJsonLd(page.faq)} />
 
       <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-8">
@@ -100,9 +97,9 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
               {t.ctaBuild}
               <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
-            <Link href="#contact" className={buttonStyles.secondary}>
-              {t.ctaDiscuss}
-            </Link>
+            <ChatOpenButton source={`aiteam_${id}`} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
+              {t.ctaChat}
+            </ChatOpenButton>
           </div>
         </HeroIntro>
         <Reveal className="lg:col-span-4" delay={0.3}>
@@ -195,8 +192,6 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
         </Reveal>
       </section>
 
-      <Faq title={t.page.faqTitle} items={page.faq} />
-
       <section className="mx-auto max-w-7xl px-4 pb-10 md:px-8">
         <Reveal>
           <div className="flex flex-col gap-6 rounded-card border border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 md:flex-row md:items-center md:justify-between md:p-8">
@@ -208,15 +203,13 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
               <Link href={aiTeamBuilderHref(locale)} data-cta={`aiteam_${id}_final`} className={buttonStyles.primary}>
                 {t.ctaBuild}
               </Link>
-              <ChatOpenButton source={`aiteam_${id}`} fallbackHref="#contact" className={buttonStyles.secondary}>
+              <ChatOpenButton source={`aiteam_${id}`} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
                 {t.ctaChat}
               </ChatOpenButton>
             </div>
           </div>
         </Reveal>
       </section>
-
-      <ContactSection dict={dict} locale={locale} />
 
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8" aria-label={t.page.othersTitle}>
         <h2 className="text-xl font-semibold tracking-tight">{t.page.othersTitle}</h2>

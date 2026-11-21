@@ -78,7 +78,7 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
   adminbot: {
     parts: 'bots.booking.broadcasts',
     priced: true,
-    name: { ru: 'Бот-администратор', en: 'Admin bot' },
+    name: { ru: 'ИИ-администратор', en: 'AI booking assistant' },
     hint: {
       ru: 'Запись, напоминания и отзывы в Telegram, без звонков администратору',
       en: 'Bookings, reminders and reviews in Telegram, no calls to the front desk',
@@ -87,7 +87,7 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
   intake: {
     parts: 'bots.faq.ai',
     priced: true,
-    name: { ru: 'ИИ-приёмщик заявок 24/7', en: 'AI lead intake 24/7' },
+    name: { ru: 'ИИ-менеджер заявок', en: 'AI lead manager' },
     hint: {
       ru: 'Отвечает клиентам в Telegram, WhatsApp и Instagram и собирает заявки в любое время',
       en: 'Answers customers in Telegram, WhatsApp and Instagram and collects leads around the clock',
@@ -96,7 +96,7 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
   automation: {
     parts: 'automation.integration.alerts',
     priced: true,
-    name: { ru: 'Автоматизация рутины', en: 'Routine automation' },
+    name: { ru: 'Автоматизация процессов', en: 'Process automation' },
     hint: {
       ru: 'Таблицы, CRM, мессенджеры, отчёты и рассылки связаны между собой',
       en: 'Sheets, CRM, messengers, reports and mailings wired together',
@@ -123,7 +123,7 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
   agent: {
     parts: '',
     priced: false,
-    name: { ru: 'Личный агент', en: 'Personal agent' },
+    name: { ru: 'Персональный ИИ-ассистент', en: 'Personal AI assistant' },
     hint: {
       ru: 'Помощник владельца, студента или фрилансера, как Dono и Polly',
       en: 'An assistant for an owner, student or freelancer, like Dono and Polly',
@@ -132,7 +132,7 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
   aiteam: {
     parts: 'automation.assistant.training',
     priced: true,
-    name: { ru: 'Внедрение ИИ в компанию', en: 'AI for your company' },
+    name: { ru: 'ИИ-отдел под ключ', en: 'AI department, turnkey' },
     hint: {
       ru: 'База знаний, ответы по документам и обучение команды',
       en: 'A knowledge base, answers from your documents and team training',
@@ -298,7 +298,7 @@ export const builderUi = {
   productsRecommended: { ru: 'Обычно для вашего бизнеса', en: 'Usually for your business' },
   productsRecommendedFor: { ru: 'Обычно для', en: 'Usually for' },
   productsMore: { ru: 'Остальные продукты', en: 'More products' },
-  productPriced: { ru: 'Цена из конструктора', en: 'Priced in the builder' },
+  productPriced: { ru: 'Цена из сборки', en: 'Priced in the project builder' },
   onRequest: { ru: 'по смете', en: 'on quote' },
   onRequestNote: {
     ru: 'Продукты «по смете» не входят в сумму: цену назовём после короткого созвона.',
@@ -373,7 +373,7 @@ export const previewCopy: L<PreviewCopy> = {
     chatA: 'Да, 11:00 и 14:30. Записать вас?',
     content: ['Пн', 'Ср', 'Пт', 'Сб'],
     contentTitle: 'План постов',
-    agentTitle: 'Личный агент',
+    agentTitle: 'Персональный ИИ-ассистент',
     agentTasks: ['Утренняя сводка', 'Дедлайн в пятницу', 'Напомнить про оплату'],
     teamTitle: 'База знаний',
     teamQ: 'Какой срок возврата?',
@@ -396,7 +396,7 @@ export const previewCopy: L<PreviewCopy> = {
     chatA: 'Yes, 11:00 and 14:30. Book you in?',
     content: ['Mon', 'Wed', 'Fri', 'Sat'],
     contentTitle: 'Post plan',
-    agentTitle: 'Personal agent',
+    agentTitle: 'Personal AI assistant',
     agentTasks: ['Morning brief', 'Deadline on Friday', 'Remind about payment'],
     teamTitle: 'Knowledge base',
     teamQ: 'What is the return period?',
@@ -420,7 +420,7 @@ export function genericFaq(
       ru: [
         {
           q: `Сколько стоит решение для ниши «${name}»?`,
-          a: `Стартовый набор от ${from}. Точную цену закрепим в смете после короткого созвона: в конструкторе можно убрать лишнее или добавить нужное.`,
+          a: `Стартовый набор от ${from}. Точную цену закрепим в смете после короткого созвона: в сборке проекта можно убрать лишнее или добавить нужное.`,
         },
         {
           q: 'За какое время это можно запустить?',
@@ -742,12 +742,12 @@ export const kindCatalog: Record<KindId, KindEntry> = {
       ['Clients call to ask if the order is ready', 'Couriers lack addresses and times', 'Receipts exist only on paper'],
       ['A courier pickup request in a bot', 'Status and a "ready" notification', 'An electronic order receipt']]),
   cleaning: k('services', '🧹', 'quote', ['leads', 'booking'], ['intake', 'adminbot'], 'websites.landing.telegram~bots.booking.broadcasts~x.seo',
-    ['Клининг', 'Сайт клининговой компании с расчётом цены', 'Калькулятор уборки, запись на дату и напоминание перед визитом.',
+    ['Клининг', 'Сайт клининговой компании с расчётом цены', 'Расчёт цены уборки, запись на дату и напоминание перед визитом.',
       ['Цену называют по телефону, и клиент уходит', 'Бригады путаются в адресах и времени', 'Нет повторных заказов'],
-      ['Калькулятор стоимости уборки', 'Запись на дату и время', 'Напоминание о повторной уборке']],
-    ['Cleaning', 'A cleaning company site with instant pricing', 'A cleaning calculator, date booking and a reminder before the visit.',
+      ['Расчёт стоимости уборки', 'Запись на дату и время', 'Напоминание о повторной уборке']],
+    ['Cleaning', 'A cleaning company site with instant pricing', 'Instant cleaning pricing, date booking and a reminder before the visit.',
       ['Prices are quoted by phone and clients leave', 'Crews mix up addresses and times', 'No repeat orders'],
-      ['A cleaning price calculator', 'Date and time booking', 'A reminder for the next cleaning']]),
+      ['Instant cleaning price quote', 'Date and time booking', 'A reminder for the next cleaning']]),
   repair: k('services', '🛠️', 'quote', ['leads', 'routine'], ['intake', 'automation'], LEADS,
     ['Ремонт техники', 'Сайт и бот для сервиса по ремонту техники', 'Заявка на ремонт с описанием поломки, статус и гарантия.',
       ['Клиент описывает поломку в трёх сообщениях', 'Статус ремонта приходится сообщать по звонку', 'Гарантия хранится в тетради'],
@@ -756,10 +756,10 @@ export const kindCatalog: Record<KindId, KindEntry> = {
       ['A client describes the fault across three messages', 'Repair status has to be given by phone', 'Warranty is kept in a notebook'],
       ['A request with device type and fault', 'Repair status in Telegram', 'An electronic warranty slip']]),
   renovation: k('services', '🏗️', 'quote', ['leads', 'brand'], ['site', 'intake'], 'websites.company.cms~bots.faq.ai~x.seo-design',
-    ['Ремонт квартир', 'Сайт бригады по ремонту с калькулятором и портфолио', 'Портфолио объектов, расчёт сметы и заявка на замер.',
+    ['Ремонт квартир', 'Сайт бригады по ремонту с расчётом сметы и портфолио', 'Портфолио объектов, расчёт сметы и заявка на замер.',
       ['Клиенту нечем проверить качество работ', 'Расчёт сметы занимает дни', 'Заказы идут только по знакомым'],
       ['Портфолио до и после', 'Предварительный расчёт онлайн', 'Заявка на замер за минуту']],
-    ['Home renovation', 'A renovation crew site with a calculator and portfolio', 'A project portfolio, quote calculation and a measurement request.',
+    ['Home renovation', 'A renovation crew site with quote estimates and a portfolio', 'A project portfolio, quote calculation and a measurement request.',
       ['Clients cannot verify the quality of work', 'Calculating a quote takes days', 'Orders come only from acquaintances'],
       ['A before and after portfolio', 'A preliminary estimate online', 'A measurement request in a minute']]),
   photo: k('services', '📸', 'booking', ['booking', 'brand'], ['adminbot', 'site'], BOOK,
@@ -779,10 +779,10 @@ export const kindCatalog: Record<KindId, KindEntry> = {
   printing: k('services', '🖨️', 'quote', ['sales', 'routine'], ['site', 'automation'], 'websites.company.payments~automation.integration.alerts~x.seo',
     ['Типография', 'Сайт типографии с онлайн-заказом и расчётом', 'Расчёт тиража, загрузка макета и статус заказа.',
       ['Макеты присылают в мессенджеры и теряют', 'Цену считают по запросу каждый раз', 'Клиенты звонят узнать статус'],
-      ['Калькулятор тиража', 'Загрузка макета в заказ', 'Статус заказа в уведомлениях']],
+      ['Расчёт тиража', 'Загрузка макета в заказ', 'Статус заказа в уведомлениях']],
     ['Print shop', 'A print shop site with online ordering and pricing', 'Run pricing, artwork upload and order status.',
       ['Artwork is sent to messengers and lost', 'Prices are calculated on request each time', 'Clients call to ask for status'],
-      ['A print run calculator', 'Artwork upload inside the order', 'Order status in notifications']]),
+      ['A print run price quote', 'Artwork upload inside the order', 'Order status in notifications']]),
 
   // ------------------------------------------------------------- education
   tutor: k('education', '📚', 'lesson', ['booking', 'brand'], ['adminbot', 'agent'], 'websites.landing.telegram~bots.booking.payments',
@@ -892,10 +892,10 @@ export const kindCatalog: Record<KindId, KindEntry> = {
   logistics: k('b2b', '🚚', 'quote', ['leads', 'routine'], ['automation', 'intake'], 'websites.company.language~automation.integration.sheets-alerts~bots.faq',
     ['Логистика и перевозки', 'Сайт перевозчика с расчётом и отслеживанием', 'Расчёт перевозки, заявка и уведомления о статусе груза.',
       ['Ставки считают в переписке', 'Клиенты спрашивают, где груз', 'Данные о рейсах в таблицах без порядка'],
-      ['Калькулятор перевозки', 'Статус груза в Telegram', 'Рейсы в одной таблице с оповещениями']],
-    ['Logistics and freight', 'A carrier site with pricing and tracking', 'A freight calculator, a request and cargo status alerts.',
+      ['Расчёт перевозки', 'Статус груза в Telegram', 'Рейсы в одной таблице с оповещениями']],
+    ['Logistics and freight', 'A carrier site with pricing and tracking', 'A freight price quote, a request and cargo status alerts.',
       ['Rates are calculated in chats', 'Clients ask where the cargo is', 'Trip data sits in messy spreadsheets'],
-      ['A freight calculator', 'Cargo status in Telegram', 'Trips in one sheet with alerts']]),
+      ['A freight price quote', 'Cargo status in Telegram', 'Trips in one sheet with alerts']]),
   wholesale: k('b2b', '📦', 'catalog', ['sales', 'routine'], ['miniapp', 'automation'], 'websites.shop.payments-cms~automation.crm.sheets~x.seo',
     ['Оптовая торговля', 'Оптовый каталог с заказом для постоянных клиентов', 'Прайс для оптовиков, повторный заказ в пару нажатий и учёт в таблице.',
       ['Прайсы рассылают файлами и они устаревают', 'Повторный заказ повторяют заново', 'Менеджеры принимают заказы вручную'],
@@ -952,7 +952,7 @@ export const kindCatalog: Record<KindId, KindEntry> = {
   other: k('other', '✨', 'services', ['leads'], [], 'websites.landing',
     ['Другое', 'Соберём проект под ваш бизнес', 'Выберите нужные части сами или опишите задачу, и мы предложим состав.',
       ['Нет готового набора под вашу нишу', 'Непонятно, с чего начать', 'Нужна консультация по составу'],
-      ['Конструктор собирает нужное', 'Цена и сроки видны сразу', 'Смета после короткого созвона']],
+      ['Сборка проекта подбирает нужное', 'Цена и сроки видны сразу', 'Смета после короткого созвона']],
     ['Something else', 'We build a project around your business', 'Pick the parts yourself or describe the task, and we suggest a set.',
       ['There is no ready set for your niche', 'It is unclear where to start', 'You need advice on the set'],
       ['The builder assembles what you need', 'Price and terms are visible at once', 'A quote after a short call']]),

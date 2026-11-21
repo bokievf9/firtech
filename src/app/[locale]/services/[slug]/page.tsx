@@ -13,11 +13,9 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { BotChatDemo } from '@/components/bot-chat-demo'
-import { ContactSection } from '@/components/contact-section'
-import { Faq } from '@/components/faq'
 import { HeroIntro } from '@/components/hero-intro'
 import { HeroStage } from '@/components/hero-stage'
-import { JsonLd, faqJsonLd } from '@/components/json-ld'
+import { JsonLd } from '@/components/json-ld'
 import { Magnetic } from '@/components/magnetic'
 import { PricingSection } from '@/components/pricing-section'
 import { Process } from '@/components/process'
@@ -108,7 +106,6 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
   return (
     <>
       <JsonLd data={service} />
-      <JsonLd data={faqJsonLd(page.faq)} />
 
       <section className="relative overflow-hidden">
         <HeroStage
@@ -136,7 +133,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                 <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Magnetic>
                     <Link
-                      href="#contact"
+                      href={`/${locale}/builder`}
                       className={cn(buttonStyles.primary, 'group w-full sm:w-auto')}
                     >
                       {dict.nav.cta}
@@ -221,13 +218,11 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
           <Reveal delay={0.15}>
             <p className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted">{t.conceptsSub}</p>
           </Reveal>
-          <ServiceConcepts slug={slug} s={dict.showcase} cta={t.conceptCta} />
+          <ServiceConcepts slug={slug} s={dict.showcase} cta={t.conceptCta} builderHref={`/${locale}/builder`} />
         </div>
       </section>
 
       <PricingSection dict={dict} locale={locale} initialService={slug} />
-      <Faq title={t.faq} items={page.faq} />
-      <ContactSection dict={dict} locale={locale} defaultService={slug} />
 
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8 md:pb-32" aria-label={t.others}>
         <RiseText

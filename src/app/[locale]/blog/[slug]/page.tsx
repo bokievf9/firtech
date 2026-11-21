@@ -4,7 +4,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArticleBody, DraftBadge } from '@/components/article-body'
-import { ContactSection } from '@/components/contact-section'
 import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
 import { RiseText } from '@/components/rise-text'
@@ -144,8 +143,6 @@ export default async function ArticlePage({ params }: PageProps<'/[locale]/blog/
           </div>
         </nav>
       )}
-
-      <ContactSection dict={dict} locale={locale} />
     </>
   )
 }

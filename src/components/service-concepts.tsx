@@ -34,10 +34,12 @@ export function ServiceConcepts({
   slug,
   s,
   cta,
+  builderHref,
 }: {
   slug: ServiceSlug
   s: Dict['showcase']
   cta: string
+  builderHref: string
 }) {
   const pricing = usePricing()
   const demos: Record<CaseId, ReactNode> = {
@@ -86,7 +88,7 @@ export function ServiceConcepts({
                     {item.term}
                   </p>
                   <Link
-                    href="#contact"
+                    href={builderHref}
                     className={cn(buttonStyles.secondary, 'group py-2.5 sm:ml-auto')}
                   >
                     {cta}

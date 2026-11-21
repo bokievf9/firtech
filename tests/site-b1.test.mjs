@@ -62,7 +62,7 @@ test('product prices come only from pricing.ts (as the builder counts them), or 
   }
 })
 
-test('«Собрать в конструкторе» opens the builder with the product picked', () => {
+test('«Собрать проект» opens the builder with the product picked', () => {
   for (const id of productIds) {
     const b = new URL(productBuilderHref('ru', id), 'https://x').searchParams.get('b')
     assert.match(b, new RegExp(`(^|~)p\\.${builderProduct[id]}($|~)`), id)
@@ -72,11 +72,12 @@ test('«Собрать в конструкторе» opens the builder with the 
   }
 })
 
-test('home page: eight sections in order, page.tsx renders homeSections', () => {
-  assert.deepEqual(homeSections, ['hero', 'products', 'demo', 'proof', 'process', 'pricing', 'faqContact', 'footer'])
-  for (const id of ['top', 'products', 'demo', 'proof', 'process', 'pricing', 'contact', 'faq', 'services'])
+test('home page: nine sections in order, page.tsx renders homeSections', () => {
+  assert.deepEqual(homeSections, ['hero', 'products', 'demo', 'proof', 'solutions', 'process', 'pricing', 'faq', 'footer'])
+  for (const id of ['top', 'products', 'demo', 'proof', 'solutions', 'process', 'pricing', 'faq', 'services'])
     assert.ok(homeAnchors.includes(id), id)
-  assert.equal(sectionAnchor.faqContact, 'contact')
+  assert.equal(homeAnchors.includes('contact'), false)
+  assert.equal(sectionAnchor.faq, 'faq')
   const page = readFileSync(new URL('../src/app/[locale]/page.tsx', import.meta.url), 'utf8')
   assert.match(page, /homeSections\.map/)
   for (const id of homeSections) assert.match(page, new RegExp(`\\b${id}:`), id)
@@ -88,6 +89,7 @@ function resolves(href, locale) {
   if (path === `/${locale}`) return !hash || homeAnchors.includes(hash)
   const rest = path.replace(`/${locale}/`, '').split('/')
   if (rest[0] === 'services') return serviceSlugs.includes(rest[1]) && rest.length === 2
+  if (rest[0] === 'products') return rest.length === 2 && productIds.includes(rest[1])
   if (rest[0] === 'solutions') return rest.length === 1 || (rest.length === 2 && isSolutionKind(rest[1]))
   if (rest[0] === 'ai-team') {
     if (rest.length === 2) return isAiTeamId(rest[1])
@@ -120,8 +122,8 @@ test('404: links resolve, search finds pages, texts in both languages', () => {
     for (const page of t.pages) assert.ok(resolves(`/${locale}${page.path}`, locale), page.path)
     assert.equal(searchPages(t.pages, '').length, 0)
   }
-  assert.ok(searchPages(notFoundText.ru.pages, 'Запись').some((p) => p.path === '#product-admin'))
-  assert.ok(searchPages(notFoundText.en.pages, 'mini app').some((p) => p.path === '#product-miniapp'))
+  assert.ok(searchPages(notFoundText.ru.pages, 'Запись').some((p) => p.path === '/products/admin'))
+  assert.ok(searchPages(notFoundText.en.pages, 'mini app').some((p) => p.path === '/products/miniapp'))
   assert.equal(notFoundText.ru.pages.length, notFoundText.en.pages.length)
   // The 404 pages exist and use the shared view.
   for (const file of ['../src/app/[locale]/not-found.tsx', '../src/app/global-not-found.tsx'])
