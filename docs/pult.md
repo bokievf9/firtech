@@ -233,3 +233,11 @@
 - **Версии**: список прошлых версий с пометкой автора и сводкой изменений, «Вернуть vN» = обычный `edit` с текстом старой версии (история не переписывается, появляется v+1).
 - **Новые endpoints HQ не нужны**: всё на `GET review?status=all` и `POST review/:id`. Желательно (не требуется): `POST review/batch {ids, action}` одной транзакцией с ответом по каждому id, чтобы пачка не шла N запросами.
 - **Подключение в каркас HQ**: ссылка на `approvalsHref` (`/admin/approvals`) из `src/components/admin/approvals/index.ts`; счётчик для бейджа раздела = `pendingTotal(counts)` из `lib/review.ts` (уже есть в `hub`) или `tabCounts(items)` из `lib/approvals.ts`. Навигация и layout не менялись.
+
+## Processes (2026-11-23)
+Раздел HQ «Processes» (`/admin/processes`, `src/app/admin/(hq)/processes/page.tsx`, `components/admin/hq/processes-view.tsx`, чистая модель `src/lib/processes.ts`). Вместо заглушки «Soon»: карта цепочек процессов из аудита (`process-audit`) со здоровьем каждого шага и кнопка «Прогнать дрилл».
+- **Данные**: `GET processes` (прокси, whitelist в `hq-admin.ts`), 5 цепочек: клиентская (заявка, КП, принято, договор, подпись, счёт, оплата, проект, этап принят, акт), поддержка, контент, письма клиентам, рутины и одобрения. У шага: здоровье `ok|warn|fail|idle`, последний успех, сбои за 7 дней, зависшие, текст последнего сбоя. Все числа считает HQ из своих таблиц; сайт только показывает (контракт: `agents/docs/admin-crm-api.md`, «Processes»).
+- **Дрилл**: `POST processes/drill {action:'start'|'clear'}` запускает существующие учения HQ (тестовые задачи с тегом `drill`, тестовый клиент «Тест учения», клиентам ничего не уходит); «Очистить» спрашивает подтверждение и удаляет тестовые данные. Таблица учений приходит в том же `GET` и обновляется каждые 30 с. Новых побочных эффектов нет.
+- **Dev-мок**: `pult-mock.ts` (блок `processes`, учения заканчиваются сами через 20 с).
+- Тесты `tests/processes.test.mjs`, `tests/hq-shell.test.mjs`, e2e `tests/e2e/admin-processes.spec.ts`; кнопки в `docs/button-census.md`.
+

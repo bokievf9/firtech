@@ -146,6 +146,9 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // The owner accepts a client's finished stage from the project drawer (same call as the cabinet button).
   // Numeric client id only (a client without an account has no cabinet to accept in).
   { method: 'POST', path: /^clients\/\d{1,12}\/projects\/\d{1,12}\/milestones\/\d{1,3}\/accept$/, body: empty },
+  // HQ «Processes»: the chain map with step health, and the existing drill (start / clear).
+  { method: 'GET', path: /^processes$/ },
+  { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
   { method: 'POST', path: /^company\/routines\/[\w-]{1,64}$/, body: z.object({ enabled: z.boolean() }).strict() },
