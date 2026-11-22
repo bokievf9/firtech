@@ -36,6 +36,19 @@ test.describe('with a session', () => {
     await expect(page.getByText(/Версия v1 возвращена как новая/)).toBeVisible()
   })
 
+  test('a reply card can be rated, and the rating can be changed', async ({ page }) => {
+    await open(page, '/admin/approvals?tab=replies')
+    const row = page.getByRole('list', { name: 'Очередь Replies' }).getByRole('listitem').first()
+    await row.getByRole('button').first().click()
+    const rate = row.locator('[data-rate]')
+    await expect(rate).toBeVisible()
+    await rate.getByRole('button', { name: 'Хороший ответ' }).click()
+    await expect(rate.locator('[data-rate-state]')).toHaveAttribute('data-rate-state', 'up')
+    await rate.getByRole('button', { name: 'Плохой ответ' }).click()
+    await rate.locator('[data-rate-send]').click()
+    await expect(rate.locator('[data-rate-state]')).toHaveAttribute('data-rate-state', 'down')
+  })
+
   test('batch approve with a confirmation', async ({ page }) => {
     await open(page, '/admin/approvals?tab=money')
     await page.getByRole('checkbox', { name: 'Выбрать все' }).check()

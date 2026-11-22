@@ -68,3 +68,34 @@ export function rateBody(d: RateDraft): { messageId: string; thread: string; val
   const note = d.note.trim()
   return { messageId: d.messageId.trim(), thread: d.thread.trim(), value: d.value, ...(note ? { note } : {}) }
 }
+
+// Ratings (`GET /admin/quality/ratings`): one per messageId + thread, a repeat replaces the earlier one.
+export type Rating = { id: string; messageId: string; thread: string; value: 1 | -1; note: string; at: string | null }
+const KEY_RE = /^[\w:.-]{1,64}$/
+export function normalizeRatings(body: unknown): Rating[] | null {
+  const b = rec(body)
+  if (!Array.isArray(b.items)) return null
+  const out: Rating[] = []
+  for (const raw of b.items.slice(0, 500)) {
+    const r = rec(raw)
+    const messageId = str(r.messageId, 64)
+    const thread = str(r.thread, 64)
+    if (!KEY_RE.test(messageId) || !KEY_RE.test(thread) || (r.value !== 1 && r.value !== -1)) continue
+    const at = typeof r.at === 'string' && !Number.isNaN(Date.parse(r.at)) ? r.at : null
+    out.push({ id: str(r.id, 64) || `${thread}:${messageId}`, messageId, thread, value: r.value, note: str(r.note, 1000), at })
+  }
+  return out
+}
+export const ratingKey = (thread: string, messageId: string): string => `${thread}\u0000${messageId}`
+// The newest rating of a pair wins (HQ lists newest first).
+export function ratingsMap(list: Rating[]): Map<string, Rating> {
+  const m = new Map<string, Rating>()
+  for (const r of list) if (!m.has(ratingKey(r.thread, r.messageId))) m.set(ratingKey(r.thread, r.messageId), r)
+  return m
+}
+// A new rating goes first and replaces the old one of the same pair.
+export const withRating = (list: Rating[], next: Rating): Rating[] => [next, ...list.filter((r) => ratingKey(r.thread, r.messageId) !== ratingKey(next.thread, next.messageId))]
+// Cards of agent replies that can be rated in the approvals and the review centre.
+export const REPLY_KINDS = ['lead_reply', 'lead_price', 'support_answer', 'support_money'] as const
+export const isReplyKind = (kind: string): boolean => (REPLY_KINDS as readonly string[]).includes(kind)
+export const RATINGS_PATH = 'quality/ratings?limit=200'

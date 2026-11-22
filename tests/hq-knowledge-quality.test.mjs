@@ -91,6 +91,23 @@ test('quality: lessons, eval and rating helpers', () => {
 
 const resolve = (method, p, body, search = '') => proxy.resolveEndpoint(method, p.split('/'), new URLSearchParams(search), body)
 
+test('quality: ratings normalizer, map and replace', () => {
+  const list = ql.normalizeRatings({ ok: true, items: [
+    { id: 'r2', messageId: 'm1', thread: 'lead', value: -1, note: 'плохо', at: '2026-11-23T09:00:00.000Z' },
+    { id: 'r1', messageId: 'm1', thread: 'lead', value: 1, note: '', at: '2026-11-23T08:00:00.000Z' },
+    { id: 'r3', messageId: 'bad id', thread: 'lead', value: 1 },
+    { id: 'r4', messageId: 'm9', thread: 'lead', value: 5 },
+  ] })
+  assert.deepEqual(list.map((r) => r.id), ['r2', 'r1'])
+  assert.equal(ql.normalizeRatings({ ok: true }), null)
+  assert.equal(ql.ratingsMap(list).get(ql.ratingKey('lead', 'm1')).value, -1, 'newest wins')
+  const next = ql.withRating(list, { id: 'r5', messageId: 'm1', thread: 'lead', value: 1, note: '', at: null })
+  assert.equal(next.filter((r) => r.messageId === 'm1').length, 1)
+  assert.equal(next[0].id, 'r5')
+  assert.equal(ql.isReplyKind('lead_reply'), true)
+  assert.equal(ql.isReplyKind('content_item'), false)
+})
+
 test('whitelist: knowledge and quality paths, strict bodies, rebuild is never an id', () => {
   assert.equal(resolve('GET', 'knowledge', undefined, 'q=x&tier=public&evil=1').ok, true)
   assert.deepEqual(resolve('GET', 'knowledge', undefined, 'q=x&evil=1').query, { q: 'x' })
@@ -111,6 +128,8 @@ test('whitelist: knowledge and quality paths, strict bodies, rebuild is never an
   assert.equal(resolve('GET', 'quality/eval').ok, true)
   assert.equal(resolve('POST', 'quality/rate', { messageId: 'm1', thread: 'lead', value: 1 }).ok, true)
   assert.equal(resolve('POST', 'quality/rate', { messageId: 'm1', thread: 'lead', value: 2 }).ok, false)
+  assert.equal(resolve('GET', 'quality/ratings').ok, true)
+  assert.equal(resolve('POST', 'quality/ratings', {}).ok, false)
   assert.equal(resolve('POST', 'quality/rate', { messageId: 'm1', thread: 'lead', value: -1, note: 'n', extra: 1 }).ok, false)
   assert.equal(resolve('DELETE', 'quality/eval', {}).ok, false)
   assert.equal(resolve('DELETE', 'tasks/1', {}).ok, false)
@@ -151,6 +170,13 @@ test('dev mock: filters, owner notes CRUD, read-only documents, rebuild, lessons
   assert.equal(call('POST', 'quality/rate', {}, { messageId: 'm1', thread: 'lead', value: 1 }).lessonId, undefined)
   const rated = call('POST', 'quality/rate', {}, { messageId: 'm2', thread: 'lead', value: -1, note: 'Надо иначе' })
   assert.ok(rated.lessonId)
+  // ratings: the list, a repeat replaces the earlier one of the same pair
+  call('POST', 'quality/rate', {}, { messageId: 'm2', thread: 'lead', value: 1 })
+  const list = call('GET', 'quality/ratings', { limit: '50' })
+  assert.equal(list.ok, true)
+  const forPair = list.items.filter((r) => r.messageId === 'm2' && r.thread === 'lead')
+  assert.equal(forPair.length, 1)
+  assert.equal(forPair[0].value, 1)
   assert.equal(call('GET', 'quality/lessons').items[0].source, 'rating')
   const ev = call('GET', 'quality/eval')
   assert.equal(ev.last.runtime, 'fira')

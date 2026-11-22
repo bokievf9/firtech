@@ -226,6 +226,7 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^quality\/lessons$/, query: ['limit'] },
   { method: 'DELETE', path: /^quality\/lessons\/[\w-]{1,64}$/, body: empty },
   { method: 'POST', path: /^quality\/rate$/, body: QUALITY_RATE },
+  { method: 'GET', path: /^quality\/ratings$/, query: ['limit'] },
   { method: 'GET', path: /^quality\/eval$/ },
   // HQ «Campaigns»: list, one mailing with its journal, and a new draft. The draft sends nothing: it waits for the owner's approval.
   { method: 'GET', path: /^campaigns$/ },

@@ -41,6 +41,8 @@ import {
   type ReviewItem,
   type ReviewView,
 } from '@/lib/review'
+import { isReplyKind } from '@/lib/quality-hq'
+import { RateButtons, RatingsProvider } from '@/components/admin/hq/rate-buttons'
 
 const KIND_LABEL: Record<string, string> = {
   content_item: 'Материал', article: 'Статья', lead_reply: 'Ответ лиду', lead_price: 'Цена лиду', presales_pack: 'КП', support_answer: 'Ответ клиенту', support_money: 'Ответ про деньги',
@@ -51,7 +53,7 @@ type Answer = { item?: unknown; results?: unknown; state?: string; message?: unk
 
 // Approvals: the review centre's queue as four working tabs. Edit in place, decide a selection at
 // once, step back to an older version. Full-screen editor, video stage and publishing stay in /admin/review.
-export function ApprovalsPage({ initialTab = 'documents' }: { initialTab?: ApprovalTab }) {
+function ApprovalsPageInner({ initialTab = 'documents' }: { initialTab?: ApprovalTab }) {
   const data = useHqView('review?status=all&limit=200', normalizeReview, { visible: 15_000, hidden: 60_000 })
   const { mutate } = data
   const { ask, dialog } = useConfirm()
@@ -339,6 +341,7 @@ function Detail({ item, busy, onDecide, call, notify, setBusy, mutate }: { item:
           </div>
         )
       })}
+      {isReplyKind(item.kind) ? <RateButtons messageId={item.id} thread="review" /> : null}
       {!fields.length && !hasDocs ? <p className="text-sm text-muted">У этого материала нет текста. Файлы смотрите в ревью-центре.</p> : null}
       {hasDocs ? <p className="text-sm text-muted">Пакет из нескольких документов правится в полноэкранном редакторе.</p> : null}
 
@@ -380,5 +383,14 @@ function Detail({ item, busy, onDecide, call, notify, setBusy, mutate }: { item:
         )}
       </section>
     </div>
+  )
+}
+
+
+export function ApprovalsPage({ initialTab = 'documents' }: { initialTab?: ApprovalTab }) {
+  return (
+    <RatingsProvider>
+      <ApprovalsPageInner initialTab={initialTab} />
+    </RatingsProvider>
   )
 }

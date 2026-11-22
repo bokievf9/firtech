@@ -8,7 +8,7 @@ import { Pending } from '@/components/ui/pending'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { sectionById } from '@/lib/hq-shell'
-import { emptyRate, normalizeEval, normalizeLessons, percent, rateBody, rateProblem, redStatus, type EvalRun, type Lesson, type RateDraft, type Ratio } from '@/lib/quality-hq'
+import { emptyRate, normalizeEval, normalizeLessons, normalizeRatings, percent, RATINGS_PATH, rateBody, rateProblem, redStatus, withRating, type EvalRun, type Lesson, type RateDraft, type Ratio } from '@/lib/quality-hq'
 import { Fail, TwoStepDelete, when } from './kq-ui'
 
 const t = admin.hq
@@ -88,16 +88,15 @@ function LessonsTab() {
   )
 }
 
-type Sent = { messageId: string; thread: string; value: 1 | -1; lesson: boolean; at: string }
-
-// A rating of an agent reply by its id. HQ has no list of ratings (only `POST quality/rate`), so the page keeps what was sent from it.
+// The real list of ratings (`GET quality/ratings`) and a form to rate a reply by its id (a repeat replaces the earlier rating).
 function RatingsTab() {
   const [draft, setDraft] = useState<RateDraft>(emptyRate)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [problem, setProblem] = useState<string | null>(null)
   const [done, setDone] = useState<string | null>(null)
-  const [history, setHistory] = useState<Sent[]>([])
+  const list = useHqView(RATINGS_PATH, normalizeRatings, { visible: 60_000, hidden: 180_000 })
+  const ratings = list.view
 
   const send = async () => {
     if (busy) return
@@ -108,7 +107,7 @@ function RatingsTab() {
     if (p || !body) return
     setBusy(true)
     setError(null)
-    const res = await hq<{ lessonId?: unknown }>('quality/rate', body)
+    const res = await hq<{ id?: unknown; lessonId?: unknown }>('quality/rate', body)
     setBusy(false)
     if (!res.ok) {
       setError(res.error)
@@ -116,7 +115,7 @@ function RatingsTab() {
     }
     const lesson = typeof res.lessonId === 'string' && res.lessonId.length > 0
     setDone(lesson ? q.sentLesson : q.sent)
-    setHistory((h) => [{ messageId: body.messageId, thread: body.thread, value: body.value, lesson, at: new Date().toISOString() }, ...h].slice(0, 30))
+    list.mutate((cur) => withRating(cur, { id: typeof res.id === 'string' ? res.id : `${body.thread}:${body.messageId}`, messageId: body.messageId, thread: body.thread, value: body.value, note: body.note ?? '', at: new Date().toISOString() }))
     setDraft({ ...emptyRate, thread: draft.thread })
   }
 
@@ -130,6 +129,7 @@ function RatingsTab() {
           void send()
         }}
       >
+        <h2 className="text-sm font-medium">{q.rateByIdTitle}</h2>
         <p className="text-sm text-muted">{q.ratingsIntro}</p>
         <label className="grid gap-1 text-xs text-muted">
           {q.messageId}
@@ -172,14 +172,20 @@ function RatingsTab() {
       </form>
       <section className={card} aria-label={q.history}>
         <h2 className="mb-2 text-sm font-medium">{q.history}</h2>
-        {history.length === 0 ? <p className="text-sm text-muted">{q.historyEmpty}</p> : null}
-        <ul className="grid gap-1.5" data-rating-history>
-          {history.map((h, i) => (
-            <li key={`${h.at}:${i}`} className="flex flex-wrap items-center gap-2 text-sm">
-              {h.value === 1 ? <ThumbsUp size={16} className="text-accent-text" aria-label={q.up} /> : <ThumbsDown size={16} className="text-danger" aria-label={q.down} />}
-              <span className="font-mono text-xs">{h.messageId}</span>
-              <span className="text-xs text-muted">{h.thread}</span>
-              {h.lesson ? <span className="rounded-full border border-line-strong px-2 py-0.5 text-xs">{q.sources.rating}</span> : null}
+        {list.error && !ratings ? <Offline error={list.error} onRetry={list.reload} /> : null}
+        {!ratings && !list.error ? <Loading rows={3} /> : null}
+        {list.failed && ratings ? <Offline error={list.failed} onRetry={list.reload} /> : null}
+        {ratings && ratings.length === 0 ? <p className="text-sm text-muted">{q.historyEmpty}</p> : null}
+        <ul className="grid gap-2" data-rating-history>
+          {(ratings ?? []).map((h) => (
+            <li key={h.id} className="grid gap-0.5 text-sm" data-rating-item={h.messageId} data-value={h.value}>
+              <span className="flex flex-wrap items-center gap-2">
+                {h.value === 1 ? <ThumbsUp size={16} className="text-accent-text" aria-label={q.up} /> : <ThumbsDown size={16} className="text-danger" aria-label={q.down} />}
+                <span className="font-mono text-xs">{h.messageId}</span>
+                <span className="text-xs text-muted">{h.thread}</span>
+                <span className="font-mono text-xs text-faint">{when(h.at)}</span>
+              </span>
+              {h.note ? <span className="text-xs text-muted whitespace-pre-wrap">{h.note}</span> : null}
             </li>
           ))}
         </ul>
