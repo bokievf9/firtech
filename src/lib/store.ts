@@ -40,6 +40,8 @@ export type StoredLead = Omit<Lead, 'website' | 'slot'> & {
   // HQ's lead id once confirmed; the cabinet link uses it.
   hqLeadId?: number
   // Who sent it (cabinet account), kept so a retry carries the same identity as the first try.
+  // Stable id of this lead for HQ's dedupe (`siteLeadId`), made before the first send and reused by every retry.
+  siteLeadId?: string
   hqIdentity?: { clientEmail: string; cabinetId: string; clientName: string }
 }
 
@@ -111,6 +113,7 @@ export function createLead(
       status: 'new',
       notified: false,
       hqForwarded: false,
+      siteLeadId: crypto.randomUUID(),
       ...(identity ? { hqIdentity: identity } : {}),
       ...(slot ? { booking: { slot, state: 'pending' as const } } : {}),
     }

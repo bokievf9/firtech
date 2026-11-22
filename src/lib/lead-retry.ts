@@ -5,8 +5,8 @@ import { unforwardedLeads, updateLead, type StoredLead } from './store'
 // a lead stays `hqForwarded:false` until HQ answers ok, and this retries it: on server start and every
 // minute in the background, with growing gaps (1, 2, 4... minutes up to an hour), at most MAX_ATTEMPTS
 // tries and only for leads younger than a week. A confirmed lead is marked and never sent again.
-// HQ has no dedupe key yet (see docs/data-states.md, «Нужно от HQ»), so a lead is retried only while
-// HQ never answered ok; the one remaining double is "HQ saved it but its answer was lost".
+// Every try carries the lead's stable `siteLeadId`; HQ answers a repeat with `duplicate: true`, which
+// closes the lead like ok. Retries happen only on an error, a timeout or `queued`.
 export const MAX_ATTEMPTS = 8
 export const MAX_AGE_MS = 7 * 24 * 3600_000
 const BASE_GAP_MS = 60_000
@@ -23,7 +23,7 @@ export function retryDue(lead: StoredLead, now: number): boolean {
 }
 
 // Records one try (also for the first, in-request one).
-export async function recordForward(id: number, result: { ok: boolean; id: number | null; notified?: boolean }, now = Date.now()) {
+export async function recordForward(id: number, result: { ok: boolean; id: number | null; notified?: boolean; duplicate?: boolean }, now = Date.now()) {
   return updateLead(id, (l) => {
     if (l.hqForwarded === true) return
     l.hqAttempts = (l.hqAttempts ?? 0) + 1

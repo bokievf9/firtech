@@ -77,7 +77,7 @@ async function handle(request: NextRequest) {
 
   // Copy for the Lead Intake agent, fail-open. Its answer (HQ's lead id, for the cabinet link) is
   // awaited at most 3 s further down; the forward itself never blocks the lead.
-  const forwarded = forwardLeadDetailed(lead, stored?.booking?.slot ?? slot, process.env, fetch, ip, identity)
+  const forwarded = forwardLeadDetailed({ ...lead, siteLeadId: stored?.siteLeadId ?? crypto.randomUUID() }, stored?.booking?.slot ?? slot, process.env, fetch, ip, identity)
   // P-01: the outcome is written down whenever HQ answers (even after the visitor got the reply); a
   // lead HQ did not confirm stays `hqForwarded:false` and the background retry delivers it.
   if (stored) {
