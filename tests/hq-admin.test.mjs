@@ -34,7 +34,7 @@ const proxy = await import('../src/lib/hq-admin.ts')
 const { createHqMock } = await import('../src/lib/hq-admin-mock.ts')
 const v = await import('../src/lib/hq-admin-view.ts')
 
-// A session written straight into admin.json, the way verifyCode stores it (hash only).
+// A session written straight into admin.json, the way createSession stores it (hash only).
 const TOKEN = 'test-session-token-hq'
 let dirCount = 0
 const realFetch = globalThis.fetch
@@ -45,7 +45,7 @@ beforeEach(async () => {
   const id = createHash('sha256').update(TOKEN).digest('hex')
   await writeFile(
     path.join(process.env.DATA_DIR, 'admin.json'),
-    JSON.stringify({ codes: [], issued: [], sessions: [{ id, createdAt: now, expiresAt: now + 60_000 }] }),
+    JSON.stringify({ sessions: [{ id, createdAt: now, expiresAt: now + 60_000 }] }),
   )
   delete process.env.HQ_ADMIN_URL
   delete process.env.HQ_ADMIN_TOKEN

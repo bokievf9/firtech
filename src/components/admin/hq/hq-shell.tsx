@@ -27,7 +27,7 @@ import {
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { AdminMenu } from '@/components/admin/admin-shell'
+import { AdminMenu, SignOutButton } from '@/components/admin/admin-shell'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { CommandPalette, type PaletteItem } from '@/components/admin/hub/command-palette'
 import { HubContext, modalOpen, typingIn, useHqView, type HubApi } from '@/components/admin/hub/ui'
@@ -233,6 +233,7 @@ export function HqShell({ children }: { children: React.ReactNode }) {
             <span className="sr-only sm:hidden">{t.office}</span>
           </a>
           <ThemeToggle />
+          <SignOutButton />
           <AdminMenu />
         </header>
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
