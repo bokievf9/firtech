@@ -50,8 +50,8 @@ const planNames: Record<string, string> = {
   plus: 'Персональный ИИ, уровень «Плюс»',
   max: 'Персональный ИИ, уровень «Максимум»',
   company: 'ИИ-компания, цена «от»',
-  dono: 'Dono (снят с продажи, нужен HQ)',
-  polly: 'Polly (снят с продажи, нужен HQ)',
+  dono: 'Dono (снят с продажи, нужен Shell)',
+  polly: 'Polly (снят с продажи, нужен Shell)',
   content: 'Контент на автопилоте',
 }
 const stageTitleRu: Record<string, string> = {}

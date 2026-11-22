@@ -127,7 +127,7 @@ export function targetForRow(row: DocRow, items: ReviewItem[]): DocTarget | null
 // Why a row cannot be edited, for the disabled button.
 export function whyNotEditable(row: Pick<DocRow, 'id' | 'kind'>): string {
   if (row.kind === 'invoice') return 'Выставленный счёт не правится: отмените его и выставьте новый.'
-  return 'HQ не даёт править этот документ: клиент уже принял или подписал его, либо карточки нет.'
+  return 'Shell не даёт править этот документ: клиент уже принял или подписал его, либо карточки нет.'
 }
 
 // HQ refuses a draft longer than this (400 invalid), so the editor stops before it (contracts are long).

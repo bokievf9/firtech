@@ -135,7 +135,7 @@ test.describe('Пульт', () => {
     const main = page.locator('main').first()
     await shot(page, page.locator('body'), 'pult-loading')
     const alert = main.getByRole('alert')
-    await expect(alert).toContainText('HQ не ответил за 5 с')
+    await expect(alert).toContainText('Shell не ответил за 5 с')
     await expect(alert.getByRole('button', { name: 'Повторить' })).toBeVisible()
     await shot(page, page.locator('body'), 'pult-error')
     // The retry button works while it waits (aria-busy) and then offers itself again.
