@@ -266,6 +266,11 @@ test('mock decisions: approve, reject, edit versions, revise, reschedule, send, 
   assert.equal(post(m, 'review/ap_201', { action: 'revise', note: 'короче' }).state, 'revising')
   assert.equal(post(m, 'review/ap_201', { action: 'reschedule', slot: '2026-12-01' }).item.meta.slot, '2026-12-01')
   assert.equal(post(m, 'review/ap_205', { action: 'send' }).error, 'placeholder')
+  // approve is refused like in HQ: 409 `placeholder` with the list, the card stays pending
+  const refused = post(m, 'review/ap_205', { action: 'approve' })
+  assert.equal(refused.error, 'placeholder')
+  assert.deepEqual(refused.placeholders, ['[сумма этапа]'])
+  assert.match(r.reviewError(refused, (c) => c), /unfilled placeholders.*\[сумма этапа\]/)
   assert.equal(post(m, 'review/ap_205', { action: 'send', text: { draft: 'Цена $650, предоплата 50%.' } }).state, 'handed_off')
   assert.equal(post(m, 'review/ap_206', { action: 'call', slot: '2026-11-24' }).error, 'not_applicable')
   assert.equal(post(m, 'review/ap_207', { action: 'call', slot: '2026-11-24' }).error, 'invalid')
@@ -467,4 +472,16 @@ test('a presales document edit: payload with `doc`, optimistic text, mock versio
   // an approved, unsigned document still takes an edit; a decided one without editApproved does not
   assert.equal(post(m, 'review/ap_210', { action: 'edit', text: { draft: 'Новый договор' } }).item.currentVersion, 2)
   assert.equal(post(m, 'review/ap_199', { action: 'edit', text: { caption: 'x' } }).error, 'not_pending')
+})
+
+test('doc-editor: findPlaceholders marks templates, not markdown links; the reason names them all', async () => {
+  const d = await import('../src/lib/doc-editor.ts')
+  const text = 'Срок [срок], цена [цена], см. [условия](https://x.y), снова [срок].'
+  const found = d.findPlaceholders(text)
+  assert.deepEqual(found.map((f) => f.text), ['[срок]', '[цена]', '[срок]'])
+  assert.equal(text.slice(found[1].start, found[1].end), '[цена]')
+  assert.deepEqual(d.placeholderList(text), ['[срок]', '[цена]'])
+  assert.match(d.placeholderReason(['[срок]', '[цена]']), /2 placeholders are still unfilled \(\[срок\], \[цена\]\)/)
+  assert.match(d.placeholderReason(['[срок]']), /one placeholder is still unfilled/)
+  assert.deepEqual(d.findPlaceholders('Всё заполнено, ссылка [текст](u).'), [])
 })

@@ -279,3 +279,24 @@ export function parseDraft(raw: string | null): Draft | null {
 }
 // Offer a stored draft only when it was started from the text that is saved now and differs from it.
 export const draftRestorable = (d: Draft | null, saved: string): d is Draft => !!d && d.base === saved && d.value !== saved
+
+// ---- unfilled placeholders --------------------------------------------------------------------
+// HQ refuses to approve a text that still holds a template in square brackets («[срок]», «[цена]»,
+// 2-60 characters on one line, the same shape as HQ's own check). Markdown links `[text](url)` are not placeholders.
+export type Placeholder = { text: string; start: number; end: number }
+export function findPlaceholders(text: string): Placeholder[] {
+  const out: Placeholder[] = []
+  for (const m of text.matchAll(/\[[^\]\n]{2,60}\]/g)) {
+    const end = m.index + m[0].length
+    if (text[end] === '(') continue
+    out.push({ text: m[0], start: m.index, end })
+  }
+  return out
+}
+// The distinct placeholder texts in order of appearance.
+export const placeholderList = (text: string): string[] => [...new Set(findPlaceholders(text).map((p) => p.text))]
+// The reason shown when HQ answers 409 `placeholder`: every placeholder named, not only a short code.
+export function placeholderReason(list: string[]): string {
+  if (!list.length) return 'The text still has unfilled placeholders in square brackets. Fill them in and save, then approve again.'
+  return `Cannot approve: ${list.length === 1 ? 'one placeholder is' : `${list.length} placeholders are`} still unfilled (${list.join(', ')}). Fill ${list.length === 1 ? 'it' : 'them'} in and save, then approve again.`
+}
