@@ -379,3 +379,14 @@ Settings, блок «Цены» внизу страницы (⌘K «Settings»).
 - Сходимость проверяется: юнит (`approvalsSummary` и `paymentsView` против ответа дашборда) и e2e `tests/e2e/admin-dashboard.spec.ts`
   (цифры по вкладкам на Dashboard = вкладки Approvals; ожидает+просрочено = Finance «Awaiting»; оплачено за 30 дней = этот месяц +
   прошлый в Finance), плюс отсутствие горизонтальной прокрутки на 390, 768 и 1440.
+
+## Дизайн Shell на design system v4 (ветка `shell-design`)
+
+Аудит, правила и таблица «было / стало»: `docs/shell-design-audit.md`. Коротко:
+- Рамка (`hq-shell.tsx`): верхняя полоса 52 px на `material-thick` с hairline; иконки Office, тема, выход, меню одного размера (`iconBtn`);
+  боковое меню 240 px, активный пункт - скользящая плашка на `spring.snappy`, цифра горячей клавиши видна по hover/focus; мобильное меню на `material-chrome`.
+- Один заголовок страницы: `hq/page-header.tsx` (`PageHeader`: `text-title-3`, подсказка, действия, вкладки на `TabList`). Его используют `SectionView`, Tasks, Approvals, Chats, Settings, Agents; остальные секции получили тот же материал и шрифт заголовка.
+- Общий набор классов `components/admin/kit.ts`: `btn`, `btnPrimary`, `btnDanger`, `inputClass`, `filterPill`, `iconBtn` (ре-экспорт из `hub/ui`). Выбранный фильтр - поднятая пилюля с hairline, лайм только у главного действия.
+  Для классов с шагами текста v4 (`text-callout`, `text-footnote`, `text-caption`) в Shell использовать `cn` из `kit.ts`: `cn` из `@/lib/cn` не знает эти шаги и теряет их рядом с `text-muted`.
+- Состояния: `Empty` (иконка + фраза), `Loading` (строки-скелеты по форме списка), `Offline`, подтверждение (`useConfirm`) на `material-chrome`, `Toast` на `material-thick` со spring снизу.
+- Поведение, горячие клавиши (1-9, ⌘K, Esc), aria и `data-*` для e2e не менялись.

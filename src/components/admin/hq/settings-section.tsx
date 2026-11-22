@@ -2,6 +2,7 @@
 
 import { Check, WarningCircle } from '@phosphor-icons/react'
 import { useCallback, useId, useRef, useState } from 'react'
+import { PageHeader } from '@/components/admin/hq/page-header'
 import { errText, fill, hqPatch } from '@/components/admin/control/api'
 import { PricesTab } from '@/components/admin/shell-crm/company-prices'
 import { Loading, Offline, inputClass, useConfirm, useHqView } from '@/components/admin/hub/ui'
@@ -314,10 +315,7 @@ export function SettingsSection() {
 
   return (
     <div className="flex min-h-full flex-col" data-section-view="settings">
-      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur sm:px-5">
-        <h1 className="font-brand text-xl">Settings</h1>
-        <p className="text-sm text-muted">{admin.hq.sectionHints.settings}</p>
-      </div>
+      <PageHeader title="Settings" hint={admin.hq.sectionHints.settings} />
       {!view ? (
         list.error ? <Offline error={list.error} onRetry={() => list.reload()} /> : <Loading rows={4} />
       ) : (

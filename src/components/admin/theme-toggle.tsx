@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from '@phosphor-icons/react'
 import { useSyncExternalStore } from 'react'
+import { iconBtn } from '@/components/admin/kit'
 import { admin } from '@/content/admin'
 
 const KEY = 'firtech-admin-theme'
@@ -39,7 +40,7 @@ export function ThemeToggle() {
       onClick={toggle}
       aria-label={light ? admin.pulse.theme.toDark : admin.pulse.theme.toLight}
       title={light ? admin.pulse.theme.toDark : admin.pulse.theme.toLight}
-      className="grid size-11 shrink-0 place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg"
+      className={iconBtn}
     >
       {light ? <Moon size={18} aria-hidden="true" /> : <Sun size={18} aria-hidden="true" />}
     </button>

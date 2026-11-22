@@ -268,7 +268,7 @@ export function CampaignsSection({ embedded = false }: { embedded?: boolean }) {
 
   return (
     <div className="flex min-h-full flex-col" data-section-view="campaigns">
-      <div className={cn('border-b border-line', !embedded && 'sticky top-0 z-10 bg-bg/95 backdrop-blur')}>
+      <div className={cn('border-b border-b-hairline border-line', !embedded && 'material-thick sticky top-0 z-10')}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-5">
           <p className="text-sm text-muted">{t.sectionHints.campaigns}</p>
           <button type="button" className={cn(btnPrimary, 'ml-auto')} aria-expanded={formOpen} onClick={() => setFormOpen((o) => !o)} data-campaign-new>

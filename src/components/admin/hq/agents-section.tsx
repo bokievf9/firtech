@@ -4,6 +4,7 @@ import { ArrowLeft, ClockCounterClockwise, PencilSimple, X } from '@phosphor-ico
 import { deptLabel } from '@/lib/admin-labels'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { PageHeader } from '@/components/admin/hq/page-header'
 import { errText, hq } from '@/components/admin/control/api'
 import { Loading, Offline, btn, btnPrimary, inputClass, useConfirm, useHqView, useHub } from '@/components/admin/hub/ui'
 import { Pending } from '@/components/ui/pending'
@@ -24,10 +25,7 @@ export function AgentsSection({ selected }: { selected: string | null }) {
   const groups = useMemo(() => (list.view ? groupAgents(list.view) : []), [list.view])
   return (
     <div className="flex min-h-full flex-col" data-section-view="agents">
-      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur sm:px-5">
-        <h1 className="font-brand text-xl">Agents</h1>
-        <p className="text-sm text-muted">{admin.hq.sectionHints.agents}</p>
-      </div>
+      <PageHeader title="Agents" hint={admin.hq.sectionHints.agents} />
       {!list.view ? (
         list.error ? <Offline error={list.error} onRetry={() => list.reload()} /> : <Loading />
       ) : (
