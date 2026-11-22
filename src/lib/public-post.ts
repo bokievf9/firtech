@@ -25,15 +25,30 @@ function allowedOrigins(env: Record<string, string | undefined>): string[] {
   return list
 }
 
+// A cabinet POST acts for a signed-in client (cookies), so a missing Origin is refused there
+// (security 2026-11-23, P2-13). Browsers always send Origin on a POST; the anonymous public forms
+// (lead, chat, audit, events) keep accepting none, as before.
+function originRequired(request: { url?: string }, opts: { requireOrigin?: boolean }): boolean {
+  if (opts.requireOrigin !== undefined) return opts.requireOrigin
+  try {
+    return request.url ? new URL(request.url).pathname.startsWith('/api/cabinet/') : false
+  } catch {
+    return false
+  }
+}
+
 // null when the request may go on, else the error answer. JSON content type is required, and an
 // Origin header, when the browser sends one, must be this site (localhost only outside production).
+// Under /api/cabinet/ (or with `requireOrigin`) the Origin header must be there.
 export function checkPublicPost(
-  request: Pick<Request, 'headers'>,
+  request: Pick<Request, 'headers'> & { url?: string },
   env: Record<string, string | undefined> = process.env,
+  opts: { requireOrigin?: boolean } = {},
 ): { status: number; error: string } | null {
   const type = request.headers.get('content-type') ?? ''
   if (!/^application\/json\s*(;|$)/i.test(type)) return { status: 415, error: 'unsupported_media_type' }
   const origin = request.headers.get('origin')
+  if (!origin && originRequired(request, opts)) return { status: 403, error: 'bad_origin' }
   if (origin) {
     if (allowedOrigins(env).includes(origin.replace(/\/$/, ''))) return null
     if (env.NODE_ENV !== 'production' && /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return null

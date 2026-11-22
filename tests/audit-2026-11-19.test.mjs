@@ -241,3 +241,19 @@ test('/api/prices carries the payment stages and the small-project limit (2026-1
   }
   assert.deepEqual(body.stages, JSON.parse(JSON.stringify(pricing.paymentStages)))
 })
+
+test('security 2026-11-23 (P2-13): cabinet POSTs need an Origin; lead, chat and audit keep accepting none', () => {
+  const prod = { NODE_ENV: 'production', NEXT_PUBLIC_SITE_URL: 'https://firtech.pro' }
+  const at = (url, headers) => ({ url, headers: new Headers({ 'content-type': 'application/json', ...headers }) })
+  for (const url of ['https://firtech.pro/api/cabinet/profile', 'https://firtech.pro/api/cabinet/tickets', 'https://firtech.pro/api/cabinet/auth-log']) {
+    assert.deepEqual(checkPublicPost(at(url, {}), prod), { status: 403, error: 'bad_origin' }, url)
+    assert.equal(checkPublicPost(at(url, { origin: 'https://firtech.pro' }), prod), null, url)
+    assert.equal(checkPublicPost(at(url, { origin: 'https://evil.example' }), prod).status, 403, url)
+  }
+  for (const url of ['https://firtech.pro/api/lead', 'https://firtech.pro/api/chat', 'https://firtech.pro/api/audit']) {
+    assert.equal(checkPublicPost(at(url, {}), prod), null, url)
+  }
+  assert.equal(checkPublicPost({ headers: new Headers({ 'content-type': 'application/json' }) }, prod, { requireOrigin: true }).status, 403)
+  const api = readFileSync('src/lib/cabinet-api.ts', 'utf8')
+  assert.equal((api.match(/requireOrigin: true/g) ?? []).length, 2, 'both cabinet guards (JSON and multipart) demand Origin')
+})

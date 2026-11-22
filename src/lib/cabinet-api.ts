@@ -14,7 +14,7 @@ export const reply = (body: object, status = 200) =>
 // demands a JSON content type, so it is asked as if the type were right.
 export function checkSameOrigin(request: Request): { status: number; error: string } | null {
   const headers = { get: (name: string) => (name.toLowerCase() === 'content-type' ? 'application/json' : request.headers.get(name)) }
-  return checkPublicPost({ headers } as Pick<Request, 'headers'>)
+  return checkPublicPost({ headers } as Pick<Request, 'headers'>, process.env, { requireOrigin: true })
 }
 
 export type CabinetCaller = { ok: true; clientId: number; email: string; userId: string } | { ok: false; response: NextResponse }
@@ -26,7 +26,7 @@ const ID_TTL_MS = 5 * 60_000
 
 export async function cabinetCaller(request: Request, opts: { post?: boolean; json?: boolean } = {}): Promise<CabinetCaller> {
   if (opts.post) {
-    const bad = opts.json === false ? checkSameOrigin(request) : checkPublicPost(request)
+    const bad = opts.json === false ? checkSameOrigin(request) : checkPublicPost(request, process.env, { requireOrigin: true })
     if (bad) return { ok: false, response: reply({ ok: false, error: bad.error }, bad.status) }
   }
   let user: { id: string; email?: string | null } | null = null
