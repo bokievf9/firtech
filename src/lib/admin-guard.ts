@@ -13,14 +13,33 @@ export function readCookie(request: Request, name = SESSION_COOKIE) {
   return null
 }
 
-// A POST must come from a page on this same site: the browser sets Origin and a page elsewhere can't
-// fake it. nginx passes the original Host, so the two must match.
-export function sameOrigin(request: Request) {
-  const origin = request.headers.get('origin')
-  const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host')
-  if (!origin || !host) return false
+// The hosts a POST may come from: the configured site (NEXT_PUBLIC_SITE_URL, default firtech.pro) and
+// its www twin. Outside production also the request's own Host (localhost dev servers and tests).
+// Security 2026-11-23 (P2-12): X-Forwarded-Host is never read: nginx passed the client's value through,
+// so a forged header could match a forged Origin.
+export function allowedAdminHosts(request: Pick<Request, 'headers'>, env: Record<string, string | undefined> = process.env): string[] {
+  const hosts: string[] = []
   try {
-    return new URL(origin).host === host
+    const site = new URL(env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://firtech.pro')
+    hosts.push(site.host)
+    if (!site.hostname.startsWith('www.')) hosts.push(`www.${site.host}`)
+  } catch {
+    hosts.push('firtech.pro', 'www.firtech.pro')
+  }
+  if (env.NODE_ENV !== 'production') {
+    const own = request.headers.get('host')
+    if (own) hosts.push(own)
+  }
+  return hosts
+}
+
+// A POST must come from a page on this same site: the browser sets Origin and a page elsewhere can't
+// fake it.
+export function sameOrigin(request: Request, env: Record<string, string | undefined> = process.env) {
+  const origin = request.headers.get('origin')
+  if (!origin) return false
+  try {
+    return allowedAdminHosts(request, env).includes(new URL(origin).host)
   } catch {
     return false
   }

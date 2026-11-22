@@ -364,3 +364,20 @@ test('security 2026-11-23 (P2-1): attempts are capped and written debounced, not
   await auth.flushLoginAttempts()
   assert.ok(JSON.parse(await readFile(file, 'utf8')).attempts.length <= auth.ATTEMPTS_CAP)
 })
+
+test('security 2026-11-23 (P2-12): a forged X-Forwarded-Host never makes a foreign Origin pass', async () => {
+  const guardLib = await import('../src/lib/admin-guard.ts')
+  const forged = new Request(`${ORIGIN}/api/admin/login`, {
+    method: 'POST',
+    headers: { host: 'localhost', origin: 'https://evil.example', 'x-forwarded-host': 'evil.example', 'content-type': 'application/json' },
+    body: JSON.stringify({ password: PASSWORD }),
+  })
+  assert.equal((await loginRoute.POST(forged)).status, 403)
+  const prod = { NODE_ENV: 'production', NEXT_PUBLIC_SITE_URL: 'https://firtech.pro' }
+  const req = (origin, host, xfh) => new Request('https://firtech.pro/api/admin/x', { method: 'POST', headers: { origin, host, ...(xfh ? { 'x-forwarded-host': xfh } : {}) } })
+  assert.equal(guardLib.sameOrigin(req('https://firtech.pro', 'firtech.pro'), prod), true)
+  assert.equal(guardLib.sameOrigin(req('https://www.firtech.pro', 'firtech.pro'), prod), true)
+  assert.equal(guardLib.sameOrigin(req('https://evil.example', 'evil.example', 'evil.example'), prod), false, 'a spoofed Host or X-Forwarded-Host is not trusted in production')
+  assert.equal(guardLib.sameOrigin(req('http://localhost:3001', 'localhost:3001'), prod), false)
+  assert.equal(guardLib.sameOrigin(req('http://localhost:3001', 'localhost:3001'), { NODE_ENV: 'development' }), true)
+})
