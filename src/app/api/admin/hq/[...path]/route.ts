@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 
 type Ctx = { params: Promise<{ path: string[] }> }
 
-async function handle(request: Request, ctx: Ctx, method: 'GET' | 'POST' | 'PATCH') {
+async function handle(request: Request, ctx: Ctx, method: 'GET' | 'POST' | 'PATCH' | 'DELETE') {
   const denied = await guard(request)
   if (denied) return denied
   const { path } = await ctx.params
@@ -24,3 +24,4 @@ async function handle(request: Request, ctx: Ctx, method: 'GET' | 'POST' | 'PATC
 export const GET = (request: Request, ctx: Ctx) => handle(request, ctx, 'GET')
 export const POST = (request: Request, ctx: Ctx) => handle(request, ctx, 'POST')
 export const PATCH = (request: Request, ctx: Ctx) => handle(request, ctx, 'PATCH')
+export const DELETE = (request: Request, ctx: Ctx) => handle(request, ctx, 'DELETE')

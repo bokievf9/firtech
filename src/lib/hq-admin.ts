@@ -10,7 +10,7 @@ import { hqMock } from './hq-admin-mock'
 export const DEFAULT_HQ_ADMIN_URL = 'http://127.0.0.1:8787/admin'
 export const HQ_ADMIN_TIMEOUT_MS = 5000
 
-type Method = 'GET' | 'POST' | 'PATCH'
+type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
 type Env = Record<string, string | undefined>
 export type Proxied = { ok: true; [k: string]: unknown } | { ok: false; error: string; reason?: string; [k: string]: unknown }
 
@@ -23,6 +23,25 @@ export const MAX_DOC = 40000
 // The whole allowed surface: method, path pattern, accepted query keys or body schema. Anything else
 // is a 404 from the route, so the page can never reach other HQ endpoints through this proxy.
 type Endpoint = { method: Method; path: RegExp; query?: readonly string[]; body?: z.ZodType }
+// Knowledge and Quality bodies, strict like HQ's schemas (title and text of the owner's note, level public|internal only).
+export const KNOWLEDGE_TIERS = ['public', 'internal'] as const
+const knowledgeTitle = z.string().trim().min(1).max(200)
+const knowledgeText = z.string().trim().min(1).max(20000)
+const knowledgeTier = z.enum(KNOWLEDGE_TIERS)
+export const KNOWLEDGE_CREATE = z.object({ title: knowledgeTitle, text: knowledgeText, tier: knowledgeTier }).strict()
+export const KNOWLEDGE_PATCH = z
+  .object({ title: knowledgeTitle.optional(), text: knowledgeText.optional(), tier: knowledgeTier.optional() })
+  .strict()
+  .refine((b) => Object.keys(b).length > 0, 'nothing to change')
+export const QUALITY_RATE = z
+  .object({
+    messageId: z.string().regex(/^[\w:.-]{1,64}$/),
+    thread: z.string().regex(/^[\w:.-]{1,64}$/),
+    value: z.union([z.literal(1), z.literal(-1)]),
+    note: z.string().trim().min(1).max(1000).optional(),
+  })
+  .strict()
+
 export const ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^state$/ },
   { method: 'POST', path: /^ping$/, body: empty },
@@ -195,6 +214,18 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // HQ «Audit log» and «Analytics»: the journal of decisions and changes, the funnel and sources (read only).
   { method: 'GET', path: /^audit$/, query: ['kind', 'actor', 'from', 'to', 'cursor', 'limit'] },
   { method: 'GET', path: /^analytics$/, query: ['week'] },
+  // HQ «Knowledge» and «Quality» (2026-11-23, contract `docs/briefs/fira/knowledge-quality-api.md`): the company package documents,
+  // the owner's notes, the lessons learned from bad answers, ratings and the eval report. `rebuild` is never an id.
+  { method: 'GET', path: /^knowledge$/, query: ['q', 'tier', 'source', 'limit'] },
+  { method: 'GET', path: /^knowledge\/(?!rebuild$)[\w-]{1,64}$/ },
+  { method: 'POST', path: /^knowledge$/, body: KNOWLEDGE_CREATE },
+  { method: 'PATCH', path: /^knowledge\/(?!rebuild$)[\w-]{1,64}$/, body: KNOWLEDGE_PATCH },
+  { method: 'DELETE', path: /^knowledge\/(?!rebuild$)[\w-]{1,64}$/, body: empty },
+  { method: 'POST', path: /^knowledge\/rebuild$/, body: empty },
+  { method: 'GET', path: /^quality\/lessons$/, query: ['limit'] },
+  { method: 'DELETE', path: /^quality\/lessons\/[\w-]{1,64}$/, body: empty },
+  { method: 'POST', path: /^quality\/rate$/, body: QUALITY_RATE },
+  { method: 'GET', path: /^quality\/eval$/ },
   { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },

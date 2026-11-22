@@ -1,5 +1,6 @@
 import type { Approval } from './hq-admin-view'
 import { createAgentsMock } from './agents-mock'
+import { createKnowledgeMock } from './knowledge-mock'
 import { createSettingsMock } from './settings-mock'
 import { HUB_DEPTS, isoWeek, shiftWeek, weekDates } from './pult'
 
@@ -265,10 +266,13 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
 
   const agentsMock = createAgentsMock(start)
   const settingsMock = createSettingsMock()
+  const knowledgeMock = createKnowledgeMock(start)
 
-  return function handle(method: 'GET' | 'POST' | 'PATCH', seg: string[], query: Json, body: Json, now: number): Reply | null {
+  return function handle(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', seg: string[], query: Json, body: Json, now: number): Reply | null {
     const settings = settingsMock(method, seg, body, query, now)
     if (settings) return settings
+    const knowledge = knowledgeMock(method, seg, body, query, now)
+    if (knowledge) return knowledge
     const agents = agentsMock(method, seg, body, now)
     if (agents) return agents
     const path = seg.join('/')

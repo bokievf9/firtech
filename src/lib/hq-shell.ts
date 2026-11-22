@@ -18,6 +18,8 @@ export type HqSectionId =
   | 'settings'
   | 'audit'
   | 'analytics'
+  | 'knowledge'
+  | 'quality'
 
 export type HqSection = {
   id: HqSectionId
@@ -48,6 +50,8 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'settings', label: 'Settings', state: 'ready', href: '/admin/settings', legacy: office('company', 'prices') },
   { id: 'audit', label: 'Audit log', state: 'ready', href: '/admin/audit', legacy: office('company', 'company') },
   { id: 'analytics', label: 'Analytics', state: 'ready', href: '/admin/analytics', legacy: office('marketing', 'metrics') },
+  { id: 'knowledge', label: 'Knowledge', state: 'ready', href: '/admin/knowledge', legacy: office('company', 'company') },
+  { id: 'quality', label: 'Quality', state: 'ready', href: '/admin/quality', legacy: office('company', 'company') },
 ] as const
 
 export const isSoonSection = (v: unknown): v is HqSectionId =>

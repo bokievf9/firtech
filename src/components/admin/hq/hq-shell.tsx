@@ -1,6 +1,8 @@
 'use client'
 
 import {
+  Books,
+  SealCheck,
   CalendarBlank,
   ChatCircleText,
   FileText,
@@ -52,6 +54,8 @@ const icons: Record<HqSectionId, Icon> = {
   settings: Gear,
   audit: ClockCounterClockwise,
   analytics: ChartLineUp,
+  knowledge: Books,
+  quality: SealCheck,
 }
 
 function useNow(step = 15_000) {
