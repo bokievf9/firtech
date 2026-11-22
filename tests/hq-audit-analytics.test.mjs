@@ -36,7 +36,7 @@ const T0 = Date.parse('2026-11-23T06:00:00Z')
 
 test('sections: Audit log and Analytics follow Settings, ready, with pages', () => {
   const ids = shell.HQ_SECTIONS.map((s) => s.id)
-  assert.deepEqual(ids.slice(ids.indexOf('settings')), ['settings', 'audit', 'analytics'])
+  assert.deepEqual(ids.slice(ids.indexOf('settings')), ['settings', 'audit', 'analytics', 'knowledge', 'quality'])
   for (const id of ['audit', 'analytics']) {
     const s = shell.sectionById(id)
     assert.equal(s.state, 'ready')

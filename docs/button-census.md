@@ -635,3 +635,30 @@ Tag `E:aa` = `tests/e2e/admin-audit-analytics.spec.ts`; `U:aa` = `tests/hq-audit
 | Analytics | «Обновить» | reloads the week | `GET analytics` | `E:aa` (present) | untested (click) |
 | Analytics | funnel, first answer, site events, sources | numbers of the week against the previous one; the funnel and the events are those of the marketing «Цифры» tab | `GET analytics` | `E:aa`, `U:aa` (`stepRate`, `change`, `minutesLabel`, `siteRows`) | pass |
 | Analytics | failed call | «HQ не отвечает» with «Повторить», the last good numbers stay | - | `U:aa` (normalizer) | untested (browser) |
+
+## HQ, Knowledge and Quality (2026-11-23), adds to the rows above
+Tag `E:kq` = `tests/e2e/admin-knowledge-quality.spec.ts`; `U:kq` = `tests/hq-knowledge-quality.test.mjs`. Both sections are built, last in the menu (after Analytics, no number key). Knowledge reads `GET knowledge?q&tier&source&limit` every 60 s; Quality reads `GET quality/lessons` and `GET quality/eval` every 60 s.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/knowledge` | menu link «Knowledge» | opens the page | - | `E:kq`, `U:hq-shell` | pass |
+| Knowledge | search box + «Найти» | documents whose title or text has the word | `GET knowledge?q=` | `E:kq`, `U:kq` (`knowledgePath`) | pass |
+| Knowledge | selects «Уровень», «Источник» | one level (public, internal) or one source | `GET knowledge?tier=&source=` | `E:kq` | pass |
+| Knowledge | «Сбросить фильтры» (only with a filter on) | clears search and filters | - | `E:kq` | pass |
+| Knowledge | «Новая заметка» | opens the empty note form | - | `E:kq` | pass |
+| Knowledge / note form | «Добавить заметку» | refuses an empty title or text in words; else creates the note (level public or internal) | `POST knowledge` | `E:kq`, `U:kq` (`draftProblem`, whitelist) | pass |
+| Knowledge / note form | «Отмена» | closes the form, nothing sent | - | - | untested (click) |
+| Knowledge | document row (title button) | opens the text; owner notes get «Править» and «Удалить», other sources say they are read only | `GET knowledge/:id` | `E:kq` | pass |
+| Knowledge / owner note | «Править», «Сохранить» | edits title, level, text; only changed fields are sent | `PATCH knowledge/:id` | `E:kq`, `U:kq` (`notePatch`) | pass |
+| Knowledge / owner note | «Удалить», then «Да, удалить» / «Нет» | two-step delete | `DELETE knowledge/:id` | `E:kq` (yes), `U:kq` (mock) | pass (yes), untested («Нет») |
+| Knowledge / document | close (X) | closes the panel | - | - | untested (click) |
+| Knowledge | «Пересобрать пакет» | queues a rebuild; a notice says so and the list reloads after 4 s | `POST knowledge/rebuild` | `E:kq`, `U:kq` (mock) | pass |
+| Knowledge | «Обновить» | reloads the list | `GET knowledge` | `E:kq` (present) | untested (click) |
+| Knowledge | failed call | «HQ не отвечает» with «Повторить»; a failed save, delete or rebuild shows the error note with «Повторить» next to the action | - | `U:kq` (normalizer) | untested (browser) |
+| `/admin/quality` | menu link «Quality» | opens the page | - | `E:kq`, `U:hq-shell` | pass |
+| Quality | tabs «Уроки», «Оценки», «Eval» | switch the view | - | `E:kq` | pass |
+| Quality / Уроки | «Удалить урок», then «Да, удалить» / «Нет» | two-step delete; the card disappears | `DELETE quality/lessons/:id` | `E:kq` (yes), `U:kq` (mock) | pass (yes), untested («Нет») |
+| Quality / Оценки | «Хороший ответ», «Плохой ответ» | choose the value | - | `E:kq` (bad) | pass (bad), untested (good) |
+| Quality / Оценки | «Отправить оценку» | refuses a missing id, thread or value in words; else rates; a bad rating with a note becomes a lesson | `POST quality/rate` | `E:kq`, `U:kq` (`rateProblem`, `rateBody`, mock) | pass |
+| Quality / Eval | report | last run: time, runtime, lead share, red series (red when not all passed), handoff and tool rates; empty state without a run | `GET quality/eval` | `E:kq`, `U:kq` (`redStatus`, `percent`) | pass |
+| Quality | failed call | «HQ не отвечает» with «Повторить»; a failed delete or rating shows the error note with «Повторить» | - | `U:kq` (normalizer) | untested (browser) |
