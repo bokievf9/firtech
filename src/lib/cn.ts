@@ -1,5 +1,19 @@
 import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
+import { extendTailwindMerge } from 'tailwind-merge'
+
+// Tailwind v4 `--text-*` theme tokens from globals.css. Without this, tailwind-merge reads them as
+// text colours and drops them next to `text-muted`/`text-fg`, or fails to merge them with `text-sm`.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      'font-size': [
+        {
+          text: ['display', 'title', 'title-2', 'title-3', 'headline', 'lead', 'body', 'callout', 'footnote', 'caption', 'micro'],
+        },
+      ],
+    },
+  },
+})
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
