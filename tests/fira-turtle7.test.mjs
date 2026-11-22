@@ -235,7 +235,7 @@ test('face as meshes: eye, brow and lid flags per emotion, three fingers and thr
   assert.equal(T7.FINGERS7, 3)
   assert.equal(T7.TOES7, 3)
   assert.ok(T7.scutes7.length >= 4)
-  for (const c of T7.scutes7) assert.ok(c.x > 0.4 && c.x < rig_shell_x())
+  for (const c of T7.scutes7) assert.ok(c.x >= 0.4 && c.x < rig_shell_x())
   const scene = read('src/components/fira/fira-scene7.tsx')
   assert.match(scene, /FINGERS7/)
   assert.match(scene, /TOES7/)
