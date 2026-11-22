@@ -415,6 +415,16 @@ export const admin = {
           autopilot: 'Autopilot: call me only when a person is requested, anger, legal matters',
         },
       },
+      nav: 'Sections',
+      sections: {
+        general: { title: 'General', hint: 'Working hours, quiet hours, time zones, call windows and quote defaults.' },
+        notifications: { title: 'Notifications', hint: 'What Shell tells you in Telegram and which alerts break through.' },
+        autopilot: { title: 'Autopilot', hint: 'How much the agents decide alone before they call you, and when an action kind may run unattended.' },
+        agents: { title: 'Agents and budgets', hint: 'Monthly model budgets per department and the message limits of client agents.' },
+        prices: { title: 'Prices', hint: 'Every price of the site, edited in place. Changes reach the site and the agents.' },
+        integrations: { title: 'Integrations', hint: 'How Shell talks to Telegram. Read at start.' },
+        journal: { title: 'Change log', hint: 'Who changed which setting and when.' },
+      },
       groups: {
         schedule: { title: 'Schedule', hint: 'Times are on your clock (owner time zone). Any change re-creates the Director routines.' },
         notices: { title: 'Notifications', hint: 'Which reminders the Shell bot sends. A muted type is stored as muted and does not come back when you turn it on again. Summaries and the digest cannot be turned off.' },
@@ -989,6 +999,7 @@ export const admin = {
       hint: '↑↓ choose, Enter open, Esc close',
       groups: {
         panels: 'Departments',
+        settings: 'Settings',
         commands: 'Commands',
         leads: 'Leads',
         clients: 'Clients',
@@ -1451,6 +1462,8 @@ export const admin = {
       stageSum: 'Sum {n}',
       stageSumBad: 'Sum {n}, must be 100: cannot save',
       stageSave: 'Save shares',
+      foldSummary: '{n} prices',
+      foldChanged: '{n} changed',
       stageReset: 'Reset template',
       stageResetDone: 'Template reset to default',
       stageInput: 'Share of stage "{t}", %',

@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn'
 import { stageDefs, stageTemplateIds, type Pricing, type StageTemplateId } from '@/lib/pricing'
 import { getAt, groupTitles, type HistoryEntry, type PriceField, type PriceGroup, type PriceUnit } from '@/lib/pricing-types'
 import { productPrices } from '@/lib/products'
+import { Collapsible } from '@/components/admin/collapsible'
 import { Chip, shortTime } from './bits'
 import { Empty, Loading, Offline, useConfirm, useHub } from '../hub/ui'
 
@@ -292,6 +293,7 @@ function Preview({ pricing }: { pricing: Pricing }) {
 }
 
 const order: PriceGroup[] = ['start', 'kinds', 'options', 'extras', 'plans', 'discounts', 'stages']
+const collapsible = new Set<PriceGroup>(['kinds', 'options', 'extras', 'plans'])
 
 // «Цены» tab of the Компания panel: every price of the site, edited in place (Enter saves, Esc
 // cancels), with the default shown next to a changed one, a reset for all, and the history.
@@ -343,16 +345,30 @@ export function PricesTab() {
             <h3 className="text-sm font-medium">{groupTitles[group]}</h3>
             {group === 'extras' ? <p className="text-xs text-faint">{k.linkedNote}</p> : null}
             {group === 'stages' ? <p className="text-xs text-faint">{k.stagesNote}</p> : null}
-            {list.map((s, si) => (
-              <div key={`${s.name}:${si}`} className="grid gap-1">
-                {s.name !== groupTitles[group] && list.length > 1 ? <h4 className="text-xs text-muted">{s.name}</h4> : null}
-                <ul className="grid gap-1">
+            {list.map((s, si) => {
+              const rows = (
+                <ul className="grid gap-1 pb-2">
                   {s.fields.map((f) => (
                     <Row key={f.path} field={f} view={view} onSave={save} onReset={reset} />
                   ))}
                 </ul>
-              </div>
-            ))}
+              )
+              // A group with several products folds per product: the first stays open, the rest show how many prices and how many changed.
+              if (collapsible.has(group) && list.length > 1) {
+                const changed = s.fields.filter((f) => view.overridden.includes(f.path)).length
+                return (
+                  <Collapsible key={`${s.name}:${si}`} as="h4" title={s.name} defaultOpen={si === 0} summary={fill(k.foldSummary, { n: s.fields.length }) + (changed ? ` · ${fill(k.foldChanged, { n: changed })}` : '')} data-prices-fold={s.name} className="rounded-xl border border-line px-1">
+                    {rows}
+                  </Collapsible>
+                )
+              }
+              return (
+                <div key={`${s.name}:${si}`} className="grid gap-1">
+                  {s.name !== groupTitles[group] && list.length > 1 ? <h4 className="text-xs text-muted">{s.name}</h4> : null}
+                  {rows}
+                </div>
+              )
+            })}
             {group === 'stages' ? (
               <ul className="grid gap-2">
                 {stageTemplateIds.map((id) => (

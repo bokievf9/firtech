@@ -43,6 +43,7 @@ import { fade, spring } from '@/lib/motion'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { APPROVALS_CHANGED, approvalsSummary } from '@/lib/approvals'
 import { normalizeReview } from '@/lib/review'
+import { settingsEntries } from '@/lib/settings-sections'
 import { HQ_GROUPS, HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, sectionForKey, type HqSection, type HqSectionId } from '@/lib/hq-shell'
 
 const t = admin.hq
@@ -206,7 +207,17 @@ export function HqShell({ children }: { children: React.ReactNode }) {
         : [],
     )
     const golive: PaletteItem = { id: 'golive', group: p.groups.panels, title: goliveText.title, hint: '', dept: 'director', keywords: 'go live launch timer checklist 72 hours', run: () => router.push('/admin/golive') }
-    return [...sections, golive, ...tabs]
+    // Every Settings section and field: Enter opens the page at its anchor and marks the row.
+    const settings: PaletteItem[] = settingsEntries().map((e) => ({
+      id: e.id,
+      group: p.groups.settings,
+      title: e.title,
+      hint: e.hint,
+      keywords: e.keywords,
+      dept: 'director' as const,
+      run: () => router.push(`/admin/settings?focus=${encodeURIComponent(e.focus)}`),
+    }))
+    return [...sections, golive, ...tabs, ...settings]
   }, [router])
 
   return (

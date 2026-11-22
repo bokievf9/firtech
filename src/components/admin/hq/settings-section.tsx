@@ -1,7 +1,10 @@
 'use client'
 
 import { Check, WarningCircle } from '@phosphor-icons/react'
-import { useCallback, useId, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { createContext, useCallback, useContext, useId, useRef, useState } from 'react'
+import { SectionRail, SectionStrip, useActiveSection } from '@/components/admin/section-nav'
+import { focusRow, focusRowClass, useFocusRow } from '@/components/admin/hub/focus-row'
 import { PageHeader } from '@/components/admin/hq/page-header'
 import { errText, fill, hqPatch } from '@/components/admin/control/api'
 import { PricesTab } from '@/components/admin/shell-crm/company-prices'
@@ -24,9 +27,11 @@ import {
   type TrustKind,
 } from '@/lib/settings-hq'
 import { Select } from '@/components/admin/select'
+import { sectionAnchor, sectionFocus, SETTINGS_SECTIONS, type SettingsSectionId } from '@/lib/settings-sections'
 
 const t = admin.hq.settings
-const GROUP_ORDER: GroupId[] = ['schedule', 'notices', 'alerts', 'limits', 'calls', 'kp', 'playground', 'service']
+// The row a ⌘K result or a link points at (`?focus=<field path>` or `section-<id>`).
+const FocusCtx = createContext<string | null>(null)
 const usd = (n: number) => `$${n.toFixed(n >= 10 ? 0 : 2)}`
 const stamp = (ms: number) => new Date(ms).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
@@ -91,6 +96,7 @@ function Switch({ on, onChange, label, busy, id }: { on: boolean; onChange: (v: 
 
 function Row({ spec, label, settings, onSave, hint, disabled, extra }: { spec: FieldSpec; label?: string; settings: Settings; onSave: Save; hint?: React.ReactNode; disabled?: boolean; extra?: React.ReactNode }) {
   const id = useId()
+  const focus = useContext(FocusCtx)
   const { status, run, fail, clear } = useFieldStatus()
   const current = getValue(settings, spec.path)
   const [draft, setDraft] = useState<string | null>(null)
@@ -114,7 +120,7 @@ function Row({ spec, label, settings, onSave, hint, disabled, extra }: { spec: F
   }
 
   return (
-    <div className="grid gap-1 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] sm:items-start sm:gap-4" data-field={spec.path} data-status={status.state}>
+    <div className={cn('grid gap-1 px-2 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,16rem)] sm:items-start sm:gap-4', focus === spec.path && cn('rounded-xl', focusRowClass))} data-field={spec.path} data-status={status.state} {...focusRow(spec.path, focus)}>
       <label htmlFor={id} className="text-sm">
         {text}
         {hint ? <span className="block text-xs text-faint">{hint}</span> : null}
@@ -163,12 +169,30 @@ function Row({ spec, label, settings, onSave, hint, disabled, extra }: { spec: F
   )
 }
 
-function Card({ id, title, hint, children }: { id: string; title: string; hint: string; children: React.ReactNode }) {
+// One block of a section: a quiet title and caption, then its rows. Blocks of one section are separated by a hairline.
+function Block({ id, title, hint, children }: { id: string; title?: string; hint?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-card border border-line bg-surface p-4" data-group={id}>
-      <h2 className="text-sm font-medium">{title}</h2>
-      <p className="mt-0.5 text-xs text-muted">{hint}</p>
-      <div className="mt-2 divide-y divide-line">{children}</div>
+    <div className="border-t border-line py-4 first:border-t-0 first:pt-2" data-group={id}>
+      {title ? <h3 className="text-sm font-medium">{title}</h3> : null}
+      {hint ? <p className="mt-0.5 text-xs text-muted">{hint}</p> : null}
+      <div className={cn('divide-y divide-line', title && 'mt-2')}>{children}</div>
+    </div>
+  )
+}
+
+// A section of the screen: a card with its own anchor, title and caption (the table of contents links here).
+function SectionCard({ id, children }: { id: SettingsSectionId; children: React.ReactNode }) {
+  const focus = useContext(FocusCtx)
+  const s = t.sections[id]
+  return (
+    <section id={sectionAnchor(id)} aria-labelledby={`${sectionAnchor(id)}-title`} data-settings-section={id} className="scroll-mt-28 rounded-card border border-line bg-surface px-4 pb-1 sm:px-5 lg:scroll-mt-20">
+      <header className={cn('-mx-2 mt-3 rounded-xl px-2 py-1', focus === sectionFocus(id) && focusRowClass)} {...focusRow(sectionFocus(id), focus)}>
+        <h2 id={`${sectionAnchor(id)}-title`} className="text-headline font-semibold">
+          {s.title}
+        </h2>
+        <p className="mt-0.5 text-callout text-muted">{s.hint}</p>
+      </header>
+      {children}
     </section>
   )
 }
@@ -179,9 +203,11 @@ function AutopilotRow({ field, mode, onSave }: { field: AutopilotKey; mode: Auto
   const { status, run } = useFieldStatus()
   const a = t.autopilot
   const row = a.rows[field]
+  const focus = useContext(FocusCtx)
+  const path = `autopilot.${field}`
   return (
-    <div className="mt-3" data-autopilot-row={field}>
-      <h3 className="text-sm font-medium">{row.title}</h3>
+    <div className={cn('-mx-2 mt-3 rounded-xl px-2 py-1', focus === path && focusRowClass)} data-autopilot-row={field} {...focusRow(path, focus)}>
+      <h4 className="text-sm font-medium">{row.title}</h4>
       <p className="mt-0.5 text-xs text-muted">{row.hint}</p>
       <div role="radiogroup" aria-label={row.label} className="mt-2 grid gap-2">
         {AUTOPILOT_MODES.map((m) => (
@@ -212,12 +238,10 @@ function AutopilotRow({ field, mode, onSave }: { field: AutopilotKey; mode: Auto
 function Autopilot({ modes, onSave }: { modes: Record<AutopilotKey, AutopilotMode>; onSave: Save }) {
   const a = t.autopilot
   return (
-    <section className="rounded-card border border-accent/40 bg-surface p-4" data-group="autopilot">
-      <h2 className="text-sm font-medium">{a.title}</h2>
-      <p className="mt-0.5 text-xs text-muted">{a.hint}</p>
+    <Block id="autopilot" title={a.title} hint={a.hint}>
       <AutopilotRow field="leadManager" mode={modes.leadManager} onSave={onSave} />
       <AutopilotRow field="support" mode={modes.support} onSave={onSave} />
-    </section>
+    </Block>
   )
 }
 
@@ -314,82 +338,119 @@ export function SettingsSection() {
     [mutate, reloadLog],
   )
 
+  const focus = useSearchParams().get('focus')
+  useFocusRow(focus, true)
+  const items = SETTINGS_SECTIONS.filter((x) => view || x.id === 'prices').map((x) => ({ id: sectionAnchor(x.id), label: t.sections[x.id].title }))
+  const active = useActiveSection(items.map((x) => x.id))
+  const rows = (g: GroupId, extra?: (spec: FieldSpec) => React.ReactNode) =>
+    view
+      ? FIELD_GROUPS[g].map((spec) => (
+          <Row key={spec.path} spec={spec} settings={view.settings} onSave={save} extra={extra?.(spec)} disabled={spec.path.startsWith('schedule.quietHours.') && spec.path !== 'schedule.quietHours.enabled' && view.settings.schedule.quietHours === null} />
+        ))
+      : null
+  const block = (g: GroupId, extra?: (spec: FieldSpec) => React.ReactNode) => (
+    <Block id={g} title={t.groups[g].title} hint={t.groups[g].hint}>
+      {rows(g, extra)}
+    </Block>
+  )
+  const spend = (spec: FieldSpec) => {
+    if (!view) return null
+    const dept = spec.path.startsWith('limits.deptBudgetUsd.') ? spec.path.split('.')[2]! : null
+    return dept ? (
+      <Usage spent={view.usage.deptMonthUsd[dept] ?? 0} limit={view.settings.limits.deptBudgetUsd[dept] ?? 0} label={fill(t.spentOf, { spent: usd(view.usage.deptMonthUsd[dept] ?? 0) })} />
+    ) : spec.path === 'limits.clientLlmDailyCap' ? (
+      <Usage spent={view.usage.clientLlmToday} limit={view.settings.limits.clientLlmDailyCap} label={fill(t.spentToday, { n: view.usage.clientLlmToday })} />
+    ) : null
+  }
+
   return (
-    <div className="flex min-h-full flex-col" data-section-view="settings">
-      <PageHeader title="Settings" hint={admin.hq.sectionHints.settings} />
-      {!view ? (
-        list.error ? <Offline error={list.error} onRetry={() => list.reload()} /> : <Loading rows={4} />
-      ) : (
-        <div className="mx-auto grid w-full max-w-4xl gap-3 p-3 sm:p-5">
-          {view.restartRequired ? (
-            <div role="status" className="rounded-card border border-danger/50 bg-surface p-3 text-sm" data-restart>
-              <p className="font-medium">{t.restartTitle}</p>
-              <p className="text-muted">{fill(t.restartText, { keys: view.restartKeys.join(', ') })}</p>
-            </div>
-          ) : null}
-          <Autopilot modes={view.settings.autopilot} onSave={save} />
-          {GROUP_ORDER.slice(0, 3).map((g) => (
-            <Card key={g} id={g} title={t.groups[g].title} hint={t.groups[g].hint}>
-              {FIELD_GROUPS[g].map((spec) => (
-                <Row key={spec.path} spec={spec} settings={view.settings} onSave={save} disabled={spec.path.startsWith('schedule.quietHours.') && spec.path !== 'schedule.quietHours.enabled' && view.settings.schedule.quietHours === null} />
-              ))}
-            </Card>
-          ))}
-          <Card id="trust" title={t.groups.trust.title} hint={t.groups.trust.hint}>
-            <Row spec={{ path: 'trust.defaultThreshold', kind: 'int', min: 1, max: 1000 }} label={t.trust.default} settings={view.settings} onSave={save} />
-            {view.settings.trust.kinds.length ? (
-              <ul className="divide-y divide-line">
-                {view.settings.trust.kinds.map((k) => (
-                  <TrustRow key={k.kind} kind={k} onSave={save} />
-                ))}
-              </ul>
-            ) : (
-              <p className="py-2 text-sm text-muted">{t.trust.none}</p>
-            )}
-          </Card>
-          {GROUP_ORDER.slice(3).map((g) => (
-            <Card key={g} id={g} title={t.groups[g].title} hint={t.groups[g].hint}>
-              {FIELD_GROUPS[g].map((spec) => {
-                const dept = spec.path.startsWith('limits.deptBudgetUsd.') ? spec.path.split('.')[2]! : null
-                const extra = dept ? (
-                  <Usage spent={view.usage.deptMonthUsd[dept] ?? 0} limit={view.settings.limits.deptBudgetUsd[dept] ?? 0} label={fill(t.spentOf, { spent: usd(view.usage.deptMonthUsd[dept] ?? 0) })} />
-                ) : spec.path === 'limits.clientLlmDailyCap' ? (
-                  <Usage spent={view.usage.clientLlmToday} limit={view.settings.limits.clientLlmDailyCap} label={fill(t.spentToday, { n: view.usage.clientLlmToday })} />
-                ) : null
-                return <Row key={spec.path} spec={spec} settings={view.settings} onSave={save} extra={extra} />
-              })}
-            </Card>
-          ))}
-          <section className="rounded-card border border-line bg-surface p-4" data-group="journal">
-            <h2 className="text-sm font-medium">{t.journal.title}</h2>
-            <p className="mt-0.5 text-xs text-muted">{t.journal.hint}</p>
-            {logList.error && !logList.view ? (
-              <p className="mt-2 text-sm text-danger" role="alert" data-journal-error>
-                {t.journal.failed}{' '}
-                <button type="button" className="underline" onClick={() => void reloadLog()}>
-                  {t.journal.retry}
-                </button>
-              </p>
-            ) : !logList.view ? (
-              <Loading rows={2} />
-            ) : journal.length ? (
-              <ul className="mt-2 grid gap-1 font-mono text-xs" data-journal>
-                {journal.map((c, i) => (
-                  <li key={`${c.at}-${c.key}-${i}`} className="break-words">
-                    <span className="text-faint">{stamp(c.at)}</span> {c.key}: {c.old || '(none)'} {'->'} {c.next || '(none)'}
-                    {c.source !== 'owner' ? <span className="text-faint"> ({c.source})</span> : null}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <div className="mt-2"><Empty>{t.journal.empty}</Empty></div>
-            )}
-          </section>
+    <FocusCtx.Provider value={focus}>
+      <div className="flex min-h-full flex-col" data-section-view="settings">
+        <PageHeader title="Settings" hint={admin.hq.sectionHints.settings}>
+          <SectionStrip items={items} active={active} label={t.nav} className="lg:hidden" />
+        </PageHeader>
+        <div className="mx-auto grid w-full max-w-6xl gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(0,1fr)_12.5rem] lg:gap-6">
+          <div className="grid min-w-0 content-start gap-4">
+            {!view ? (list.error ? <Offline error={list.error} onRetry={() => list.reload()} /> : <Loading rows={4} />) : null}
+            {view?.restartRequired ? (
+              <div role="status" className="rounded-card border border-danger/50 bg-surface p-3 text-sm" data-restart>
+                <p className="font-medium">{t.restartTitle}</p>
+                <p className="text-muted">{fill(t.restartText, { keys: view.restartKeys.join(', ') })}</p>
+              </div>
+            ) : null}
+            {view ? (
+              <>
+                <SectionCard id="general">
+                  {block('schedule')}
+                  {block('calls')}
+                  {block('kp')}
+                </SectionCard>
+                <SectionCard id="notifications">
+                  {block('notices')}
+                  {block('alerts')}
+                </SectionCard>
+                <SectionCard id="autopilot">
+                  <Autopilot modes={view.settings.autopilot} onSave={save} />
+                  <Block id="trust" title={t.groups.trust.title} hint={t.groups.trust.hint}>
+                    <Row spec={{ path: 'trust.defaultThreshold', kind: 'int', min: 1, max: 1000 }} label={t.trust.default} settings={view.settings} onSave={save} />
+                    {view.settings.trust.kinds.length ? (
+                      <ul className="divide-y divide-line">
+                        {view.settings.trust.kinds.map((k) => (
+                          <TrustRow key={k.kind} kind={k} onSave={save} />
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="py-2 text-sm text-muted">{t.trust.none}</p>
+                    )}
+                  </Block>
+                </SectionCard>
+                <SectionCard id="agents">
+                  {block('limits', spend)}
+                  {block('playground')}
+                </SectionCard>
+              </>
+            ) : null}
+            <SectionCard id="prices">
+              <Block id="prices">
+                <PricesTab />
+              </Block>
+            </SectionCard>
+            {view ? (
+              <>
+                <SectionCard id="integrations">{block('service')}</SectionCard>
+                <SectionCard id="journal">
+                  <Block id="journal">
+                    {logList.error && !logList.view ? (
+                      <p className="py-2 text-sm text-danger" role="alert" data-journal-error>
+                        {t.journal.failed}{' '}
+                        <button type="button" className="underline" onClick={() => void reloadLog()}>
+                          {t.journal.retry}
+                        </button>
+                      </p>
+                    ) : !logList.view ? (
+                      <Loading rows={2} />
+                    ) : journal.length ? (
+                      <ul className="grid gap-1 py-2 font-mono text-xs" data-journal>
+                        {journal.map((c, i) => (
+                          <li key={`${c.at}-${c.key}-${i}`} className="break-words">
+                            <span className="text-faint">{stamp(c.at)}</span> {c.key}: {c.old || '(none)'} {'->'} {c.next || '(none)'}
+                            {c.source !== 'owner' ? <span className="text-faint"> ({c.source})</span> : null}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <div className="py-2">
+                        <Empty>{t.journal.empty}</Empty>
+                      </div>
+                    )}
+                  </Block>
+                </SectionCard>
+              </>
+            ) : null}
+          </div>
+          <SectionRail items={items} active={active} label={t.nav} className="max-lg:hidden" />
         </div>
-      )}
-      <section className="mx-auto w-full max-w-4xl p-3 pt-0 sm:p-5 sm:pt-0" data-group="prices">
-        <PricesTab />
-      </section>
-    </div>
+      </div>
+    </FocusCtx.Provider>
   )
 }

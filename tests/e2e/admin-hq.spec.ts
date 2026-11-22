@@ -103,6 +103,31 @@ test.describe('with a session', () => {
   })
 
 
+  test('Settings: sections with a table of contents, anchors, and ⌘K finds a field and marks it', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/settings')
+    const sections = ['general', 'notifications', 'autopilot', 'agents', 'prices', 'integrations', 'journal']
+    for (const id of sections) await expect(page.locator(`[data-settings-section="${id}"]`)).toBeVisible()
+    const rail = page.locator('[data-section-nav="rail"]')
+    await expect(rail).toBeVisible()
+    await rail.getByRole('link', { name: 'Agents and budgets' }).click()
+    await expect(page.locator('#settings-agents')).toBeInViewport()
+    await expect(rail.getByRole('link', { name: 'Agents and budgets' })).toHaveAttribute('aria-current', 'location')
+    // ⌘K: a field is a result; Enter opens the page and marks the row
+    await page.keyboard.press('Control+k')
+    await page.getByRole('combobox', { name: 'Search and commands' }).fill('call length')
+    await page.getByRole('option', { name: /Call length/ }).click()
+    await expect(page).toHaveURL(/focus=calls\.durationMin/)
+    await expect(page.locator('[data-field="calls.durationMin"]')).toHaveAttribute('data-focus-row', 'calls.durationMin')
+    await expect(page.locator('[data-field="calls.durationMin"]')).toBeInViewport()
+    // phone: the section strip replaces the rail
+    await page.setViewportSize(SIZES.mobile)
+    await expect(page.locator('[data-section-nav="strip"]')).toBeVisible()
+    await expect(page.locator('[data-section-nav="rail"]')).toBeHidden()
+    await noHorizontalOverflow(page, 'settings 390')
+    expect(errors).toEqual([])
+  })
+
   test('Settings: autopilot, saving by field with feedback and errors, trust, restart note, session journal', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/settings')
