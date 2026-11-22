@@ -80,10 +80,10 @@ export function change(cur: number, prev: number): { delta: number; percent: num
 // A time to the first answer in words: minutes under an hour, hours with one decimal after, null as a dash.
 export function minutesLabel(m: number | null): string {
   if (m === null) return '-'
-  if (m < 1) return '<1 мин'
-  if (m < 60) return `${Math.round(m)} мин`
+  if (m < 1) return '<1 min'
+  if (m < 60) return `${Math.round(m)} min`
   const h = m / 60
-  return h < 48 ? `${Math.round(h * 10) / 10} ч` : `${Math.round(h / 24)} дн`
+  return h < 48 ? `${Math.round(h * 10) / 10} h` : `${Math.round(h / 24)} d`
 }
 
 // Site events sorted by the count of this week, with the previous week next to them; zero rows on both sides are dropped.

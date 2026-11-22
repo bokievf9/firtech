@@ -11,21 +11,21 @@ export type PersonFilter = TaskFilter & { label?: string | null }
 // The director-route commands of the bot (agents `commands.ts`), with the sentence the autocomplete shows.
 export type DirectorCommand = { name: string; args?: string; help: string }
 export const DIRECTOR_COMMANDS: readonly DirectorCommand[] = [
-  { name: 'status', help: 'кто чем занят, что ждёт вас' },
-  { name: 'tasks', args: '[отдел]', help: 'открытые задачи' },
-  { name: 'approve', help: 'выпустить очередь одобрений' },
-  { name: 'depts', help: 'отделы: пауза и задачи отдела' },
-  { name: 'retry', args: '<id>', help: 'повторить застрявшую задачу' },
-  { name: 'costs', help: 'расходы за месяц по отделам' },
-  { name: 'org', help: 'оргструктура и доверие' },
-  { name: 'workers', help: 'исполнители и что их запускает' },
-  { name: 'builders', help: 'задачи строителям' },
-  { name: 'drill', args: '[отдел]', help: 'учения: проверить все отделы' },
-  { name: 'pause', args: '<отдел>', help: 'поставить отдел на паузу' },
-  { name: 'resume', args: '<отдел>', help: 'вернуть отдел в работу' },
-  { name: 'desk', help: 'я за столом: всё на сайте' },
-  { name: 'away', help: 'я в пути: всё в Telegram' },
-  { name: 'help', help: 'все команды' },
+  { name: 'status', help: 'who is doing what, what waits for you' },
+  { name: 'tasks', args: '[department]', help: 'open tasks' },
+  { name: 'approve', help: 'release the approval queue' },
+  { name: 'depts', help: 'departments: pause and department tasks' },
+  { name: 'retry', args: '<id>', help: 'retry a stuck task' },
+  { name: 'costs', help: 'monthly costs by department' },
+  { name: 'org', help: 'org chart and trust' },
+  { name: 'workers', help: 'workers and what starts them' },
+  { name: 'builders', help: 'tasks for builders' },
+  { name: 'drill', args: '[department]', help: 'drill: check every department' },
+  { name: 'pause', args: '<department>', help: 'pause a department' },
+  { name: 'resume', args: '<department>', help: 'resume a department' },
+  { name: 'desk', help: 'I am at the desk: everything on the site' },
+  { name: 'away', help: 'I am away: everything in Telegram' },
+  { name: 'help', help: 'all commands' },
 ]
 
 // While the first word is a command being typed (`/st`), the matching commands, best first; empty otherwise.
@@ -58,8 +58,8 @@ export function orderActions(task: Pick<HqTask, 'status'>): OrderAction[] {
   return [...(col === 'inbox' || col === 'blocked' ? (['start'] as const) : []), 'remind', 'cancel']
 }
 // HQ has no cancel or reminder endpoint, so both go to the Director in words, as the owner would say them.
-export const cancelText = (task: Pick<HqTask, 'id' | 'title'>) => `Отмени поручение #${task.id}: ${task.title}`
-export const remindText = (task: Pick<HqTask, 'id' | 'title'>) => `Напомни мне про поручение #${task.id}: ${task.title}`
+export const cancelText = (task: Pick<HqTask, 'id' | 'title'>) => `Отмени поручение #${task.id}: ${task.title}` // i18n-ok: text sent to the Director
+export const remindText = (task: Pick<HqTask, 'id' | 'title'>) => `Напомни мне про поручение #${task.id}: ${task.title}` // i18n-ok: text sent to the Director
 
 // ---- the timeline -------------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ export type TimelineEntry =
   | { kind: 'task'; key: string; at: number; task: HqTask; column: TaskColumn | 'gone'; mine: boolean; replies: string[] }
   | { kind: 'me' | 'director' | 'error'; key: string; at: number; text: string }
 
-const OWNER_TAG = 'от владельца'
+const OWNER_TAG = 'от владельца' // i18n-ok: data tag set by HQ
 const ms = (iso: string) => {
   const t = Date.parse(iso)
   return Number.isNaN(t) ? 0 : t

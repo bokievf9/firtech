@@ -1,6 +1,7 @@
 'use client'
 
 import { PanelError, PanelWait } from './panel-error'
+import { deptLabel } from '@/lib/admin-labels'
 import { ArrowClockwise, BellRinging, MagnifyingGlass, PaperPlaneRight, Trash, UserFocus, X, XCircle } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
@@ -31,7 +32,7 @@ import { chat, clearChat, clearedAt } from './chat-store'
 import { runOrder } from './orders-run'
 
 const t = admin.orders
-const deptName = (id: string) => (admin.office.depts as Record<string, string>)[id] ?? id
+const deptName = (id: string) => (admin.office.depts as Record<string, string>)[id] ?? deptLabel(id)
 const PAGE = 60
 
 const columnTone: Record<TaskColumn | 'gone', string> = {

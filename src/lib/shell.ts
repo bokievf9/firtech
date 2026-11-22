@@ -956,16 +956,16 @@ export function toolGroups(tools: CompanyTool[]): { group: string; tools: Compan
     .map(([group, list]) => ({ group, tools: list.sort((a, b) => a.name.localeCompare(b.name)) }))
 }
 
-const secText = (ms: number) => (ms >= 3_600_000 && ms % 3_600_000 === 0 ? `${ms / 3_600_000} ч` : ms >= 60_000 && ms % 60_000 === 0 ? `${ms / 60_000} мин` : ms % 1000 === 0 ? `${ms / 1000} с` : `${ms / 1000} с`)
+const secText = (ms: number) => (ms >= 3_600_000 && ms % 3_600_000 === 0 ? `${ms / 3_600_000} h` : ms >= 60_000 && ms % 60_000 === 0 ? `${ms / 60_000} min` : ms % 1000 === 0 ? `${ms / 1000} s` : `${ms / 1000} s`)
 // Limits as one line: known keys in words, unknown ones as `key value`.
 export function limitsText(limits: CompanyTool['limits']): string {
   const parts: string[] = []
   for (const [key, v] of Object.entries(limits)) {
     if (typeof v === 'number') {
-      if (key === 'timeoutMs') parts.push(`таймаут ${secText(v)}`)
-      else if (key === 'minGapMs') parts.push(`пауза ${secText(v)}`)
-      else if (key === 'cacheTtlMs') parts.push(`кэш ${secText(v)}`)
-      else if (key === 'maxResults') parts.push(`до ${v} результатов`)
+      if (key === 'timeoutMs') parts.push(`timeout ${secText(v)}`)
+      else if (key === 'minGapMs') parts.push(`pause ${secText(v)}`)
+      else if (key === 'cacheTtlMs') parts.push(`cache ${secText(v)}`)
+      else if (key === 'maxResults') parts.push(`up to ${v} results`)
       else parts.push(`${key} ${v}`)
     } else parts.push(`${key} ${v}`)
   }

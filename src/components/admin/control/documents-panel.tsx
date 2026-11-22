@@ -57,17 +57,17 @@ export function DocumentsPanel({
     const it = target.item
     const payload = versionSavePayload(it, text, target.doc)
     if (!payload) {
-      notify('Текст не изменился')
+      notify('The text did not change')
       return true
     }
     const res = await hq<{ item?: unknown }>(`review/${encodeURIComponent(it.id)}`, payload)
     if (!res.ok) {
-      notify(fill('Не получилось: {e}.', { e: errText(res.error) }), 'error')
+      notify(fill('Failed: {e}.', { e: errText(res.error) }), 'error')
       return false
     }
     const fresh = normalizeItem(res.item)
     review.mutate((v) => ({ ...v, items: fresh ? replaceItem(v.items, fresh) : v.items.map((x) => (x.id === it.id ? withDocText(x, text, target.doc) : x)) }))
-    notify(fresh ? `Сохранено как версия v${fresh.currentVersion}` : 'Правка сохранена, версия добавлена')
+    notify(fresh ? `Saved as version v${fresh.currentVersion}` : 'Edit saved, version added')
     feed.reload()
     return true
   }
@@ -122,11 +122,11 @@ export function DocumentsPanel({
                                     type="button"
                                     className={`${btn} mt-2 min-h-9`}
                                     disabled={!target}
-                                    title={target ? undefined : review.view ? whyNotEditable(d) : 'Загружаю карточки документов'}
+                                    title={target ? undefined : review.view ? whyNotEditable(d) : 'Loading document cards'}
                                     onClick={() => setEditing(d.id)}
                                   >
                                     <PencilSimpleLine size={15} aria-hidden="true" />
-                                    Править
+                                    Edit
                                   </button>
                                 )
                               })()}
@@ -150,7 +150,7 @@ export function DocumentsPanel({
         <DocEditor
           key={editTarget.storageId}
           title={editTarget.doc ? `${editTarget.item.title || editTarget.item.summary}: ${editTarget.title}` : editTarget.title}
-          subtitle="Документ"
+          subtitle="Document"
           initial={editTarget.value}
           baseText={targetBase(editTarget)}
           storageId={editTarget.storageId}

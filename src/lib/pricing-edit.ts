@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import ru from '../content/ru'
+import en from '../content/en'
 import {
   agentPlanList,
   companyPlanOf,
@@ -29,31 +29,31 @@ export const HISTORY_MAX = 200
 export const emptyPrices = (): PricesState => ({ overrides: {}, updatedAt: null, history: [] })
 
 const serviceNames: Record<string, string> = Object.fromEntries(
-  serviceSlugs.map((s) => [s, ru.services.items[s].name]),
+  serviceSlugs.map((s) => [s, en.services.items[s].name]),
 )
 const stageTemplateNames: Record<StageTemplateId, string> = {
-  site: 'Сайт',
-  bot: 'Бот',
-  automation: 'Автоматизация',
-  app: 'Приложение и Mini App',
-  small: 'Малый проект',
-  company: 'ИИ вашей компании',
+  site: 'Website',
+  bot: 'Bot',
+  automation: 'Automation',
+  app: 'App and Mini App',
+  small: 'Small project',
+  company: 'AI for your company',
 }
 const extraNames: Record<string, string> = {
-  support: 'Поддержка',
+  support: 'Support',
   seo: 'SEO',
-  design: 'Дизайн',
-  rescue: 'Спасение проекта',
+  design: 'Design',
+  rescue: 'Project rescue',
 }
 const planNames: Record<string, string> = {
-  basic: 'Персональный ИИ, «Спутник»',
-  plus: 'Персональный ИИ, «Второй пилот»',
-  max: 'Персональный ИИ, «Второе я»',
-  company: 'ИИ вашей компании, цена «от»',
-  agent: 'Один ИИ-агент (команда: сумма агентов со скидкой)',
-  dono: 'Dono (снят с продажи, нужен Shell)',
-  polly: 'Polly (снят с продажи, нужен Shell)',
-  content: 'Контент на автопилоте',
+  basic: 'Personal AI, Companion',
+  plus: 'Personal AI, Copilot',
+  max: 'Personal AI, Second self',
+  company: 'AI for your company, price "from"',
+  agent: 'One AI agent (team: sum of agents with a discount)',
+  dono: 'Dono (withdrawn from sale, needs Shell)',
+  polly: 'Polly (withdrawn from sale, needs Shell)',
+  content: 'Content on autopilot',
 }
 const stageTitleRu: Record<string, string> = {}
 
@@ -75,9 +75,9 @@ function field(path: string, def: number): PriceField {
   const usd = { unit: 'usd' as const, min: 0, max: 100000, step: 10 }
   switch (root) {
     case 'startingPrice':
-      return { path, def, group: 'start', section: 'Сервисы', label: serviceNames[a] ?? a, ...usd }
+      return { path, def, group: 'start', section: 'Services', label: serviceNames[a] ?? a, ...usd }
     case 'catalog': {
-      const cat = ru.estimator.catalog[a as keyof typeof ru.estimator.catalog]
+      const cat = en.estimator.catalog[a as keyof typeof en.estimator.catalog]
       if (b === 'variants') {
         const v = (cat.variants as Record<string, { name: string }>)[c]
         return { path, def, group: 'kinds', section: serviceNames[a] ?? a, label: v?.name ?? c, ...usd }
@@ -87,8 +87,8 @@ function field(path: string, def: number): PriceField {
     }
     case 'extras':
       return {
-        path, def, group: 'extras', section: 'Допы',
-        label: a === 'support' ? 'Поддержка, в месяц' : (extraNames[a] ?? a),
+        path, def, group: 'extras', section: 'Extras',
+        label: a === 'support' ? 'Support, per month' : (extraNames[a] ?? a),
         ...usd, unit: a === 'support' ? 'usd_month' : 'usd', step: 5,
       }
     case 'personalPlans':
@@ -100,20 +100,20 @@ function field(path: string, def: number): PriceField {
       const plan = root === 'agentSubscription' ? 'agent' : a
       return {
         path, def, group: 'plans', section: planNames[plan] ?? plan,
-        label: key === 'setup' ? 'Подключение' : key === 'byokMonthly' ? 'В месяц со своим API-ключом' : 'В месяц',
+        label: key === 'setup' ? 'Setup' : key === 'byokMonthly' ? 'Per month with your own API key' : 'Per month',
         ...usd, unit: key === 'setup' ? 'usd' : 'usd_month', step: 5,
       }
     }
     case 'teamDiscount':
-      return { path, def, group: 'discounts', section: 'Скидки', label: 'Скидка ИИ-команды: сумма агентов минус', unit: 'percent', min: 0, max: 50, step: 1 }
+      return { path, def, group: 'discounts', section: 'Discounts', label: 'AI team discount: sum of agents minus', unit: 'percent', min: 0, max: 50, step: 1 }
     case 'companyPerEmployee':
-      return { path, def, group: 'plans', section: planNames.company ?? 'company', label: 'За каждого сотрудника сверх пяти, в месяц', ...usd, unit: 'usd_month', step: 1 }
+      return { path, def, group: 'plans', section: planNames.company ?? 'company', label: 'Per employee above five, per month', ...usd, unit: 'usd_month', step: 1 }
     case 'bundleDiscount':
-      return { path, def, group: 'discounts', section: 'Скидки', label: 'Скидка на сборку из двух и более частей', unit: 'percent', min: 0, max: 50, step: 1 }
+      return { path, def, group: 'discounts', section: 'Discounts', label: 'Discount for a build of two or more parts', unit: 'percent', min: 0, max: 50, step: 1 }
     case 'referralPercent':
-      return { path, def, group: 'discounts', section: 'Реферал', label: 'Награда за приведённого клиента', unit: 'percent', min: 0, max: 50, step: 1 }
+      return { path, def, group: 'discounts', section: 'Referral', label: 'Reward for a referred client', unit: 'percent', min: 0, max: 50, step: 1 }
     case 'smallProjectMaxUsd':
-      return { path, def, group: 'stages', section: 'Порог', label: 'Малый проект: сумма проекта ниже', unit: 'usd', min: 0, max: 5000, step: 10 }
+      return { path, def, group: 'stages', section: 'Threshold', label: 'Small project: project sum below', unit: 'usd', min: 0, max: 5000, step: 10 }
     case 'stageShares':
       return {
         path, def, group: 'stages', section: stageTemplateNames[a as StageTemplateId] ?? a,
@@ -124,7 +124,7 @@ function field(path: string, def: number): PriceField {
 }
 
 for (const id of stageTemplateIds)
-  for (const s of stageDefs(id, defaultPricing)) stageTitleRu[`${id}.${s.id}`] = s.title.ru
+  for (const s of stageDefs(id, defaultPricing)) stageTitleRu[`${id}.${s.id}`] = s.title.en
 
 // Every editable price, in display order.
 export const priceFields: PriceField[] = leaves(defaultPricing).map(([p, v]) => field(p, v))

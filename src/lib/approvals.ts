@@ -94,16 +94,16 @@ export function planBatch(items: ReviewItem[], selected: ReadonlySet<string>, ac
 
 // The question before a batch. Money gets its own sentence: it moves invoices and prices.
 export function batchQuestion(tab: ApprovalTab, action: BatchAction, count: number): string {
-  const what = action === 'approve' ? 'Одобрить' : 'Отклонить'
-  const extra = tab === 'money' && action === 'approve' ? ' Счета и цены уйдут клиентам как есть.' : ''
-  return `${what} выбранное (${count})?${extra}`
+  const what = action === 'approve' ? 'Approve' : 'Reject'
+  const extra = tab === 'money' && action === 'approve' ? ' Invoices and prices go to clients as they are.' : ''
+  return `${what} selected (${count})?${extra}`
 }
 
 export function batchResultText(action: BatchAction, done: number, failed: number, skipped: number): string {
-  const verb = action === 'approve' ? 'Одобрено' : 'Отклонено'
+  const verb = action === 'approve' ? 'Approved' : 'Rejected'
   const parts = [`${verb}: ${done}`]
-  if (failed) parts.push(`не вышло: ${failed}`)
-  if (skipped) parts.push(`пропущено (нельзя решить пачкой): ${skipped}`)
+  if (failed) parts.push(`failed: ${failed}`)
+  if (skipped) parts.push(`skipped (cannot be decided in a batch): ${skipped}`)
   return parts.join('. ')
 }
 

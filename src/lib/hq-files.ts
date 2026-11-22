@@ -22,7 +22,7 @@ const fail = (status: number, error: string) =>
 
 export function placeholderSvg(path: string): string {
   const name = path.split('/').pop()!.replace(/[^\w.-]/g, '')
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><rect width="1080" height="1350" fill="#11160f"/><rect x="60" y="60" width="960" height="1230" rx="48" fill="none" stroke="#c6f432" stroke-width="6" stroke-dasharray="24 18"/><text x="540" y="640" fill="#c6f432" font-family="monospace" font-size="56" text-anchor="middle">демо-рендер</text><text x="540" y="720" fill="#8a9384" font-family="monospace" font-size="36" text-anchor="middle">${name}</text></svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><rect width="1080" height="1350" fill="#11160f"/><rect x="60" y="60" width="960" height="1230" rx="48" fill="none" stroke="#c6f432" stroke-width="6" stroke-dasharray="24 18"/><text x="540" y="640" fill="#c6f432" font-family="monospace" font-size="56" text-anchor="middle">demo render</text><text x="540" y="720" fill="#8a9384" font-family="monospace" font-size="36" text-anchor="middle">${name}</text></svg>`
 }
 
 export async function proxyRenderFile(

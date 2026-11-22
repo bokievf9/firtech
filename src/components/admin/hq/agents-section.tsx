@@ -1,6 +1,7 @@
 'use client'
 
 import { ArrowLeft, ClockCounterClockwise, PencilSimple, X } from '@phosphor-icons/react'
+import { deptLabel } from '@/lib/admin-labels'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { errText, hq } from '@/components/admin/control/api'
@@ -14,7 +15,7 @@ const t = admin.hq.agents
 const fill = (text: string, vars: Record<string, string | number>) => text.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''))
 const usd = (n: number) => `$${n.toFixed(n >= 10 ? 0 : 2)}`
 const stamp = (iso: string | null) => (iso ? new Date(iso).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' }) : '')
-const deptName = (id: string) => (t.depts as Record<string, string>)[id] ?? id
+const deptName = (id: string) => (t.depts as Record<string, string>)[id] ?? deptLabel(id)
 
 // The Agents section: the roster by department on the left, the card of the picked agent on the right (a phone shows one
 // at a time, `?agent=<id>`). Reads `GET agents` and `GET agents/<id>`; the instructions are edited and rolled back through the card.

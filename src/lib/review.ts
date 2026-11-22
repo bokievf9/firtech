@@ -213,14 +213,14 @@ export function stepItem(list: ReviewItem[], id: string | null, dir: 1 | -1): st
 
 export type ActionButton = { action: ReviewAction; key: string; label: string; tone: 'primary' | 'plain' | 'danger'; confirm: boolean }
 const BUTTONS: Record<ReviewAction, Omit<ActionButton, 'action'>> = {
-  approve: { key: 'A', label: 'Одобрить', tone: 'primary', confirm: false },
-  edit: { key: 'E', label: 'Править', tone: 'plain', confirm: false },
-  revise: { key: 'R', label: 'Правки', tone: 'plain', confirm: false },
-  reject: { key: 'X', label: 'Отклонить', tone: 'danger', confirm: true },
-  publish_now: { key: 'P', label: 'Выложить сейчас', tone: 'primary', confirm: true },
-  reschedule: { key: 'T', label: 'Перенести', tone: 'plain', confirm: false },
-  send: { key: 'S', label: 'Отправить', tone: 'primary', confirm: false },
-  call: { key: 'C', label: 'Позвонить', tone: 'plain', confirm: false },
+  approve: { key: 'A', label: 'Approve', tone: 'primary', confirm: false },
+  edit: { key: 'E', label: 'Edit', tone: 'plain', confirm: false },
+  revise: { key: 'R', label: 'Revise', tone: 'plain', confirm: false },
+  reject: { key: 'X', label: 'Reject', tone: 'danger', confirm: true },
+  publish_now: { key: 'P', label: 'Publish now', tone: 'primary', confirm: true },
+  reschedule: { key: 'T', label: 'Move', tone: 'plain', confirm: false },
+  send: { key: 'S', label: 'Send', tone: 'primary', confirm: false },
+  call: { key: 'C', label: 'Call', tone: 'plain', confirm: false },
 }
 // The buttons for what HQ says is allowed now, in the contract's order (HQ already sends them so).
 export function actionButtons(item: Pick<ReviewItem, 'actions'>): ActionButton[] {
@@ -281,17 +281,17 @@ export function fieldsOf(item: ReviewItem): Field[] {
     if (value !== undefined && (value !== '' || editable)) out.push({ key, label, value, editable: editable && can, rows })
   }
   if (item.kind === 'content_item') {
-    add('caption', 'Подпись', t.caption, true, 5)
-    add('hashtags', 'Хештеги', t.hashtags ? hashtagsText(t.hashtags) : undefined, true, 2)
-    add('body', item.meta.format === 'carousel' ? 'Слайды' : 'Сценарий', t.body, true, 8)
-    add('tiktok', 'Подпись TikTok', t.captions?.tiktok, true, 4)
-    add('shorts', 'Подпись Shorts', t.captions?.shorts, true, 4)
+    add('caption', 'Caption', t.caption, true, 5)
+    add('hashtags', 'Hashtags', t.hashtags ? hashtagsText(t.hashtags) : undefined, true, 2)
+    add('body', item.meta.format === 'carousel' ? 'Slides' : 'Script', t.body, true, 8)
+    add('tiktok', 'TikTok caption', t.captions?.tiktok, true, 4)
+    add('shorts', 'Shorts caption', t.captions?.shorts, true, 4)
     return out
   }
-  add('subject', 'Заголовок', t.subject, false, 2)
+  add('subject', 'Title', t.subject, false, 2)
   const text = t.draft ?? t.body
-  add('draft', item.kind === 'article' ? 'Превью' : 'Текст', text, true, 10)
-  add('page', 'Страница', t.page, false, 2)
+  add('draft', item.kind === 'article' ? 'Preview' : 'Text', text, true, 10)
+  add('page', 'Page', t.page, false, 2)
   return out
 }
 
@@ -324,13 +324,13 @@ export function leadBreakdownInput(item: Pick<ReviewItem, 'meta'>): { estimate: 
 
 export type VersionChange = { key: string; label: string; before: string; after: string; delta: number }
 const VERSION_FIELDS: [string, string, (t: ReviewText) => string][] = [
-  ['subject', 'Заголовок', (t) => t.subject ?? ''],
-  ['caption', 'Подпись', (t) => t.caption ?? ''],
-  ['hashtags', 'Хештеги', (t) => hashtagsText(t.hashtags)],
-  ['body', 'Текст', (t) => t.body ?? ''],
-  ['draft', 'Черновик', (t) => t.draft ?? ''],
-  ['tiktok', 'Подпись TikTok', (t) => t.captions?.tiktok ?? ''],
-  ['shorts', 'Подпись Shorts', (t) => t.captions?.shorts ?? ''],
+  ['subject', 'Title', (t) => t.subject ?? ''],
+  ['caption', 'Caption', (t) => t.caption ?? ''],
+  ['hashtags', 'Hashtags', (t) => hashtagsText(t.hashtags)],
+  ['body', 'Text', (t) => t.body ?? ''],
+  ['draft', 'Draft', (t) => t.draft ?? ''],
+  ['tiktok', 'TikTok caption', (t) => t.captions?.tiktok ?? ''],
+  ['shorts', 'Shorts caption', (t) => t.captions?.shorts ?? ''],
 ]
 export function versionChanges(a: ReviewVersion, b: ReviewVersion): VersionChange[] {
   const out: VersionChange[] = []
@@ -346,8 +346,8 @@ export function versionChanges(a: ReviewVersion, b: ReviewVersion): VersionChang
 export function versionSummary(a: ReviewVersion | undefined, b: ReviewVersion | undefined): string {
   if (!a || !b) return ''
   const ch = versionChanges(a, b)
-  if (!ch.length) return a.media.length !== b.media.length ? 'Изменены только файлы' : 'Без изменений в тексте'
-  return `Изменено: ${ch.map((c) => `${c.label} (${c.delta === 0 ? 'заменено' : `${c.delta > 0 ? '+' : ''}${c.delta} зн.`})`).join(', ')}`
+  if (!ch.length) return a.media.length !== b.media.length ? 'Only files changed' : 'No text changes'
+  return `Changed: ${ch.map((c) => `${c.label} (${c.delta === 0 ? 'replaced' : `${c.delta > 0 ? '+' : ''}${c.delta} chars`})`).join(', ')}`
 }
 
 // The two versions to compare: the last one against the one before it. Null with a single version.
@@ -371,75 +371,75 @@ export function metaCards(item: ReviewItem): MetaCard[] {
   if (Object.keys(lead).length)
     cards.push({
       id: 'lead',
-      title: `Лид${lead.name ? `: ${str(lead.name, 80)}` : ''}`,
-      lines: compact([line('Контакт', lead.contact), line('Услуга', lead.service), line('Бюджет', lead.budget), line('Этап', lead.stage), line('Источник', lead.source)]),
+      title: `Lead${lead.name ? `: ${str(lead.name, 80)}` : ''}`,
+      lines: compact([line('Contact', lead.contact), line('Service', lead.service), line('Budget', lead.budget), line('Stage', lead.stage), line('Source', lead.source)]),
       href: panelHref('sales', 'leads', lead.id),
-      linkLabel: 'Открыть лид',
+      linkLabel: 'Open lead',
     })
   const client = rec(m.client)
   if (Object.keys(client).length && (client.id || client.email || client.name))
     cards.push({
       id: 'client',
-      title: `Клиент${client.name ? `: ${str(client.name, 80)}` : ''}`,
-      lines: compact([line('Почта', client.email), client.cabinet ? 'Есть кабинет' : null]),
+      title: `Client${client.name ? `: ${str(client.name, 80)}` : ''}`,
+      lines: compact([line('Email', client.email), client.cabinet ? 'Has a cabinet' : null]),
       href: panelHref('sales', 'clients', client.id),
-      linkLabel: 'Открыть клиента',
+      linkLabel: 'Open client',
     })
   const ticket = rec(m.ticket)
   if (Object.keys(ticket).length)
     cards.push({
       id: 'ticket',
-      title: `Тикет #${str(ticket.id, 20)}`,
-      lines: compact([line('Клиент', ticket.clientName), line('Контакт', ticket.contact), line('Статус', ticket.status), line('Вопрос', ticket.question)]),
+      title: `Ticket #${str(ticket.id, 20)}`,
+      lines: compact([line('Client', ticket.clientName), line('Contact', ticket.contact), line('Status', ticket.status), line('Question', ticket.question)]),
       href: panelHref('support', 'tickets', ticket.id),
-      linkLabel: 'Открыть тикет',
+      linkLabel: 'Open ticket',
     })
   const invoice = rec(m.invoice)
   if (Object.keys(invoice).length)
     cards.push({
       id: 'invoice',
-      title: `Счёт ${str(invoice.number, 40) || `#${str(invoice.id, 20)}`}`,
-      lines: compact([line('Клиент', invoice.client), invoice.amountUsd !== undefined ? `Сумма: $${str(invoice.amountUsd, 20)}` : null, line('Срок', invoice.dueDate), line('За что', invoice.what), line('Статус', invoice.status)]),
+      title: `Invoice ${str(invoice.number, 40) || `#${str(invoice.id, 20)}`}`,
+      lines: compact([line('Client', invoice.client), invoice.amountUsd !== undefined ? `Amount: $${str(invoice.amountUsd, 20)}` : null, line('Due', invoice.dueDate), line('For', invoice.what), line('Status', invoice.status)]),
       href: panelHref('backoffice', 'invoices', invoice.id),
-      linkLabel: 'Открыть счёт',
+      linkLabel: 'Open invoice',
     })
   const project = rec(m.project)
   if (Object.keys(project).length)
     cards.push({
       id: 'project',
-      title: `Проект #${str(project.id, 20)}`,
-      lines: compact([line('Клиент', project.client), line('Статус', project.status)]),
+      title: `Project #${str(project.id, 20)}`,
+      lines: compact([line('Client', project.client), line('Status', project.status)]),
       href: panelHref('production', 'projects', project.id),
-      linkLabel: 'Открыть проект',
+      linkLabel: 'Open project',
     })
   const doc = rec(m.document)
   if (Object.keys(doc).length)
     cards.push({
       id: 'document',
-      title: `Документ #${str(doc.id, 20)}`,
-      lines: compact([line('Тип', doc.type), line('Клиент', doc.client), line('Версия', doc.version)]),
+      title: `Document #${str(doc.id, 20)}`,
+      lines: compact([line('Type', doc.type), line('Client', doc.client), line('Version', doc.version)]),
       href: panelHref('backoffice', 'documents', doc.id),
-      linkLabel: 'Открыть документы',
+      linkLabel: 'Open documents',
     })
   const prospect = rec(m.prospect)
   if (Object.keys(prospect).length)
     cards.push({
       id: 'prospect',
-      title: `Разведка: ${str(prospect.name, 80) || `#${str(prospect.id, 20)}`}`,
-      lines: compact([line('Ниша', prospect.niche), line('Город', prospect.city), line('Telegram', prospect.telegram)]),
+      title: `Prospect: ${str(prospect.name, 80) || `#${str(prospect.id, 20)}`}`,
+      lines: compact([line('Niche', prospect.niche), line('City', prospect.city), line('Telegram', prospect.telegram)]),
       href: panelHref('sales', 'prospects', prospect.id),
-      linkLabel: 'Открыть разведку',
+      linkLabel: 'Open prospecting',
     })
   const link = rec(m.link)
   if (Object.keys(link).length) {
     const url = safeUrl(link.url)
-    cards.push({ id: 'link', title: 'Ссылка владельца', lines: compact([line('Заметка', link.note), url]), href: url, linkLabel: 'Открыть ссылку' })
+    cards.push({ id: 'link', title: 'Owner link', lines: compact([line('Note', link.note), url]), href: url, linkLabel: 'Open link' })
   }
   return cards
 }
 
 export type MetaChip = { id: string; label: string; value: string }
-const RENDER_STATES: Record<string, string> = { none: 'после одобрения', rendering: 'рисуется', ready: 'готово', failed: 'не получилось' }
+const RENDER_STATES: Record<string, string> = { none: 'after approval', rendering: 'rendering', ready: 'ready', failed: 'failed' }
 export const renderState = (item: ReviewItem): string | null => {
   const s = rec(item.meta.render).state
   return typeof s === 'string' ? s : null
@@ -450,16 +450,16 @@ export function metaChips(item: ReviewItem): MetaChip[] {
   const m = item.meta
   const list = (v: unknown) => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').join(', ') : '')
   const chips: (MetaChip | null)[] = [
-    typeof m.slot === 'string' ? { id: 'slot', label: 'День', value: m.slot } : null,
-    typeof m.platform === 'string' ? { id: 'platform', label: 'Площадка', value: m.platform } : null,
-    list(m.platforms) ? { id: 'platforms', label: 'Площадки', value: list(m.platforms) } : null,
-    typeof m.format === 'string' ? { id: 'format', label: 'Формат', value: m.format } : null,
-    typeof m.source === 'string' ? { id: 'source', label: 'Источник', value: m.source } : null,
-    renderState(item) ? { id: 'render', label: 'Рендер', value: renderStateText(renderState(item)) } : null,
-    list(m.publishedOn) ? { id: 'published', label: 'Вышло', value: list(m.publishedOn) } : null,
-    list(m.macQueued) ? { id: 'queued', label: 'В очереди Мака', value: list(m.macQueued) } : null,
-    typeof m.delivery === 'string' ? { id: 'delivery', label: 'Доставка', value: m.delivery === 'telegram' ? 'бот отправит сам' : 'перешлёте вы' } : null,
-    m.heldByPack === true ? { id: 'pack', label: 'В пакете недели', value: 'да' } : null,
+    typeof m.slot === 'string' ? { id: 'slot', label: 'Day', value: m.slot } : null,
+    typeof m.platform === 'string' ? { id: 'platform', label: 'Platform', value: m.platform } : null,
+    list(m.platforms) ? { id: 'platforms', label: 'Platforms', value: list(m.platforms) } : null,
+    typeof m.format === 'string' ? { id: 'format', label: 'Format', value: m.format } : null,
+    typeof m.source === 'string' ? { id: 'source', label: 'Source', value: m.source } : null,
+    renderState(item) ? { id: 'render', label: 'Render', value: renderStateText(renderState(item)) } : null,
+    list(m.publishedOn) ? { id: 'published', label: 'Published', value: list(m.publishedOn) } : null,
+    list(m.macQueued) ? { id: 'queued', label: 'In the Mac queue', value: list(m.macQueued) } : null,
+    typeof m.delivery === 'string' ? { id: 'delivery', label: 'Delivery', value: m.delivery === 'telegram' ? 'the bot sends it' : 'you forward it' } : null,
+    m.heldByPack === true ? { id: 'pack', label: 'In the week pack', value: 'yes' } : null,
   ]
   return chips.filter((c): c is MetaChip => c !== null)
 }
@@ -467,10 +467,10 @@ export function metaChips(item: ReviewItem): MetaChip[] {
 // Why there is nothing to look at: the sentence of the empty stage.
 export function emptyMediaReason(item: ReviewItem): string {
   const s = renderState(item)
-  if (s === 'rendering') return 'Видео и картинки рисуются, это займёт несколько минут.'
-  if (s === 'failed') return 'Рендер не получился. Можно пересобрать в панели «Контент».'
-  if (item.status === 'pending' && item.kind === 'content_item') return 'Картинки и видео рисуются после одобрения. Сейчас можно читать и править текст.'
-  return 'К материалу нет файлов.'
+  if (s === 'rendering') return 'Video and images are rendering, this takes a few minutes.'
+  if (s === 'failed') return 'The render failed. You can rebuild it in the Content panel.'
+  if (item.status === 'pending' && item.kind === 'content_item') return 'Images and video render after approval. For now you can read and edit the text.'
+  return 'The material has no files.'
 }
 
 export const publishedUrl = (item: ReviewItem): string | null => safeUrl(item.meta.publishedUrl)
@@ -512,7 +512,7 @@ export function normalizeResults(raw: unknown): PublishResult[] {
     return { platform: str(r.platform, 20), state: str(r.state, 20), url: safeUrl(r.url), reason: optStr(r.reason, 300) ?? optStr(r.error, 300) }
   })
 }
-const RESULT_STATES: Record<string, string> = { published: 'вышло', queued: 'в очереди помощника на Маке', skipped: 'уже было', manual: 'вручную (автопубликации нет)', failed: 'не получилось', not_ready: 'не готово' }
+const RESULT_STATES: Record<string, string> = { published: 'published', queued: 'in the Mac helper queue', skipped: 'already done', manual: 'by hand (no auto-publishing)', failed: 'failed', not_ready: 'not ready' }
 export const resultText = (r: PublishResult) => `${r.platform}: ${RESULT_STATES[r.state] ?? r.state}${r.reason ? `. ${r.reason}` : ''}`
 
 // ---- trends ---------------------------------------------------------------------------------------
@@ -545,44 +545,44 @@ export function normalizeTrends(body: unknown): TrendsView | null {
   }
   return { items }
 }
-export const TREND_LABELS: Record<TrendStatus, string> = { analysing: 'разбираю', proposed: 'есть материал', done: 'решено', failed: 'не вышло' }
+export const TREND_LABELS: Record<TrendStatus, string> = { analysing: 'analysing', proposed: 'material ready', done: 'decided', failed: 'failed' }
 
 // Same checks as HQ's `invalid_link`, run before the call so a typo never costs a request.
 const TREND_HOSTS = ['www.instagram.com', 'instagram.com', 'www.tiktok.com', 'vm.tiktok.com', 'vt.tiktok.com', 'www.youtube.com', 'm.youtube.com', 'youtube.com', 'youtu.be']
 export function trendUrlProblem(input: string): string | null {
   const v = input.trim()
-  if (!v) return 'Вставьте ссылку'
-  if (v.length > 600) return 'Ссылка длиннее 600 знаков'
+  if (!v) return 'Paste a link'
+  if (v.length > 600) return 'The link is longer than 600 characters'
   let u: URL
   try {
     u = new URL(v)
   } catch {
-    return 'Это не ссылка'
+    return 'This is not a link'
   }
-  if (u.protocol !== 'https:') return 'Нужна ссылка https://'
-  if (u.username || u.password) return 'В ссылке не должно быть логина'
-  if (!TREND_HOSTS.includes(u.hostname.toLowerCase())) return 'Подходят Instagram, TikTok и YouTube'
+  if (u.protocol !== 'https:') return 'An https:// link is needed'
+  if (u.username || u.password) return 'The link must not contain a login'
+  if (!TREND_HOSTS.includes(u.hostname.toLowerCase())) return 'Instagram, TikTok and YouTube links work'
   return null
 }
 
 // ---- errors ---------------------------------------------------------------------------------------
 
 const ERROR_TEXT: Record<string, string> = {
-  already_decided: 'Это уже решено другим способом',
-  not_pending: 'Материал уже не ждёт решения',
-  not_applicable: 'Это действие сейчас недоступно',
-  not_applied: 'Текст не изменился',
-  placeholder: 'В тексте остались места в квадратных скобках, заполните их в режиме правки',
-  not_ready: 'Материал ещё не готов к публикации',
-  not_configured: 'Автопубликация для этой площадки не настроена',
-  publish_failed: 'Публикация не удалась, можно нажать ещё раз',
-  failed: 'Одобрение не выполнилось',
-  not_delivered: 'Не доставлено клиенту, отправьте вручную',
-  invalid: 'Неверные данные',
-  invalid_link: 'Ссылка не подходит',
-  unavailable: 'Отдел маркетинга сейчас недоступен',
-  rate_limited: 'Слишком много запросов, подождите минуту',
-  not_found: 'Материал не найден, возможно уже убран',
+  already_decided: 'Already decided another way',
+  not_pending: 'The material is no longer waiting for a decision',
+  not_applicable: 'This action is not available now',
+  not_applied: 'The text did not change',
+  placeholder: 'The text still has places in square brackets, fill them in edit mode',
+  not_ready: 'The material is not ready to publish yet',
+  not_configured: 'Auto-publishing is not set up for this platform',
+  publish_failed: 'Publishing failed, you can press again',
+  failed: 'The approval did not go through',
+  not_delivered: 'Not delivered to the client, send it by hand',
+  invalid: 'Invalid data',
+  invalid_link: 'The link does not fit',
+  unavailable: 'The Marketing department is unavailable now',
+  rate_limited: 'Too many requests, wait a minute',
+  not_found: 'Material not found, it may have been removed',
 }
 // A short Russian sentence for a failed call: HQ's code, plus what it said (reason, placeholders).
 export function reviewError(res: { error: string; reason?: string; message?: unknown; placeholders?: unknown }, fallback: (code: string) => string): string {

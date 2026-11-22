@@ -1,6 +1,7 @@
 'use client'
 
 import { CornersIn, CornersOut, Lightning, MagnifyingGlassMinus, MagnifyingGlassPlus, SealCheck, Tag, WarningCircle } from '@phosphor-icons/react'
+import { deptLabel } from '@/lib/admin-labels'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -108,7 +109,7 @@ function describe(data: OfficeData, target: HitTarget, now: number): Info | null
   return {
     title: person.role === 'head' ? `${person.title} · ${t.head.toLowerCase()}` : person.title,
     status: person.status,
-    rows: [[t.scene.dept, person.role === 'director' ? t.scene.director : deptName(person.deptId, person.deptTitle)]],
+    rows: [[t.scene.dept, person.role === 'director' ? t.scene.director : deptName(person.deptId, deptLabel(person.deptTitle))]],
   }
 }
 
@@ -454,7 +455,7 @@ export function PixelOffice({
     else if (key === 'ArrowRight') scene.panBy(-PAN_KEY, 0)
     else if (key === 'ArrowUp') scene.panBy(0, PAN_KEY)
     else if (key === 'ArrowDown') scene.panBy(0, -PAN_KEY)
-    else if (key === 'f' || key === 'F' || key === 'а' || key === 'А') toggleFull()
+    else if (key === 'f' || key === 'F' || key === 'а' || key === 'А') toggleFull() // i18n-ok: Russian keyboard layout
     else return
     e.preventDefault()
   }
@@ -585,7 +586,7 @@ export function PixelOffice({
 
       {weather?.tempC !== null && weather?.tempC !== undefined ? (
         <p className="pointer-events-none absolute bottom-2 right-2 z-20 rounded-full border border-line bg-surface/85 px-2.5 py-0.5 font-mono text-[11px] text-fg backdrop-blur" title={t.scene.weather}>
-          {formatTemp(weather.tempC)} · Душанбе
+          {formatTemp(weather.tempC)} · Dushanbe
         </p>
       ) : null}
 

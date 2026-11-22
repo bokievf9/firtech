@@ -221,20 +221,20 @@ export function minutesSince(iso: string | null | undefined, now: number): numbe
 
 // "только что", "5 мин", "2 ч 10 мин", "3 д". Used after "с" ("с 5 мин") by the callers' copy.
 export function formatDuration(minutes: number): string {
-  if (minutes < 1) return 'меньше минуты'
-  if (minutes < 60) return `${minutes} мин`
+  if (minutes < 1) return 'under a minute'
+  if (minutes < 60) return `${minutes} min`
   if (minutes < 60 * 24) {
     const h = Math.floor(minutes / 60)
     const m = minutes % 60
-    return m ? `${h} ч ${m} мин` : `${h} ч`
+    return m ? `${h} h ${m} min` : `${h} h`
   }
-  return `${Math.floor(minutes / (60 * 24))} д`
+  return `${Math.floor(minutes / (60 * 24))} d`
 }
 
 // "данные N с назад": seconds under a minute, then minutes.
 export function formatDataAge(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds))
-  if (s < 60) return `${s} с`
+  if (s < 60) return `${s} s`
   return formatDuration(Math.floor(s / 60))
 }
 
@@ -258,7 +258,7 @@ export function formatUntil(iso: string | null | undefined, now: number): string
   const t = Date.parse(iso)
   if (Number.isNaN(t)) return ''
   const minutes = Math.floor((t - now) / 60_000)
-  return minutes < 1 ? 'сейчас' : `через ${formatDuration(minutes)}`
+  return minutes < 1 ? 'now' : `in ${formatDuration(minutes)}`
 }
 
 export function formatUsd(value: number): string {

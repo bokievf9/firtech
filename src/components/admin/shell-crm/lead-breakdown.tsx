@@ -63,7 +63,7 @@ function Preview({ b }: { b: Breakdown }) {
         {sw ? (
           <span className="inline-flex items-center gap-1.5 text-xs text-muted">
             <span aria-hidden="true" className="inline-block size-3 rounded-full border border-line-strong" style={{ background: sw.accent }} />
-            {sw.mode === 'dark' ? 'тёмная' : 'светлая'} тема{sw.look ? `, ${sw.look}` : ''}
+            {sw.mode === 'dark' ? 'dark' : 'light'} theme{sw.look ? `, ${sw.look}` : ''}
           </span>
         ) : null}
       </div>

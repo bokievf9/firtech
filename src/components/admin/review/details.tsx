@@ -39,9 +39,9 @@ export type DetailsProps = {
   onOpenId: (id: string) => void
 }
 
-const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '')
+const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '')
 
-// The right column: the text fields (read-only until «Править»), versions, the revise note, meta and
+// The right column: the text fields (read-only until «Edit»), versions, the revise note, meta and
 // the cards of the lead / ticket / invoice the material is about.
 export function Details(p: DetailsProps) {
   const { item } = p
@@ -75,20 +75,20 @@ export function Details(p: DetailsProps) {
       {url ? (
         <a href={url} className="inline-flex items-center gap-1.5 text-sm text-accent-text underline">
           <ArrowSquareOut size={14} aria-hidden="true" />
-          Открыть опубликованное
+          Open the published item
         </a>
       ) : null}
       {revision?.state ? (
         <p className="rounded-xl border border-dashed border-line-strong p-3 text-sm text-muted">
           {revision.state === 'delivered' && revision.reviewId ? (
             <>
-              Отдел сдал новую версию по вашим правкам.{' '}
+              The department delivered a new version from your edits.{' '}
               <button type="button" onClick={() => p.onOpenId(revision.reviewId!)} className="text-accent-text underline">
-                Открыть
+                Open
               </button>
             </>
           ) : (
-            'Отдел переделывает материал по вашим правкам. Этот останется, пока вы не решите.'
+            'The department is redoing the material from your edits. This one stays until you decide.'
           )}
         </p>
       ) : null}
@@ -96,8 +96,8 @@ export function Details(p: DetailsProps) {
       {isReplyKind(item.kind) ? <RateButtons messageId={item.id} thread="review" /> : null}
 
       {item.versions.length > 1 ? (
-        <section aria-label="Версии" className="grid gap-2">
-          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Версия текста">
+        <section aria-label="Versions" className="grid gap-2">
+          <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Text version">
             {item.versions.map((v) => {
               const active = (p.viewVersion ?? item.currentVersion) === v.v
               return (
@@ -109,24 +109,24 @@ export function Details(p: DetailsProps) {
                   className={cn('inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-sm', active ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-muted hover:text-fg')}
                 >
                   v{v.v}
-                  <span className="text-xs opacity-70">{v.author === 'owner' ? 'вы' : 'отдел'}</span>
+                  <span className="text-xs opacity-70">{v.author === 'owner' ? 'you' : 'department'}</span>
                 </button>
               )
             })}
           </div>
           {pair ? <p className="text-xs text-muted">{versionSummary(pair[0], pair[1])}</p> : null}
-          {version?.note ? <p className="text-xs text-faint">Заметка к версии: {version.note}</p> : null}
+          {version?.note ? <p className="text-xs text-faint">Version note: {version.note}</p> : null}
           {pair ? (
             <div className="hidden gap-2 min-[1440px]:grid">
               {versionChanges(pair[0], pair[1]).map((c) => (
                 <div key={c.key} className="grid grid-cols-2 gap-2 text-xs">
                   <div className="rounded-xl border border-line bg-inset p-2">
                     <p className="mb-1 text-faint">v{pair[0].v}: {c.label}</p>
-                    <p className="whitespace-pre-wrap">{c.before || 'пусто'}</p>
+                    <p className="whitespace-pre-wrap">{c.before || 'empty'}</p>
                   </div>
                   <div className="rounded-xl border border-accent/40 bg-inset p-2">
                     <p className="mb-1 text-accent-text">v{pair[1].v}: {c.label}</p>
-                    <p className="whitespace-pre-wrap">{c.after || 'пусто'}</p>
+                    <p className="whitespace-pre-wrap">{c.after || 'empty'}</p>
                   </div>
                 </div>
               ))}
@@ -135,8 +135,8 @@ export function Details(p: DetailsProps) {
         </section>
       ) : null}
 
-      <section aria-label="Тексты" className="grid gap-4">
-        {version ? <p className="rounded-xl bg-surface-2 p-2 text-xs text-muted">Показана версия v{version.v}. Править можно только текущую.</p> : null}
+      <section aria-label="Texts" className="grid gap-4">
+        {version ? <p className="rounded-xl bg-surface-2 p-2 text-xs text-muted">Showing version v{version.v}. Only the current one can be edited.</p> : null}
         {fields.length ? (
           fields.map((f) => (
             <div key={f.key} className="grid gap-1.5">
@@ -150,25 +150,25 @@ export function Details(p: DetailsProps) {
                   className={cn(inputClass, 'resize-y leading-relaxed')}
                 />
               ) : (
-                <p id={`f-${f.key}`} className="rounded-xl bg-inset px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">{f.value || 'пусто'}</p>
+                <p id={`f-${f.key}`} className="rounded-xl bg-inset px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">{f.value || 'empty'}</p>
               )}
             </div>
           ))
         ) : (
-          <p className="text-sm text-muted">Текст смотрите в центре экрана.</p>
+          <p className="text-sm text-muted">Read the text in the center of the screen.</p>
         )}
         {editing ? (
           <div className="flex gap-2">
-            <button type="button" onClick={p.onSave} disabled={p.busy} className={btnPrimary}>Сохранить правку</button>
-            <button type="button" onClick={p.onCancelEdit} className={btn}>Отмена</button>
+            <button type="button" onClick={p.onSave} disabled={p.busy} className={btnPrimary}>Save edit</button>
+            <button type="button" onClick={p.onCancelEdit} className={btn}>Cancel</button>
           </div>
         ) : null}
       </section>
 
       {p.reviseOpen ? (
-        <section aria-label="Правки" className="grid gap-2 rounded-2xl border border-accent/40 bg-inset p-3">
-          <label htmlFor="revise-note" className="text-sm font-medium">Что поправить</label>
-          <p className="text-xs text-muted">Отдел напишет новый материал по вашему замечанию. Этот останется, пока вы не решите.</p>
+        <section aria-label="Edits" className="grid gap-2 rounded-2xl border border-accent/40 bg-inset p-3">
+          <label htmlFor="revise-note" className="text-sm font-medium">What to fix</label>
+          <p className="text-xs text-muted">The department will write new material from your note. This one stays until you decide.</p>
           <textarea
             id="revise-note"
             rows={4}
@@ -181,18 +181,18 @@ export function Details(p: DetailsProps) {
                 p.onSendRevise()
               }
             }}
-            placeholder="Например: хук короче, убери второй слайд"
+            placeholder="For example: shorter hook, remove the second slide"
             className={cn(inputClass, 'resize-y')}
           />
           <div className="flex gap-2">
-            <button type="button" disabled={!p.note.trim() || p.busy} onClick={p.onSendRevise} className={btnPrimary}>Отправить правки</button>
-            <button type="button" onClick={p.onCancelRevise} className={btn}>Отмена</button>
+            <button type="button" disabled={!p.note.trim() || p.busy} onClick={p.onSendRevise} className={btnPrimary}>Send revisions</button>
+            <button type="button" onClick={p.onCancelRevise} className={btn}>Cancel</button>
           </div>
         </section>
       ) : null}
 
       {chips.length ? (
-        <section aria-label="Данные" className="flex flex-wrap gap-1.5">
+        <section aria-label="Data" className="flex flex-wrap gap-1.5">
           {chips.map((c) => (
             <Chip key={c.id}>{c.label}: {c.value}</Chip>
           ))}
@@ -223,7 +223,7 @@ export function Details(p: DetailsProps) {
 
       {item.versions[0]?.note && item.meta.source === 'owner_link' ? (
         <section className="grid gap-1.5">
-          <h3 className="text-xs text-faint">Разбор ссылки</h3>
+          <h3 className="text-xs text-faint">Link breakdown</h3>
           <p className="rounded-xl bg-inset px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">{item.versions[0].note}</p>
         </section>
       ) : null}

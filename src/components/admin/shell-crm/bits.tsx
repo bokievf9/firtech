@@ -27,13 +27,13 @@ export function Chip({ tone = 'plain', children }: { tone?: Tone; children: Reac
 }
 
 export const usd = (n: number | null | undefined) =>
-  n === null || n === undefined ? '-' : `$${n.toLocaleString('ru-RU', { maximumFractionDigits: 2 })}`
+  n === null || n === undefined ? '-' : `$${n.toLocaleString('en-US', { maximumFractionDigits: 2 })}`
 
 export const shortDate = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) : '-'
+  iso ? new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '-'
 
 export const shortTime = (iso: string | null) =>
-  iso ? new Date(iso).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'
+  iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '-'
 
 export const invoiceTone = (status: string, overdue: boolean): Tone =>
   overdue ? 'bad' : status === 'paid' ? 'accent' : status === 'issued' ? 'warn' : status === 'void' ? 'dim' : 'plain'

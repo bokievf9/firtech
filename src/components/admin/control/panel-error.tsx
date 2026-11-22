@@ -15,7 +15,7 @@ export function PanelError({ error }: { error: string }) {
         <p className="font-medium text-danger">{errText(error)}</p>
         <p className="mt-0.5 inline-flex items-center gap-2 text-xs text-muted">
           <Spinner />
-          Пробуем снова сами, раз в несколько секунд
+          Retrying on its own every few seconds
         </p>
       </div>
     </div>
@@ -23,6 +23,6 @@ export function PanelError({ error }: { error: string }) {
 }
 
 // Placeholder rows while a Пульт panel waits for its first answer.
-export function PanelWait({ height = 'h-40', label = 'Загружаем' }: { height?: string; label?: string }) {
+export function PanelWait({ height = 'h-40', label = 'Loading' }: { height?: string; label?: string }) {
   return <div role="status" aria-busy="true" aria-label={label} className={`skeleton skeleton-block ${height}`} />
 }

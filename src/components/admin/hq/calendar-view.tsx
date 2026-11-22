@@ -21,10 +21,10 @@ const DOT: Record<CalendarKind, string> = {
   content: 'bg-dept-marketing',
 }
 
-const dayLabel = (day: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('ru-RU', { timeZone: 'UTC', ...opts }).format(Date.parse(`${day}T12:00:00Z`))
+const dayLabel = (day: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', ...opts }).format(Date.parse(`${day}T12:00:00Z`))
 const timeLabel = (iso: string, tz: string) => {
   try {
-    return new Intl.DateTimeFormat('ru-RU', { timeZone: tz, hour: '2-digit', minute: '2-digit' }).format(Date.parse(iso))
+    return new Intl.DateTimeFormat('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit' }).format(Date.parse(iso))
   } catch {
     return ''
   }

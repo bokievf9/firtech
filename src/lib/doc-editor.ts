@@ -126,8 +126,8 @@ export function targetForRow(row: DocRow, items: ReviewItem[]): DocTarget | null
 
 // Why a row cannot be edited, for the disabled button.
 export function whyNotEditable(row: Pick<DocRow, 'id' | 'kind'>): string {
-  if (row.kind === 'invoice') return 'Выставленный счёт не правится: отмените его и выставьте новый.'
-  return 'Shell не даёт править этот документ: клиент уже принял или подписал его, либо карточки нет.'
+  if (row.kind === 'invoice') return 'An issued invoice cannot be edited: void it and issue a new one.'
+  return 'Shell does not allow editing this document: the client has accepted or signed it, or there is no card.'
 }
 
 // HQ refuses a draft longer than this (400 invalid), so the editor stops before it (contracts are long).
@@ -189,11 +189,11 @@ function eachLine(t: string, s: number, e: number, fn: (line: string, i: number)
   return { text: t.slice(0, a) + next + t.slice(b), start: a, end: a + next.length }
 }
 
-export const TABLE_HEAD = ['Этап', 'Что входит', 'Сумма'] as const
+export const TABLE_HEAD = ['Stage', 'What is included', 'Sum'] as const
 
 export function applyFormat(t: string, s: number, e: number, kind: FormatKind): Edit {
-  if (kind === 'bold') return wrap(t, s, e, '**', 'текст')
-  if (kind === 'italic') return wrap(t, s, e, '*', 'текст')
+  if (kind === 'bold') return wrap(t, s, e, '**', 'text')
+  if (kind === 'italic') return wrap(t, s, e, '*', 'text')
   if (kind === 'heading')
     return eachLine(t, s, e, (l) => (/^#{1,3}\s/.test(l) ? l.replace(/^#{1,3}\s/, '') : `## ${l}`))
   if (kind === 'list') {
@@ -203,7 +203,7 @@ export function applyFormat(t: string, s: number, e: number, kind: FormatKind): 
     return eachLine(t, s, e, (l) => (all ? l.replace(/^[-*]\s/, '') : /^[-*]\s/.test(l) ? l : `- ${l}`))
   }
   if (kind === 'link') {
-    const label = t.slice(s, e) || 'текст ссылки'
+    const label = t.slice(s, e) || 'link text'
     const url = 'https://'
     const text = `${t.slice(0, s)}[${label}](${url})${t.slice(e)}`
     const urlStart = s + label.length + 3

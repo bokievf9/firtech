@@ -17,7 +17,7 @@ export function Fail({ code, own, onRetry, className }: { code: string; own?: Re
 export function when(iso: string | null, tz = 'Asia/Tashkent'): string {
   if (!iso) return '-'
   try {
-    return new Intl.DateTimeFormat('ru-RU', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(Date.parse(iso))
+    return new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(Date.parse(iso))
   } catch {
     return iso.slice(0, 16)
   }

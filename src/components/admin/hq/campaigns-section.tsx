@@ -37,7 +37,7 @@ const STATUS_TONE: Record<CampaignStatus, string> = {
 
 const when = (iso: string) => {
   try {
-    return new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(Date.parse(iso))
+    return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(Date.parse(iso))
   } catch {
     return iso.slice(0, 16)
   }

@@ -86,7 +86,7 @@ function Ring({ percent, done, total, reduce }: { percent: number; done: number;
       <p className="text-left text-sm leading-tight">
         <span className="block font-brand text-xl tabular-nums">{percent}%</span>
         <span className="text-muted">
-          Готово <span className="font-mono tabular-nums text-fg">{done}</span> из <span className="font-mono tabular-nums text-fg">{total}</span>
+          Done <span className="font-mono tabular-nums text-fg">{done}</span> of <span className="font-mono tabular-nums text-fg">{total}</span>
         </span>
       </p>
     </div>

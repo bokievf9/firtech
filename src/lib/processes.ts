@@ -102,15 +102,15 @@ export function normalizeProcesses(body: unknown): ProcessesView | null {
 
 // «5 мин назад», «вчера» and so on; null (never) is «ещё не было».
 export function sinceText(iso: string | null, now: number): string {
-  if (!iso) return 'ещё не было'
+  if (!iso) return 'never'
   const ms = now - Date.parse(iso)
-  if (!Number.isFinite(ms) || ms < 60_000) return 'только что'
+  if (!Number.isFinite(ms) || ms < 60_000) return 'just now'
   const min = Math.floor(ms / 60_000)
-  if (min < 60) return `${min} мин назад`
+  if (min < 60) return `${min} min ago`
   const h = Math.floor(min / 60)
-  if (h < 24) return `${h} ч назад`
+  if (h < 24) return `${h} h ago`
   const d = Math.floor(h / 24)
-  return d === 1 ? 'вчера' : `${d} дн. назад`
+  return d === 1 ? 'yesterday' : `${d} d ago`
 }
 
 // Drill rows grouped for the button state: the drill is running while any row still works.

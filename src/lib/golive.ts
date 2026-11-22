@@ -44,10 +44,10 @@ export function chipText(r: Remaining) {
 
 // Words for «how long ago»: «3 ч 05 мин», «2 д 4 ч», «41 мин».
 export function agoText(r: Remaining) {
-  if (r.hours >= 24) return `${Math.floor(r.hours / 24)} д ${r.hours % 24} ч`
-  if (r.hours) return `${r.hours} ч ${two(r.minutes)} мин`
-  if (r.minutes) return `${r.minutes} мин`
-  return `${r.seconds} с`
+  if (r.hours >= 24) return `${Math.floor(r.hours / 24)} d ${r.hours % 24} h`
+  if (r.hours) return `${r.hours} h ${two(r.minutes)} min`
+  if (r.minutes) return `${r.minutes} min`
+  return `${r.seconds} s`
 }
 
 export type Progress = { done: number; total: number; percent: number }
@@ -142,9 +142,9 @@ export function sanitize(raw: unknown): GoliveState {
 }
 
 export function formatDeadline(iso: string, tz = GOLIVE_TZ) {
-  return new Intl.DateTimeFormat('ru-RU', { timeZone: tz, day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso))
+  return new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso))
 }
 
 export function formatTick(iso: string, tz = GOLIVE_TZ) {
-  return new Intl.DateTimeFormat('ru-RU', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso))
+  return new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(iso))
 }

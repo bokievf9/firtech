@@ -53,11 +53,11 @@ const time = (iso: string | null) => {
   if (!iso) return ''
   const d = new Date(iso)
   const same = d.toDateString() === new Date().toDateString()
-  return same ? d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+  return same ? d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
-const t422 = 'У клиента несколько тредов: выберите, куда отправить ответ.'
+const t422 = 'The client has several threads: choose where to send the reply.'
 const NO_TEXTS =
-  'Тексты анонимных диалогов сайта и бота не хранятся: у такого чата есть только короткая обезличенная сводка. Сообщения появятся, когда человек станет лидом, тикетом или клиентом кабинета.'
+  'Texts of anonymous site and bot dialogs are not stored: such a chat has only a short anonymous summary. Messages appear when the person becomes a lead, a ticket or a cabinet client.'
 
 function ChannelChips({ channels }: { channels: Channel[] }) {
   return (
@@ -137,7 +137,7 @@ function ChatsPageInner() {
   const { mutate: mutateList } = list
   const { mutate: mutateOpen } = open
 
-  // «Отметить непрочитанным»: optimistic (the counter in the list at once), rolled back when HQ refuses.
+  // «Mark as unread»: optimistic (the counter in the list at once), rolled back when HQ refuses.
   const markUnread = async (t: ChatThread) => {
     const before = list.view?.items.find((x) => x.id === t.id) ?? null
     mutateList((v) => ({ ...v, items: v.items.map((x) => (x.id === t.id ? markedUnread(x) : x)), unread: v.items.filter((x) => (x.id === t.id ? markedUnread(x) : x).unread > 0).length }))
@@ -156,7 +156,7 @@ function ChatsPageInner() {
       const items = v.items.map((x) => (x.id === t.id || x.id === row.id ? row : x))
       return { ...v, items, unread: items.filter((x) => x.unread > 0).length }
     })
-    notify('Отмечено непрочитанным', 'info')
+    notify('Marked as unread', 'info')
   }
 
   const send = async () => {
@@ -223,41 +223,41 @@ function ChatsPageInner() {
     <div className="absolute inset-0 flex flex-col bg-bg text-fg">
       <header className="flex min-h-12 items-center gap-2 border-b border-line px-2 sm:gap-3 sm:px-4">
         {!desktop && sel ? (
-          <button type="button" onClick={() => setSel(null)} aria-label="К списку чатов" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm">
+          <button type="button" onClick={() => setSel(null)} aria-label="Back to the chat list" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm">
             <ArrowLeft size={16} aria-hidden="true" />
-            Чаты
+            Chats
           </button>
         ) : null}
-        <h1 className={cn('font-brand text-sm tracking-wide sm:text-base', !desktop && sel && 'sr-only')}>Чаты</h1>
-        {unread ? <span className="rounded-full bg-accent px-2.5 py-1 font-mono text-xs tabular-nums text-accent-ink" aria-label={`Непрочитанных: ${unread}`}>{unread}</span> : null}
+        <h1 className={cn('font-brand text-sm tracking-wide sm:text-base', !desktop && sel && 'sr-only')}>Chats</h1>
+        {unread ? <span className="rounded-full bg-accent px-2.5 py-1 font-mono text-xs tabular-nums text-accent-ink" aria-label={`Unread: ${unread}`}>{unread}</span> : null}
       </header>
 
       <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[22rem_minmax(0,1fr)]">
         {showList ? (
-          <aside aria-label="Чаты" className="flex h-full min-h-0 flex-col border-r border-line">
-            <div className="flex flex-wrap gap-1.5 border-b border-line p-2" role="group" aria-label="Фильтры">
+          <aside aria-label="Chats" className="flex h-full min-h-0 flex-col border-r border-line">
+            <div className="flex flex-wrap gap-1.5 border-b border-line p-2" role="group" aria-label="Filters">
               {(['open', 'all'] as const).map((s) => (
                 <button key={s} type="button" aria-pressed={scope === s} onClick={() => setScope(s)} className={cn('min-h-9 rounded-full border px-3 text-sm', scope === s ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-muted')}>
-                  {s === 'open' ? 'Активные' : 'Все'}
+                  {s === 'open' ? 'Active' : 'All'}
                 </button>
               ))}
               {(['all', 'web', 'telegram', 'cabinet'] as const).map((c) => (
                 <button key={c} type="button" aria-pressed={channel === c} onClick={() => setChannel(c)} className={cn('min-h-9 rounded-full border px-3 text-sm', channel === c ? 'border-accent text-accent-text' : 'border-line text-muted')}>
-                  {c === 'all' ? 'Любой канал' : CHANNEL_LABELS[c]}
+                  {c === 'all' ? 'Any channel' : CHANNEL_LABELS[c]}
                 </button>
               ))}
             </div>
             <div className="border-b border-line p-2">
               <label className="relative block">
-                <span className="sr-only">Поиск по клиентам</span>
+                <span className="sr-only">Search clients</span>
                 <MagnifyingGlass size={16} aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint" />
-                <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} maxLength={80} placeholder="Поиск: имя, контакт, почта, текст" className={cn(inputClass, 'pl-9')} />
+                <input type="search" value={query} onChange={(e) => setQuery(e.target.value)} maxLength={80} placeholder="Search: name, contact, email, text" className={cn(inputClass, 'pl-9')} />
               </label>
             </div>
             <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               {list.error && !list.view ? <li><Offline error={list.error} onRetry={() => list.reload()} /></li> : null}
-              {!list.view && !list.error ? <li role="status" className="p-4 text-sm text-muted">Загружаю чаты</li> : null}
-              {list.view && !threads.length ? <li className="p-4 text-sm text-muted">{query.trim() ? 'По запросу никого нет.' : 'Чатов нет.'}</li> : null}
+              {!list.view && !list.error ? <li role="status" className="p-4 text-sm text-muted">Loading chats</li> : null}
+              {list.view && !threads.length ? <li className="p-4 text-sm text-muted">{query.trim() ? 'Nobody matches the search.' : 'No chats.'}</li> : null}
               {threads.map((t) => {
                 const active = t.id === activeId
                 return (
@@ -274,13 +274,13 @@ function ChatsPageInner() {
                         <span className={cn('truncate text-sm', t.unread ? 'font-semibold' : 'font-medium')}>{t.client.name}</span>
                         <span className="shrink-0 font-mono text-xs text-faint">{time(t.lastAt)}</span>
                       </span>
-                      <span className={cn('line-clamp-2 text-sm', t.unread ? 'text-fg' : 'text-muted')}>{t.preview || 'Без текста'}</span>
+                      <span className={cn('line-clamp-2 text-sm', t.unread ? 'text-fg' : 'text-muted')}>{t.preview || 'No text'}</span>
                       <span className="flex flex-wrap items-center gap-1">
                         <ChannelChips channels={t.channels} />
-                        {t.leadId !== null ? <Chip tone="accent">лид #{t.leadId}</Chip> : null}
-                        {t.ticketId !== null ? <Chip tone={t.openTicket ? 'warn' : 'plain'}>тикет #{t.ticketId}</Chip> : null}
+                        {t.leadId !== null ? <Chip tone="accent">lead #{t.leadId}</Chip> : null}
+                        {t.ticketId !== null ? <Chip tone={t.openTicket ? 'warn' : 'plain'}>ticket #{t.ticketId}</Chip> : null}
                         <AutopilotChip settings={autopilot} thread={t} plain />
-                        {t.unread ? <span className="ml-auto rounded-full bg-accent px-2 py-0.5 font-mono text-xs text-accent-ink" aria-label="Есть непрочитанное">{t.unread}</span> : null}
+                        {t.unread ? <span className="ml-auto rounded-full bg-accent px-2 py-0.5 font-mono text-xs text-accent-ink" aria-label="Has unread messages">{t.unread}</span> : null}
                       </span>
                     </button>
                   </li>
@@ -291,12 +291,12 @@ function ChatsPageInner() {
         ) : null}
 
         {showThread ? (
-          <section aria-label="Переписка" className="flex h-full min-h-0 flex-col">
+          <section aria-label="Conversation" className="flex h-full min-h-0 flex-col">
             {!thread ? (
               <div className="grid flex-1 place-items-center p-6 text-center">
                 <div className="grid justify-items-center gap-2">
                   <ChatCircleText size={40} weight="duotone" aria-hidden="true" className="text-faint" />
-                  <p className="text-sm text-muted">Выберите чат слева.</p>
+                  <p className="text-sm text-muted">Choose a chat on the left.</p>
                 </div>
               </div>
             ) : (
@@ -304,7 +304,7 @@ function ChatsPageInner() {
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-line px-4 py-3">
                   <div className="min-w-0">
                     <h2 className="truncate text-base font-semibold">{thread.client.name}</h2>
-                    <p className="truncate text-xs text-muted">{[thread.client.contact, thread.client.email].filter(Boolean).join(' · ') || 'Контактов нет'}</p>
+                    <p className="truncate text-xs text-muted">{[thread.client.contact, thread.client.email].filter(Boolean).join(' · ') || 'No contacts'}</p>
                   </div>
                   <ChannelChips channels={thread.channels} />
                   <AutopilotChip settings={autopilot} thread={thread} lastThread={lastThread} />
@@ -314,7 +314,7 @@ function ChatsPageInner() {
                       onClick={() => void markUnread(thread)}
                       className="inline-flex min-h-9 items-center gap-1 text-sm text-muted hover:text-fg"
                     >
-                      <EnvelopeSimple size={14} aria-hidden="true" /> Отметить непрочитанным
+                      <EnvelopeSimple size={14} aria-hidden="true" /> Mark as unread
                     </button>
                     {threadLinks(thread).map((l) => (
                       <Link key={l.href} href={l.href} className="inline-flex min-h-9 items-center text-sm text-accent-text underline">{l.label}</Link>
@@ -327,7 +327,7 @@ function ChatsPageInner() {
                   {!thread.textsStored ? (
                     <div className="mx-auto grid max-w-md gap-2 rounded-2xl border border-dashed border-line-strong p-4 text-sm">
                       <p>{NO_TEXTS}</p>
-                      {thread.preview ? <p className="text-muted">Сводка: {thread.preview}</p> : null}
+                      {thread.preview ? <p className="text-muted">Summary: {thread.preview}</p> : null}
                     </div>
                   ) : (
                     <ol className="mx-auto grid max-w-2xl gap-3">
@@ -345,11 +345,11 @@ function ChatsPageInner() {
                               ))}
                             </div>
                             <span className="mt-0.5 flex items-center gap-2 px-1 font-mono text-xs text-faint">
-                              {m.from === 'hq' ? 'Fir Tech' : m.from === 'owner' ? 'Вы' : 'Клиент'}, {CHANNEL_LABELS[m.channel]}, {time(m.at)}
+                              {m.from === 'hq' ? 'Fir Tech' : m.from === 'owner' ? 'You' : 'Client'}, {CHANNEL_LABELS[m.channel]}, {time(m.at)}
                               {showThreadChip && m.thread ? <Chip>{choiceLabel(m.thread)}</Chip> : null}
                               {canReplyTo(m) ? (
-                                <button type="button" onClick={() => setReplyTo(m)} aria-label="Ответить на это сообщение" className="inline-flex min-h-6 items-center gap-1 font-sans text-accent-text underline">
-                                  <ArrowBendUpLeft size={12} aria-hidden="true" /> Ответить
+                                <button type="button" onClick={() => setReplyTo(m)} aria-label="Reply to this message" className="inline-flex min-h-6 items-center gap-1 font-sans text-accent-text underline">
+                                  <ArrowBendUpLeft size={12} aria-hidden="true" /> Reply
                                 </button>
                               ) : null}
                             </span>
@@ -373,7 +373,7 @@ function ChatsPageInner() {
                     <div className="mx-auto mb-2 flex max-w-2xl flex-wrap items-center gap-2 text-sm">
                       {choices.length > 1 ? (
                         <label className="flex min-w-0 max-w-full items-center gap-2">
-                          <span className={cn('shrink-0 text-xs', pickerHot ? 'text-warn' : 'text-faint')}>Ответить в тред</span>
+                          <span className={cn('shrink-0 text-xs', pickerHot ? 'text-warn' : 'text-faint')}>Reply in the thread</span>
                           <select
                             ref={picker}
                             value={chosen ?? ''}
@@ -392,8 +392,8 @@ function ChatsPageInner() {
                       {replyTo ? (
                         <span className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-full bg-surface-2 py-1 pr-1 pl-3 text-xs text-muted">
                           <ArrowBendUpLeft size={12} aria-hidden="true" />
-                          <span className="truncate">Ответ на: {replyTo.text.slice(0, 60)}</span>
-                          <button type="button" onClick={() => setReplyTo(null)} aria-label="Не отвечать на сообщение" className="grid size-6 place-items-center rounded-full hover:bg-surface-3">
+                          <span className="truncate">Reply to: {replyTo.text.slice(0, 60)}</span>
+                          <button type="button" onClick={() => setReplyTo(null)} aria-label="Do not reply to the message" className="grid size-6 place-items-center rounded-full hover:bg-surface-3">
                             <X size={12} aria-hidden="true" />
                           </button>
                         </span>
@@ -402,12 +402,12 @@ function ChatsPageInner() {
                   ) : null}
                   <div className="mx-auto flex max-w-2xl items-end gap-2">
                     <label className="min-w-0 flex-1">
-                      <span className="sr-only">Ответ клиенту</span>
+                      <span className="sr-only">Reply to the client</span>
                       <textarea
                         value={draft}
                         rows={2}
                         maxLength={2000}
-                        placeholder="Ответ клиенту. Enter отправляет, Shift+Enter новая строка"
+                        placeholder="Reply to the client. Enter sends, Shift+Enter adds a line"
                         onChange={(e) => setDraft(e.target.value)}
                         onKeyDown={(e) => {
                           if (sendsOnEnter({ key: e.key, shiftKey: e.shiftKey, isComposing: e.nativeEvent.isComposing })) {
@@ -420,7 +420,7 @@ function ChatsPageInner() {
                     </label>
                     <button type="submit" disabled={!draft.trim() || sending} className={cn(btnPrimary, 'shrink-0')}>
                       <PaperPlaneTilt size={16} weight="fill" aria-hidden="true" />
-                      Отправить
+                      Send
                     </button>
                   </div>
                 </form>

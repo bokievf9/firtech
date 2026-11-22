@@ -24,7 +24,7 @@ const KIND_DOT: Record<(typeof AUDIT_KINDS)[number], string> = {
 
 const when = (iso: string, tz: string) => {
   try {
-    return new Intl.DateTimeFormat('ru-RU', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(Date.parse(iso))
+    return new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(Date.parse(iso))
   } catch {
     return iso.slice(0, 16)
   }

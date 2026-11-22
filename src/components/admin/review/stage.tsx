@@ -51,10 +51,10 @@ const VideoPlayer = forwardRef<StageHandle, { media: ReviewMedia }>(function Vid
           <>
             {media.poster ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={media.poster} alt="Кадр из видео" className="size-full object-cover" />
+              <img src={media.poster} alt="Video frame" className="size-full object-cover" />
             ) : null}
             <p role="status" className="absolute inset-x-3 bottom-3 rounded-xl border border-line-strong bg-elevated/95 p-2.5 text-center text-xs text-muted">
-              Видео не загрузилось. Показан кадр.
+              The video did not load. A frame is shown.
             </p>
           </>
         ) : (
@@ -78,7 +78,7 @@ const VideoPlayer = forwardRef<StageHandle, { media: ReviewMedia }>(function Vid
       </div>
       </div>
       <div className="flex w-full max-w-[26rem] items-center gap-2">
-        <button type="button" onClick={toggle} disabled={failed} aria-label={playing ? 'Пауза (Пробел)' : 'Играть (Пробел)'} className={cn(iconBtn, 'disabled:opacity-40')}>
+        <button type="button" onClick={toggle} disabled={failed} aria-label={playing ? 'Pause (Space)' : 'Play (Space)'} className={cn(iconBtn, 'disabled:opacity-40')}>
           {playing ? <Pause size={18} weight="fill" aria-hidden="true" /> : <Play size={18} weight="fill" aria-hidden="true" />}
         </button>
         <input
@@ -88,7 +88,7 @@ const VideoPlayer = forwardRef<StageHandle, { media: ReviewMedia }>(function Vid
           step={0.1}
           value={Math.min(time, dur || 1)}
           disabled={failed}
-          aria-label="Перемотка"
+          aria-label="Seek"
           onChange={(e) => {
             const v = ref.current
             if (v) v.currentTime = Number(e.target.value)
@@ -99,7 +99,7 @@ const VideoPlayer = forwardRef<StageHandle, { media: ReviewMedia }>(function Vid
         <span className="w-[5.5rem] shrink-0 text-right font-mono text-xs whitespace-nowrap tabular-nums text-muted">
           {clock(time)} / {clock(dur)}
         </span>
-        <button type="button" onClick={() => setMuted((m) => !m)} aria-pressed={muted} aria-label={muted ? 'Включить звук (M)' : 'Выключить звук (M)'} className={iconBtn}>
+        <button type="button" onClick={() => setMuted((m) => !m)} aria-pressed={muted} aria-label={muted ? 'Unmute (M)' : 'Mute (M)'} className={iconBtn}>
           {muted ? <SpeakerSlash size={18} aria-hidden="true" /> : <SpeakerHigh size={18} aria-hidden="true" />}
         </button>
       </div>
@@ -125,30 +125,30 @@ const Carousel = forwardRef<StageHandle, { media: ReviewMedia[] }>(function Caro
           ref={box}
           onScroll={(e) => setIndex(Math.round(e.currentTarget.scrollLeft / Math.max(1, e.currentTarget.clientWidth)))}
           role="group"
-          aria-roledescription="карусель"
-          aria-label={`Слайд ${index + 1} из ${media.length}`}
+          aria-roledescription="carousel"
+          aria-label={`Slide ${index + 1} of ${media.length}`}
           className="flex size-full snap-x snap-mandatory overflow-x-auto overscroll-x-contain rounded-2xl border border-line-strong bg-surface-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {media.map((m, i) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={m.src} src={m.src} alt={`Слайд ${i + 1}`} draggable={false} className="size-full shrink-0 snap-center object-contain" />
+            <img key={m.src} src={m.src} alt={`Slide ${i + 1}`} draggable={false} className="size-full shrink-0 snap-center object-contain" />
           ))}
         </div>
         {media.length > 1 ? (
           <>
-            <button type="button" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Предыдущий слайд" className={cn(iconBtn, 'absolute top-1/2 left-2 -translate-y-1/2 disabled:opacity-0')}>
+            <button type="button" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous slide" className={cn(iconBtn, 'absolute top-1/2 left-2 -translate-y-1/2 disabled:opacity-0')}>
               <CaretLeft size={18} aria-hidden="true" />
             </button>
-            <button type="button" onClick={() => go(index + 1)} disabled={index === media.length - 1} aria-label="Следующий слайд" className={cn(iconBtn, 'absolute top-1/2 right-2 -translate-y-1/2 disabled:opacity-0')}>
+            <button type="button" onClick={() => go(index + 1)} disabled={index === media.length - 1} aria-label="Next slide" className={cn(iconBtn, 'absolute top-1/2 right-2 -translate-y-1/2 disabled:opacity-0')}>
               <CaretRight size={18} aria-hidden="true" />
             </button>
           </>
         ) : null}
       </div>
       {media.length > 1 ? (
-        <div className="flex items-center gap-1" role="tablist" aria-label="Слайды">
+        <div className="flex items-center gap-1" role="tablist" aria-label="Slides">
           {media.map((m, i) => (
-            <button key={m.src} type="button" role="tab" aria-selected={i === index} aria-label={`Слайд ${i + 1}`} onClick={() => go(i)} className="grid size-8 place-items-center">
+            <button key={m.src} type="button" role="tab" aria-selected={i === index} aria-label={`Slide ${i + 1}`} onClick={() => go(i)} className="grid size-8 place-items-center">
               <span className={cn('block h-2 rounded-full transition-[width,background-color] duration-150', i === index ? 'w-6 bg-accent' : 'w-2 bg-line-strong')} />
             </button>
           ))}
@@ -164,9 +164,9 @@ function Empty({ item }: { item: ReviewItem }) {
     <div className="grid h-full place-items-center p-4">
       <div className="flex max-w-sm flex-col items-center gap-3 rounded-2xl border border-dashed border-line-strong p-6 text-center">
         <FilmSlate size={36} weight="duotone" aria-hidden="true" className="text-faint" />
-        <p className="text-sm font-medium">Файлов пока нет</p>
+        <p className="text-sm font-medium">No files yet</p>
         <p className="text-sm text-muted">{emptyMediaReason(item)}</p>
-        {state ? <p className="font-mono text-xs text-faint">рендер: {renderStateText(state)}</p> : null}
+        {state ? <p className="font-mono text-xs text-faint">render: {renderStateText(state)}</p> : null}
       </div>
     </div>
   )
@@ -182,13 +182,13 @@ function Doc({ item, onEditDoc }: { item: ReviewItem; onEditDoc?: (doc: PackDoc)
     <article className="mx-auto h-full max-w-2xl overflow-y-auto overscroll-contain rounded-2xl border border-line bg-surface p-5 sm:p-7">
       <p className="flex items-center gap-1.5 text-xs text-faint">
         <FileText size={14} aria-hidden="true" />
-        {item.kind === 'article' ? 'Статья в блог' : 'Текст'}
+        {item.kind === 'article' ? 'Blog article' : 'Text'}
       </p>
       <h2 className="mt-1 mb-4 text-lg leading-snug font-semibold wrap-anywhere">{item.text.subject || item.title}</h2>
       {markdown ? <Markdown text={text} /> : <p className="text-[0.95rem] leading-relaxed whitespace-pre-wrap wrap-anywhere">{text}</p>}
       {onEditDoc && editable.has('kp') ? (
         <button type="button" onClick={() => onEditDoc('kp')} className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm text-muted hover:border-accent hover:text-fg">
-          <PencilSimpleLine size={14} aria-hidden="true" /> Править КП
+          <PencilSimpleLine size={14} aria-hidden="true" /> Edit quote
         </button>
       ) : null}
       {docs.map((d) => (
@@ -197,7 +197,7 @@ function Doc({ item, onEditDoc }: { item: ReviewItem; onEditDoc?: (doc: PackDoc)
             <h3 className="min-w-0 text-sm font-semibold wrap-anywhere">{d.title}</h3>
             {onEditDoc && editable.has(d.key as PackDoc) ? (
               <button type="button" onClick={() => onEditDoc(d.key as PackDoc)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm text-muted hover:border-accent hover:text-fg">
-                <PencilSimpleLine size={14} aria-hidden="true" /> Править
+                <PencilSimpleLine size={14} aria-hidden="true" /> Edit
               </button>
             ) : null}
           </div>

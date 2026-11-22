@@ -17,7 +17,7 @@ const deptName = (id: string) => (admin.office.depts as Record<string, string>)[
 type Act = (a: Approval, action: 'approve' | 'reject', part?: Id) => void
 type Edit = (a: Approval, text: string, part?: Id) => Promise<boolean>
 
-// The text of a card: read-only here, «Править» opens the same full-screen editor as the review centre
+// The text of a card: read-only here, «Edit» opens the same full-screen editor as the review centre
 // (find and replace, comparison, local draft). Without a v1 the comparison is against the text as it is now.
 function EditableText({
   value,
@@ -108,10 +108,10 @@ function ApprovalCard({
       onKeyDown={(e) => {
         if (e.target !== e.currentTarget || e.metaKey || e.ctrlKey || e.altKey) return
         const key = e.key.toLowerCase()
-        if (key === 'a' || key === 'ф') {
+        if (key === 'a' || key === 'ф') { // i18n-ok: Russian keyboard layout
           e.preventDefault()
           approve()
-        } else if (key === 'r' || key === 'к') {
+        } else if (key === 'r' || key === 'к') { // i18n-ok: Russian keyboard layout
           e.preventDefault()
           onAct(a, 'reject', part)
         }
@@ -236,9 +236,9 @@ export function ApprovalsSection({ items, error, now, focus, queued, onAct, onEd
       ) : null}
       <p className="mb-3 px-1 text-sm">
         <Link href="/admin/approvals" className="inline-flex min-h-9 items-center text-accent-text underline">
-          Открыть Approvals
+          Open Approvals
         </Link>
-        <span className="text-faint">: единственное место, где одобряют, читают и правят</span>
+        <span className="text-faint">: the only place to approve, read and edit</span>
       </p>
       {error && !list ? <PanelError error={error} /> : null}
       {!list && !error ? <PanelWait /> : null}

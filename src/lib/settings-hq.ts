@@ -169,9 +169,9 @@ export function buildTrustPatch(kind: string, change: { level?: 0 | 1; threshold
 }
 
 export const AUTOPILOT_LABELS: Record<AutopilotMode, string> = {
-  ask_me: 'Зови меня при любом сомнении',
-  policy: 'Зови меня по политике',
-  autopilot: 'Автопилот: зови только если просят человека, злость, юридическое',
+  ask_me: 'Call me at any doubt',
+  policy: 'Call me by policy',
+  autopilot: 'Autopilot: call me only when a person is requested, anger, legal matters',
 }
 
 export type LogEntry = { at: number; key: string; old: string; next: string; source: string }

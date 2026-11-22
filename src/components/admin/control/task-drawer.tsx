@@ -1,6 +1,7 @@
 'use client'
 
 import { ArrowClockwise, X } from '@phosphor-icons/react'
+import { deptLabel } from '@/lib/admin-labels'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { admin } from '@/content/admin'
@@ -11,14 +12,14 @@ import { errText, fill, usePoll } from './api'
 
 const t = admin.cc.drawer
 const tt = admin.cc.tasks
-const deptName = (id: string) => (admin.office.depts as Record<string, string>)[id] ?? id
+const deptName = (id: string) => (admin.office.depts as Record<string, string>)[id] ?? deptLabel(id)
 
 const dateTime = (iso: string | null, tz: string) => {
   if (!iso) return ''
   const d = Date.parse(iso)
   if (Number.isNaN(d)) return ''
   try {
-    return new Intl.DateTimeFormat('ru-RU', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d)
+    return new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(d)
   } catch {
     return iso
   }

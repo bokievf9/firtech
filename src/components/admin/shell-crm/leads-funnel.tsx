@@ -31,7 +31,7 @@ import { btn, btnPrimary, CopyButton, Empty, inputClass, Loading, Offline, Pills
 const k = admin.pult.leads
 
 const tempTone: Record<string, string> = { hot: 'bg-danger', warm: 'bg-accent', cold: 'bg-line-strong' }
-const money = (n: number | null) => (n === null ? '' : `$${Math.round(n).toLocaleString('ru-RU')}`)
+const money = (n: number | null) => (n === null ? '' : `$${Math.round(n).toLocaleString('en-US')}`)
 const yesNo = (v: boolean | null) => (v === null ? k.unknown : v ? k.yes : k.no)
 
 // datetime-local value (local time) <-> ISO.
@@ -247,7 +247,7 @@ function LeadBody({ lead, onMove, onWrite, onCall, onClient, onDocuments }: Draw
                 [k.hasDomain, yesNo(lead.hasDomain)],
                 [k.hasHosting, yesNo(lead.hasHosting)],
                 [k.contact, lead.contact || '-'],
-                [k.call, lead.callAt ? new Date(lead.callAt).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' }) : '-'],
+                [k.call, lead.callAt ? new Date(lead.callAt).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' }) : '-'],
               ] as const
             ).map(([name, value]) => (
               <div key={name} className="min-w-0">
@@ -312,7 +312,7 @@ function LeadBody({ lead, onMove, onWrite, onCall, onClient, onDocuments }: Draw
                 <p className="flex flex-wrap items-center gap-x-2">
                   <span className="text-xs text-faint">{k.callBooking}</span>
                   <span className="font-medium">{k.callState[booking.state] ?? booking.state}</span>
-                  {booking.at ? <span className="font-mono text-xs text-muted">{new Date(booking.at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</span> : null}
+                  {booking.at ? <span className="font-mono text-xs text-muted">{new Date(booking.at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</span> : null}
                 </p>
                 {booking.site ? <p className="text-xs text-muted">{k.callSite[booking.site] ?? booking.site}</p> : null}
                 {answer ? (
@@ -341,7 +341,7 @@ function LeadBody({ lead, onMove, onWrite, onCall, onClient, onDocuments }: Draw
                 {lead.notes.map((n, i) => (
                   <li key={i} className="rounded-xl bg-inset p-2.5 text-sm whitespace-pre-wrap">
                     {n.text}
-                    {n.at ? <span className="mt-1 block text-xs text-faint">{new Date(n.at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' })}</span> : null}
+                    {n.at ? <span className="mt-1 block text-xs text-faint">{new Date(n.at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}</span> : null}
                   </li>
                 ))}
               </ul>

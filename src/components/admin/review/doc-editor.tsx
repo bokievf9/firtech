@@ -54,7 +54,7 @@ const t = admin.editor
 const fill = (s: string, v: Record<string, string | number>) =>
   s.replace(/\{(\w+)\}/g, (_, k: string) => String(v[k] ?? ''))
 const clock = (at: number) =>
-  new Date(at).toLocaleTimeString('ru-RU', {
+  new Date(at).toLocaleTimeString('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
@@ -558,7 +558,7 @@ export function DocEditor({
         </div>
         <span
           className="hidden font-mono text-xs tabular-nums text-faint md:inline"
-          aria-label="Объём"
+          aria-label="Size"
         >
           {fill(t.words, { n: words })} · {fill(t.chars, { n: value.length })} ·{' '}
           {fill(t.minutes, { n: readMinutes(value) })}
@@ -591,7 +591,7 @@ export function DocEditor({
           disabled={busy || !dirty || tooLong}
           className={btnPrimary}
         >
-          <span className="sm:hidden">Сохранить</span>
+          <span className="sm:hidden">Save</span>
           <span className="hidden sm:inline">{t.save}</span>
         </button>
       </header>

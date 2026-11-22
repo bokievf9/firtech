@@ -11,8 +11,8 @@ import { isPending, normalizeReview } from '@/lib/review'
 import { cn } from '@/lib/cn'
 
 const KIND_LABEL: Record<string, string> = {
-  content_item: 'Материал', article: 'Статья', lead_reply: 'Ответ лиду', lead_price: 'Цена лиду', presales_pack: 'КП', support_answer: 'Ответ клиенту', support_money: 'Ответ про деньги',
-  billing_invoice: 'Счёт', billing_reminder: 'Напоминание', bo_document: 'Документ', pm_spec: 'ТЗ', content_pack: 'Пакет недели', seo_proposal: 'SEO',
+  content_item: 'Content', article: 'Article', lead_reply: 'Lead reply', lead_price: 'Lead price', presales_pack: 'Quote', support_answer: 'Client reply', support_money: 'Money reply',
+  billing_invoice: 'Invoice', billing_reminder: 'Reminder', bo_document: 'Document', pm_spec: 'Spec', content_pack: 'Week pack', seo_proposal: 'SEO',
 }
 
 // Inbox > Approvals: NOT a second approval list. It reads the same review queue as the Approvals section
@@ -25,20 +25,20 @@ export function InboxApprovals() {
     <div className="grid gap-3 p-3 sm:p-4" data-inbox-approvals>
       <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-line p-3">
         <p className="min-w-0 flex-1 text-sm" aria-live="polite">
-          Ждут решения: <span className="font-mono tabular-nums" data-inbox-total>{data.view ? summary.total : '·'}</span>
+          Waiting for a decision: <span className="font-mono tabular-nums" data-inbox-total>{data.view ? summary.total : '·'}</span>
           <span className="block text-xs text-faint">
             {(['documents', 'replies', 'content', 'money'] as const).map((t) => `${TAB_LABEL[t]} ${summary.tabs[t]}`).join(', ')}
           </span>
         </p>
         <Link href={approvalsHrefFor()} className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-accent px-4 text-sm font-medium text-accent-ink">
-          Открыть Approvals
+          Open Approvals
           <ArrowRight size={14} aria-hidden="true" />
         </Link>
       </div>
       {!data.view && data.error ? <Offline error={errText(data.error)} onRetry={data.reload} /> : null}
       {!data.view && !data.error ? <Loading rows={3} /> : null}
-      {data.view && !items.length ? <Empty>Ничего не ждёт решения.</Empty> : null}
-      <ul className="grid gap-2" aria-label="Ждут решения">
+      {data.view && !items.length ? <Empty>Nothing is waiting for a decision.</Empty> : null}
+      <ul className="grid gap-2" aria-label="Waiting for a decision">
         {items.slice(0, 20).map((it) => {
           const t = deptTheme(it.dept)
           return (
@@ -55,7 +55,7 @@ export function InboxApprovals() {
           )
         })}
       </ul>
-      {items.length > 20 ? <p className="text-xs text-faint">Показаны 20 из {items.length}. Остальное в Approvals.</p> : null}
+      {items.length > 20 ? <p className="text-xs text-faint">Showing 20 of {items.length}. The rest is in Approvals.</p> : null}
     </div>
   )
 }

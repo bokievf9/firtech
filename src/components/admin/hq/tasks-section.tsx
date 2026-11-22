@@ -1,6 +1,7 @@
 'use client'
 
 import { ArrowsClockwise } from '@phosphor-icons/react'
+import { deptLabel } from '@/lib/admin-labels'
 import { useCallback, useMemo, useState } from 'react'
 import { Assignments } from '@/components/admin/control/assignments'
 import { BarePanel } from '@/components/admin/control/cc-panel'
@@ -16,7 +17,7 @@ import type { PersonFilter } from '@/lib/orders'
 
 const t = admin.hq
 const k = admin.hq.tasks
-const deptName = (id: string) => (admin.office.depts as Record<string, string>)[id] ?? id
+const deptName = (id: string) => (admin.office.depts as Record<string, string>)[id] ?? deptLabel(id)
 
 const label = (v: TaskStatusFilter) => (v === 'all' ? k.statusAll : v === 'cancelled' ? admin.orders.status.cancelled : admin.cc.tasks.columns[v])
 

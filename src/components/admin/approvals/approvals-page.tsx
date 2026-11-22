@@ -51,10 +51,10 @@ import { isReplyKind } from '@/lib/quality-hq'
 import { RateButtons, RatingsProvider } from '@/components/admin/hq/rate-buttons'
 
 const KIND_LABEL: Record<string, string> = {
-  content_item: 'Материал', article: 'Статья', lead_reply: 'Ответ лиду', lead_price: 'Цена лиду', presales_pack: 'КП', support_answer: 'Ответ клиенту', support_money: 'Ответ про деньги',
-  billing_invoice: 'Счёт', billing_reminder: 'Напоминание', bo_document: 'Документ', pm_spec: 'ТЗ', content_pack: 'Пакет недели', seo_proposal: 'SEO',
+  content_item: 'Content', article: 'Article', lead_reply: 'Lead reply', lead_price: 'Lead price', presales_pack: 'Quote', support_answer: 'Client reply', support_money: 'Money reply',
+  billing_invoice: 'Invoice', billing_reminder: 'Reminder', bo_document: 'Document', pm_spec: 'Spec', content_pack: 'Week pack', seo_proposal: 'SEO',
 }
-const STATUS_LABEL = { pending: 'ждёт', approved: 'одобрено', rejected: 'отклонено', published: 'вышло', failed: 'сбой' } as const
+const STATUS_LABEL = { pending: 'waiting', approved: 'approved', rejected: 'rejected', published: 'published', failed: 'failed' } as const
 type Answer = { item?: unknown; results?: unknown; state?: string; message?: unknown }
 
 // Approvals: the ONE place to approve (Shell section). The review centre's queue as four working tabs:
@@ -120,20 +120,20 @@ function ApprovalsPageInner() {
 
   const decideOne = async (it: ReviewItem, action: BatchAction) => {
     if (busy) return
-    if (action === 'reject' && !(await ask(`Отклонить «${it.title}»?`, { yes: 'Отклонить', danger: true }))) return
+    if (action === 'reject' && !(await ask(`Reject "${it.title}"?`, { yes: 'Reject', danger: true }))) return
     setBusy(true)
     const r = await call(it, { action })
     setBusy(false)
     if (!r.ok) return notify(r.text, 'error')
     mutate((v) => ({ ...v, items: withStatus(v.items, it.id, action), counts: dropCount(v.counts, it.dept) }))
-    notify(action === 'approve' ? `Одобрено: ${it.title}` : `Отклонено: ${it.title}`)
+    notify(action === 'approve' ? `Approved: ${it.title}` : `Rejected: ${it.title}`)
   }
 
   const decideBatch = async (action: BatchAction) => {
     if (busy) return
     const plan = planBatch(list, sel, action)
-    if (!plan.ids.length) return notify('В выборе нет материалов, которые можно решить пачкой', 'error')
-    if (!(await ask(batchQuestion(tab, action, plan.ids.length), { yes: action === 'approve' ? 'Одобрить' : 'Отклонить', danger: action === 'reject' }))) return
+    if (!plan.ids.length) return notify('Nothing in the selection can be decided in a batch', 'error')
+    if (!(await ask(batchQuestion(tab, action, plan.ids.length), { yes: action === 'approve' ? 'Approve' : 'Reject', danger: action === 'reject' }))) return
     setBusy(true)
     let done = 0
     let failed = 0
@@ -169,7 +169,7 @@ function ApprovalsPageInner() {
     <div className="absolute inset-0 flex flex-col bg-bg text-fg">
       <h1 className="sr-only">Approvals</h1>
 
-      <nav aria-label="Разделы Approvals" className="flex gap-1.5 overflow-x-auto border-b border-line px-2 py-2 sm:px-4 [scrollbar-width:none]">
+      <nav aria-label="Approvals sections" className="flex gap-1.5 overflow-x-auto border-b border-line px-2 py-2 sm:px-4 [scrollbar-width:none]">
         {APPROVAL_TABS.map((t) => (
           <button
             key={t}
@@ -179,16 +179,16 @@ function ApprovalsPageInner() {
             className={cn('inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm transition-colors', tab === t ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-muted hover:border-accent hover:text-fg')}
           >
             {TAB_LABEL[t]}
-            <span className="font-mono text-xs tabular-nums opacity-80" aria-label={`Ждут решения: ${counts[t]}`}>{counts[t]}</span>
+            <span className="font-mono text-xs tabular-nums opacity-80" aria-label={`Waiting for a decision: ${counts[t]}`}>{counts[t]}</span>
           </button>
         ))}
         <label className="ml-auto flex shrink-0 items-center gap-2 pl-3 text-sm text-muted">
           <input type="checkbox" checked={showDecided} onChange={(e) => setShowDecided(e.target.checked)} className="size-4 accent-[var(--color-accent)]" />
-          Решённые
+          Decided
         </label>
       </nav>
 
-      <div className="flex min-h-14 flex-wrap items-center gap-2 border-b border-line px-2 py-2 sm:px-4" role="toolbar" aria-label="Решения пачкой">
+      <div className="flex min-h-14 flex-wrap items-center gap-2 border-b border-line px-2 py-2 sm:px-4" role="toolbar" aria-label="Batch decisions">
         <label className="flex min-h-10 items-center gap-2 text-sm">
           <input
             type="checkbox"
@@ -197,23 +197,23 @@ function ApprovalsPageInner() {
             onChange={() => setSelected(allSelected ? new Set() : new Set(selectable.map((it) => it.id)))}
             className="size-4 accent-[var(--color-accent)]"
           />
-          Выбрать все
+          Select all
         </label>
-        <span className="font-mono text-xs tabular-nums text-muted" aria-live="polite">Выбрано: {sel.size}</span>
+        <span className="font-mono text-xs tabular-nums text-muted" aria-live="polite">Selected: {sel.size}</span>
         <div className="ml-auto flex gap-2">
           <button type="button" className={btnPrimary} disabled={busy || !sel.size} onClick={() => void decideBatch('approve')}>
             <CheckCircle size={16} aria-hidden="true" />
-            Одобрить выбранное
+            Approve selected
           </button>
-          <button type="button" className={btnDanger} disabled={busy || !sel.size} onClick={() => void decideBatch('reject')}>Отклонить выбранное</button>
+          <button type="button" className={btnDanger} disabled={busy || !sel.size} onClick={() => void decideBatch('reject')}>Reject selected</button>
         </div>
       </div>
 
       <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3 sm:px-4">
         {!data.view && data.error ? <Offline error={errText(data.error)} onRetry={data.reload} /> : null}
         {!data.view && !data.error ? <Loading rows={4} /> : null}
-        {data.view && !list.length ? <Empty>В разделе {TAB_LABEL[tab]} нет материалов, которые ждут решения.</Empty> : null}
-        <ul aria-label={`Очередь ${TAB_LABEL[tab]}`} className="mx-auto grid max-w-4xl gap-2">
+        {data.view && !list.length ? <Empty>No material waiting for a decision in {TAB_LABEL[tab]}.</Empty> : null}
+        <ul aria-label={`Queue ${TAB_LABEL[tab]}`} className="mx-auto grid max-w-4xl gap-2">
           {list.map((it) => (
             <Row
               key={it.id}
@@ -280,7 +280,7 @@ function Row({
           checked={checked}
           disabled={!canBatch}
           onChange={onToggle}
-          aria-label={`Выбрать: ${item.title || item.summary}`}
+          aria-label={`Select: ${item.title || item.summary}`}
           className="size-4 shrink-0 accent-[var(--color-accent)]"
         />
         <button type="button" onClick={onExpand} aria-expanded={expanded} className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left">
@@ -294,7 +294,7 @@ function Row({
           </span>
         </button>
         {pending && item.actions.includes('approve') ? (
-          <button type="button" className={cn(btn, 'hidden sm:inline-flex')} disabled={busy} onClick={() => onDecide('approve')}>Одобрить</button>
+          <button type="button" className={cn(btn, 'hidden sm:inline-flex')} disabled={busy} onClick={() => onDecide('approve')}>Approve</button>
         ) : null}
       </div>
       {expanded ? <Detail item={item} onOpenReader={onOpenReader} busy={busy} onDecide={onDecide} call={call} notify={notify} setBusy={setBusy} mutate={mutate} /> : null}
@@ -321,7 +321,7 @@ function Detail({ item, onOpenReader, busy, onDecide, call, notify, setBusy, mut
     if (!r.ok) return notify(r.text, 'error')
     if (!r.fresh) mutate((v) => ({ ...v, items: v.items.map((x) => (x.id === item.id ? withText(x, payload.text) : x)) }))
     setValues({})
-    notify('Правка сохранена, версия добавлена')
+    notify('Edit saved, version added')
   }
   const revise = async () => {
     if (!note.trim() || busy) return
@@ -330,17 +330,17 @@ function Detail({ item, onOpenReader, busy, onDecide, call, notify, setBusy, mut
     setBusy(false)
     if (!r.ok) return notify(r.text, 'error')
     setNote('')
-    notify('Отдел переделывает материал по вашим правкам')
+    notify('The department is redoing the material from your edits')
   }
   const restore = async (v: (typeof old)[number]) => {
     const payload = restorePayload(item, v)
-    if (!payload) return notify(`v${v.v} не отличается от текущего текста`)
+    if (!payload) return notify(`v${v.v} is the same as the current text`)
     if (busy) return
     setBusy(true)
     const r = await call(item, { action: 'edit', ...payload })
     setBusy(false)
     if (!r.ok) return notify(r.text, 'error')
-    notify(`Версия v${v.v} возвращена как новая`)
+    notify(`Version v${v.v} restored as new`)
   }
 
   return (
@@ -368,28 +368,28 @@ function Detail({ item, onOpenReader, busy, onDecide, call, notify, setBusy, mut
         )
       })}
       {isReplyKind(item.kind) ? <RateButtons messageId={item.id} thread="review" /> : null}
-      {!fields.length && !hasDocs ? <p className="text-sm text-muted">У этого материала нет текста. Файлы смотрите в читалке.</p> : null}
-      {hasDocs ? <p className="text-sm text-muted">Пакет из нескольких документов правится в читалке.</p> : null}
+      {!fields.length && !hasDocs ? <p className="text-sm text-muted">This material has no text. Look at the files in the reader.</p> : null}
+      {hasDocs ? <p className="text-sm text-muted">A pack of several documents is edited in the reader.</p> : null}
 
       <div className="flex flex-wrap items-center gap-2">
-        {canEdit ? <button type="button" className={btnPrimary} disabled={busy || !dirty} onClick={() => void save()}>Сохранить правку</button> : null}
-        {item.actions.includes('approve') ? <button type="button" className={btn} disabled={busy || dirty} onClick={() => onDecide('approve')}>Одобрить</button> : null}
-        {item.actions.includes('reject') ? <button type="button" className={btnDanger} disabled={busy} onClick={() => onDecide('reject')}>Отклонить</button> : null}
-        <button type="button" onClick={onOpenReader} className={cn(btn, 'ml-auto')}>Открыть читалку</button>
+        {canEdit ? <button type="button" className={btnPrimary} disabled={busy || !dirty} onClick={() => void save()}>Save edit</button> : null}
+        {item.actions.includes('approve') ? <button type="button" className={btn} disabled={busy || dirty} onClick={() => onDecide('approve')}>Approve</button> : null}
+        {item.actions.includes('reject') ? <button type="button" className={btnDanger} disabled={busy} onClick={() => onDecide('reject')}>Reject</button> : null}
+        <button type="button" onClick={onOpenReader} className={cn(btn, 'ml-auto')}>Open reader</button>
       </div>
 
       {item.actions.includes('revise') ? (
         <div className="grid gap-1">
-          <label htmlFor={`ap-${item.id}-note`} className="text-xs text-muted">Что переделать</label>
+          <label htmlFor={`ap-${item.id}-note`} className="text-xs text-muted">What to redo</label>
           <div className="flex gap-2">
             <input id={`ap-${item.id}-note`} value={note} onChange={(e) => setNote(e.target.value)} maxLength={4000} className={inputClass} />
-            <button type="button" className={btn} disabled={busy || !note.trim()} onClick={() => void revise()}>Отправить правки</button>
+            <button type="button" className={btn} disabled={busy || !note.trim()} onClick={() => void revise()}>Send revisions</button>
           </div>
         </div>
       ) : null}
 
-      <section aria-label="Версии" className="grid gap-1.5">
-        <h2 className="flex items-center gap-1.5 text-xs text-muted"><ClockCounterClockwise size={14} aria-hidden="true" />Версии, сейчас v{cur.v}</h2>
+      <section aria-label="Versions" className="grid gap-1.5">
+        <h2 className="flex items-center gap-1.5 text-xs text-muted"><ClockCounterClockwise size={14} aria-hidden="true" />Versions, current v{cur.v}</h2>
         {old.length ? (
           <ul className="grid gap-1.5">
             {old.map((v) => {
@@ -397,15 +397,15 @@ function Detail({ item, onOpenReader, busy, onDecide, call, notify, setBusy, mut
               return (
                 <li key={v.v} className="flex flex-wrap items-center gap-2 rounded-xl border border-line px-3 py-2 text-sm">
                   <span className="font-mono text-xs">v{v.v}</span>
-                  <span className="text-xs text-faint">{v.author === 'owner' ? 'вы' : 'отдел'}</span>
-                  <span className="min-w-0 flex-1 truncate text-xs text-muted">{v.note || (prev ? versionSummary(prev, v) : 'Первая версия')}</span>
-                  {item.actions.includes('edit') ? <button type="button" className={btn} disabled={busy} onClick={() => void restore(v)}>Вернуть v{v.v}</button> : null}
+                  <span className="text-xs text-faint">{v.author === 'owner' ? 'you' : 'department'}</span>
+                  <span className="min-w-0 flex-1 truncate text-xs text-muted">{v.note || (prev ? versionSummary(prev, v) : 'First version')}</span>
+                  {item.actions.includes('edit') ? <button type="button" className={btn} disabled={busy} onClick={() => void restore(v)}>Restore v{v.v}</button> : null}
                 </li>
               )
             })}
           </ul>
         ) : (
-          <p className="text-xs text-faint">Пока одна версия.</p>
+          <p className="text-xs text-faint">Only one version so far.</p>
         )}
       </section>
     </div>

@@ -29,12 +29,12 @@ export function TrendDialog({ onClose, onSent }: { onClose: () => void; onSent: 
     const res = await hq<{ already?: boolean }>('trends', { url: url.trim(), ...(note.trim() ? { note: note.trim() } : {}) })
     setBusy(false)
     if (res.ok) {
-      onSent(res.already ? 'Эта ссылка уже в работе' : 'Ссылка принята. Трендвотчер разберёт её, материал появится в ревью.')
+      onSent(res.already ? 'This link is already in progress' : 'Link accepted. The Trendwatcher will go through it, the material will appear in review.')
       onClose()
-    } else onSent(res.error === 'invalid_link' && typeof res.reason === 'string' ? `Ссылка не подходит: ${res.reason}` : errText(res.error), 'error')
+    } else onSent(res.error === 'invalid_link' && typeof res.reason === 'string' ? `The link does not fit: ${res.reason}` : errText(res.error), 'error')
   }
   return (
-    <Dialog title="Скинуть ссылку Трендвотчеру" onClose={onClose}>
+    <Dialog title="Send a link to the Trendwatcher" onClose={onClose}>
       <form
         onSubmit={(e) => {
           e.preventDefault()
@@ -43,17 +43,17 @@ export function TrendDialog({ onClose, onSent }: { onClose: () => void; onSent: 
         className="grid gap-3"
       >
         <label className="grid gap-1.5 text-sm">
-          <span className="text-muted">Ссылка на пост или ролик (Instagram, TikTok, YouTube)</span>
+          <span className="text-muted">Link to a post or a video (Instagram, TikTok, YouTube)</span>
           <input type="url" inputMode="url" autoComplete="off" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.youtube.com/shorts/..." aria-invalid={touched && !!problem} className={inputClass} />
           {touched && problem ? <span role="alert" className="text-xs text-danger">{problem}</span> : null}
         </label>
         <label className="grid gap-1.5 text-sm">
-          <span className="text-muted">Что в нём понравилось (необязательно)</span>
+          <span className="text-muted">What you liked in it (optional)</span>
           <textarea value={note} maxLength={500} rows={3} onChange={(e) => setNote(e.target.value)} className={inputClass} />
         </label>
         <div className="flex justify-end gap-2">
-          <button type="button" onClick={onClose} className={btn}>Отмена</button>
-          <button type="submit" data-primary disabled={busy} className={btnPrimary}>{busy ? 'Отправляю' : 'Отправить'}</button>
+          <button type="button" onClick={onClose} className={btn}>Cancel</button>
+          <button type="submit" data-primary disabled={busy} className={btnPrimary}>{busy ? 'Sending' : 'Send'}</button>
         </div>
       </form>
     </Dialog>
@@ -62,7 +62,7 @@ export function TrendDialog({ onClose, onSent }: { onClose: () => void; onSent: 
 
 export function TrendList({ view, error, onOpen }: { view: ReturnType<typeof useTrends>['view']; error: string | null; onOpen: (reviewId: string) => void }) {
   if (error && !view) return <p className="text-xs text-danger">{errText(error)}</p>
-  if (!view?.items.length) return <p className="text-xs text-faint">Ссылок пока нет.</p>
+  if (!view?.items.length) return <p className="text-xs text-faint">No links yet.</p>
   return (
     <ul className="grid gap-1.5">
       {view.items.slice(0, 6).map((t) => (
@@ -74,7 +74,7 @@ export function TrendList({ view, error, onOpen }: { view: ReturnType<typeof use
           {t.status === 'proposed' && t.reviewId ? (
             <button type="button" onClick={() => onOpen(t.reviewId!)} className="inline-flex min-h-8 items-center gap-1 self-start text-xs text-accent-text underline">
               <LinkSimple size={12} aria-hidden="true" />
-              Открыть материал
+              Open material
             </button>
           ) : null}
           {t.status === 'failed' && t.error ? <span className="text-xs text-danger">{t.error}</span> : null}

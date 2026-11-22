@@ -45,12 +45,12 @@ import { MediaStage, type StageHandle } from './stage'
 import { TrendDialog, TrendList, useTrends } from './trends'
 import { RatingsProvider } from '@/components/admin/hq/rate-buttons'
 
-const RAIL_LABEL: Record<RailId, string> = { all: 'Все', marketing: 'Маркетинг', sales: 'Продажи', support: 'Поддержка', production: 'Производство', backoffice: 'Бэк-офис', director: 'Директор' }
+const RAIL_LABEL: Record<RailId, string> = { all: 'All', marketing: 'Marketing', sales: 'Sales', support: 'Support', production: 'Production', backoffice: 'Back office', director: 'Director' }
 const KIND_LABEL: Record<string, string> = {
-  content_item: 'Материал', article: 'Статья', lead_reply: 'Ответ лиду', lead_price: 'Цена лиду', presales_pack: 'КП', support_answer: 'Ответ клиенту', support_money: 'Ответ про деньги',
-  billing_invoice: 'Счёт', billing_reminder: 'Напоминание', bo_document: 'Документ', pm_spec: 'ТЗ', content_pack: 'Пакет недели', seo_proposal: 'SEO',
+  content_item: 'Content', article: 'Article', lead_reply: 'Lead reply', lead_price: 'Lead price', presales_pack: 'Quote', support_answer: 'Client reply', support_money: 'Money reply',
+  billing_invoice: 'Invoice', billing_reminder: 'Reminder', bo_document: 'Document', pm_spec: 'Spec', content_pack: 'Week pack', seo_proposal: 'SEO',
 }
-const STATUS_LABEL = { pending: 'ждёт', approved: 'одобрено', rejected: 'отклонено', published: 'вышло', failed: 'сбой' } as const
+const STATUS_LABEL = { pending: 'waiting', approved: 'approved', rejected: 'rejected', published: 'published', failed: 'failed' } as const
 
 const railTheme = (rail: RailId) => (rail === 'all' ? null : deptTheme(rail as PanelId))
 const desktopQuery = '(min-width: 1024px)'
@@ -152,7 +152,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
       setSel(it.id)
     }
     const results = normalizeResults(res.results)
-    if (results.length) setModal({ type: 'results', title: 'Не получилось выложить', message: reviewError(res, errText), results })
+    if (results.length) setModal({ type: 'results', title: 'Could not publish', message: reviewError(res, errText), results })
     else notify(reviewError(res, errText), 'error')
     return false
   }
@@ -161,7 +161,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
     commit(it, { action }, {
       leave: true,
       optimistic: (v) => ({ ...v, items: withStatus(v.items, it.id, action), counts: dropCount(v.counts, it.dept) }),
-      ok: () => notify(action === 'approve' ? `Одобрено: ${it.title}` : `Отклонено: ${it.title}`),
+      ok: () => notify(action === 'approve' ? `Approved: ${it.title}` : `Rejected: ${it.title}`),
     })
 
   const send = (it: ReviewItem) => {
@@ -172,7 +172,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
       optimistic: (v) => ({ ...v, items: withStatus(v.items, it.id, 'send'), counts: dropCount(v.counts, it.dept) }),
       ok: (res) => {
         patch({ editing: false, values: {} })
-        notify(res.state === 'handed_off' ? 'Текст отдан вам: перешлите клиенту вручную' : res.via === 'cabinet' ? 'Отправлено в кабинет клиента' : 'Отправлено клиенту в Telegram')
+        notify(res.state === 'handed_off' ? 'The text is handed to you: forward it to the client by hand' : res.via === 'cabinet' ? 'Sent to the client cabinet' : 'Sent to the client in Telegram')
       },
     })
   }
@@ -186,7 +186,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
     patch({ editing: false, values: {} })
     return commit(it, { action: 'edit', ...payload }, {
       optimistic: (v) => ({ ...v, items: v.items.map((x) => (x.id === it.id ? withText(x, payload.text) : x)) }),
-      ok: () => notify('Правка сохранена, версия добавлена'),
+      ok: () => notify('Edit saved, version added'),
     })
   }
 
@@ -194,12 +194,12 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
   const saveDoc = async (it: ReviewItem, text: string, doc: PackDoc | null) => {
     const payload = versionSavePayload(it, text, doc)
     if (!payload) {
-      notify('Текст не изменился')
+      notify('The text did not change')
       return true
     }
     return commit(it, payload, {
       optimistic: (v) => ({ ...v, items: v.items.map((x) => (x.id === it.id ? withDocText(x, text, doc) : x)) }),
-      ok: (_res, next) => notify(next ? `Сохранено как версия v${next.currentVersion}` : 'Правка сохранена, версия добавлена'),
+      ok: (_res, next) => notify(next ? `Saved as version v${next.currentVersion}` : 'Edit saved, version added'),
     })
   }
 
@@ -208,17 +208,17 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
       leave: it.kind === 'article',
       ok: () => {
         patch({ reviseOpen: false, note: '' })
-        notify(it.kind === 'article' ? 'Статья пишется заново по вашему замечанию' : 'Отдел переделывает материал по вашим правкам')
+        notify(it.kind === 'article' ? 'The article is being rewritten from your note' : 'The department is redoing the material from your edits')
       },
     })
 
   const publish = async (it: ReviewItem) => {
-    if (!(await ask(`Выложить «${it.title}» сейчас на все площадки материала?`, { yes: 'Выложить' }))) return
+    if (!(await ask(`Publish "${it.title}" now to every platform of the material?`, { yes: 'Publish' }))) return
     await commit(it, { action: 'publish_now' }, {
       ok: (res) => {
         const results = normalizeResults(res.results)
-        if (results.length) setModal({ type: 'results', title: res.state === 'published' ? 'Выложено' : 'Принято в очередь', message: null, results })
-        else notify(res.state === 'published' ? 'Выложено' : 'Принято в очередь')
+        if (results.length) setModal({ type: 'results', title: res.state === 'published' ? 'Published' : 'Queued', message: null, results })
+        else notify(res.state === 'published' ? 'Published' : 'Queued')
       },
     })
   }
@@ -230,7 +230,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
       case 'approve':
         return void decide(it, 'approve')
       case 'reject':
-        if (await ask(`Отклонить «${it.title}»?`, { yes: 'Отклонить', danger: true })) void decide(it, 'reject')
+        if (await ask(`Reject "${it.title}"?`, { yes: 'Reject', danger: true })) void decide(it, 'reject')
         return
       case 'edit':
         if (editableTargets(it).length) return setDocEditing(editableTargets(it)[0]!.storageId)
@@ -345,12 +345,12 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
     : null
 
   const trendBlock = (
-    <section aria-label="Ссылки для Трендвотчера" className="grid gap-2">
+    <section aria-label="Links for the Trendwatcher" className="grid gap-2">
       <div className="grid gap-1.5">
-        <h3 className="text-xs text-faint">Ссылки Трендвотчеру</h3>
+        <h3 className="text-xs text-faint">Links for the Trendwatcher</h3>
         <button type="button" onClick={() => setModal({ type: 'trend' })} className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-line-strong px-3 text-xs hover:border-accent hover:text-accent-text">
           <LinkIcon size={14} aria-hidden="true" />
-          Скинуть ссылку
+          Send a link
         </button>
       </div>
       <TrendList view={trends.view} error={trends.error} onOpen={openId} />
@@ -371,20 +371,20 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
     <MotionConfig reducedMotion="user">
       <div className="flex h-full min-h-0 flex-col bg-bg text-fg">
         <header className="flex min-h-14 items-center gap-2 border-b border-line bg-bg px-2 sm:gap-3 sm:px-4">
-          <button type="button" onClick={onBack} title="К списку (Esc)" aria-label="К списку Approvals" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text">
+          <button type="button" onClick={onBack} title="Back to the list (Esc)" aria-label="Back to the Approvals list" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text">
             <ArrowLeft size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">К списку</span>
+            <span className="hidden sm:inline">Back to list</span>
           </button>
           <h1 className="font-brand text-sm tracking-wide sm:text-base">Approvals</h1>
-          <span className="rounded-full bg-surface-2 px-2.5 py-1 font-mono text-xs tabular-nums text-muted" aria-label={`Ждут решения: ${total}`}>{total}</span>
+          <span className="rounded-full bg-surface-2 px-2.5 py-1 font-mono text-xs tabular-nums text-muted" aria-label={`Waiting for a decision: ${total}`}>{total}</span>
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             {current ? (
               <div className="flex items-center gap-0.5">
-                <button type="button" onClick={() => setSel(stepItem(list, current.id, -1))} disabled={position <= 1} aria-label="Предыдущий (K)" className="grid size-10 place-items-center rounded-full text-muted hover:text-fg disabled:opacity-30">
+                <button type="button" onClick={() => setSel(stepItem(list, current.id, -1))} disabled={position <= 1} aria-label="Previous (K)" className="grid size-10 place-items-center rounded-full text-muted hover:text-fg disabled:opacity-30">
                   <CaretLeft size={16} aria-hidden="true" />
                 </button>
                 <span className="font-mono text-xs tabular-nums text-muted">{position} / {list.length}</span>
-                <button type="button" onClick={() => setSel(stepItem(list, current.id, 1))} disabled={position >= list.length} aria-label="Следующий (J)" className="grid size-10 place-items-center rounded-full text-muted hover:text-fg disabled:opacity-30">
+                <button type="button" onClick={() => setSel(stepItem(list, current.id, 1))} disabled={position >= list.length} aria-label="Next (J)" className="grid size-10 place-items-center rounded-full text-muted hover:text-fg disabled:opacity-30">
                   <CaretRight size={16} aria-hidden="true" />
                 </button>
               </div>
@@ -393,7 +393,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
         </header>
 
         {!desktop ? (
-          <nav aria-label="Отделы" className="flex gap-1.5 overflow-x-auto border-b border-line px-2 py-2 [scrollbar-width:none]">
+          <nav aria-label="Departments" className="flex gap-1.5 overflow-x-auto border-b border-line px-2 py-2 [scrollbar-width:none]">
             {railButtons.map(({ id, n, t, active }) => (
               <button key={id} type="button" aria-pressed={active} onClick={() => { setRail(id); setSel(null) }} className={cn('inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm', active ? cn(t ? t.cls.soft : 'bg-surface-2', t ? t.cls.border : 'border-line-strong') : 'border-line text-muted')}>
                 {RAIL_LABEL[id]}
@@ -405,8 +405,8 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
 
         <div className="flex min-h-0 flex-1 flex-col lg:grid lg:grid-cols-[16rem_minmax(0,1fr)_25rem] min-[1440px]:grid-cols-[17rem_minmax(0,1fr)_36rem]">
           {desktop ? (
-            <aside aria-label="Отделы и очередь" className="flex min-h-0 flex-col border-r border-line">
-              <nav aria-label="Отделы" className="grid gap-0.5 p-2">
+            <aside aria-label="Departments and queue" className="flex min-h-0 flex-col border-r border-line">
+              <nav aria-label="Departments" className="grid gap-0.5 p-2">
                 {railButtons.map(({ id, n, t, active }) => (
                   <button
                     key={id}
@@ -421,7 +421,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
                   </button>
                 ))}
               </nav>
-              <ul aria-label="Очередь" className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-line p-2">
+              <ul aria-label="Queue" className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-line p-2">
                 <AnimatePresence initial={false}>
                   {list.map((it) => {
                     const t = deptTheme(it.dept)
@@ -442,24 +442,24 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
                     )
                   })}
                 </AnimatePresence>
-                {!list.length && !loading ? <li className="p-3 text-sm text-muted">Очередь пуста.</li> : null}
+                {!list.length && !loading ? <li className="p-3 text-sm text-muted">The queue is empty.</li> : null}
               </ul>
               {rail === 'marketing' || rail === 'all' || rail === 'director' ? <div className="max-h-[40%] overflow-y-auto border-t border-line p-3">{trendBlock}</div> : null}
             </aside>
           ) : null}
 
-          <main className="relative flex min-h-0 flex-1 flex-col bg-surface-2/40" aria-label="Материал">
+          <main className="relative flex min-h-0 flex-1 flex-col bg-surface-2/40" aria-label="Material">
             <div className="min-h-0 flex-1 p-3 sm:p-5">
               {data.error && !data.view ? (
                 <Offline error={data.error} onRetry={() => data.reload()} />
               ) : loading ? (
-                <div role="status" className="grid h-full place-items-center text-sm text-muted">Загружаю очередь</div>
+                <div role="status" className="grid h-full place-items-center text-sm text-muted">Loading the queue</div>
               ) : empty ? (
                 <div className="grid h-full place-items-center">
                   <div className="flex flex-col items-center gap-2 text-center">
                     <CheckCircle size={40} weight="duotone" aria-hidden="true" className="text-accent-text" />
-                    <p className="font-medium">Здесь всё решено</p>
-                    <p className="text-sm text-muted">Новое появится само, очередь обновляется каждые 15 секунд.</p>
+                    <p className="font-medium">Everything here is decided</p>
+                    <p className="text-sm text-muted">New items appear on their own, the queue refreshes every 15 seconds.</p>
                   </div>
                 </div>
               ) : item ? (
@@ -471,7 +471,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
 
             {item && (
               <div className={cn('border-t border-line bg-bg px-2 py-2 sm:px-4', !desktop && 'pb-[max(0.5rem,env(safe-area-inset-bottom))]')}>
-                <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Решения">
+                <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Decisions">
                   {buttons.map((b) => (
                     <button
                       key={b.action}
@@ -485,21 +485,21 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
                       {desktop ? <kbd className="font-mono text-xs opacity-60">{b.key}</kbd> : null}
                     </button>
                   ))}
-                  {!buttons.length ? <span className="px-2 text-sm text-muted">Решение принято: {STATUS_LABEL[item.status]}</span> : null}
+                  {!buttons.length ? <span className="px-2 text-sm text-muted">Decision made: {STATUS_LABEL[item.status]}</span> : null}
                   {!desktop ? (
                     <button type="button" onClick={() => setSheet(true)} className={cn(btn, 'ml-auto shrink-0 whitespace-nowrap')}>
                       <ListBullets size={16} aria-hidden="true" />
-                      Детали
+                      Details
                     </button>
                   ) : null}
                 </div>
-                {desktop ? <p className="mt-1.5 hidden px-1 text-xs text-faint xl:block">J K следующий и предыдущий, Пробел воспроизведение, M звук, V версии, Esc к списку</p> : null}
+                {desktop ? <p className="mt-1.5 hidden px-1 text-xs text-faint xl:block">J K next and previous, Space play, M sound, V versions, Esc back to the list</p> : null}
               </div>
             )}
           </main>
 
           {desktop && detailsProps ? (
-            <aside aria-label="Текст и данные" className="min-h-0 overflow-y-auto overscroll-contain border-l border-line bg-surface">
+            <aside aria-label="Text and data" className="min-h-0 overflow-y-auto overscroll-contain border-l border-line bg-surface">
               <Details {...detailsProps} />
             </aside>
           ) : null}
@@ -507,10 +507,10 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
 
         {!desktop && sheet && detailsProps ? (
           <div className="fixed inset-0 z-[60] flex items-end bg-scrim" onMouseDown={(e) => e.target === e.currentTarget && setSheet(false)}>
-            <div role="dialog" aria-modal="true" aria-label="Текст и данные" className="max-h-[88dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border-t border-line-strong bg-surface pb-[env(safe-area-inset-bottom)] shadow-panel">
+            <div role="dialog" aria-modal="true" aria-label="Text and data" className="max-h-[88dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl border-t border-line-strong bg-surface pb-[env(safe-area-inset-bottom)] shadow-panel">
               <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface px-4 py-2">
-                <span className="text-sm font-medium">Текст и данные</span>
-                <button type="button" onClick={() => setSheet(false)} className={btn}>Закрыть</button>
+                <span className="text-sm font-medium">Text and data</span>
+                <button type="button" onClick={() => setSheet(false)} className={btn}>Close</button>
               </div>
               <Details {...detailsProps} />
               {rail === 'marketing' || rail === 'all' || rail === 'director' ? <div className="border-t border-line p-4">{trendBlock}</div> : null}
@@ -528,7 +528,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
             const it = current
             void commit(it, { action: 'reschedule', slot: day }, {
               optimistic: (v) => ({ ...v, items: v.items.map((x) => (x.id === it.id ? { ...x, meta: { ...x.meta, slot: day, plannedDate: day } } : x)) }),
-              ok: () => notify(`Перенесено на ${day}`),
+              ok: () => notify(`Moved to ${day}`),
             })
           }}
         />
@@ -538,7 +538,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
           onClose={() => setModal(null)}
           onSave={(iso) => {
             setModal(null)
-            void commit(current, { action: 'call', slot: iso }, { ok: (res) => notify(`Созвон назначен: ${new Date(res.callAt ?? iso).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`) })
+            void commit(current, { action: 'call', slot: iso }, { ok: (res) => notify(`Call set: ${new Date(res.callAt ?? iso).toLocaleString('en-GB', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}`) })
           }}
         />
       ) : null}

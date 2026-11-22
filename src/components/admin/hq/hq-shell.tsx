@@ -155,7 +155,7 @@ export function HqShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K' || e.key === 'л' || e.key === 'Л')) {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K' || e.key === 'л' || e.key === 'Л')) { // i18n-ok: Russian keyboard layout
         e.preventDefault()
         setPaletteOpen((v) => !v)
         return
@@ -194,7 +194,7 @@ export function HqShell({ children }: { children: React.ReactNode }) {
           }))
         : [],
     )
-    const golive: PaletteItem = { id: 'golive', group: p.groups.panels, title: goliveText.title, hint: '', dept: 'director', keywords: 'запуск таймер чеклист 72 часа', run: () => router.push('/admin/golive') }
+    const golive: PaletteItem = { id: 'golive', group: p.groups.panels, title: goliveText.title, hint: '', dept: 'director', keywords: 'go live launch timer checklist 72 hours', run: () => router.push('/admin/golive') }
     return [...sections, golive, ...tabs]
   }, [router])
 

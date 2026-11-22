@@ -15,7 +15,7 @@ const when = (v: unknown): string | null => (typeof v === 'string' && !Number.is
 
 export const CHANNELS = ['web', 'telegram', 'cabinet'] as const
 export type Channel = (typeof CHANNELS)[number]
-export const CHANNEL_LABELS: Record<Channel, string> = { web: 'Сайт', telegram: 'Telegram', cabinet: 'Кабинет' }
+export const CHANNEL_LABELS: Record<Channel, string> = { web: 'Website', telegram: 'Telegram', cabinet: 'Cabinet' }
 
 export type ChatThread = {
   id: string
@@ -43,7 +43,7 @@ export function normalizeThread(raw: unknown): ChatThread | null {
   const c = rec(r.client)
   return {
     id: r.id,
-    client: { id: optNum(c.id), name: str(c.name, 120) || 'Посетитель сайта', email: optStr(c.email, 200), contact: str(c.contact, 120) },
+    client: { id: optNum(c.id), name: str(c.name, 120) || 'Site visitor', email: optStr(c.email, 200), contact: str(c.contact, 120) },
     channels: (Array.isArray(r.channels) ? r.channels : []).map(channel).filter((x): x is Channel => x !== null),
     lastAt: when(r.lastAt),
     unread: Math.max(0, optNum(r.unread) ?? 0),
@@ -84,7 +84,7 @@ export function normalizeMessage(raw: unknown): ChatMessage | null {
   const from = r.from === 'owner' || r.from === 'hq' ? r.from : 'client'
   const attachments = (Array.isArray(r.attachments) ? r.attachments : []).slice(0, 10).map((a): ChatAttachment => {
     const x = rec(a)
-    return { name: str(x.name, 120) || 'файл', url: safeUrl(x.url) }
+    return { name: str(x.name, 120) || 'file', url: safeUrl(x.url) }
   })
   return { id: r.id.slice(0, 64), at: when(r.at), from, channel: channel(r.channel) ?? 'web', thread: isThreadChoice(r.thread) ? r.thread : null, text: str(r.text), attachments }
 }
@@ -116,16 +116,16 @@ export function normalizeReply(body: unknown): ReplyOutcome | null {
   const via = b.via === 'telegram' || b.via === 'web' || b.via === 'cabinet' ? b.via : 'none'
   return { sent: b.sent && via !== 'none', via, message: normalizeMessage(b.message), thread: normalizeThread(b.thread) }
 }
-const VIA: Record<string, string> = { telegram: 'в Telegram', web: 'в чат на сайте', cabinet: 'в кабинет' }
-export const replyNote = (o: ReplyOutcome): string => (o.sent ? `Отправлено ${VIA[o.via] ?? ''}`.trim() : 'Не доставлено, отправьте вручную. Ответ сохранён в треде.')
+const VIA: Record<string, string> = { telegram: 'to Telegram', web: 'to the site chat', cabinet: 'to the cabinet' }
+export const replyNote = (o: ReplyOutcome): string => (o.sent ? `Sent ${VIA[o.via] ?? ''}`.trim() : 'Not delivered, send it by hand. The reply is saved in the thread.')
 
 // Links from a thread to the Shell sections.
 export function threadLinks(t: ChatThread): { label: string; href: string }[] {
   const out: { label: string; href: string }[] = []
   const go = (panel: string, tab: string, id: string | number) => hqHref(panel, tab, String(id))
-  if (t.leadId !== null) out.push({ label: 'Открыть лид', href: go('sales', 'leads', t.leadId) })
-  if (t.ticketId !== null) out.push({ label: 'Открыть тикет', href: go('support', 'tickets', t.ticketId) })
-  if (t.client.id !== null) out.push({ label: 'Открыть клиента', href: go('sales', 'clients', t.client.id) })
+  if (t.leadId !== null) out.push({ label: 'Open lead', href: go('sales', 'leads', t.leadId) })
+  if (t.ticketId !== null) out.push({ label: 'Open ticket', href: go('support', 'tickets', t.ticketId) })
+  if (t.client.id !== null) out.push({ label: 'Open client', href: go('sales', 'clients', t.client.id) })
   return out
 }
 
@@ -141,10 +141,10 @@ export type ThreadChoice = { id: string; label: string }
 const CHOICE_ID = /^(lead|support|project-\d{1,12})$/
 export const isThreadChoice = (v: unknown): v is string => typeof v === 'string' && CHOICE_ID.test(v)
 export function choiceLabel(id: string): string {
-  if (id === 'lead') return 'Заявка'
-  if (id === 'support') return 'Поддержка'
+  if (id === 'lead') return 'Lead'
+  if (id === 'support') return 'Support'
   const m = /^project-(\d+)$/.exec(id)
-  return m ? `Проект #${m[1]}` : id
+  return m ? `Project #${m[1]}` : id
 }
 
 // GET /admin/clients/:id/threads → the replyable ones (agent threads are answered by the agent, never by the owner).
