@@ -6,18 +6,19 @@ import { test } from 'node:test'
 const s = await import('../src/lib/hq-shell.ts')
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
-test('sections: eighteen English names in four groups, all built, keys 1-9', () => {
-  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Finance', 'Office', 'Content', 'Agents', 'Processes', 'Knowledge', 'Settings', 'Quality', 'Audit log', 'Analytics'])
+test('sections: nineteen English names in four groups, all built, keys 1-9', () => {
+  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Dashboard', 'Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Finance', 'Office', 'Content', 'Agents', 'Processes', 'Knowledge', 'Settings', 'Quality', 'Audit log', 'Analytics'])
   assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), s.HQ_SECTIONS.map((x) => x.id))
   assert.deepEqual(s.HQ_GROUPS.map((g) => g.label), ['Work', 'Clients', 'Company', 'Control'])
   const byGroup = (g) => s.HQ_SECTIONS.filter((x) => x.group === g).map((x) => x.id)
-  assert.deepEqual(byGroup('work'), ['inbox', 'approvals', 'tasks', 'calendar', 'chats'])
+  assert.deepEqual(byGroup('work'), ['dashboard', 'inbox', 'approvals', 'tasks', 'calendar', 'chats'])
   assert.deepEqual(byGroup('clients'), ['clients', 'projects', 'documents', 'finance'])
   assert.deepEqual(byGroup('company'), ['office', 'content', 'agents', 'processes', 'knowledge', 'settings'])
   assert.deepEqual(byGroup('control'), ['quality', 'audit', 'analytics'])
   assert.ok(!s.HQ_SECTIONS.some((x) => x.id === 'campaigns'))
-  assert.equal(s.sectionForKey('1').id, 'inbox')
-  assert.equal(s.sectionForKey('9').id, 'finance')
+  assert.equal(s.sectionForKey('1').id, 'dashboard')
+  assert.equal(s.sectionForKey('2').id, 'inbox')
+  assert.equal(s.sectionForKey('9').id, 'documents')
   assert.equal(s.sectionForKey('0'), null)
   assert.equal(s.sectionForKey('10'), null)
 })
@@ -60,11 +61,11 @@ test('zone map: each department room opens its Shell section', () => {
 })
 
 test('pages exist (no placeholder [section] page), the Office is a Shell section, /admin opens HQ, no «Пульт» in admin texts', () => {
-  for (const p of ['inbox', 'approvals', 'chats', 'review', 'golive', 'office', 'clients', 'projects', 'tasks', 'calendar', 'documents', 'agents', 'processes', 'content', 'finance', 'settings', 'audit', 'analytics', 'knowledge', 'quality']) assert.ok(existsSync(new URL(`../src/app/admin/(hq)/${p}/page.tsx`, import.meta.url)), p)
+  for (const p of ['dashboard', 'inbox', 'approvals', 'chats', 'review', 'golive', 'office', 'clients', 'projects', 'tasks', 'calendar', 'documents', 'agents', 'processes', 'content', 'finance', 'settings', 'audit', 'analytics', 'knowledge', 'quality']) assert.ok(existsSync(new URL(`../src/app/admin/(hq)/${p}/page.tsx`, import.meta.url)), p)
   assert.ok(existsSync(new URL('../src/app/admin/(hq)/office/page.tsx', import.meta.url)))
   assert.equal(existsSync(new URL('../src/app/admin/office/page.tsx', import.meta.url)), false)
   assert.equal(existsSync(new URL('../src/app/admin/(hq)/[section]/page.tsx', import.meta.url)), false)
-  assert.match(read('src/app/admin/page.tsx'), /redirect\('\/admin\/inbox'\)/)
+  assert.match(read('src/app/admin/page.tsx'), /redirect\('\/admin\/dashboard'\)/)
   const text = read('src/content/admin.ts').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n')
   assert.doesNotMatch(text, /[Пп]ульт/)
   assert.doesNotMatch(read('src/content/golive.ts'), /[Пп]ульт/)

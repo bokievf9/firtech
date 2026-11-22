@@ -3,6 +3,7 @@
 // so they are unit-tested (tests/hq-shell.test.mjs).
 
 export type HqSectionId =
+  | 'dashboard'
   | 'inbox'
   | 'approvals'
   | 'tasks'
@@ -34,6 +35,7 @@ export type HqSection = {
 }
 
 export const HQ_SECTIONS: readonly HqSection[] = [
+  { id: 'dashboard', group: 'work', label: 'Dashboard', state: 'ready', href: '/admin/dashboard' },
   { id: 'inbox', group: 'work', label: 'Inbox', state: 'ready', href: '/admin/inbox' },
   { id: 'approvals', group: 'work', label: 'Approvals', state: 'ready', href: '/admin/approvals' },
   { id: 'tasks', group: 'work', label: 'Tasks', state: 'ready', href: '/admin/tasks' },
@@ -64,7 +66,7 @@ export const HQ_GROUPS: readonly { id: HqGroupId; label: string }[] = [
 
 export const sectionById = (id: string) => HQ_SECTIONS.find((s) => s.id === id)
 
-// Keys 1-9 open the first nine sections in the menu order.
+// Keys 1-9 open the first nine sections in the menu order (the Dashboard is 1, the Inbox 2).
 export function sectionForKey(key: string): HqSection | null {
   if (key.length !== 1) return null
   const n = Number(key)
