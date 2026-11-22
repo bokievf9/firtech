@@ -2011,6 +2011,7 @@ export const admin = {
     apps: 'App',
     automation: 'Automation / AI',
     ai: 'AI assistant',
+    personal: 'Personal AI assistant',
     support: 'Support',
     payments: 'Online payment',
     seo: 'SEO and analytics',

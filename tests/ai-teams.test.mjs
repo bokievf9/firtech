@@ -80,7 +80,7 @@ test('ai teams: every offer has the full copy in both locales, titles RU and EN'
 
 test('ai teams: RU and EN dictionaries have the same shape, the section is last', () => {
   assert.deepEqual(shape(ru.aiTeams), shape(en.aiTeams))
-  for (const [, dict] of dicts) assert.equal(Object.keys(dict).at(-1), 'aiTeams')
+  for (const [, dict] of dicts) assert.equal(Object.keys(dict).filter((k) => k !== 'firaGuide').at(-1), 'aiTeams')
 })
 
 test('ai teams: copy has no digits, dollar amounts, long dashes or AI tells', () => {

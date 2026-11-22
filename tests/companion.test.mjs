@@ -5,13 +5,12 @@ import { readFileSync } from 'node:fs'
 import { test } from 'node:test'
 import { companionKind, markSeen, seenList } from '../src/lib/film.ts'
 import { firaFace } from '../src/lib/fira/face.ts'
-import { roundThree } from '../src/lib/fira/pose.ts'
 
 const read = (p) => readFileSync(p, 'utf8')
 
 test('companion: one face constant drives the film, the launcher and the chat avatar', () => {
-  assert.ok(roundThree.includes(firaFace))
-  for (const f of ['src/components/film/film-cue.tsx', 'src/components/film/film-overlay.tsx', 'src/components/chat/chat-widget.tsx', 'src/components/chat/chat-avatar.tsx']) {
+  assert.ok(['a', 'b', 'c', 'd'].includes(firaFace), 'the round-eight turtle')
+  for (const f of ['src/components/film/film-overlay.tsx', 'src/components/fira/fira-flat.tsx', 'src/components/fira/fira-guide.tsx']) {
     const code = read(f)
     assert.match(code, /firaFace/, f)
     assert.doesNotMatch(code, /variant=["'][a-m]["']/, `${f} types no letter of its own`)
@@ -42,5 +41,8 @@ test('companion: one line per kind of page, none on the home page, once per page
   const widget = read('src/components/chat/chat-widget.tsx')
   assert.match(widget, /sessionStorage/)
   assert.match(widget, /FILM_EVENT/, 'the launcher steps aside while the film Fira is on screen')
-  assert.match(widget, /FiraFallback3/, 'Fira is the face of the launcher')
+  assert.match(widget, /FiraGuide/, 'Fira is the launcher')
+  const guide = read('src/components/fira/fira-guide.tsx')
+  assert.match(guide, /FiraFallback7/, 'the flat round-eight turtle is the face of the launcher')
+  assert.match(guide, /sessionStorage|COMPANION_SEEN_KEY/)
 })

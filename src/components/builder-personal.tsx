@@ -3,18 +3,19 @@
 import {
   Briefcase, Browser, ChatCircleDots, EnvelopeSimple, GraduationCap, Laptop,
   Microphone, Student, TelegramLogo, UserCircle, UsersThree, WhatsappLogo, Baby,
-  Camera, Stethoscope, type Icon,
+  Camera, Stethoscope, Code, Flask, Scales, Armchair, Airplane, Barbell, type Icon,
 } from '@phosphor-icons/react'
-import { useId } from 'react'
+import { useId, useState } from 'react'
 import { motion } from 'motion/react'
 import type { Dict } from '@/content'
 import { pick } from '@/content/builder-catalog'
 import {
-  channelNames, connectText, dayUi, forkUi, handText, personalSteps, tierText, tierUi, toneUi, whoText,
+  channelNames, dayUi, forkUi, handText, personalSteps, tierText, tierUi, toneUi, whoTextAll,
 } from '@/content/builder-personal'
+import { catalogUi } from '@/content/capabilities'
 import type { Build } from '@/lib/builder'
 import {
-  personalChannels, personalConnect, personalHand, personalTiers, personalWho, type PersonalChannel,
+  personalChannels, personalHand, personalTiers, personalWhoAll, type PersonalChannel, type PersonalWhoAny,
 } from '@/lib/builder-ids'
 import {
   dayTimeline, defaultTone, monthlyOf, suggestedTier, tierOf, withPersonal, type PersonalBrief,
@@ -30,15 +31,18 @@ import { DiscoveryFields } from './builder-discovery'
 import { ProjectSend } from './builder-send'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
-import { Choice, Panel, Pill, Tick } from './builder-ui'
+import { Choice, Panel, Tick } from './builder-ui'
+import { ConnectionsPicker, SkillsPicker } from './builder-catalog-sections'
+import { catalogRows } from '@/lib/builder-capabilities'
 import { usePricing } from './pricing-provider'
 
 type SetBuild = (update: (b: Build) => Build) => void
 const loc = (locale: string) => (locale === 'ru' ? 'ru' : 'en')
 
-const whoIcons: Record<(typeof personalWho)[number], Icon> = {
+const whoIcons: Record<PersonalWhoAny, Icon> = {
   student: GraduationCap, founder: Briefcase, doctor: Stethoscope, freelancer: Laptop, manager: UsersThree,
   parent: Baby, blogger: Camera, teacher: Student, other: UserCircle,
+  engineer: Code, researcher: Flask, lawyer: Scales, retiree: Armchair, traveler: Airplane, athlete: Barbell,
 }
 const channelIcons: Record<PersonalChannel, Icon> = {
   telegram: TelegramLogo, whatsapp: WhatsappLogo, webchat: ChatCircleDots, cabinet: Browser, voice: Microphone,
@@ -94,30 +98,42 @@ export function PersonalStep({
   const p = build.personal ?? {}
   const pricing = usePricing()
   const byokName = useId()
+  const [moreRoles, setMoreRoles] = useState(false)
   const patch = (x: Partial<PersonalBrief>) => setBuild((b) => withPersonal(b, x))
   const toggle = <T extends string>(list: readonly T[] | undefined, id: T) =>
     list?.includes(id) ? list.filter((x) => x !== id) : [...(list ?? []), id]
 
-  if (step === 0)
+  if (step === 0) {
+    // Nine people first, the other six behind «Ещё роли» (open at once when one of them is picked).
+    const shownWho = moreRoles || (p.who && personalWhoAll.indexOf(p.who) >= 9) ? personalWhoAll : personalWhoAll.slice(0, 9)
     return (
+      <>
       <div role="radiogroup" aria-label={pick(personalSteps.titles[0]!, locale)} className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-        {personalWho.map((id) => {
+        {shownWho.map((id) => {
           const Glyph = whoIcons[id]
           return (
             <Choice key={id} role="radio" on={p.who === id} onClick={() => patch({ who: id })} className="flex min-h-[7rem] flex-col justify-between gap-3 p-3.5 sm:p-4">
               <Glyph size={24} weight="light" className={p.who === id ? 'text-accent-text' : 'text-muted'} />
               <span>
-                <span className="block text-callout leading-tight font-medium">{whoText[id].name[l]}</span>
-                <span className="mt-1 hidden text-caption leading-snug text-faint sm:block">{whoText[id].hint[l]}</span>
+                <span className="block text-callout leading-tight font-medium">{whoTextAll[id].name[l]}</span>
+                <span className="mt-1 hidden text-caption leading-snug text-faint sm:block">{whoTextAll[id].hint[l]}</span>
               </span>
             </Choice>
           )
         })}
       </div>
+      {shownWho.length < personalWhoAll.length && (
+        <button type="button" data-picker-more onClick={() => setMoreRoles(true)} className="pressable mt-3 inline-flex min-h-11 items-center rounded-full border border-line-strong px-5 text-callout hover:bg-fill focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text">
+          {pick(catalogUi.moreRoles, locale)} ({personalWhoAll.length - shownWho.length})
+        </button>
+      )}
+      </>
     )
+  }
 
   if (step === 1)
     return (
+      <div className="grid gap-12">
       <Cards cols="sm:grid-cols-2 lg:grid-cols-3">
         {personalHand.map((id) => {
           const on = Boolean(p.hand?.includes(id))
@@ -132,6 +148,8 @@ export function PersonalStep({
           )
         })}
       </Cards>
+      <SkillsPicker locale={locale} build={build} setBuild={setBuild} />
+      </div>
     )
 
   if (step === 2)
@@ -154,16 +172,7 @@ export function PersonalStep({
       </Cards>
     )
 
-  if (step === 3)
-    return (
-      <div className="flex flex-wrap gap-2" role="group" aria-label={pick(personalSteps.titles[3]!, locale)}>
-        {personalConnect.map((id) => (
-          <Pill key={id} on={Boolean(p.connect?.includes(id))} onClick={() => patch({ connect: toggle(p.connect, id) })}>
-            {connectText[id][l]}
-          </Pill>
-        ))}
-      </div>
-    )
+  if (step === 3) return <ConnectionsPicker locale={locale} build={build} setBuild={setBuild} />
 
   if (step === 4) {
     const tone = p.tone ?? defaultTone
@@ -183,7 +192,7 @@ export function PersonalStep({
               step={1}
               value={tone[i] ?? 1}
               onChange={(e) => {
-                const next = [...tone] as [number, number, number]
+                const next = [...tone]
                 next[i] = Number(e.target.value)
                 patch({ tone: next })
               }}
@@ -260,6 +269,7 @@ export function PersonalDay({
   const rows = dayTimeline(p)
   const doc = estimateDoc(build, dict, locale, pricing)
   const greeting = dayUi.greetings[p.tone?.[0] ?? 1]!
+  const extra = catalogRows(build, locale, 2000)
   return (
     <div className="grid gap-4 lg:grid-cols-12">
       <Panel className="lg:col-span-7" title={pick(dayUi.label, locale)}>
@@ -284,6 +294,16 @@ export function PersonalDay({
             )
           })}
         </ol>
+        {extra.length > 0 && (
+          <dl data-catalog-rows className="mt-6 grid gap-3 border-t border-hairline pt-5">
+            {extra.map((r) => (
+              <div key={r.id}>
+                <dt className="text-footnote text-muted">{r.label}</dt>
+                <dd className="mt-0.5 text-callout leading-snug">{r.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </Panel>
 
       <div className="grid content-start gap-4 lg:col-span-5">

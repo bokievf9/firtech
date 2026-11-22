@@ -2,11 +2,14 @@
 
 import { animate, useMotionValue } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
+import { accessoriesFor } from '@/lib/fira/contexts'
 import { firaFace } from '@/lib/fira/face'
+import { GUIDE_POINT_EVENT, GUIDE_TOUR_EVENT, openGuideMenu } from '@/lib/fira/guide'
 import type { Emotion } from '@/lib/fira/pose'
-import { activeScene, filmScenes, markInShot, type FilmSceneId } from '@/lib/film'
-import { FILM_EVENT, openChat } from '../chat/chat-events'
-import { Fira } from '../fira/fira'
+import { activeScene, filmContext, filmScenes, markInShot, type FilmSceneId } from '@/lib/film'
+import { FILM_EVENT } from '../chat/chat-events'
+import { FiraTurtle7 } from '../fira/fira-turtle7'
+import { FiraTyped } from '../fira/fira-typed'
 import type { FilmCopy } from './film-stage'
 
 // One WebGL Fira for the whole home film (wide screens, motion allowed). Every scene wrapper
@@ -24,6 +27,8 @@ const flight = { type: 'spring', duration: 0.9, bounce: 0.15 } as const
 const SAY_MS = 5500
 
 const emotionOf = Object.fromEntries(filmScenes.map((s) => [s.id, s.emotion])) as Record<FilmSceneId, Emotion>
+
+const accOf = Object.fromEntries(filmScenes.map((s) => [s.id, accessoriesFor(filmContext[s.id])])) as Record<FilmSceneId, ReturnType<typeof accessoriesFor>>
 
 // The «camera»: a soft glow behind the page that drifts to a new place for every scene.
 const camera: Record<FilmSceneId, { x: number; y: number; s: number; o: number }> = {
@@ -44,6 +49,8 @@ export default function FilmOverlay({ copy }: { copy: FilmCopy }) {
   const [docked, setDocked] = useState(false)
   const [say, setSay] = useState(false)
   const [hover, setHover] = useState(false)
+  const [touring, setTouring] = useState(false)
+  const [pointing, setPointing] = useState(false)
   const offX = useMotionValue(0)
   const offY = useMotionValue(0)
   const offW = useMotionValue(0)
@@ -142,8 +149,27 @@ export default function FilmOverlay({ copy }: { copy: FilmCopy }) {
     }
   }, [docked, scene])
 
+  // The guide (components/fira/fira-guide.tsx) runs the tour and the reactions; this Fira is her body on the home page.
+  useEffect(() => {
+    const onTour = (e: Event) => setTouring(Boolean((e as CustomEvent<{ on?: boolean }>).detail?.on))
+    let timer = 0
+    const onPoint = (e: Event) => {
+      setPointing(true)
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => setPointing(false), (e as CustomEvent<{ ms?: number }>).detail?.ms ?? 2800)
+    }
+    window.addEventListener(GUIDE_TOUR_EVENT, onTour)
+    window.addEventListener(GUIDE_POINT_EVENT, onPoint)
+    return () => {
+      window.removeEventListener(GUIDE_TOUR_EVENT, onTour)
+      window.removeEventListener(GUIDE_POINT_EVENT, onPoint)
+      window.clearTimeout(timer)
+    }
+  }, [])
+
   const backdrop = camera[scene]
-  const emotion: Emotion = hover ? 'listening' : docked ? (say ? 'talking' : 'idle') : emotionOf[scene]
+  const showSay = say && docked && !touring
+  const emotion: Emotion = touring || pointing ? 'point' : hover ? 'listening' : docked ? (showSay ? 'talking' : 'idle') : emotionOf[scene]
   return (
     <>
       <div
@@ -160,22 +186,22 @@ export default function FilmOverlay({ copy }: { copy: FilmCopy }) {
         type="button"
         data-film-fira={docked ? 'dock' : scene}
         aria-label={copy.overlay}
-        onClick={() => openChat('film')}
+        onClick={() => openGuideMenu()}
         onPointerEnter={() => setHover(true)}
         onPointerLeave={() => setHover(false)}
         className="film-fira print-hidden fixed top-0 left-0 z-30 origin-top-left rounded-full"
         style={{ width: BASE, height: BASE, opacity: ready ? 1 : 0 }}
       >
-        <Fira variant={firaFace} emotion={emotion} size={BASE} onReady={() => setReady(true)} />
+        <FiraTurtle7 variant={firaFace} acc={accOf[scene]} emotion={emotion} size={BASE} onReady={() => setReady(true)} />
       </button>
       <p
         aria-hidden="true"
-        data-film-say={say && docked ? 'on' : 'off'}
+        data-film-say={showSay ? 'on' : 'off'}
         className="film-say glass print-hidden pointer-events-none fixed z-30 max-w-[22rem] rounded-2xl rounded-br-md px-4 py-3 text-[14px] leading-snug text-fg"
         style={{ right: GAP + DOCK + 4, bottom: GAP + 14 }}
       >
         <span className="mb-1 block font-mono text-[10px] tracking-[0.16em] text-accent-text uppercase">{copy.name}</span>
-        {copy.scenes[scene]}
+        {showSay ? <FiraTyped key={scene} text={copy.scenes[scene]} /> : copy.scenes[scene]}
       </p>
     </>
   )

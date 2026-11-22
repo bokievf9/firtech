@@ -1,4 +1,3 @@
-import type { AgentConversation, ClientAgent } from './cabinet-agent'
 import { materialsThread, unreadTotal, type ChatThread } from './cabinet-chat'
 import {
   legacyDocs,
@@ -26,12 +25,10 @@ import { tabCounts, visibleTabs, type CabinetTab } from './cabinet-tabs'
 export type CabinetExtras = {
   docs: ClientDoc[]
   threads: ChatThread[]
-  agents: ClientAgent[]
-  conversations: AgentConversation[]
   // HQ answered the v3 endpoints (an older HQ makes the page fall back to the legacy invoices/documents).
   v3: boolean
 }
-export const noExtras: CabinetExtras = { docs: [], threads: [], agents: [], conversations: [], v3: false }
+export const noExtras: CabinetExtras = { docs: [], threads: [], v3: false }
 
 export type ProjectView = { project: CabinetProject; action: NextAction; threadId: string | null }
 export type CabinetView = {
@@ -43,8 +40,6 @@ export type CabinetView = {
   leadActions: Record<number, NextAction>
   tabs: CabinetTab[]
   counts: Partial<Record<CabinetTab, number>>
-  agent: ClientAgent | null
-  agentThread: ChatThread | null
   materialsThread: ChatThread | null
   // Threads for the home's «Последние сообщения»: the latest three.
   recentThreads: ChatThread[]
@@ -74,7 +69,6 @@ export function buildCabinetView(data: CabinetData, extras: CabinetExtras): Cabi
     threadId: extras.threads.find((t) => t.kind === 'project' && t.refId === String(project.id))?.id ?? null,
   }))
 
-  const agent = extras.agents[0] ?? null
   const unread = unreadTotal(extras.threads)
   const byRecent = [...extras.threads].sort((a, b) => (Date.parse(b.lastAt ?? '') || 0) - (Date.parse(a.lastAt ?? '') || 0))
   return {
@@ -83,10 +77,8 @@ export function buildCabinetView(data: CabinetData, extras: CabinetExtras): Cabi
     projects,
     leads,
     leadActions,
-    tabs: visibleTabs({ hasAgent: agent !== null }),
+    tabs: visibleTabs(),
     counts: tabCounts({ docsNeedingClient: docsNeedingClient(docs), unread }),
-    agent,
-    agentThread: extras.threads.find((t) => t.kind === 'agent') ?? null,
     materialsThread: materialsThread(extras.threads),
     recentThreads: byRecent.slice(0, 3),
   }

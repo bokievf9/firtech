@@ -13,7 +13,6 @@ import {
   type CabinetTicket,
   type ClientSyncProfile,
 } from './cabinet-data'
-import { parseAgentItem, parseAgents, parseConversations, type AgentConversation, type ClientAgent } from './cabinet-agent'
 import { labelTag, parseMessageItem, parseMessages, parseThreads, type ChatMessage, type ChatThread } from './cabinet-chat'
 import { parseClientDocs, signBodyForHq, type ClientDoc, type RejectMode, type SignaturePayload } from './cabinet-docs'
 import type { CabinetExtras } from './cabinet-view'
@@ -22,7 +21,6 @@ import {
   mockRejectQuote,
   mockReview,
   mockMessages as mockThreadMessages,
-  mockPatchAgent,
   mockRead,
   mockSend,
   mockSign,
@@ -200,10 +198,10 @@ export async function syncClientToHq(
   return body && body.ok === true ? { ok: true, data: true } : { ok: false, error: 'hq_error' }
 }
 
-// ---- Cabinet v3 (2026-11-22): documents, messenger, uploads, agent --------------------------------
+// ---- Cabinet v3 (2026-11-22): documents, messenger, uploads --------------------------------
 // Built against the contract DRAFT (`cabinet-docs-contract.md`, sections 2-5); the final contract is
 // `agents/docs/admin-crm-api.md`, «Кабинет v3». Every HQ path and field name of v3 is in this block (and
-// in cabinet-docs.ts, cabinet-chat.ts, cabinet-agent.ts for the parsers) so a mismatch is fixed in one place.
+// in cabinet-docs.ts, cabinet-chat.ts for the parsers) so a mismatch is fixed in one place.
 // Assumptions are listed in docs/cabinet.md, «Кабинет v3 (2026-11-22)».
 export type HqV3Error =
   | CabinetError
@@ -352,7 +350,7 @@ export async function fetchThreads(clientId: number, env: Env = process.env, fet
   if (!okId(clientId)) return { ok: false, error: 'not_found' }
   if (setup(env) === 'mock') {
     const st = mockState()
-    return { ok: true, data: st.threads.filter((t) => t.kind !== 'agent' || st.agent).map((t) => ({ ...t })) }
+    return { ok: true, data: st.threads.map((t) => ({ ...t })) }
   }
   const res = await callV3(`/clients/${clientId}/threads`, { method: 'GET' }, env, fetcher)
   return res.ok ? { ok: true, data: parseThreads(res.body) } : res
@@ -444,43 +442,6 @@ export async function uploadThreadFile(
   return posted.ok ? { ok: true, data: posted.data.item } : posted
 }
 
-export async function fetchClientAgents(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<ClientAgent[]>> {
-  if (!okId(clientId)) return { ok: false, error: 'not_found' }
-  if (setup(env) === 'mock') {
-    const a = mockState().agent
-    return { ok: true, data: a ? [structuredClone(a)] : [] }
-  }
-  const res = await callV3(`/clients/${clientId}/agents`, { method: 'GET' }, env, fetcher)
-  return res.ok ? { ok: true, data: parseAgents(res.body) } : res
-}
-
-// `PATCH /clients/:id/agents/:aid` with the cleaned settings (agentPatchBody); a Telegram bot token
-// rides in `channels.telegram.botToken` and is stored encrypted by HQ, never read back.
-export async function patchClientAgent(
-  clientId: number,
-  agentId: string,
-  patch: Record<string, unknown>,
-  env: Env = process.env,
-  fetcher: typeof fetch = fetch,
-): Promise<HqV3<ClientAgent>> {
-  if (!okId(clientId) || !agentId) return { ok: false, error: 'not_found' }
-  if (setup(env) === 'mock') {
-    const a = mockPatchAgent(patch)
-    return a ? { ok: true, data: structuredClone(a) } : { ok: false, error: 'not_found' }
-  }
-  const res = await callV3(`/clients/${clientId}/agents/${enc(agentId)}`, { method: 'PATCH', json: patch }, env, fetcher)
-  if (!res.ok) return res
-  const item = parseAgentItem(res.body)
-  return item ? { ok: true, data: item } : { ok: false, error: 'hq_error' }
-}
-
-export async function fetchAgentConversations(clientId: number, agentId: string, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<HqV3<AgentConversation[]>> {
-  if (!okId(clientId) || !agentId) return { ok: false, error: 'not_found' }
-  if (setup(env) === 'mock') return { ok: true, data: mockState().conversations.map((c) => ({ ...c })) }
-  const res = await callV3(`/clients/${clientId}/agents/${enc(agentId)}/conversations`, { method: 'GET' }, env, fetcher)
-  return res.ok ? { ok: true, data: parseConversations(res.body) } : res
-}
-
 // The profile form: `POST /clients/:id { name?, telegram?, phone?, company?, locale? }` changes only the
 // fields sent (an empty string clears one). NOT the registration upsert `POST /clients`, which overwrites
 // name, telegram and locale from the sign-up data and was the CRM half of the profile bug.
@@ -500,19 +461,10 @@ export async function patchClientProfile(
 // Everything the cabinet page needs next to the by-email body, fetched in parallel; each part fails
 // softly (an empty list) so an older HQ without v3 still shows the rest of the cabinet.
 export async function fetchCabinetExtras(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<CabinetExtras> {
-  const [docs, threads, agents] = await Promise.all([
-    fetchClientDocuments(clientId, env, fetcher),
-    fetchThreads(clientId, env, fetcher),
-    fetchClientAgents(clientId, env, fetcher),
-  ])
-  const agentList = agents.ok ? agents.data : []
-  const first = agentList[0]
-  const conversations = first ? await fetchAgentConversations(clientId, first.id, env, fetcher) : null
+  const [docs, threads] = await Promise.all([fetchClientDocuments(clientId, env, fetcher), fetchThreads(clientId, env, fetcher)])
   return {
     docs: docs.ok ? docs.data : [],
     threads: threads.ok ? threads.data : [],
-    agents: agentList,
-    conversations: conversations?.ok ? conversations.data : [],
     v3: docs.ok || threads.ok,
   }
 }

@@ -8,7 +8,7 @@ export const stopLosingLeads: Article = {
   ru: {
     title: 'Как перестать терять заявки: 5 простых шагов',
     description:
-      'Заявки теряются в личных сообщениях, звонках и комментариях. Пять шагов, чтобы отвечать быстрее и не забывать о клиентах, и где помогают бот и автоматизация.',
+      'Заявки теряются в личных сообщениях, звонках и комментариях. Пять шагов, чтобы отвечать быстрее и не забывать о клиентах, и где помогает ИИ-агент.',
     blocks: [
       {
         type: 'p',
@@ -20,16 +20,16 @@ export const stopLosingLeads: Article = {
       },
       {
         type: 'p',
-        text: 'Ниже пять шагов. Первые три можно сделать уже на этой неделе почти без затрат, для двух последних пригодятся простые инструменты. В каждом шаге пишем, что можно сделать самим, а где помогут бот или автоматизация.',
+        text: 'Ниже пять шагов. Первые три можно сделать уже на этой неделе почти без затрат, для двух последних пригодятся простые инструменты. В каждом шаге пишем, что можно сделать самим, а где помогут ИИ-агент или автоматизация.',
       },
       { type: 'h2', text: 'Шаг 1. Один канал для всех заявок' },
       {
         type: 'p',
-        text: 'Пока заявки приходят в пять разных мест, какая-то обязательно потеряется. Поэтому первым делом решите, куда стекается всё. Для большинства малых бизнесов удобнее всего Telegram: он уже есть у вас и у сотрудников в телефоне.',
+        text: 'Пока заявки приходят в пять разных мест, какая-то обязательно потеряется. Поэтому первым делом решите, куда стекается всё. Для большинства малых бизнесов удобнее всего один рабочий мессенджер, Telegram или WhatsApp: он уже есть у вас и у сотрудников в телефоне.',
       },
       {
         type: 'p',
-        text: 'Отказываться от других каналов при этом не нужно. Пусть клиенты пишут, где им удобно. Но форма на сайте, бот и, где это возможно, остальные источники должны пересылать заявку в одно место, например в общий рабочий чат.',
+        text: 'Отказываться от других каналов при этом не нужно. Пусть клиенты пишут, где им удобно. Но форма на сайте, агент и, где это возможно, остальные источники должны пересылать заявку в одно место, например в общий рабочий чат.',
       },
       {
         type: 'p',
@@ -42,7 +42,7 @@ export const stopLosingLeads: Article = {
       },
       {
         type: 'p',
-        text: `Технически это несложно. Подключить форму на сайте к Telegram у нас стоит от ${p.siteTelegram}. Если заявки приходят из разных сервисов, уведомления в Telegram в рамках автоматизации добавляются от ${p.alerts}.`,
+        text: `Технически это несложно. Подключить форму на сайте к рабочему мессенджеру у нас стоит от ${p.siteTelegram}. Если заявки приходят из разных сервисов, уведомления в мессенджер в рамках автоматизации добавляются от ${p.alerts}.`,
       },
       { type: 'h2', text: 'Шаг 3. Быстрый ответ' },
       {
@@ -125,11 +125,11 @@ export const stopLosingLeads: Article = {
       { type: 'h2', text: 'Step 1. One channel for every request' },
       {
         type: 'p',
-        text: 'As long as requests arrive in five different places, some of them will get lost. So first decide where everything should end up. For most small businesses Telegram is the easiest choice: you and your staff already have it on your phones.',
+        text: 'As long as requests arrive in five different places, some of them will get lost. So first decide where everything should end up. For most small businesses one work messenger, Telegram or WhatsApp, is the easiest choice: you and your staff already have it on your phones.',
       },
       {
         type: 'p',
-        text: 'You do not have to give up other channels. Let customers write wherever they like. But the form on your website, your bot and, where possible, other sources should forward each request to one place, such as a shared work chat.',
+        text: 'You do not have to give up other channels. Let customers write wherever they like. But the form on your website, your agent and, where possible, other sources should forward each request to one place, such as a shared work chat.',
       },
       {
         type: 'p',
@@ -142,7 +142,7 @@ export const stopLosingLeads: Article = {
       },
       {
         type: 'p',
-        text: `Technically this is simple. Connecting the form on your site to Telegram costs from ${p.siteTelegram} with us. If requests come from several services, Telegram notifications as part of an automation are added from ${p.alerts}.`,
+        text: `Technically this is simple. Connecting the form on your site to a work messenger costs from ${p.siteTelegram} with us. If requests come from several services, messenger notifications as part of an automation are added from ${p.alerts}.`,
       },
       { type: 'h2', text: 'Step 3. A quick reply' },
       {

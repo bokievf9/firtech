@@ -196,7 +196,7 @@ export function RolloutBlock({ copy, band }: { copy: Req<'rollout'> } & Band) {
 // The pilot offer of the flagships (owner 2026-11-22): the first one or two pilots free for a case study and a review.
 export function PilotBlock({ copy, band, id }: { copy: Req<'pilot'>; id: string } & Band) {
   return (
-    <section id="pilot" data-product-section="pilot" className={cn(band && 'border-y border-line bg-surface/40')}>
+    <section id="pilot" data-product-section="pilot" data-tour="pilot" className={cn(band && 'border-y border-line bg-surface/40')}>
       <div className="mx-auto max-w-7xl px-4 py-section md:px-8">
         <Reveal>
           <div className={cn('grid gap-8 rounded-card border p-6 md:p-10 lg:grid-cols-12 lg:items-center', lime)}>

@@ -11,8 +11,10 @@ import type {
   PersonalConnect,
   PersonalHand,
   PersonalWho,
+  PersonalWhoAny,
 } from '../lib/builder-ids'
 import type { L } from './builder-catalog'
+import { personaMore } from './capabilities'
 
 // «Сборка проекта» v4: strings of the personal path and the discovery fields. RU and EN side by side. No em or
 // en dashes, no «конструктор», prices never typed here (they come from pricing.ts).
@@ -111,6 +113,23 @@ export const connectText: Record<PersonalConnect, L<string>> = {
   whatsapp: l('WhatsApp', 'WhatsApp'),
   bank: l('Банковские выписки', 'Bank statements'),
   other: l('Другое', 'Other'),
+  // v5: the other sixteen of the 25 connections
+  slack: l('Slack', 'Slack'),
+  todoist: l('Todoist', 'Todoist'),
+  trello: l('Trello', 'Trello'),
+  obsidian: l('Obsidian', 'Obsidian'),
+  github: l('GitHub', 'GitHub'),
+  dropbox: l('Dropbox', 'Dropbox'),
+  zoom: l('Zoom', 'Zoom'),
+  evernote: l('Evernote', 'Evernote'),
+  applehealth: l('Apple Здоровье', 'Apple Health'),
+  strava: l('Strava', 'Strava'),
+  linkedin: l('LinkedIn', 'LinkedIn'),
+  instagram: l('Instagram', 'Instagram'),
+  youtube: l('YouTube', 'YouTube'),
+  canvas: l('Canvas', 'Canvas'),
+  anki: l('Anki', 'Anki'),
+  kaspi: l('Kaspi', 'Kaspi'),
 }
 
 export const toneUi = {
@@ -118,6 +137,9 @@ export const toneUi = {
     { id: 'formality', name: l('Обращение', 'Address'), options: [l('На «ты», тепло', 'Casual and warm'), l('Ровно', 'Even'), l('На «вы», строго', 'Formal')] },
     { id: 'brevity', name: l('Длина ответов', 'Answer length'), options: [l('Коротко', 'Short'), l('Средне', 'Medium'), l('Подробно', 'Detailed')] },
     { id: 'initiative', name: l('Инициатива', 'Initiative'), options: [l('Ждёт просьбы', 'Waits for you'), l('Иногда напоминает', 'Nudges sometimes'), l('Предлагает сам', 'Proposes things')] },
+    // v5: two more axes (five in all)
+    { id: 'humor', name: l('Юмор', 'Humour'), options: [l('Серьёзно', 'Serious'), l('Иногда шутит', 'A joke now and then'), l('С юмором', 'Playful')] },
+    { id: 'firmness', name: l('Напоминания', 'Reminders'), options: [l('Мягко', 'Soft'), l('Настойчиво', 'Persistent'), l('Строго', 'Strict')] },
   ],
 }
 
@@ -267,3 +289,6 @@ export const discLabels = {
   success: l('Успех', 'Success'),
   heard: l('Узнали о нас', 'Heard of us'),
 }
+
+// v5: the nine people plus six more (15), for the builder; the Personal AI page keeps `whoText` (first eight).
+export const whoTextAll: Record<PersonalWhoAny, Named> = { ...whoText, ...personaMore }

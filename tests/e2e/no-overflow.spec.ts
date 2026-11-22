@@ -69,6 +69,7 @@ for (const width of [390, 768]) {
     test('chat widget with a long unbroken message', async ({ page }) => {
       await open(page, '/ru')
       await page.locator('[data-cta=chat_fab]').click()
+      await page.locator('[data-cta=fira_ask]').click()
       const dialog = page.getByRole('dialog')
       await dialog.locator('textarea').fill(`${LONG} ${EMAIL}`)
       await page.keyboard.press('Enter')

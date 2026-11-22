@@ -35,7 +35,7 @@ export default async function BuilderPage({ params }: PageProps<'/[locale]/build
 
   // The builder is the page: its own step bar carries the h1, each step is a full screen.
   return (
-    <section className="pt-16 md:pt-[72px]">
+    <section data-tour="builder" className="pt-16 md:pt-[72px]">
       <Builder dict={dict} locale={locale} />
     </section>
   )

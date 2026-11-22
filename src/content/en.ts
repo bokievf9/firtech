@@ -6,7 +6,7 @@ const en: Dict = {
   meta: {
     title: 'Fir Tech: AI agents and automation for business',
     description:
-      'AI agents for small business: booking, lead replies around the clock, routine automation, websites and Telegram Mini Apps. Price and timeline fixed up front.',
+      'AI agents for small business: booking, lead replies around the clock, automation of repeat tasks, websites and Mini Apps. Price and timeline fixed up front.',
   },
   nav: {
     skip: 'Skip to content',
@@ -73,7 +73,7 @@ const en: Dict = {
       },
     },
     demo: {
-      caption: 'Lead automation in action: your website, Telegram and CRM working together.',
+      caption: 'Lead automation in action: your website, a messenger and a CRM working together.',
       site: 'Website',
       siteTitle: 'Website enquiry',
       name: 'Madina Rakhimova',
@@ -178,7 +178,7 @@ const en: Dict = {
     plans: { basic: 'Companion', plus: 'Copilot', max: 'Alter Ego', company: 'Rollout', dono: 'Dono, study', polly: 'Polly, languages', content: 'Subscription' },
     byQuote: 'The exact sum is fixed in the quote',
     classicTitle: 'The foundation the agents run on',
-    classicSub: 'We also build websites, Telegram Mini Apps and apps on their own.',
+    classicSub: 'We also build websites, Mini Apps and apps on their own.',
     more: 'Learn more',
     items: {
       personal: {
@@ -186,7 +186,7 @@ const en: Dict = {
         benefit: 'Your day under control: the AI remembers people, deadlines and promises',
         forWhom: 'Business owners, managers, freelancers, students',
         inside: [
-          'Mail, calendar, tasks and study in one Telegram chat',
+          'Mail, calendar, tasks and study in one chat',
           'Remembers people, habits and promises',
           'By voice or text, in its own container',
         ],
@@ -194,7 +194,7 @@ const en: Dict = {
       company: {
         name: 'Your company’s AI',
         benefit: 'One AI knows your business and answers staff and clients',
-        forWhom: 'Companies where routine eats the day of several people',
+        forWhom: 'Companies where repeat work eats the day of several people',
         inside: [
           'Knows your site, prices, documents and rules',
           'Answers staff and clients in their channels and remembers context',
@@ -206,7 +206,7 @@ const en: Dict = {
         benefit: 'Clients book themselves and show up',
         forWhom: 'Salons, clinics, studios, car services',
         inside: [
-          'Booking in Telegram by free slots',
+          'Booking by free slots in any channel',
           'Reminders a day and an hour before the visit',
           'Asks for a review after the visit',
         ],
@@ -216,9 +216,9 @@ const en: Dict = {
         benefit: 'No lead goes unanswered, even at night',
         forWhom: 'Businesses that get messages in chat apps',
         inside: [
-          'Telegram and a site chat from day one, WhatsApp and Instagram as a separate line of the quote',
+          'Any channels in the quote: messengers, site chat, email',
           'Clarifies the task, timing and contact',
-          'A ready request for your manager in Telegram',
+          'A ready request in your manager\'s working channel',
         ],
       },
       automation: {
@@ -238,7 +238,7 @@ const en: Dict = {
         inside: [
           'A posting plan a month ahead',
           'Posts, product cards and short videos',
-          'One-tap approval in Telegram',
+          'One-tap approval wherever you are',
         ],
       },
       miniapp: {
@@ -365,7 +365,7 @@ const en: Dict = {
         tags: ['Landing page', 'Company site', 'Store'],
       },
       bots: {
-        name: 'Telegram agents',
+        name: 'Agents in messengers',
         short: 'Take orders, book clients and answer questions while you focus on other work.',
         tags: ['Bookings', 'Orders', 'Mini App'],
       },
@@ -377,7 +377,7 @@ const en: Dict = {
       automation: {
         name: 'Automation and AI',
         short:
-          'We connect your website, Telegram, CRM and spreadsheets so routine work runs itself.',
+          'We connect your website, messengers, CRM and spreadsheets so a request lands where it belongs without retyping.',
         tags: ['CRM', 'Integrations', 'AI assistant'],
       },
     },
@@ -407,7 +407,7 @@ const en: Dict = {
       ai: {
         name: 'AI assistant for customers',
         short:
-          'Answers customers on Telegram, Instagram and WhatsApp around the clock, takes requests and hands them to a manager. Speaks Russian, Tajik and English.',
+          'Answers customers in messengers and social networks around the clock, takes requests and hands them to a manager. Speaks Russian, Tajik and English.',
       },
       support: {
         name: 'Support subscription',
@@ -417,7 +417,7 @@ const en: Dict = {
       payments: {
         name: 'Online payments',
         short:
-          'We add payments to your website and to Telegram: local payment systems and bank cards, and Stripe for customers abroad.',
+          'We add payments to your website and to chat: local payment systems and bank cards, and Stripe for customers abroad.',
       },
       seo: {
         name: 'Maps, SEO and analytics',
@@ -481,7 +481,7 @@ const en: Dict = {
     monthlyNote: 'Support is paid separately, every month.',
     termsNote:
       'Timelines are per part. We will give the exact overall timeline in the quote: some work can run in parallel.',
-    payNote: 'Payment by stages from the quote: each stage before it starts, the last before handover.',
+    payNote: 'Payment goes by stages, listed in the quote.',
     stagesTitle: 'Payment by stages',
     stageCols: { stage: 'Stage', what: 'What is included', share: 'Share', amount: 'Amount' },
     stageRule: 'Each stage is paid before it starts, the last one before handover.',
@@ -750,7 +750,7 @@ const en: Dict = {
     cta: 'Build this solution',
     discuss: 'Ask an agent',
     stagesTitle: 'Work stages',
-    stagesSub: 'This is how the project goes from the first screen to launch. Each stage is paid before it starts.',
+    stagesSub: 'This is how the project goes from the first screen to launch.',
     firstStageLabel: 'First stage',
     firstStageNote: 'This is what you pay before the work starts.',
     timelineLabel: 'Timeline of the main part',
@@ -769,24 +769,24 @@ const en: Dict = {
     othersTitle: 'Other solutions',
     items: {
       cafe: {
-        metaTitle: 'Website, table booking and Telegram orders for a cafe',
+        metaTitle: 'Website, table booking and orders for a cafe',
         metaDescription:
-          'A website with the menu, table bookings and paid Telegram orders, and a place on maps. Contents, price and timing of the starting set for a cafe or restaurant.',
-        title: 'Website, booking and orders in Telegram for a cafe or restaurant',
-        sub: 'The menu and contacts on the website, table bookings and orders in Telegram, and you are easy to find on the maps. Guests handle it themselves, and the staff sees every request.',
-        card: 'Menu, bookings and orders in Telegram, plus a website and a place on the maps.',
+          'A website with the menu, table bookings and paid orders, and a place on maps. Contents, price and timing of the starting set for a cafe or restaurant.',
+        title: 'Website, booking and orders for a cafe or restaurant',
+        sub: 'The menu and contacts on the website, table bookings and orders in chat, and you are easy to find on the maps. Guests handle it themselves, and the staff sees every request.',
+        card: 'Menu, bookings and orders in chat, plus a website and a place on the maps.',
         problems: [
           {
             pain: 'Bookings come by phone, and at rush hour nobody can pick up',
-            fix: 'Guests book a table in Telegram themselves: date, time, number of guests. The request goes straight to the manager.',
+            fix: 'Guests book a table themselves, in chat or on the site: date, time, number of guests. The request goes straight to the manager.',
           },
           {
             pain: 'The menu and prices on Instagram are out of date, guests keep asking the same things',
-            fix: 'An up to date menu, opening hours and address on the website and in Telegram. No more answering the same questions.',
+            fix: 'An up to date menu, opening hours and address on the website and in the channels where guests find you. No more answering the same questions.',
           },
           {
             pain: 'Takeaway orders get lost in chats',
-            fix: 'Orders are placed and paid in Telegram, and every order has a clear status.',
+            fix: 'Orders are placed and paid in chat or on the site, and every order has a clear status.',
           },
           {
             pain: 'New guests cannot find you on the maps',
@@ -796,37 +796,37 @@ const en: Dict = {
         faq: [
           {
             q: 'Can we change the menu and prices ourselves?',
-            a: 'Yes. The menu in Telegram is edited in a simple spreadsheet or admin panel, no developer needed. The website can get an editing panel too.',
+            a: 'Yes. The menu in chat is edited in a simple spreadsheet or admin panel, no developer needed. The website can get an editing panel too.',
           },
           {
-            q: 'How does a guest pay for an order in Telegram?',
+            q: 'How does a guest pay for an order in chat?',
             a: 'We connect card payments and the local payment systems your bank supports. We will confirm which ones on a call.',
           },
           {
             q: 'Does a guest need to install anything?',
-            a: 'No. Booking and ordering open in Telegram, which the guest already has, and the website opens in any browser.',
+            a: 'No. Booking and ordering open in the messenger the guest already has, and the website opens in any browser.',
           },
           {
             q: 'Where do bookings and orders arrive?',
-            a: 'In Telegram, to the manager or a staff group, with the name, phone number and order details.',
+            a: 'To the manager or a staff group chat, with the name, phone number and order details.',
           },
           {
             q: 'Can we start with the website only?',
-            a: 'Yes. Remove the Telegram part in the project builder and the price updates. We add it later when you need it.',
+            a: 'Yes. Remove the chat part in the project builder and the price updates. We add it later when you need it.',
           },
         ],
       },
       salon: {
-        metaTitle: 'AI booking assistant for a beauty salon: booking in Telegram',
+        metaTitle: 'AI booking assistant for a beauty salon: online booking',
         metaDescription:
-          'An AI booking assistant takes bookings in Telegram and sends reminders and mailings. A site with services and prices. Price and timing for a beauty salon.',
+          'An AI booking assistant takes bookings in messengers and on your site, sends reminders and mailings. A site with services and prices. Price and timing included.',
         title: 'AI booking assistant for a beauty salon',
-        sub: 'Clients book a stylist in Telegram at any time, get a reminder and do not forget the visit. The website shows services and prices, and its requests arrive in Telegram.',
-        card: 'Booking in Telegram, reminders, mailings and a website with services.',
+        sub: 'Clients book a stylist at any time in the channel they like, get a reminder and do not forget the visit. The website shows services and prices, and its requests go to your front desk.',
+        card: 'Booking in chat, reminders, mailings and a website with services.',
         problems: [
           {
             pain: 'Bookings live in a notebook and the receptionist is on the phone all day',
-            fix: 'Clients pick the service, the stylist and a free slot in Telegram. Two bookings never land on the same time.',
+            fix: 'Clients pick the service, the stylist and a free slot in chat. Two bookings never land on the same time.',
           },
           {
             pain: 'Clients forget their appointment and do not show up',
@@ -838,13 +838,13 @@ const en: Dict = {
           },
           {
             pain: 'Prices have to be explained in every chat',
-            fix: 'A website with services, prices and stylists, and its requests go straight to Telegram.',
+            fix: 'A website with services, prices and stylists, and its requests go straight to your front desk.',
           },
         ],
         faq: [
           {
             q: 'Will stylists see their own bookings?',
-            a: 'Yes. Each stylist can get their bookings in Telegram, and the manager sees the whole picture.',
+            a: 'Yes. Each stylist can get their bookings in a channel of their choice, and the manager sees the whole picture.',
           },
           {
             q: 'Can we move our client base from a notebook or spreadsheet?',
@@ -852,7 +852,7 @@ const en: Dict = {
           },
           {
             q: 'Will the broadcasts feel like spam?',
-            a: 'They only go to people who already wrote to you in Telegram, and anyone can unsubscribe. You choose how often and what to send.',
+            a: 'They only go to people who already wrote to you, and anyone can unsubscribe. You choose how often and what to send.',
           },
           {
             q: 'Does it fit a barbershop or a nail studio?',
@@ -895,8 +895,8 @@ const en: Dict = {
             a: 'As many as your catalog needs. If there are a lot, we import them from a spreadsheet.',
           },
           {
-            q: 'Can the store be connected to Telegram?',
-            a: 'Yes. Requests and orders in Telegram are an option in the project builder, and a Telegram Mini App with the catalog can come later.',
+            q: 'Can the store be connected to messengers?',
+            a: 'Yes. Requests and orders in a messenger are an option in the project builder, and a Mini App with the catalog can come later.',
           },
           {
             q: 'Is the support subscription required?',
@@ -955,14 +955,14 @@ const en: Dict = {
       services: {
         metaTitle: 'Website and CRM for a service company or B2B',
         metaDescription:
-          'A company website with requests to Telegram and a CRM setup with staff training. Price and timing of the starting set for a service company or B2B.',
+          'A company website with requests to your working channel and a CRM setup with staff training. Price and timing of the starting set for a service company or B2B.',
         title: 'Website and CRM for a service company',
         sub: 'A website that explains how you help and collects requests. Every request lands in the CRM, and the team knows whom to call back and when.',
         card: 'A company website with requests and a CRM where no client gets lost.',
         problems: [
           {
             pain: 'Requests come by email, messengers and calls, some get lost',
-            fix: 'Website requests go straight to Telegram and the CRM, each with an owner.',
+            fix: 'Website requests land in the CRM and in your team\'s working channel, each with an owner.',
           },
           {
             pain: 'Nobody knows which stage each client is at',
@@ -1009,10 +1009,10 @@ const en: Dict = {
     items: {
       cafe: {
         business: 'Coffee shop',
-        title: 'Landing page with Telegram orders',
+        title: 'Landing page with ordering from a phone',
         task: 'Guests ask for the menu in DMs, and orders get lost.',
         result:
-          'Guests order from their phone, and the barista gets the order in Telegram right away.',
+          'Guests order from their phone, and the barista gets the order right away.',
         term: '5-7 days',
       },
       salon: {
@@ -1033,7 +1033,7 @@ const en: Dict = {
       sales: {
         business: 'Sales team',
         title: 'CRM and AI assistant',
-        task: 'Leads from the website, Instagram and Telegram live in different places.',
+        task: 'Leads from the website, Instagram and messengers live in different places.',
         result:
           'Every lead in one pipeline, AI answers routine questions, and managers see every client.',
         term: '2-3 weeks',
@@ -1085,12 +1085,12 @@ const en: Dict = {
       },
       bots: {
         variants: {
-          faq: { name: 'Q&A bot', term: '3-5 days' },
+          faq: { name: 'Q&A agent', term: '3-5 days' },
           booking: { name: 'Bookings and orders', term: '1-2 weeks' },
           miniapp: { name: 'Telegram Mini App', term: '3-4 weeks' },
         },
         addons: {
-          payments: 'In-bot payments',
+          payments: 'In-chat payments',
           broadcasts: 'Broadcasts',
           admin: 'Admin panel',
           ai: 'AI answers',
@@ -1148,7 +1148,7 @@ const en: Dict = {
   blog: {
     metaTitle: 'Fir Tech blog: websites, AI agents and automation in plain words',
     metaDescription:
-      'Practical articles for small business owners: what a website costs, website or a Telegram agent, and how to stop losing leads.',
+      'Practical articles for small business owners: what a website costs, website or an AI agent in chat, and how to stop losing leads.',
     eyebrow: 'Blog',
     title: 'Websites, AI agents and leads in plain words',
     sub: 'Practical advice for small business owners: what to order, what it costs and how not to overpay.',
@@ -1174,7 +1174,7 @@ const en: Dict = {
       },
       {
         q: 'What if I do not like it?',
-        a: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment in full, minus network fees. Tell us in writing within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
+        a: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment in full, minus network fees. Write to us about it within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
       },
       {
         q: 'Can I see first what is wrong?',
@@ -1198,7 +1198,7 @@ const en: Dict = {
       },
       {
         q: 'Do you work with clients abroad?',
-        a: 'Yes. We work remotely and talk in Telegram or on video calls, in English or Russian.',
+        a: 'Yes. We work remotely and talk in messengers, by email or on video calls, in English or Russian.',
       },
       {
         q: 'Can I edit texts and prices myself?',
@@ -1222,7 +1222,7 @@ const en: Dict = {
       },
       {
         q: 'Which messengers do the agents work in?',
-        a: 'We connect Telegram and the site chat first. WhatsApp and Instagram are a separate line of the quote: they need official business access, and at the review we tell you whether your account fits.',
+        a: 'We connect the channels open to everyone first: Telegram and the site chat. WhatsApp and Instagram are a separate line of the quote: they need official business access, and at the review we tell you whether your account fits.',
       },
       {
         q: 'What can the agents not do yet?',
@@ -1835,7 +1835,7 @@ const en: Dict = {
     pointsTitle: 'What we check',
     points: [
       'The title, the page description and how fast the site answers',
-      'The mobile version and contact buttons: Telegram, WhatsApp, a request form',
+      'The mobile version and contact buttons: messengers, a call, a request form',
       'The Instagram link and how the page looks in search',
       'Every point in the answer: what is wrong and one clear fix',
     ],
@@ -1857,8 +1857,8 @@ const en: Dict = {
     failures: {
       invalid: 'The server did not accept the data. Check the link and the contact.',
       rate_limited: 'Too many requests. Try again in a few minutes.',
-      not_configured: 'Ordering an audit is not connected yet. Write to us in Telegram.',
-      unavailable: 'The audit service is not answering right now. Try later or write to us in Telegram.',
+      not_configured: 'Ordering an audit is not connected yet. Write to us on Telegram or by email.',
+      unavailable: 'The audit service is not answering right now. Try later or write to us on Telegram or by email.',
       network: 'No connection to the server. Check your internet and try again.',
     },
     successTitle: 'Audit ordered',
@@ -1903,7 +1903,7 @@ const en: Dict = {
         title: 'Where to buy USDT',
         text: ['Availability depends on your country, so check each option in your own app.'],
         list: [
-          'Telegram: the @wallet bot, where it is available',
+          'A wallet in a messenger, where it is available',
           'Crypto exchanges: buy USDT and withdraw it to the right network',
           'Tonkeeper: a wallet for the TON network, where you can send USDT from an exchange or from @wallet',
         ],
@@ -1985,7 +1985,7 @@ const en: Dict = {
     method: 'Method',
     transaction: 'Transaction',
     explorer: 'Open in explorer',
-    paidNext: 'The project starts, and your manager will message you on Telegram.',
+    paidNext: 'The project starts, and your manager will message you in the channel you prefer.',
     howLink: 'How to pay: a step-by-step guide',
     cabinet: 'Open the cabinet',
     expiredTitle: 'The invoice has expired',
@@ -2001,7 +2001,7 @@ const en: Dict = {
   statusPage: {
     metaTitle: 'Fir Tech systems status: what works right now',
     metaDescription:
-      'Live status of the Fir Tech website, HQ, Telegram lead handling and agents: what works, where something is down, uptime for the period and the latest incidents.',
+      'Live status of the Fir Tech website, HQ, lead handling and agents: what works, where something is down, uptime for the period and the latest incidents.',
     eyebrow: 'Status',
     title: 'Systems status',
     sub: 'The data comes from our HQ monitoring and the page refreshes every minute.',
@@ -2019,7 +2019,7 @@ const en: Dict = {
     services: {
       site: 'Website',
       hq: 'HQ, the agents office',
-      bot: 'Lead replies in Telegram',
+      bot: 'Lead replies',
       omniroute: 'AI gateway',
       renderer: 'Video renderer',
     },
@@ -2181,7 +2181,6 @@ const en: Dict = {
       projects: 'Projects',
       documents: 'Documents',
       messages: 'Messages',
-      agent: 'Your agent',
       materials: 'Materials',
       referrals: 'Referrals',
       profile: 'Profile',
@@ -2443,57 +2442,6 @@ const en: Dict = {
           too_large: 'The file is larger than 10 MB.',
           size: 'The file is larger than 10 MB.',
           empty: 'The file is empty.',
-        },
-      },
-      agent: {
-        title: 'Your agent',
-        sub: 'The assistant of your business: it answers your clients, and here you test it and tune it.',
-        live: 'Live',
-        draft: 'Draft',
-        chatTitle: 'Talk to the agent',
-        chatHint: 'This is how it answers your clients.',
-        noThread: 'The chat with your agent opens as soon as we connect it.',
-        settingsTitle: 'Settings',
-        name: 'Agent name',
-        tone: 'Tone',
-        tones: { friendly: 'Friendly', formal: 'Formal', brief: 'Brief' },
-        languages: 'Languages',
-        langs: { ru: 'Russian', en: 'English', tg: 'Tajik', uz: 'Uzbek' },
-        channels: 'Channels',
-        web: 'Website chat',
-        telegram: 'Telegram',
-        siteWidget: 'Widget on your site',
-        on: 'On',
-        off: 'Off',
-        connected: 'Connected',
-        notConnected: 'Not connected',
-        save: 'Save',
-        saving: 'Saving...',
-        saved: 'Saved.',
-        connectTitle: 'Connect Telegram',
-        connectText: 'Create a bot in @BotFather, copy its token and paste it here. The token is stored encrypted on our side and never shown. We start the Telegram bot ourselves after a check.',
-        token: 'Bot token',
-        tokenHint: 'Looks like 123456789:AA followed by letters and digits.',
-        connect: 'Connect',
-        connecting: 'Connecting...',
-        connectDone: 'Telegram is connected.',
-        disconnect: 'Disconnect Telegram',
-        usageTitle: 'Usage',
-        today: 'Messages today',
-        limit: 'of {n}',
-        conversations: 'Conversations',
-        conversationsTitle: 'Latest conversations',
-        noConversations: 'No conversations yet.',
-        channel: { cabinet: 'Cabinet', widget: 'Widget', telegram: 'Telegram' },
-        messagesCount: '{n} msgs',
-        leadsCaptured: 'Contacts collected: {n}',
-        errors: {
-          invalid: 'Check the fields: a name of 2 characters or more and at least one language.',
-          bad_token: 'This does not look like a Telegram bot token. Copy it from @BotFather in full.',
-          unauthorized: 'Your session has ended. Please sign in again.',
-          not_found: 'We could not find the agent. Refresh the page.',
-          hq: 'Could not save. Try later.',
-          network: 'No connection. Check your internet and try again.',
         },
       },
       materials: {
@@ -2785,13 +2733,13 @@ const en: Dict = {
     websites: {
       metaTitle: 'Website and landing page development from {price} | Fir Tech',
       metaDescription:
-        'Landing pages from {price}, company websites and online stores. Mobile-friendly design, leads to Telegram, content editor. Price and deadline up front.',
-      title: 'A website that sends every request straight to your Telegram',
-      sub: 'A landing page in 5-7 days or a company website in 2-3 weeks. Looks right on a phone and sends every enquiry to your Telegram.',
+        'Landing pages from {price}, company websites and online stores. Mobile-friendly design, leads to your channel, content editor. Price and deadline up front.',
+      title: 'A website that sends every request straight to you',
+      sub: 'A landing page in 5-7 days or a company website in 2-3 weeks. Looks right on a phone, and enquiries go where you read them: a messenger, email or a CRM.',
       included: [
         'Structure and copy that lead to an enquiry',
         'Design in your brand, built for phones first',
-        'Enquiry form that sends to Telegram or email',
+        'Enquiry form that sends to a messenger, email or a CRM',
         'SEO basics: titles, descriptions, sitemap',
         'Domain and SSL certificate setup',
         'Analytics that show where clients come from',
@@ -2807,7 +2755,7 @@ const en: Dict = {
         },
         {
           title: 'Build',
-          text: 'We build the site, check it on phones and connect the form so enquiries arrive in your Telegram.',
+          text: 'We build the site, check it on phones and connect the form so enquiries arrive in the channel you chose.',
         },
         {
           title: 'Launch',
@@ -2822,10 +2770,10 @@ const en: Dict = {
       ],
     },
     bots: {
-      metaTitle: 'Agents in Telegram from {price} | Fir Tech',
+      metaTitle: 'Agents in messengers from {price} | Fir Tech',
       metaDescription:
-        'Agents in Telegram for bookings, orders and customer questions, Telegram Mini Apps, in-chat payments and AI answers. From {price}, from 3 days.',
-      title: 'Orders and bookings in Telegram are taken even when you are busy',
+        'Agents in messengers for bookings, orders and customer questions, Mini Apps, in-chat payments and AI answers. From {price}, from 3 days.',
+      title: 'Orders and bookings are taken in chat even when you are busy',
       sub: 'Takes orders, books clients and answers common questions around the clock. The first agent is ready in 3-5 days.',
       included: [
         'A conversation flow designed for your business',
@@ -2833,30 +2781,30 @@ const en: Dict = {
         'Lead alerts for you or your managers',
         'Clients and orders saved to a spreadsheet or CRM',
         'Server hosting and launch',
-        'A short guide to how the bot works',
+        'A short guide to how the agent works',
       ],
       steps: [
         {
           title: 'Script',
-          text: 'We write out what the customer types and what the bot answers: buttons, menus, where requests go.',
+          text: 'We write out what the customer types and what the agent answers: buttons, menus, where requests go.',
         },
         {
           title: 'Build',
-          text: 'We build the bot and connect it to a spreadsheet or CRM so customers and orders are saved.',
+          text: 'We build the agent and connect it to a spreadsheet or CRM so customers and orders are saved.',
         },
         {
           title: 'Review',
-          text: 'You try the bot in your own Telegram before launch, and we adjust texts and buttons to your notes.',
+          text: 'You try the agent in your own messenger before launch, and we adjust texts and buttons to your notes.',
         },
         {
           title: 'Launch',
-          text: 'We host the bot, switch on notifications and give you a short guide to how it works.',
+          text: 'We host the agent, switch on notifications and give you a short guide to how it works.',
         },
       ],
       fits: [
         'Salon and clinic bookings',
         'Food orders and delivery',
-        'Shops inside Telegram',
+        'Shops inside messengers',
         'Customer support',
       ],
     },
@@ -2902,12 +2850,12 @@ const en: Dict = {
     automation: {
       metaTitle: 'Business automation and AI assistants from {price} | Fir Tech',
       metaDescription:
-        'We connect your website, Telegram, CRM and Google Sheets, set up CRM and AI assistants. Less manual work, from {price}. Price and timeline up front.',
+        'We connect your website, messengers, CRM and Google Sheets, set up CRM and AI assistants. Less manual work, from {price}. Price and timeline up front.',
       title: 'Reports, requests and reminders run themselves while your team does the work',
       sub: 'We connect your tools: leads land in the CRM, reports fill a spreadsheet, clients get answers and reminders.',
       included: [
         'Process review: where time is lost',
-        'Website, Telegram, CRM and spreadsheets connected',
+        'Website, messengers, CRM and spreadsheets connected',
         'Automatic alerts and reminders',
         'Reports that build themselves',
         'AI assistant for clients and staff',
@@ -3028,7 +2976,7 @@ const en: Dict = {
     offerSub: 'All of this is already in the terms of service, there is nothing extra to negotiate.',
     offer: {
       guarantee: 'First stage guarantee',
-      stages: { title: 'Payment by stages', text: 'Each stage is paid before it starts, the last one before handover. You never pay the whole sum up front.' },
+      stages: { title: 'Payment by stages', text: 'Pay for each stage ahead, the last one before handover. You never pay the whole sum up front.' },
       revisions: { title: 'Two rounds of revisions', text: 'You send your notes as a list and we apply them. Both rounds are already in the quote.' },
       acceptance: { title: 'Seven days to accept', text: 'Take your time with the result. If there are no notes within 7 days, the stage counts as accepted.' },
       support: { title: '30 days after handover', text: 'We fix errors in the delivered work for free.' },
@@ -3174,7 +3122,7 @@ const en: Dict = {
         capabilities: [
           { title: 'Knows your business', text: 'Your site, prices, documents and rules sit in one knowledge base, and answers come with a link to the source.', example: 'Returns within 14 days. Rules, section 2.', mock: 'chat', chips: ['Site', 'Price list', 'Rules'] },
           { title: 'Answers your staff', text: 'An employee asks Fira instead of digging through folders and chats and gets an answer with its source.', example: 'What discount do regulars get? Fira answers from your price list.', mock: 'chat', chips: ['Question', 'Answer', 'Source'] },
-          { title: 'Answers your clients', text: 'In the clients’ channels: site chat, Telegram, WhatsApp, email and voice. Hands the hard cases to a person.', example: 'A chat request got an answer within a minute.', mock: 'chat', chips: ['Site chat', 'WhatsApp', 'Telegram'] },
+          { title: 'Answers your clients', text: 'In the clients’ channels: site chat, messengers, email and voice. Hands the hard cases to a person.', example: 'A chat request got an answer within a minute.', mock: 'chat', chips: ['Site chat', 'WhatsApp', 'Email'] },
           { title: 'Remembers context', text: 'Remembers clients, agreements and earlier answers, so it never asks the same thing twice.', example: 'A client came back a week later and Fira picked up where it left off.', mock: 'checks', chips: ['Clients', 'Agreements'] },
           { title: 'Skills by role', text: 'Sales, support, content and back office plug in as skills of the same AI, not as separate programs.', example: 'Support was added to sales, nothing was rebuilt.', mock: 'cards', chips: ['Sales', 'Support', 'Content'] },
         ],
@@ -3288,13 +3236,13 @@ const en: Dict = {
           levels: [
             { name: 'Proposes', text: 'Fira prepares a reply, a post or an invoice, and you send it.', example: 'A reply to a client waits in the review centre.' },
             { name: 'Acts after approval', text: 'Fira acts itself, but every action goes through your button.', example: 'A post goes out after Approve.' },
-            { name: 'Acts on its own', text: 'After a run of approvals without edits the routine can be let go. You decide how many approvals it takes.', example: 'Answers about opening hours go out without you.' },
+            { name: 'Acts on its own', text: 'After a run of approvals without edits such answers can be let go. You decide how many approvals it takes.', example: 'Answers about opening hours go out without you.' },
           ],
           note: 'Money, prices and contracts stay with people at every level.',
         },
         teamgets: {
           title: 'What your team gets',
-          sub: 'Fira takes the routine, and people get a clear place in the new setup.',
+          sub: 'Fira takes the repeat work, and people get a clear place in the new setup.',
           items: [
             { title: 'Training', text: 'Short sessions: how to give Fira a task, how to check the result and when to step in.' },
             { title: 'Rules', text: 'We write down what Fira does alone, what it agrees first and who owns each decision.' },
@@ -3309,7 +3257,7 @@ const en: Dict = {
             { title: 'Getting to know the business, data and rules', text: 'We go through your business, gather your site, price list, documents and rules, and agree what the AI never touches.', see: 'A list of sources and the first morning brief' },
             { title: 'First skills on your tasks', text: 'We launch the first skills, for example sales or support, on your real requests. Everything goes through approval.', see: 'Fira at work, you approve in the review centre' },
             { title: 'Knowledge base, control room and channels', text: 'We build the knowledge base from your documents, connect the control room and bring Fira to the channels of your staff and clients.', see: 'Answers with a source link and a control room with your skills' },
-            { title: 'Team training and launch', text: 'We train your staff, write the rules down and move the routine to independent work where you allow it.', see: 'The team works with Fira, the rules are yours' },
+            { title: 'Team training and launch', text: 'We train your staff, write the rules down and move routine tasks to independent work where you allow it.', see: 'The team works with Fira, the rules are yours' },
           ],
         },
         pilot: {
@@ -3321,9 +3269,9 @@ const en: Dict = {
         inPrice: ['Getting to know the business and gathering the sources', 'The first skills from the quote', 'A knowledge base from your documents and site', 'The control room and the review centre', 'Team training and rules', 'Model usage is included in the monthly payment'],
         notInPrice: ['Paid third-party services and their subscriptions', 'Skills beyond the quote: a separate part', 'Changes to systems we have no access to'],
         objections: [
-          { q: 'It is expensive', a: 'Compare it with the salaries of the people who do this routine now. The starting price is visible before you apply, the exact sum is fixed in the quote, you pay in four stages and the first one is under guarantee. You can start with one skill.' },
+          { q: 'It is expensive', a: 'Compare it with the salaries of the people who do this work by hand now. The starting price is visible before you apply, the exact sum is fixed in the quote, you pay in four stages and the first one is under guarantee. You can start with one skill.' },
           { q: 'I do not trust AI', a: 'At first Fira only proposes and you decide. Independence comes after a run of approvals and only where you allow it. Money, prices and contracts always stay with people.' },
-          { q: 'What if it all breaks', a: 'Fira reports a failure to the control room and to you, the work is not lost. We run on this system ourselves every day. For 30 days after handover we fix errors for free.' },
+          { q: 'What if it all breaks', a: 'Fira reports a failure to the control room and to you, the work is not lost. We run on this system ourselves every day. Errors found in the first 30 days after handover are fixed for free.' },
           { q: 'Who is responsible for the result', a: 'We are responsible for the setup and the work of Fira, by the contract and the stages. Decisions in your company stay yours: Fira prepares them, you make them.' },
           { q: 'What about paying for the model', a: 'Model usage is included in the monthly payment: we connect our own account. If you prefer, we connect your API key and the payment is lower.' },
         ],
@@ -3331,15 +3279,15 @@ const en: Dict = {
       admin: {
         metaTitle: 'AI booking assistant: bookings, reminders, reviews | Fir Tech',
         metaDescription:
-          'The AI booking assistant takes client bookings in Telegram, sends reminders and collects reviews. What it does, how work starts, price and payment stages.',
+          'The AI booking assistant takes bookings in the client\'s channel, sends reminders and collects reviews. What it does, how work starts, price and payment stages.',
         result: 'Clients book themselves while your staff keep working',
-        lead: 'Takes client bookings in Telegram, reminds about the visit and asks for a review after. Your front desk keeps the live conversations.',
+        lead: 'Takes client bookings where clients write, reminds about the visit and asks for a review after. Your front desk keeps the live conversations.',
         capabilities: [
           { title: 'Booking by free slots', text: 'The client picks a service, a specialist and a time. The agent takes free slots from your calendar or spreadsheet, so two bookings never land on the same time. No site is needed: the agent opens from a link or a QR code. WhatsApp and Instagram are a separate line of the estimate.', example: 'Saturday, 14:30, with Diana. Booked.', mock: 'slots', chips: ['11:00', '14:30', '17:00'] },
           { title: 'Visit reminders', text: 'A message a day and an hour before the visit. The client confirms or moves it with one button.', example: 'We expect you tomorrow at 14:30. Still on?', mock: 'chat', chips: ['Yes, I will come', 'Move it'] },
           { title: 'Moving and cancelling', text: 'The client changes the time alone, and the freed slot goes back into the schedule.', example: 'Moved to Friday, 16:00.', mock: 'slots', chips: ['Fri 16:00', 'Sat 11:00'] },
           { title: 'Collecting reviews', text: 'After the visit the agent asks for a rating and a short review. A low rating comes to you personally.', example: 'How did it go? Rate your visit.', mock: 'chat', chips: ['Great', 'Could be better'] },
-          { title: 'Mailings to clients', text: 'Messages about new services and promotions go to clients from your base. Those who already wrote to you in Telegram receive them, and anyone can unsubscribe at any time.', example: 'This week: a discount on manicure.', mock: 'chat', chips: ['Offer', 'New service'] },
+          { title: 'Mailings to clients', text: 'Messages about new services and promotions go to clients from your base. Those who already wrote to you receive them, and anyone can unsubscribe at any time.', example: 'This week: a discount on manicure.', mock: 'chat', chips: ['Offer', 'New service'] },
         ],
         first: {
           day: 'We agree on services, specialists and the schedule, connect the agent and test booking with trial clients.',
@@ -3347,13 +3295,13 @@ const en: Dict = {
           month: 'Reminders and reviews run steadily, you see how the number of bookings changes and decide what to add.',
         },
         needs: ['A list of services and specialists', 'Working hours and rescheduling rules', 'Access to a calendar or a booking sheet, if you have one', 'The tone: formal or friendly'],
-        not: ['It does not take payments: they are a separate option', 'In hard cases it hands the dialogue to your front desk', 'It never changes your prices or booking rules itself', 'It works in Telegram, other channels are agreed separately'],
-        demo: { title: 'Book a visit at the Lime salon yourself', sub: 'Walk the client path: service, stylist, time, reminder and review. This is how booking looks to your clients in Telegram.' },
+        not: ['It does not take payments: they are a separate option', 'In hard cases it hands the dialogue to your front desk', 'It never changes your prices or booking rules itself', 'Channels are connected per the quote, hard cases are agreed separately'],
+        demo: { title: 'Book a visit at the Lime salon yourself', sub: 'Walk the client path: service, stylist, time, reminder and review. This is how booking looks to your clients in chat.' },
         day: {
           title: 'One Saturday at a salon with the AI booking assistant',
           sub: 'The front desk looks after guests in the room. Messages, reminders and reviews are on the agent.',
           items: [
-            { time: '07:40', who: 'Client', text: 'On the way to work she writes in Telegram: "Any manicure slot today?" The agent offers 14:30 and 17:00 and books her.' },
+            { time: '07:40', who: 'Client', text: 'On the way to work she writes in a messenger: "Any manicure slot today?" The agent offers 14:30 and 17:00 and books her.' },
             { time: '09:00', who: 'Agent', text: 'Reminds everyone booked for today. Two confirm with a button, one client asks to move.' },
             { time: '09:02', who: 'Agent', text: 'Moves her visit to Friday, 16:00. The freed slot shows up in the schedule again.' },
             { time: '13:20', who: 'Client', text: 'Asks about the price of colouring and the address. The agent answers from your price list.' },
@@ -3362,10 +3310,10 @@ const en: Dict = {
             { time: '22:00', who: 'You', text: 'You open tomorrow\'s schedule: every visit is in place and nobody needs a call.' },
           ],
         },
-        inPrice: ['A booking scenario for your services and staff', 'Free slots from your calendar or spreadsheet', 'Reminders a day and an hour before the visit', 'A review request after the visit', 'Mailings to clients who already wrote to you in Telegram', 'Launch and a check on test clients'],
+        inPrice: ['A booking scenario for your services and staff', 'Free slots from your calendar or spreadsheet', 'Reminders a day and an hour before the visit', 'A review request after the visit', 'Mailings to clients who already wrote to you', 'Launch and a check on test clients'],
         notInPrice: ['WhatsApp and Instagram: a separate line in the quote', 'Taking payments: a separate option', 'A website, if you need one: built separately', 'Domain, hosting and paid third-party services'],
         objections: [
-          { q: 'Clients will not want to write to an agent', a: 'Clients write where they always did, in Telegram. They want a time fast, and the agent answers at once, day and night. A hard question goes to your front desk.' },
+          { q: 'Clients will not want to write to an agent', a: 'Clients write where they always did. They want a time fast, and the agent answers at once, day and night. A hard question goes to your front desk.' },
           { q: 'What if the agent books two people for one slot?', a: 'The agent takes free slots from your calendar or spreadsheet. It never offers a taken time.' },
           { q: 'Will my front desk lose their job?', a: 'Your front desk stops living in the chat and looks after guests in the room. Prices, exceptions and hard cases stay with them and with you.' },
         ],
@@ -3373,14 +3321,14 @@ const en: Dict = {
       receptionist: {
         metaTitle: 'AI lead manager: a reply in a minute, then handover | Fir Tech',
         metaDescription:
-          'The AI lead manager answers clients in Telegram and on your site, asks the right questions and hands you a ready request. Price, payment stages and FAQ.',
+          'The AI lead manager answers clients in messengers and on your site, asks the right questions and hands you a ready request. Price, payment stages and FAQ.',
         result: 'No request waits until morning for an answer',
-        lead: 'Answers clients in Telegram and in your site chat within a minute, clarifies the task and hands you a ready request.',
+        lead: 'Answers clients in messengers and in your site chat within a minute, clarifies the task and hands you a ready request.',
         capabilities: [
-          { title: 'A reply within a minute', text: 'The first message gets a reply at any hour, nights and weekends included. It answers from the services and terms you gave us at launch. Telegram and the site chat are connected right away, WhatsApp and Instagram as a separate line of the estimate.', example: 'Hello. Yes, we work on Sunday from 10:00 to 18:00.', mock: 'chat', chips: ['Prices', 'Address', 'Booking'] },
+          { title: 'A reply within a minute', text: 'The first message gets a reply at any hour, nights and weekends included. It answers from the services and terms you gave us at launch. Channels are connected per the estimate: messengers, site chat, email.', example: 'Hello. Yes, we work on Sunday from 10:00 to 18:00.', mock: 'chat', chips: ['Prices', 'Address', 'Booking'] },
           { title: 'Three questions to the client', text: 'The agent finds out the task, the deadline and the budget, as a manager would.', example: 'What do you need and by when?', mock: 'chat', chips: ['Website', 'Automation', 'Other'] },
           { title: 'Lead qualification', text: 'Each lead gets a mark: hot, warm or still looking around.', example: 'Task named, deadline named, contact given.', mock: 'checks', chips: ['Task named', 'Deadline named', 'Contact given'] },
-          { title: 'Handover to a manager', text: 'A ready card arrives in Telegram: name, contact, task and the conversation.', example: 'New lead: Madina, a site for a coffee shop.', mock: 'cards', chips: ['New lead', 'Madina, coffee shop'] },
+          { title: 'Handover to a manager', text: 'A ready card arrives with the manager: name, contact, task and the conversation.', example: 'New lead: Madina, a site for a coffee shop.', mock: 'cards', chips: ['New lead', 'Madina, coffee shop'] },
           { title: 'A nudge for silent leads', text: 'If the client did not answer, the agent gently reminds once.', example: 'You wanted to check the timing. Shall we continue?', mock: 'chat', chips: ['Continue', 'Later'] },
         ],
         first: {
@@ -3388,22 +3336,22 @@ const en: Dict = {
           week: 'The agent answers clients alongside your team. We read the first dialogues and tune the answers.',
           month: 'Leads arrive as ready cards, you see where clients drop off and decide what to fix.',
         },
-        needs: ['Services, terms and common client questions', 'Access to the channels where clients write', 'The manager\'s Telegram that receives the leads', 'Rules: what the agent may not promise'],
+        needs: ['Services, terms and common client questions', 'Access to the channels where clients write', 'The manager\'s working channel that receives the leads', 'Rules: what the agent may not promise'],
         not: ['It names only the prices and timelines you allow', 'It does not sign contracts or take money', 'When it does not know, it hands the question to a manager', 'It never writes first to strangers'],
         demo: { title: 'Write to the agent as a client would', sub: 'Ask the question your clients ask you most often and see how the agent answers it.' },
         flow: {
           title: 'What happens to a request next',
           sub: 'From the client\'s first message to a ready card with your manager.',
           steps: [
-            { title: 'The client writes', text: 'In Telegram or in the site chat, at any hour. The agent answers at once from your services and terms.' },
+            { title: 'The client writes', text: 'In a messenger or in the site chat, at any hour. The agent answers at once from your services and terms.' },
             { title: 'The agent clarifies', text: 'It finds out what is needed, by when and what budget the client has in mind.' },
             { title: 'The request gets a mark', text: 'Hot, warm or still looking. You see at once whom to call first.' },
-            { title: 'A card for the manager', text: 'Name, contact, task and the whole chat arrive in Telegram. The manager picks up where the agent stopped.' },
+            { title: 'A card for the manager', text: 'Name, contact, task and the whole chat reach the manager. The manager picks up where the agent stopped.' },
             { title: 'A nudge for the silent', text: 'If the client goes quiet, the agent reminds them once, gently. Then it is your call.' },
           ],
         },
-        inPrice: ['Answers from your services, terms and common questions', 'Telegram and the site chat', 'Clarifying questions and a mark on the request', 'A request card for the manager in Telegram', 'Answers tuned on the first chats'],
-        notInPrice: ['WhatsApp and Instagram: a separate line in the quote', 'CRM connection: a separate part of the quote', 'A website, if you have none: built separately', 'Domain, hosting and paid third-party services'],
+        inPrice: ['Answers from your services, terms and common questions', 'The site chat and messengers per the quote', 'Clarifying questions and a mark on the request', 'A request card for the manager in their channel', 'Answers tuned on the first chats'],
+        notInPrice: ['WhatsApp and Instagram are a separate line of the quote', 'CRM connection: a separate part of the quote', 'A website, if you have none: built separately', 'Domain, hosting and paid third-party services'],
         objections: [
           { q: 'Clients will see it is AI and leave', a: 'Clients care more about a fast and correct answer. The agent answers at once, and when the talk goes beyond its rules, it hands the client to a manager.' },
           { q: 'The agent will promise what we do not do', a: 'It names only the prices, timelines and terms you gave at launch. It signs no contracts and takes no money.' },
@@ -3417,7 +3365,7 @@ const en: Dict = {
         result: 'Reports, requests and mailings run themselves while your team does the work',
         lead: 'We connect spreadsheets, CRM and messengers so reports, mailings and alerts run without manual work.',
         capabilities: [
-          { title: 'Leads straight to the right place', text: 'A lead from a form, a chat or e-mail lands in a sheet or a CRM and notifies the person in charge. Works with Google Sheets, CRM, e-mail and messengers, and the list goes into the estimate.', example: 'New lead: a site for a coffee shop, Madina.', mock: 'cards', chips: ['Sheet', 'CRM', 'Telegram'] },
+          { title: 'Leads straight to the right place', text: 'A lead from a form, a chat or e-mail lands in a sheet or a CRM and notifies the person in charge. Works with Google Sheets, CRM, e-mail and messengers, and the list goes into the estimate.', example: 'New lead: a site for a coffee shop, Madina.', mock: 'cards', chips: ['Sheet', 'CRM', 'Messenger'] },
           { title: 'A report on schedule', text: 'Once a week a summary built from your data arrives in your chat.', example: 'Weekly report: leads, bookings, returning clients.', mock: 'bars', chips: ['Leads', 'Bookings', 'Returning'] },
           { title: 'Mailings to clients', text: 'Messages by segment or event go out by themselves, respecting unsubscribes.', example: 'A reminder: your booking is tomorrow.', mock: 'chat', chips: ['Offer', 'Reminder'] },
           { title: 'Failure alerts', text: 'If a process stops, the message comes to you and not from a client.', example: 'Failure: no data from the sheet.', mock: 'checks', chips: ['Check passed', 'Failure: no data'] },
@@ -3437,10 +3385,10 @@ const en: Dict = {
           afterLabel: 'After',
           rows: [
             { before: 'A request lands in the inbox and a manager copies it into a spreadsheet by hand.', after: 'A request from a form, chat or email lands in the spreadsheet or CRM by itself.' },
-            { before: 'The person in charge learns about it when they check their mail.', after: 'The person in charge gets a Telegram message at once.' },
+            { before: 'The person in charge learns about it when they check their mail.', after: 'The person in charge gets a message in their working channel at once.' },
             { before: 'On Friday someone builds a report from three spreadsheets.', after: 'The weekly report arrives in the chat on schedule.' },
             { before: 'Clients are reminded about visits by phone.', after: 'The reminder goes out by itself and respects unsubscribes.' },
-            { before: 'A process broke and you heard it from an unhappy client.', after: 'You hear about a failure first, in a Telegram message.' },
+            { before: 'A process broke and you heard it from an unhappy client.', after: 'You hear about a failure first, from a message by the agent.' },
           ],
         },
         routines: {
@@ -3466,13 +3414,13 @@ const en: Dict = {
       content: {
         metaTitle: 'Content on autopilot: posts and videos on plan | Fir Tech',
         metaDescription:
-          'An agent prepares posts, cards and short videos on a monthly plan and you approve in Telegram. What is included, how we start, the subscription and FAQ.',
+          'An agent prepares posts, cards and short videos on a monthly plan and you approve in any channel. What is included, how we start, the subscription and FAQ.',
         result: 'Your social media runs on a plan, and approving it takes you minutes',
-        lead: 'An agent prepares posts, cards and short videos on a monthly plan. You approve with one button in Telegram.',
+        lead: 'An agent prepares posts, cards and short videos on a monthly plan. You approve with one button.',
         capabilities: [
           { title: 'A posting plan', text: 'Topics and dates a month ahead, for your business and your channels.', example: 'Monday: the new item of the week. Wednesday: a question to followers.', mock: 'cards', chips: ['Mon', 'Wed', 'Fri', 'Sun'] },
           { title: 'Posts, cards and videos', text: 'Text, picture and a short script are prepared in your tone.', example: 'New this week: a pistachio croissant.', mock: 'cards', chips: ['Post', 'Card', 'Video'] },
-          { title: 'Approval in Telegram', text: 'Every item comes to you for review: approve, edit or reject.', example: 'The post is ready. Approve?', mock: 'chat', chips: ['Approve', 'Edit'] },
+          { title: 'Approval with one button', text: 'Every item comes to you for review: approve, edit or reject.', example: 'The post is ready. Approve?', mock: 'chat', chips: ['Approve', 'Edit'] },
           { title: 'Publishing on schedule', text: 'After your approval the material goes out at the set time. Where the agent publishes itself and where you post depends on the platform, and it is written in the quote.', example: 'It goes out on Monday morning.', mock: 'slots', chips: ['Mon 10:00', 'Wed 18:00'] },
           { title: 'Numbers per post', text: 'A short report once a week: what went out and how it landed.', example: 'Reach, reactions and clicks for the week.', mock: 'bars', chips: ['Reach', 'Reactions', 'Clicks'] },
         ],
@@ -3485,7 +3433,7 @@ const en: Dict = {
         not: ['It publishes nothing without your approval', 'It does not buy ads or run budgets', 'It does not chat with your followers', 'It does not shoot live video at your place'],
         week: {
           title: 'A week of content',
-          sub: 'A coffee shop\'s week as an example. Every piece comes to you for approval in Telegram first.',
+          sub: 'A coffee shop\'s week as an example. Every piece comes to you for approval first.',
           days: [
             { day: 'Mon', format: 'Post', title: 'New this week: pistachio croissant', status: 'Approved' },
             { day: 'Tue', format: 'Carousel', title: 'How to order coffee ahead and skip the queue', status: 'Approved' },
@@ -3497,7 +3445,7 @@ const en: Dict = {
         },
         roles: {
           title: 'Who makes your content',
-          sub: 'There are several roles inside the product. You talk to them through one window in Telegram.',
+          sub: 'There are several roles inside the product. You talk to them through one window, in the channel you pick.',
           items: [
             { name: 'Content maker', does: 'Writes posts, carousels and video scripts in your voice on a monthly plan.' },
             { name: 'Publisher', does: 'Schedules what you approved and posts it on time where the platform allows.' },
@@ -3505,18 +3453,18 @@ const en: Dict = {
             { name: 'You', does: 'Approve, edit or reject with one button. Nothing goes out without your approval.' },
           ],
         },
-        inPrice: ['A monthly publishing plan', 'Posts, cards and short video scripts', 'Approval of every piece in Telegram', 'Scheduled posting where the platform allows', 'A short weekly report'],
+        inPrice: ['A monthly publishing plan', 'Posts, cards and short video scripts', 'One-button approval of every piece', 'Scheduled posting where the platform allows', 'A short weekly report'],
         notInPrice: ['Buying ads and the ad budget', 'Shooting live video at your place', 'Replies to followers in comments and direct messages', 'Paid services and stock photos, if needed'],
         objections: [
           { q: 'The texts will sound like a robot', a: 'We set the voice from your examples and tune it on your notes in the first week. You see every piece before it goes out.' },
-          { q: 'How much of my time will it take', a: 'On day one, an intro and the first plan. After that, a few minutes a day to approve with a button in Telegram.' },
+          { q: 'How much of my time will it take', a: 'On day one, an intro and the first plan. After that, a few minutes a day to approve with one button.' },
           { q: 'What if a post goes out with a mistake', a: 'Nothing is published without your approval. A rejected piece is redone from your comment.' },
         ],
       },
       miniapp: {
         metaTitle: 'Telegram Mini App: a shop and booking inside Telegram | Fir Tech',
         metaDescription:
-          'A catalog, cart, payment and bonuses in one window inside Telegram. Nothing for the client to install. What is included, how we start, price and payment stages.',
+          'A catalog, cart, payment and bonuses in one window inside Telegram. Nothing for the client to install. Contents, start, price and payment stages.',
         result: 'Customers order in Telegram, where they already spend their day',
         lead: 'A shop, booking and bonuses in one window inside Telegram. Nothing for the client to install.',
         capabilities: [
@@ -3724,7 +3672,7 @@ const en: Dict = {
     toolsTitle: 'What we work with',
     toolsText: 'We run on AI agents ourselves: the company is managed through our own system. For your projects we use familiar tools.',
     tools: [
-      { name: 'Telegram', text: 'Notifications, approvals and replies to clients.' },
+      { name: 'Your channels', text: 'Notifications, approvals and replies to clients: Telegram, WhatsApp, email, site chat.' },
       { name: 'Personal cabinet', text: 'Stages, invoices, documents and requests.' },
       { name: 'Sheets and CRM', text: 'Data and leads, if you already have them.' },
       { name: 'Your accounts', text: 'Domain, hosting and services are registered to you.' },
@@ -3745,8 +3693,8 @@ const en: Dict = {
       team: 'Meet the team. Each one has a job, and I will introduce them in a line each.',
       office: 'Fir Tech itself runs on Fira. Leads, content and support here are handled by the same agents.',
       solutions: 'Find your niche. Each one already has a ready set that you can adjust.',
-      process: 'Next, the stages. You see every stage in the cabinet and pay before it starts.',
-      final: 'When you are ready, build a project, book a call or write in Telegram. Common questions are below.',
+      process: 'Next, the stages. Every stage is visible in the cabinet and is paid before it starts.',
+      final: 'When you are ready, build a project, book a call or write to us. Common questions are below.',
     },
     pains: {
       eyebrow: 'Sounds familiar?',
@@ -3757,7 +3705,7 @@ const en: Dict = {
       more: 'Learn more',
       items: [
         { id: 'night', product: 'admin', pain: 'People write at night and at weekends, and nobody answers', fix: 'The AI administrator answers at any hour, books a free slot and reminds about the visit.' },
-        { id: 'lost', product: 'receptionist', pain: 'Leads get lost between Instagram, Telegram and the website', fix: 'The AI lead manager gathers them in one queue: name, contact and what they need. You get a ready card.' },
+        { id: 'lost', product: 'receptionist', pain: 'Leads get lost between social networks, messengers and the website', fix: 'The AI lead manager gathers them in one queue: name, contact and what they need. You get a ready card.' },
         { id: 'content', product: 'content', pain: 'Posts go out once a month, when someone finds the time', fix: 'Content on autopilot prepares posts to a plan. You only approve them.' },
       ],
     },
@@ -3767,9 +3715,9 @@ const en: Dict = {
       company: 'This is me, inside your company: I know your business and answer in your channels. Decisions stay with you.',
       admin: 'Greets clients, books them and sends reminders. No days off.',
       receptionist: 'Sorts leads from every channel and hands them to you ready.',
-      automation: 'Takes the routine: sheets, reports, moving data between services.',
+      automation: 'Takes the manual work: sheets, reports, moving data between services.',
       content: 'Writes posts to a plan and brings them to you for approval.',
-      miniapp: 'A shop or bookings right inside Telegram, with no separate app.',
+      miniapp: 'A shop or bookings right inside a Telegram Mini App, with no separate app.',
     },
     office: {
       eyebrow: 'How we run',
@@ -3781,7 +3729,7 @@ const en: Dict = {
       depts: [
         { id: 'director', name: 'Director', doing: 'Writes the morning summary and hands out tasks', status: 'work' },
         { id: 'marketing', name: 'Marketing', doing: 'Prepares the week of posts and reels', status: 'wait' },
-        { id: 'sales', name: 'Sales', doing: 'Answers leads from the site and Telegram', status: 'work' },
+        { id: 'sales', name: 'Sales', doing: 'Answers leads from the site and messengers', status: 'work' },
         { id: 'support', name: 'Support', doing: 'Sorts client questions', status: 'work' },
         { id: 'production', name: 'Production', doing: 'Runs projects stage by stage', status: 'work' },
         { id: 'backoffice', name: 'Back office', doing: 'Prepares invoices and documents', status: 'wait' },
@@ -3800,7 +3748,7 @@ const en: Dict = {
       close: 'Hide the hint',
       lines: {
         product: 'Want to know how this product fits your business? Ask me.',
-        personal: 'Want to hear how an AI could take over your personal routine: mail, tasks, reminders? Ask me.',
+        personal: 'Want to hear how an AI could sort out your personal tasks: mail, to-dos, reminders? Ask me.',
         service: 'Not sure which format to pick? Ask me and I will help.',
         solution: 'You can adjust this set. Ask me what to change in it.',
         solutions: 'Did not find your niche? Tell me what you do and I will pick a set.',
@@ -3894,13 +3842,13 @@ const en: Dict = {
         { title: 'You set the rules', text: 'The business, channels and limits.' },
         { title: 'Agents prepare', text: 'Material, replies and documents.' },
         { title: 'You approve', text: 'With a button in your channel.' },
-        { title: 'Trust grows', text: 'Routine can be let go, money stays with you.' },
+        { title: 'Trust grows', text: 'Routine tasks can be let go, money stays with you.' },
       ],
     },
     trust: {
       propose: 'You approve',
       auto: 'Acts alone, reports back',
-      both: 'Routine alone, money and prices stay with you',
+      both: 'It does the routine, money and prices stay with you',
     },
     proof: {
       title: 'What a working company looks like',
@@ -3985,7 +3933,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of niches and platforms.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of niches and platforms.',
             },
           ],
           metaTitle: 'Trend scout: an AI agent for niche trends | Fir Tech',
@@ -4020,7 +3968,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the languages and the volume of materials.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the languages and the volume of materials.',
             },
           ],
           metaTitle: 'Content maker: an AI agent for reels and posts | Fir Tech',
@@ -4055,7 +4003,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of channels.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of channels.',
             },
           ],
           metaTitle: 'Publisher: an AI agent for social media posting | Fir Tech',
@@ -4090,7 +4038,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of data sources.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of data sources.',
             },
           ],
           metaTitle: 'Analyst: an AI agent with a weekly report | Fir Tech',
@@ -4125,7 +4073,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the languages and the volume of texts.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the languages and the volume of texts.',
             },
           ],
           metaTitle: 'SEO specialist: an AI agent for articles and search | Fir Tech',
@@ -4161,7 +4109,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the channels and the volume of leads.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the channels and the volume of leads.',
             },
           ],
           metaTitle: 'Lead manager: an AI agent for chat leads | Fir Tech',
@@ -4196,7 +4144,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of niches and cities.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of niches and cities.',
             },
           ],
           metaTitle: 'Prospector: an AI agent for finding customers | Fir Tech',
@@ -4231,7 +4179,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of templates and the complexity of quotes.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of templates and the complexity of quotes.',
             },
           ],
           metaTitle: 'Presales: an AI agent for proposals and quotes | Fir Tech',
@@ -4266,7 +4214,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of partners and the complexity of the rules.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of partners and the complexity of the rules.',
             },
           ],
           metaTitle: 'Referral agent: an AI agent for referral programs | Fir Tech',
@@ -4301,7 +4249,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the channels and the volume of requests.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the channels and the volume of requests.',
             },
           ],
           metaTitle: 'Support desk: an AI agent that answers customers | Fir Tech',
@@ -4336,7 +4284,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of sites and services.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of sites and services.',
             },
           ],
           metaTitle: 'Monitoring: an AI agent that watches your sites | Fir Tech',
@@ -4371,7 +4319,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of subscriptions.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of subscriptions.',
             },
           ],
           metaTitle: 'Billing: an AI agent for invoices and reminders | Fir Tech',
@@ -4406,7 +4354,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the complexity of the instructions and the number of steps.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the complexity of the instructions and the number of steps.',
             },
           ],
           metaTitle: 'Onboarding: an AI agent for welcoming new customers | Fir Tech',
@@ -4441,7 +4389,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of stages and connected systems.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of stages and connected systems.',
             },
           ],
           metaTitle: 'Project manager: an AI agent for tasks and statuses | Fir Tech',
@@ -4476,7 +4424,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the size of the projects and the number of checks.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the size of the projects and the number of checks.',
             },
           ],
           metaTitle: 'Reviewer and QA: an AI agent that checks the work | Fir Tech',
@@ -4511,7 +4459,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of services and servers.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of services and servers.',
             },
           ],
           metaTitle: 'Deployer: an AI agent for server releases | Fir Tech',
@@ -4546,7 +4494,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of templates and kinds of documents.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the number of templates and kinds of documents.',
             },
           ],
           metaTitle: 'Documents: an AI agent for contracts and templates | Fir Tech',
@@ -4581,7 +4529,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the volume of materials.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the volume of materials.',
             },
           ],
           metaTitle: 'Knowledge base: an AI agent for policies and lessons | Fir Tech',
@@ -4616,7 +4564,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the set of teams and connected systems.',
+              a: 'The monthly payment is on this page, and the final sum is fixed in the quote: it depends on the set of teams and connected systems.',
             },
           ],
           metaTitle: 'Director: the managing AI agent for teams | Fir Tech',
@@ -4648,7 +4596,7 @@ const en: Dict = {
         ],
         how: 'The content maker sends material in a batch. You press approve, edit or reject. The publisher goes live after your yes, and once the quality suits you, some tasks can move to working alone.',
         needs: [
-          'Access to the channels you choose: Instagram, Telegram, YouTube or others',
+          'Access to the channels you choose: social networks, video platforms or messengers',
           'A chat or group for talking to the team (we create it together)',
           'A description of the business, examples of posts you like and a list of topics to avoid',
           'Access keys for the AI model and services that you pay for',
@@ -4657,7 +4605,7 @@ const en: Dict = {
           { q: 'Do the agents publish without my permission?', a: 'Not by default. The content maker and the publisher send each batch to you for approval. Working alone is switched on only by your decision.' },
           { q: 'Which channels can be connected?', a: 'YouTube Shorts are uploaded automatically. Instagram, Telegram and other platforms go through a posting queue, and publishing depends on the access the platform gives. We do not connect VK yet. The exact list for your team is fixed in the quote.' },
           { q: 'Do agents make video too?', a: 'Reels are part of the scope. Complex videos are built by our developers as a separate task, and the quote says so.' },
-          { q: 'How much does it cost?', a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the team and the number of channels.' },
+          { q: 'How much does it cost?', a: 'The final sum in the quote depends on the team and the number of channels.' },
         ],
       },
       sales: {
@@ -4691,7 +4639,7 @@ const en: Dict = {
           { q: 'Does the agent quote prices to clients?', a: 'No. You decide prices, estimates and contracts. The agent prepares a draft and waits for approval.' },
           { q: 'Does the prospector write to people on its own?', a: 'It collects a list and prepares the offer text. Sending happens after your approval.' },
           { q: 'What if the agent does not know the answer?', a: 'The team can hand a question over to the owner. We agree with you at the start when that should happen.' },
-          { q: 'How much does it cost?', a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the channels and the volume of requests.' },
+          { q: 'How much does it cost?', a: 'The final sum in the quote depends on the channels and the volume of requests.' },
         ],
       },
       support: {
@@ -4725,7 +4673,7 @@ const en: Dict = {
         faq: [
           { q: 'Does the agent answer any question?', a: 'It answers from your base of replies. When the answer is not in the base, the agent opens a ticket and passes it to you.' },
           { q: 'Where does the base of replies come from?', a: 'From your documents and conversations. We build it together at the start, and it grows as the team works.' },
-          { q: 'Do invoices go out on their own?', a: 'The agent prepares the invoice and the reminder, and you approve. Amounts and money stay on your side.' },
+          { q: 'Do invoices go out on their own?', a: 'The agent drafts the invoice and the reminder, and you approve each one. Amounts and money stay on your side.' },
         ],
       },
       production: {
@@ -4757,7 +4705,7 @@ const en: Dict = {
         faq: [
           { q: 'Do the agents write code or do design?', a: 'No, the team organizes the work. The doers stay yours, or we discuss them as a separate task.' },
           { q: 'Does the client talk to an agent?', a: 'The client gets statuses and questions by stage. What the agent writes itself and what goes through you, we set up together.' },
-          { q: 'How much does it cost?', a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of stages and connected systems.' },
+          { q: 'How much does it cost?', a: 'The final sum in the quote depends on the number of stages and connected systems.' },
         ],
       },
       backoffice: {
@@ -4816,18 +4764,80 @@ const en: Dict = {
         ],
         how: 'All teams work in one HQ. Approvals gather in one queue: your channel for quick decisions, the panel for the full picture. Money, prices and contracts stay with you.',
         needs: [
-          'A channel to talk to the Director (we create it together)',
+          'A channel for talking to the Director, set up together',
           'Access to the channels, messengers and sheets we connect',
           'Material about the business: services, price list, templates, answers to common questions',
-          'Access keys for the AI model and services that you pay for',
+          'Access keys to the AI model and to services you pay for',
         ],
         faq: [
           { q: 'Do I have to take everything at once?', a: 'No. You can start with one team and add the rest later, and the Director and the panel connect to what already works.' },
           { q: 'How is it different from a set of teams?', a: 'The Director, one approval queue and a shared summary. Separate teams each work in their own chat.' },
           { q: 'Who sets the rules?', a: 'We do, together with you, at the start. The rules are written down and changed on your word.' },
-          { q: 'How much does it cost?', a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the set of teams and the connected systems.' },
+          { q: 'How much does it cost?', a: 'The final sum in the quote depends on the set of teams and the connected systems.' },
         ],
       },
+    },
+  },
+
+  // Fira as the guide of the site (owner 2026-11-23): menu, tour, lines of the docked presence, voice switch.
+  firaGuide: {
+    launcher: 'Fira',
+    launcherAria: 'Fira: show the site, ask a question or build a project',
+    menuLabel: 'Fira menu',
+    show: 'Show me the site',
+    ask: 'Ask a question',
+    build: 'Build a project',
+    next: 'Next',
+    finish: 'Done',
+    stop: 'Stop',
+    here: 'Have a look here, it is worth it.',
+    done: 'That is all. If anything is unclear, ask me.',
+    noStops: 'There is not much to show here, but I can answer questions.',
+    voiceOn: 'Turn the voice on',
+    voiceOff: 'Turn the voice off',
+    home: 'Hi, I am Fira. Tap me and I will show you the site, answer a question or help you build a project.',
+    notFound: 'There is no such page. I looked everywhere, let us go back to the home page.',
+    tour: {
+      top: 'This page is about the AI team: one brain for the company and the roles that plug into it.',
+      demo: 'Here you can see what it looks like at work.',
+      capabilities: 'This is what the agent can do on its own.',
+      brain: 'One brain for the company: it knows your business and answers in your channels.',
+      day: 'This is what an ordinary day with the agent looks like.',
+      flow: 'The path of a request, from the first message to a ready card.',
+      week: 'A week of work: what the agent does and what stays with you.',
+      roles: 'The roles you can plug in. Start with one.',
+      skills: 'What a personal AI does: mail, tasks, reminders.',
+      myday: 'Your day through the eyes of a personal AI.',
+      scope: 'What we need from you, and what we do not take on.',
+      included: 'What is in the price and what is paid separately.',
+      price: 'The price and the payment stages. You pay before each stage starts.',
+      plans: 'Three levels: pick the one that fits now, you can move up later.',
+      offer: 'Terms and guarantee: everything is written in the contract.',
+      objections: 'Common doubts and honest answers.',
+      next: 'Three steps from here. Pick the one that matches how ready you are.',
+      start: 'Where to start: the first step takes a few minutes.',
+      first: 'The first steps after the setup.',
+      channels: 'The channels where the agent answers your clients.',
+      structure: 'How the system is built: what plugs into what.',
+      pult: 'The control panel: you see and approve the agents work here.',
+      knowledge: 'The knowledge base: what the agent knows about your business.',
+      trust: 'Permissions and safety: the agent does only what you allowed.',
+      teamgets: 'What the team gets.',
+      rollout: 'How we roll it out, stage by stage.',
+      pilot: 'A pilot for the first clients: the details are here.',
+      cday: 'A day of a company with AI.',
+      cdemo: 'Try how the agent speaks for your company.',
+      cplan: 'The rollout plan.',
+      questions: 'Common questions, briefly.',
+      levels: 'Three levels of AI: from a companion to an autopilot and a department.',
+      teams: 'Teams by task, each with its own role.',
+      agents: 'The agents one by one: you can hire just one.',
+      proof: 'We run on the same agents. That is our proof.',
+      builder: 'Here you build a project step by step, one step per screen.',
+      builderPrice: 'The price and the stages update as you choose.',
+      builderAsk: 'Stuck on a step? Ask me and I will suggest what to pick.',
+      login: 'Sign in or sign up with a code: your project, stages and documents are here.',
+      loginAsk: 'No account yet, or the code did not arrive? Write to me.',
     },
   },
 }

@@ -7,6 +7,7 @@ import { notFoundLinks, notFoundText, searchPages } from '@/content/not-found'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { openChat } from '../chat/chat-events'
+import { FiraFlat } from '../fira/fira-flat'
 
 // The 404 page (404s.design patterns: a playful scene, a way out right there). A giant «404» whose
 // zero is a turning ring, the receptionist «lost» in the chat, a search over the site's main pages
@@ -19,7 +20,7 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
   const links = notFoundLinks(locale)
 
   return (
-    <section className="relative isolate mx-auto flex min-h-[100dvh] max-w-7xl flex-col justify-center overflow-hidden px-4 pt-28 pb-20 md:px-8">
+    <section data-not-found className="relative isolate mx-auto flex min-h-[100dvh] max-w-7xl flex-col justify-center overflow-hidden px-4 pt-28 pb-20 md:px-8">
       <div
         aria-hidden="true"
         className="hero-aurora pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(70%_70%_at_60%_40%,black,transparent)]"
@@ -44,6 +45,7 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
 
         <div className="lg:col-span-6">
           <div className="glass grid gap-3 rounded-panel p-5 md:p-6">
+            <FiraFlat emotion="sorry" className="block size-20" />
             <p className="max-w-[90%] rounded-[18px] rounded-bl-md bg-surface-2 px-4 py-3 text-[15px] leading-snug">
               {t.bot}
             </p>

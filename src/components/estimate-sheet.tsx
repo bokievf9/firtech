@@ -9,6 +9,7 @@ import { builderUi, pick } from '@/content/builder-catalog'
 import { decodeBuild, encodeBuild, type Build } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { accentOf } from '@/lib/builder-style'
+import { catalogRows } from '@/lib/builder-capabilities'
 import {
   estimateDoc,
   formatDocDate,
@@ -77,6 +78,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
   }
 
   const doc = estimateDoc(state.build, dict, locale, pricing)
+  const catalog = catalogRows(state.build, locale, 3000)
   const notes = [
     dict.builder.termsNote,
     ...(doc.stages.length ? [] : [dict.builder.payNote]),
@@ -240,6 +242,12 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
             </table>
             <p className="mt-2 text-[13px] text-[#3d443b]">{dict.builder.stageRule}</p>
           </section>
+        )}
+
+        {catalog.length > 0 && (
+          <div className="mt-9">
+            <BriefBlock title={locale === 'ru' ? 'Возможности и интеграции' : 'Capabilities and integrations'} rows={catalog} />
+          </div>
         )}
 
         {(doc.brief.goals.length > 0 ||

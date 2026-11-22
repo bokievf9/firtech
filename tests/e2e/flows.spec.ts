@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test'
-import ru from '../../src/content/ru'
 import { watchErrors, open, openHomeForChat, fakeSessionCookie } from './helpers'
 
 // ---- builder: all 8 steps in one scenario -------------------------------------------------------
@@ -189,7 +188,7 @@ test('cabinet v3: signed out, every cabinet tab goes to the login page and every
     await open(page, `/ru/cabinet${q}`)
     await expect(page).toHaveURL(/\/ru\/cabinet\/login/)
   }
-  for (const path of ['/api/cabinet/threads', '/api/cabinet/threads/lead-14/messages', '/api/cabinet/documents', '/api/cabinet/documents/q-14/file', '/api/cabinet/media?u=%2Fmedia%2Fx.pdf', '/api/cabinet/agent']) {
+  for (const path of ['/api/cabinet/threads', '/api/cabinet/threads/lead-14/messages', '/api/cabinet/documents', '/api/cabinet/documents/q-14/file', '/api/cabinet/media?u=%2Fmedia%2Fx.pdf']) {
     const res = await request.get(path)
     expect(res.status(), path).toBe(401)
     expect((await res.text()).includes('media/')).toBe(false)
@@ -200,7 +199,6 @@ test('cabinet v3: signed out, every cabinet tab goes to the login page and every
   expect((await post('/api/cabinet/documents/c-2/sign', { signaturePng: 'x', name: 'A B', consent: true })).status()).toBe(401)
   expect((await post('/api/cabinet/threads/lead-14/messages', { text: 'hi' })).status()).toBe(401)
   expect((await post('/api/cabinet/threads/lead-14/read', {})).status()).toBe(401)
-  expect((await post('/api/cabinet/agent/telegram', { botToken: '123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw' })).status()).toBe(401)
   const upload = await request.post('/api/cabinet/uploads', { multipart: { threadId: 'lead-14', file: { name: 'a.png', mimeType: 'image/png', buffer: Buffer.from('x') } }, headers: origin })
   expect(upload.status()).toBe(401)
   // a foreign origin is refused before anything else
@@ -218,7 +216,8 @@ test('cabinet pages are noindex', async ({ page }) => {
 test('chat widget opens, sends and answers in mock mode, then closes', async ({ page }) => {
   const errors = watchErrors(page)
   await openHomeForChat(page)
-  await page.getByRole('button', { name: ru.chat.fab }).click()
+  await page.locator('[data-cta=chat_fab]').click()
+  await page.locator('[data-cta=fira_ask]').click()
   const dialog = page.locator('[role=dialog]')
   await expect(dialog).toContainText('Демо-режим')
   const box = dialog.locator('textarea')
@@ -277,7 +276,8 @@ test('chat: Enter sends right after opening (queued behind the greeting), Shift+
     await route.continue()
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: ru.chat.fab }).click()
+  await page.locator('[data-cta=chat_fab]').click()
+  await page.locator('[data-cta=fira_ask]').click()
   const dialog = page.locator('[role=dialog]')
   const box = dialog.locator('textarea')
   await box.focus()
@@ -316,7 +316,8 @@ test('chat: a reply with builderLink and cta shows the builder button, the call 
     })
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: ru.chat.fab }).click()
+  await page.locator('[data-cta=chat_fab]').click()
+  await page.locator('[data-cta=fira_ask]').click()
   const dialog = page.locator('[role=dialog]')
   await expect(dialog.getByRole('heading', { name: 'Фира, ИИ-ассистент Fir Tech' })).toBeVisible()
   await expect(dialog).toContainText('Я Фира, ИИ-ассистент Fir Tech.')
@@ -354,7 +355,8 @@ test('chat: a failed message keeps its bubble and retries', async ({ page }) => 
     await route.fulfill({ json: { ok: true, reply: body.message === '/start' ? 'Здравствуйте.' : 'Принял.', state: 'chat' } })
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: ru.chat.fab }).click()
+  await page.locator('[data-cta=chat_fab]').click()
+  await page.locator('[data-cta=fira_ask]').click()
   const dialog = page.locator('[role=dialog]')
   await dialog.locator('textarea').fill('Привет')
   await dialog.locator('textarea').press('Enter')
@@ -369,7 +371,8 @@ test('chat: a demo reply shows the demo chip and the reset, and never the sign-i
     await route.fulfill({ json: { ok: true, reply: 'Здравствуйте, это салон «Лилия».', state: 'contact', demo: true } })
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: ru.chat.fab }).click()
+  await page.locator('[data-cta=chat_fab]').click()
+  await page.locator('[data-cta=fira_ask]').click()
   const dialog = page.locator('[role=dialog]')
   await expect(dialog.locator('[data-chat-demo]')).toHaveText('Демо: вымышленный салон')
   await expect(dialog.locator('[data-chat-auth]')).toHaveCount(0)

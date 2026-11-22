@@ -85,6 +85,7 @@ import { usePricing } from './pricing-provider'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { Choice, Group, Tick } from './builder-ui'
+import { CapabilitySections, NicheDetail, ResultsPicker } from './builder-catalog-sections'
 import { FlagshipOptions } from './builder-flagships'
 import { flagshipPrice } from '@/lib/flagships'
 
@@ -425,6 +426,7 @@ export function GoalsStep({
   const goals = goalsFor(build)
   return (
     <div className="grid gap-12">
+      <NicheDetail locale={locale} build={build} setBuild={setBuild} />
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {goals.map((id) => {
           const text = goalText[id]
@@ -452,6 +454,7 @@ export function GoalsStep({
           )
         })}
       </div>
+      <ResultsPicker locale={locale} build={build} setBuild={setBuild} />
       <Group title={pick(faceUi.channelsTitle, locale)} hint={pick(builderUi.noPriceHint, locale)}>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {buildChannels.map((id) => {
@@ -716,12 +719,14 @@ export function FeaturesStep({
   dict,
   locale,
   build,
+  setBuild,
   onAddon,
   onExtra,
 }: {
   dict: Dict
   locale: string
   build: Build
+  setBuild: SetBuild
   onAddon: (slug: ServiceSlug, id: string) => void
   onExtra: (id: BuildExtra) => void
 }) {
@@ -777,9 +782,7 @@ export function FeaturesStep({
           </div>
         </Group>
       )}
-      {groups.length === 0 && extras.length === 0 && (
-        <p className="max-w-[58ch] text-muted">{pick(faceUi.featuresEmpty, locale)}</p>
-      )}
+      <CapabilitySections locale={locale} build={build} setBuild={setBuild} />
     </div>
   )
 }

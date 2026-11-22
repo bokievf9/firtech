@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/cn'
-import { firaFace } from '@/lib/fira/face'
-import type { FilmScene } from '@/lib/film'
-import { FiraFallback3 } from '../fira/fira-fallback3'
+import { filmContext, type FilmScene } from '@/lib/film'
+import { FiraFlat } from '../fira/fira-flat'
 
 // Fira's mark in a scene of the home film: the flat Fira (server SVG, so the first screen never waits
 // for WebGL) and her line as a subtitle next to her. In film mode (FilmStage) one WebGL Fira lands on
@@ -12,7 +11,7 @@ const sizes = { sm: 'size-14', md: 'size-[4.5rem] lg:size-24', lg: 'size-28 lg:s
 export function FiraMark({ scene, size = 'md', className }: { scene: FilmScene; size?: keyof typeof sizes; className?: string }) {
   return (
     <div data-film-mark={scene.id} className={cn('film-mark relative shrink-0', sizes[size], className)}>
-      <FiraFallback3 variant={firaFace} emotion={scene.emotion} className="film-flat block size-full" />
+      <FiraFlat emotion={scene.emotion} context={filmContext[scene.id]} className="film-flat block size-full" />
     </div>
   )
 }

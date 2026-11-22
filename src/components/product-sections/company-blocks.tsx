@@ -19,8 +19,7 @@ import {
 import Link from 'next/link'
 import type { ComponentType } from 'react'
 import { buttonClass } from '@/lib/cn'
-import { firaFace } from '@/lib/fira/face'
-import { FiraFallback3 } from '../fira/fira-fallback3'
+import { FiraFlat } from '../fira/fira-flat'
 import { ChatOpenButton } from '../chat/chat-open-button'
 import { HeroIntro } from '../hero-intro'
 import { FiraHero } from '../products/fira-hero'
@@ -114,7 +113,7 @@ export function BrainBlock({ ctx, band }: { ctx: ProductSectionContext; band?: b
           </Card>
           <Connector />
           <GlassCard thickness="thick" className="flex flex-col items-center justify-center gap-2 text-center" data-brain-center>
-            <FiraFallback3 variant={firaFace} emotion="idle" className="block size-28 md:size-32" />
+            <FiraFlat emotion="idle" context="dashboard" className="block size-28 md:size-32" />
             <p className="font-display text-title-3 font-semibold">{dict.film.name}</p>
             <p className="text-callout text-muted">{copy.centerLine}</p>
           </GlassCard>
