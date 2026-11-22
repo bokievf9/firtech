@@ -225,8 +225,8 @@ test('home: the ladder, six solution cards with «Все решения» and th
 test('product pages: each one has its own result headline, price, stage table, terms, objections and the builder with its product picked', async ({ page }) => {
   const seen: { sections: string[]; h1: string }[] = []
   for (const [id, chunk, h1, sections] of [
-    ['receptionist', 'p.intake', 'Ни одна заявка не ждёт ответа до утра', ['hero', 'demo', 'flow', 'included', 'price', 'objections', 'offer', 'scope', 'next']],
-    ['automation', 'p.automation', 'Отчёты, заявки и рассылки идут сами, а команда занимается делом', ['hero', 'before-after', 'routines', 'first', 'scope', 'included', 'price', 'offer', 'objections', 'next']],
+    ['receptionist', 'p.intake', 'Ни одна заявка не ждёт ответа до утра', ['hero', 'demo', 'flow', 'channels', 'included', 'price', 'objections', 'offer', 'scope', 'next']],
+    ['automation', 'p.automation', 'Отчёты, заявки и рассылки идут сами, а команда занимается делом', ['hero', 'before-after', 'routines', 'channels', 'first', 'scope', 'included', 'price', 'offer', 'objections', 'next']],
   ] as const) {
     await open(page, `/ru/products/${id}`)
     // The headline is the client's result, not the product name.

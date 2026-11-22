@@ -41,3 +41,29 @@ for (const size of sizes) {
     }
   })
 }
+
+// Audit 2026-11-22: the floating chat launcher sat on the right edge of the front product card.
+for (const size of [
+  { width: 1280, height: 800 },
+  { width: 1366, height: 768 },
+  { width: 1440, height: 900 },
+]) {
+  test(`chat launcher does not overlap the product card ${size.width}x${size.height}`, async ({ page }) => {
+    await page.setViewportSize(size)
+    await page.goto('/ru')
+    await page.waitForTimeout(1500)
+    const boxes = await page.evaluate(() => {
+      const r = (el: Element | null | undefined) => {
+        const b = el?.getBoundingClientRect()
+        return b ? { l: b.left, r: b.right, t: b.top, b: b.bottom } : null
+      }
+      const card = [...document.querySelectorAll<HTMLElement>('.hero-card')].find((e) => e.dataset.active === 'true')
+      return { card: r(card), fab: r(document.querySelector('[data-cta="chat_fab"]')) }
+    })
+    expect(boxes.card).not.toBeNull()
+    expect(boxes.fab).not.toBeNull()
+    const { card: c, fab: f } = boxes
+    const hit = f!.l < c!.r && f!.r > c!.l && f!.t < c!.b && f!.b > c!.t
+    expect(hit, JSON.stringify(boxes)).toBe(false)
+  })
+}

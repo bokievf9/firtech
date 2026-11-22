@@ -221,14 +221,14 @@ export function ChatWidget({
         aria-haspopup="dialog"
         aria-expanded={open}
         data-cta="chat_fab"
-        className={`print-hidden glass fixed right-3 bottom-[5.25rem] z-30 inline-flex h-14 items-center gap-2.5 rounded-full px-2 text-sm font-medium sm:pr-5 sm:pl-2 text-fg transition-[transform,opacity] duration-300 ease-out-quint hover:-translate-y-0.5 active:scale-[0.97] sm:right-6 sm:bottom-6 ${
+        className={`print-hidden glass fixed right-3 bottom-[5.25rem] z-30 inline-flex h-14 items-center gap-2.5 rounded-full px-2 text-sm font-medium sm:pr-5 sm:pl-2 lg:max-[1399px]:pr-2 text-fg transition-[transform,opacity] duration-300 ease-out-quint hover:-translate-y-0.5 active:scale-[0.97] sm:right-6 sm:bottom-6 ${
           open ? 'pointer-events-none translate-y-3 opacity-0' : visible ? 'opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
         }`}
       >
         <span className="relative grid size-10 place-items-center" data-chat-face={firaFace}>
           <FiraFallback3 variant={firaFace} emotion={saying ? 'talking' : 'idle'} className="block size-10" />
         </span>
-        <span className="hidden sm:inline">{copy.fab}</span>
+        <span className="hidden sm:inline lg:max-[1399px]:hidden">{copy.fab}</span>
       </button>
       {mounted ? (
         <ChatPanel
