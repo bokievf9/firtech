@@ -75,14 +75,14 @@ export const websiteCost2026: Article = {
         type: 'list',
         items: [
           `Второй язык: от ${p.language}.`,
-          `Заявки в Telegram: от ${p.siteTelegram}.`,
+          `Заявки в мессенджер: от ${p.siteTelegram}.`,
           `Онлайн-оплата: от ${p.sitePayments}.`,
           `Панель для правок: от ${p.cms}.`,
         ],
       },
       {
         type: 'p',
-        text: `Например, лендинг для салона на двух языках, где заявки сразу приходят в Telegram, начинается от ${p.landingTwoLangTelegram}. Слово «от» здесь важно: это нижняя граница. Если в проекте есть сложные детали, например нестандартный расчёт стоимости или связь с вашей учётной программой, цена будет выше. Насколько выше, вы узнаете до начала работы, а не в процессе.`,
+        text: `Например, лендинг для салона на двух языках, где заявки сразу приходят в мессенджер, начинается от ${p.landingTwoLangTelegram}. Слово «от» здесь важно: это нижняя граница. Если в проекте есть сложные детали, например нестандартный расчёт стоимости или связь с вашей учётной программой, цена будет выше. Насколько выше, вы узнаете до начала работы, а не в процессе.`,
       },
       {
         type: 'cta',
@@ -210,14 +210,14 @@ export const websiteCost2026: Article = {
         type: 'list',
         items: [
           `Second language: from ${p.language}.`,
-          `Requests sent to Telegram: from ${p.siteTelegram}.`,
+          `Requests sent to a messenger: from ${p.siteTelegram}.`,
           `Online payments: from ${p.sitePayments}.`,
           `Editing panel: from ${p.cms}.`,
         ],
       },
       {
         type: 'p',
-        text: `For example, a landing page for a salon in two languages, with requests going straight to Telegram, starts from ${p.landingTwoLangTelegram}. The word "from" matters here: it is the lower bound. If a project has complex parts, such as a custom price calculation or a link to your accounting software, the price will be higher. You will know how much higher before work starts, not halfway through.`,
+        text: `For example, a landing page for a salon in two languages, with requests going straight to a messenger, starts from ${p.landingTwoLangTelegram}. The word "from" matters here: it is the lower bound. If a project has complex parts, such as a custom price calculation or a link to your accounting software, the price will be higher. You will know how much higher before work starts, not halfway through.`,
       },
       {
         type: 'cta',

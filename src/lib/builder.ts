@@ -49,6 +49,7 @@ import {
   parseDiscoveryJson,
   parsePersonalJson,
   personalJson,
+  personalOnly,
   type Discovery,
   type PersonalBrief,
 } from './builder-personal'
@@ -687,6 +688,8 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       addons: keepKnown(third, Object.keys(defaultPricing.catalog[slug].addons)),
     }
   }
+  // A personal link never carries the business chunks that happened to ride along.
+  if (build.personal) return personalOnly(build)
   if (Object.keys(style).length) build.style = style
   if (Object.keys(details).length) build.details = details
   const hasBrief = Boolean(
@@ -795,8 +798,8 @@ export function withStyle(build: Build, patch: Partial<BuildStyle>): Build {
 
 // The lead's service for a build: the service itself when the build is one main service with no
 // monthly part, otherwise "bundle".
-export function leadServiceOf(build: Build): ServiceSlug | 'ai' | 'bundle' {
-  if (build.personal) return 'ai'
+export function leadServiceOf(build: Build): ServiceSlug | 'personal' | 'bundle' {
+  if (build.personal) return 'personal'
   const q = quote(build)
   const single = q.lines.length === 1 && !q.monthly ? q.lines[0]?.id : undefined
   return single && (serviceSlugs as readonly string[]).includes(single)

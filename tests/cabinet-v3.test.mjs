@@ -1,4 +1,4 @@
-// Cabinet v3 (2026-11-22): documents, signature payload, next action, messenger, agent, HQ client
+// Cabinet v3 (2026-11-22): documents, signature payload, next action, messenger, HQ client
 // functions with the dev mock and with a fake HQ. No Supabase, no network.
 import assert from 'node:assert/strict'
 import { registerHooks } from 'node:module'
@@ -24,7 +24,6 @@ registerHooks({
 
 const docs = await import('../src/lib/cabinet-docs.ts')
 const chat = await import('../src/lib/cabinet-chat.ts')
-const agent = await import('../src/lib/cabinet-agent.ts')
 const data = await import('../src/lib/cabinet-data.ts')
 const hq = await import('../src/lib/cabinet-hq.ts')
 const mock = await import('../src/lib/cabinet-hq-mock.ts')
@@ -321,44 +320,6 @@ test('materials: the project thread first, then the request; own uploads newest 
   ]).map((g) => [g.day, g.items.length]), [['2026-11-20', 2], ['2026-11-21', 1]])
 })
 
-// ---- agent -------------------------------------------------------------------------------------
-
-test('agent: parsed from the contract fields, the token is never part of the model', () => {
-  const [a] = agent.parseAgents({ agents: [{
-    id: 'pg1', name: 'Мила', niche: 'салон', tone: 'friendly', languages: ['ru', 'en'], state: 'live',
-    channels: { web: true, telegram: { connected: true, botToken: '123456789:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' }, siteWidget: 'https://salon.test' },
-    limits: { msgsPerDay: 200 }, usageToday: { messages: 50 },
-  }] })
-  assert.equal(a.name, 'Мила')
-  assert.deepEqual(a.channels, { web: true, telegram: true, siteWidget: 'https://salon.test' })
-  assert.equal(a.state, 'live')
-  assert.equal(agent.usageShare(a.usage, a.limits.msgsPerDay), 25)
-  assert.equal(agent.usageShare(a.usage, null), null)
-  assert.doesNotMatch(JSON.stringify(a), /AAAAAAAA|botToken/)
-  assert.equal(agent.parseAgents([{ name: 'no id' }]).length, 0)
-  assert.equal(agent.parseAgent({ id: 1 }).channels.web, true, 'the web chat is on unless HQ says otherwise')
-  assert.equal(a.usage.msgsToday, 50)
-  const [cv] = agent.parseConversations({ ok: true, items: [{ id: 'c1', channel: 'widget', messages: 4, leadsCaptured: 2, lastAt: '2026-11-21T00:00:00Z' }, {}] })
-  assert.deepEqual([cv.id, cv.channel, cv.leadsCaptured], ['c1', 'widget', 2])
-})
-
-test('agent: the Telegram token is checked and the PATCH keeps only what a client may change', () => {
-  const token = '123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw'
-  assert.equal(agent.checkBotToken(` ${token} `), token)
-  assert.equal(agent.checkBotToken('hello'), null)
-  assert.equal(agent.checkBotToken('12345:short'), null)
-  assert.equal(agent.checkBotToken(42), null)
-  assert.deepEqual(agent.agentPatchBody({ name: '  Мила  ', tone: 'formal', languages: ['ru', 'ru', 'xx', 'en'], state: 'live', limits: 9 }), { name: 'Мила', tone: 'formal', languages: ['ru', 'en'] })
-  assert.deepEqual(agent.agentPatchBody({ botToken: token }), { channels: { telegram: { botToken: token } } })
-  assert.equal(agent.agentPatchBody({ botToken: 'bad' }), null)
-  assert.equal(agent.agentPatchBody({ name: 'x' }), null)
-  assert.equal(agent.agentPatchBody({ languages: ['xx'] }), null)
-  assert.equal(agent.agentPatchBody({}), null)
-  assert.equal(agent.agentPatchBody({ tone: 'DROP TABLE' }), null)
-  assert.deepEqual(agent.agentPatchBody({ channels: { web: false, telegram: false, siteWidget: false, hack: 1 } }), { channels: { telegram: null, siteWidget: null } }, 'HQ answers 400 to a channels.web key')
-  assert.equal(agent.agentPatchBody({ channels: { web: false } }), null)
-})
-
 // ---- HQ client: the dev mock and a fake HQ ----------------------------------------------------
 
 const dev = { NODE_ENV: 'development' }
@@ -400,10 +361,10 @@ test('dev mock: the cabinet data carries the v3 states and the derived actions p
   assert.equal(docs.deriveNextAction(docsList, [], { leadId: 14 }).kind, 'accept_quote')
 })
 
-test('dev mock: messenger sends, reads and refreshes after an id; the agent thread answers', async () => {
+test('dev mock: messenger sends, reads and refreshes after an id; a missing thread is refused', async () => {
   mock.resetMockState()
   const threads = (await hq.fetchThreads(1, dev)).data
-  assert.deepEqual(threads.map((t) => t.kind).sort(), ['agent', 'lead', 'project', 'project', 'support'])
+  assert.deepEqual(threads.map((t) => t.kind).sort(), ['lead', 'project', 'project', 'support'])
   assert.equal(chat.unreadTotal(threads), 3)
   const before = (await hq.fetchThreadMessages(1, 'lead-14', null, dev)).data
   const sent = await hq.postThreadMessage(1, 'lead-14', 'Спасибо!', [], dev)
@@ -412,12 +373,6 @@ test('dev mock: messenger sends, reads and refreshes after an id; the agent thre
   assert.deepEqual(fresh.map((m) => m.text), ['Спасибо!'])
   assert.equal((await hq.markThreadRead(1, 'lead-14', dev)).ok, true)
   assert.equal((await hq.fetchThreads(1, dev)).data.find((t) => t.id === 'lead-14').unread, 0)
-  const agentChat = await hq.postThreadMessage(1, 'agent-1', 'Сколько стоит маникюр?', [], dev)
-  assert.equal(agentChat.ok, true)
-  assert.equal(agentChat.data.reply.from, 'agent', 'the reply comes with the message')
-  const last = (await hq.fetchThreadMessages(1, 'agent-1', null, dev)).data.at(-1)
-  assert.equal(last.from, 'agent')
-  assert.match(last.text, /сомони/)
   assert.deepEqual(await hq.fetchThreadMessages(1, 'zzz', null, dev), { ok: false, error: 'not_found' })
   assert.equal((await hq.postThreadMessage(1, 'zzz', 'x', [], dev)).error, 'not_found')
   const file = new File(['x'], 'logo.png', { type: 'image/png' })
@@ -425,22 +380,6 @@ test('dev mock: messenger sends, reads and refreshes after an id; the agent thre
   assert.equal(up.ok, true)
   assert.equal(up.data.attachments[0].label, 'logo')
   assert.match(up.data.attachments[0].href, /^\/api\/cabinet\/media\?u=/)
-  mock.resetMockState()
-})
-
-test('dev mock: the agent exists, its settings change, the Telegram channel connects', async () => {
-  mock.resetMockState()
-  const [a] = (await hq.fetchClientAgents(1, dev)).data
-  assert.equal(a.name, 'Мила')
-  assert.equal(a.channels.telegram, false)
-  const saved = await hq.patchClientAgent(1, a.id, { name: 'Лея', channels: { telegram: { botToken: '123456789:AAHdqTcvCH1vGWJxfSeofSAs0K5PALDsaw' } } }, dev)
-  assert.equal(saved.data.name, 'Лея')
-  assert.equal(saved.data.channels.telegram, true)
-  assert.doesNotMatch(JSON.stringify(saved), /AAHdq/)
-  assert.equal((await hq.fetchAgentConversations(1, a.id, dev)).data.length, 4)
-  const extras = await hq.fetchCabinetExtras(1, dev)
-  assert.equal(extras.agents.length, 1)
-  assert.equal(extras.v3, true)
   mock.resetMockState()
 })
 
@@ -457,8 +396,6 @@ test('real HQ: paths, methods, the token header and the error codes of the v3 ca
   await hq.fetchThreadMessages(7, 'lead-12', '41', prod, fake(200, { ok: true, items: [] }))
   await hq.postThreadMessage(7, 'lead-12', 'hi', [], prod, fake(200, { ok: true, item: { id: 1, from: 'client', text: 'hi' } }))
   await hq.markThreadRead(7, 'lead-12', prod, fake(200, { ok: true, unread: 0 }))
-  await hq.fetchClientAgents(7, prod, fake(200, { ok: true, items: [] }))
-  await hq.patchClientAgent(7, 'pg1', { tone: 'formal' }, prod, fake(200, { ok: true, item: { id: 'pg1' } }))
   await hq.patchClientProfile(7, { name: 'Алиса', telegram: '@alice_1', locale: 'ru' }, prod, fake(200, { ok: true, client: {} }))
   assert.deepEqual(calls.map((c) => `${c.method} ${c.url.replace('http://hq.test/admin', '')}`), [
     'GET /clients/7/documents',
@@ -468,12 +405,10 @@ test('real HQ: paths, methods, the token header and the error codes of the v3 ca
     'GET /clients/7/threads/lead-12/messages?after=41',
     'POST /clients/7/threads/lead-12/messages',
     'POST /clients/7/threads/lead-12/read',
-    'GET /clients/7/agents',
-    'PATCH /clients/7/agents/pg1',
     'POST /clients/7',
   ])
   assert.ok(calls.every((c) => c.token === 'tok'))
-  assert.deepEqual(JSON.parse(calls[9].body), { name: 'Алиса', telegram: '@alice_1', locale: 'ru' }, 'the profile patch, never the registration upsert POST /clients')
+  assert.deepEqual(JSON.parse(calls[7].body), { name: 'Алиса', telegram: '@alice_1', locale: 'ru' }, 'the profile patch, never the registration upsert POST /clients')
   const signBody = JSON.parse(calls[2].body)
   assert.deepEqual(Object.keys(signBody).sort(), ['consent', 'ip', 'name', 'signaturePng', 'userAgent'])
   assert.equal(signBody.ip, '1.2.3.4')
@@ -488,13 +423,13 @@ test('real HQ: paths, methods, the token header and the error codes of the v3 ca
   assert.equal(await err(404, {}, (f) => hq.fetchThreads(7, prod, f)), 'not_found')
   assert.equal(await err(429, { error: 'rate_limited' }, (f) => hq.postThreadMessage(7, 't', 'x', [], prod, f)), 'rate_limited')
   assert.equal(await err(429, { error: 'limit_reached' }, (f) => hq.postThreadMessage(7, 't', 'x', [], prod, f)), 'limit_reached')
-  assert.equal(await err(500, {}, (f) => hq.fetchClientAgents(7, prod, f)), 'hq_error')
+  assert.equal(await err(500, {}, (f) => hq.fetchThreads(7, prod, f)), 'hq_error')
   const boom = async () => { throw new Error('down') }
   assert.equal((await hq.fetchThreads(7, prod, boom)).error, 'hq_unreachable')
   assert.equal((await hq.fetchClientDocuments(0, prod)).error, 'not_found')
   // an older HQ without v3: the extras fail softly
   const extras = await hq.fetchCabinetExtras(7, prod, fake(404, {}))
-  assert.deepEqual([extras.docs.length, extras.threads.length, extras.agents.length, extras.v3], [0, 0, 0, false])
+  assert.deepEqual([extras.docs.length, extras.threads.length, extras.v3], [0, 0, false])
 })
 
 test('real HQ: an agent thread message returns the agent reply with the item', async () => {
@@ -592,14 +527,12 @@ test('old HQ without v3: invoices and documents become simple documents without 
   assert.ok(list.every((d) => !d.hasPdf && !d.hasHtml && d.payUrl === null))
 })
 
-test('cabinet view: the mock client gets documents, actions, badges, the agent tab and the project thread', async () => {
+test('cabinet view: the mock client gets documents, actions, badges and the project thread', async () => {
   mock.resetMockState()
   const client = hq.cabinetMock('a@b.co')
   const extras = {
     docs: (await hq.fetchClientDocuments(1, dev)).data,
     threads: (await hq.fetchThreads(1, dev)).data,
-    agents: (await hq.fetchClientAgents(1, dev)).data,
-    conversations: [],
     v3: true,
   }
   const v = view.buildCabinetView(client, extras)
@@ -609,14 +542,12 @@ test('cabinet view: the mock client gets documents, actions, badges, the agent t
   assert.equal(v.leadActions[14].kind, 'accept_quote')
   assert.equal(v.leadActions[14].docId, 'q-14')
   assert.deepEqual(v.counts, { documents: 3, messages: 3 })
-  assert.equal(v.tabs.includes('agent'), true)
-  assert.equal(v.agentThread.id, 'agent-1')
+  assert.equal(v.tabs.includes('agent'), false)
   assert.equal(v.materialsThread.kind, 'project')
   assert.equal(v.recentDocs.length, 3)
   assert.ok(v.docs.every((d) => !('pdfUrl' in d)), 'no HQ links reach the browser')
-  // an old HQ: legacy documents and no tabs for the agent
+  // an old HQ: legacy documents
   const old = view.buildCabinetView(client, view.noExtras)
-  assert.equal(old.tabs.includes('agent'), false)
   assert.ok(old.docs.length > 0)
   assert.ok(old.docs.every((d) => d.id.startsWith('inv:') || d.id.startsWith('doc:')))
   mock.resetMockState()

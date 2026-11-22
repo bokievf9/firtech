@@ -33,7 +33,7 @@ import {
   approverText, baseText, channelNames, connectText, discLabels, handText, heardText, hoursText, leadsText,
   painText, personalLabels, sizeText, successText, tierText, toneUi, whoTextAll,
 } from '../content/builder-personal'
-import { monthlyOf, tierOf } from './builder-personal'
+import { monthlyOf, personalOnly, tierOf } from './builder-personal'
 import { catalogRows } from './builder-capabilities'
 import { flagshipPrice } from './flagships'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
@@ -95,11 +95,13 @@ const isService = (id: string): id is ServiceSlug =>
   (serviceSlugs as readonly string[]).includes(id)
 
 export function estimateDoc(
-  build: Build,
+  source: Build,
   dict: Dict,
   locale: string,
   pricing: Pricing = defaultPricing,
 ): EstimateDoc {
+  // The personal path never shows a niche, products or parts, even when a link carried them.
+  const build = personalOnly(source)
   const q = quote(build, pricing)
   const parts: EstimateRow[] = []
   const extras: EstimateRow[] = []
@@ -151,7 +153,7 @@ export function estimateDoc(
   })
   return {
     kind: build.kind ? kindName(build.kind, locale) : null,
-    products: (build.products ?? []).map((id) => pick(productCatalog[id].name, locale)),
+    products: build.personal ? [] : (build.products ?? []).map((id) => pick(productCatalog[id].name, locale)),
     onRequest,
     parts,
     extras,
@@ -392,11 +394,13 @@ export const leadLimit = 1500
 // What the contact form receives from the builder: the quote line by line, then the brief in a few
 // compact lines. The wish goes last and is the part shortened if the whole would not fit.
 export function leadSummary(
-  build: Build,
+  source: Build,
   dict: Dict,
   locale: string,
   pricing: Pricing = defaultPricing,
 ) {
+  if (source.personal) return personalLeadSummary(source, dict, locale, pricing)
+  const build = source
   const t = dict.builder
   const doc = estimateDoc(build, dict, locale, pricing)
   const q = quote(build, pricing)
@@ -456,6 +460,29 @@ export function leadSummary(
     const room = leadLimit - text.length - head.length
     if (room > 20)
       text += head + (wish.value.length > room ? `${wish.value.slice(0, room - 3)}...` : wish.value)
+  }
+  return text.slice(0, leadLimit)
+}
+
+// The personal lead: the tier with its price, who the person is, what they hand over, channels, connections,
+// tone and the discovery answers. No niche, no products, no parts, no payment stages (those are the business path).
+export function personalLeadSummary(source: Build, dict: Dict, locale: string, pricing: Pricing = defaultPricing) {
+  const build = personalOnly(source)
+  const loc = locale === 'ru' ? 'ru' : 'en'
+  const doc = estimateDoc(build, dict, locale, pricing)
+  const { setup, details, catalog } = doc.brief
+  const lines: string[] = []
+  const price = doc.onRequest[0]
+  if (price) lines.push(`${personalLabels.tier[loc]}: ${price.price}`)
+  const rows: BriefRow[] = [
+    ...setup.filter((r) => r.id !== 'p-tier'),
+    ...catalog,
+    ...details.filter((r) => r.id.startsWith('d-')),
+  ]
+  let text = lines.join('\n')
+  for (const r of rows) {
+    const line = `${r.label}: ${r.value}`
+    if (text.length + 1 + line.length <= leadLimit) text += `${text ? '\n' : ''}${line}`
   }
   return text.slice(0, leadLimit)
 }

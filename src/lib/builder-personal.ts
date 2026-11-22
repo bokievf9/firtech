@@ -237,12 +237,21 @@ export function startPersonal(build: Build): Build {
   return syncPersonal({ ...(skl?.length ? withCatalog(next, { skl }) : next), personal: {} })
 }
 
+// Back to the business path: every personal chunk and every business chunk goes, only the discovery answers
+// (shared by both paths) stay. The two paths never carry each other's state.
 export function stopPersonal(build: Build): Build {
-  const next: Build = { ...build, parts: {}, extras: [] }
-  delete next.personal
-  delete next.products
-  delete next.options
-  return build.catalog?.skl ? withCatalog(next, { skl: [] }) : next
+  return { parts: {}, extras: [], ...(build.discovery ? { discovery: build.discovery } : {}) }
+}
+
+// The personal path as it is: the brief, its flagship options and the shared discovery. Any business chunk
+// (kind, products, parts, goals, channels, style, details, delivery, site) that rode along from an earlier
+// build or an old link is dropped, so a personal lead and its estimate never name a niche or a product.
+export function personalOnly(build: Build): Build {
+  if (!build.personal) return build
+  const skl = build.catalog?.skl
+  const base: Build = { parts: {}, extras: [], personal: build.personal, ...(build.discovery ? { discovery: build.discovery } : {}) }
+  // The personal skills of the catalogue are part of the personal brief; business picks are dropped.
+  return syncPersonal(skl?.length ? withCatalog(base, { skl }) : base)
 }
 
 export function withDiscovery(build: Build, patch: Partial<Discovery>): Build {
@@ -274,7 +283,8 @@ export type LeadBrief = Record<string, unknown>
 // The `brief` object of the lead JSON for HQ (documented in docs/builder-v2.md «brief v4 contract»): ids only,
 // short keys, at most `leadBriefLimit` characters. HQ's `webLeadSchema` is not strict, so it ignores or reads it.
 export const leadBriefLimit = 3500
-export function leadBriefOf(build: Build): LeadBrief | null {
+export function leadBriefOf(source: Build): LeadBrief | null {
+  const build = personalOnly(source)
   const out: LeadBrief = { v: 1 }
   if (build.personal) {
     out.type = 'personal'
