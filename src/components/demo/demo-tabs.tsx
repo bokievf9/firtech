@@ -16,7 +16,7 @@ import { DemoOffice } from './demo-office'
 export type DemoArticle = { slug: string; title: string; description: string; date: string; dateLabel: string }
 
 // `personal` (2026-11-22) replaced the old personal-assistant tab and sits right after the two live booking demos.
-export const demoTabIds = ['receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'implementation'] as const
+export const demoTabIds = ['receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'company'] as const
 export type DemoTabId = (typeof demoTabIds)[number]
 
 // The tabs of #demo (owner 2026-11-22), one per product, all seven: the receptionist chat with a niche
@@ -110,12 +110,12 @@ export function DemoTabs({
             </div>
           )}
         </div>
-        <div role="tabpanel" id={`${base}-panel-implementation`} aria-labelledby={`${base}-tab-implementation`} hidden={active !== 'implementation'}>
-          {active === 'implementation' && (
+        <div role="tabpanel" id={`${base}-panel-company`} aria-labelledby={`${base}-tab-company`} hidden={active !== 'company'}>
+          {active === 'company' && (
             <div>
-              <DemoOffice copy={t.implementation} live={dict.proof.live} />
+              <DemoOffice copy={t.company} live={dict.proof.live} />
               <Link href={`/${locale}/ai-team`} className="mt-6 inline-flex items-center gap-1.5 text-sm font-medium text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text">
-                {t.implementation.cta}
+                {t.company.cta}
                 <ArrowRight size={14} aria-hidden="true" />
               </Link>
             </div>

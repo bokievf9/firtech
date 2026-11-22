@@ -1,4 +1,5 @@
 import { breakdownSource, fileUrl, safeRenderPath, safeUrl } from './shell'
+import { hqHref } from './hq-shell'
 
 // Ревью-центр (contract «Ревью-центр», 2026-11-21, docs/shell.md): view models of GET /admin/review,
 // GET /admin/trends and the decisions of POST /admin/review/:id. Pure: no I/O, no React. Nothing
@@ -359,7 +360,7 @@ export function comparePair(item: ReviewItem): [ReviewVersion, ReviewVersion] | 
 
 export type MetaCard = { id: string; title: string; lines: string[]; href: string | null; linkLabel: string }
 const panelHref = (panel: string, tab: string, id: unknown): string | null =>
-  id === null || id === undefined || id === '' ? null : `/admin/office?panel=${panel}&tab=${tab}&focus=${encodeURIComponent(String(id))}`
+  id === null || id === undefined || id === '' ? null : hqHref(panel, tab, String(id))
 const line = (label: string, v: unknown) => (v === null || v === undefined || v === '' ? null : `${label}: ${String(v)}`)
 const compact = (xs: (string | null)[]): string[] => xs.filter((x): x is string => x !== null)
 

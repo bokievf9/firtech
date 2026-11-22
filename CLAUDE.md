@@ -26,8 +26,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   Dono and Polly).
   **Editable prices (owner 2026-11-21: «правка всех цен в админке»)**: the numbers in `pricing.ts` are only the
   DEFAULTS (`defaultPricing`, type `Pricing`: starting prices, `catalog`, `extras`, plans, `bundleDiscount` percent,
-  `referralPercent`, `smallProjectMaxUsd`, `stageShares`). The owner edits every price in the Пульт (Компания, tab «Цены»,
-  ⌘K «Цены»); overrides live in `$DATA_DIR/prices.json` (`pricing-store.ts`: `{overrides, updatedAt, history[200]}`, atomic
+  `referralPercent`, `smallProjectMaxUsd`, `stageShares`). The owner edits every price in the Shell (Settings, the «Цены» block at the bottom); overrides live in `$DATA_DIR/prices.json` (`pricing-store.ts`: `{overrides, updatedAt, history[200]}`, atomic
   writes like `golive.json`; **back it up together with `leads.json`**, the daily backup script copies only `leads.json`;
   delete the file to go back to the defaults). `getPricing()` (server, per-request cached) = defaults + overrides, validated
   by zod (`pricing-edit.ts`; an invalid override is ignored with a server warning). Every pure helper (`quote`, `estimate`,
@@ -45,7 +44,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `docs/cabinet.md` and `docs/shell.md`, section «2026-11-23».
 - **Front v3 (owner review 2026-11-22, supersedes the home notes below where they differ).** Product names (ids and prices
   unchanged): `admin` ИИ-администратор, `receptionist` ИИ-менеджер заявок, `automation` Автоматизация процессов, `content` Контент на
-  автопилоте, `miniapp` Telegram Mini App, `implementation` ИИ-отдел под ключ, plus the flagships `personal` Персональный ИИ and `company` ИИ-компания (see «Flagships») (EN in `products.items`
+  автопилоте, `miniapp` Telegram Mini App, plus the flagships `personal` Персональный ИИ and `company` ИИ вашей компании (see «Flagships»; `implementation` was removed 2026-11-22) (EN in `products.items`
   and `builder-catalog.ts`); «бот» stays only as a delivery channel. The builder is «Сборка проекта» everywhere (nav, titles, buttons;
   the words «калькулятор» and «конструктор» are gone everywhere, the cabinet and the Пульт included (test in `copy-qa`); «приёмщик» is
   gone too, the lead agent is «Менеджер заявок» / «Lead manager»; the classic bots service reads «Агенты в Telegram»). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
@@ -263,7 +262,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `{action:'reset', path?}`; refusals are 422 with a key (`out_of_range:<path>`, `not_integer`, `stage_sum:<template>`...).
   Tests: `tests/pricing-store.test.mjs`.
 - Security headers (`next.config.ts`, all paths): nosniff, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
-  `Permissions-Policy` (microphone only on `/admin/echo`), HSTS in production (nginx sends none, so no duplicate). No CSP yet.
+  `Permissions-Policy` (camera, geolocation and microphone off everywhere), HSTS in production (nginx sends none, so no duplicate). No CSP yet.
 - Payment copy (owner 2026-11-19, stages 2026-11-21): USDT (TRC20/TON) or an online wallet named in the estimate; payment by
   stages, each stage BEFORE it starts and the last before handover (rule sentence `builder.stageRule`), projects under
   `smallProjectMaxUsd` in two stages 50/50, subscriptions monthly in advance; «50%» appears only in the terms
@@ -292,35 +291,50 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   Only `TELEGRAM_CHAT_ID` may press buttons. `scripts/telegram-webhook.mjs set` after deploy;
   `scripts/telegram-poll.mjs` forwards updates to localhost for testing (delete the webhook first).
 - Owner panel `/admin` (`src/app/admin`, API `src/app/api/admin`, copy `src/content/admin.ts`,
-  logic `src/lib/admin-*.ts`): login by a one-time code the bot sends to `TELEGRAM_CHAT_ID` (5 min,
-  5 tries, 1 per minute, 10 per hour); 30-day sessions in `$DATA_DIR/admin.json` (hashes only,
-  revocable; back it up with `leads.json`). Pages and `/api/admin/*` check the session on the
+  logic `src/lib/admin-*.ts`): login by PASSWORD since 2026-11-23 (owner; the Telegram code login and
+  `/api/admin/code` are deleted). Server env `ADMIN_PASSWORD_HASH` = `scrypt$<N>$<salt>$<hash>` (N 16384 or
+  32768, r 8, p 1, 64-byte key, salt and hash base64url without padding), printed by
+  `node scripts/admin-password.mjs` (hidden prompt; or argv / a pipe). In `shared/.env.production` (read by
+  `node --env-file`) paste the line as is; in `.env.local` (read by `next dev`, which expands `$`) write
+  every `$` as `\$`. Missing or malformed = login closed («Password is not set up.», `POST /api/admin/login`
+  503 `not_configured`), never a default. `src/lib/admin-password.ts` (strict parse, async scrypt +
+  `timingSafeEqual`, one full scrypt even without a hash, 256-character cap) and `loginWithPassword` in
+  `admin-auth.ts`: per IP (`visitorIp`) 5 free tries an hour, then 1 a minute, 10 an hour; 30 wrong an hour for
+  all IPs closes the login until the hour clears; 800 ms pause on a wrong password; every attempt counts as
+  wrong until confirmed (parallel requests cannot pass). 30-day sessions in `$DATA_DIR/admin.json` (hashes only,
+  revocable; back it up with `leads.json`), each with `fp` = fingerprint of the hash line: a new hash ends the
+  sessions made with the old one; sessions without `fp` (before 2026-11-23, the e2e hand-written ones) stay
+  valid until they expire. «Sign out» in the Shell header and the «...» menu (`POST /api/admin/logout` revokes
+  server-side and clears the cookie). Threat model: `docs/shell.md` «Login». Tests `tests/admin-login.test.mjs`,
+  e2e `npm run test:e2e:login` (own server, `playwright.login.config.ts`). Pages and `/api/admin/*` check the session on the
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
-  site. Bot `/admin` sends the link. Since 2026-11-19 (owner: «в админке всё кроме офиса не нужно») the
-  panel has ONE page, the пульт below; `/admin` redirects to `/admin/office`, the old overview
-  (Pulse), `/admin/leads` and `/admin/calendar` and their code are deleted (404). Site-form leads and
-  call bookings live in the Sales panel as tabs «Заявки с сайта» and «Созвоны» (see below).
-  The admin shell nav shows only «Офис», the theme switch and logout.
-- Пульт v3 `/admin/office` (owner 2026-11-20, full notes `docs/shell.md`): the live pixel office fills the screen and is the hub
-  (`src/components/admin/hub/`). Every room is a zone (click = its department's panel, hover = name, counters and a desk lamp
-  glow from HQ `GET /admin/hub`); slim top bar (presence «На месте» / «Не на месте», counters одобрения, лиды, оплаты, тикеты,
-  `⌘K` palette with HQ search, theme, menu). Panels slide in from the right over the animating office (two widths, full screen on
-  phones; Esc closes, keys 1-6 departments, 7 the company): Директор (уведомления from `hub.inbox` with links to objects,
-  одобрения, задачи + task drawer, чат, лента, учения), Маркетинг (Контент: week calendar, MP4/PNG through `/api/admin/files/*`,
-  captions, Telegram-card actions; Цифры: funnel, site events against the previous week, blog, YouTube, money), Продажи (Лиды:
-  kanban by `stage` with drawer, reply, call, notes; Клиенты 360; Заявки с сайта and Созвоны = `leads.json` as before; Разведка),
-  Поддержка (tickets, SLA 4 h), Производство (projects kanban, milestones, deadlines, issues), Бэк-офис (Счета: remind, paid by
-  hand, void, pay link, tronscan/tonviewer; Документы, Рекомендации, Отзывы), Компания (server room: routines, costs, trust
-  levels, playbooks, workers). CRM panels are `src/components/admin/shell-crm/*`, stage 1-2 panels render bare inside tabs
-  (`BarePanel` in `cc-panel.tsx`). Writes are optimistic with rollback and a toast. View models `src/lib/shell.ts` (tests
-  `tests/shell-v3.test.mjs`), dev mock `src/lib/shell-mock.ts` (wired into `hq-admin-mock.ts`). Contract: `pult-v3` (HQ side in
-  `agents/docs/admin-crm-api.md`). Browser calls only `/api/admin/hq/[...path]`, a session-checked whitelist proxy
-  (`src/lib/hq-admin.ts`: `ENDPOINTS`, `CRM_ENDPOINTS`, `PULT_ENDPOINTS`, 5 s timeout, client ids `c:<name>` URL-encoded) to
-  `HQ_ADMIN_URL` (default `http://127.0.0.1:8787/admin`, header `x-admin-token: HQ_ADMIN_TOKEN`, falls back to
-  `HQ_OFFICE_TOKEN`); unset in development = in-memory mock. Renders: `/api/admin/files/[...path]` (`src/lib/hq-files.ts`,
-  `safeRenderPath`, Range passed, type from the extension, dev SVG placeholder). Go-live plan (owner 2026-11-21): a countdown chip in the top bar, key `8` and ⌘K open the full-screen page `/admin/golive` (shader stage with an odometer `DD : HH : MM : SS` and the 41-item checklist with notes below it, `src/components/admin/golive/`) for the 72-hour timer, stored in `$DATA_DIR/golive.json` (back it up with `leads.json`); API `/api/admin/golive`, logic `src/lib/golive.ts`, list `src/content/golive.ts`, notes in `docs/shell.md`.
-- Review centre and chats (owner 2026-11-21, `docs/shell.md` «Ревью-центр и чаты»): `/admin/review` is a full-screen editing-room page (departments rail with `counts`, 9:16 video / carousel / document stage, text fields read-only until `E`, versions v1/v2, revise note, keys A E R X P T S C J K, the optimistic decision flow, the Trendwatcher link composer) and `/admin/chats` the client threads with owner replies, both over the same whitelist proxy (`REVIEW_ENDPOINTS` in `src/lib/hq-admin.ts`, view models `src/lib/review.ts` and `src/lib/chats.ts`, dev mock `src/lib/review-mock.ts`). The office top bar has the chips «Ревью N» and «Чаты N» (keys `9`, `0`, ⌘K); the old approvals list in the Director panel links to the review centre. Since 2026-11-22 `E` on a text document opens a full-screen Word-like editor (`review/doc-editor.tsx`, helpers `lib/doc-editor.ts` and `lib/diff.ts`: toolbar, ⌘F find and replace, word diff against v1, local draft every 5 s, «Сохранить как версию» = `edit` v+1, also on the back-office Documents tab); the Director's «Задачи» and «Чат» tabs are one «Поручения» view (`control/assignments.tsx`, `lib/orders.ts`: composer, `/commands`, one timeline) and leads show a «Разбор заявки» block parsed from the builder link (`lib/lead-breakdown.ts`). Details: `docs/shell.md`.
+  site. Bot `/admin` sends the panel link only (no code). `/admin` redirects to `/admin/inbox`: the Shell (below) is the
+  owner's workplace; the old overview (Pulse), `/admin/leads`, the Echo console and the hub side panels are deleted (404).
+- Shell (owner 2026-11-23, notes `docs/shell.md`): `/admin/<section>` inside one frame (`src/components/admin/hq/hq-shell.tsx`, route
+  group `src/app/admin/(hq)/`): left menu in four groups (Work: Inbox, Approvals, Tasks, Calendar, Chats; Clients: Clients, Projects,
+  Documents, Finance; Company: Office, Content, Agents, Processes, Knowledge, Settings; Control: Quality, Audit log, Analytics; list,
+  tabs and links in `src/lib/hq-shell.ts`, tested), top bar with ⌘K search, the Office link, the presence switch «На месте» /
+  «Не на месте» (`hq/presence-switch.tsx`; it pings HQ once a minute and decides where notifications go), theme, sign out. Keys 1-9 open
+  the first nine sections. Sections reuse `shell-crm/*` and `control/*` panels (leads funnel, calls, client 360, projects kanban,
+  invoices, documents, content studio, tasks with the Director composer); `/admin/golive` (72-hour plan, chip in the Office strip and
+  ⌘K) and the prices editor (Settings, bottom block, API `/api/admin/prices`) live in the same frame. Writes are optimistic with
+  rollback and a toast. View models `src/lib/shell.ts` (tests `tests/shell-v3.test.mjs`), dev mock `src/lib/shell-mock.ts` (wired
+  into `hq-admin-mock.ts`). Browser calls only `/api/admin/hq/[...path]`, a session-checked whitelist proxy (`src/lib/hq-admin.ts`:
+  `ENDPOINTS`, `CRM_ENDPOINTS`, `PULT_ENDPOINTS`, `REVIEW_ENDPOINTS`, 5 s timeout, client ids `c:<name>` URL-encoded) to `HQ_ADMIN_URL`
+  (default `http://127.0.0.1:8787/admin`, header `x-admin-token: HQ_ADMIN_TOKEN`, falls back to `HQ_OFFICE_TOKEN`); unset in
+  development = in-memory mock. Renders: `/api/admin/files/[...path]` (`src/lib/hq-files.ts`). Go-live state is in
+  `$DATA_DIR/golive.json` (back it up with `leads.json`; API `/api/admin/golive`, logic `src/lib/golive.ts`, list `src/content/golive.ts`).
+- Office `/admin/office` (owner 2026-11-23, a pure visual): the Shell section «Office» shows the living pixel office filling the work
+  area under one slim info strip (HQ link, presence, counters of approvals, alerts and running tasks, go-live chip, weather on the
+  canvas). Information only, no panels and no actions: a person shows name and role on hover, a department zone shows counters and
+  a desk lamp from HQ `GET /admin/hub` (read only) and a click goes to its section (`ZONE_SECTION` in `lib/hq-shell.ts`: director
+  Inbox, marketing Content, sales Clients, support Chats, production Projects, backoffice Finance, company Agents). Old
+  `/admin/office?panel=...` links redirect to the section (`hqHref`). Code: `components/admin/office/office-view.tsx` (page),
+  `pixel-office.tsx` (canvas wrapper), `use-office.ts`.
+- Approvals and Chats (`docs/shell.md`): `/admin/approvals` is the one place to decide documents, replies, content and money (reader,
+  Word-like editor `review/doc-editor.tsx` with `lib/doc-editor.ts` and `lib/diff.ts`, trend link composer), `/admin/chats` the client
+  threads with owner replies (`REVIEW_ENDPOINTS`, view models `lib/review.ts` and `lib/chats.ts`, dev mock `lib/review-mock.ts`).
 - Site events (pult v3 part C): `trackEvent(name)` (`src/lib/track-event.ts`, pure helpers `src/lib/site-events.ts`) POSTs
   same-origin to `/api/events` (JSON only, origin check, 120 per IP per minute), which forwards to HQ `POST /events` (header
   `x-site-token` = `SITE_EVENTS_TOKEN`, else `HQ_CHAT_TOKEN`; URL `HQ_EVENTS_URL`, else the origin of `HQ_CHAT_URL` + `/events`;
@@ -329,12 +343,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   landing, pay page and blog article (`components/track-view.tsx`); `cabinet_signup` server-side in the auth callback on the
   first HQ sync. Metrika goals stay. Owner replies to web-chat leads come back in HQ's `/chat` answer as `ownerReplies` and show
   in the chat as «Менеджер Fir Tech». Tests: `tests/site-events.test.mjs`. The privacy page has the section `events`.
-- Live office on that page («Живой офис»): a pixel-art office on canvas in the
+- Live office («Живой офис», shown by the Office section): a pixel-art office on canvas in the
   spirit of Lumio (engine `src/components/pixel-office/`, shared with the public hero; admin wrapper `src/components/admin/office/pixel-office.tsx`; tests `tests/pixel-office.test.mjs`):
   a desk and a little person per agent whose behaviour shows the status, window light from the
-  sun in the company's TZ; since пульт v3 it fills the screen as the hub (zones, badges and lamps:
-  `setZoneHits`, `setZoneGlow`, `zoneRect` in `scene.ts`; props `zones`, `fill`, `personAction` of the
-  admin wrapper). Sprites are palette-indexed strings, no image assets or libraries. The page polls
+  sun in the company's TZ; in the Shell it fills the work area (zones, counters and lamps:
+  `setZoneHits`, `setZoneGlow`, `zoneRect` in `scene.ts`; props `zones` and `fill` of the admin wrapper). Sprites are palette-indexed strings, no image assets or libraries. The page polls
   `/api/admin/office` (10 s, 60 s on a hidden tab); that handler checks the admin session and reads
   HQ's JSON (contract: `../docs/office-api.md`, code `src/lib/office-hq.ts`, types and pure helpers
   `src/lib/office-view.ts`, tests `tests/office-view.test.mjs`). Env: `HQ_OFFICE_URL` (default
@@ -364,38 +377,8 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `LEAD_INTAKE_TOKEN`), 20 s timeout. Unset `HQ_CHAT_URL` in development = scripted mock (3 steps and a
   contact request, never creates a lead, header `x-chat-mode: mock` shows «Демо-режим»). Production
   never uses the mock. Contract in `docs/site-design-notes.md`. Visitor texts are never logged.
-- Echo is OFF since 2026-11-10 (owner: not needed yet): everything below works only with
-  `ECHO_ENABLED=1` (`src/lib/echo-flag.ts`); otherwise the Pulse bar, panel and "ask Echo" button are
-  hidden, `/admin/echo` and `/api/admin/echo*` answer 404 and the nav link is gone (re-add it in
-  `admin-shell.tsx` when turning it back on). Code is kept.
-- Echo (`/admin/echo`): the owner's control room. Projects, tasks, goals and
-  milestones are typed data in `src/content/control.ts` (edit there on the owner's word; progress
-  numbers are the owner's estimates). Live: project health (`src/lib/project-health.ts`, each
-  `healthUrl` checked from the server, cached 30 s) and lead counts. Hologram on canvas
-  (`components/admin/hologram.tsx`, reacts to idle/listening/thinking/speaking and the voice level),
-  voice in by the browser's speech recognition (Chrome), voice out by speech synthesis.
-  `/api/admin/echo` (loop in `src/lib/echo-chat.ts`) streams Claude's reply (`@anthropic-ai/sdk`,
-  default `claude-sonnet-5-5` $2/$10 per MTok, low effort; `claude-opus-5-5` $4/$20 only on the
-  owner's toggle or words like "подумай серьёзно" / "на Opus"; `fallbacks: "default"`, tool_choice
-  stays auto because forced tool use is a 400 on these models). Tools (`src/lib/echo-tools.ts`,
-  zod-validated, stores injected): add_task, update_task, list_tasks, delete_task, lead_counts,
-  blocked_on_owner, instagram_today; up to 5 model calls per message, each executed action is
-  streamed as a `[[act:...]]` marker that the console shows as a chip and never speaks.
-  delete_task is two-step and enforced by the server (`Confirmations`): the first call only records
-  a pending deletion; it runs only when the owner's NEXT message is an explicit yes and the same id
-  is requested again, the model cannot confirm itself. Spend: `echo-spend.ts` prices per model and
-  every call of a loop; daily cap `ECHO_DAILY_USD` (default $3), 40 model calls per 10 min per
-  session (loop calls count). Voice in: push to talk (hold the mic or Space, release sends; tap
-  toggles) with the browser's speech recognition (Chrome/Edge), text field elsewhere. Voice out:
-  `speak()` in `src/lib/echo-voice.ts` uses `/api/admin/echo/tts` when `ECHO_TTS_URL` points to
-  Piper's HTTP server on loopback (404 otherwise, then speechSynthesis); numbers and advice in
-  `docs/echo-voice.md`. The briefing (`src/lib/echo.ts`) and every tool result carry lead counts
-  only, never names, contacts or texts (tested). Needs `ANTHROPIC_API_KEY` in
-  `shared/.env.production`; without it the page works and the chat explains how to turn it on.
-  The key lives only in that file on the server (chmod 600): the owner created it on 2026-10-19,
-  rotated it the same day and sets it themselves in a terminal. Never put it in the repo, a chat
-  or a log, and never print it to check it (compare hashes if needed). Daily spend cap
-  `ECHO_DAILY_USD` (default $3).
+- Echo (the voice console, `/admin/echo`) was deleted on 2026-11-23 with its route, `echo*` libs, hologram, tasks sync scripts and the
+  `ECHO_*` env; Claude's SDK is no longer a dependency of the site.
 - Call booking: rules are owner settings in `src/lib/booking.ts` (Asia/Dushanbe, Mon-Fri
   10:00-18:00, 30 min), free slots at `/api/slots`, picked in the form, double booking blocked.
 
@@ -411,6 +394,14 @@ never summed into the one-time total. Pages: own blocks in `components/product-s
 interactive day, `pult-tour.tsx`), plan cards `components/products/plan-levels.tsx`, Fira hero `components/products/fira-hero.tsx`
 (SVG, WebGL only on wide screens when idle), pilot offer «первые 1-2 пилота бесплатно за кейс и отзыв» only on the flagships.
 HQ contract: `docs/products-contract.md`; playbook section «Флагманы»; tests `tests/flagships.test.mjs`.
+**Products v4 (owner 2026-11-22 night).** Every AI product is a subscription: setup + monthly (model usage included, we connect our
+Anthropic) and `byokMonthly` with the client's own API key: `Subscription` type, `personalPlans`, `companyPlan`, `agentSubscription`,
+`teamDiscount` (15, a team = the sum of its agents minus it), `companyPerEmployee` (9 above five staff), all in `pricing.ts`, editable
+in the Пульт, in `/api/prices`; card `components/products/subscription-card.tsx` (product, team and agent pages; team/agent wrappers in
+`components/ai-team/team-price.tsx`). Personal AI levels: Спутник / Второй пилот / Второе я (Companion / Copilot / Alter Ego). The
+company product is «ИИ вашей компании»: one brain on Fira that knows the business, roles plug in as skills (no org chart). `implementation`
+is gone (`/products/implementation` redirects to `/ai-team`, `p.implementation` decodes as `p.company`); «ИИ-отделы» are «ИИ-команды».
+Channels as equals: `lib/channels.ts` and the «Где живёт» strip (`product-sections/channels-block.tsx`).
 
 ## Fira (2026-11-22)
 Brand mascot «Фира» (the lime dot of the logo come alive; cute and soft, not a tree, not a robot), concept stage: three

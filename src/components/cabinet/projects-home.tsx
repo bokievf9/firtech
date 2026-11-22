@@ -87,8 +87,6 @@ export function ProjectCard({
                   {row.payUrl && !handled && (
                     <a
                       href={row.payUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       data-pay-stage={row.n}
                       className={`${buttonStyles.secondary} mt-3`}
                     >

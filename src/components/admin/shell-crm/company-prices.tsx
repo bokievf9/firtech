@@ -343,8 +343,8 @@ export function PricesTab() {
             <h3 className="text-sm font-medium">{groupTitles[group]}</h3>
             {group === 'extras' ? <p className="text-xs text-faint">{k.linkedNote}</p> : null}
             {group === 'stages' ? <p className="text-xs text-faint">{k.stagesNote}</p> : null}
-            {list.map((s) => (
-              <div key={s.name} className="grid gap-1">
+            {list.map((s, si) => (
+              <div key={`${s.name}:${si}`} className="grid gap-1">
                 {s.name !== groupTitles[group] && list.length > 1 ? <h4 className="text-xs text-muted">{s.name}</h4> : null}
                 <ul className="grid gap-1">
                   {s.fields.map((f) => (

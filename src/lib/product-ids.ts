@@ -13,7 +13,6 @@ export const productIds = [
   'automation',
   'content',
   'miniapp',
-  'implementation',
 ] as const
 export type ProductId = (typeof productIds)[number]
 
@@ -21,8 +20,10 @@ export type ProductId = (typeof productIds)[number]
 export const flagshipIds = ['personal', 'company'] as const satisfies readonly ProductId[]
 export const isFlagship = (id: ProductId) => (flagshipIds as readonly string[]).includes(id)
 
-// Old product ids that moved (owner 2026-11-22: «Персональный ИИ-ассистент» became «Персональный ИИ»).
-export const legacyProductRedirects: Record<string, ProductId> = { agent: 'personal' }
+// Old product ids that moved, to the path (without the locale) they redirect to. Owner 2026-11-22: «Персональный
+// ИИ-ассистент» became «Персональный ИИ» (`personal`), and «ИИ-отдел под ключ» (`implementation`) was removed: its
+// page sends visitors to the AI teams section.
+export const legacyProductRedirects: Record<string, string> = { agent: '/products/personal', implementation: '/ai-team' }
 
 export function isProductId(value: string): value is ProductId {
   return (productIds as readonly string[]).includes(value)

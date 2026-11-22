@@ -62,8 +62,6 @@ export default async function PrivacyPage({ params }: PageProps<'/[locale]/priva
             <p>
               <a
                 href={optOutUrl[locale]}
-                target="_blank"
-                rel="noopener noreferrer"
                 className={linkClass}
               >
                 {t.optOut}
@@ -77,8 +75,6 @@ export default async function PrivacyPage({ params }: PageProps<'/[locale]/priva
                 <a
                   href={telegramUrl}
                   data-place="privacy"
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className={linkClass}
                 >
                   {telegramHandle}

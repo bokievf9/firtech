@@ -38,8 +38,8 @@ export function toggleOption(build: Build, product: FlagshipProduct, option: str
   return { ...build, options: { ...build.options, [product]: sorted } }
 }
 
-// The Personal AI level from what it connects: up to two services is «Старт»; three or four services or the
-// voice is «Плюс»; five services or more, or the long memory, is «Максимум».
+// The Personal AI level from what it connects: up to two services is «Спутник»; three or four services or the
+// voice is «Второй пилот»; five services or more, or the long memory, is «Второе я».
 export function personalLevel(options: readonly string[]): PersonalLevel {
   const services = options.filter((id) => (personalServices as readonly string[]).includes(id)).length
   if (services >= 5 || options.includes('memory')) return 'max'

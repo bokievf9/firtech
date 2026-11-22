@@ -8,8 +8,6 @@ import {
   type Referral,
   type Ticket,
 } from './admin-crm-hq'
-import { SITE_EVENTS, type SiteEventName } from './site-events'
-
 // Пульт v3 (2026-11-20): view models of the office hub and the CRM panels with actions, fed by HQ's
 // /admin/hub, /admin/crm/*, /admin/content, /admin/metrics/week and /admin/company (contract
 // pult-v3, docs/shell.md). Pure: no I/O, no React. Nothing from HQ is trusted: unknown fields are
@@ -848,92 +846,11 @@ export function weekDates(week: string): string[] {
 
 // ---- metrics -----------------------------------------------------------------------------------
 
-export { SITE_EVENTS, type SiteEventName } from './site-events'
-export const FUNNEL_KEYS = ['leads', 'qualified', 'proposals', 'contracts', 'paid', 'projects'] as const
-
-type MetricsBlock = {
-  site: Record<SiteEventName, number>
-  blog: { hits: number; published: number }
-  youtube: { shorts: number; views: number; subscribers: number; delta: number }
-  funnel: Record<(typeof FUNNEL_KEYS)[number], number>
-  money: { invoicedUsd: number; paidUsd: number }
-}
-export type MetricsDay = { date: string; site: Record<SiteEventName, number>; blogHits: number; leads: number }
-// `days` is the daily series (seven days, `site`, `blog.hits`, `leads` per day); null while absent.
-export type Metrics = MetricsBlock & { week: string; prev: MetricsBlock | null; days: MetricsDay[] | null }
-
-// Daily rows from `days`: each has a date and the event counts either under `site` or flat.
-function metricsDays(raw: unknown): MetricsDay[] | null {
-  if (!Array.isArray(raw)) return null
-  const out: MetricsDay[] = []
-  for (const d of raw.slice(0, 7)) {
-    const r = rec(d)
-    const date = typeof r.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(r.date) ? r.date : null
-    if (!date) continue
-    const src = r.site && typeof r.site === 'object' ? rec(r.site) : r
-    out.push({
-      date,
-      site: Object.fromEntries(SITE_EVENTS.map((k) => [k, Math.max(0, num(src[k]))])) as Record<SiteEventName, number>,
-      blogHits: Math.max(0, num(rec(r.blog).hits)),
-      leads: Math.max(0, num(r.leads)),
-    })
-  }
-  return out.length >= 2 ? out : null
-}
-
-// The sparkline of one site event: the daily series when HQ sends `days`, else the two points
-// (previous week, this week) and `daily: false` so the chart is labelled week to week.
-export function eventSeries(m: Pick<Metrics, 'days' | 'site' | 'prev'>, e: SiteEventName): { values: number[]; daily: boolean } {
-  if (m.days) return { values: m.days.map((d) => d.site[e]), daily: true }
-  return { values: [m.prev?.site[e] ?? 0, m.site[e]], daily: false }
-}
-
-// The seven bars of the «по дням» chart for one metric: a site event, blog hits or leads.
-export type DayMetric = SiteEventName | 'blogHits' | 'leads'
-export function daySeries(m: Pick<Metrics, 'days'>, key: DayMetric): { date: string; value: number }[] | null {
-  if (!m.days) return null
-  return m.days.map((d) => ({ date: d.date, value: key === 'blogHits' ? d.blogHits : key === 'leads' ? d.leads : d.site[key] }))
-}
-
-function metricsBlock(raw: unknown): MetricsBlock {
-  const r = rec(raw)
-  const site = rec(r.site)
-  const blog = rec(r.blog)
-  const yt = rec(r.youtube)
-  const funnel = rec(r.funnel)
-  const money = rec(r.money)
-  return {
-    site: Object.fromEntries(SITE_EVENTS.map((k) => [k, Math.max(0, num(site[k]))])) as Record<SiteEventName, number>,
-    blog: { hits: num(blog.hits), published: num(blog.published) },
-    youtube: { shorts: num(yt.shorts), views: num(yt.views), subscribers: num(yt.subscribers), delta: num(yt.delta) },
-    funnel: Object.fromEntries(FUNNEL_KEYS.map((k) => [k, Math.max(0, num(funnel[k]))])) as MetricsBlock['funnel'],
-    money: { invoicedUsd: num(money.invoicedUsd), paidUsd: num(money.paidUsd) },
-  }
-}
-
-export function normalizeMetrics(body: unknown): Metrics | null {
-  if (!body || typeof body !== 'object' || Array.isArray(body)) return null
-  const b = body as Rec
-  const prevRaw = b.prevWeek
-  return {
-    week: typeof b.week === 'string' && /^\d{4}-W\d{2}$/.test(b.week) ? b.week : '',
-    ...metricsBlock(b),
-    prev: prevRaw && typeof prevRaw === 'object' ? metricsBlock(prevRaw) : null,
-    days: metricsDays(b.days),
-  }
-}
-
 // Change against the previous week: the difference and the percentage (null when it was zero).
 export function delta(current: number, previous: number | null | undefined): { diff: number; pct: number | null } | null {
   if (previous === null || previous === undefined) return null
   const diff = current - previous
   return { diff, pct: previous === 0 ? null : Math.round((diff / previous) * 100) }
-}
-
-// Funnel step shares for the bars: each step against the first one (0..1).
-export function funnelShares(f: Record<(typeof FUNNEL_KEYS)[number], number>): { key: string; n: number; share: number }[] {
-  const top = Math.max(1, f.leads, ...FUNNEL_KEYS.map((k) => f[k]))
-  return FUNNEL_KEYS.map((k) => ({ key: k, n: f[k], share: f[k] / top }))
 }
 
 // ---- company -----------------------------------------------------------------------------------
@@ -953,15 +870,6 @@ export type DeptCost = { dept: string; todayUsd: number; monthUsd: number; limit
 export type TrustRow = { kind: string; level: 0 | 1; locked: boolean; approvals: number }
 export type Playbook = { role: string; updatedAt: string | null; lines: number; sourceSkills: string[] }
 
-const PLAYBOOK_ROLE_RE = /^[a-z][a-z0-9-]{0,63}$/
-export const playbookRoleOk = (v: unknown): v is string => typeof v === 'string' && PLAYBOOK_ROLE_RE.test(v)
-
-// `GET /admin/company/playbooks/:role` -> the whole markdown text; null for a bad or empty body.
-export function normalizePlaybookText(body: unknown): { role: string; text: string } | null {
-  const b = rec(body)
-  if (!playbookRoleOk(b.role) || typeof b.text !== 'string' || !b.text.trim()) return null
-  return { role: b.role, text: b.text.slice(0, 200_000) }
-}
 export type Worker = { id: string; dept: string; title: string; state: string }
 export type CompanyTool = {
   name: string
@@ -1104,24 +1012,6 @@ export function normalizeCompany(body: unknown): Company | null {
 
 // Share of the department's limit spent this month (0..1+), null without a limit (HQ sends 0 for none).
 export const limitShare = (c: DeptCost): number | null => (c.limitUsd && c.limitUsd > 0 ? c.monthUsd / c.limitUsd : null)
-
-// ---- support SLA -------------------------------------------------------------------------------
-
-export const SLA_HOURS = 4
-
-// Milliseconds left until the ticket breaks its SLA (negative once late); null when answered or
-// without a creation time.
-export function slaLeft(t: Pick<Ticket, 'status' | 'createdAt'>, now: number, hours = SLA_HOURS): number | null {
-  if (t.status !== 'open' || !t.createdAt) return null
-  return Date.parse(t.createdAt) + hours * 3_600_000 - now
-}
-
-export function slaText(ms: number): string {
-  const late = ms < 0
-  const min = Math.floor(Math.abs(ms) / 60_000)
-  const text = min >= 60 ? `${Math.floor(min / 60)} ч ${String(min % 60).padStart(2, '0')} мин` : `${min} мин`
-  return late ? `просрочен на ${text}` : `осталось ${text}`
-}
 
 // ---- command palette ---------------------------------------------------------------------------
 

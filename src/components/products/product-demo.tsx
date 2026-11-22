@@ -246,39 +246,13 @@ const demos: Record<ProductId, (t: DemoCopy) => ReactNode> = {
   ),
   company: (t) => (
     <div className="grid gap-2">
-      <Step ms={100} className="mx-auto rounded-full bg-accent px-3 py-1 text-[11px] font-medium text-accent-ink">
-        {t.company.director}
-      </Step>
-      <div className="grid grid-cols-3 gap-1.5">
-        {t.company.depts.map((dept, i) => (
-          <Step
-            key={dept}
-            ms={350 + i * 180}
-            className="truncate rounded-lg border border-line-strong px-2 py-1.5 text-center text-[11px]"
-          >
-            {dept}
-          </Step>
-        ))}
-      </div>
-      <Step ms={1050} className="flex items-center justify-between rounded-xl border border-line bg-surface-2/60 px-3 py-2 text-[12px]">
-        <span>{t.company.waiting}</span>
-        <span className={chip}>{t.company.approve}</span>
-      </Step>
-      <Step ms={1450} className={ok}>
-        <Tick />
-        {t.company.done}
-      </Step>
-    </div>
-  ),
-  implementation: (t) => (
-    <div className="grid gap-2">
       <Step ms={100} className={bubbleOut}>
-        {t.implementation.q}
+        {t.company.q}
       </Step>
       <div className="relative">
         <Typing ms={450} />
         <Step ms={1150} className={bubbleIn}>
-          {t.implementation.a}
+          {t.company.a}
         </Step>
       </div>
       <Step
@@ -288,7 +262,7 @@ const demos: Record<ProductId, (t: DemoCopy) => ReactNode> = {
         <svg viewBox="0 0 16 16" className="size-3 text-accent-text" fill="none">
           <path d="M4 1.75h5.5L12.25 4.5v9.75H4z" stroke="currentColor" strokeWidth="1.4" />
         </svg>
-        {t.implementation.source}
+        {t.company.source}
       </Step>
     </div>
   ),

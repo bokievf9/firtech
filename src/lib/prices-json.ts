@@ -1,4 +1,4 @@
-import { agentPlanList, companyPlanOf, contentPlanList, personalPlanList, extraPrices, stageDefs, stageTemplateIds, type Pricing, type StageDef, type StageTemplateId } from './pricing'
+import { agentPlanList, agentSubscriptionOf, companyPlanOf, contentPlanList, personalPlanList, extraPrices, stageDefs, stageTemplateIds, type Pricing, type StageDef, type StageTemplateId } from './pricing'
 import { productIds, productPrices, type ProductPrice } from './products'
 
 // Public machine-readable prices (GET /api/prices): the one source the agents read instead of
@@ -24,6 +24,12 @@ export function pricesJson(pricing: Pricing, updatedAt: string = PRICES_UPDATED_
     // Flagships (2026-11-22): the three Personal AI levels and the AI company's starting plan (exact sum by the quote).
     personalPlans: personalPlanList(pricing),
     companyPlan: companyPlanOf(pricing),
+    // Subscription model (2026-11-22): every AI product is setup + monthly (model usage included) and a lower
+    // `byokMonthly` with the client's own API key. One agent, the team discount (percent off the sum of its agents)
+    // and the AI company's extra per employee above five.
+    agentSubscription: agentSubscriptionOf(pricing),
+    teamDiscountPercent: pricing.teamDiscount,
+    companyPerEmployee: pricing.companyPerEmployee,
     // DEPRECATED: Dono and Polly are no longer sold; kept while HQ's schema still requires them.
     agentPlans: agentPlanList(pricing),
     contentPlans: contentPlanList(pricing),

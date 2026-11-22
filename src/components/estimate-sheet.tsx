@@ -221,9 +221,15 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
         )}
 
         {(doc.brief.goals.length > 0 ||
+          (state.build.personal && doc.brief.setup.length > 0) ||
           doc.brief.style.length > 0 ||
           doc.brief.details.length > 0) && (
           <div className="mt-9 grid gap-x-10 gap-y-7 sm:grid-cols-2 print:grid-cols-2">
+            {state.build.personal && doc.brief.setup.length > 0 && (
+              <div className="sm:col-span-2 print:col-span-2">
+                <BriefBlock title={locale === 'ru' ? 'Личный ассистент' : 'Personal assistant'} rows={doc.brief.setup} />
+              </div>
+            )}
             {doc.brief.goals.length > 0 && (
               <BriefBlock title={dict.builder.goalsLabel} rows={doc.brief.goals} />
             )}

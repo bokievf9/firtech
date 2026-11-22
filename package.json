@@ -9,13 +9,13 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
+    "test:e2e:login": "playwright test --config playwright.login.config.ts",
     "test": "node --import ./tests/ts-resolve.mjs --test \"tests/*.test.mjs\""
   },
   "engines": {
     "node": ">=22.22.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.135.0",
     "@phosphor-icons/react": "^2.1.10",
     "@react-three/drei": "10.7.9",
     "@react-three/fiber": "9.8.2",

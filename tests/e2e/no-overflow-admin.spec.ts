@@ -82,14 +82,18 @@ async function shot(page: Page, name: string, width: number, theme: string) {
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/${name}-${width}${theme === 'dark' ? '-dark' : ''}-${TAG}.png` })
 }
 
+// The Shell sections with tabs (src/lib/hq-shell.ts HQ_TABS), then the ones without.
 const PANELS: Array<[string, string, string[]]> = [
-  ['1', 'director', ['inbox', 'tasks', 'documents', 'feed', 'drill']],
-  ['2', 'marketing', ['content', 'metrics']],
-  ['3', 'sales', ['leads', 'clients', 'site', 'calls', 'prospects']],
-  ['4', 'support', ['tickets']],
-  ['5', 'production', ['projects']],
-  ['6', 'backoffice', ['invoices', 'documents', 'referrals', 'reviews']],
-  ['7', 'company', ['company', 'prices']],
+  ['1', 'inbox', ['notifications', 'approvals']],
+  ['6', 'clients', ['pipeline', 'clients', 'site', 'calls', 'prospects']],
+  ['7', 'projects', ['projects']],
+  ['8', 'documents', ['documents', 'referrals', 'reviews']],
+  ['9', 'finance', ['invoices', 'payments', 'costs']],
+  ['10', 'content', ['feed', 'orders', 'campaigns']],
+  ['11', 'settings', ['']],
+  ['12', 'tasks', ['']],
+  ['13', 'calendar', ['']],
+  ['14', 'agents', ['']],
 ]
 
 for (const width of (process.env.WIDTHS ?? '390,768').split(',').map(Number)) {
@@ -111,8 +115,8 @@ for (const width of (process.env.WIDTHS ?? '390,768').split(',').map(Number)) {
       })
       for (const [, panel, tabs] of PANELS) {
         for (const tab of tabs) {
-          test(`${panel}/${tab}`, async ({ page }) => {
-            await open(page, `/admin/office?panel=${panel}&tab=${tab}`)
+          test(`${panel}/${tab || 'page'}`, async ({ page }) => {
+            await open(page, tab ? `/admin/${panel}?tab=${tab}` : `/admin/${panel}`)
             await page.waitForTimeout(1200)
             const found = await audit(page)
             await shot(page, `${panel}-${tab}${long ? '-long' : ''}`, width, 'light')
@@ -125,10 +129,10 @@ for (const width of (process.env.WIDTHS ?? '390,768').split(',').map(Number)) {
       for (const [, panel, tabs] of PANELS) {
         for (const tab of tabs) {
           if (!long) continue
-          test(`drawer ${panel}/${tab}`, async ({ page }) => {
-            await open(page, `/admin/office?panel=${panel}&tab=${tab}`)
+          test(`drawer ${panel}/${tab || 'page'}`, async ({ page }) => {
+            await open(page, tab ? `/admin/${panel}?tab=${tab}` : `/admin/${panel}`)
             await page.waitForTimeout(1200)
-            const rows = page.locator('aside [role=tabpanel] li > button, aside [role=tabpanel] li > div > button:first-child, aside [role=tabpanel] [role=button]')
+            const rows = page.locator('main li > button, main li > div > button:first-child, main [role=button]')
             const n = Math.min(await rows.count(), 3)
             for (let i = 0; i < n; i++) {
               await rows.nth(i).click({ timeout: 3000 }).catch(() => {})
@@ -153,15 +157,15 @@ for (const width of (process.env.WIDTHS ?? '390,768').split(',').map(Number)) {
       for (const [, panel, tabs] of PANELS) {
         for (const tab of tabs) {
           if (!long) continue
-          test(`inputs ${panel}/${tab}`, async ({ page }) => {
-            await open(page, `/admin/office?panel=${panel}&tab=${tab}`)
+          test(`inputs ${panel}/${tab || 'page'}`, async ({ page }) => {
+            await open(page, tab ? `/admin/${panel}?tab=${tab}` : `/admin/${panel}`)
             await page.waitForTimeout(1200)
-            await fillAll(page, 'aside')
-            const rows = page.locator('aside [role=tabpanel] li > button, aside [role=tabpanel] li > div > button:first-child')
+            await fillAll(page, 'main')
+            const rows = page.locator('main li > button, main li > div > button:first-child')
             if (await rows.count()) {
               await rows.first().click({ timeout: 3000 }).catch(() => {})
               await page.waitForTimeout(700)
-              await fillAll(page, 'aside')
+              await fillAll(page, 'main')
             }
             const found = await audit(page)
             await shot(page, `inputs-${panel}-${tab}${long ? '-long' : ''}`, width, 'light')
@@ -171,7 +175,7 @@ for (const width of (process.env.WIDTHS ?? '390,768').split(',').map(Number)) {
       }
 
       test('command palette with a long query', async ({ page }) => {
-        await open(page, '/admin/office')
+        await open(page, '/admin/inbox')
         await page.keyboard.press('Control+k')
         await page.getByRole('dialog').getByRole('combobox').or(page.getByRole('dialog').locator('input')).first().fill(FILL)
         await page.waitForTimeout(500)
@@ -180,7 +184,7 @@ for (const width of (process.env.WIDTHS ?? '390,768').split(',').map(Number)) {
         expect(found, 'overflow').toEqual([])
       })
 
-      for (const url of ['/admin/approvals', '/admin/approvals?id=ap_201', '/admin/chats', '/admin/golive']) {
+      for (const url of ['/admin/office', '/admin/approvals', '/admin/approvals?id=ap_201', '/admin/chats', '/admin/golive']) {
         test(`page ${url}`, async ({ page }) => {
           await open(page, url)
           await page.waitForTimeout(1500)

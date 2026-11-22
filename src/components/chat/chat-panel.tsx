@@ -495,8 +495,6 @@ export default function ChatPanel({
                             key="telegram"
                             href={a.href}
                             data-chat-cta="telegram"
-                            target="_blank"
-                            rel="noopener noreferrer"
                             className="text-[13px] text-muted underline-offset-4 transition-colors hover:text-fg hover:underline"
                           >
                             {copy.telegramLast}

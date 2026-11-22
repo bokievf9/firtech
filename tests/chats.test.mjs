@@ -82,7 +82,7 @@ test('mergeMessages keeps local replies the server has not returned yet', () => 
 test('threadLinks and the Enter rule', () => {
   const t = c.normalizeThread(thread('c3', { client: { id: 3, name: 'Анна' }, leadId: 12, ticketId: 4 }))
   assert.deepEqual(c.threadLinks(t).map((l) => l.label), ['Открыть лид', 'Открыть тикет', 'Открыть клиента'])
-  assert.equal(c.threadLinks(t)[0].href, '/admin/office?panel=sales&tab=leads&focus=12')
+  assert.equal(c.threadLinks(t)[0].href, '/admin/clients?tab=pipeline&focus=12')
   assert.equal(c.threadLinks(c.normalizeThread(thread('w1'))).length, 0)
   assert.equal(c.sendsOnEnter({ key: 'Enter', shiftKey: false }), true)
   assert.equal(c.sendsOnEnter({ key: 'Enter', shiftKey: true }), false)

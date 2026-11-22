@@ -105,7 +105,7 @@ test('Проекты: the project with stages: status in words, ONE big accept b
   assert.equal((html.match(/data-next-action="accept_stage"/g) ?? []).length, 1)
   const pay = /<a[^>]*data-pay-stage="3"[^>]*>/.exec(html)?.[0] ?? ''
   assert.match(pay, /href="https:\/\/firtech\.pro\/ru\/pay\/FT-2026-004/)
-  assert.match(pay, /rel="noopener noreferrer"/)
+  assert.equal(pay.includes('_blank'), false, 'the pay link opens in the same window')
   assert.equal(/data-pay-stage="2"/.test(html), false, 'no pay link once the stage is paid')
   assert.doesNotMatch(flat, /статус работ|офис/i, 'our own status is not part of the client cabinet')
   assert.match(html, /data-project-state="in_progress"/)
@@ -136,7 +136,8 @@ test('Проекты: the big button follows the next action, a wait is a calm l
   assert.match(quote, /href="\?tab=documents&amp;doc=q-14"/)
   const pay = view(act({ kind: 'pay_stage', stageNo: 3, payUrl: 'https://firtech.pro/pay/x' }))
   assert.match(text(pay), /Оплатить этап 3/)
-  assert.match(pay, /target="_blank"[^>]*rel="noopener noreferrer"|rel="noopener noreferrer"[^>]*target="_blank"/)
+  assert.equal(pay.includes('_blank'), false)
+  assert.match(pay, /href="https:\/\/firtech\.pro\/pay\/x"/)
   const payNoLink = view(act({ kind: 'pay_stage', docId: 'i-1' }))
   assert.match(payNoLink, /doc=i-1/)
   assert.match(text(payNoLink), /Оплатить этап/)

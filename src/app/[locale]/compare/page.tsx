@@ -170,8 +170,6 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
               <a
                 href={telegramUrl}
                 data-place="compare"
-                target="_blank"
-                rel="noopener noreferrer"
                 className={buttonStyles.secondary}
               >
                 <TelegramLogo size={18} weight="fill" />

@@ -134,7 +134,7 @@ function walk(dir) {
 }
 
 test('admin components: no prefers-color-scheme, no raw white or black', () => {
-  const files = [...walk('src/components/admin'), ...walk('src/app/admin')].filter((f) => !/hologram|echo-console/.test(f))
+  const files = [...walk('src/components/admin'), ...walk('src/app/admin')]
   assert.ok(files.length > 30)
   for (const f of files) {
     const text = readFileSync(f, 'utf8')

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm } from 'node:fs/promises'
+import { readdirSync, readFileSync } from 'node:fs'
+import { mkdtemp, rm } from 'node:fs/promises'
 import { registerHooks } from 'node:module'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -60,174 +61,28 @@ const auth = await import('../src/lib/admin-auth.ts')
 const data = await import('../src/lib/admin-data.ts')
 const store = await import('../src/lib/store.ts')
 const { leadSchema } = await import('../src/lib/lead.ts')
-const codeRoute = await import('../src/app/api/admin/code/route.ts')
-const loginRoute = await import('../src/app/api/admin/login/route.ts')
 const logoutRoute = await import('../src/app/api/admin/logout/route.ts')
 const leadRoute = await import('../src/app/api/admin/leads/[id]/route.ts')
 const exportRoute = await import('../src/app/api/admin/export/route.ts')
 const webhook = await import('../src/app/api/telegram/route.ts')
 
 const ORIGIN = 'http://localhost'
-function request(url, { method = 'POST', body, cookie, browser, origin = ORIGIN, ip } = {}) {
+function request(url, { method = 'POST', body, cookie, origin = ORIGIN, ip } = {}) {
   const headers = { host: 'localhost', 'content-type': 'application/json' }
   if (origin) headers.origin = origin
   if (ip) headers['x-real-ip'] = ip
-  const cookies = []
-  if (cookie) cookies.push(`${auth.SESSION_COOKIE}=${cookie}`)
-  if (browser) cookies.push(`${auth.LOGIN_COOKIE}=${browser}`)
-  if (cookies.length) headers.cookie = cookies.join('; ')
+  if (cookie) headers.cookie = `${auth.SESSION_COOKIE}=${cookie}`
   return new Request(`${ORIGIN}${url}`, {
     method,
     headers,
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   })
 }
-const sentCode = () =>
-  sent('sendMessage')
-    .at(-1)
-    .body.text.match(/(\d{6})/)[1]
-
-// The login cookie the code route set in this browser.
-const browserOf = (response) =>
-  response.headers.get('set-cookie').match(new RegExp(`${auth.LOGIN_COOKIE}=([^;]+)`))[1]
-
-async function login() {
-  const browser = browserOf(await codeRoute.POST(request('/api/admin/code')))
-  const response = await loginRoute.POST(
-    request('/api/admin/login', { body: { code: sentCode() }, browser }),
-  )
-  assert.equal(response.status, 200)
-  const cookie = response.headers.get('set-cookie')
-  return cookie.match(new RegExp(`${auth.SESSION_COOKIE}=([^;]+)`))[1]
-}
+// A session the way the password login makes it (tests/admin-login.test.mjs covers the login itself).
+const login = async () => (await auth.createSession()).token
 const leadParams = (id) => ({ params: Promise.resolve({ id: String(id) }) })
 const lead = (extra = {}) =>
   leadSchema.parse({ name: 'Демо Клиент', contact: '@demo_client', ...extra })
-
-test('code: sent to the owner chat only, works once, opens a session', async () => {
-  const response = await codeRoute.POST(request('/api/admin/code'))
-  assert.equal(response.status, 200)
-  assert.deepEqual(await response.json(), { ok: true })
-  assert.match(response.headers.get('set-cookie'), /HttpOnly/i)
-  const browser = browserOf(response)
-  const [message] = sent('sendMessage')
-  assert.equal(message.body.chat_id, String(OWNER))
-  assert.match(
-    message.body.text,
-    /^Код для входа в панель Fir Tech: <code>\d{6}<\/code>\. Если это не вы, ничего не делайте\.$/,
-  )
-
-  // Only hashes on disk: the code itself is not in the file.
-  const file = await readFile(path.join(process.env.DATA_DIR, 'admin.json'), 'utf8')
-  assert.equal(file.includes(sentCode()), false)
-
-  const wrong = sentCode() === '000000' ? '111111' : '000000'
-  const now = Date.now()
-  assert.deepEqual(await auth.verifyCode(wrong, now, browser), {
-    ok: false,
-    error: 'wrong',
-    attemptsLeft: 4,
-  })
-  // The right code from another browser does not work.
-  assert.deepEqual(await auth.verifyCode(sentCode()), { ok: false, error: 'no_code' })
-  const ok = await auth.verifyCode(sentCode(), now, browser)
-  assert.equal(ok.ok, true)
-  assert.equal(await auth.isValidSession(ok.token), true)
-  assert.deepEqual(await auth.verifyCode(sentCode(), now, browser), { ok: false, error: 'no_code' })
-})
-
-test('code: a stranger can neither replace nor burn the owner code', async () => {
-  const owner = await auth.issueCode(Date.now(), { browser: 'owner', ip: '10.0.0.1' })
-  // Someone else asks for codes and types wrong ones from their own browser and IP.
-  const stranger = await auth.issueCode(Date.now(), { browser: 'stranger', ip: '10.0.0.2' })
-  assert.equal(stranger.ok, true)
-  const wrong = owner.code === '000000' ? '111111' : '000000'
-  for (let i = 0; i < 6; i++) await auth.verifyCode(wrong, Date.now(), 'stranger')
-  assert.equal((await auth.verifyCode(owner.code, Date.now(), 'owner')).ok, true)
-})
-
-test('code: five wrong attempts burn it, the right code no longer works', async () => {
-  const issued = await auth.issueCode()
-  const wrong = issued.code === '000000' ? '111111' : '000000'
-  for (let left = 4; left >= 1; left--) {
-    assert.deepEqual(await auth.verifyCode(wrong), {
-      ok: false,
-      error: 'wrong',
-      attemptsLeft: left,
-    })
-  }
-  assert.deepEqual(await auth.verifyCode(wrong), { ok: false, error: 'locked' })
-  assert.deepEqual(await auth.verifyCode(issued.code), { ok: false, error: 'no_code' })
-})
-
-test('code: expires after 5 minutes', async () => {
-  const t0 = Date.now()
-  const issued = await auth.issueCode(t0)
-  assert.deepEqual(await auth.verifyCode(issued.code, t0 + auth.CODE_TTL_MS + 1), {
-    ok: false,
-    error: 'expired',
-  })
-  const fresh = await auth.issueCode(t0 + 61_000)
-  assert.equal((await auth.verifyCode(fresh.code, t0 + 61_000 + auth.CODE_TTL_MS - 1)).ok, true)
-})
-
-test('code: per IP one per minute and five per hour, twenty per hour for all', async () => {
-  const t0 = Date.now() - 3 * 60 * 60_000
-  const a = { ip: '10.0.0.1' }
-  assert.equal((await auth.issueCode(t0, a)).ok, true)
-  assert.deepEqual(await auth.issueCode(t0 + 30_000, a), {
-    ok: false,
-    error: 'too_soon',
-    retryAfter: 30,
-  })
-  // Another IP is not held back by the first one.
-  assert.equal((await auth.issueCode(t0 + 30_000, { ip: '10.0.0.2' })).ok, true)
-  for (let i = 1; i < 5; i++) assert.equal((await auth.issueCode(t0 + i * 61_000, a)).ok, true)
-  const blocked = await auth.issueCode(t0 + 5 * 61_000, a)
-  assert.equal(blocked.ok, false)
-  assert.equal(blocked.error, 'too_many')
-  assert.equal(blocked.retryAfter, 3600 - 305)
-  assert.equal((await auth.issueCode(t0 + 5 * 61_000, { ip: '10.0.0.3' })).ok, true)
-  assert.equal((await auth.issueCode(t0 + 60 * 60_000 + 1, a)).ok, true)
-
-  // The route answers 429 and the Telegram message is not sent again.
-  calls = []
-  const response = await codeRoute.POST(request('/api/admin/code'))
-  assert.equal(response.status, 200)
-  const again = await codeRoute.POST(request('/api/admin/code'))
-  assert.equal(again.status, 429)
-  assert.equal(sent('sendMessage').length, 1)
-
-  // Twenty an hour across all IPs (later than every code issued above).
-  const t1 = Date.now() + 3 * 60 * 60_000
-  for (let i = 0; i < 20; i++)
-    assert.equal((await auth.issueCode(t1, { ip: `10.1.0.${i}` })).ok, true)
-  assert.equal((await auth.issueCode(t1, { ip: '10.2.0.1' })).error, 'too_many')
-})
-
-test('code: Telegram down means no usable code', async () => {
-  telegramDown = true
-  const response = await codeRoute.POST(request('/api/admin/code'))
-  assert.equal(response.status, 503)
-  assert.equal((await response.json()).error, 'send_failed')
-  assert.deepEqual(await auth.verifyCode('123456'), { ok: false, error: 'no_code' })
-})
-
-test('login: cookie is httpOnly, strict, 30 days', async () => {
-  const browser = browserOf(await codeRoute.POST(request('/api/admin/code')))
-  // Without the login cookie of the browser that asked, the code is refused.
-  const refused = await loginRoute.POST(request('/api/admin/login', { body: { code: sentCode() } }))
-  assert.equal(refused.status, 400)
-  const response = await loginRoute.POST(
-    request('/api/admin/login', { body: { code: sentCode() }, browser }),
-  )
-  const cookie = response.headers.get('set-cookie')
-  assert.match(cookie, /HttpOnly/i)
-  assert.match(cookie, /SameSite=strict/i)
-  assert.match(cookie, /Path=\//)
-  const expires = Date.parse(cookie.match(/Expires=([^;]+)/i)[1])
-  assert.ok(Math.abs(expires - (Date.now() + auth.SESSION_TTL_MS)) < 60_000)
-})
 
 test('session: missing, unknown, expired and revoked cookies are rejected', async () => {
   const exportReq = (cookie) =>
@@ -239,11 +94,7 @@ test('session: missing, unknown, expired and revoked cookies are rejected', asyn
   assert.equal((await exportReq(token)).status, 200)
   assert.equal(await auth.isValidSession(token, Date.now() + auth.SESSION_TTL_MS + 1), false)
 
-  const other = await (async () => {
-    await new Promise((r) => setTimeout(r, 0))
-    const issued = await auth.issueCode(Date.now() + 61_000)
-    return (await auth.verifyCode(issued.code, Date.now() + 61_000)).token
-  })()
+  const other = (await auth.createSession()).token
 
   // "Выйти" ends only this session.
   const out = await logoutRoute.POST(request('/api/admin/logout', { body: {}, cookie: token }))
@@ -268,7 +119,6 @@ test('POST needs the same origin, even with a valid session', async () => {
     )
     assert.equal(response.status, 403)
   }
-  assert.equal((await codeRoute.POST(request('/api/admin/code', { origin: null }))).status, 403)
   assert.equal((await store.getLead(stored.id)).status, 'new')
 })
 
@@ -609,57 +459,10 @@ test('filters, contact links and calendar', () => {
   assert.equal(monday['2026-10-19T10:00:00.000Z'].state, 'free')
 })
 
-const spend = await import('../src/lib/echo-spend.ts')
-const echoRoute = await import('../src/app/api/admin/echo/route.ts')
-
-test('echo spend: priced at fallback rates, every attempt counted, cap from env', () => {
-  const one = { input_tokens: 1_000_000, output_tokens: 0 }
-  assert.equal(spend.costUsd(one), 5)
-  assert.equal(spend.costUsd({ input_tokens: 0, output_tokens: 1_000_000 }), 25)
-  // With a fallback, the top-level usage covers only the last attempt.
-  assert.equal(spend.costUsd({ ...one, iterations: [one, one] }), 10)
-  assert.equal(spend.dailyCapUsd(undefined), spend.DEFAULT_DAILY_USD)
-  assert.equal(spend.dailyCapUsd('7.5'), 7.5)
-  assert.equal(spend.dailyCapUsd('lots'), spend.DEFAULT_DAILY_USD)
-})
-
-test('echo spend: adds up per UTC day and starts again the next day', async () => {
-  const day = Date.parse('2026-10-18T10:00:00Z')
-  await spend.addSpend(0.25, day)
-  await spend.addSpend(0.5, day + 60_000)
-  assert.equal(await spend.spentToday(day), 0.75)
-  assert.equal(await spend.spentToday(Date.parse('2026-10-19T00:00:01Z')), 0)
-})
-
-test('echo route: off without a key, stops at the daily cap', async () => {
-  const token = await login()
-  const ask = () =>
-    echoRoute.POST(
-      request('/api/admin/echo', {
-        body: { messages: [{ role: 'user', content: 'Как дела?' }] },
-        cookie: token,
-      }),
-    )
-  const saved = { key: process.env.ANTHROPIC_API_KEY, cap: process.env.ECHO_DAILY_USD }
-  try {
-    assert.equal((await ask()).status, 404, 'Echo is off unless ECHO_ENABLED=1')
-    process.env.ECHO_ENABLED = '1'
-    delete process.env.ANTHROPIC_API_KEY
-    const off = await ask()
-    assert.equal(off.status, 503)
-    assert.equal((await off.json()).error, 'not_configured')
-
-    process.env.ANTHROPIC_API_KEY = 'test-key'
-    process.env.ECHO_DAILY_USD = '0.1'
-    await spend.addSpend(0.1)
-    const capped = await ask()
-    assert.equal(capped.status, 429)
-    assert.equal((await capped.json()).error, 'daily_cap')
-  } finally {
-    delete process.env.ECHO_ENABLED
-    if (saved.key === undefined) delete process.env.ANTHROPIC_API_KEY
-    else process.env.ANTHROPIC_API_KEY = saved.key
-    if (saved.cap === undefined) delete process.env.ECHO_DAILY_USD
-    else process.env.ECHO_DAILY_USD = saved.cap
+test('the admin opens nothing in a new tab: no target="_blank", no window.open', () => {
+  const walkDir = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walkDir(`${d}/${e.name}`) : /\.(tsx?|ts)$/.test(e.name) ? [`${d}/${e.name}`] : []))
+  for (const f of [...walkDir('src/components/admin'), ...walkDir('src/app/admin')]) {
+    const t = readFileSync(f, 'utf8')
+    assert.doesNotMatch(t, /_blank|window\.open|rel="noopener|noreferrer/, f)
   }
 })

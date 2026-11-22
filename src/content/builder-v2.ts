@@ -640,8 +640,8 @@ export const flagshipText = {
   personal: {
     title: { ru: 'Что подключить к вашему ИИ', en: 'What to connect to your AI' },
     sub: {
-      ru: 'Уровень считается сам: до двух сервисов «Старт», три-четыре или голос «Плюс», пять и больше или долгая память «Максимум».',
-      en: 'The level follows your picks: up to two services is Start, three or four or the voice is Plus, five or more or the long memory is Max.',
+      ru: 'Уровень считается сам: до двух сервисов «Спутник», три-четыре или голос «Второй пилот», пять и больше или долгая память «Второе я».',
+      en: 'The level follows your picks: up to two services is Companion, three or four or the voice is Copilot, five or more or the long memory is Alter Ego.',
     },
     services: { ru: 'Сервисы', en: 'Services' },
     extras: { ru: 'Возможности', en: 'Abilities' },
@@ -677,9 +677,9 @@ export const flagshipText = {
     training: n(['Обучение команды', 'Занятия и регламенты для сотрудников'], ['Team training', 'Sessions and rules for your staff']),
   } satisfies Record<string, Named>,
   levels: {
-    basic: { ru: 'Старт', en: 'Start' },
-    plus: { ru: 'Плюс', en: 'Plus' },
-    max: { ru: 'Максимум', en: 'Max' },
+    basic: { ru: 'Спутник', en: 'Companion' },
+    plus: { ru: 'Второй пилот', en: 'Copilot' },
+    max: { ru: 'Второе я', en: 'Alter Ego' },
   },
   perMonth: { ru: '/мес', en: '/mo' },
   byQuote: { ru: 'точная сумма по смете', en: 'exact sum in the quote' },

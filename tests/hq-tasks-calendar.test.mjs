@@ -112,7 +112,7 @@ test('calendar: links go to the HQ section that holds the object', () => {
   assert.equal(cal.calendarHref('calls:7'), '/admin/clients?tab=calls&focus=7')
   assert.equal(cal.calendarHref('projects:2'), '/admin/projects?tab=projects&focus=2')
   assert.equal(cal.calendarHref('content:item:5'), '/admin/content?tab=feed&focus=5')
-  assert.equal(cal.calendarHref('routines:marketing-daily-today'), '/admin/office?panel=company&tab=company')
+  assert.equal(cal.calendarHref('routines:marketing-daily-today'), '/admin/agents')
   assert.equal(cal.calendarHref('evil:1'), null)
   assert.equal(cal.calendarHref('calls:<script>'), null)
   assert.equal(cal.calendarHref(''), null)

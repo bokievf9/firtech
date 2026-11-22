@@ -1,6 +1,6 @@
 'use client'
 
-import { CornersIn, CornersOut, Crosshair, Lightning, MagnifyingGlassMinus, MagnifyingGlassPlus, SealCheck, Tag, WarningCircle, X } from '@phosphor-icons/react'
+import { CornersIn, CornersOut, Lightning, MagnifyingGlassMinus, MagnifyingGlassPlus, SealCheck, Tag, WarningCircle } from '@phosphor-icons/react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -25,8 +25,6 @@ const fill = (s: string, vars: Record<string, string | number>) =>
   s.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? ''))
 
 const deptName = (id: string, fallback: string) => (t.depts as Record<string, string>)[id] ?? fallback
-
-const truncate = (s: string, n: number) => (s.length > n ? `${s.slice(0, n - 1)}…` : s)
 
 export const sameTarget = (a: HitTarget | null, b: HitTarget | null) =>
   a === b ||
@@ -62,7 +60,7 @@ function zoneColors(zones: OfficeZones | undefined): Record<string, string> {
 // The department colour of a zone as a CSS variable the badge / bubble shadow reads.
 const hueVar = (id: PanelId | undefined): React.CSSProperties => (id ? ({ '--zone-hue': deptTheme(id).css.fill } as React.CSSProperties) : {})
 
-type Info = { title: string; rows: [string, string][]; status?: string; followId?: string }
+type Info = { title: string; rows: [string, string][]; status?: string }
 
 // Dev switches: ?office=rain,night,stats (any of the weather kinds, night or day, stats).
 type Flags = { weather: WeatherKind | null; hour: number | null; stats: boolean }
@@ -102,27 +100,15 @@ function describe(data: OfficeData, target: HitTarget, now: number): Info | null
     ]
     const m = minutesSince(v.since, now)
     if (m !== null) rows.push([t.scene.inChat, formatDuration(m)])
-    return { title: t.scene.visitor, rows, followId: target.id }
+    return { title: t.scene.visitor, rows }
   }
   const person = officePeople(data).find((p) => p.id === target.id)
   if (!person) return null
-  const rows: [string, string][] = [
-    [t.scene.dept, person.role === 'director' ? t.scene.director : deptName(person.deptId, person.deptTitle)],
-  ]
-  const task = person.agent.currentTask
-  rows.push([t.scene.task, task ? task.title : t.noTask])
-  if (task) {
-    const m = minutesSince(task.since, now)
-    if (m !== null) rows.push(['', fill(t.since, { t: formatDuration(m) })])
-  }
-  if (person.agent.tasksToday !== undefined) rows.push([t.scene.tasksToday, String(person.agent.tasksToday)])
-  const last = minutesSince(person.agent.lastActiveAt, now)
-  if (last !== null) rows.push([t.scene.lastActive, fill(t.scene.ago, { t: formatDuration(last) })])
+  // Hover shows the name (HQ's English role title) and the department, nothing to act on.
   return {
     title: person.role === 'head' ? `${person.title} · ${t.head.toLowerCase()}` : person.title,
     status: person.status,
-    rows,
-    followId: person.id,
+    rows: [[t.scene.dept, person.role === 'director' ? t.scene.director : deptName(person.deptId, person.deptTitle)]],
   }
 }
 
@@ -135,28 +121,17 @@ const toolButton =
 export function PixelOffice({
   data,
   now,
-  selected,
-  onSelect,
-  onDept,
   zones,
   fill: fillBox = false,
-  personAction,
 }: {
   data: OfficeData
   now: number
-  selected: HitTarget | null
-  onSelect: (target: HitTarget | null) => void
-  // Clicking a room sign: filter the board by that department.
-  onDept?: (id: string) => void
   zones?: OfficeZones
   // Fill the parent box (the hub) instead of sizing to the building.
   fill?: boolean
-  // One extra button on a person's card (the hub: «Задачи»).
-  personAction?: { label: string; run: (agentId: string) => void }
 }) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const panelRef = useRef<HTMLDivElement>(null)
   const bubbleRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<Scene | null>(null)
   const latest = useRef(data)
@@ -166,16 +141,13 @@ export function PixelOffice({
   const [zoom, setZoom] = useState(3)
   const [names, setNames] = useState(false)
   const [full, setFull] = useState(false)
-  const [follow, setFollow] = useState<string | null>(null)
   const [fetched, setFetched] = useState<OfficeWeather | null>(null)
   const raw = useSyncExternalStore(subscribeNever, flagsRaw, () => '')
   const flags = useMemo(() => parseFlags(raw), [raw])
   const flagsRef = useRef(flags)
   const weather = useMemo(() => (flags.weather ? weatherMock(flags.weather) : fetched), [flags.weather, fetched])
-  const selectedRef = useRef(selected)
   const zonesRef = useRef(zones)
   useLayoutEffect(() => {
-    selectedRef.current = selected
     flagsRef.current = flags
     zonesRef.current = zones
   })
@@ -200,27 +172,6 @@ export function PixelOffice({
       el.style.left = `${Math.round(x)}px`
       el.style.top = `${Math.round(Math.max(4, y))}px`
     }
-  }, [])
-
-  // Places the card next to the selected thing, inside the view; hides it when off screen.
-  const placePanel = useCallback(() => {
-    const scene = sceneRef.current
-    const panel = panelRef.current
-    const wrap = wrapRef.current
-    const target = selectedRef.current
-    if (!scene || !panel || !wrap || !target) return
-    const anchor = scene.anchorOf(target)
-    if (!anchor) return
-    const r = scene.toView(anchor)
-    const vw = wrap.clientWidth
-    const vh = wrap.clientHeight
-    const w = panel.offsetWidth
-    const h = panel.offsetHeight
-    const left = Math.min(Math.max(8, r.x + r.w / 2 - w / 2), vw - w - 8)
-    const below = r.y + r.h + 10
-    const top = below + h <= vh - 4 ? below : Math.max(4, r.y - h - 10)
-    panel.style.left = `${Math.round(left)}px`
-    panel.style.top = `${Math.round(top)}px`
   }, [])
 
   // Viewport: the box width; the height fits the building at the fit zoom (the whole screen in
@@ -249,7 +200,6 @@ export function PixelOffice({
     if (!scene || !wrap) return
     const cam = scene.camera()
     setZoom(cam.zoom)
-    placePanel()
     placeBadges()
     if (bubbleRef.current) bubbleRef.current.style.display = 'none'
     const { width, height } = scene.size()
@@ -257,7 +207,7 @@ export function PixelOffice({
     // vertical swipes scroll the page.
     wrap.style.touchAction = height * cam.zoom > wrap.clientHeight + 1 ? 'none' : 'pan-y'
     void width
-  }, [placePanel, placeBadges])
+  }, [placeBadges])
 
   useEffect(() => {
     latest.current = data
@@ -338,20 +288,6 @@ export function PixelOffice({
     sceneRef.current?.setNameTags(names)
   }, [names])
 
-  useEffect(() => {
-    sceneRef.current?.setSelected(selected)
-    if (!selected) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onSelect(null)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [selected, onSelect])
-
-  useLayoutEffect(() => {
-    placePanel()
-  }, [selected, data, placePanel])
-
   const zoneOn = !!zones
   const glow = zones?.glow
   const deptMap = zones?.depts
@@ -386,11 +322,6 @@ export function PixelOffice({
     if (next === cam.zoom) return false
     scene.zoomAt(next, px ?? wrap.clientWidth / 2, py ?? wrap.clientHeight / 2)
     return true
-  }, [])
-
-  const stopFollow = useCallback(() => {
-    sceneRef.current?.follow(null)
-    setFollow(null)
   }, [])
 
   // Wheel zoom around the cursor; at the zoom limits the wheel scrolls the page as usual.
@@ -457,7 +388,6 @@ export function PixelOffice({
       drag.current.x = p.x
       drag.current.y = p.y
       scene.panBy(dx, dy)
-      setFollow(null)
       return
     }
     if (e.pointerType === 'touch') return
@@ -501,17 +431,9 @@ export function PixelOffice({
     if (zones && hit && (hit.kind === 'room' || hit.kind === 'reception' || hit.kind === 'builders')) {
       const room = hit.kind === 'room' ? hit.id : hit.kind === 'reception' ? 'lobby' : 'builders'
       if (zones.names[room]) {
-        onSelect(null)
         zones.onZone(room)
-        return
       }
     }
-    if (hit?.kind === 'room') {
-      if (hit.id === 'director') onSelect({ kind: 'agent', id: data.director.id })
-      else if (onDept && data.departments.some((d) => d.id === hit.id)) onDept(hit.id)
-      return
-    }
-    onSelect(sameTarget(hit, selected) ? null : hit)
   }
 
   const toggleFull = useCallback(() => {
@@ -533,23 +455,8 @@ export function PixelOffice({
     else if (key === 'ArrowUp') scene.panBy(0, PAN_KEY)
     else if (key === 'ArrowDown') scene.panBy(0, -PAN_KEY)
     else if (key === 'f' || key === 'F' || key === 'а' || key === 'А') toggleFull()
-    else if (key === 'Escape') {
-      if (follow) stopFollow()
-      return
-    } else return
+    else return
     e.preventDefault()
-    if (key.startsWith('Arrow')) setFollow(null)
-  }
-
-  const toggleFollow = (id: string) => {
-    const scene = sceneRef.current
-    if (!scene) return
-    if (follow === id) {
-      stopFollow()
-      return
-    }
-    scene.follow(id)
-    setFollow(id)
   }
 
   const people = useMemo(() => officePeople(data), [data])
@@ -563,10 +470,8 @@ export function PixelOffice({
 
   const zoneHover = hover?.target.kind === 'room' ? (zones?.names[hover.target.id] ?? null) : null
   const zoneHoverBadge = hover?.target.kind === 'room' ? zones?.badges[hover.target.id] : undefined
-  const hoverInfo = hover && hover.target.kind !== 'room' && !sameTarget(hover.target, selected) ? describe(data, hover.target, now) : null
-  const selectedInfo = selected ? describe(data, selected, now) : null
+  const hoverInfo = hover && hover.target.kind !== 'room' ? describe(data, hover.target, now) : null
   const statusText = (s?: string) => (s ? ((t.status as Record<string, string>)[s] ?? s) : '')
-  const followName = follow ? (people.find((p) => p.id === follow)?.title ?? t.scene.visitor) : null
 
   const bubbleText = (() => {
     if (zoneHover) {
@@ -582,11 +487,7 @@ export function PixelOffice({
       return { title: zoneHover, line: parts.length ? parts.join(' · ') : t.zones.open, dept: deptId }
     }
     if (!hover || !hoverInfo) return null
-    if (hover.target.kind === 'agent') {
-      const id = hover.target.id
-      const task = people.find((p) => p.id === id)?.agent.currentTask
-      return { title: hoverInfo.title, line: task ? truncate(task.title, 42) : statusText(hoverInfo.status), dept: undefined }
-    }
+    if (hover.target.kind === 'agent') return { title: hoverInfo.title, line: hoverInfo.rows[0]?.[1] ?? '', dept: undefined }
     return { title: hoverInfo.title, line: hoverInfo.status ? statusText(hoverInfo.status) : (hoverInfo.rows[0]?.join(': ') ?? ''), dept: undefined }
   })()
 
@@ -604,7 +505,6 @@ export function PixelOffice({
       onClick={onClick}
       onDoubleClick={(e) => {
         if ((e.target as HTMLElement).closest('[data-office-ui]')) return
-        stopFollow()
         sceneRef.current?.resetView()
       }}
       onKeyDown={onKeyDown}
@@ -683,16 +583,6 @@ export function PixelOffice({
         </button>
       </div>
 
-      {followName ? (
-        <div data-office-ui className="absolute left-2 top-2 z-30 flex items-center gap-1 rounded-full border border-accent/50 bg-surface/90 py-0.5 pl-3 pr-0.5 text-xs text-fg shadow-sm backdrop-blur">
-          <Crosshair size={14} aria-hidden="true" className="text-accent-text" />
-          <span className="max-w-40 truncate">{fill(t.scene.following, { name: followName })}</span>
-          <button type="button" onClick={stopFollow} aria-label={t.scene.unfollow} className="grid size-7 place-items-center rounded-full hover:bg-surface-3">
-            <X size={12} weight="bold" aria-hidden="true" />
-          </button>
-        </div>
-      ) : null}
-
       {weather?.tempC !== null && weather?.tempC !== undefined ? (
         <p className="pointer-events-none absolute bottom-2 right-2 z-20 rounded-full border border-line bg-surface/85 px-2.5 py-0.5 font-mono text-[11px] text-fg backdrop-blur" title={t.scene.weather}>
           {formatTemp(weather.tempC)} · Душанбе
@@ -712,60 +602,6 @@ export function PixelOffice({
         </div>
       ) : null}
 
-      {selected && selectedInfo ? (
-        <div
-          ref={panelRef}
-          data-office-ui
-          aria-live="polite"
-          className="office-in absolute z-20 w-60 rounded-xl border-2 border-paper-ink bg-paper p-3 text-paper-ink shadow-[4px_4px_0_var(--color-paper-ink)]"
-          style={{ left: 8, top: 8 }}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{selectedInfo.title}</p>
-              {selectedInfo.status ? (
-                <p className="mt-0.5 font-mono text-xs uppercase tracking-wide text-paper-muted">{statusText(selectedInfo.status)}</p>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              onClick={() => onSelect(null)}
-              aria-label={t.scene.close}
-              className="-m-1.5 grid size-8 shrink-0 place-items-center rounded-full hover:bg-paper-ink/10"
-            >
-              <X size={14} weight="bold" aria-hidden="true" />
-            </button>
-          </div>
-          <dl className="mt-2 grid gap-1 text-xs">
-            {selectedInfo.rows.map(([k, v], i) => (
-              <div key={i} className="flex gap-2">
-                {k ? <dt className="shrink-0 text-paper-muted">{k}</dt> : null}
-                <dd className={k ? 'ml-auto min-w-0 text-right' : 'text-paper-muted'}>{v}</dd>
-              </div>
-            ))}
-          </dl>
-          {personAction && selected.kind === 'agent' ? (
-            <button
-              type="button"
-              onClick={() => personAction.run(selected.id)}
-              className="mt-3 mr-2 inline-flex min-h-9 items-center gap-1.5 rounded-full border-2 border-paper-ink bg-paper-ink px-3 text-xs font-medium text-paper hover:opacity-90"
-            >
-              {personAction.label}
-            </button>
-          ) : null}
-          {selectedInfo.followId ? (
-            <button
-              type="button"
-              onClick={() => toggleFollow(selectedInfo.followId!)}
-              aria-pressed={follow === selectedInfo.followId}
-              className="mt-3 inline-flex min-h-9 items-center gap-1.5 rounded-full border-2 border-paper-ink px-3 text-xs font-medium hover:bg-paper-ink/5 aria-pressed:bg-paper-ink aria-pressed:text-paper"
-            >
-              <Crosshair size={14} aria-hidden="true" />
-              {follow === selectedInfo.followId ? t.scene.unfollow : t.scene.follow}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   )
 }

@@ -74,8 +74,6 @@ export function Footer({
             <a
               href={telegramUrl}
               data-place="footer-cta"
-              target="_blank"
-              rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-footnote text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
             >
               <TelegramLogo size={14} weight="fill" aria-hidden="true" />
@@ -93,8 +91,6 @@ export function Footer({
           <div className="mt-3 flex gap-2">
             <a
               href={instagramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               aria-label="Instagram"
               className="pressable grid size-10 place-items-center rounded-full bg-fill text-muted hover:bg-fill-strong hover:text-fg"
             >
@@ -104,8 +100,6 @@ export function Footer({
               <a
                 href={telegramUrl}
                 data-place="footer"
-                target="_blank"
-                rel="noopener noreferrer"
                 aria-label={`Telegram ${telegramHandle ?? ''}`}
                 className="pressable grid size-10 place-items-center rounded-full bg-fill text-muted hover:bg-fill-strong hover:text-fg"
               >

@@ -19,8 +19,6 @@ export default function PayNotFound() {
           <p className="mt-6">
             <a
               href={telegramUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               className="text-accent-text underline underline-offset-4 hover:text-fg"
             >
               {t.support}

@@ -11,7 +11,7 @@ const en: Dict = {
   nav: {
     skip: 'Skip to content',
     products: 'Products',
-    aiTeams: 'AI departments',
+    aiTeams: 'AI teams',
     solutions: 'Solutions',
     demo: 'Demo',
     pricing: 'Pricing',
@@ -33,7 +33,7 @@ const en: Dict = {
     // The h1 in two lines; the second one is the accent.
     lines: ['AI takes the routine,', 'you stay in charge'],
     eyebrow: 'Fir Tech, AI agent studio',
-    sub: 'Personal AI runs your day, an AI company runs the routine by department. Fira and her agents prepare, you approve wherever suits you. Price and timeline are fixed before we start.',
+    sub: 'Personal AI runs your day, your company’s AI knows the business and runs the routine. Fira prepares, you approve in the channel you like. Price and timeline are fixed before we start.',
     sequence: {
       label: 'Product',
       hint: 'Scroll: the products in turn',
@@ -44,7 +44,7 @@ const en: Dict = {
     trust: ['Price fixed in the quote', 'Pay before each stage', 'Code and access are yours'],
     scroll: 'Scroll',
     chatCta: 'Ask an agent',
-    teamLink: 'AI departments: marketing, sales or support in full',
+    teamLink: 'AI teams: marketing, sales or support in full',
     live: {
       badge: 'Office online',
       demoBadge: 'Demo',
@@ -175,7 +175,7 @@ const en: Dict = {
     discuss: 'Ask an agent',
     flagship: 'Flagship',
     concept: 'Sample interface',
-    plans: { basic: 'Start', plus: 'Plus', max: 'Max', company: 'Rollout', dono: 'Dono, study', polly: 'Polly, languages', content: 'Subscription' },
+    plans: { basic: 'Companion', plus: 'Copilot', max: 'Alter Ego', company: 'Rollout', dono: 'Dono, study', polly: 'Polly, languages', content: 'Subscription' },
     byQuote: 'The exact sum is fixed in the quote',
     classicTitle: 'The foundation the agents run on',
     classicSub: 'We also build websites, Telegram Mini Apps and apps on their own.',
@@ -192,13 +192,13 @@ const en: Dict = {
         ],
       },
       company: {
-        name: 'AI company',
-        benefit: 'Agents run the routine by department, the decisions stay with you',
+        name: 'Your company’s AI',
+        benefit: 'One AI knows your business and answers staff and clients',
         forWhom: 'Companies where routine eats the day of several people',
         inside: [
-          'Fira as the Director and departments for your business',
-          'The control room, a knowledge base and client channels',
-          'Team training, trust in the agents grows step by step',
+          'Knows your site, prices, documents and rules',
+          'Answers staff and clients in their channels and remembers context',
+          'Sales, support and content plug in as skills',
         ],
       },
       admin: {
@@ -251,16 +251,6 @@ const en: Dict = {
           'Loyalty program and bonuses',
         ],
       },
-      implementation: {
-        name: 'AI department, turnkey',
-        benefit: 'Agents run a whole direction, you see the result',
-        forWhom: 'Companies whose know-how and routine sit with people and in folders',
-        inside: [
-          'Agents by role, set up for your business',
-          'A knowledge base from your documents',
-          'Team training to work with the agents',
-        ],
-      },
     },
     demo: {
       personal: {
@@ -269,13 +259,6 @@ const en: Dict = {
         rows: ['Two emails wait for a reply', 'Call at 11:00', 'Report due on Friday'],
         ask: 'A reply to Aziz is drafted. Send it?',
         done: 'Sent after your yes',
-      },
-      company: {
-        director: 'Fira, Director',
-        depts: ['Sales', 'Marketing', 'Support'],
-        waiting: 'Waiting for you: 2',
-        approve: 'Approve',
-        done: 'Daily brief with the owner',
       },
       admin: {
         title: 'Booking',
@@ -308,7 +291,7 @@ const en: Dict = {
         cart: 'In the cart',
         pay: 'Pay',
       },
-      implementation: {
+      company: {
         q: 'How do I process a product return?',
         a: 'A request within 14 days, with the receipt and packaging. The money goes back to the card.',
         source: 'Returns policy, section 2',
@@ -1529,7 +1512,7 @@ const en: Dict = {
           'AI booking assistant, AI lead manager: the first scenario of the agent on a test',
           'Mini App: the first screen of the app',
           'Automation: the first connection on test data',
-          'AI rollout: the first answer of the assistant from your documents',
+          'Your company’s AI: the first answer of Fira from your documents',
           'Subscriptions (content, personal agents): the first approved item or the first week of work',
         ],
       },
@@ -2764,7 +2747,7 @@ const en: Dict = {
       referral: 'Referrals',
       audit: 'Free audit',
       status: 'Systems status',
-      'ai-team': 'AI departments',
+      'ai-team': 'AI teams',
     },
   },
   servicePage: {
@@ -2948,9 +2931,9 @@ const en: Dict = {
   // the whole department, drawn as one ladder (components/ladder.tsx, data in lib/ladder.ts).
   ladder: {
     eyebrow: 'Levels',
-    title: 'Start with one agent, grow into a department',
+    title: 'Start with one agent, grow into a team',
     sub: 'Every direction has three levels. Take the one you need now and move up without redoing anything.',
-    levels: { agent: 'One agent', auto: 'On autopilot', dept: 'A whole department' },
+    levels: { agent: 'One agent', auto: 'On autopilot', dept: 'A whole team' },
     open: 'Open the page',
     changeLabel: 'What changes between the levels',
     tracks: {
@@ -2959,36 +2942,36 @@ const en: Dict = {
         rungs: {
           agent: { title: 'Content maker', text: 'Writes posts, video scripts and carousels. You publish.' },
           auto: { title: 'Content on autopilot', text: 'Materials, publishing on plan and numbers. You only approve.' },
-          dept: { title: 'Marketing department', text: 'The whole team of agents, from trends to the weekly report.' },
+          dept: { title: 'Marketing team', text: 'The whole team of agents, from trends to the weekly report.' },
         },
         change:
-          'From one agent to autopilot: publishing on plan and numbers join the writing, and you only approve. From autopilot to a department: a trend scout, an analyst, a week plan and a review step arrive, and marketing runs as a team.',
+          'From one agent to autopilot: publishing on plan and numbers join the writing, and you only approve. From autopilot to a team: a trend scout, an analyst, a week plan and a review step arrive, and marketing runs as a team.',
       },
       sales: {
         title: 'Leads and sales',
         rungs: {
           agent: { title: 'AI lead manager', text: 'Answers clients within a minute, qualifies and hands over to you.' },
           auto: { title: 'Sales on autopilot', text: 'Finding new clients joins the replies. A prospector prepares the list and the text.' },
-          dept: { title: 'Sales department', text: 'Lead manager, prospector and presales with proposals and quotes.' },
+          dept: { title: 'Sales team', text: 'Lead manager, prospector and presales with proposals and quotes.' },
         },
         change:
-          'From a lead manager to autopilot: finding new clients joins the replies. From autopilot to a department: presales joins and prepares proposals and quotes, and sales run as a team.',
+          'From a lead manager to autopilot: finding new clients joins the replies. From autopilot to a team: presales joins and prepares proposals and quotes, and sales run as a team.',
       },
       support: {
         title: 'Customer support',
         rungs: {
           agent: { title: 'Support desk', text: 'Answers tickets and keeps requests in order.' },
           auto: { title: 'Support on autopilot', text: 'Monitoring catches failures before clients do and tells you.' },
-          dept: { title: 'Support department', text: 'Support, monitoring, billing and onboarding of new clients.' },
+          dept: { title: 'Support team', text: 'Support, monitoring, billing and onboarding of new clients.' },
         },
         change:
-          'From one agent to autopilot: monitoring joins the replies, so failures are noticed before the client does. From autopilot to a department: billing and onboarding join, and support runs as a team.',
+          'From one agent to autopilot: monitoring joins the replies, so failures are noticed before the client does. From autopilot to a team: billing and onboarding join, and support runs as a team.',
       },
     },
     strip: {
       title: 'Need more than one product?',
-      text: 'AI departments run a whole function, and every agent can be taken on its own.',
-      depts: 'All AI departments',
+      text: 'AI teams run a whole function, and every agent can be taken on its own.',
+      depts: 'All AI teams',
       agents: 'Agents one by one',
     },
   },
@@ -3006,7 +2989,7 @@ const en: Dict = {
     notTitle: 'What it does not do',
     priceTitle: 'Price and payment',
     priceSub: 'The amount comes from the current prices. The final price and timeline are fixed in the quote.',
-    subscription: 'This is a subscription: setup and a monthly payment a month ahead. The amounts are above.',
+    subscription: 'This is a subscription: a one-time setup and a monthly payment a month ahead. Model usage is included in the payment.',
     planLevels: {
       title: 'Three levels',
       basic: 'Up to two services, for example mail and calendar. Morning brief, reminders and an evening summary.',
@@ -3016,7 +2999,7 @@ const en: Dict = {
       monthly: 'a month',
       pick: 'You can change the level when you need more services. The terms of the move are written in the quote.',
     },
-    fromNote: 'This is the starting price. The exact sum and the departments are fixed in the quote after a call, the monthly payment is made a month in advance.',
+    fromNote: 'This is the starting price. The exact sum and the skills are fixed in the quote after a call, the monthly payment is made a month in advance.',
     quoteNote: 'We name the price after a short review: it depends on the scope and your channels.',
     stageTitle: 'Payment stages',
     stageNote: 'Each stage is paid before it starts, the last one before handover.',
@@ -3161,8 +3144,8 @@ const en: Dict = {
           title: 'Where it lives',
           sub: 'Where you already spend your day, and apart from other clients.',
           items: [
-            { title: 'Telegram', text: 'Briefs, reminders and drafts come to Telegram. You answer with a button or one word.' },
-            { title: 'Voice', text: 'You can dictate: it understands “move the meeting to tomorrow”. Voice replies come with the Plus and Max levels.' },
+            { title: 'In your channel', text: 'Briefs, reminders and drafts come where you already are: Telegram, WhatsApp, a site chat or your personal cabinet. You answer with a button or one word.' },
+            { title: 'Voice', text: 'You can dictate: it understands “move the meeting to tomorrow”. Voice replies come with the Copilot and Alter Ego levels.' },
             { title: 'Its own container', text: 'Your AI runs in a separate isolated container on the server. Its memory and access never mix with other clients.' },
             { title: 'Your data stays yours', text: 'You grant access and can revoke any of it. We never sell or pass your data to third parties, and on request we delete the memory and the access.' },
           ],
@@ -3203,52 +3186,52 @@ const en: Dict = {
         ],
       },
       company: {
-        metaTitle: 'AI company: Fira, departments of agents and a control room | Fir Tech',
+        metaTitle: 'Your company’s AI: Fira knows your business | Fir Tech',
         metaDescription:
-          'Fira inside your company: a Director and departments of AI agents, a control room, a knowledge base from your documents and team training. Four stages.',
-        result: 'A company where agents run the routine and you make the decisions',
-        lead: 'We install Fira in your company: the Director hands out tasks, departments of agents run sales, marketing and support, and you watch the control room and approve what matters. Trust in the agents grows step by step, as with new staff.',
+          'Fira in your company: one AI that knows your site, prices and documents, answers staff and clients in their channels and remembers context. Subscription.',
+        result: 'One AI that knows your company and answers for it in any channel',
+        lead: 'We install Fira in your company: it reads your site, price list, documents and rules, answers staff and clients where they already are, and remembers context. Sales, support and content plug in as skills, and the decisions stay with you.',
         capabilities: [
-          { title: 'Director and departments', text: 'Fira as the Director hands tasks to the departments and gathers one queue of decisions for you.', example: 'Marketing drafts posts, sales answer leads.', mock: 'cards', chips: ['Sales', 'Marketing', 'Support'] },
-          { title: 'Control room', text: 'You see who does what, what waits for a decision and what got done today.', example: 'Waiting for you: two replies and one invoice.', mock: 'bars', chips: ['In progress', 'Waiting', 'Done'] },
-          { title: 'Knowledge base', text: 'Answers from your documents, site and chats, with a link to the source.', example: 'Returns within 14 days. Rules, section 2.', mock: 'chat', chips: ['Rules', 'Price list'] },
-          { title: 'Trust levels', text: 'First the agent proposes, then acts after approval, then does the routine on its own.', example: 'Answers about opening hours go out without you.', mock: 'checks', chips: ['Proposes', 'After approval', 'On its own'] },
-          { title: 'Client channels', text: 'Agents answer clients in Telegram and in the site chat, other channels are added in the quote.', example: 'A chat request got an answer within a minute.', mock: 'chat', chips: ['Telegram', 'Site'] },
+          { title: 'Knows your business', text: 'Your site, prices, documents and rules sit in one knowledge base, and answers come with a link to the source.', example: 'Returns within 14 days. Rules, section 2.', mock: 'chat', chips: ['Site', 'Price list', 'Rules'] },
+          { title: 'Answers your staff', text: 'An employee asks Fira instead of digging through folders and chats and gets an answer with its source.', example: 'What discount do regulars get? Fira answers from your price list.', mock: 'chat', chips: ['Question', 'Answer', 'Source'] },
+          { title: 'Answers your clients', text: 'In the clients’ channels: site chat, Telegram, WhatsApp, email and voice. Hands the hard cases to a person.', example: 'A chat request got an answer within a minute.', mock: 'chat', chips: ['Site chat', 'WhatsApp', 'Telegram'] },
+          { title: 'Remembers context', text: 'Remembers clients, agreements and earlier answers, so it never asks the same thing twice.', example: 'A client came back a week later and Fira picked up where it left off.', mock: 'checks', chips: ['Clients', 'Agreements'] },
+          { title: 'Skills by role', text: 'Sales, support, content and back office plug in as skills of the same AI, not as separate programs.', example: 'Support was added to sales, nothing was rebuilt.', mock: 'cards', chips: ['Sales', 'Support', 'Content'] },
         ],
         first: {
-          day: 'A call and the company map: which departments you need, who approves and what the agents never touch.',
-          week: 'The Director sends the morning brief, the first department works on your real leads through approval.',
-          month: 'The control room, knowledge base and channels are connected, the team is trained, and routine moves to independent work by your decision.',
+          day: 'A call: you tell us about the business, we list the sources, the channels and what the AI never touches.',
+          week: 'Fira has read your data and answers your staff. The first client channel works through approval.',
+          month: 'The skills are connected, the team is trained, and Fira answers routine questions on its own where you allow it.',
         },
-        needs: ['One person who approves decisions', 'Documents, rules and examples of work', 'Access to channels and services', 'Staff time for training'],
+        needs: ['One person who approves decisions', 'Your site, documents, price list and rules', 'Access to channels and services', 'Staff time for training'],
         not: ['Money, prices and contracts stay with people', 'Never starts a new task without your approval', 'Never works with data it has no access to', 'Never rates or dismisses your staff for you'],
         structure: {
-          title: 'The map of your AI company',
-          sub: 'A sample for a service company. We pick the departments and roles for your business in the first stage and write them into the quote.',
-          owner: { name: 'You', does: 'Set goals, approve what matters, decide on money, prices and contracts.' },
-          director: { name: 'Fira, Director', does: 'Every morning gathers the brief, hands tasks to the departments and brings you one queue of decisions.' },
+          title: 'One brain, many skills',
+          sub: 'A sample for a service company. We decide which skills you need in the first stage and write them into the quote.',
+          owner: { name: 'You and your staff', does: 'Ask questions and give tasks in the channel you already use, approve what matters, decide on money, prices and contracts.' },
+          director: { name: 'Fira: one AI that knows your business', does: 'Reads your site, prices, documents and rules, remembers context and calls the right skill.' },
           depts: [
-            { name: 'Sales', roles: ['Lead manager', 'Presales: proposals and quotes', 'Client reminders'], example: 'A lead from Instagram got an answer and a proposal, you only approve the price.' },
-            { name: 'Marketing', roles: ['Content maker', 'Publisher', 'Analyst'], example: 'Posts for the week wait for approval on Friday.' },
-            { name: 'Support', roles: ['Support desk', 'Knowledge base', 'Deadline control'], example: 'A return question closed by the rules, with a link.' },
+            { name: 'Sales', roles: ['Answers to leads', 'Proposals', 'Client reminders'], example: 'A lead from the chat got an answer and a proposal, you only approve the price.' },
+            { name: 'Support', roles: ['Answers from the knowledge base', 'Deadline control', 'Handover to a person'], example: 'A return question closed by the rules, with a link.' },
+            { name: 'Content', roles: ['Posts on plan', 'Service descriptions', 'Replies to reviews'], example: 'Posts for the week wait for approval on Friday.' },
             { name: 'Back office', roles: ['Invoices', 'Documents', 'Reports'], example: 'Invoice issued, a payment reminder went to the client.' },
           ],
-          note: 'You can start with one department. The rest join in later stages without rework.',
+          note: 'You can start with one skill. The rest join in later stages without rework.',
         },
         pult: {
           title: 'The control room: a tour of our own workplace',
-          sub: 'This is how we work ourselves. Fir Tech runs as a company of agents, and your control room repeats ours, with your departments.',
+          sub: 'This is how we work ourselves. Fir Tech runs on the same agents, and your control room repeats ours: you see what Fira is doing and what waits for your word.',
           label: 'Control room screen',
           tabs: [
-            { id: 'office', name: 'Office', caption: 'Who does what right now: every agent has a desk and its status shows in how it behaves.', rows: [{ who: 'Director', what: 'Gathers the morning brief', state: 'In progress' }, { who: 'Sales', what: 'Answers a lead from the site', state: 'In progress' }, { who: 'Marketing', what: 'Three posts for the week', state: 'Waiting' }, { who: 'Back office', what: 'Invoice to a client', state: 'Done' }] },
-            { id: 'review', name: 'Review centre', caption: 'Everything that waits for your word in one window: approve, edit or send back.', rows: [{ who: 'Marketing', what: 'Video about a new service, version 2', state: 'Approve' }, { who: 'Sales', what: 'Proposal for a clinic', state: 'Edit' }, { who: 'Support', what: 'Reply to a complaint', state: 'Approve' }] },
-            { id: 'orders', name: 'Assignments', caption: 'You write a task as you would to an employee, the Director hands it to the departments and shows the progress.', rows: [{ who: 'You', what: 'Prepare a holiday promotion', state: 'Accepted' }, { who: 'Director', what: 'Posts to marketing, a mailing to sales', state: 'In progress' }, { who: 'Marketing', what: 'A two-week plan', state: 'Waiting' }] },
+            { id: 'office', name: 'Office', caption: 'Who does what right now: every skill has a desk and its status shows in how it behaves.', rows: [{ who: 'Fira', what: 'Gathers the morning brief', state: 'In progress' }, { who: 'Sales', what: 'Answers a lead from the site', state: 'In progress' }, { who: 'Content', what: 'Three posts for the week', state: 'Waiting' }, { who: 'Back office', what: 'Invoice to a client', state: 'Done' }] },
+            { id: 'review', name: 'Review centre', caption: 'Everything that waits for your word in one window: approve, edit or send back.', rows: [{ who: 'Content', what: 'Video about a new service, version 2', state: 'Approve' }, { who: 'Sales', what: 'Proposal for a clinic', state: 'Edit' }, { who: 'Support', what: 'Reply to a complaint', state: 'Approve' }] },
+            { id: 'orders', name: 'Assignments', caption: 'You write a task as you would to an employee, Fira picks the right skills and shows the progress.', rows: [{ who: 'You', what: 'Prepare a holiday promotion', state: 'Accepted' }, { who: 'Fira', what: 'Posts to content, a mailing to sales', state: 'In progress' }, { who: 'Content', what: 'A two-week plan', state: 'Waiting' }] },
           ],
           note: 'Sample interface. Names and data are made up.',
         },
         knowledge: {
           title: 'Knowledge from your documents, site and chats',
-          sub: 'Agents answer with what your company knows and show where the answer came from.',
+          sub: 'Fira answers with what your company knows and shows where the answer came from.',
           sources: [
             { name: 'Documents', text: 'Rules, price lists, contracts and manuals' },
             { name: 'Site', text: 'Services, prices, addresses and hours' },
@@ -3260,20 +3243,20 @@ const en: Dict = {
         },
         trust: {
           title: 'Trust grows step by step',
-          sub: 'An agent earns independence like a new employee: after a run of good decisions and only where you allow it.',
+          sub: 'Fira earns independence like a new employee: after a run of good decisions and only where you allow it.',
           levels: [
-            { name: 'Proposes', text: 'The agent prepares a reply, a post or an invoice, and you send it.', example: 'A reply to a client waits in the review centre.' },
-            { name: 'Acts after approval', text: 'The agent acts itself, but every action goes through your button.', example: 'A post goes out after Approve.' },
+            { name: 'Proposes', text: 'Fira prepares a reply, a post or an invoice, and you send it.', example: 'A reply to a client waits in the review centre.' },
+            { name: 'Acts after approval', text: 'Fira acts itself, but every action goes through your button.', example: 'A post goes out after Approve.' },
             { name: 'Acts on its own', text: 'After a run of approvals without edits the routine can be let go. You decide how many approvals it takes.', example: 'Answers about opening hours go out without you.' },
           ],
           note: 'Money, prices and contracts stay with people at every level.',
         },
         teamgets: {
           title: 'What your team gets',
-          sub: 'Agents take the routine, and people get a clear place in the new setup.',
+          sub: 'Fira takes the routine, and people get a clear place in the new setup.',
           items: [
-            { title: 'Training', text: 'Short sessions: how to give an agent a task, how to check the result and when to step in.' },
-            { title: 'Rules', text: 'We write down what agents do alone, what they agree first and who owns each decision.' },
+            { title: 'Training', text: 'Short sessions: how to give Fira a task, how to check the result and when to step in.' },
+            { title: 'Rules', text: 'We write down what Fira does alone, what it agrees first and who owns each decision.' },
             { title: 'Roles of people', text: 'Every employee has a clear area: decisions, difficult clients, quality control.' },
             { title: 'Support after launch', text: 'For 30 days we fix errors for free, after that support is part of the monthly payment.' },
           ],
@@ -3282,25 +3265,26 @@ const en: Dict = {
           title: 'Four stages of the rollout',
           sub: 'Each stage is paid before it starts, and the result of each one is visible in the cabinet and in the control room.',
           stages: [
-            { title: 'Company map and the Director', text: 'We go through your processes, pick departments and roles, set up the Director and the morning brief.', see: 'The company map and the first brief in Telegram' },
-            { title: 'First departments on your data', text: 'We launch the first departments on your real leads and tasks, everything goes through approval.', see: 'Agents at work, you approve in the review centre' },
-            { title: 'Control room, knowledge base and channels', text: 'We connect the control room, build the knowledge base from your documents and bring the agents to client channels.', see: 'A control room with your departments and answers with a source link' },
-            { title: 'Team training and launch', text: 'We train your staff, write the rules down and move the routine to independent work where you allow it.', see: 'The team works with the agents, the rules are yours' },
+            { title: 'Getting to know the business, data and rules', text: 'We go through your business, gather your site, price list, documents and rules, and agree what the AI never touches.', see: 'A list of sources and the first morning brief' },
+            { title: 'First skills on your tasks', text: 'We launch the first skills, for example sales or support, on your real requests. Everything goes through approval.', see: 'Fira at work, you approve in the review centre' },
+            { title: 'Knowledge base, control room and channels', text: 'We build the knowledge base from your documents, connect the control room and bring Fira to the channels of your staff and clients.', see: 'Answers with a source link and a control room with your skills' },
+            { title: 'Team training and launch', text: 'We train your staff, write the rules down and move the routine to independent work where you allow it.', see: 'The team works with Fira, the rules are yours' },
           ],
         },
         pilot: {
           title: 'A free pilot for a case study and a review',
-          text: 'We roll out the first one or two AI company pilots for free. In return we ask to describe the rollout as a case study without your clients’ data, and for an honest review.',
+          text: 'We roll out the first one or two pilots of your company’s AI for free. In return we ask to describe the rollout as a case study without your clients’ data, and for an honest review.',
           terms: ['We write down the pilot scope and timing before the work starts', 'The case study goes public only after you approve it', 'When the pilot places are taken, we will say so plainly'],
           cta: 'Ask about the pilot',
         },
-        inPrice: ['The company map and the Director', 'Departments and roles from the quote', 'The control room and the review centre', 'A knowledge base from your documents', 'Team training and rules'],
-        notInPrice: ['Paid third-party services and their subscriptions', 'Departments beyond the quote: a separate part', 'Changes to systems we have no access to'],
+        inPrice: ['Getting to know the business and gathering the sources', 'The first skills from the quote', 'A knowledge base from your documents and site', 'The control room and the review centre', 'Team training and rules', 'Model usage is included in the monthly payment'],
+        notInPrice: ['Paid third-party services and their subscriptions', 'Skills beyond the quote: a separate part', 'Changes to systems we have no access to'],
         objections: [
-          { q: 'It is expensive', a: 'Compare it with the salaries of the people who do this routine now. The starting price is visible before you apply, the exact sum is fixed in the quote, you pay in four stages and the first one is under guarantee. You can start with one department.' },
-          { q: 'I do not trust AI', a: 'At first the agents only propose and you decide. Independence comes after a run of approvals and only where you allow it. Money, prices and contracts always stay with people.' },
-          { q: 'What if it all breaks', a: 'An agent reports a failure to the control room and to you in Telegram, the work is not lost. We run on this system ourselves every day. For 30 days after handover we fix errors for free.' },
-          { q: 'Who is responsible for the result', a: 'We are responsible for the setup and the work of the agents, by the contract and the stages. Decisions in your company stay yours: agents prepare them, you make them.' },
+          { q: 'It is expensive', a: 'Compare it with the salaries of the people who do this routine now. The starting price is visible before you apply, the exact sum is fixed in the quote, you pay in four stages and the first one is under guarantee. You can start with one skill.' },
+          { q: 'I do not trust AI', a: 'At first Fira only proposes and you decide. Independence comes after a run of approvals and only where you allow it. Money, prices and contracts always stay with people.' },
+          { q: 'What if it all breaks', a: 'Fira reports a failure to the control room and to you, the work is not lost. We run on this system ourselves every day. For 30 days after handover we fix errors for free.' },
+          { q: 'Who is responsible for the result', a: 'We are responsible for the setup and the work of Fira, by the contract and the stages. Decisions in your company stay yours: Fira prepares them, you make them.' },
+          { q: 'What about paying for the model', a: 'Model usage is included in the monthly payment: we connect our own account. If you prefer, we connect your API key and the payment is lower.' },
         ],
       },
       admin: {
@@ -3535,55 +3519,6 @@ const en: Dict = {
           { q: 'How do I take payments', a: 'We tell you at the review which methods work in your country and bank, and write them into the quote.' },
         ],
       },
-      implementation: {
-        metaTitle: 'AI department, turnkey: role-based agents for your business | Fir Tech',
-        metaDescription:
-          'Role-based agents take over a whole function: marketing, sales or support. A knowledge base, team training, price and payment stages.',
-        result: 'A whole function runs on agents, the decisions stay with you',
-        lead: 'Role-based agents take over a whole function: marketing, sales or support. You approve in Telegram.',
-        capabilities: [
-          { title: 'Agents by role', text: 'Content maker, lead manager, support, documents: we pick the roles for your business.', example: 'The lead manager answers, the content maker writes posts.', mock: 'cards', chips: ['Leads', 'Content', 'Support'] },
-          { title: 'A knowledge base', text: 'Answers from your documents with a link to the source.', example: 'A return is made by application. Policy, section 2.', mock: 'chat', chips: ['Policy', 'Contract'] },
-          { title: 'Approval in Telegram', text: 'Agents prepare, you press approve, edit or reject.', example: 'The reply to the client is ready. Send?', mock: 'checks', chips: ['Approve', 'Edit', 'Reject'] },
-          { title: 'Team training', text: 'We show your staff how to give agents tasks and check the result.', example: 'A session: how to give an agent a task.', mock: 'cards', chips: ['Tasks', 'Review'] },
-          { title: 'Owner dashboard', text: 'You see who is busy with what, what waits for a decision and what is done today.', example: 'Waiting for you: two replies and one invoice.', mock: 'bars', chips: ['In progress', 'Waiting', 'Done'] },
-        ],
-        first: {
-          day: 'We pick the function and the roles and collect documents for the knowledge base.',
-          week: 'The first agents work on your data and send results for approval.',
-          month: 'The team has got used to the agents. Trust grows step by step: the agent does routine alone, while money and contracts stay with you.',
-        },
-        needs: ['Documents, policies and examples of work', 'One responsible person who approves', 'Access to channels and services', 'Staff time for training'],
-        not: ['Money, prices and contracts stay with you', 'It does not start without a knowledge base from your documents', 'It does not work with data it has no access to', 'We name the price per function after a review, not from a template'],
-        org: {
-          title: 'Org chart of an AI department',
-          sub: 'A service company as an example. We pick the roles for your business and write them into the quote. The Director appears when there is more than one department.',
-          owner: { name: 'You', does: 'Approve in Telegram and decide on money, prices and contracts.' },
-          director: { name: 'Director', does: 'Hands out tasks to the agents and gathers the approvals into one window.' },
-          depts: [
-            { name: 'Sales', roles: ['Lead manager', 'Prospector', 'Presales: proposals and quotes'] },
-            { name: 'Marketing', roles: ['Content maker', 'Publisher', 'Analyst'] },
-            { name: 'Support', roles: ['Support desk', 'Knowledge base', 'Documents'] },
-          ],
-        },
-        grow: {
-          title: 'How the department grows',
-          sub: 'Start with one agent and move up without rebuilding: the knowledge base and the rules carry over as you grow.',
-          link: 'Every level by direction',
-          steps: [
-            { level: 'One agent', title: 'You fill one position', text: 'For example, the lead manager answers clients. You approve its replies and watch how it works.' },
-            { level: 'On autopilot', title: 'The agent does the routine itself', text: 'When there have been no edits for a while, the routine can run on its own, on your decision. A second agent joins.' },
-            { level: 'Whole department', title: 'The function runs as a team', text: 'Roles pass work to each other, and the control panel shows who is busy with what and what waits for a decision.' },
-          ],
-        },
-        inPrice: ['Role-based agents for the chosen function', 'A knowledge base from your documents', 'Approval in Telegram', 'The owner\'s control panel', 'Training your team to work with agents'],
-        notInPrice: ['Paid third-party services and their subscriptions', 'The next function: a separate part of the quote', 'Changes to systems we have no access to'],
-        objections: [
-          { q: 'Agents will make mistakes in what matters', a: 'A new task goes through your approval first. Money, prices and contracts always stay with you.' },
-          { q: 'The team will push back', a: 'We train staff to give tasks to agents and check the result. Agents take the routine, people keep the decisions and the talks with clients.' },
-          { q: 'How do I know it works', a: 'We work this way ourselves: the Fir Tech office of agents is shown on the site. Your control panel shows who is busy with what, what waits for a decision and what got done today.' },
-        ],
-      },
     },
   },
   // «Try it now» (#demo): tabs per product with a working demo on our own agents.
@@ -3674,9 +3609,9 @@ const en: Dict = {
       read: 'Read',
       all: 'All articles',
     },
-    implementation: {
+    company: {
       intro: 'This is our own company of agents, working right now. We show only counters, and they update by themselves.',
-      cta: 'See AI departments',
+      cta: 'See AI teams',
       note: 'Only counters are shown. There are no names or client data on the site.',
     },
     cta: 'Build a project',
@@ -3800,13 +3735,12 @@ const en: Dict = {
     team: {
       label: 'Fira:',
       personal: 'A personal AI for one person: it remembers your work, your people and your promises.',
-      company: 'This is me, inside your company: a Director, departments and the control room. Decisions stay with you.',
+      company: 'This is me, inside your company: I know your business and answer in your channels. Decisions stay with you.',
       admin: 'Greets clients, books them and sends reminders. No days off.',
       receptionist: 'Sorts leads from every channel and hands them to you ready.',
       automation: 'Takes the routine: sheets, reports, moving data between services.',
       content: 'Writes posts to a plan and brings them to you for approval.',
       miniapp: 'A shop or bookings right inside Telegram, with no separate app.',
-      implementation: 'A whole department of agents with a head and one approval queue.',
     },
     office: {
       eyebrow: 'How we run',
@@ -3824,7 +3758,7 @@ const en: Dict = {
         { id: 'backoffice', name: 'Back office', doing: 'Prepares invoices and documents', status: 'wait' },
       ],
       rules: ['A person decides money, prices and contracts', 'Posts go out after approval', 'Every agent action is visible in the panel'],
-      link: 'How the AI departments work',
+      link: 'How the AI teams work',
     },
     finale: {
       title: 'Thanks for watching',
@@ -3849,23 +3783,48 @@ const en: Dict = {
       },
     },
   },
+  // Subscription card (owner 2026-11-22): every AI product is a one-time setup plus a monthly fee that includes the model
+  // usage; with the client's own API key (BYOK) the monthly fee is lower. Amounts come from pricing.ts, never from copy.
+  subscription: {
+    setup: 'one-time setup',
+    monthly: 'a month',
+    from: 'from',
+    whoseKey: 'Whose model',
+    ours: 'Our account',
+    own: 'Your API key',
+    oursNote: 'Model usage is included in the payment: we connect our own Anthropic account.',
+    ownNote: 'You connect your own API key and pay for the model on your account, so the monthly payment is lower.',
+    saves: 'With your own key it is {amount} a month cheaper',
+    teamNote: 'The sum of the team’s agents minus {percent}%.',
+    teamFull: 'Without the discount {amount} a month',
+    employees: 'Plus {amount} a month for every employee above five.',
+    agentTitle: 'Agent subscription',
+    teamTitle: 'Team subscription',
+    teamCount: 'Agents in the team: {count}',
+    bring: 'Ask about the setup',
+  },
+  // The “Where it lives” strip of the product pages: the channels as equals (data in src/lib/channels.ts).
+  channelsStrip: {
+    title: 'Where it lives',
+    sub: 'Where people already are: the same AI in any channel. We pick the channels in the quote.',
+  },
   aiTeams: {
     nav: 'A team of AI agents',
     metaTitle: 'A team of AI agents for your business | Fir Tech',
     metaDescription:
-      'A marketing, sales or support team, or a whole company of AI agents in your own Telegram. Agents prepare, you approve with a button. Price by quote.',
+      'A marketing, sales or support team, or a whole company of AI agents in your own Telegram. Agents prepare, you approve with a button. Monthly subscription.',
     eyebrow: 'A team of AI agents',
-    title: 'A whole department works and you only approve',
-    sub: 'Marketing, sales or support on AI agents. Agents prepare the work, you approve with a button in Telegram. Take one department or the whole company.',
+    title: 'A whole team works and you only approve',
+    sub: 'Marketing, sales or support on AI agents. Agents prepare the work, you approve with a button in your channel. Take one team or the whole company.',
     ctaBuild: 'Build a project',
     ctaChat: 'Ask an agent',
     ctaDiscuss: 'Ask an agent',
-    // The top of the ladder (owner 2026-11-22): agent, department, the whole AI company.
+    // The top of the ladder (owner 2026-11-22): agent, team, the whole AI company.
     topRung: {
       label: 'Top of the ladder',
-      title: 'AI company: every department and a Director',
-      text: 'A role, then a department, then the whole company. At the top Fira as the Director runs departments for your business, and you watch the control room and approve what matters.',
-      cta: 'See the AI company',
+      title: 'Your company’s AI: one AI and every team',
+      text: 'A role, then a team, then the whole company. At the top Fira knows your business and takes on the skills of the teams, and you watch the control room and approve what matters.',
+      cta: 'See your company’s AI',
     },
     flow: {
       title: 'One working cycle',
@@ -3876,13 +3835,10 @@ const en: Dict = {
       ],
     },
     deptsTitle: 'Teams and the whole company',
-    deptsSub: 'Each department works on its own. When you need the whole set, take the company.',
+    deptsSub: 'Each team works on its own. When you need the whole set, take the company.',
     forWhom: 'Who it is for',
     inside: 'What is inside',
     more: 'Details',
-    priceLabel: 'Price',
-    quote: 'By quote',
-    quoteNote: 'We name the price after a short call. It depends on the team and your channels.',
     howTitle: 'How it works',
     howItems: [
       {
@@ -3926,21 +3882,21 @@ const en: Dict = {
         'The scope follows the roles in our own company. What exactly goes into your delivery is fixed in the quote.',
       faqTitle: 'Questions',
       othersTitle: 'Other teams',
-      finalTitle: 'Launch this department',
+      finalTitle: 'Launch this team',
       finalText: 'Tell us about the business. We will say which roles you need, what to connect and what it costs.',
     },
     agents: {
       stripTitle: 'Or a single agent',
-      stripText: 'Do not need the whole department? Take one role: every agent has its own page with its tasks and terms.',
+      stripText: 'Do not need the whole team? Take one role: every agent has its own page with its tasks and terms.',
       stripCta: 'See all agents',
       sectionTitle: 'Every agent on its own',
-      sectionSub: 'Any role can be taken without the rest of the department. What the agent needs on input is written on its page.',
+      sectionSub: 'Any role can be taken without the rest of the team. What the agent needs on input is written on its page.',
       more: 'Details',
       standaloneYes: 'Available on its own',
-      standaloneNo: 'Only with a department',
+      standaloneNo: 'Only with a team',
       page: {
         back: 'All agents',
-        deptLabel: 'Department',
+        deptLabel: 'Team',
         whatTitle: 'What it does',
         needsTitle: 'What we need from you',
         worksTitle: 'Works with',
@@ -3948,12 +3904,12 @@ const en: Dict = {
         trustTitle: 'What it does alone and what waits for you',
         aloneLabel: 'Does alone',
         waitsLabel: 'Waits for your decision',
-        requiresTitle: 'Only with a department',
-        requiresText: 'This agent needs at least one department. Choose a department and the agent plugs into it.',
+        requiresTitle: 'Only with a team',
+        requiresText: 'This agent needs at least one team. Choose a team and the agent plugs into it.',
         finalTitle: 'Connect this agent',
         finalText: 'Tell us about the business. We will say what needs connecting and what it will cost.',
-        othersTitle: 'Other agents of the department',
-        listTitle: 'Agents of the department',
+        othersTitle: 'Other agents of the team',
+        listTitle: 'Agents of the team',
         listSub: 'Each has its own page: what it does, what we need from you and what waits for your decision.',
       },
       items: {
@@ -3986,11 +3942,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of niches and platforms.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of niches and platforms.',
             },
           ],
           metaTitle: 'Trend scout: an AI agent for niche trends | Fir Tech',
-          metaDescription: 'The Trend scout AI agent sends the rising topics and formats of your niche every day. Available on its own, without the whole department. Priced by quote.',
+          metaDescription: 'The Trend scout AI agent sends the rising topics and formats of your niche every day. Available on its own, without the whole team. Monthly subscription.',
         },
         'content-maker': {
           title: 'Content maker',
@@ -4021,11 +3977,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the languages and the volume of materials.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the languages and the volume of materials.',
             },
           ],
           metaTitle: 'Content maker: an AI agent for reels and posts | Fir Tech',
-          metaDescription: 'The Content maker AI agent makes reels, carousels and posts in two languages and sends them in a batch for approval. Available on its own. Priced by quote.',
+          metaDescription: 'The Content maker AI agent makes reels, carousels and posts in two languages and sends them in a batch for approval. Available on its own. Monthly subscription.',
         },
         publisher: {
           title: 'Publisher',
@@ -4056,11 +4012,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of channels.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of channels.',
             },
           ],
           metaTitle: 'Publisher: an AI agent for social media posting | Fir Tech',
-          metaDescription: 'The Publisher AI agent keeps the schedule: it uploads YouTube Shorts itself and queues other platforms, all after your approval. Price by quote.',
+          metaDescription: 'The Publisher AI agent keeps the schedule: it uploads YouTube Shorts itself and queues other platforms, all after your approval. Monthly subscription.',
         },
         analyst: {
           title: 'Analyst',
@@ -4091,11 +4047,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of data sources.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of data sources.',
             },
           ],
           metaTitle: 'Analyst: an AI agent with a weekly report | Fir Tech',
-          metaDescription: 'The Analyst AI agent collects numbers from your channels and leads and sends a weekly report with a plan. Available without the department. Priced by quote.',
+          metaDescription: 'The Analyst AI agent collects numbers from your channels and leads and sends a weekly report with a plan. Available without the team. Monthly subscription.',
         },
         seo: {
           title: 'SEO specialist',
@@ -4126,11 +4082,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the languages and the volume of texts.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the languages and the volume of texts.',
             },
           ],
           metaTitle: 'SEO specialist: an AI agent for articles and search | Fir Tech',
-          metaDescription: 'The SEO specialist AI agent collects keywords, writes articles in two languages and prepares directory entries. You approve before publishing. Priced by quote.',
+          metaDescription: 'The SEO specialist AI agent collects keywords, writes articles in two languages and prepares directory entries. You approve each one. Monthly subscription.',
         },
         'lead-handler': {
           title: 'Lead manager',
@@ -4162,11 +4118,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the channels and the volume of leads.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the channels and the volume of leads.',
             },
           ],
           metaTitle: 'Lead manager: an AI agent for chat leads | Fir Tech',
-          metaDescription: 'The Lead manager AI agent answers customers within a minute, asks questions, offers a call slot and creates a lead card. You keep the prices. Priced by quote.',
+          metaDescription: 'The Lead manager AI agent answers customers within a minute, asks questions, offers a call slot and makes a lead card. Prices stay yours. Monthly subscription.',
         },
         prospector: {
           title: 'Prospector',
@@ -4197,11 +4153,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of niches and cities.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of niches and cities.',
             },
           ],
           metaTitle: 'Prospector: an AI agent for finding customers | Fir Tech',
-          metaDescription: 'The Prospector AI agent finds suitable businesses in your niches and cities and prepares personal offers for your approval. Priced by quote.',
+          metaDescription: 'The Prospector AI agent finds suitable businesses in your niches and cities and prepares personal offers for your approval. Monthly subscription.',
         },
         presales: {
           title: 'Presales: proposals and quotes',
@@ -4232,11 +4188,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of templates and the complexity of quotes.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of templates and the complexity of quotes.',
             },
           ],
           metaTitle: 'Presales: an AI agent for proposals and quotes | Fir Tech',
-          metaDescription: 'The Presales AI agent turns a lead card into a proposal, a quote and a draft contract from your templates. You keep prices and contracts. Priced by quote.',
+          metaDescription: 'The Presales AI agent turns a lead card into a proposal, a quote and a draft contract from your templates. You keep prices and contracts. Monthly subscription.',
         },
         referral: {
           title: 'Referral agent',
@@ -4267,7 +4223,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of partners and the complexity of the rules.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of partners and the complexity of the rules.',
             },
           ],
           metaTitle: 'Referral agent: an AI agent for referral programs | Fir Tech',
@@ -4302,7 +4258,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the channels and the volume of requests.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the channels and the volume of requests.',
             },
           ],
           metaTitle: 'Support desk: an AI agent that answers customers | Fir Tech',
@@ -4337,11 +4293,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of sites and services.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of sites and services.',
             },
           ],
           metaTitle: 'Monitoring: an AI agent that watches your sites | Fir Tech',
-          metaDescription: 'The Monitoring AI agent checks that your sites and services are up and sends a Telegram alert the moment something fails. Can be taken alone. Price by quote.',
+          metaDescription: 'The Monitoring AI agent checks that your sites and services are up and sends an alert the moment something fails. Can be taken alone. Monthly subscription.',
         },
         billing: {
           title: 'Billing',
@@ -4372,11 +4328,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of subscriptions.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of subscriptions.',
             },
           ],
           metaTitle: 'Billing: an AI agent for invoices and reminders | Fir Tech',
-          metaDescription: 'The Billing AI agent prepares invoices and payment reminders for your subscriptions. Amounts and sending wait for your approval. Priced by quote.',
+          metaDescription: 'The Billing AI agent prepares invoices and payment reminders for your subscriptions. Amounts and sending wait for your approval. Monthly subscription.',
         },
         onboarding: {
           title: 'Onboarding',
@@ -4407,11 +4363,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the complexity of the instructions and the number of steps.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the complexity of the instructions and the number of steps.',
             },
           ],
           metaTitle: 'Onboarding: an AI agent for welcoming new customers | Fir Tech',
-          metaDescription: 'The Onboarding AI agent collects a new customer access and guides them through the first week by your instructions. Available on its own. Priced by quote.',
+          metaDescription: 'The Onboarding AI agent collects a new customer access and guides them through the first week by your instructions. Available on its own. Monthly subscription.',
         },
         'project-manager': {
           title: 'Project manager',
@@ -4442,11 +4398,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of stages and connected systems.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of stages and connected systems.',
             },
           ],
           metaTitle: 'Project manager: an AI agent for tasks and statuses | Fir Tech',
-          metaDescription: 'The Project manager AI agent turns a proposal into a brief and a plan and sends the client a status at each stage. Available on its own. Priced by quote.',
+          metaDescription: 'The Project manager AI agent turns a proposal into a brief and a plan and sends the client a status at each stage. Available on its own. Monthly subscription.',
         },
         'reviewer-qa': {
           title: 'Reviewer and QA',
@@ -4477,11 +4433,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the size of the projects and the number of checks.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the size of the projects and the number of checks.',
             },
           ],
           metaTitle: 'Reviewer and QA: an AI agent that checks the work | Fir Tech',
-          metaDescription: 'The Reviewer and QA AI agent checks a stage against the checklist, reads the code and prepares remarks before handover. Available on its own. Priced by quote.',
+          metaDescription: 'The Reviewer and QA AI agent checks a stage against the checklist, reads the code and makes remarks before handover. Can be taken alone. Monthly subscription.',
         },
         deployer: {
           title: 'Deployer',
@@ -4512,11 +4468,11 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of services and servers.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of services and servers.',
             },
           ],
           metaTitle: 'Deployer: an AI agent for server releases | Fir Tech',
-          metaDescription: 'The Deployer AI agent releases a finished build to your server or ours from templates and sends a report. Releases happen on your command. Priced by quote.',
+          metaDescription: 'The Deployer AI agent releases a finished build to your server or ours from templates and sends a report. Releases happen on your command. Monthly subscription.',
         },
         documents: {
           title: 'Documents',
@@ -4547,7 +4503,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the number of templates and kinds of documents.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of templates and kinds of documents.',
             },
           ],
           metaTitle: 'Documents: an AI agent for contracts and templates | Fir Tech',
@@ -4582,7 +4538,7 @@ const en: Dict = {
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the volume of materials.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the volume of materials.',
             },
           ],
           metaTitle: 'Knowledge base: an AI agent for policies and lessons | Fir Tech',
@@ -4591,37 +4547,37 @@ const en: Dict = {
         director: {
           title: 'Director: the managing agent',
           headline: 'You run the company from one chat',
-          promise: 'The one agent you talk to: hands tasks to the departments and collects the approvals and the morning summary.',
+          promise: 'The one agent you talk to: hands tasks to the teams and collects the approvals and the morning summary.',
           does: [
             'Takes your tasks in one chat',
-            'Hands them to the department heads',
+            'Hands them to the team heads',
             'Collects the queue of approvals in one place',
-            'Sends a morning summary across all departments',
+            'Sends a morning summary across all teams',
           ],
           needs: [
-            'At least one department or a few agents',
+            'At least one team or a few agents',
             'The Director chat in Telegram (we create it together)',
             'Rules: what only you decide',
           ],
-          worksNote: 'The Director needs at least one department. Without working agents there is nothing to assign. It plugs into what already runs.',
+          worksNote: 'The Director needs at least one team. Without working agents there is nothing to assign. It plugs into what already runs.',
           alone: 'Assigns tasks and compiles the summary.',
           waits: 'Money, prices and contracts stay with you. The Director makes no decisions about them.',
           faq: [
             {
               q: 'Can I take the Director alone?',
-              a: 'No. It needs at least one department or a few agents, otherwise there is nothing to manage.',
+              a: 'No. It needs at least one team or a few agents, otherwise there is nothing to manage.',
             },
             {
               q: 'How does it differ from the whole company?',
-              a: 'The whole company includes every department and the control panel. The Director plugs into the departments you choose.',
+              a: 'The whole company includes every team and the control panel. The Director plugs into the teams you choose.',
             },
             {
               q: 'How much does it cost?',
-              a: 'We quote the price after a short call. It depends on the set of departments and connected systems.',
+              a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the set of teams and connected systems.',
             },
           ],
-          metaTitle: 'Director: the managing AI agent for departments | Fir Tech',
-          metaDescription: 'The Director hands tasks to AI agent departments, collects the approval queue and the morning summary. It plugs into the departments you choose.',
+          metaTitle: 'Director: the managing AI agent for teams | Fir Tech',
+          metaDescription: 'The Director hands tasks to AI agent teams, collects the approval queue and the morning summary. It plugs into the teams you choose.',
         },
       },
     },
@@ -4635,7 +4591,7 @@ const en: Dict = {
         forWhom: 'Small businesses and studios without a marketer or time for regular content.',
         metaTitle: 'A marketing team of AI agents | Fir Tech',
         metaDescription:
-          'Trend scout, content maker, publisher and analyst: reels, carousels, articles and a weekly plan. You approve in Telegram. Price by quote, in your Telegram.',
+          'Trend scout, content maker, publisher and analyst: reels, carousels, articles and a weekly plan. You approve in Telegram. Monthly subscription.',
         agents: [
           { name: 'Trend Scout', does: 'Collects rising topics and formats from social networks and search every day for the content maker.', trust: 'auto' },
           { name: 'Content Maker', does: 'Makes reels, carousels and articles from topics and trends in the languages you need.', trust: 'propose' },
@@ -4658,7 +4614,7 @@ const en: Dict = {
           { q: 'Do the agents publish without my permission?', a: 'Not by default. The content maker and the publisher send each batch to you for approval. Working alone is switched on only by your decision.' },
           { q: 'Which channels can be connected?', a: 'YouTube Shorts are uploaded automatically. Instagram, Telegram and other platforms go through a posting queue, and publishing depends on the access the platform gives. We do not connect VK yet. The exact list for your team is fixed in the quote.' },
           { q: 'Do agents make video too?', a: 'Reels are part of the scope. Complex videos are built by our developers as a separate task, and the quote says so.' },
-          { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the team and the number of channels.' },
+          { q: 'How much does it cost?', a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the team and the number of channels.' },
         ],
       },
       sales: {
@@ -4670,7 +4626,7 @@ const en: Dict = {
         forWhom: 'Service businesses and shops where requests arrive in messengers and some get lost.',
         metaTitle: 'A sales team of AI agents | Fir Tech',
         metaDescription:
-          'Lead manager, prospector, proposals and quotes, nudges for silent clients. Prices and contracts stay with you. Price by quote, delivered in your Telegram.',
+          'Lead manager, prospector, proposals and quotes, nudges for silent clients. Prices and contracts stay with you. Monthly subscription, in your channels.',
         agents: [
           { name: 'Lead manager', does: 'Answers the first message, asks clarifying questions, offers a call slot and creates the lead card. Nudges those who went quiet.', trust: 'both' },
           { name: 'Prospector', does: 'Collects suitable businesses in the niches and cities you choose and prepares a personal offer.', trust: 'propose' },
@@ -4692,7 +4648,7 @@ const en: Dict = {
           { q: 'Does the agent quote prices to clients?', a: 'No. You decide prices, estimates and contracts. The agent prepares a draft and waits for approval.' },
           { q: 'Does the prospector write to people on its own?', a: 'It collects a list and prepares the offer text. Sending happens after your approval.' },
           { q: 'What if the agent does not know the answer?', a: 'The team can hand a question over to the owner. We agree with you at the start when that should happen.' },
-          { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the channels and the volume of requests.' },
+          { q: 'How much does it cost?', a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the channels and the volume of requests.' },
         ],
       },
       support: {
@@ -4704,7 +4660,7 @@ const en: Dict = {
         forWhom: 'Companies with regular clients, subscriptions or project support.',
         metaTitle: 'A support team of AI agents | Fir Tech',
         metaDescription:
-          'Tickets, a base of answers, reply deadlines, monitoring, invoices and payment reminders. Agents prepare, you approve. Price by quote, in your Telegram.',
+          'Tickets, a base of answers, reply deadlines, monitoring, invoices and payment reminders. Agents prepare, you approve. Monthly subscription, in your channels.',
         agents: [
           { name: 'Customer Support', does: 'Answers questions from the base of replies, keeps tickets with reply deadlines (SLA) and passes hard cases to you.', trust: 'propose' },
           { name: 'Monitoring', does: 'Watches your sites and services and sends an alert when something breaks.', trust: 'auto' },
@@ -4738,7 +4694,7 @@ const en: Dict = {
         forWhom: 'Studios and teams that build projects to order and lose time on statuses and approvals.',
         metaTitle: 'A production team of AI agents: projects and stages | Fir Tech',
         metaDescription:
-          'A project manager runs briefs, stages and client statuses, a reviewer prepares remarks for acceptance. Doers work separately. Priced by quote, in your Telegram.',
+          'A project manager runs briefs, stages and client statuses, a reviewer prepares remarks for acceptance. Doers work separately. Monthly subscription.',
         agents: [
           { name: 'Project Manager', does: 'Builds the brief, the plan and the tasks from a signed proposal and sends the client a status for each stage.', trust: 'propose' },
           { name: 'Reviewer', does: 'Checks the result of a stage against a checklist and prepares remarks before hand-over.', trust: 'propose' },
@@ -4758,7 +4714,7 @@ const en: Dict = {
         faq: [
           { q: 'Do the agents write code or do design?', a: 'No, the team organizes the work. The doers stay yours, or we discuss them as a separate task.' },
           { q: 'Does the client talk to an agent?', a: 'The client gets statuses and questions by stage. What the agent writes itself and what goes through you, we set up together.' },
-          { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the number of stages and connected systems.' },
+          { q: 'How much does it cost?', a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the number of stages and connected systems.' },
         ],
       },
       backoffice: {
@@ -4770,7 +4726,7 @@ const en: Dict = {
         forWhom: 'Owners whose paperwork piles up in personal folders and in their heads.',
         metaTitle: 'A back office of AI agents: documents and reports | Fir Tech',
         metaDescription:
-          'Documents from your templates, a knowledge base and monthly reports on costs and income. Signing and money stay with you. Priced by quote, in your Telegram.',
+          'Documents from your templates, a knowledge base and monthly reports on costs and income. Signing and money stay with you. Monthly subscription.',
         agents: [
           { name: 'Documents', does: 'Prepares contracts, offers, policies and proposals from your templates.', trust: 'propose' },
           { name: 'Finance', does: 'Counts costs and income, watches limits and sends a monthly report.', trust: 'both' },
@@ -4803,11 +4759,11 @@ const en: Dict = {
         forWhom: 'An owner who wants to run a company from Telegram and not keep ten processes in mind.',
         metaTitle: 'A company of AI agents: the Director and every team | Fir Tech',
         metaDescription:
-          'A Director, marketing, sales, support, production and back office teams, a control panel and owner approvals. A separate HQ in your Telegram. Price by quote.',
+          'A Director, marketing, sales, support, production and back office teams, a control panel and owner approvals. Its own HQ. Monthly subscription.',
         agents: [
           { name: 'Director', does: 'The only agent you talk to. Hands tasks to the teams and collects the morning summary.', trust: 'auto' },
           { name: 'Team heads', does: 'Each team has a head. It writes to you itself only with a summary, a batch for approval and alerts.', trust: 'auto' },
-          { name: 'Doers', does: 'The roles of all five departments: trend scout, lead manager, support, project manager, documents and others.', trust: 'propose' },
+          { name: 'Doers', does: 'The roles of all five teams: trend scout, lead manager, support, project manager, documents and others.', trust: 'propose' },
           { name: 'Control panel', does: 'The owner panel: who is doing what, the approval queue, events and costs.', trust: 'auto' },
         ],
         routines: [
@@ -4826,7 +4782,7 @@ const en: Dict = {
           { q: 'Do I have to take everything at once?', a: 'No. You can start with one team and add the rest later, and the Director and the panel connect to what already works.' },
           { q: 'How is it different from a set of teams?', a: 'The Director, one approval queue and a shared summary. Separate teams each work in their own chat.' },
           { q: 'Who sets the rules?', a: 'We do, together with you, at the start. The rules are written down and changed on your word.' },
-          { q: 'How much does it cost?', a: 'We name the price by quote after a short call. It depends on the set of teams and the connected systems.' },
+          { q: 'How much does it cost?', a: 'The setup and the monthly payment are on this page. The exact sum is confirmed in the quote and depends on the set of teams and the connected systems.' },
         ],
       },
     },

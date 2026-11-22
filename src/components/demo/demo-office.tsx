@@ -4,9 +4,9 @@ import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
 import { useOfficeFeed } from '../live/use-office-feed'
 
-// The «ИИ-отдел» demo tab: the live office counts of our own company (GET /api/office/public through
+// The «ИИ вашей компании» demo tab: the live office counts of our own company (GET /api/office/public through
 // the shared feed), counters only, labelled as demo data when HQ is not answering.
-export function DemoOffice({ copy, live }: { copy: Dict['demoSection']['implementation']; live: Dict['proof']['live'] }) {
+export function DemoOffice({ copy, live }: { copy: Dict['demoSection']['company']; live: Dict['proof']['live'] }) {
   const { data } = useOfficeFeed()
   const counts = data?.counts
   const rows = [

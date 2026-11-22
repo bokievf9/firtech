@@ -90,7 +90,7 @@ export default async function PayHowPage({ params }: PageProps<'/[locale]/pay-ho
               <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
             {telegramUrl && (
-              <a href={telegramUrl} data-place="pay_how" target="_blank" rel="noopener noreferrer" className={buttonStyles.secondary}>
+              <a href={telegramUrl} data-place="pay_how" className={buttonStyles.secondary}>
                 <TelegramLogo size={18} weight="fill" />
                 {t.ctaTelegram} {telegramHandle}
               </a>

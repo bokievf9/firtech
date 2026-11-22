@@ -1,7 +1,7 @@
 'use client'
 
 import { PanelError, PanelWait } from './panel-error'
-import { Check, LockSimple, PencilSimple, SealCheck, X } from '@phosphor-icons/react'
+import { Check, LockSimple, PencilSimple, X } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
@@ -11,8 +11,6 @@ import { cn } from '@/lib/cn'
 import { approvalsView, sameId, type Approval, type Id } from '@/lib/hq-admin-view'
 import { formatDuration, minutesSince } from '@/lib/office-view'
 import { fill } from './api'
-import { CcPanel } from './cc-panel'
-
 const t = admin.cc.approvals
 const deptName = (id: string) => (admin.office.depts as Record<string, string>)[id] ?? id
 
@@ -267,12 +265,3 @@ export function ApprovalsSection({ items, error, now, focus, queued, onAct, onEd
   )
 }
 
-export function ApprovalsPanel({ badge, className, ...rest }: ApprovalsProps & { badge: string | null; className?: string }) {
-  return (
-    <CcPanel id="approvals" title={t.title} icon={<SealCheck size={18} aria-hidden="true" />} badge={badge} className={className}>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 lg:max-h-[30rem] min-[120rem]:max-h-[46rem]">
-        <ApprovalsSection {...rest} />
-      </div>
-    </CcPanel>
-  )
-}

@@ -277,21 +277,6 @@ test('weeks: ISO weeks in the company zone, shifting across a year end', () => {
 
 // ---- metrics, company, support, palette ---------------------------------------------------------
 
-test('metrics: zeros for missing data, deltas against the previous week', () => {
-  const m = p.normalizeMetrics({ week: '2026-W47', site: { chat_open: 10, hacker: 5 }, funnel: { leads: 10, paid: 2 }, prevWeek: { week: '2026-W46', site: { chat_open: 5 } } })
-  assert.equal(m.site.chat_open, 10)
-  assert.equal(m.site.lead_sent, 0)
-  assert.equal('hacker' in m.site, false)
-  assert.equal(m.prev.site.chat_open, 5)
-  assert.deepEqual(p.delta(10, 5), { diff: 5, pct: 100 })
-  assert.deepEqual(p.delta(3, 0), { diff: 3, pct: null })
-  assert.equal(p.delta(3, null), null)
-  const shares = p.funnelShares(m.funnel)
-  assert.equal(shares[0].share, 1)
-  assert.equal(shares.find((s) => s.key === 'paid').share, 0.2)
-  assert.equal(p.normalizeMetrics({}).prev, null)
-})
-
 test('company: routines, limits (0 = none), trust, empty playbooks', () => {
   const c = p.normalizeCompany({
     routines: [{ name: 'marketing-article-daily', enabled: false }, { name: '../bad' }],
@@ -307,17 +292,6 @@ test('company: routines, limits (0 = none), trust, empty playbooks', () => {
   assert.deepEqual(c.trust, [{ kind: 'billing_invoice', level: 1, locked: true, approvals: 0 }])
   assert.deepEqual(c.playbooks, [])
   assert.equal(c.workers[0].id, 'renderer')
-})
-
-test('support: SLA of 4 hours from creation, only for open tickets', () => {
-  const open = { status: 'open', createdAt: new Date(NOW - 3 * 3_600_000).toISOString() }
-  assert.equal(p.slaLeft(open, NOW), 3_600_000)
-  assert.equal(p.slaText(p.slaLeft(open, NOW)), 'осталось 1 ч 00 мин')
-  assert.equal(p.slaText(-25 * 60_000), 'просрочен на 25 мин')
-  assert.equal(p.slaLeft({ ...open, status: 'answered' }, NOW), null)
-  assert.equal(p.slaLeft({ status: 'open', createdAt: null }, NOW), null)
-  const t = p.normalizeSupportTickets({ available: true, items: [{ id: 3, status: 'answered', answer: 'да' }, { id: 4, status: 'open' }] })
-  assert.deepEqual(t.items.map((x) => x.answer), ['да', null])
 })
 
 test('palette: every word must match, title starts rank first, ё equals е', () => {
@@ -361,13 +335,13 @@ test('proxy v3: no session 401; bodies checked; client ids and 4-segment paths a
   assert.equal((await hqCall('POST', ['crm', 'invoices', '5'], { body: { action: 'refund' } })).status, 400)
   assert.equal((await hqCall('POST', ['content', 'a12'], { body: { action: 'revise' } })).status, 400)
   assert.equal((await hqCall('POST', ['content', 'a12'], { body: { action: 'revise', note: 'короче' } })).status, 200)
-  assert.equal((await hqCall('POST', ['company', 'routines', 'marketing-article-daily', 'run'], { body: {} })).status, 200)
-  assert.equal((await hqCall('POST', ['company', 'trust', 'billing_invoice'], { body: { level: 2 } })).status, 400)
+  // The company routes the old office used (routines, trust, playbooks) are not in the whitelist any more.
+  assert.equal((await hqCall('POST', ['company', 'routines', 'marketing-article-daily', 'run'], { body: {} })).status, 404)
+  assert.equal((await hqCall('POST', ['company', 'trust', 'billing_invoice'], { body: { level: 1 } })).status, 404)
   assert.equal((await hqCall('GET', ['company', 'secrets'])).status, 404)
   // The token is sent to HQ and never returned; the client id is encoded on the way.
   assert.ok(seen.every(([, , , token]) => token === 'secret-admin'))
   assert.ok(seen.some(([url]) => url === 'http://hq.test/admin/crm/clients/c%3A%D0%B1%D0%BE%D0%B1'))
-  assert.ok(seen.some(([url]) => url === 'http://hq.test/admin/company/routines/marketing-article-daily/run'))
   const res = await hqCall('GET', ['hub'])
   assert.doesNotMatch(await res.text(), /secret-admin/)
 })
@@ -375,10 +349,10 @@ test('proxy v3: no session 401; bodies checked; client ids and 4-segment paths a
 test('proxy v3: HQ refusal reasons pass through as a short code', async () => {
   process.env.HQ_ADMIN_URL = 'http://hq.test/admin'
   globalThis.fetch = async () => new Response(JSON.stringify({ ok: false, error: 'not_started', reason: 'disabled' }), { status: 409 })
-  const res = await proxy.callHqAdmin('POST', 'company/routines/x/run', { body: {} })
+  const res = await proxy.callHqAdmin('POST', 'processes/drill', { body: { action: 'start' } })
   assert.deepEqual(res, { ok: false, error: 'not_started', reason: 'disabled' })
   globalThis.fetch = async () => new Response(JSON.stringify({ ok: false, error: 'x', reason: '<b>long text</b>' }), { status: 409 })
-  assert.deepEqual(await proxy.callHqAdmin('POST', 'company/routines/x/run', { body: {} }), { ok: false, error: 'x' })
+  assert.deepEqual(await proxy.callHqAdmin('POST', 'processes/drill', { body: { action: 'start' } }), { ok: false, error: 'x' })
 })
 
 test('file proxy: session required, paths outside the renders refused, range and type passed', async () => {
@@ -442,7 +416,6 @@ test('mock: the v3 endpoints answer in the contract shape and keep state', () =>
   assert.equal(week.days.length, 7)
   const item = week.days[0].items[0]
   assert.equal(p.normalizeContentItem(post(`content/${item.id}`, { action: 'approve' })).status, 'approved')
-  assert.equal(p.normalizeMetrics(get('metrics/week', { week: '2026-W46' })).week, '2026-W46')
   const company = p.normalizeCompany(get('company'))
   assert.ok(company.routines.length && company.trust.length)
   assert.equal(post('company/routines/support-sla-watch/run', {}).error, 'not_started')
@@ -471,7 +444,6 @@ test('copy: hub and CRM panel strings are Russian, filled, without long dashes o
     for (const tab of p.PANEL_TABS[panel]) assert.ok(admin.hub.tabs[tab], tab)
   }
   for (const s of p.ALL_LEAD_STAGES) assert.ok(admin.pult.leads.stages[s], s)
-  for (const e of p.SITE_EVENTS) assert.ok(admin.pult.metrics.events[e], e)
 })
 
 // ---- follow-ups (2026-11-20) --------------------------------------------------------------------
@@ -518,17 +490,6 @@ test('support: ticket clientId and the search fallback', () => {
   assert.equal(p.pickTicketClient([], { contact: 'a', clientName: 'b' }), null)
 })
 
-test('metrics: week-to-week sparkline until HQ sends days, daily after', () => {
-  const base = { week: '2026-W47', site: { chat_open: 5 }, prevWeek: { site: { chat_open: 2 } } }
-  const m = p.normalizeMetrics(base)
-  assert.equal(m.days, null)
-  assert.deepEqual(p.eventSeries(m, 'chat_open'), { values: [2, 5], daily: false })
-  const daily = p.normalizeMetrics({ ...base, days: [{ date: '2026-11-17', site: { chat_open: 1 } }, { date: '2026-11-18', chat_open: 4 }, { date: 'bad' }, null] })
-  assert.deepEqual(p.eventSeries(daily, 'chat_open'), { values: [1, 4], daily: true })
-  assert.equal(p.normalizeMetrics({ ...base, days: [{ date: '2026-11-17' }] }).days, null, 'one day is no series')
-  assert.equal(p.normalizeMetrics({ ...base, days: 'x' }).days, null)
-})
-
 test('content: profile kit items carry three sections split into copyable blocks', () => {
   const item = p.normalizeContentItem({ item: { id: 9, kind: 'profile', platform: 'all', status: 'pending', kit: { instagram: 'Био: a\nСсылка: b\n\nАктуальное:\n1. x', youtube: 'Название: Fir', tiktok: '  ' } } })
   assert.equal(item.kind, 'profile')
@@ -553,25 +514,6 @@ test('mock: tools, a profile kit and a ticket with clientId are served', () => {
 
 // ---- playbooks, days (2026-11-20) ---------------------------------------------------------------
 
-test('playbooks: list with source skills, text body, role guard', async () => {
-  const c = p.normalizeCompany({ ok: true, playbooks: [{ role: 'seo', updatedAt: '2026-11-20T09:00:00.000Z', lines: 48, sourceSkills: ['seo-audit', 'ai-seo', 5, 'bad skill!'] }, { role: 'analyst', lines: 3 }, { lines: 2 }] })
-  assert.deepEqual(c.playbooks.map((x) => [x.role, x.lines, x.sourceSkills]), [['seo', 48, ['seo-audit', 'ai-seo']], ['analyst', 3, []]])
-  assert.deepEqual(p.normalizePlaybookText({ ok: true, role: 'seo', text: '# A' }), { role: 'seo', text: '# A' })
-  assert.equal(p.normalizePlaybookText({ ok: true, role: 'seo', text: '  ' }), null)
-  assert.equal(p.normalizePlaybookText({ ok: true, role: '../x', text: 'a' }), null)
-  assert.equal(p.normalizePlaybookText(null), null)
-})
-
-test('playbooks: proxy route allows GET of a role only', async () => {
-  const proxy = await import(new URL('lib/hq-admin.ts', src).href)
-  const q = new URLSearchParams()
-  assert.equal(proxy.resolveEndpoint('GET', ['company', 'playbooks', 'content-maker'], q, undefined).ok, true)
-  for (const bad of [['company', 'playbooks'], ['company', 'playbooks', 'A_b'], ['company', 'playbooks', '..'], ['company', 'playbooks', 'seo', 'x']]) {
-    assert.equal(proxy.resolveEndpoint('GET', bad, q, undefined).ok, false, bad.join('/'))
-  }
-  assert.equal(proxy.resolveEndpoint('POST', ['company', 'playbooks', 'seo'], q, {}).ok, false)
-})
-
 test('markdown-lite: blocks, tables, code and no raw HTML', async () => {
   const { parseMarkdown } = await import(new URL('lib/markdown-lite.ts', src).href)
   const b = parseMarkdown('# T\n\ntext **b** `c` <b>x</b>\n\n- a\n- b\n\n1. one\n2. two\n\n| A | B |\n|---|---|\n| 1 | 2 |\n\n```\ncode <i>\n```\n\n[l](javascript:alert(1))')
@@ -585,29 +527,3 @@ test('markdown-lite: blocks, tables, code and no raw HTML', async () => {
   assert.equal(JSON.stringify(b[6]).includes('javascript'), false, 'link targets are dropped')
 })
 
-test('metrics days: blog hits and leads per day, bars', () => {
-  const base = { week: '2026-W47', site: { chat_open: 5 }, prevWeek: {} }
-  const days = [{ date: '2026-11-16', site: { chat_open: 1 }, blog: { hits: 4 }, leads: 2 }, { date: '2026-11-17', site: { chat_open: 3 }, blog: { hits: 0 }, leads: 0 }]
-  const m = p.normalizeMetrics({ ...base, days })
-  assert.deepEqual(p.daySeries(m, 'chat_open'), [{ date: '2026-11-16', value: 1 }, { date: '2026-11-17', value: 3 }])
-  assert.deepEqual(p.daySeries(m, 'blogHits').map((d) => d.value), [4, 0])
-  assert.deepEqual(p.daySeries(m, 'leads').map((d) => d.value), [2, 0])
-  assert.equal(p.daySeries(p.normalizeMetrics(base), 'leads'), null)
-})
-
-test('playbooks: mock serves list, text and 404; new copy is clean', async () => {
-  const mock = createHqMock(NOW)
-  const company = p.normalizeCompany(mock('GET', 'company', {}, {}, NOW))
-  assert.ok(company.playbooks.every((x) => p.playbookRoleOk(x.role)))
-  const role = company.playbooks[0].role
-  assert.equal(p.normalizePlaybookText(mock('GET', `company/playbooks/${role}`, {}, {}, NOW)).role, role)
-  assert.equal(mock('GET', 'company/playbooks/nope', {}, {}, NOW).error, 'not_found')
-  const weekDays = p.normalizeMetrics(mock('GET', 'metrics/week', {}, {}, NOW)).days
-  assert.equal(weekDays.length, 7)
-  for (const key of ['playbookHint', 'playbookUpdated', 'playbookSources', 'playbookOpen', 'dailyFor']) {
-    const text = admin.pult.company[key] ?? admin.pult.metrics[key]
-    assert.ok(text, key)
-    assert.doesNotMatch(text, /[–—]/, `${key}: no long dashes`)
-  }
-  assert.match(admin.pult.company.playbookHint, /строител/)
-})

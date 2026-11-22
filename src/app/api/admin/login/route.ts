@@ -1,20 +1,40 @@
 import 'server-only'
 import { NextResponse } from 'next/server'
-import { LOGIN_COOKIE, verifyCode } from '@/lib/admin-auth'
-import { guard, readCookie, sessionCookie } from '@/lib/admin-guard'
+import { loginWithPassword, PASSWORD_BODY_LIMIT } from '@/lib/admin-auth'
+import { guard, sessionCookie } from '@/lib/admin-guard'
+import { visitorIp } from '@/lib/public-post'
 
-// Code check, only from the browser that asked for the code (its login cookie). On success the
-// session cookie is set (httpOnly, strict, secure in production) and the login cookie is cleared.
+const headers = { 'cache-control': 'no-store' }
+const answer = (status: number, body: Record<string, unknown>) =>
+  NextResponse.json(body, { status, headers })
+
+// Password login: JSON `{ password }` from a page of this site. On success the session cookie is set
+// (httpOnly, strict, secure in production). Answers: 200, 401 wrong, 429 too many (retryAfter in
+// seconds), 503 not_configured (no valid ADMIN_PASSWORD_HASH), 403 bad_origin, 415, 400.
 export async function POST(request: Request) {
   const denied = await guard(request, { session: false })
   if (denied) return denied
-  const body = (await request.json().catch(() => null)) as { code?: unknown } | null
-  const code = typeof body?.code === 'string' ? body.code.slice(0, 20) : ''
-  const result = await verifyCode(code, Date.now(), readCookie(request, LOGIN_COOKIE) ?? '')
-  const headers = { 'cache-control': 'no-store' }
-  if (!result.ok) return NextResponse.json(result, { status: 400, headers })
-  const response = NextResponse.json({ ok: true }, { headers })
-  response.cookies.set(sessionCookie(result.token, result.expiresAt))
-  response.cookies.set({ name: LOGIN_COOKIE, value: '', path: '/api/admin', maxAge: 0 })
-  return response
+  const type = request.headers.get('content-type') ?? ''
+  if (!/^application\/json\s*(;|$)/i.test(type)) return answer(415, { ok: false, error: 'unsupported_media_type' })
+  const text = await request.text().catch(() => '')
+  if (text.length > PASSWORD_BODY_LIMIT) return answer(400, { ok: false, error: 'bad_request' })
+  let password: unknown
+  try {
+    password = (JSON.parse(text) as { password?: unknown } | null)?.password
+  } catch {
+    return answer(400, { ok: false, error: 'bad_request' })
+  }
+  const result = await loginWithPassword(password, { ip: visitorIp(request.headers) })
+  if (result.ok) {
+    const response = answer(200, { ok: true })
+    response.cookies.set(sessionCookie(result.token, result.expiresAt))
+    return response
+  }
+  if (result.error === 'not_configured') return answer(503, result)
+  if (result.error === 'too_many') {
+    const response = answer(429, result)
+    response.headers.set('retry-after', String(result.retryAfter))
+    return response
+  }
+  return answer(401, result)
 }

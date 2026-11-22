@@ -16,8 +16,12 @@ type Catalog = { variants: Record<string, number>; addons: Record<string, number
 export const personalLevels = ['basic', 'plus', 'max'] as const
 export type PersonalLevel = (typeof personalLevels)[number]
 export type PlanId = PersonalLevel | 'company' | 'content' | 'dono' | 'polly'
-export type Plan = { id: PlanId; setup: number; monthly: number }
+// `byokMonthly` (owner 2026-11-22): every AI product is a subscription, one-time setup plus a monthly fee that
+// includes the model usage (we connect our own Anthropic account). With «свой API-ключ» (BYOK) the client brings
+// the key and the monthly fee is lower. Only the AI products carry it.
+export type Plan = { id: PlanId; setup: number; monthly: number; byokMonthly?: number }
 export type PlanAmounts = { setup: number; monthly: number }
+export type Subscription = { setup: number; monthly: number; byokMonthly: number }
 
 // `company` (2026-11-22): the AI company, four stages like an app. Templates are only ever appended.
 export const stageTemplateIds = ['site', 'bot', 'automation', 'app', 'small', 'company'] as const
@@ -53,9 +57,9 @@ const stageTitles: Record<StageTemplateId, { id: string; title: { ru: string; en
     { id: 'launch', title: { ru: 'Запуск', en: 'Launch' } },
   ],
   company: [
-    { id: 'map', title: { ru: 'Карта компании и Директор', en: 'Company map and the Director' } },
-    { id: 'depts', title: { ru: 'Первые отделы на ваших данных', en: 'First departments on your data' } },
-    { id: 'pult', title: { ru: 'Пульт, база знаний и каналы', en: 'Control room, knowledge base and channels' } },
+    { id: 'map', title: { ru: 'Знакомство: бизнес, данные и правила', en: 'Getting to know the business, data and rules' } },
+    { id: 'depts', title: { ru: 'Первые навыки на ваших задачах', en: 'First skills on your tasks' } },
+    { id: 'pult', title: { ru: 'База знаний, Пульт и каналы', en: 'Knowledge base, control room and channels' } },
     { id: 'launch', title: { ru: 'Обучение команды и запуск', en: 'Team training and launch' } },
   ],
 }
@@ -72,8 +76,14 @@ export type Pricing = {
   extras: { support: number; seo: number; design: number; rescue: number }
   // Flagships (owner 2026-11-22): «Персональный ИИ» in three levels (connected services and memory) and
   // «ИИ-компания» (a starting setup and monthly, the exact sum by the quote).
-  personalPlans: Record<PersonalLevel, PlanAmounts>
-  companyPlan: Record<'company', PlanAmounts>
+  personalPlans: Record<PersonalLevel, Subscription>
+  companyPlan: Record<'company', Subscription>
+  // One AI agent (any role) as a subscription, and the rest of the subscription model (2026-11-22): a team is the sum
+  // of its agents minus `teamDiscount` percent; the AI company adds `companyPerEmployee` a month for every employee
+  // above `companyIncludedStaff` (a fact of the offer, not a price).
+  agentSubscription: Subscription
+  teamDiscount: number
+  companyPerEmployee: number
   // DEPRECATED 2026-11-22: Dono and Polly are not sold any more (no link from the site). Kept because HQ's
   // price schema still requires `agentPlans.dono|polly` in GET /api/prices; drop it after HQ stops reading it.
   agentPlans: Record<'dono' | 'polly', PlanAmounts>
@@ -111,11 +121,17 @@ export const defaultPricing: Pricing = {
   // levels are the builder's proposal pending the owner's word (editable in the Пульт). The AI company
   // starts at $1,490 setup + $149 a month, the exact sum is set by the quote.
   personalPlans: {
-    basic: { setup: 290, monthly: 29 },
-    plus: { setup: 490, monthly: 49 },
-    max: { setup: 790, monthly: 79 },
+    basic: { setup: 290, monthly: 29, byokMonthly: 14 },
+    plus: { setup: 490, monthly: 59, byokMonthly: 34 },
+    max: { setup: 790, monthly: 99, byokMonthly: 59 },
   },
-  companyPlan: { company: { setup: 1490, monthly: 149 } },
+  // Subscription defaults (owner 2026-11-22, editable in the Пульт): one agent from $220 + $39 a month ($19 with the
+  // client's own key); a team is its agents' sum minus 15%; the AI company $1,490 + $149 a month and $9 for every
+  // employee above five, the own-key monthly is about 30% lower.
+  companyPlan: { company: { setup: 1490, monthly: 149, byokMonthly: 104 } },
+  agentSubscription: { setup: 220, monthly: 39, byokMonthly: 19 },
+  teamDiscount: 15,
+  companyPerEmployee: 9,
   // Personal agents (owner decision 2026-11-19, retired from sale 2026-11-22): Dono, a study assistant, and Polly, a language
   // teacher. Content on autopilot: setup of the channels and the plan, then posts every month.
   agentPlans: { dono: { setup: 150, monthly: 15 }, polly: { setup: 100, monthly: 10 } },
@@ -180,6 +196,40 @@ export function companyPlanOf(pricing: Pricing = defaultPricing): Plan {
   return { id: 'company', ...pricing.companyPlan.company }
 }
 
+// Employees the AI company's monthly fee covers; every one above costs `companyPerEmployee` a month more.
+export const companyStaffIncluded = 5
+
+// The AI company's monthly fee for a staff size, with Fira on our key or on the client's own key (BYOK). The extra
+// per employee shrinks in the same proportion as the plan's own-key monthly.
+export function companyMonthly(staff: number, byok: boolean, pricing: Pricing = defaultPricing): number {
+  const plan = pricing.companyPlan.company
+  const extra = Math.max(0, Math.floor(staff) - companyStaffIncluded) * pricing.companyPerEmployee
+  if (!byok) return plan.monthly + extra
+  return plan.byokMonthly + Math.round(plan.monthly > 0 ? (extra * plan.byokMonthly) / plan.monthly : extra)
+}
+
+// One agent: setup, monthly and own-key monthly.
+export function agentSubscriptionOf(pricing: Pricing = defaultPricing): Subscription {
+  return { ...pricing.agentSubscription }
+}
+
+// A team of `count` agents: the sum of its agents minus the team discount (rounded to whole dollars). `full` is the
+// sum before the discount, to show what the discount saves.
+export type TeamSubscription = Subscription & { count: number; discountPercent: number; full: Subscription }
+export function teamSubscription(count: number, pricing: Pricing = defaultPricing): TeamSubscription {
+  const a = pricing.agentSubscription
+  const full: Subscription = { setup: a.setup * count, monthly: a.monthly * count, byokMonthly: a.byokMonthly * count }
+  const k = 1 - pricing.teamDiscount / 100
+  return {
+    setup: Math.round(full.setup * k),
+    monthly: Math.round(full.monthly * k),
+    byokMonthly: Math.round(full.byokMonthly * k),
+    count,
+    discountPercent: pricing.teamDiscount,
+    full,
+  }
+}
+
 export function contentPlanList(pricing: Pricing = defaultPricing): Plan[] {
   return [{ id: 'content', ...pricing.contentPlans.content }]
 }
@@ -215,6 +265,7 @@ export const agentPlans = agentPlanList(defaultPricing)
 export const contentPlans = contentPlanList(defaultPricing)
 export const personalPlans = personalPlanList(defaultPricing)
 export const companyPlan = companyPlanOf(defaultPricing)
+export const agentSubscription = agentSubscriptionOf(defaultPricing)
 export const bundleDiscount = defaultPricing.bundleDiscount / 100
 export const referralPercent = defaultPricing.referralPercent
 export const smallProjectMaxUsd = defaultPricing.smallProjectMaxUsd

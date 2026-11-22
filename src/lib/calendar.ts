@@ -126,6 +126,6 @@ export function calendarHref(link: string): string | null {
     case 'content':
       return `/admin/content?tab=feed&focus=${id}`
     default:
-      return '/admin/office?panel=company&tab=company'
+      return '/admin/agents'
   }
 }

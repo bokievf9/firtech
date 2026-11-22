@@ -3,7 +3,7 @@
 Owner, 2026-11-21: «протестировать каждый процесс, каждую кнопку» before go-live. This is the list of
 every user-facing action of the public site and the owner panel, how each one is verified and where it
 stands. Elements were collected from the live DOM (Playwright against the dev mocks) and from
-`src/components/admin/{hub,pult,control,golive}`; if you add a button, add a row.
+`src/components/admin/{hq,office,shell-crm,control,golive}`; if you add a button, add a row.
 
 ## How it is verified
 
@@ -68,14 +68,11 @@ Legend of `E:` tags (file : test title):
 | `E:chat-api` | flows.spec : «chat API: validation (400) and mock answer (200)» |
 | `E:service` | flows.spec : «service page: the format link «Собрать проект: …» opens the builder with that format» |
 | `E:solution` | flows.spec : «solution page opens the builder with its preset» |
-| `E:adm-login` | admin.spec : «admin login page renders the code form for a visitor without a session» |
+| `E:adm-login` | admin.spec : «admin login page says the password is not set up when ADMIN_PASSWORD_HASH is missing» |
 | `E:adm-guard` | admin.spec : «admin pages and API refuse a visitor without a session» |
-| `E:hub` | admin.spec : «hub loads with counters, presence switch and the office» (also the phone variant «hub fits a phone») |
-| `E:keys` | admin.spec : «keys 1-7 open the panels, Esc closes, 8 opens the go-live page» |
-| `E:tabs` | admin.spec : «panel tabs switch and the counters open their panels» |
-| `E:panels` | admin.spec : «every department panel renders its tabs without console errors» |
-| `E:director` | admin.spec : «Director: approving a card lowers the counter; the chat answers a command; the task filter narrows the board» |
-| `E:backoffice` | admin.spec : «Back office: invoice actions are there and «Напомнить» answers with a toast» |
+| `E:office` | admin-office.spec : opens inside the Shell frame (menu, info strip, canvas, no side panel, no tabs, no dialog), the header link opens it in the same tab, old `?panel=` links redirect, one click per zone (director, marketing, sales, support, production, back-office, servers) lands on its section, no horizontal overflow at 390 and 1440 |
+| `E:presence` | admin.spec : «the presence switch lives in the Shell top bar» (also asserted in `E:office`) |
+| `E:shell-overflow` | no-overflow-admin.spec : every Shell section and tab, drawers and inputs with long data at 390 and 768 |
 | `E:palette` | admin.spec : «⌘K opens the palette, filters and closes with Esc» |
 | `E:adm-theme` | admin.spec : «theme switch flips the panel theme» |
 | `E:golive` | admin.spec : «go-live page: start, tick, note and reset through the API and the buttons» |
@@ -86,7 +83,6 @@ Legend of `E:` tags (file : test title):
 | `E:ai-agent` | public.spec : «AI team: a department page lists its agents and an agent page opens the builder or the chat» |
 | `E:pay-how` | public.spec : «pay-how: the three steps of paying in USDT are on the page and no local currency is quoted» |
 | `E:bare` | public.spec : «bare paths of known pages redirect to a language» (307, then 200) |
-| `E:keys-9-0` | admin.spec : «keys 9 and 0 open the review centre and the chats» |
 | `E:review` | admin.spec : «review centre: rail with counts, queue, J/K step, the revise composer and the trend link dialog» |
 | `E:chats` | admin.spec : «chats: a thread opens, the reply box sends with Enter and the answer joins the thread» |
 | `E:editor` | admin-shell4.spec : «review: E opens the full-screen editor, type, find and replace, save as a version, compare with v1» |
@@ -94,12 +90,10 @@ Legend of `E:` tags (file : test title):
 | `E:editor-phone` | admin-shell4.spec : «phone: the editor has its toolbar at the bottom and Поручения fits the screen» |
 | `E:pack-editor` | admin-shell4.spec : «review: E on a КП pack opens its first document, the stage has «Править» for each document» |
 | `E:doc-rows` | admin-shell4.spec : «back office: every document row opens the full-screen editor, pending or approved, a КП too» (an issued invoice has the button disabled) |
-| `E:doc-director` | admin-shell4.spec : «Director: the «Документы» tab lists documents by client with «Править»; approvals are part of Поручения» |
 | `E:breakdown` | admin-shell4.spec : «review: the sales item shows «Разбор заявки» with answers, estimate links and stages» |
 | `E:breakdown-lead` | admin-shell4.spec : «sales: the lead drawer shows «Разбор заявки» (old link and no link too)» |
 | `E:orders` | admin-shell4.spec : «Поручения: the composer makes a task and the timeline shows it; N focuses the composer» (also «Напомнить» / «Отменить» with the confirm) |
 | `E:orders-cmd` | admin-shell4.spec : «Поручения: a slash opens the command list, Tab completes, Esc closes the list only» |
-| `E:palette-orders` | admin-shell4.spec : «⌘K: a Director command answers inside the Поручения timeline, not in a toast» |
 | `E:cab-email` | flows.spec : «cabinet login: ?email= prefills the email field (HQ links to bot-lead clients), junk is ignored» |
 | `E:prices` | admin.spec : «Company / Цены: edit one price in the panel, see it saved, reset it through the API» (throwaway data dir) |
 | `E:accept-pult` | admin.spec : «Production: the project drawer accepts a paid, delivered stage for the client» |
@@ -315,65 +309,55 @@ Legend of `E:` tags (file : test title):
 | `POST /api/chat` validation | 400 on bad session/message | `/api/chat` | `E:chat-api` | pass |
 | Enter in the textarea (Shift+Enter = new line) | sends; while the greeting is still in flight the message is queued and goes out when the chat is free (before the fix Enter did nothing and kept the text) | - | `E:chat-enter` | pass (bug fixed, see Bugs) |
 
-## 11. Owner panel: login and hub
+## 11. Owner panel: login, Shell header and Office
 
 | Page | Element | What it does | Leads to / calls | Verified by | Status |
 |---|---|---|---|---|---|
-| `/admin/login` | «Получить код в Telegram» | sends a one-time code to the owner's chat; then the 6-digit input | `POST /api/admin/code`, `/api/admin/login` | `E:adm-login` (page), `U:admin`, `U:telegram` | pass (page), untested (code flow needs Telegram) |
+| `/admin/login` | password field, «Show password», «Sign in» | password login; «Password is not set up.» without `ADMIN_PASSWORD_HASH` | `POST /api/admin/login` | `E:adm-login` (closed), `npm run test:e2e:login` (wrong, then right), `U:admin-login` | pass |
+| Shell header | «Sign out» | ends this session on the server, back to the login | `POST /api/admin/logout` | `npm run test:e2e:login`, `U:admin-login` | pass |
 | `/admin/*`, `/api/admin/*` | session guard | redirect to login, 401 | `admin-guard.ts` | `E:adm-guard`, `U:admin` | pass |
-| `/admin` | redirect | `/admin/office` | - | `E:adm-guard` | pass |
-| `/admin/office` | presence «На месте» / «Не на месте» (also named on phones) | `POST HQ presence` (mock) | `/api/admin/hq/presence` | `E:hub`, `U:hq-admin` | pass |
-| hub | counters «Одобрения», «Новые лиды», «Ждут оплаты», «Открытые тикеты» | open Director/Поручения (approvals are its top section), Sales/leads, Back office/invoices, Support/tickets | - | `E:hub` (visible), `E:tabs` («Ждут оплаты»), `U:orders` (`approvals` tab resolves to `tasks`) | pass (payments), untested (other 3 clicks) |
-| hub | ⌘K / Ctrl+K | command palette with HQ search | `GET /api/admin/hq/...` | `E:palette`, `U:pult-v3` | pass |
-| hub | ⌘K Director commands «Отчёт» (`status`), «Выпустить одобрения» (`approve`), «Расходы» (`costs`), «Учения» (`drill`), «Пакет недели» (`say`) | open Поручения and write the owner's line and HQ's answer into its timeline (no toast) | `POST command`, `POST say` | `E:palette-orders` («Отчёт»), `U:orders` | pass («Отчёт»), untested (other four) |
-| hub | keys 1-7 | open the 7 panels (1 Director ... 7 Company), Esc closes | - | `E:keys` | pass |
-| hub | keys 9 and 0, chips «Approvals N» and «Чаты N» | open `/admin/approvals`, `/admin/chats` | - | `E:keys-9-0` | pass (keys), untested (chips) |
-| hub | key 8 and the go-live chip | `/admin/golive` | - | `E:keys` | pass |
-| hub | theme button | admin light/dark | localStorage | `E:adm-theme`, `U:shell-theme` | pass |
-| hub | «Ещё» menu: «Скачать заявки в CSV» | `GET /api/admin/export` | `/api/admin/export` | `E:csv` | pass |
-| hub | «Ещё»: «Выйти» | ends this session | `POST /api/admin/logout` | `E:logout` | pass |
-| hub | «Ещё»: «Выйти на всех устройствах» | revokes all sessions | `/api/admin/logout` (all) | `U:admin` | untested (browser; would end the shared test session) |
-| office | zoom «Приблизить» / «Отдалить», «Имена», «На весь экран», wheel, drag, F | camera | canvas | `E:hub` (canvas), `U:pixel-office`, `U:office-v2` | untested (clicks) |
-| office | 5 room zone buttons (badge counts) | open the room's panel | - | none | untested (click) |
-| hub (phone) | layout | no overflow, named presence radios | - | `E:hub` (phone) | pass |
+| `/admin` | redirect | `/admin/inbox` | - | `E:adm-guard` | pass |
+| Shell header | presence «На месте» / «Не на месте» (also named on phones) | `POST HQ presence` (mock) | `/api/admin/hq/presence` | `E:presence`, `E:office`, `U:hq-admin` | pass |
+| `/admin/office` | zone click (director, marketing, sales, support, production, back-office, servers) | goes to Inbox, Content, Clients, Chats, Projects, Finance, Agents | - | `E:office`, `U:hq-shell` | pass |
+| `/admin/office` | info strip: HQ link, presence (read only), counters, go-live chip | information only | `GET hub`, `GET state`, `GET /api/admin/golive` | `E:office` (strip visible) | pass |
+| Shell header | link «Office» | opens `/admin/office` in the same tab | - | `E:office` | pass |
+| Shell header | ⌘K / Ctrl+K | command palette: sections, tabs, Go-live, HQ search | `GET /api/admin/hq/...` | `E:palette`, `U:hq-shell` | pass |
+| Shell header | theme button | admin light/dark | localStorage | `E:adm-theme`, `U:shell-theme` | pass |
+| Shell header | «Ещё» menu: «Скачать заявки в CSV» | `GET /api/admin/export` | `/api/admin/export` | `E:csv` | pass |
+| Shell header | «Ещё»: «Выйти» | ends this session | `POST /api/admin/logout` | `E:logout` | pass |
+| Shell header | «Ещё»: «Выйти на всех устройствах» | revokes all sessions | `/api/admin/logout` (all) | `U:admin` | untested (browser; would end the shared test session) |
+| office | zoom «Приблизить» / «Отдалить», «Имена», «На весь экран», wheel, drag, F | camera | canvas | `E:office` (canvas), `U:pixel-office`, `U:office-v2` | untested (clicks) |
+| Shell header (phone) | layout | no overflow, named presence radios | - | `E:office` (phone) | pass |
 
-## 12. Owner panel: department panels (`src/components/admin/{hub,pult,control}`)
+## 12. Owner panel: section contents (`src/components/admin/{shell-crm,control}`)
 
-Panels open from the zones, the counters, keys 1-7 and ⌘K. All tabs of all panels are opened and checked for
-console errors by `E:panels` (mock data). Actions are against the HQ mock (in-memory); the writes go through
+These panels render inside the Shell sections (Clients, Projects, Documents, Finance, Content, Tasks, Inbox, Settings); the old
+side panels of the Office are gone (2026-11-23). Every section and tab is opened and audited by `E:shell-overflow` (mock data). Actions are against the HQ mock (in-memory); the writes go through
 the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cover the whitelist and the body schemas).
 
 | Panel / tab | Element | What it does | Calls | Verified by | Status |
 |---|---|---|---|---|---|
-| Директор / Входящие | notification rows | open the object (lead, invoice, approval, ticket, project) in its panel | `GET hub`, `inbox/read` | `E:panels`, `U:pult-v3` | untested (row click) |
-| Директор / Поручения | composer (Enter sends, Shift+Enter new line, `N` focuses it), `/` command list (arrows, Tab, Esc closes the list only), «Поставить» | free text becomes a task (`say`), `/command` runs a Director command; both land in one timeline | `POST say`, `POST command` | `E:orders`, `E:orders-cmd`, `E:director` (`/status`), `U:orders` | pass |
-| Директор / Поручения | section «Ждут вашего решения» on top (first 3 cards, «Показать все N») with «Одобрить» (A), «Отклонить» (R), part chips, «Выпустить сейчас» | the old «Одобрения» tab: same actions, same optimistic counter | `POST approvals/<id>` | `E:director` (approve lowers the counter), `U:hq-admin` | pass (approve), untested (reject, parts, «Показать все», «Выпустить сейчас») |
-| Директор / Поручения | approval card «Править» (pencil) | opens the full-screen editor (no inline textarea); «Сохранить как версию» sends `edit` | `POST approvals/<id>` (up to 40000 characters) | `U:hq-admin` (40000 accepted), `E:editor` (the same editor component) | untested (browser, from the approvals card) |
-| Директор / Поручения | filters «Все / Мои поручения / Ждёт меня / Сделано», search, task card (opens the drawer), «В работу», «Напомнить», «Отменить» (with confirm) | filter and act; «Напомнить» and «Отменить» go through `say` and show as the owner's line plus the Director's answer | `POST tasks/<id>/retry`, `POST say` | `E:director` (filter, search), `E:orders` (cancel), `U:orders` | pass (filters, cancel), untested (drawer, retry, remind) |
-| Директор / Поручения | clear conversation | hides the timeline lines up to now (sessionStorage keeps the time; the server history stays) | `GET director/history` (the base of the timeline, loaded on open) | `U:orders` (history merge, cleared) | untested (browser) |
-| Директор / Документы | rows grouped by client (latest 40), «Править» on every row | opens the full-screen editor (a КП, смета, contract, invoice draft); disabled with the reason when HQ allows no edit | `GET crm/documents`, `GET review?status=all`, `POST review/<id>` (edit, `doc` for a pack) | `E:doc-director`, `U:review` | pass (open), untested (save) |
-| Директор / Лента | live feed | render | `GET /api/admin/office` | `E:panels` | pass (render) |
-| Директор / Учения | department select, «Запустить учения», «Таблица», «Очистить» | drill | `GET/POST drill` | `E:panels` (renders) | untested |
-| Маркетинг / Контент | week arrows «Прошлая/Следующая неделя», «Эта неделя», content cards | week calendar, card drawer | `GET content?week=` | `E:panels` (renders) | untested (clicks) |
-| Маркетинг / Контент | drawer: «Одобрить», «Править» (revise note), «Отклонить», re-render, platform select + «Опубликовано», kit tabs, slide arrows, MP4/PNG files | content writes | `POST content/<id>`, `GET /api/admin/files/*` | `U:pult-v3`, `U:hq-admin` | untested (browser) |
-| Маркетинг / Цифры | week arrows, funnel, site events, blog, YouTube, money | render | `GET metrics/week` | `E:panels` | pass (render), untested (arrows) |
-| Продажи / Лиды | stage kanban (drag/move), search, filter chips, lead drawer: stage, «Потеряно» with reason, note, reply, call time, links to client and documents | lead funnel writes | `POST crm/leads/<id>`, `.../reply`, `.../call` | `E:panels` (renders), `U:pult-v3` | untested (writes) |
-| Продажи / Клиенты | search, «Все»/«С кабинетом», client 360 with links to leads, projects, invoices, tickets | read, cross-links | `GET crm/clients/<id>` | `E:panels` | untested (clicks) |
-| Продажи / Заявки с сайта | «Экспорт CSV», status chips, search, lead drawer: status, booking ok/move, notes, Telegram, phone, copy | `leads.json` | `/api/admin/leads/<id>`, `/api/admin/export` | `E:csv`, `U:admin-crm` | pass (CSV), untested (drawer) |
-| Продажи / Созвоны | week list, «ок», «перенести» | booking actions | `/api/admin/leads/<id>` | `U:admin-crm`, `U:telegram` | untested |
-| Продажи / Разведка | status and niche chips, search, prospect rows, status moves | prospect writes | `POST crm/prospects/<id>` | `E:panels`, `U:admin-crm-hq` | untested (moves) |
-| Поддержка / Тикеты | filters «Открытые/Просрочены/Отвечены/Все», search, ticket drawer: reply, «Отвечен», «Открыт», note | ticket writes | `POST crm/tickets/<id>` | `E:panels`, `U:pult-v3` | untested (writes) |
-| Производство / Проекты | kanban, search, drawer: milestone toggle, deadline, status move, note, issues | project writes | `POST crm/projects/<id>` | `E:panels`, `U:pult-v3` | untested (writes) |
-| Производство / Проекты | drawer: «Принять этап» on a stage awaiting acceptance (client found by name, then HQ accept; 409 reasons shown) | `GET crm/clients?q=`, `POST clients/<id>/projects/<pid>/milestones/<no>/accept` (whitelist) | `E:accept-pult`, `U:cabinet-milestones` | pass |
-| Бэк-офис / Счета | status filters, search, «Ссылка» (pay link), «Транзакция» (explorer), «Напомнить клиенту», «Оплачено вручную», «Аннулировать» | invoice writes | `POST crm/invoices/<id>` | `E:backoffice` (buttons present, «Напомнить» answers), `U:pult-v3` | pass (remind), untested (mark paid, void, link copy) |
-| Бэк-офис / Документы | kind and status chips, search | render | `GET crm/documents` | `E:panels`, `U:admin-crm-hq` | pass (render) |
-| Бэк-офис / Документы | «Править» on EVERY row: invoice draft, approved unsigned contract, КП / смета / договор of a pack; disabled with a reason for an issued invoice | full-screen editor, «Сохранить как версию» = `edit` v+1 (with `doc` for a pack) | `GET review?status=all`, `POST review/<id>` | `E:doc-rows`, `U:review` (`targetForRow`, payload, mock) | pass (open), untested (save from the tab) |
-| Бэк-офис / Рекомендации | status chips, search | render | `GET crm/referrals` | `E:panels` | pass (render) |
-| Бэк-офис / Отзывы | list | render | `GET crm/reviews` | `E:panels` | pass (render) |
-| Компания | routine toggles and «Запустить сейчас: <routine>» (5), trust level switches (5), playbook rows (open drawer), costs, workers | company controls | `GET company`, `POST company/...` | `E:panels` (renders), `U:pult-v3` | untested (writes) |
-| Компания / Цены | every price editable in place (Enter saves, Esc cancels), «Вернуть по умолчанию» per price, the live preview line («Бот от $…», «Сайт от $…», stage shares), history with «Показать ещё», API range refusal 422 | `GET/POST /api/admin/prices` | `E:prices` (edit in the panel, API reset, 422 and 403), `U:pricing-store` | pass (one price edited), untested (history, preview line) |
-| Компания / Цены | stage shares per product: inputs (must sum to 100), «Сохранить доли», «Вернуть доли»; «Сбросить всё» (confirm) | `POST /api/admin/prices` (`stageShares.*`, reset ops) | `U:pricing-store` | untested (browser) |
-| every panel | «Шире» / «Уже», «Закрыть панель», Esc | resize, close | - | `E:keys` (Esc, open), `E:tabs` | pass (open/close), untested (resize) |
+| Tasks (Поручения) | composer (Enter sends, Shift+Enter new line, `N` focuses it), `/` command list (arrows, Tab, Esc closes the list only), «Поставить» | free text becomes a task (`say`), `/command` runs a Director command; both land in one timeline | `POST say`, `POST command` | `E:orders`, `E:orders-cmd`, `E:director` (`/status`), `U:orders` | pass |
+| Tasks (Поручения) | section «Ждут вашего решения» on top (first 3 cards, «Показать все N») with «Одобрить» (A), «Отклонить» (R), part chips, «Выпустить сейчас» | the old «Одобрения» tab: same actions, same optimistic counter | `POST approvals/<id>` | `E:director` (approve lowers the counter), `U:hq-admin` | pass (approve), untested (reject, parts, «Показать все», «Выпустить сейчас») |
+| Tasks (Поручения) | approval card «Править» (pencil) | opens the full-screen editor (no inline textarea); «Сохранить как версию» sends `edit` | `POST approvals/<id>` (up to 40000 characters) | `U:hq-admin` (40000 accepted), `E:editor` (the same editor component) | untested (browser, from the approvals card) |
+| Tasks (Поручения) | filters «Все / Мои поручения / Ждёт меня / Сделано», search, task card (opens the drawer), «В работу», «Напомнить», «Отменить» (with confirm) | filter and act; «Напомнить» and «Отменить» go through `say` and show as the owner's line plus the Director's answer | `POST tasks/<id>/retry`, `POST say` | `E:director` (filter, search), `E:orders` (cancel), `U:orders` | pass (filters, cancel), untested (drawer, retry, remind) |
+| Tasks (Поручения) | clear conversation | hides the timeline lines up to now (sessionStorage keeps the time; the server history stays) | `GET director/history` (the base of the timeline, loaded on open) | `U:orders` (history merge, cleared) | untested (browser) |
+| Content | week arrows «Прошлая/Следующая неделя», «Эта неделя», content cards | week calendar, card drawer | `GET content?week=` | `E:shell-overflow` (renders) | untested (clicks) |
+| Content | drawer: «Одобрить», «Править» (revise note), «Отклонить», re-render, platform select + «Опубликовано», kit tabs, slide arrows, MP4/PNG files | content writes | `POST content/<id>`, `GET /api/admin/files/*` | `U:pult-v3`, `U:hq-admin` | untested (browser) |
+| Clients / Лиды | stage kanban (drag/move), search, filter chips, lead drawer: stage, «Потеряно» with reason, note, reply, call time, links to client and documents | lead funnel writes | `POST crm/leads/<id>`, `.../reply`, `.../call` | `E:shell-overflow` (renders), `U:pult-v3` | untested (writes) |
+| Clients / Клиенты | search, «Все»/«С кабинетом», client 360 with links to leads, projects, invoices, tickets | read, cross-links | `GET crm/clients/<id>` | `E:shell-overflow` | untested (clicks) |
+| Clients / Заявки с сайта | «Экспорт CSV», status chips, search, lead drawer: status, booking ok/move, notes, Telegram, phone, copy | `leads.json` | `/api/admin/leads/<id>`, `/api/admin/export` | `E:csv`, `U:admin-crm` | pass (CSV), untested (drawer) |
+| Clients / Созвоны | week list, «ок», «перенести» | booking actions | `/api/admin/leads/<id>` | `U:admin-crm`, `U:telegram` | untested |
+| Clients / Разведка | status and niche chips, search, prospect rows, status moves | prospect writes | `POST crm/prospects/<id>` | `E:shell-overflow`, `U:admin-crm-hq` | untested (moves) |
+| Projects | kanban, search, drawer: milestone toggle, deadline, status move, note, issues | project writes | `POST crm/projects/<id>` | `E:shell-overflow`, `U:pult-v3` | untested (writes) |
+| Projects | drawer: «Принять этап» on a stage awaiting acceptance (client found by name, then HQ accept; 409 reasons shown) | `GET crm/clients?q=`, `POST clients/<id>/projects/<pid>/milestones/<no>/accept` (whitelist) | `E:accept-pult`, `U:cabinet-milestones` | pass |
+| Finance / Invoices | status filters, search, «Ссылка» (pay link), «Транзакция» (explorer), «Напомнить клиенту», «Оплачено вручную», «Аннулировать» | invoice writes | `POST crm/invoices/<id>` | `E:backoffice` (buttons present, «Напомнить» answers), `U:pult-v3` | pass (remind), untested (mark paid, void, link copy) |
+| Documents / Документы | kind and status chips, search | render | `GET crm/documents` | `E:shell-overflow`, `U:admin-crm-hq` | pass (render) |
+| Documents / Документы | «Править» on EVERY row: invoice draft, approved unsigned contract, КП / смета / договор of a pack; disabled with a reason for an issued invoice | full-screen editor, «Сохранить как версию» = `edit` v+1 (with `doc` for a pack) | `GET review?status=all`, `POST review/<id>` | `E:doc-rows`, `U:review` (`targetForRow`, payload, mock) | pass (open), untested (save from the tab) |
+| Documents / Рекомендации | status chips, search | render | `GET crm/referrals` | `E:shell-overflow` | pass (render) |
+| Documents / Отзывы | list | render | `GET crm/reviews` | `E:shell-overflow` | pass (render) |
+| Settings / Цены | every price editable in place (Enter saves, Esc cancels), «Вернуть по умолчанию» per price, the live preview line («Бот от $…», «Сайт от $…», stage shares), history with «Показать ещё», API range refusal 422 | `GET/POST /api/admin/prices` | `E:prices` (edit in the panel, API reset, 422 and 403), `U:pricing-store` | pass (one price edited), untested (history, preview line) |
+| Settings / Цены | stage shares per product: inputs (must sum to 100), «Сохранить доли», «Вернуть доли»; «Сбросить всё» (confirm) | `POST /api/admin/prices` (`stageShares.*`, reset ops) | `U:pricing-store` | untested (browser) |
 
 ## 13. Go-live `/admin/golive`
 
@@ -452,7 +436,7 @@ whose target page already has its own render test.
 | # | Where | Cause | State |
 |---|---|---|---|
 | 1 | `/{locale}/pay/<unknown number or wrong key>` | the page calls `notFound()` after fetching the invoice; Next renders an error shell and the client takes over without the server-inserted theme script, so `<html>` had no `data-theme` (a dark visitor saw a light page). `E:matrix` (pay FT-2026-999) caught it | fixed: `ThemeInit` runs the same script from an effect when the attribute is missing (`src/components/theme-init.tsx`); with the fix a production build (`next start`, HQ stubbed to answer 404) shows `data-theme="dark"`; whether the bug also happened in production before the fix was not checked |
-| 2 | `/admin/office` on a phone | the two presence radios had no accessible name below `sm` (the label span is `hidden sm:inline`) | fixed: `aria-label` on the radios (`src/components/admin/hub/hub.tsx`); `E:hub` (phone) asserts the names |
+| 2 | `/admin/office` on a phone | the two presence radios had no accessible name below `sm` (the label span is `hidden sm:inline`) | fixed: `aria-label` on the radios (`src/components/admin/hub/hub.tsx`); `E:office` (phone) asserts the names |
 
 Observed, not a bug: the 404 pages answer with `<html id="__next_error__">` in `next dev` (Next's shell for
 `notFound()` after data fetching).
@@ -513,10 +497,10 @@ Tag `E:hq` = `tests/e2e/admin-hq.spec.ts`; `U:hq-shell` = `tests/hq-shell.test.m
 | Page | Element | What it does | Calls | Verified by | Status |
 |---|---|---|---|---|---|
 | `/admin/*` HQ | section menu (12 links, keys 1-9) | opens the section; «Soon» ones show a placeholder | - | `E:hq`, `U:hq-shell` | pass (links, key 1), untested (other keys) |
-| HQ top bar | «Office» | opens `/admin/office` in a new tab | - | `E:hq` (target attribute) | pass |
+| HQ top bar | «Office» | opens `/admin/office` in the same tab (no admin link opens a new tab, `U:admin`) | - | `E:hq`, `E:office` | pass |
 | HQ top bar | search ⌘K | the palette with sections, tabs and HQ search | `GET crm/*?q=` | `E:hq` (button present via palette code shared with the hub) | untested (open) |
 | Inbox | tabs Notifications, Approvals | `?tab=`; rows open the object in its section | `GET hub`, `GET approvals` | `E:hq` (Approvals tab) | pass (tab), untested (row click) |
-| Inbox / Approvals | approve, reject, edit, release queue | same calls as the hub, optimistic with rollback and a toast | `POST approvals/:id`, command `approve` | `E:panels` (shared card), `U:orders` | untested here |
+| Inbox / Approvals | approve, reject, edit, release queue | same calls as the hub, optimistic with rollback and a toast | `POST approvals/:id`, command `approve` | `E:shell-overflow` (shared card), `U:orders` | untested here |
 | Clients | tabs Pipeline, Clients, Site requests, Calls, Prospects | the sales panels of the hub | as in section 12 | `E:hq` (Clients tab) | pass (tab), rest as section 12 |
 | Projects | tabs Projects, Payments | `ProjectsBoard`, `InvoicesTab` | as in section 12 | `E:hq` (Payments tab) | pass (tab), rest as section 12 |
 | Documents | tabs Documents, Referrals, Reviews | back-office panels | as in section 12 | `E:hq` (page) | pass (page) |
@@ -541,7 +525,7 @@ Tag `E:hq` = `tests/e2e/admin-hq.spec.ts`; `U:hq-shell` = `tests/hq-shell.test.m
 |---|---|---|---|---|---|
 | `/admin/content` | tabs Feed, Calendar, Orders | `?tab=`; Calendar is the week panel of marketing, Orders the Content Maker queue | `GET content/feed`, `GET content?week=`, `GET content/orders` | `E:hq` («Content»), `U:content-studio` | pass |
 | Content / Feed | filters Статус, Формат | reload the feed from page one for the filter | `GET content/feed?status=&kind=` | `E:hq`, `U:content-studio` (mock filters) | pass (status), untested (kind in browser) |
-| Content / Feed | card | opens the item drawer: player or slides, captions, the same buttons as the calendar (Одобрить, Правки, Отклонить, Пересобрать, Опубликовано) | `POST content/<id>` | `E:hq` (player visible), `E:panels` (shared body) | pass (open), untested (decisions here) |
+| Content / Feed | card | opens the item drawer: player or slides, captions, the same buttons as the calendar (Одобрить, Правки, Отклонить, Пересобрать, Опубликовано) | `POST content/<id>` | `E:hq` (player visible), `E:shell-overflow` (shared body) | pass (open), untested (decisions here) |
 | Content / Feed | «Показать ещё» | next page by `cursor` | `GET content/feed?cursor=` | `U:content-studio` (mock cursor) | untested (browser) |
 | Content / item drawer | «Ещё вариант» (with the optional note) | a Content Maker order, the new card arrives in Approvals | `POST content/orders` `{mode:'variant'}` | `E:hq` (toast), `U:content-studio` (whitelist, mock) | pass |
 | Content / item drawer | «Переписать под нишу» (niche field with suggestions) | a Content Maker order for the niche | `POST content/orders` `{mode:'niche'}` | `U:content-studio` (whitelist, body), HQ test | untested (browser) |

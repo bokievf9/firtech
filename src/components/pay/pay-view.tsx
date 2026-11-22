@@ -120,8 +120,6 @@ export function PayView({
   const support = supportUrl && (
     <a
       href={supportUrl}
-      target="_blank"
-      rel="noopener noreferrer"
       className="text-accent-text underline underline-offset-4 hover:text-fg"
     >
       {t.support}
@@ -164,8 +162,6 @@ export function PayView({
                   {link ? (
                     <a
                       href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="text-accent-text underline underline-offset-4"
                       aria-label={`${t.explorer}: ${invoice.txId}`}
                     >

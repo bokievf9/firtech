@@ -197,7 +197,7 @@ test('ladder: three rungs per direction, each links to a real page, copy in both
   }
   assert.equal(ru.ladder.levels.agent, 'Один агент')
   assert.equal(ru.ladder.levels.auto, 'На автопилоте')
-  assert.equal(ru.ladder.levels.dept, 'Целый отдел')
+  assert.equal(ru.ladder.levels.dept, 'Целая команда')
 })
 
 test('ladder: on the products section and on /ai-team, the products section ends with the departments strip', () => {

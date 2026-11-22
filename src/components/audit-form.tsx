@@ -178,8 +178,6 @@ export function AuditForm({
           {botUrl && (
             <a
               href={botUrl}
-              target="_blank"
-              rel="noopener noreferrer"
               data-place="audit-success"
               className={buttonStyles.primary}
             >

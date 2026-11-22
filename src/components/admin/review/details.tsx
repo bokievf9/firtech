@@ -73,7 +73,7 @@ export function Details(p: DetailsProps) {
         </p>
       ) : null}
       {url ? (
-        <a href={url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 text-sm text-accent-text underline">
+        <a href={url} className="inline-flex items-center gap-1.5 text-sm text-accent-text underline">
           <ArrowSquareOut size={14} aria-hidden="true" />
           Открыть опубликованное
         </a>
@@ -213,7 +213,7 @@ export function Details(p: DetailsProps) {
                 {c.linkLabel}
               </Link>
             ) : (
-              <a href={c.href} target="_blank" rel="noreferrer noopener" className="inline-flex min-h-9 items-center gap-1 self-start text-sm text-accent-text underline">
+              <a href={c.href} className="inline-flex min-h-9 items-center gap-1 self-start text-sm text-accent-text underline">
                 {c.linkLabel}
               </a>
             )

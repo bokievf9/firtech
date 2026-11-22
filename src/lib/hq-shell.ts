@@ -1,6 +1,6 @@
-// HQ, phase 1 (2026-11-23): the CRM workplace of /admin. A fixed list of sections (English names, owner
-// 2026-11-23); five of them are built from the existing panels, the rest say «soon» and link to the old
-// screen. Pure data and helpers, no React, so they are unit-tested (tests/hq-shell.test.mjs).
+// The CRM workplace of /admin (Shell): a fixed list of sections with English names (owner 2026-11-23).
+// Office is one of them: the living pixel office, information only. Pure data and helpers, no React,
+// so they are unit-tested (tests/hq-shell.test.mjs).
 
 export type HqSectionId =
   | 'inbox'
@@ -20,6 +20,7 @@ export type HqSectionId =
   | 'analytics'
   | 'knowledge'
   | 'quality'
+  | 'office'
 
 export type HqGroupId = 'work' | 'clients' | 'company' | 'control'
 
@@ -27,34 +28,30 @@ export type HqSection = {
   id: HqSectionId
   group: HqGroupId
   label: string
-  // 'ready' = a page of its own under /admin; 'link' = an existing full-screen page.
-  state: 'ready' | 'link'
-  // Where the section lives: /admin/<id> for ready and soon, the existing page for 'link'.
+  state: 'ready'
+  // Where the section lives: /admin/<id>.
   href: string
-  // The old screen a «soon» section sends to (the pixel hub panel that holds it today).
-  legacy: string
 }
 
-const office = (panel: string, tab?: string) => `/admin/office?panel=${panel}${tab ? `&tab=${tab}` : ''}`
-
 export const HQ_SECTIONS: readonly HqSection[] = [
-  { id: 'inbox', group: 'work', label: 'Inbox', state: 'ready', href: '/admin/inbox', legacy: office('director', 'inbox') },
-  { id: 'approvals', group: 'work', label: 'Approvals', state: 'ready', href: '/admin/approvals', legacy: '/admin/approvals' },
-  { id: 'tasks', group: 'work', label: 'Tasks', state: 'ready', href: '/admin/tasks', legacy: office('director', 'tasks') },
-  { id: 'calendar', group: 'work', label: 'Calendar', state: 'ready', href: '/admin/calendar', legacy: office('sales', 'calls') },
-  { id: 'chats', group: 'work', label: 'Chats', state: 'ready', href: '/admin/chats', legacy: '/admin/chats' },
-  { id: 'clients', group: 'clients', label: 'Clients', state: 'ready', href: '/admin/clients', legacy: office('sales', 'clients') },
-  { id: 'projects', group: 'clients', label: 'Projects', state: 'ready', href: '/admin/projects', legacy: office('production', 'projects') },
-  { id: 'documents', group: 'clients', label: 'Documents', state: 'ready', href: '/admin/documents', legacy: office('backoffice', 'documents') },
-  { id: 'finance', group: 'clients', label: 'Finance', state: 'ready', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
-  { id: 'content', group: 'company', label: 'Content', state: 'ready', href: '/admin/content', legacy: office('marketing', 'content') },
-  { id: 'agents', group: 'company', label: 'Agents', state: 'ready', href: '/admin/agents', legacy: office('company', 'company') },
-  { id: 'processes', group: 'company', label: 'Processes', state: 'ready', href: '/admin/processes', legacy: office('company', 'company') },
-  { id: 'knowledge', group: 'company', label: 'Knowledge', state: 'ready', href: '/admin/knowledge', legacy: office('company', 'company') },
-  { id: 'settings', group: 'company', label: 'Settings', state: 'ready', href: '/admin/settings', legacy: office('company', 'prices') },
-  { id: 'quality', group: 'control', label: 'Quality', state: 'ready', href: '/admin/quality', legacy: office('company', 'company') },
-  { id: 'audit', group: 'control', label: 'Audit log', state: 'ready', href: '/admin/audit', legacy: office('company', 'company') },
-  { id: 'analytics', group: 'control', label: 'Analytics', state: 'ready', href: '/admin/analytics', legacy: office('marketing', 'metrics') },
+  { id: 'inbox', group: 'work', label: 'Inbox', state: 'ready', href: '/admin/inbox' },
+  { id: 'approvals', group: 'work', label: 'Approvals', state: 'ready', href: '/admin/approvals' },
+  { id: 'tasks', group: 'work', label: 'Tasks', state: 'ready', href: '/admin/tasks' },
+  { id: 'calendar', group: 'work', label: 'Calendar', state: 'ready', href: '/admin/calendar' },
+  { id: 'chats', group: 'work', label: 'Chats', state: 'ready', href: '/admin/chats' },
+  { id: 'clients', group: 'clients', label: 'Clients', state: 'ready', href: '/admin/clients' },
+  { id: 'projects', group: 'clients', label: 'Projects', state: 'ready', href: '/admin/projects' },
+  { id: 'documents', group: 'clients', label: 'Documents', state: 'ready', href: '/admin/documents' },
+  { id: 'finance', group: 'clients', label: 'Finance', state: 'ready', href: '/admin/finance' },
+  { id: 'office', group: 'company', label: 'Office', state: 'ready', href: '/admin/office' },
+  { id: 'content', group: 'company', label: 'Content', state: 'ready', href: '/admin/content' },
+  { id: 'agents', group: 'company', label: 'Agents', state: 'ready', href: '/admin/agents' },
+  { id: 'processes', group: 'company', label: 'Processes', state: 'ready', href: '/admin/processes' },
+  { id: 'knowledge', group: 'company', label: 'Knowledge', state: 'ready', href: '/admin/knowledge' },
+  { id: 'settings', group: 'company', label: 'Settings', state: 'ready', href: '/admin/settings' },
+  { id: 'quality', group: 'control', label: 'Quality', state: 'ready', href: '/admin/quality' },
+  { id: 'audit', group: 'control', label: 'Audit log', state: 'ready', href: '/admin/audit' },
+  { id: 'analytics', group: 'control', label: 'Analytics', state: 'ready', href: '/admin/analytics' },
 ] as const
 
 // The menu groups, in order (owner audit 2026-11-23): labels are English like the sections.
@@ -93,8 +90,7 @@ export function sectionTab(section: HqTabbed, tab: string | null | undefined): s
   return tab && tabs.includes(tab) ? tab : tabs[0]!
 }
 
-// The old hub talks in (panel, tab); panels opened from a client card (a project, an invoice, a lead)
-// go to the HQ section that now holds the same panel, everything else to the pixel office.
+// Links from HQ objects talk in (panel, tab); every panel now lives in a Shell section.
 const MAP: Record<string, { section: HqTabbed; tab: string }> = {
   'sales:leads': { section: 'clients', tab: 'pipeline' },
   'sales:clients': { section: 'clients', tab: 'clients' },
@@ -110,10 +106,21 @@ const MAP: Record<string, { section: HqTabbed; tab: string }> = {
   'director:inbox': { section: 'inbox', tab: 'notifications' },
 }
 
+// A click on a department zone of the Office goes to the section that holds that department's work.
+export const ZONE_SECTION: Record<string, HqSectionId> = {
+  director: 'inbox',
+  marketing: 'content',
+  sales: 'clients',
+  support: 'chats',
+  production: 'projects',
+  backoffice: 'finance',
+  company: 'agents',
+}
+
 const safe = (v: string | null | undefined) => (v && /^[\w:.\-Ѐ-ӿ %]{1,80}$/.test(v) ? v : null)
 
 export function hqHref(panel: string, tab?: string | null, focus?: string | null): string {
-  // Approving lives in one place: the Approvals section (the old hub list sends its links there).
+  // Approving lives in one place: the Approvals section.
   if (panel === 'director' && tab === 'approvals') return '/admin/approvals'
   const hit = MAP[`${panel}:${tab ?? ''}`] ?? (!tab ? MAP[`${panel}:${panel === 'sales' ? 'leads' : panel === 'production' ? 'projects' : panel === 'backoffice' ? 'invoices' : ''}`] : undefined)
   const f = safe(focus)
@@ -122,9 +129,6 @@ export function hqHref(panel: string, tab?: string | null, focus?: string | null
     if (f) p.set('focus', f)
     return `/admin/${hit.section}?${p}`
   }
-  const p = new URLSearchParams({ panel })
-  const t = safe(tab)
-  if (t) p.set('tab', t)
-  if (f) p.set('focus', f)
-  return `/admin/office?${p}`
+  // Panels without a tab of their own (support tickets, marketing, company) open their section.
+  return `/admin/${ZONE_SECTION[panel] ?? 'inbox'}`
 }

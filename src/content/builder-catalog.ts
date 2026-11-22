@@ -66,7 +66,8 @@ export const productIds = [
   'app',
 ] as const
 export type ProductId = (typeof productIds)[number]
-export const legacyBuilderProducts: Record<string, ProductId> = { agent: 'personal' }
+// `implementation` (the removed «ИИ-отдел под ключ» page) opens the AI company with the sales team, its default option.
+export const legacyBuilderProducts: Record<string, ProductId> = { agent: 'personal', implementation: 'company' }
 
 export type ProductEntry = {
   // An encoded build that the product pre-selects (see encodeBuild). Empty = nothing is priced.
@@ -93,7 +94,7 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
   company: {
     parts: '',
     priced: false,
-    name: { ru: 'ИИ-компания', en: 'AI company' },
+    name: { ru: 'ИИ вашей компании', en: 'Your company’s AI' },
     hint: {
       ru: 'Фира в вашей компании: Директор, отделы под ваш бизнес, Пульт, база знаний и обучение команды',
       en: 'Fira in your company: a Director, departments for your business, the control room, a knowledge base and team training',
@@ -147,7 +148,7 @@ export const productCatalog: Record<ProductId, ProductEntry> = {
   aiteam: {
     parts: 'automation.assistant.training',
     priced: true,
-    name: { ru: 'ИИ-отдел под ключ', en: 'AI department, turnkey' },
+    name: { ru: 'ИИ-команда под ключ', en: 'AI team, turnkey' },
     hint: {
       ru: 'База знаний, ответы по документам и обучение команды',
       en: 'A knowledge base, answers from your documents and team training',
