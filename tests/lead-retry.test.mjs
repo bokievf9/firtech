@@ -74,3 +74,34 @@ test('retryDue: attempts cap, age cap, old leads without the field are skipped',
 test('without HQ config the pass does nothing', async () => {
   assert.equal(await retry.retryPendingForwards({}, async () => assert.fail('no call')), 0)
 })
+
+test('siteLeadId: stable between first send and retry; duplicate closes the lead; malformed id is not sent', async () => {
+  const log = console.error
+  console.error = () => {}
+  try {
+    const stored = await store.createLead(lead)
+    assert.match(stored.siteLeadId, /^[A-Za-z0-9_.:-]{8,64}$/)
+    const bodies = []
+    const down = async (_u, init) => { bodies.push(JSON.parse(init.body)); throw new TypeError('fetch failed') }
+    await retry.recordForward(stored.id, await forwardLeadDetailed({ ...lead, siteLeadId: stored.siteLeadId }, undefined, env, down))
+    const dup = async (_u, init) => { bodies.push(JSON.parse(init.body)); return new Response(JSON.stringify({ ok: true, id: 5, leadId: 9, duplicate: true }), { status: 200 }) }
+    const now = Date.now() + 300_000
+    assert.equal(await retry.retryPendingForwards(env, dup, now), 1)
+    assert.equal(bodies.length, 2)
+    assert.equal(bodies[0].siteLeadId, stored.siteLeadId)
+    assert.equal(bodies[1].siteLeadId, stored.siteLeadId)
+    const after = await store.getLead(stored.id)
+    assert.equal(after.hqForwarded, true)
+    assert.equal(await retry.retryPendingForwards(env, dup, now + 3_600_000), 0)
+    assert.equal(bodies.length, 2)
+    // queued is retried, a malformed id never goes out
+    const queued = async () => new Response(JSON.stringify({ ok: true, queued: true }), { status: 200 })
+    assert.equal((await forwardLeadDetailed(lead, undefined, env, queued)).ok, false)
+    let sent
+    const spy = async (_u, init) => { sent = JSON.parse(init.body); return new Response('{}', { status: 200 }) }
+    await forwardLeadDetailed({ ...lead, siteLeadId: 'bad id!' }, undefined, env, spy)
+    assert.equal('siteLeadId' in sent, false)
+  } finally {
+    console.error = log
+  }
+})
