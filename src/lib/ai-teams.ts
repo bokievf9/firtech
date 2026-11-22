@@ -1,6 +1,8 @@
 import type { Dict } from '@/content'
 import type { Locale } from './i18n'
-import { productBuilderHref } from './products'
+import { productBuild } from './products'
+import { encodeBuild } from './builder'
+import { agentSubscriptionOf, defaultPricing, teamSubscription, type Pricing, type Subscription, type TeamSubscription } from './pricing'
 
 // «Отдел из ИИ-агентов» (owner decision 2026-11-21): each department of the Fir Tech agent company
 // (COMPANY.md) can be bought as a product for the client's own business, one by one or as the whole
@@ -41,9 +43,12 @@ export function aiTeamCopy(id: AiTeamId, dict: Dict): AiTeamCopy {
 export const aiTeamsPath = '/ai-team'
 export const aiTeamPath = (id: AiTeamId) => `${aiTeamsPath}/${id}`
 
-// The builder opens with the `aiteam` product picked (`p.aiteam`, product `implementation`).
-export function aiTeamBuilderHref(locale: Locale | string) {
-  return productBuilderHref(locale, 'implementation')
+// The builder opens with the AI company picked and this team as its option (`p.company`, `f.company.<team>`); the whole
+// company opens with the defaults. The removed «ИИ-отдел под ключ» product no longer exists (owner 2026-11-22).
+export function aiTeamBuilderHref(locale: Locale | string, team: AiTeamId = 'company') {
+  const build = productBuild('company')
+  const withTeam = team === 'company' ? build : { ...build, options: { company: [team, 'pult', 'knowledge', 'training'] } }
+  return `/${locale}/builder?b=${encodeBuild(withTeam)}`
 }
 
 // Every page of this section, for the sitemap (and tests).
@@ -113,3 +118,16 @@ export const agentPaths = agentIds.map(agentPath)
 export const agentSource = (id: AgentId) => `agent-${id}`.slice(0, 40)
 
 export const allAiTeamPaths = [...aiTeamPaths, ...agentPaths]
+
+// Prices of the subscription model (owner 2026-11-22), all from the live pricing: a team is the sum of its agents
+// minus the team discount, an agent has its own subscription. The `company` team is the AI company product and has no
+// agent sum (`null`).
+export function teamPrice(id: AiTeamId, pricing: Pricing = defaultPricing): TeamSubscription | null {
+  if (id === 'company') return null
+  return teamSubscription(agentsOfDept(id).length, pricing)
+}
+
+// One agent's subscription, or `null` for the Director, who is only sold with a team.
+export function agentPrice(id: AgentId, pricing: Pricing = defaultPricing): Subscription | null {
+  return agentOffer(id).standalone ? agentSubscriptionOf(pricing) : null
+}

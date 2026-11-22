@@ -45,7 +45,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `docs/cabinet.md` and `docs/shell.md`, section «2026-11-23».
 - **Front v3 (owner review 2026-11-22, supersedes the home notes below where they differ).** Product names (ids and prices
   unchanged): `admin` ИИ-администратор, `receptionist` ИИ-менеджер заявок, `automation` Автоматизация процессов, `content` Контент на
-  автопилоте, `miniapp` Telegram Mini App, `implementation` ИИ-отдел под ключ, plus the flagships `personal` Персональный ИИ and `company` ИИ-компания (see «Flagships») (EN in `products.items`
+  автопилоте, `miniapp` Telegram Mini App, plus the flagships `personal` Персональный ИИ and `company` ИИ вашей компании (see «Flagships»; `implementation` was removed 2026-11-22) (EN in `products.items`
   and `builder-catalog.ts`); «бот» stays only as a delivery channel. The builder is «Сборка проекта» everywhere (nav, titles, buttons;
   the words «калькулятор» and «конструктор» are gone everywhere, the cabinet and the Пульт included (test in `copy-qa`); «приёмщик» is
   gone too, the lead agent is «Менеджер заявок» / «Lead manager»; the classic bots service reads «Агенты в Telegram»). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
@@ -411,6 +411,14 @@ never summed into the one-time total. Pages: own blocks in `components/product-s
 interactive day, `pult-tour.tsx`), plan cards `components/products/plan-levels.tsx`, Fira hero `components/products/fira-hero.tsx`
 (SVG, WebGL only on wide screens when idle), pilot offer «первые 1-2 пилота бесплатно за кейс и отзыв» only on the flagships.
 HQ contract: `docs/products-contract.md`; playbook section «Флагманы»; tests `tests/flagships.test.mjs`.
+**Products v4 (owner 2026-11-22 night).** Every AI product is a subscription: setup + monthly (model usage included, we connect our
+Anthropic) and `byokMonthly` with the client's own API key: `Subscription` type, `personalPlans`, `companyPlan`, `agentSubscription`,
+`teamDiscount` (15, a team = the sum of its agents minus it), `companyPerEmployee` (9 above five staff), all in `pricing.ts`, editable
+in the Пульт, in `/api/prices`; card `components/products/subscription-card.tsx` (product, team and agent pages; team/agent wrappers in
+`components/ai-team/team-price.tsx`). Personal AI levels: Спутник / Второй пилот / Второе я (Companion / Copilot / Alter Ego). The
+company product is «ИИ вашей компании»: one brain on Fira that knows the business, roles plug in as skills (no org chart). `implementation`
+is gone (`/products/implementation` redirects to `/ai-team`, `p.implementation` decodes as `p.company`); «ИИ-отделы» are «ИИ-команды».
+Channels as equals: `lib/channels.ts` and the «Где живёт» strip (`product-sections/channels-block.tsx`).
 
 ## Fira (2026-11-22)
 Brand mascot «Фира» (the lime dot of the logo come alive; cute and soft, not a tree, not a robot), concept stage: three

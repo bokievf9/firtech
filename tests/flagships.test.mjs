@@ -45,7 +45,7 @@ test('flagships: first everywhere products are listed, the old personal assistan
   assert.deepEqual(productIds.slice(0, 2), ['personal', 'company'])
   assert.deepEqual(catalogIds.slice(0, 2), ['personal', 'company'])
   assert.ok(!productIds.includes('agent') && !catalogIds.includes('agent'))
-  assert.deepEqual(legacyProductRedirects, { agent: 'personal' })
+  assert.deepEqual(legacyProductRedirects, { agent: '/products/personal', implementation: '/ai-team' })
   for (const [, dict] of dicts) {
     assert.deepEqual(Object.keys(dict.products.items).slice(0, 2), ['personal', 'company'])
     assert.deepEqual(Object.keys(dict.productPage.items).slice(0, 2), ['personal', 'company'])
@@ -61,11 +61,15 @@ test('flagships: /products/agent redirects to /products/personal in both languag
   const config = readFileSync('next.config.ts', 'utf8')
   assert.match(config, /source: '\/:locale\(ru\|en\)\/products\/agent', destination: '\/:locale\/products\/personal', permanent: true/)
   assert.match(config, /source: '\/products\/agent', destination: '\/products\/personal'/)
+  // «ИИ-отдел под ключ» was removed (owner 2026-11-22): its page leads to the AI teams.
+  assert.match(config, /source: '\/:locale\(ru\|en\)\/products\/implementation', destination: '\/:locale\/ai-team', permanent: true/)
+  assert.match(config, /source: '\/products\/implementation', destination: '\/ai-team', permanent: true/)
 })
 
 test('flagships: prices in one source, editable in the Пульт, published for HQ', () => {
   assert.deepEqual(personalPlanList().map((p) => [p.id, p.setup, p.monthly]).slice(0, 1), [['basic', 290, 29]])
-  assert.deepEqual(companyPlanOf(), { id: 'company', setup: 1490, monthly: 149 })
+  assert.deepEqual(personalPlanList().map((p) => [p.setup, p.monthly, p.byokMonthly]), [[290, 29, 14], [490, 59, 34], [790, 99, 59]])
+  assert.deepEqual(companyPlanOf(), { id: 'company', setup: 1490, monthly: 149, byokMonthly: 104 })
   const paths = priceFields.map((f) => f.path)
   for (const p of ['personalPlans.basic.setup', 'personalPlans.max.monthly', 'companyPlan.company.setup', 'companyPlan.company.monthly'])
     assert.ok(paths.includes(p), p)
@@ -126,7 +130,7 @@ test('builder: the estimate and the lead list the flagship with its plan, apart 
   for (const [locale, dict] of dicts) {
     const doc = estimateDoc(b, dict, locale)
     const row = doc.onRequest.find((r) => r.id === 'personal')
-    assert.match(row.price, /\$490 \+ \$49/)
+    assert.match(row.price, /\$490 \+ \$59/)
     assert.equal(doc.total, `$${quote(b).total}`)
     const lead = leadSummary(b, dict, locale)
     assert.ok(lead.includes(productCatalog.personal.name[locale]))
@@ -146,7 +150,7 @@ test('flagship pages: their own structure, the brief order, pilot only on the fl
   assert.equal(productPages.company.face, 'fira')
   assert.equal(productPages.company.callFirst, true)
   // the two pages share no block of their own
-  const shared = new Set(['hero', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'])
+  const shared = new Set(['hero', 'channels', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'])
   assert.equal(personal.filter((s) => !shared.has(s) && company.includes(s)).length, 0)
   for (const id of productIds) assert.equal(productPages[id].sections.includes('pilot'), flagshipIds.includes(id), `${id} pilot`)
   for (const [locale, dict] of dicts) {
@@ -185,7 +189,7 @@ test('flagship pages: their own structure, the brief order, pilot only on the fl
 test('flagships: the HQ contract and the playbook know the ids, names, prices and need rules', () => {
   assert.ok(existsSync('docs/products-contract.md'))
   const contract = readFileSync('docs/products-contract.md', 'utf8')
-  for (const word of ['personal', 'company', 'Персональный ИИ', 'ИИ-компания', 'personalPlans', 'companyPlan', 'agentPlans', 'f.personal', '/products/agent'])
+  for (const word of ['personal', 'company', 'Персональный ИИ', 'ИИ вашей компании', 'personalPlans', 'companyPlan', 'agentPlans', 'byokMonthly', 'agentSubscription', 'teamDiscountPercent', 'f.personal', '/products/agent', '/products/implementation'])
     assert.ok(contract.includes(word), word)
   const playbook = readFileSync('docs/sales-playbook-site.md', 'utf8')
   assert.match(playbook, /## Флагманы/)

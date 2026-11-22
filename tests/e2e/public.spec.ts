@@ -202,7 +202,7 @@ test('home: «Попробуйте сейчас» tabs switch, the booking sampl
   // One tab per product, in the order of `demoTabIds`; the chat has six personas.
   await expect(tabs).toHaveCount(7)
   expect(await tabs.evaluateAll((els) => els.map((el) => el.getAttribute('data-demo-tab')))).toEqual([
-    'receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'implementation',
+    'receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'company',
   ])
   await expect(page.locator('[data-niche]')).toHaveCount(6)
   await tabs.nth(1).click()

@@ -19,16 +19,15 @@ export const productSectionIds = [
   'facts', // open data about the channel, with sources
   'scenarios', // step-by-step scenarios
   'knows', // what it knows and what it does not promise
-  'org', // org chart of roles
-  'grow', // how it grows: agent, autopilot, department
   // Flagship blocks (owner 2026-11-22): Personal AI
   'myday', // an interactive day with your AI by the hour, for three kinds of people
   'memory', // what it remembers about you: people, habits, promises
-  'lives', // where it lives: Telegram, voice, its own container, your data stays yours
+  'channels', // «Где живёт»: the channels as equals (data in lib/channels.ts)
+  'lives', // where it lives: channels, voice, its own container, your data stays yours
   'setup', // how we set it up: interview, services, a week of tuning, grows with you
   'cases', // live examples from the founder (Dono, Polly), no prices
   // Flagship blocks: AI company
-  'structure', // the company map: Fira as the Director, departments and roles for the business
+  'structure', // one brain, many skills: Fira knows the business, skills (sales, support, content) plug in
   'pult', // a tour of the control room we work in ourselves
   'knowledge', // knowledge from your documents, site and chats
   'trust', // trust levels: the agent acts alone after a run of approvals
@@ -56,40 +55,36 @@ export const productPages: Record<ProductId, ProductPageLayout> = {
   // Flagship. Anyone can have an AI set up for them: show the whole day first, then what it remembers, where it
   // lives and how we set it up, then the founder's own AIs as live examples, levels and the terms.
   personal: {
-    sections: ['hero', 'myday', 'memory', 'lives', 'setup', 'cases', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'],
+    sections: ['hero', 'myday', 'memory', 'channels', 'lives', 'setup', 'cases', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'],
   },
   // Flagship. Fira installed in the client's company: the map of the company, the control room we use ourselves,
   // knowledge, trust levels, the team, four stages and the price «от» by the quote. A call is the first action.
   company: {
     face: 'fira',
     callFirst: true,
-    sections: ['hero', 'structure', 'pult', 'knowledge', 'trust', 'teamgets', 'rollout', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'],
+    sections: ['hero', 'structure', 'channels', 'pult', 'knowledge', 'trust', 'teamgets', 'rollout', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'],
   },
   // The salon owner wants to see booking happen without them: the demo comes first, then a day by the hour.
   admin: {
     demo: 'booking',
-    sections: ['hero', 'demo', 'day', 'capabilities', 'scope', 'included', 'price', 'offer', 'objections', 'readiness'],
+    sections: ['hero', 'demo', 'day', 'capabilities', 'channels', 'scope', 'included', 'price', 'offer', 'objections', 'readiness'],
   },
   // The buyer wants to hear how the agent talks to a client: the live chat first, then the road of a request.
   receptionist: {
     demo: 'chat',
-    sections: ['hero', 'demo', 'flow', 'included', 'price', 'objections', 'offer', 'scope', 'readiness'],
+    sections: ['hero', 'demo', 'flow', 'channels', 'included', 'price', 'objections', 'offer', 'scope', 'readiness'],
   },
   // The buyer counts their own time: a week of content, the roles inside, approval by one button.
   content: {
-    sections: ['hero', 'week', 'roles', 'first', 'included', 'price', 'objections', 'offer', 'readiness'],
+    sections: ['hero', 'week', 'roles', 'channels', 'first', 'included', 'price', 'objections', 'offer', 'readiness'],
   },
   // The buyer counts hours of manual work: before and after, the routines that go away.
   automation: {
-    sections: ['hero', 'beforeAfter', 'routines', 'first', 'scope', 'included', 'price', 'offer', 'objections', 'readiness'],
+    sections: ['hero', 'beforeAfter', 'routines', 'channels', 'first', 'scope', 'included', 'price', 'offer', 'objections', 'readiness'],
   },
   // The buyer doubts customers will order in Telegram: screens, the buyer's path, open data about the audience.
   miniapp: {
     sections: ['hero', 'phones', 'facts', 'capabilities', 'included', 'price', 'offer', 'objections', 'readiness'],
-  },
-  // The buyer thinks in structure: an org chart of roles, how it grows, then the first month.
-  implementation: {
-    sections: ['hero', 'org', 'grow', 'first', 'scope', 'included', 'price', 'offer', 'objections', 'readiness'],
   },
 }
 
@@ -107,14 +102,6 @@ export type ProductBlocks = {
   facts?: { title: string; sub: string; items: { value: string; label: string; source: string }[]; note: string }
   scenarios?: { title: string; sub: string; items: { title: string; trigger: string; steps: string[]; result: string }[] }
   knows?: { title: string; knowsTitle: string; knows: string[]; notTitle: string; not: string[] }
-  org?: {
-    title: string
-    sub: string
-    owner: { name: string; does: string }
-    director: { name: string; does: string }
-    depts: { name: string; roles: string[] }[]
-  }
-  grow?: { title: string; sub: string; link: string; steps: { level: string; title: string; text: string }[] }
   myday?: {
     title: string
     sub: string
@@ -171,8 +158,6 @@ export const sectionCopyKey: Partial<Record<ProductSectionId, keyof ProductBlock
   facts: 'facts',
   scenarios: 'scenarios',
   knows: 'knows',
-  org: 'org',
-  grow: 'grow',
   myday: 'myday',
   memory: 'memory',
   lives: 'lives',

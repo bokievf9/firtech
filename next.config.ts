@@ -22,6 +22,9 @@ const nextConfig: NextConfig = {
     return [
       { source: '/:locale(ru|en)/products/agent', destination: '/:locale/products/personal', permanent: true },
       { source: '/products/agent', destination: '/products/personal', permanent: true },
+      // «ИИ-отдел под ключ» was removed (2026-11-22): its page leads to the AI teams.
+      { source: '/:locale(ru|en)/products/implementation', destination: '/:locale/ai-team', permanent: true },
+      { source: '/products/implementation', destination: '/ai-team', permanent: true },
     ]
   },
   async headers() {

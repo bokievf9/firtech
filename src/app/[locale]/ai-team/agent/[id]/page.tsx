@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AgentRow } from '@/components/ai-team/agent-list'
-import { QuoteLine, TeamGlyph } from '@/components/ai-team/team-parts'
+import { AgentPriceCard } from '@/components/ai-team/team-price'
+import { TeamGlyph } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
@@ -108,7 +109,7 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
           </h1>
           <p className="mt-6 max-w-[56ch] text-lead text-muted">{page.promise}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link href={aiTeamBuilderHref(locale)} data-cta={`agent_${id}_build`} className={cn(buttonStyles.primary, 'group')}>
+            <Link href={aiTeamBuilderHref(locale, offer.dept)} data-cta={`agent_${id}_build`} className={cn(buttonStyles.primary, 'group')}>
               {t.ctaBuild}
               <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
@@ -122,9 +123,9 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
           </div>
         </HeroIntro>
         <Reveal className="lg:col-span-4" delay={0.3}>
-          <div className={cn('rounded-card border bg-surface p-7', accent.border)}>
-            <QuoteLine dict={dict} />
-            <p className="mt-6 border-t border-line pt-5 text-sm leading-relaxed text-muted">
+          <div className={cn('rounded-card border bg-surface p-3', accent.border)}>
+            <AgentPriceCard id={id} dict={dict} />
+            <p className="px-4 pt-4 pb-3 text-sm leading-relaxed text-muted">
               {offer.standalone ? ta.standaloneYes : ta.standaloneNo}
             </p>
           </div>
@@ -235,7 +236,7 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
               <p className="mt-3 max-w-[52ch] leading-relaxed text-muted">{ta.page.finalText}</p>
             </div>
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-              <Link href={aiTeamBuilderHref(locale)} data-cta={`agent_${id}_final`} className={buttonStyles.primary}>
+              <Link href={aiTeamBuilderHref(locale, offer.dept)} data-cta={`agent_${id}_final`} className={buttonStyles.primary}>
                 {t.ctaBuild}
               </Link>
               <ChatOpenButton source={`aiteam_${id}`.slice(0, 40)} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>

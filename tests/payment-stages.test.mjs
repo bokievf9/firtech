@@ -103,7 +103,7 @@ test('products: template by the product parts, none for subscriptions', () => {
   assert.equal(stageTemplateForProduct('content'), null)
   assert.equal(stageTemplateForProduct('agent'), null)
   // Home product ids resolve through the builder product.
-  assert.equal(stageTemplateForProduct('implementation'), 'automation')
+  assert.equal(stageTemplateForProduct('company'), null) // the AI company has its own four-stage template
   assert.equal(stageTemplateForProduct('receptionist'), stageTemplateForProduct('intake'))
   for (const id of Object.keys(productCatalog)) {
     const t = stageTemplateForProduct(id)

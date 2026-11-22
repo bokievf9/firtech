@@ -1,5 +1,4 @@
-import { ArrowRight, ArrowUpRight, Check, CheckCircle, Clock, X } from '@phosphor-icons/react/ssr'
-import Link from 'next/link'
+import { ArrowRight, Check, CheckCircle, Clock, X } from '@phosphor-icons/react/ssr'
 import type { ProductBlocks } from '@/content/product-pages'
 import { cn } from '@/lib/cn'
 import { Reveal } from '../reveal'
@@ -312,84 +311,6 @@ export function KnowsBlock({ copy, band }: { copy: Req<'knows'> } & Band) {
           </div>
         </Reveal>
       </div>
-    </SectionShell>
-  )
-}
-
-// Org chart of roles (ИИ-отдел под ключ): the owner on top, the Director under, departments with their roles.
-export function OrgBlock({ copy, band }: { copy: Req<'org'> } & Band) {
-  const node = 'mx-auto w-full max-w-md rounded-card border p-5 text-center'
-  return (
-    <SectionShell id="org" title={copy.title} sub={copy.sub} band={band}>
-      <div data-org>
-        <Reveal>
-          <div className={cn(node, 'border-accent-text/40 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_75%)]')}>
-            <p className="text-lg font-semibold">{copy.owner.name}</p>
-            <p className="mt-1 text-sm text-muted">{copy.owner.does}</p>
-          </div>
-        </Reveal>
-        <div aria-hidden="true" className="mx-auto h-8 w-px bg-line-strong" />
-        <Reveal delay={0.06}>
-          <div className={cn(node, 'border-line bg-surface')}>
-            <p className="text-lg font-semibold">{copy.director.name}</p>
-            <p className="mt-1 text-sm text-muted">{copy.director.does}</p>
-          </div>
-        </Reveal>
-        <div aria-hidden="true" className="mx-auto h-8 w-px bg-line-strong" />
-        <div aria-hidden="true" className="mx-auto hidden h-px w-2/3 bg-line-strong md:block" />
-        <ul className="mt-0 grid gap-gutter md:mt-6 md:grid-cols-3">
-          {copy.depts.map((dept, i) => (
-            <li key={dept.name}>
-              <Reveal delay={0.1 + i * 0.06} className="h-full">
-                <div className="h-full rounded-card border border-line bg-surface p-5">
-                  <p className="font-mono text-xs tracking-[0.14em] text-accent-text uppercase">{dept.name}</p>
-                  <ul className="mt-4 grid gap-2">
-                    {dept.roles.map((role) => (
-                      <li key={role} className="rounded-[10px] border border-line bg-bg/60 px-3 py-2 text-sm">
-                        {role}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </Reveal>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </SectionShell>
-  )
-}
-
-// How it grows (ИИ-отдел): agent, autopilot, department as rising steps, with a link to the full ladder.
-const rise = ['md:mt-24', 'md:mt-12', 'md:mt-0']
-export function GrowBlock({ copy, band, href }: { copy: Req<'grow'>; href: string } & Band) {
-  return (
-    <SectionShell id="grow" title={copy.title} sub={copy.sub} band={band}>
-      <ol className="grid gap-gutter md:grid-cols-3 md:items-start" data-grow>
-        {copy.steps.map((step, i) => (
-          <li key={step.level} className={rise[i]}>
-            <Reveal delay={i * 0.07}>
-              <div
-                className={cn(
-                  'rounded-card border p-6',
-                  i === copy.steps.length - 1 ? 'border-accent-text/40 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_75%)]' : 'border-line bg-surface',
-                )}
-              >
-                <p className="font-mono text-xs tracking-[0.14em] text-accent-text uppercase">{step.level}</p>
-                <h3 className="mt-3 text-xl font-semibold tracking-tight">{step.title}</h3>
-                <p className="mt-3 leading-relaxed text-muted">{step.text}</p>
-              </div>
-            </Reveal>
-          </li>
-        ))}
-      </ol>
-      <Link
-        href={href}
-        className="mt-8 inline-flex items-center gap-1.5 text-sm font-medium underline decoration-line-strong underline-offset-4 hover:text-accent-text"
-      >
-        {copy.link}
-        <ArrowUpRight size={14} aria-hidden="true" />
-      </Link>
     </SectionShell>
   )
 }

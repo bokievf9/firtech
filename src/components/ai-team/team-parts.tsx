@@ -42,15 +42,3 @@ export function TrustChip({ trust, dict }: { trust: AiTeamTrust | string; dict: 
     </span>
   )
 }
-
-// «По смете» plus the note: the same pattern as the unpriced home products. Never a number.
-export function QuoteLine({ dict, className }: { dict: Dict; className?: string }) {
-  const t = dict.aiTeams
-  return (
-    <div className={className}>
-      <p className="text-xs text-faint">{t.priceLabel}</p>
-      <p className="mt-1 font-mono text-3xl tracking-tight text-fg">{t.quote}</p>
-      <p className="mt-2 text-sm leading-relaxed text-muted">{t.quoteNote}</p>
-    </div>
-  )
-}

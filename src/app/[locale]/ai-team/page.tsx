@@ -18,12 +18,15 @@ import {
   agentsOfDept,
   aiTeamAccent,
   aiTeamBuilderHref,
+  teamPrice,
   aiTeamIds,
   aiTeamPath,
   agentOffers,
   type AiTeamId,
 } from '@/lib/ai-teams'
 import { buttonStyles, cn } from '@/lib/cn'
+import { companyPlanOf, formatUsd } from '@/lib/pricing'
+import { getPricing } from '@/lib/pricing-store'
 import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
 import { productPath } from '@/lib/product-ids'
@@ -67,6 +70,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
   const t = dict.aiTeams
+  const pricing = await getPricing()
 
   const list = {
     '@context': 'https://schema.org',
@@ -172,6 +176,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
           {aiTeamIds.map((id, i) => {
             const item = t.items[id]
             const accent = aiTeamAccent[id]
+            const price = teamPrice(id, pricing) ?? companyPlanOf(pricing)
             return (
               <li key={id} className={spans[id]}>
                 <Reveal className="h-full" delay={(i % 3) * 0.06}>
@@ -226,7 +231,10 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
                           id === 'company' && 'lg:col-span-3 lg:mt-0 lg:flex-col lg:items-start lg:justify-center',
                         )}
                       >
-                        <p className="font-mono text-base text-fg">{t.quote}</p>
+                        <p className="font-mono text-base text-fg" data-team-price={id}>
+                          {dict.subscription.from} {formatUsd(price.setup)} + {formatUsd(price.monthly)}
+                          {dict.products.perMonth}
+                        </p>
                         <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors group-hover:text-accent-text">
                           {t.more}
                           <ArrowUpRight size={16} aria-hidden="true" />
