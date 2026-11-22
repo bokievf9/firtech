@@ -228,7 +228,8 @@ const labels = {
   skl: { ru: 'Умения ассистента', en: 'Assistant skills' },
 }
 
-export function catalogRows(build: Build, locale: string): CatalogRow[] {
+// `limit` per row: the lead text keeps `rowLimit`, the summary screen and the PDF pass a bigger one.
+export function catalogRows(build: Build, locale: string, limit = rowLimit): CatalogRow[] {
   const c = build.catalog
   if (catalogEmpty(c)) return []
   const loc = L(locale)
@@ -238,10 +239,10 @@ export function catalogRows(build: Build, locale: string): CatalogRow[] {
   }
   const subs = build.kind ? subNiches[build.kind] ?? [] : []
   add('c-sub', labels.sub[loc], subs.filter((s) => c!.sub?.includes(s.id)).map((s) => s.name[loc]).join(', '))
-  add('c-res', labels.res[loc], grouped(c!.res ?? [], results, resultGroups, locale))
-  add('c-cap', labels.cap[loc], grouped(c!.cap ?? [], capabilities, capabilityGroups, locale))
-  add('c-chn', labels.chn[loc], grouped(c!.chn ?? [], channelOptions, channelGroups, locale))
-  add('c-int', labels.int[loc], grouped(c!.int ?? [], integrations, integrationGroups, locale))
+  add('c-res', labels.res[loc], grouped(c!.res ?? [], results, resultGroups, locale, limit))
+  add('c-cap', labels.cap[loc], grouped(c!.cap ?? [], capabilities, capabilityGroups, locale, limit))
+  add('c-chn', labels.chn[loc], grouped(c!.chn ?? [], channelOptions, channelGroups, locale, limit))
+  add('c-int', labels.int[loc], grouped(c!.int ?? [], integrations, integrationGroups, locale, limit))
   const con = Object.entries(c!.con ?? {})
     .map(([f, q]) => {
       const format = contentFormats.find((x) => x.id === f)
@@ -250,10 +251,10 @@ export function catalogRows(build: Build, locale: string): CatalogRow[] {
     })
     .filter(Boolean)
     .join('; ')
-  add('c-ct', labels.con[loc], con.length > rowLimit ? `${con.slice(0, rowLimit - 4)}...` : con)
-  add('c-skl', labels.skl[loc], grouped(c!.skl ?? [], personalSkills, skillGroups, locale))
+  add('c-ct', labels.con[loc], con.length > limit ? `${con.slice(0, limit - 4)}...` : con)
+  add('c-skl', labels.skl[loc], grouped(c!.skl ?? [], personalSkills, skillGroups, locale, limit))
   const { quote } = capabilityScope(build)
-  add('c-quote', labels.quote[loc], names(quote, capabilities, locale))
+  add('c-quote', labels.quote[loc], names(quote, capabilities, locale, limit))
   return rows
 }
 

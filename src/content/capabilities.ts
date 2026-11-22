@@ -162,7 +162,7 @@ export const results: Item[] = [
     ['rs10', 'Больше клиентов из карт и поиска', 'Карточка, отзывы и сайт работают вместе', 'More customers from maps and search', 'The card, reviews and site work together'],
   ]),
   ...table('service', [
-    ['rs11', 'Меньше неявок на запись', 'Напоминания и перенос в один тап', 'Fewer no-shows', 'Reminders and a one-tap reschedule'],
+    ['rs11', 'Реже срываются визиты', 'Напоминания и перенос в один тап', 'Fewer missed visits', 'Reminders and a one-tap reschedule'],
     ['rs12', 'Заполненный график без дыр', 'Освободившиеся окна предлагают ожидающим', 'A full schedule without gaps', 'Freed slots go to those waiting'],
     ['rs13', 'Ответы на частые вопросы без вас', 'Цены, адрес, часы и условия знает агент', 'Common questions answered without you', 'Prices, address, hours and terms are known to the agent'],
     ['rs14', 'Клиент всегда знает статус заказа', 'Сообщение на каждом шаге, без звонков «где мой заказ»', 'Customers always know the order status', 'A message at every step, no «where is my order» calls'],
