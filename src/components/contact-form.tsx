@@ -259,8 +259,6 @@ export function ContactForm({
               {followUrl && (
                 <a
                   href={followUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   data-place="lead-success"
                   aria-describedby={`${uid}-bot-hint`}
                   className={buttonStyles.primary}

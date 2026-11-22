@@ -412,7 +412,7 @@ function Bubble({
             {m.attachments.map((a) => (
               <li key={`${a.href}-${a.name}`}>
                 <a
-                  {...(a.href ? { href: a.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
+                  {...(a.href ? { href: a.href } : {})}
                   className={cn(
                     'flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-[13px] break-all',
                     own ? 'border-accent-ink/25 hover:bg-accent-ink/10' : 'border-line-strong hover:bg-fg/5',

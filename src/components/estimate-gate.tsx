@@ -145,8 +145,6 @@ export function EstimateGate({
   const openLink = (
     <a
       href={estimateHref}
-      target="_blank"
-      rel="noopener"
       className={cn(buttonStyles.secondary, 'whitespace-normal text-center')}
     >
       <FilePdf size={16} className="shrink-0" />

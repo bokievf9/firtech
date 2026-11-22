@@ -99,8 +99,6 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
               <a
                 href={telegramUrl}
                 data-place="referral"
-                target="_blank"
-                rel="noopener noreferrer"
                 className={buttonStyles.secondary}
               >
                 <TelegramLogo size={18} weight="fill" />
