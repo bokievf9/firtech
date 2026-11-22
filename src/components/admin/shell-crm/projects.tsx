@@ -194,14 +194,16 @@ function ProjectBody({
   const toggle = async (m: Milestone) => {
     const before = m.doneAt
     onMilestone(m, { doneAt: before ? null : new Date().toISOString() })
-    if (!(await onAct({ action: 'complete_milestone', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id }))) onMilestone(m, { doneAt: before })
+    if (await onAct({ action: 'complete_milestone', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id })) notify(before ? k.milestoneReopened : k.milestoneDone)
+    else onMilestone(m, { doneAt: before })
   }
   const deadline = async (m: Milestone, value: string) => {
     if (!value) return
     const before = m.dueAt
     const dueAt = new Date(`${value}T12:00:00Z`).toISOString()
     onMilestone(m, { dueAt })
-    if (!(await onAct({ action: 'set_deadline', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id, dueAt }))) onMilestone(m, { dueAt: before })
+    if (await onAct({ action: 'set_deadline', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id, dueAt })) notify(k.deadlineSet)
+    else onMilestone(m, { dueAt: before })
   }
   return (
     <>
@@ -306,7 +308,10 @@ function ProjectBody({
           disabled={!note.trim() || busy}
           onClick={async () => {
             setBusy(true)
-            if (await onAct({ action: 'note', text: note.trim() })) setNote('')
+            if (await onAct({ action: 'note', text: note.trim() })) {
+              setNote('')
+              notify(k.noteSaved)
+            }
             setBusy(false)
           }}
         >
