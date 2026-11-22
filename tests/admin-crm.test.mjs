@@ -130,9 +130,11 @@ test('removed admin routes have no page (Next answers 404); the kept ones exist'
   for (const gone of ['leads', 'calendar']) {
     assert.equal(existsSync(path.join(root, 'src/app/admin', gone, 'page.tsx')), false, gone)
   }
-  for (const kept of ['office/page.tsx', 'login/page.tsx', 'echo/page.tsx', 'page.tsx']) {
+  for (const kept of ['(hq)/office/page.tsx', 'login/page.tsx', 'page.tsx']) {
     assert.equal(existsSync(path.join(root, 'src/app/admin', kept)), true, kept)
   }
+  // Office is a Shell section now: no page outside the frame, and Echo is gone with its route.
+  for (const gone of ['office/page.tsx', 'echo/page.tsx']) assert.equal(existsSync(path.join(root, 'src/app/admin', gone)), false, gone)
   for (const api of ['leads/route.ts', 'leads/[id]/route.ts', 'hq/[...path]/route.ts', 'office/route.ts', 'export/route.ts']) {
     assert.equal(existsSync(path.join(root, 'src/app/api/admin', api)), true, api)
   }
@@ -172,10 +174,10 @@ test('the admin nav shows only the office; removed components and models are gon
   }
 })
 
-test('the hub mounts both site panels in the Sales panel (tabs site and calls)', () => {
-  const panels = readFileSync(path.join(root, 'src/components/admin/hub/panels.tsx'), 'utf8')
-  assert.match(panels, /<LeadsPanel crm=\{crm\}/)
-  assert.match(panels, /<CallsPanel crm=\{crm\}/)
-  assert.match(panels, /tab === 'site'/)
-  assert.match(panels, /tab === 'calls'/)
+test('Shell Clients mounts both site panels (tabs site and calls)', () => {
+  const sections = readFileSync(path.join(root, 'src/components/admin/hq/sections.tsx'), 'utf8')
+  assert.match(sections, /<LeadsPanel crm=\{crm\}/)
+  assert.match(sections, /<CallsPanel crm=\{crm\}/)
+  assert.match(sections, /tab === 'site'/)
+  assert.match(sections, /tab === 'calls'/)
 })

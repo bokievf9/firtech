@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { campaignBody } from './campaigns-hq'
 import { hqMock } from './hq-admin-mock'
 
-// Proxy to HQ's admin API (the «пульт» on /admin/office). Every call goes through the session-checked
+// Proxy to HQ's admin API (the Shell at /admin). Every call goes through the session-checked
 // route /api/admin/hq/[...path]; the token and HQ's URL stay on the server. Never throws: failures
 // are short codes ({ ok: false, error }) the page translates. Without HQ_ADMIN_URL, development uses
 // the in-memory mock (hq-admin-mock.ts); production falls back to the loopback default.
@@ -80,9 +80,6 @@ export const ENDPOINTS: readonly Endpoint[] = [
   },
   // The Director's history for «Поручения» (limit 1..200); the page asks for 100 when it opens.
   { method: 'GET', path: /^director\/history$/, query: ['limit'] },
-  { method: 'GET', path: /^departments$/ },
-  { method: 'GET', path: /^drill$/ },
-  { method: 'POST', path: /^drill$/, body: z.object({ arg: z.string().max(100).optional() }).strict() },
 ]
 
 // HQ «Settings» (2026-11-23): the one settings object; HQ takes PATCH here (`agents/docs/admin-crm-api.md` «Настройки»). The body mirrors
@@ -195,7 +192,6 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
       .strict()
       .refine((b) => b.action !== 'revise' || (b.note !== undefined && b.note.trim().length > 0), 'revise needs a note'),
   },
-  { method: 'GET', path: /^metrics\/week$/, query: ['week'] },
   // The owner accepts a client's finished stage from the project drawer (same call as the cabinet button).
   // Numeric client id only (a client without an account has no cabinet to accept in).
   { method: 'POST', path: /^clients\/\d{1,12}\/projects\/\d{1,12}\/milestones\/\d{1,3}\/accept$/, body: empty },
@@ -234,16 +230,11 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'POST', path: /^campaigns$/, body: campaignBody },
   { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
-  { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
-  { method: 'POST', path: /^company\/routines\/[\w-]{1,64}$/, body: z.object({ enabled: z.boolean() }).strict() },
-  { method: 'POST', path: /^company\/routines\/[\w-]{1,64}\/run$/, body: empty },
-  { method: 'POST', path: /^company\/trust\/[\w-]{1,64}$/, body: z.object({ level: z.union([z.literal(0), z.literal(1)]) }).strict() },
 ]
 
 // Ревью-центр, чаты и ссылки Трендвотчера (contract «Ревью-центр», 2026-11-21): the review queue with its
 // decisions, client chats with owner replies, and the owner's trend links. Review ids are `ap_<n>`, chat
 // ids `c|l|t|w|g<...>` (aliases, so any plain segment); the proxy encodes them again toward HQ.
-export const REVIEW_DEPTS = ['marketing', 'sales', 'support', 'production', 'backoffice', 'director'] as const
 export const REVIEW_ACTIONS = ['approve', 'edit', 'revise', 'reject', 'publish_now', 'reschedule', 'send', 'call'] as const
 const reviewText = z
   .object({

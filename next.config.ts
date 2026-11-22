@@ -52,14 +52,6 @@ const nextConfig: NextConfig = {
         source: '/api/cabinet/documents/:id/file',
         headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }],
       },
-      // Echo listens to the owner's voice: the microphone is allowed on that page only. A later
-      // rule wins for the same header.
-      {
-        source: '/admin/echo',
-        headers: [
-          { key: 'Permissions-Policy', value: 'camera=(), geolocation=(), microphone=(self)' },
-        ],
-      },
     ]
   },
 }

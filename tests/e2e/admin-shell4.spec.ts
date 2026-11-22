@@ -91,13 +91,10 @@ test.describe('with a session', () => {
 
   test('Поручения: the composer makes a task and the timeline shows it; N focuses the composer', async ({ page }) => {
     const errors = watchErrors(page, noise)
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('1')
-    await page.getByRole('tab', { name: /^Поручения/ }).click()
+    await open(page, '/admin/tasks')
     const composer = page.getByRole('combobox', { name: 'Новое поручение Директору' })
     await expect(composer).toHaveAttribute('placeholder', 'Напишите поручение…')
-    await page.locator('aside h2').click()
+    await page.getByRole('heading', { name: 'Tasks', level: 1 }).click()
     await page.keyboard.press('n')
     await expect(composer).toBeFocused()
 
@@ -107,7 +104,7 @@ test.describe('with a session', () => {
     await composer.type('Срок до пятницы')
     await expect(composer).toHaveValue('Подготовь КП для салона Нигины\nСрок до пятницы')
     await composer.press('Enter')
-    const card = page.locator('aside [data-task]').filter({ hasText: 'Подготовь КП для салона Нигины' })
+    const card = page.locator('[data-tasks-list] [data-task]').filter({ hasText: 'Подготовь КП для салона Нигины' })
     await expect(card.first()).toBeVisible()
     await expect(card.first().getByText('назначено')).toBeVisible()
 
@@ -119,15 +116,12 @@ test.describe('with a session', () => {
     // Cancelling asks first, then the Director takes it off.
     await card.first().getByRole('button', { name: 'Отменить' }).click()
     await page.getByRole('alertdialog').getByRole('button', { name: 'Отменить', exact: true }).click()
-    await expect(page.locator('aside [data-task]').filter({ hasText: 'Подготовь КП для салона Нигины' })).toHaveCount(0)
+    await expect(page.locator('[data-tasks-list] [data-task]').filter({ hasText: 'Подготовь КП для салона Нигины' })).toHaveCount(0)
     expect(errors).toEqual([])
   })
 
   test('Поручения: a slash opens the command list, Tab completes, Esc closes the list only', async ({ page }) => {
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('1')
-    await page.getByRole('tab', { name: /^Поручения/ }).click()
+    await open(page, '/admin/tasks')
     const composer = page.getByRole('combobox', { name: 'Новое поручение Директору' })
     await composer.fill('/')
     const list = page.getByRole('listbox', { name: 'Команды Директора' })
@@ -140,14 +134,12 @@ test.describe('with a session', () => {
     await expect(list).toBeVisible()
     await composer.press('Escape')
     await expect(list).toBeHidden()
-    await expect(page.locator('aside h2')).toHaveText('Директор')
+    await expect(page).toHaveURL(/\/admin\/tasks/)
   })
 
   test('sales: the lead drawer shows «Разбор заявки» (old link and no link too)', async ({ page }) => {
     const errors = watchErrors(page, noise)
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('3')
+    await open(page, '/admin/clients')
     await page.getByRole('button', { name: /Нигина/ }).first().click()
     const block = page.getByRole('region', { name: 'Разбор заявки' })
     await expect(block).toBeVisible()
@@ -167,10 +159,7 @@ test.describe('with a session', () => {
   })
 
   test('back office: every document row opens the full-screen editor, pending or approved, a КП too', async ({ page }) => {
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('6')
-    await page.getByRole('tab', { name: /^Документы/ }).click()
+    await open(page, '/admin/documents')
     const dialog = page.getByRole('dialog', { name: 'Редактор документа' })
     const row = (text: string) => page.getByRole('listitem').filter({ hasText: text })
     // A pending invoice draft.
@@ -192,16 +181,6 @@ test.describe('with a session', () => {
     await expect(row('FT-2026-001').getByRole('button', { name: 'Править' })).toBeDisabled()
   })
 
-  test('Director: the «Документы» tab lists documents by client with «Править»; approvals are part of Поручения', async ({ page }) => {
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('1')
-    await page.getByRole('tab', { name: /^Документы/ }).click()
-    await expect(page.getByRole('heading', { name: 'Боб' })).toBeVisible()
-    await page.getByRole('listitem').filter({ hasText: 'КП на Telegram-бота' }).getByRole('button', { name: 'Править' }).click()
-    await expect(page.getByRole('dialog', { name: 'Редактор документа' })).toBeVisible()
-  })
-
   test('review: E on a КП pack opens its first document, the stage has «Править» for each document', async ({ page }) => {
     await open(page, '/admin/approvals?id=ap_209')
     await expect(page.getByRole('button', { name: 'Править КП' })).toBeVisible()
@@ -213,19 +192,6 @@ test.describe('with a session', () => {
     await expect(dialog).toBeHidden()
     await page.keyboard.press('e')
     await expect(dialog.getByRole('textbox', { name: 'Текст документа' })).toHaveValue(/Коммерческое предложение/)
-  })
-
-  test('⌘K: a Director command answers inside the Поручения timeline, not in a toast', async ({ page }) => {
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('Control+k')
-    const box = page.locator('input.ym-disable-keys').first()
-    await box.fill('Отчёт')
-    await page.keyboard.press('Enter')
-    await expect(page.getByRole('tab', { name: /^Поручения/ })).toHaveAttribute('aria-selected', 'true')
-    const log = page.getByRole('log')
-    await expect(log.getByText('/status').first()).toBeVisible()
-    await expect(log.locator('li').first()).toBeVisible()
   })
 
   test('phone: the editor has its toolbar at the bottom and Поручения fits the screen', async ({ page }) => {

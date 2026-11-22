@@ -410,12 +410,10 @@ test('no component or page computes with the default price constants; client cod
       assert.doesNotMatch(readFileSync(file, 'utf8'), /pricing-store/, file)
 })
 
-test('Пульт: the «Цены» tab belongs to the Компания panel, has a label and strings, and is wired in', async () => {
-  const pult = await import('../src/lib/shell.ts')
+test('Shell: the prices editor lives in Settings, has strings, and is wired in', async () => {
   const { admin } = await import('../src/content/admin.ts')
-  assert.deepEqual(pult.PANEL_TABS.company, ['company', 'prices'])
   assert.equal(admin.hub.tabs.prices, 'Цены')
-  assert.match(readFileSync('src/components/admin/hub/panels.tsx', 'utf8'), /tab === 'prices' \? <PricesTab \/>/)
+  assert.match(readFileSync('src/components/admin/hq/settings-section.tsx', 'utf8'), /<PricesTab \/>/)
   const ui = readFileSync('src/components/admin/shell-crm/company-prices.tsx', 'utf8')
   // Inline edit: Enter saves, Escape cancels; the stage sum blocks saving.
   assert.match(ui, /e\.key === 'Enter'/)

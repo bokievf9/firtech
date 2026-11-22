@@ -35,15 +35,10 @@ test('admin pages and API refuse a visitor without a session', async ({ page, re
 test.describe('with a session', () => {
   test.beforeEach(async ({ context, baseURL }) => adminContext(context, baseURL!))
 
-  test('hub loads with counters, presence switch and the office', async ({ page }) => {
+  test('the presence switch lives in the Shell top bar', async ({ page }) => {
     const errors = watchErrors(page)
-    await open(page, '/admin/office')
+    await open(page, '/admin/inbox')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Одобрения: \d+/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Новые лиды: \d+/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Ждут оплаты: \d+/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /^Открытые тикеты: \d+/ })).toBeVisible()
-    await expect(page.locator('canvas').first()).toBeVisible()
     await page.getByRole('radio', { name: 'Не на месте', exact: true }).click()
     await expect(page.getByRole('radio', { name: 'Не на месте', exact: true })).toBeChecked()
     await page.getByRole('radio', { name: 'На месте', exact: true }).click()
@@ -51,100 +46,8 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  const panels = [
-    ['1', 'Директор'],
-    ['2', 'Маркетинг'],
-    ['3', 'Продажи'],
-    ['4', 'Поддержка'],
-    ['5', 'Производство'],
-    ['6', 'Бэк-офис'],
-    ['7', 'Компания'],
-  ] as const
-  test('keys 1-7 open the panels, Esc closes, 8 opens the go-live page', async ({ page }) => {
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    for (const [key, title] of panels) {
-      await page.keyboard.press(key)
-      await expect(page.locator('aside h2')).toHaveText(title)
-      await page.keyboard.press('Escape')
-      await expect(page.locator('aside h2')).toHaveCount(0)
-    }
-    await page.keyboard.press('8')
-    await expect(page).toHaveURL(/\/admin\/golive$/)
-  })
-
-  test('panel tabs switch and the counters open their panels', async ({ page }) => {
-    await open(page, '/admin/office')
-    await page.keyboard.press('1')
-    for (const tab of ['Входящие', 'Поручения', 'Документы', 'Лента', 'Учения']) {
-      await page.getByRole('tab', { name: new RegExp(`^${tab}`) }).click()
-      await expect(page.getByRole('tab', { name: new RegExp(`^${tab}`) })).toHaveAttribute('aria-selected', 'true')
-    }
-    await page.keyboard.press('Escape')
-    await page.getByRole('button', { name: /^Ждут оплаты/ }).click()
-    await expect(page.locator('aside h2')).toHaveText('Бэк-офис')
-    await expect(page.getByRole('tab', { name: /^Счета/ })).toHaveAttribute('aria-selected', 'true')
-  })
-
-  test('every department panel renders its tabs without console errors', async ({ page }) => {
-    const errors = watchErrors(page)
-    await open(page, '/admin/office')
-    for (const [key] of panels) {
-      await page.keyboard.press(key)
-      const tabs = page.locator('aside [role=tab]')
-      const n = await tabs.count()
-      for (let i = 0; i < n; i++) {
-        await tabs.nth(i).click()
-        await page.waitForTimeout(250)
-      }
-      await page.keyboard.press('Escape')
-      await expect(page.locator('aside h2')).toHaveCount(0)
-    }
-    expect(errors).toEqual([])
-  })
-
-  test('Director: approving a card lowers the counter; Поручения answers a command and the person filter narrows the timeline', async ({ page }) => {
-    await open(page, '/admin/office')
-    await expect(page.getByRole('button', { name: 'Одобрения: 3' })).toBeVisible()
-    await page.keyboard.press('1')
-    // The old «Одобрения» and «Чат» tabs are gone: approvals are the section on top of «Поручения».
-    await expect(page.getByRole('tab', { name: 'Одобрения' })).toHaveCount(0)
-    await expect(page.getByRole('tab', { name: 'Чат' })).toHaveCount(0)
-    await page.getByRole('tab', { name: /^Поручения/ }).click()
-    const section = page.getByRole('region', { name: 'Ждут вашего решения' })
-    await expect(section).toBeVisible()
-    await section.getByRole('button', { name: /^Одобрить/ }).first().click()
-    await expect(page.getByRole('button', { name: /^Одобрения: [0-2]$/ })).toBeVisible()
-
-    const composer = page.getByRole('combobox', { name: 'Новое поручение Директору' })
-    await composer.fill('/status')
-    await composer.press('Enter')
-    await expect(page.locator('aside').getByText('/status').first()).toBeVisible()
-    await expect(page.locator('aside [data-task]').first()).toBeVisible()
-
-    // Filters: «Сделано» shows only finished tasks.
-    const cards = page.locator('aside [data-task]')
-    const before = await cards.count()
-    await page.getByRole('group', { name: 'Что показать' }).getByRole('button', { name: /^Сделано/ }).click()
-    await expect.poll(() => cards.count()).toBeLessThan(before)
-    await page.getByRole('group', { name: 'Что показать' }).getByRole('button', { name: /^Все/ }).click()
-    // Search narrows by title.
-    await page.getByRole('searchbox', { name: 'Поиск по поручениям' }).fill('Отчёт')
-    await expect.poll(() => cards.count()).toBeLessThan(before)
-  })
-
-  test('Back office: invoice actions are there and «Напомнить» answers with a toast', async ({ page }) => {
-    await open(page, '/admin/office')
-    await page.keyboard.press('6')
-    await expect(page.getByRole('button', { name: 'Напомнить клиенту' }).first()).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Оплачено вручную' }).first()).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Аннулировать' }).first()).toBeVisible()
-    await page.getByRole('button', { name: 'Напомнить клиенту' }).first().click()
-    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /\S/ }).first()).toBeVisible()
-  })
-
   test('⌘K opens the palette, filters and closes with Esc', async ({ page }) => {
-    await open(page, '/admin/office')
+    await open(page, '/admin/inbox')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
     await page.keyboard.press('Control+k')
     const box = page.locator('input.ym-disable-keys').first()
@@ -156,17 +59,10 @@ test.describe('with a session', () => {
   })
 
   test('theme switch flips the panel theme', async ({ page }) => {
-    await open(page, '/admin/office')
+    await open(page, '/admin/inbox')
     const before = await page.locator('html').getAttribute('data-theme')
     await page.getByRole('button', { name: /Включить (светлую|тёмную) тему/ }).click()
     await expect.poll(() => page.locator('html').getAttribute('data-theme')).not.toBe(before)
-  })
-
-  test('hub fits a phone', async ({ page }) => {
-    await page.setViewportSize(SIZES.mobile)
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await noHorizontalOverflow(page)
   })
 
   test('go-live page: start, tick, note and reset through the API and the buttons', async ({ page, request, baseURL }) => {
@@ -222,17 +118,6 @@ test.describe('with a session', () => {
     await expect(page.locator('[data-hq-shell]')).toBeVisible()
     await noHorizontalOverflow(page)
     expect(errors).toEqual([])
-  })
-
-  test('keys 9 and 0 open Approvals and the chats', async ({ page }) => {
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('9')
-    await expect(page).toHaveURL(/\/admin\/approvals$/)
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('0')
-    await expect(page).toHaveURL(/\/admin\/chats$/)
   })
 
   test('review centre: rail with counts, queue, J/K step, the revise composer and the trend link dialog', async ({ page }) => {
@@ -320,17 +205,14 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  test('Company / Цены: edit one price in the panel, see it saved, reset it through the API', async ({ page, request, baseURL }) => {
+  test('Settings / Цены: edit one price in the section, see it saved, reset it through the API', async ({ page, request, baseURL }) => {
     const headers = { origin: baseURL!, cookie: (await page.context().cookies()).map((c) => `${c.name}=${c.value}`).join('; ') }
     const state = async () => (await request.get('/api/admin/prices', { headers })).json()
     // Start clean (the throwaway data dir may hold an edit from a retried run).
     expect((await request.post('/api/admin/prices', { data: { action: 'reset' }, headers })).status()).toBe(200)
     expect((await state()).overridden).toEqual([])
 
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('7')
-    await page.getByRole('tab', { name: /^Цены/ }).click()
+    await open(page, '/admin/settings')
     // The referral reward is the one price no other test asserts.
     const cell = page.getByRole('button', { name: /^Изменить цену: Награда за приведённого клиента/ })
     await cell.scrollIntoViewIfNeeded()
@@ -359,10 +241,8 @@ test.describe('with a session', () => {
   })
 
   test('Production: the project drawer accepts a paid, delivered stage for the client', async ({ page }) => {
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('5')
-    await page.locator('aside').getByText('Сайт студии').first().click()
+    await open(page, '/admin/projects')
+    await page.getByText('Сайт студии').first().click()
     const drawer = page.getByRole('dialog').or(page.locator('aside').last())
     const accept = drawer.getByRole('button', { name: 'Принять этап' })
     await expect(accept).toHaveCount(1)
@@ -384,11 +264,11 @@ test.describe('with a session', () => {
   test('logout ends the session', async ({ page, context, baseURL }) => {
     await context.clearCookies()
     await adminContext(context, baseURL!, LOGOUT_TOKEN)
-    await open(page, '/admin/office')
+    await open(page, '/admin/inbox')
     await page.locator('summary[aria-label="Ещё"]').click()
     await page.getByRole('button', { name: 'Выйти', exact: true }).click()
     await page.waitForURL(/\/admin\/login/)
-    await open(page, '/admin/office')
+    await open(page, '/admin/inbox')
     await expect(page).toHaveURL(/\/admin\/login/)
   })
 })

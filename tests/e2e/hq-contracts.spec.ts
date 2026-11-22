@@ -158,14 +158,12 @@ test.describe('demo page, signed in', () => {
   })
 })
 
-test.describe('Пульт', () => {
+test.describe('Shell sections', () => {
   test.beforeEach(async ({ context, baseURL }) => adminContext(context, baseURL!))
 
   test('lead: confirm and cancel the call, the booking, what the client was told', async ({ page }) => {
     const errors = watchErrors(page, noise)
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('3')
+    await open(page, '/admin/clients')
     await page.getByRole('button', { name: /Боб/ }).first().click()
     const booking = page.locator('[data-call-booking]')
     await expect(booking).toBeVisible()
@@ -180,9 +178,7 @@ test.describe('Пульт', () => {
 
   test('production: «Этап готов» moves a paid stage on; an unpaid one shows HQ\'s hint', async ({ page }) => {
     const errors = watchErrors(page, noise)
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('5')
+    await open(page, '/admin/projects')
     await page.getByRole('button', { name: /Алиса/ }).first().click()
     await page.locator('[data-ready-stage="2"]').click()
     await expect(page.getByText(/Этап 2 ещё не оплачен: сначала счёт этапа/)).toBeVisible()
@@ -196,10 +192,7 @@ test.describe('Пульт', () => {
 
   test('back office: cabinet documents with a failed letter get «Отправить снова»; reviews are listed', async ({ page }) => {
     const errors = watchErrors(page, noise)
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('6')
-    await page.getByRole('tab', { name: /^Документы/ }).click()
+    await open(page, '/admin/documents')
     const block = page.locator('[data-cabinet-docs-problems]')
     await expect(block.locator('[data-cabinet-doc="7"]')).toContainText('письмо не ушло')
     await expect(block.locator('[data-cabinet-doc="7"]')).toContainText('нет PDF')
@@ -212,7 +205,7 @@ test.describe('Пульт', () => {
     await expect(page.getByText(/письмо снова не ушло/)).toBeVisible()
     await expect(block.locator('[data-cabinet-doc="8"]')).toContainText('письмо не ушло')
 
-    await page.getByRole('tab', { name: /^Отзывы/ }).click()
+    await page.getByRole('tab', { name: /^Reviews|^Отзывы/ }).click()
     await expect(page.locator('[data-review="2"]')).toContainText('Алиса')
     await expect(page.locator('[data-review="2"]')).toContainText('приносит заявки')
     await expect(page.locator('[data-reviews-average]')).toContainText('4,5')
@@ -221,9 +214,7 @@ test.describe('Пульт', () => {
 
   test('phone: the lead drawer with the booking fits the screen', async ({ page }) => {
     await page.setViewportSize(SIZES.mobile)
-    await open(page, '/admin/office')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.keyboard.press('3')
+    await open(page, '/admin/clients')
     await page.getByRole('button', { name: /Боб/ }).first().click()
     await expect(page.locator('[data-call-booking]')).toBeVisible()
     await noHorizontalOverflow(page, 'lead drawer')
