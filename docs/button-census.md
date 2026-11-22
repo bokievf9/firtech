@@ -662,3 +662,22 @@ Tag `E:kq` = `tests/e2e/admin-knowledge-quality.spec.ts`; `U:kq` = `tests/hq-kno
 | Quality / Оценки | «Отправить оценку» | refuses a missing id, thread or value in words; else rates; a bad rating with a note becomes a lesson | `POST quality/rate` | `E:kq`, `U:kq` (`rateProblem`, `rateBody`, mock) | pass |
 | Quality / Eval | report | last run: time, runtime, lead share, red series (red when not all passed), handoff and tool rates; empty state without a run | `GET quality/eval` | `E:kq`, `U:kq` (`redStatus`, `percent`) | pass |
 | Quality | failed call | «HQ не отвечает» with «Повторить»; a failed delete or rating shows the error note with «Повторить» | - | `U:kq` (normalizer) | untested (browser) |
+
+## HQ, Campaigns (2026-11-23), adds to the rows above
+Tag `E:cp` = `tests/e2e/admin-campaigns.spec.ts`; `U:cp` = `tests/hq-campaigns.test.mjs`. The section is built, after Finance (no number key). Reads `GET campaigns` every 30 s; a card reads `GET campaigns/<id>`. Nothing is ever sent from here: a new mailing is a draft that waits for the owner's «Одобрить» in Approvals (tab Content), and only clients with the matching consent get the letter.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/campaigns` | menu link «Campaigns» | opens the page | - | `E:cp`, `U:hq-shell` | pass |
+| Campaigns | list | mailings newest first with status (Ждёт одобрения, Отправляется, Отправлена, Отклонена, Ошибка) and outcome counters | `GET campaigns` | `E:cp`, `U:cp` (`normalizeCampaigns`, `countRows`) | pass |
+| Campaigns | «Обновить» | reloads the list | `GET campaigns` | `E:cp` (present) | untested (click) |
+| Campaigns | «Новая рассылка» / «Закрыть форму» | opens or closes the form (with the warning about approval and consent) | - | `E:cp` | pass |
+| Campaigns / form | «Создать черновик» (empty or too long fields) | client check, nothing is sent | - | `E:cp`, `U:cp` (`formBody`) | pass |
+| Campaigns / form | «Создать черновик» (valid) | draft + Marketing task + approval; shows how many clients fit and «Одобрить в Approvals»; list reloads | `POST campaigns` (strict zod: kind, subject, text, optional segment) | `E:cp`, `U:cp` (whitelist, mock) | pass |
+| Campaigns / form | segment with nobody matching | 422 `no_recipients` shown as a sentence | `POST campaigns` | `E:cp`, `U:cp` | pass |
+| Campaigns / form | «Одобрить в Approvals» | goes to `/admin/approvals?tab=content` where the `client_campaign` card waits | - | `E:cp` | pass |
+| Campaigns | row subject | opens or closes the card of the mailing | `GET campaigns/<id>` | `E:cp` | pass |
+| Campaigns / card | journal | `clientId`, outcome, time; no addresses or texts | `GET campaigns/<id>` | `E:cp`, `U:cp` (`normalizeCampaignDetail`) | pass |
+| Campaigns / card | «Одобрить в Approvals» (only while pending) | same link as above | - | - | untested (click) |
+| Campaigns | failed call | «HQ не отвечает» with «Повторить» | - | `U:cp` (normalizer) | untested (browser) |
+

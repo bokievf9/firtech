@@ -6,9 +6,9 @@ import { test } from 'node:test'
 const s = await import('../src/lib/hq-shell.ts')
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
-test('sections: seventeen English names, fifteen built, keys 1-9', () => {
-  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Agents', 'Processes', 'Content', 'Finance', 'Settings', 'Audit log', 'Analytics', 'Knowledge', 'Quality'])
-  assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), ['inbox', 'tasks', 'calendar', 'clients', 'projects', 'documents', 'agents', 'processes', 'content', 'finance', 'settings', 'audit', 'analytics', 'knowledge', 'quality'])
+test('sections: eighteen English names, sixteen built, keys 1-9', () => {
+  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Agents', 'Processes', 'Content', 'Finance', 'Campaigns', 'Settings', 'Audit log', 'Analytics', 'Knowledge', 'Quality'])
+  assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), ['inbox', 'tasks', 'calendar', 'clients', 'projects', 'documents', 'agents', 'processes', 'content', 'finance', 'campaigns', 'settings', 'audit', 'analytics', 'knowledge', 'quality'])
   assert.equal(s.sectionForKey('1').id, 'inbox')
   assert.equal(s.sectionForKey('9').id, 'agents')
   assert.equal(s.sectionForKey('0'), null)
@@ -31,7 +31,7 @@ test('hqHref sends built panels to HQ and the rest to the office', () => {
 })
 
 test('pages exist, the old office stays, /admin opens HQ, no «Пульт» in admin texts', () => {
-  for (const p of ['inbox', 'clients', 'projects', 'tasks', 'calendar', 'documents', 'agents', 'processes', 'content', 'finance', 'settings', 'knowledge', 'quality', '[section]']) assert.ok(existsSync(new URL(`../src/app/admin/(hq)/${p}/page.tsx`, import.meta.url)), p)
+  for (const p of ['inbox', 'clients', 'projects', 'tasks', 'calendar', 'documents', 'agents', 'processes', 'content', 'finance', 'campaigns', 'settings', 'audit', 'analytics', 'knowledge', 'quality', '[section]']) assert.ok(existsSync(new URL(`../src/app/admin/(hq)/${p}/page.tsx`, import.meta.url)), p)
   assert.ok(existsSync(new URL('../src/app/admin/office/page.tsx', import.meta.url)))
   assert.match(read('src/app/admin/page.tsx'), /redirect\('\/admin\/inbox'\)/)
   const text = read('src/content/admin.ts').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n')

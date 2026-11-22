@@ -27,6 +27,8 @@ const KIND_TAB: Record<string, ApprovalTab> = {
   content_item: 'content',
   article: 'content',
   content_pack: 'content',
+  // a client mailing (news, recommendations) is marketing text: it waits in Content (HQ Campaigns links here)
+  client_campaign: 'content',
   lead_price: 'money',
   support_money: 'money',
   billing_invoice: 'money',

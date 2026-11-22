@@ -15,6 +15,7 @@ export type HqSectionId =
   | 'processes'
   | 'content'
   | 'finance'
+  | 'campaigns'
   | 'settings'
   | 'audit'
   | 'analytics'
@@ -47,6 +48,7 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'processes', label: 'Processes', state: 'ready', href: '/admin/processes', legacy: office('company', 'company') },
   { id: 'content', label: 'Content', state: 'ready', href: '/admin/content', legacy: office('marketing', 'content') },
   { id: 'finance', label: 'Finance', state: 'ready', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
+  { id: 'campaigns', label: 'Campaigns', state: 'ready', href: '/admin/campaigns', legacy: office('marketing', 'content') },
   { id: 'settings', label: 'Settings', state: 'ready', href: '/admin/settings', legacy: office('company', 'prices') },
   { id: 'audit', label: 'Audit log', state: 'ready', href: '/admin/audit', legacy: office('company', 'company') },
   { id: 'analytics', label: 'Analytics', state: 'ready', href: '/admin/analytics', legacy: office('marketing', 'metrics') },
