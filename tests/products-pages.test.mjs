@@ -213,15 +213,19 @@ test('ladder: on the products section and on /ai-team, the products section ends
 test('product pages: each product has its own section order, every block has copy, the selling blocks are on every page', async () => {
   const { productPages, productSectionIds, sectionCopyKey } = await import('../src/content/product-pages.ts')
   assert.deepEqual(Object.keys(productPages).sort(), [...productIds].sort())
-  const shared = ['hero', 'included', 'price', 'offer', 'objections', 'readiness']
+  const sellingBlocks = ['hero', 'included', 'price', 'offer', 'objections', 'readiness']
+  // Front v4 (owner 2026-11-22): the Personal AI page is cut to hero, channels, skills, who you are with the demo, levels,
+  // how to start and four questions; it carries its own short selling blocks instead of the shared ones.
+  const sharedOf = (id) => (id === 'personal' ? ['hero', 'channels', 'plans', 'questions'] : sellingBlocks)
   const signatures = new Set()
   const ownBlocks = new Set()
   for (const id of productIds) {
     const { sections, demo } = productPages[id]
     assert.equal(sections[0], 'hero', id)
-    assert.equal(sections.at(-1), 'readiness', id)
+    if (id !== 'personal') assert.equal(sections.at(-1), 'readiness', id)
     assert.equal(new Set(sections).size, sections.length, `${id} has a section twice`)
     for (const s of sections) assert.ok(productSectionIds.includes(s), `${id} ${s}`)
+    const shared = sharedOf(id)
     for (const s of shared) assert.ok(sections.includes(s), `${id} misses ${s}`)
     assert.equal(sections.includes('demo'), Boolean(demo), `${id} demo kind`)
     // The product's own blocks (not shared, not the older generic ones) come right after the hero.

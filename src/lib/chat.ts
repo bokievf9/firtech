@@ -4,6 +4,7 @@
 // HQ side: docs/site-design-notes.md, section «Чат».
 
 import { z } from 'zod'
+import { personalWho } from './builder-ids'
 import { parseUsage, type DemoUsage } from './demo-gate'
 
 export const MESSAGE_MAX = 1000
@@ -74,6 +75,10 @@ export const chatRequestSchema = z.object({
   // HQ as `persona` (HQ answers as that fictional business and returns `demo: true`). A request
   // with a persona never creates a lead (the route answers contacts itself).
   persona: z.enum(personas).optional(),
+  // Which kind of person the visitor picked on the Personal AI page (the builder's `personalWho` ids: student, founder,
+  // doctor...). Only meaningful with `persona: personal`; HQ ignores unknown fields, so this is safe to send before it
+  // reads it. TODO(agents): HQ answers as an assistant of that kind of person (docs/products-contract.md).
+  personaKind: z.enum(personalWho).optional(),
   // Referral slug (sanitized by the site, see referral.ts).
   ref: z
     .string()

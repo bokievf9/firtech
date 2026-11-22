@@ -63,6 +63,7 @@ export async function askReceptionist(
         ...(req.ref ? { ref: req.ref } : {}),
         // The demo niche (salon, clinic, shop): HQ answers as that fictional business, `demo: true`.
         ...(req.persona ? { persona: req.persona } : {}),
+        ...(req.persona === 'personal' && req.personaKind ? { personaKind: req.personaKind } : {}),
         // The signed-in cabinet account (clientEmail, cabinetId, clientName, taken from the session
         // on the server, never from the browser): HQ routes the visitor to their own thread.
         // A demo message (persona) carries `clientId`, `clientEmail` and `demo: true` instead: HQ counts it

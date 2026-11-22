@@ -12,16 +12,12 @@ import {
   ReadinessBlock,
   ScopeBlock,
 } from './common-blocks'
+import { PersonaBlock, PersonalHero, PlansBlock, QuestionsBlock, SkillsBlock, StartBlock } from './personal-blocks'
 import {
-  CasesBlock,
   KnowledgeBlock,
-  LivesBlock,
-  MemoryBlock,
-  MyDayBlock,
   PilotBlock,
   PultBlock,
   RolloutBlock,
-  SetupBlock,
   StructureBlock,
   TeamGetsBlock,
   TrustBlock,
@@ -45,11 +41,11 @@ export type { ProductSectionContext } from './shell'
 // One block of a product page by its id from `src/content/product-pages.ts`. `band` alternates the tinted
 // background so neighbouring sections read apart whatever the order.
 export function ProductSection({ section, ctx, band }: { section: ProductSectionId; ctx: ProductSectionContext; band: boolean }) {
-  const { page, dict } = ctx
+  const { id, page, dict } = ctx
   const t = dict.productPage
   switch (section) {
     case 'hero':
-      return <ProductHero ctx={ctx} />
+      return id === 'personal' ? <PersonalHero ctx={ctx} /> : <ProductHero ctx={ctx} />
     case 'demo':
       return <DemoBlock ctx={ctx} band={band} />
     case 'capabilities':
@@ -90,16 +86,16 @@ export function ProductSection({ section, ctx, band }: { section: ProductSection
       return page.scenarios ? <ScenariosBlock copy={page.scenarios} band={band} /> : null
     case 'knows':
       return page.knows ? <KnowsBlock copy={page.knows} band={band} /> : null
+    case 'skills':
+      return page.skills ? <SkillsBlock ctx={ctx} band={band} /> : null
     case 'myday':
-      return page.myday ? <MyDayBlock copy={page.myday} band={band} note={t.mockNote} /> : null
-    case 'memory':
-      return page.memory ? <MemoryBlock copy={page.memory} band={band} /> : null
-    case 'lives':
-      return page.lives ? <LivesBlock copy={page.lives} band={band} /> : null
-    case 'setup':
-      return page.setup ? <SetupBlock copy={page.setup} band={band} /> : null
-    case 'cases':
-      return page.cases ? <CasesBlock copy={page.cases} band={band} /> : null
+      return page.myday ? <PersonaBlock ctx={ctx} band={band} /> : null
+    case 'plans':
+      return page.plans ? <PlansBlock ctx={ctx} band={band} /> : null
+    case 'start':
+      return page.start ? <StartBlock ctx={ctx} band={band} /> : null
+    case 'questions':
+      return page.questions ? <QuestionsBlock ctx={ctx} band={band} /> : null
     case 'structure':
       return page.structure ? <StructureBlock copy={page.structure} band={band} /> : null
     case 'pult':

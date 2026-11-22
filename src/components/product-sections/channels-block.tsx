@@ -9,6 +9,7 @@ import {
 } from '@phosphor-icons/react/ssr'
 import type { ComponentType } from 'react'
 import { channelIds, channelLine, channelName, type ChannelId } from '@/lib/channels'
+import { personalChannelOrder } from '@/lib/personal-page'
 import { Reveal } from '../reveal'
 import { SectionShell, type ProductSectionContext } from './shell'
 
@@ -25,11 +26,13 @@ const icons: Record<ChannelId, ComponentType<{ size?: number; weight?: 'duotone'
 // «Где живёт»: every channel of the AI as an equal glass tile (owner 2026-11-22: Telegram is one channel among many).
 // Data in src/lib/channels.ts; the quote says which of them a project includes.
 export function ChannelsBlock({ ctx, band }: { ctx: ProductSectionContext; band?: boolean }) {
-  const { dict, locale } = ctx
+  const { dict, locale, id: product } = ctx
+  // The Personal AI page lists them with Telegram in the middle, never first (owner 2026-11-22).
+  const order = product === 'personal' ? personalChannelOrder : channelIds
   return (
     <SectionShell id="channels" title={dict.channelsStrip.title} sub={dict.channelsStrip.sub} band={band}>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-channels>
-        {channelIds.map((id, i) => {
+        {order.map((id, i) => {
           const Glyph = icons[id]
           return (
             <li key={id} data-channel={id}>

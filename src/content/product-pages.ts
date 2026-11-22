@@ -19,13 +19,13 @@ export const productSectionIds = [
   'facts', // open data about the channel, with sources
   'scenarios', // step-by-step scenarios
   'knows', // what it knows and what it does not promise
-  // Flagship blocks (owner 2026-11-22): Personal AI
-  'myday', // an interactive day with your AI by the hour, for three kinds of people
-  'memory', // what it remembers about you: people, habits, promises
   'channels', // «Где живёт»: the channels as equals (data in lib/channels.ts)
-  'lives', // where it lives: channels, voice, its own container, your data stays yours
-  'setup', // how we set it up: interview, services, a week of tuning, grows with you
-  'cases', // live examples from the founder (Dono, Polly), no prices
+  // Flagship blocks (owner 2026-11-22, front v4): Personal AI
+  'skills', // «Что умеет»: twelve skill tiles (the builder's `hand` ids), one visual section
+  'myday', // «Кто вы»: eight personas, a compact day for the chosen one and the demo (live when signed in, locked when not)
+  'plans', // the three levels as subscription cards with the own-key switch
+  'start', // how to start: three steps and the builder button
+  'questions', // four short questions as expandable chips (answers: `objections`)
   // Flagship blocks: AI company
   'structure', // one brain, many skills: Fira knows the business, skills (sales, support, content) plug in
   'pult', // a tour of the control room we work in ourselves
@@ -52,10 +52,10 @@ export type ProductDemo = 'chat' | 'booking' | 'assistant'
 export type ProductPageLayout = { sections: readonly ProductSectionId[]; demo?: ProductDemo; face?: 'fira'; callFirst?: boolean }
 
 export const productPages: Record<ProductId, ProductPageLayout> = {
-  // Flagship. Anyone can have an AI set up for them: show the whole day first, then what it remembers, where it
-  // lives and how we set it up, then the founder's own AIs as live examples, levels and the terms.
+  // Flagship (front v4, owner 2026-11-22: less text, more visual). The result, where it lives (channels as equals),
+  // one section of twelve skills, who you are with your day and the demo, the three levels, how to start, four questions.
   personal: {
-    sections: ['hero', 'myday', 'memory', 'channels', 'lives', 'setup', 'cases', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'],
+    sections: ['hero', 'channels', 'skills', 'myday', 'plans', 'start', 'questions'],
   },
   // Flagship. Fira installed in the client's company: the map of the company, the control room we use ourselves,
   // knowledge, trust levels, the team, four stages and the price «от» by the quote. A call is the first action.
@@ -102,18 +102,27 @@ export type ProductBlocks = {
   facts?: { title: string; sub: string; items: { value: string; label: string; source: string }[]; note: string }
   scenarios?: { title: string; sub: string; items: { title: string; trigger: string; steps: string[]; result: string }[] }
   knows?: { title: string; knowsTitle: string; knows: string[]; notTitle: string; not: string[] }
+  skills?: {
+    title: string
+    sub: string
+    groups: { id: string; name: string }[]
+    // One line per skill id (`personalHand`); the tile's name and short hint come from the builder's strings.
+    examples: Record<string, string>
+  }
   myday?: {
     title: string
     sub: string
     pick: string
-    prev: string
-    next: string
-    personas: { id: string; name: string; who: string; moments: { time: string; label: string; ai: string; you: string; done: string }[] }[]
+    dayTitle: string
+    demoTitle: string
+    hello: string
+    // The ids are the builder's `personalWho` ids; names come from the builder's strings.
+    personas: { id: string; steps: { time: string; hand: string; text: string }[]; asks: string[] }[]
   }
-  memory?: { title: string; sub: string; groups: { name: string; items: { fact: string; use: string }[] }[]; control: string }
-  lives?: { title: string; sub: string; items: { title: string; text: string }[] }
-  setup?: { title: string; sub: string; steps: { when: string; title: string; text: string }[] }
-  cases?: { title: string; sub: string; label: string; items: { name: string; role: string; does: string[]; runs: string }[]; note: string }
+  plans?: { title: string; sub: string }
+  start?: { title: string; steps: { title: string; text: string }[]; cta: string }
+  questions?: { title: string }
+  heroCta?: { cta: string; ask: string }
   structure?: {
     title: string
     sub: string
@@ -159,10 +168,10 @@ export const sectionCopyKey: Partial<Record<ProductSectionId, keyof ProductBlock
   scenarios: 'scenarios',
   knows: 'knows',
   myday: 'myday',
-  memory: 'memory',
-  lives: 'lives',
-  setup: 'setup',
-  cases: 'cases',
+  skills: 'skills',
+  plans: 'plans',
+  start: 'start',
+  questions: 'questions',
   structure: 'structure',
   pult: 'pult',
   knowledge: 'knowledge',

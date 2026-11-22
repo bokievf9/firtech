@@ -11,23 +11,37 @@ test('flagships: /ru/products/agent moves to /ru/products/personal', async ({ pa
   await expect(page).toHaveURL(/\/ru\/products\/personal$/)
 })
 
-test('flagships: Personal AI page, the day by the hour, three levels, live cases, pilot', async ({ page }) => {
+test('flagships: Personal AI page, twelve skills, persona day, locked demo, three levels, four questions', async ({ page }) => {
   const errors = watchErrors(page, [/WebGL|THREE/])
   await open(page, '/ru/products/personal')
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('ИИ, который знает именно вас')
   const got = await page.locator('[data-product-section]').evaluateAll((els) => els.map((el) => el.getAttribute('data-product-section')))
-  expect(got).toEqual(['hero', 'myday', 'memory', 'lives', 'setup', 'cases', 'included', 'price', 'offer', 'pilot', 'objections', 'next'])
-  // the day: pick the student, go to the next hour
+  expect(got).toEqual(['hero', 'channels', 'skills', 'myday', 'plans', 'start', 'questions'])
+  // the channels are equals: seven tiles, Telegram not first
+  await expect(page.locator('[data-channels] > li')).toHaveCount(7)
+  expect(await page.locator('[data-channels] > li').first().getAttribute('data-channel')).not.toBe('telegram')
+  // twelve skill tiles, a tap shows the example
+  await expect(page.locator('[data-skill]')).toHaveCount(12)
+  await page.locator('[data-skill="mail"]').click()
+  await expect(page.locator('[data-skill="mail"]')).toHaveAttribute('aria-pressed', 'true')
+  // personas swap the day and the demo context
   await page.locator('[data-myday-persona="student"]').click()
-  await expect(page.locator('[data-myday-hour="07:45"]')).toHaveAttribute('aria-selected', 'true')
-  await page.locator('[data-myday-next]').click()
-  await expect(page.locator('[data-myday-hour="11:30"]')).toHaveAttribute('aria-selected', 'true')
-  await expect(page.locator('[data-myday] [role=tabpanel]')).toContainText('40 минут')
+  await expect(page.locator('[data-myday-day] [data-myday-hour="07:45"]')).toBeVisible()
+  await page.locator('[data-myday-persona="doctor"]').click()
+  await expect(page.locator('[data-myday-day] [data-myday-hour="07:40"]')).toBeVisible()
+  // signed out: the lock plate over a labelled still example, no input
+  const demo = page.locator('[data-personal-demo]')
+  await expect(demo).toHaveAttribute('data-personal-demo', 'locked')
+  await expect(demo.locator('[data-demo-lock]')).toBeVisible()
+  await expect(demo.locator('[data-demo-login]')).toBeVisible()
+  await expect(demo.locator('[data-personal-example]')).toBeVisible()
+  await expect(demo.locator('input')).toHaveCount(0)
   await expect(page.locator('[data-plan-levels] [data-plan]')).toHaveCount(3)
   await expect(page.locator('[data-plan="basic"]')).toContainText('$290')
-  await expect(page.locator('[data-cases] > li')).toHaveCount(2)
-  await expect(page.locator('[data-cases]')).not.toContainText('$')
+  await expect(page.locator('[data-start-steps] > li')).toHaveCount(3)
+  await expect(page.locator('[data-questions] button')).toHaveCount(4)
   await expect(page.locator('[data-cta="product_page_personal_build"]')).toHaveAttribute('href', /p\.personal/)
+  await expect(page.locator('[data-product-page]')).not.toContainText('Dono')
   expect(errors).toEqual([])
 })
 

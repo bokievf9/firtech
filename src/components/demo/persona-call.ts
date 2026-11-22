@@ -1,4 +1,5 @@
 import { START, type ChatResponse, type Persona } from '@/lib/chat'
+import type { PersonalWho } from '@/lib/builder-ids'
 import { fetchJson, type ErrorInfo } from '@/lib/errors'
 
 export type PersonaAnswer = ChatResponse | { ok: false; error: string; info: ErrorInfo }
@@ -10,12 +11,13 @@ export async function callPersona(
   locale: 'ru' | 'en',
   sessionId: string,
   message: string,
+  personaKind?: PersonalWho,
 ): Promise<PersonaAnswer> {
   const result = await fetchJson<ChatResponse>('/api/chat', {
     locale,
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ sessionId, locale, message, page: window.location.pathname, persona }),
+    body: JSON.stringify({ sessionId, locale, message, page: window.location.pathname, persona, ...(personaKind ? { personaKind } : {}) }),
   })
   if (!result.ok) return { ok: false, error: result.error.code, info: result.error }
   return result.data
