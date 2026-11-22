@@ -138,14 +138,14 @@ test('version diff summary and compare pair', () => {
   assert.equal(r.comparePair(v.items.find((i) => i.id === 'ap_204')), null)
 })
 
-test('meta cards link to the Пульт panels; empty media explains itself', () => {
+test('meta cards link to the Shell sections; empty media explains itself', () => {
   const v = view(createHqMock(T0))
   const lead = r.metaCards(v.items.find((i) => i.id === 'ap_204')).find((c) => c.id === 'lead')
-  assert.equal(lead.href, '/admin/office?panel=sales&tab=leads&focus=7')
+  assert.equal(lead.href, '/admin/clients?tab=pipeline&focus=7')
   const inv = r.metaCards(v.items.find((i) => i.id === 'ap_207')).find((c) => c.id === 'invoice')
-  assert.equal(inv.href, '/admin/office?panel=backoffice&tab=invoices&focus=7')
+  assert.equal(inv.href, '/admin/finance?tab=invoices&focus=7')
   const tk = r.metaCards(v.items.find((i) => i.id === 'ap_206')).find((c) => c.id === 'ticket')
-  assert.equal(tk.href, '/admin/office?panel=support&tab=tickets&focus=4')
+  assert.equal(tk.href, '/admin/chats')
   const owner = v.items.find((i) => i.id === 'ap_203')
   assert.ok(r.metaCards(owner).some((c) => c.id === 'link'))
   assert.match(r.emptyMediaReason(owner), /после одобрения/)

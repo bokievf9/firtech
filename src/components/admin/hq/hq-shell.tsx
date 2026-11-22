@@ -31,9 +31,11 @@ import { AdminMenu, SignOutButton } from '@/components/admin/admin-shell'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { CommandPalette, type PaletteItem } from '@/components/admin/hub/command-palette'
 import { HubContext, modalOpen, typingIn, useHqView, type HubApi } from '@/components/admin/hub/ui'
+import { PresenceSwitch } from '@/components/admin/hq/presence-switch'
 import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { Logo } from '@/components/logo'
 import { admin } from '@/content/admin'
+import { goliveText } from '@/content/golive'
 import { cn } from '@/lib/cn'
 import { APPROVALS_CHANGED, approvalsSummary } from '@/lib/approvals'
 import { normalizeReview } from '@/lib/review'
@@ -60,6 +62,7 @@ const icons: Record<HqSectionId, Icon> = {
   analytics: ChartLineUp,
   knowledge: Books,
   quality: SealCheck,
+  office: Desktop,
 }
 
 function useNow(step = 15_000) {
@@ -112,7 +115,7 @@ function MenuList({ pathname, waiting, onGo }: { pathname: string; waiting: numb
 }
 
 // The HQ workplace: a permanent menu of sections on the left (a scrolling strip on a phone), a top bar
-// with ⌘K search and the «Office» button, and the work area. Keys 1-9 open the first nine sections.
+// with ⌘K search, the Office link and the presence switch, and the work area. Keys 1-9 open the first nine sections.
 export function HqShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -191,47 +194,40 @@ export function HqShell({ children }: { children: React.ReactNode }) {
           }))
         : [],
     )
-    const office: PaletteItem = {
-      id: 'office',
-      group: p.groups.panels,
-      title: t.office,
-      hint: t.officeHint,
-      dept: 'director',
-      keywords: 'pixel office hub',
-      run: () => window.open('/admin/office', '_blank', 'noopener'),
-    }
-    return [...sections, office, ...tabs]
+    const golive: PaletteItem = { id: 'golive', group: p.groups.panels, title: goliveText.title, hint: '', dept: 'director', keywords: 'запуск таймер чеклист 72 часа', run: () => router.push('/admin/golive') }
+    return [...sections, golive, ...tabs]
   }, [router])
 
   return (
     <HubContext.Provider value={api}>
       <div className="fixed inset-0 flex flex-col bg-bg" data-hq-shell>
-        <header className="relative z-40 flex min-h-14 items-center gap-2 border-b border-line bg-bg/95 px-3 py-1.5 backdrop-blur sm:gap-3 sm:px-4">
+        <header className="relative z-40 flex min-h-14 items-center gap-1.5 border-b border-line bg-bg/95 px-3 py-1.5 backdrop-blur sm:gap-3 sm:px-4">
           <Link href="/admin/inbox" className="flex shrink-0 items-center gap-2.5" aria-label={t.title}>
             <Logo className="text-[16px]" />
-            <span className="rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-muted">{t.title}</span>
+            <span className="hidden rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-muted sm:inline">{t.title}</span>
           </Link>
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
             aria-label={`${t.search} (${admin.hub.searchKey})`}
-            className="ml-auto inline-flex h-9 min-w-0 items-center gap-2 rounded-full border border-line px-3 text-sm text-muted transition-colors hover:text-fg sm:w-72 sm:justify-start"
+            className="ml-auto inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-line px-2.5 text-sm text-muted transition-colors hover:text-fg sm:w-72 sm:justify-start"
           >
             <MagnifyingGlass size={16} aria-hidden="true" />
             <span className="hidden flex-1 text-left sm:inline">{t.search}</span>
             <kbd className="hidden font-mono text-xs lg:inline">{admin.hub.searchKey}</kbd>
           </button>
-          <a
+          <Link
             href="/admin/office"
-            target="_blank"
-            rel="noopener"
             title={t.officeHint}
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-line px-3 text-sm text-muted transition-colors hover:text-fg"
+            aria-current={pathname === '/admin/office' ? 'page' : undefined}
+            data-header-office
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-line px-2.5 text-sm text-muted transition-colors hover:text-fg sm:px-3"
           >
             <Desktop size={16} aria-hidden="true" />
             <span className="hidden sm:inline">{t.office}</span>
             <span className="sr-only sm:hidden">{t.office}</span>
-          </a>
+          </Link>
+          <PresenceSwitch />
           <ThemeToggle />
           <SignOutButton />
           <AdminMenu />

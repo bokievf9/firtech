@@ -135,10 +135,11 @@ test('/admin/golive exists, checks the admin session and renders the stage', () 
   assert.match(stage, /useReducedMotion/)
 })
 
-test('the chip, key 8 and the palette open the page; the old side panel is gone', () => {
-  const hub = src('src/components/admin/hub/hub.tsx')
-  assert.match(hub, /router\.push\('\/admin\/golive'\)/)
-  assert.doesNotMatch(hub, /goliveOpen|GolivePanel/)
+test('the Office chip and the Shell palette open the page; the old side panel is gone', () => {
+  const view = src('src/components/admin/office/office-view.tsx')
+  assert.match(view, /<GoliveChip/)
+  assert.match(src('src/components/admin/hq/hq-shell.tsx'), /router\.push\('\/admin\/golive'\)/)
+  assert.doesNotMatch(view, /goliveOpen|GolivePanel/)
   const chip = src('src/components/admin/hub/golive.tsx')
   assert.match(chip, /href="\/admin\/golive"/)
   assert.doesNotMatch(chip, /GolivePanel/)

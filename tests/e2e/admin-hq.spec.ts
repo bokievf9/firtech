@@ -12,14 +12,14 @@ test('HQ refuses a visitor without a session', async ({ page }) => {
 test.describe('with a session', () => {
   test.beforeEach(async ({ context, baseURL }) => adminContext(context, baseURL!))
 
-  test('/admin opens the Inbox with the menu, Office button and tabs', async ({ page }) => {
+  test('/admin opens the Inbox with the menu, the Office link and tabs', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin')
     await expect(page).toHaveURL(/\/admin\/inbox/)
     const menu = page.getByRole('navigation', { name: 'Sections' }).first()
     for (const name of ['Inbox', 'Clients', 'Projects', 'Documents', 'Agents']) await expect(page.getByRole('link', { name: new RegExp(`^${name}`) }).first()).toBeVisible()
     await expect(menu).toBeVisible()
-    await expect(page.getByRole('link', { name: /Office/ }).first()).toHaveAttribute('target', '_blank')
+    await expect(page.locator('[data-header-office]')).toHaveAttribute('href', '/admin/office')
     await page.getByRole('tab', { name: 'Approvals' }).click()
     await expect(page).toHaveURL(/tab=approvals/)
     expect(errors).toEqual([])
@@ -61,9 +61,10 @@ test.describe('with a session', () => {
     await expect(page.locator('#hq-menu-panel')).toHaveCount(0)
   })
 
-  test('the old office still opens next to HQ', async ({ page }) => {
+  test('the Office is a section of the menu and the presence switch is in the top bar', async ({ page }) => {
     await open(page, '/admin/office')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await expect(page.locator('[data-section="office"]').first()).toBeVisible()
   })
 
   test('Agents: roster by department with English titles, a card, edit instructions, versions and rollback', async ({ page }) => {

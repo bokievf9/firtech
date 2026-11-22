@@ -6,14 +6,14 @@ import { test } from 'node:test'
 const s = await import('../src/lib/hq-shell.ts')
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
-test('sections: seventeen English names in four groups, all built, keys 1-9', () => {
-  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Finance', 'Content', 'Agents', 'Processes', 'Knowledge', 'Settings', 'Quality', 'Audit log', 'Analytics'])
+test('sections: eighteen English names in four groups, all built, keys 1-9', () => {
+  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Finance', 'Office', 'Content', 'Agents', 'Processes', 'Knowledge', 'Settings', 'Quality', 'Audit log', 'Analytics'])
   assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), s.HQ_SECTIONS.map((x) => x.id))
   assert.deepEqual(s.HQ_GROUPS.map((g) => g.label), ['Work', 'Clients', 'Company', 'Control'])
   const byGroup = (g) => s.HQ_SECTIONS.filter((x) => x.group === g).map((x) => x.id)
   assert.deepEqual(byGroup('work'), ['inbox', 'approvals', 'tasks', 'calendar', 'chats'])
   assert.deepEqual(byGroup('clients'), ['clients', 'projects', 'documents', 'finance'])
-  assert.deepEqual(byGroup('company'), ['content', 'agents', 'processes', 'knowledge', 'settings'])
+  assert.deepEqual(byGroup('company'), ['office', 'content', 'agents', 'processes', 'knowledge', 'settings'])
   assert.deepEqual(byGroup('control'), ['quality', 'audit', 'analytics'])
   assert.ok(!s.HQ_SECTIONS.some((x) => x.id === 'campaigns'))
   assert.equal(s.sectionForKey('1').id, 'inbox')
@@ -38,18 +38,26 @@ test('tabs fall back to the first one', () => {
   assert.equal(s.sectionTab('projects', null), 'projects')
 })
 
-test('hqHref sends built panels to HQ and the rest to the office', () => {
+test('hqHref sends every panel to its Shell section, the office keeps no panels', () => {
   assert.equal(s.hqHref('sales', 'leads', '12'), '/admin/clients?tab=pipeline&focus=12')
   assert.equal(s.hqHref('production', 'projects', '3'), '/admin/projects?tab=projects&focus=3')
   assert.equal(s.hqHref('backoffice', 'invoices', 'F-1'), '/admin/finance?tab=invoices&focus=F-1')
   assert.equal(s.hqHref('backoffice', 'payments', 'F-1'), '/admin/finance?tab=payments&focus=F-1')
-  assert.equal(s.hqHref('support', 'tickets', '5'), '/admin/office?panel=support&tab=tickets&focus=5')
-  assert.equal(s.hqHref('marketing'), '/admin/office?panel=marketing')
+  assert.equal(s.hqHref('support', 'tickets', '5'), '/admin/chats')
+  assert.equal(s.hqHref('marketing'), '/admin/content')
+  assert.equal(s.hqHref('company', 'company'), '/admin/agents')
 })
 
-test('pages exist (no placeholder [section] page), the old office stays, /admin opens HQ, no «Пульт» in admin texts', () => {
-  for (const p of ['inbox', 'approvals', 'chats', 'review', 'golive', 'clients', 'projects', 'tasks', 'calendar', 'documents', 'agents', 'processes', 'content', 'finance', 'settings', 'audit', 'analytics', 'knowledge', 'quality']) assert.ok(existsSync(new URL(`../src/app/admin/(hq)/${p}/page.tsx`, import.meta.url)), p)
-  assert.ok(existsSync(new URL('../src/app/admin/office/page.tsx', import.meta.url)))
+test('zone map: each department room opens its Shell section', () => {
+  assert.deepEqual(s.ZONE_SECTION, { director: 'inbox', marketing: 'content', sales: 'clients', support: 'chats', production: 'projects', backoffice: 'finance', company: 'agents' })
+  for (const id of Object.values(s.ZONE_SECTION)) assert.ok(s.sectionById(id), id)
+  assert.equal(s.sectionById('office').href, '/admin/office')
+})
+
+test('pages exist (no placeholder [section] page), the Office is a Shell section, /admin opens HQ, no «Пульт» in admin texts', () => {
+  for (const p of ['inbox', 'approvals', 'chats', 'review', 'golive', 'office', 'clients', 'projects', 'tasks', 'calendar', 'documents', 'agents', 'processes', 'content', 'finance', 'settings', 'audit', 'analytics', 'knowledge', 'quality']) assert.ok(existsSync(new URL(`../src/app/admin/(hq)/${p}/page.tsx`, import.meta.url)), p)
+  assert.ok(existsSync(new URL('../src/app/admin/(hq)/office/page.tsx', import.meta.url)))
+  assert.equal(existsSync(new URL('../src/app/admin/office/page.tsx', import.meta.url)), false)
   assert.equal(existsSync(new URL('../src/app/admin/(hq)/[section]/page.tsx', import.meta.url)), false)
   assert.match(read('src/app/admin/page.tsx'), /redirect\('\/admin\/inbox'\)/)
   const text = read('src/content/admin.ts').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n')

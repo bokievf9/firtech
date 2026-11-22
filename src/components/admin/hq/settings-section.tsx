@@ -3,6 +3,7 @@
 import { Check, WarningCircle } from '@phosphor-icons/react'
 import { useCallback, useId, useRef, useState } from 'react'
 import { errText, fill, hqPatch } from '@/components/admin/control/api'
+import { PricesTab } from '@/components/admin/shell-crm/company-prices'
 import { Loading, Offline, inputClass, useConfirm, useHqView } from '@/components/admin/hub/ui'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -387,6 +388,9 @@ export function SettingsSection() {
           </section>
         </div>
       )}
+      <section className="mx-auto w-full max-w-4xl p-3 pt-0 sm:p-5 sm:pt-0" data-group="prices">
+        <PricesTab />
+      </section>
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { safeUrl } from './shell'
+import { hqHref } from './hq-shell'
 
 // Чаты с клиентами (contract «Ревью-центр», 2026-11-21): GET /admin/chats, GET /admin/chats/:id and
 // POST /admin/chats/:id/reply. Pure view models: sorting, unread, the open thread's messages and
@@ -118,10 +119,10 @@ export function normalizeReply(body: unknown): ReplyOutcome | null {
 const VIA: Record<string, string> = { telegram: 'в Telegram', web: 'в чат на сайте', cabinet: 'в кабинет' }
 export const replyNote = (o: ReplyOutcome): string => (o.sent ? `Отправлено ${VIA[o.via] ?? ''}`.trim() : 'Не доставлено, отправьте вручную. Ответ сохранён в треде.')
 
-// Links from a thread to the Пульт panels.
+// Links from a thread to the Shell sections.
 export function threadLinks(t: ChatThread): { label: string; href: string }[] {
   const out: { label: string; href: string }[] = []
-  const go = (panel: string, tab: string, id: string | number) => `/admin/office?panel=${panel}&tab=${tab}&focus=${encodeURIComponent(String(id))}`
+  const go = (panel: string, tab: string, id: string | number) => hqHref(panel, tab, String(id))
   if (t.leadId !== null) out.push({ label: 'Открыть лид', href: go('sales', 'leads', t.leadId) })
   if (t.ticketId !== null) out.push({ label: 'Открыть тикет', href: go('support', 'tickets', t.ticketId) })
   if (t.client.id !== null) out.push({ label: 'Открыть клиента', href: go('sales', 'clients', t.client.id) })
