@@ -108,16 +108,29 @@ export type FlagshipOption<P extends FlagshipProduct = FlagshipProduct> = (typeo
 // widened and the builder is where we learn everything about the client). Ids only ever appended.
 export const personalWho = ['student', 'founder', 'doctor', 'freelancer', 'manager', 'parent', 'blogger', 'teacher', 'other'] as const
 export type PersonalWho = (typeof personalWho)[number]
+// v5 (2026-11-23): six more people (9 -> 15). Kept apart from `personalWho` because the Personal AI page, the chat
+// persona and its day examples speak about the first eight only; the builder accepts both lists (`personalWhoAll`).
+export const personalWhoMore = ['engineer', 'researcher', 'lawyer', 'retiree', 'traveler', 'athlete'] as const
+export type PersonalWhoMore = (typeof personalWhoMore)[number]
+export const personalWhoAll = [...personalWho, ...personalWhoMore] as const
+export type PersonalWhoAny = PersonalWho | PersonalWhoMore
 export const personalHand = ['mail', 'calendar', 'study', 'money', 'health', 'languages', 'content', 'home', 'docs', 'reminders', 'calls', 'search'] as const
 export type PersonalHand = (typeof personalHand)[number]
 // Where the personal agent lives. Telegram is one channel among equals. When the products builder lands
 // `lib/channels.ts`, point this list at it (TODO, see docs/builder-v2.md «brief v4 contract»).
 export const personalChannels = ['telegram', 'whatsapp', 'webchat', 'cabinet', 'voice', 'email', 'desktop'] as const
 export type PersonalChannel = (typeof personalChannels)[number]
-export const personalConnect = ['google', 'microsoft', 'apple', 'moodle', 'notion', 'telegram', 'whatsapp', 'bank', 'other'] as const
+// v5: 9 -> 25, the new ids appended after `other`.
+export const personalConnect = [
+  'google', 'microsoft', 'apple', 'moodle', 'notion', 'telegram', 'whatsapp', 'bank', 'other',
+  'slack', 'todoist', 'trello', 'obsidian', 'github', 'dropbox', 'zoom', 'evernote',
+  'applehealth', 'strava', 'linkedin', 'instagram', 'youtube', 'canvas', 'anki', 'kaspi',
+] as const
 export type PersonalConnect = (typeof personalConnect)[number]
-// Three character axes, each 0..2: formality (friendly..formal), brevity (short..detailed), initiative (waits..proactive).
-export type PersonalTone = [number, number, number]
+// Five character axes, each 0..2: formality (friendly..formal), brevity (short..detailed), initiative (waits..proactive),
+// humour (serious..playful), firmness (soft..strict reminders). Old links carry three values: the rest default to 1.
+export type PersonalTone = number[]
+export const toneAxes = 5
 export const personalTiers = ['basic', 'plus', 'max'] as const // «Спутник», «Второй пилот», «Второе я»
 
 // Discovery (both paths): optional short answers that help a quote and Fira.

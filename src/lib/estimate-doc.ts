@@ -31,9 +31,10 @@ import {
 } from '../content/builder-v2'
 import {
   approverText, baseText, channelNames, connectText, discLabels, handText, heardText, hoursText, leadsText,
-  painText, personalLabels, sizeText, successText, tierText, toneUi, whoText,
+  painText, personalLabels, sizeText, successText, tierText, toneUi, whoTextAll,
 } from '../content/builder-personal'
 import { monthlyOf, tierOf } from './builder-personal'
+import { catalogRows } from './builder-capabilities'
 import { flagshipPrice } from './flagships'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
 import { usesAxes } from './builder-style'
@@ -50,7 +51,7 @@ export type EstimateRow = { id: string; name: string; detail: string; term: stri
 export type StageRow = { id: string; n: number; name: string; share: string; amount: string }
 
 export type BriefRow = { id: string; label: string; value: string }
-export type Brief = { goals: BriefRow[]; setup: BriefRow[]; style: BriefRow[]; details: BriefRow[] }
+export type Brief = { goals: BriefRow[]; setup: BriefRow[]; style: BriefRow[]; details: BriefRow[]; catalog: BriefRow[] }
 
 export type EstimateDoc = {
   // The business kind's name, when the build has one.
@@ -213,7 +214,7 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
     const add = (id: string, label: string, value: string | undefined) => {
       if (value) setup.push({ id: `p-${id}`, label, value })
     }
-    add('who', personalLabels.who[loc], p.who ? whoText[p.who].name[loc] : undefined)
+    add('who', personalLabels.who[loc], p.who ? whoTextAll[p.who].name[loc] : undefined)
     add('hand', personalLabels.hand[loc], p.hand?.map((id) => handText[id].name[loc]).join(', '))
     add('where', personalLabels.where[loc], p.where?.map((id) => channelNames[id].name[loc]).join(', '))
     add('connect', personalLabels.connect[loc], p.connect?.map((id) => connectText[id][loc]).join(', '))
@@ -318,7 +319,7 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
     row('d-success', discLabels.success[loc], v.success?.map((id) => successText[id][loc]).join(', '))
     row('d-heard', discLabels.heard[loc], v.heard && heardText[v.heard][loc])
   }
-  return { goals, setup, style, details }
+  return { goals, setup, style, details, catalog: catalogRows(build, locale) }
 }
 
 // The estimate as JSON for HQ (`estimate` of the lead, 2026-11-22): `{"v":1,"lines":[{"label","usd"}],
@@ -424,13 +425,14 @@ export function leadSummary(
   lines.push(doc.scope)
   // The quote lines always go in. The brief follows by priority and is summarised: a row that does
   // not fit the limit is dropped, and the wish (last) is shortened to the room that is left.
-  const { goals, setup, style, details } = doc.brief
+  const { goals, setup, style, details, catalog } = doc.brief
   const byId = (id: string) => details.find((r) => r.id === id)
   const order: BriefRow[] = [
     ...[byId('company'), byId('clients'), ...setup, byId('after'), byId('owner'), byId('deadline')].filter(
       (r): r is BriefRow => Boolean(r),
     ),
     ...goals,
+    ...catalog,
     ...(style.length
       ? [{ id: 'style', label: t.styleLabel, value: style.map((r) => r.value).join(', ') }]
       : []),

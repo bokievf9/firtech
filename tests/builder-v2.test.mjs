@@ -508,7 +508,7 @@ const fullPersonal = () => {
   let b = personalMod.startPersonal(emptyBuild)
   b = personalMod.withPersonal(b, {
     who: 'student', hand: ['mail', 'calendar', 'study', 'reminders'], where: ['telegram', 'webchat', 'voice'],
-    connect: ['google', 'moodle'], tone: [0, 2, 1], tier: 'plus',
+    connect: ['google', 'moodle'], tone: [0, 2, 1, 1, 1], tier: 'plus',
   })
   return personalMod.withDiscovery(b, { hours: 'h9', tz: 'UTC+5', pains: ['time', 'manual'], success: ['calm'], heard: 'friend', instagram: '@fir.tech' })
 }
@@ -590,7 +590,7 @@ test('lead payload carries the brief (business and personal), bounded, HQ-compat
   const personal = personalMod.leadBriefOf(fullPersonal())
   assert.equal(personal.type, 'personal')
   assert.equal(personal.tier, 'plus')
-  assert.deepEqual(personal.tone, { formality: 0, brevity: 2, initiative: 1 })
+  assert.deepEqual(personal.tone, { formality: 0, brevity: 2, initiative: 1, humor: 1, firmness: 1 })
   assert.equal(personal.discovery.hours, 'h9')
   let biz = applySiteNeed(toggleProduct(presets.salon, 'adminbot'), 'no')
   biz = withDetails(biz, { company: 'Лола', deadline: 'w2' })
