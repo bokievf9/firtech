@@ -473,6 +473,12 @@ export async function fetchCabinetExtras(clientId: number, env: Env = process.en
 // `https://<public host>/media/<sig>/<path>?e=<unix>`. Only the PATH and query of a `/media/` link are used
 // and they are requested on HQ's own origin (the origin of HQ_ADMIN_URL), so the host in a link, or in a
 // crafted `u`, can never make the server fetch another host. Without HQ (development) the mock answers.
+// Security 2026-11-23 (P0-1): fetch() normalises `%2e%2e` into `..`, so `/media/x/%2e%2e/%2e%2e/admin/...`
+// used to reach HQ's admin files. The path is now rejected when it holds a dot segment, an encoded dot,
+// slash or backslash (also double-encoded via `%25`), a raw backslash or `//`, and the URL built on HQ's
+// origin must keep the very same pathname and start with `/media/`.
+const unsafeMediaPath = /\.\.|%2e|%2f|%5c|%25|\\|\/\//i
+
 export function resolveMediaUrl(url: string, env: Env = process.env): string | null {
   const cfg = setup(env)
   if (!cfg || cfg === 'mock') return null
@@ -482,19 +488,33 @@ export function resolveMediaUrl(url: string, env: Env = process.env): string | n
   } catch {
     return null
   }
+  if (typeof url !== 'string' || /[\s#\\]/.test(url)) return null
   let pathAndQuery = url
   if (!url.startsWith('/')) {
-    try {
-      const u = new URL(url)
-      if (u.protocol !== 'https:' && u.protocol !== 'http:') return null
-      pathAndQuery = `${u.pathname}${u.search}`
-    } catch {
-      return null
-    }
+    // An absolute link: the raw text is checked before the parser normalises dot segments away.
+    const m = /^https?:\/\/[^/?#]+(\/[^?#]*)?(\?[^#]*)?$/i.exec(url)
+    if (!m) return null
+    pathAndQuery = `${m[1] ?? '/'}${m[2] ?? ''}`
   }
-  return /^\/media\/[^\s?#]+(\?[^\s#]*)?$/.test(pathAndQuery) && !pathAndQuery.includes('..') && !pathAndQuery.includes('//')
-    ? `${origin}${pathAndQuery}`
-    : null
+  if (pathAndQuery.startsWith('//')) return null
+  const q = pathAndQuery.indexOf('?')
+  const rawPath = q === -1 ? pathAndQuery : pathAndQuery.slice(0, q)
+  if (!/^\/media\/[^?#]+$/.test(rawPath) || unsafeMediaPath.test(rawPath)) return null
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(rawPath)
+  } catch {
+    return null
+  }
+  if (unsafeMediaPath.test(decoded) || !decoded.startsWith('/media/')) return null
+  let target: URL
+  try {
+    target = new URL(pathAndQuery, origin)
+  } catch {
+    return null
+  }
+  if (target.origin !== origin || target.pathname !== rawPath || !target.pathname.startsWith('/media/')) return null
+  return target.href
 }
 
 export function isMockMode(env: Env = process.env): boolean {

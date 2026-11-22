@@ -479,6 +479,37 @@ test('media links: only the /media path of a link is used, always on HQ\'s own o
   assert.equal(r('/media/a.pdf', dev), null, 'no real HQ, no fetch')
 })
 
+test('media links: encoded traversal never leaves /media (security 2026-11-23, P0-1)', () => {
+  const r = (u, env = prod) => hq.resolveMediaUrl(u, env)
+  // The exact payload of the report, as the route receives it after URLSearchParams decoding.
+  const payload = '/media/x/%2e%2e/%2e%2e/admin/files/cabinet/c7/contract-12-signed.pdf'
+  assert.equal(r(payload), null)
+  assert.equal(r(new URLSearchParams(`u=${payload}`).get('u')), null)
+  for (const bad of [
+    '/media/x/%2E%2E/%2E%2E/admin/files/cabinet/c7/contract-12-signed.pdf',
+    '/media/x/..%2f..%2fadmin/files/cabinet/c7/a.pdf',
+    '/media/x/%2e./admin/a.pdf',
+    '/media/x/.%2e/admin/a.pdf',
+    '/media/x/%252e%252e/%252e%252e/admin/files/a.pdf',
+    '/media/x%2fa.pdf',
+    '/media/x/..\\..\\admin/a.pdf',
+    '/media/x\\..\\admin\\a.pdf',
+    '/media/x/%5c..%5cadmin/a.pdf',
+    '/media/./../admin/a.pdf',
+    'https://hq.firtech.pro/media/x/%2e%2e/%2e%2e/admin/files/cabinet/c7/a.pdf',
+    'https://hq.firtech.pro/media/x/../../admin/files/a.pdf',
+    'https://hq.firtech.pro/admin/files/cabinet/c7/a.pdf',
+    'https://hq.firtech.pro/mediax/a.pdf',
+    'http://hq.test/admin/clients/7',
+    '//evil.test/media/a.pdf',
+    'javascript:alert(1)',
+    '/media/a.pdf#frag',
+    '/media/',
+  ]) assert.equal(r(bad), null, bad)
+  assert.equal(r('https://hq.firtech.pro/media/sig/cabinet/c1/a.pdf?e=1'), 'http://hq.test/media/sig/cabinet/c1/a.pdf?e=1')
+  assert.equal(r('/media/sig/u/3f2a.png?e=1&s=ab'), 'http://hq.test/media/sig/u/3f2a.png?e=1&s=ab')
+})
+
 test('the mock PDF is a real PDF', () => {
   const pdf = Buffer.from(mock.mockPdf('Document q-14')).toString('latin1')
   assert.match(pdf, /^%PDF-1\.4/)
