@@ -268,12 +268,12 @@ test('llms.txt: the product lines carry the new names and the product page', asy
 
 test('demo: tabs per product, the chat persona is validated and forwarded, the booking dialogue is a state machine', async () => {
   const demo = read('src/components/demo/demo-tabs.tsx')
-  for (const id of ['receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'company']) assert.ok(demo.includes(`'${id}'`), id)
-  // all seven products are shown, the scripted ones carry the «Пример» badge
-  assert.match(demo, /DemoBuilt[^>]*product="automation"/)
-  assert.match(demo, /DemoBuilt[^>]*product="miniapp"/)
+  for (const id of ['receptionist', 'personal']) assert.ok(demo.includes(`'${id}'`), id)
+  // v4 (owner 2026-11-23): only live demos on the home, no explainer tabs
+  for (const id of ['admin', 'automation', 'content', 'miniapp', 'company']) assert.ok(!demo.includes(`'${id}'`), id)
   assert.match(demo, /DemoAssistant/)
-  for (const [, dict] of dicts) assert.ok(dict.demoSection.exampleBadge && dict.demoSection.personal.prompts.length === 5 && dict.demoSection.automation.intro && dict.demoSection.miniapp.intro)
+  assert.match(demo, /DemoChat/)
+  for (const [, dict] of dicts) assert.ok(dict.demoSection.exampleBadge && dict.demoSection.personal.prompts.length === 5)
   // v4: the tablist is the shared TabList primitive (roles and keys live in components/ui/tabs.tsx).
   assert.match(demo, /<TabList/)
   for (const needle of ['role="tablist"', 'role="tab"', 'aria-selected', 'ArrowRight', 'Home', 'End']) assert.ok(read('src/components/ui/tabs.tsx').includes(needle), needle)

@@ -3490,7 +3490,7 @@ const en: Dict = {
   demoSection: {
     eyebrow: 'Demo',
     title: 'Try it now',
-    sub: 'Try a product before you talk to us. These are our own agents, the same kind we set up for clients.',
+    sub: 'Live agents: you write, they answer.',
     tabsLabel: 'Products to try',
     exampleBadge: 'Example',
     receptionist: {
@@ -3546,12 +3546,6 @@ const en: Dict = {
       you: 'Client',
       agent: 'AI booking assistant',
     },
-    automation: {
-      intro: 'This is how an automation chain looks: a request arrives, the data lands in a sheet and the CRM on its own, and a message reaches you. A sample scheme, no real data is used.',
-    },
-    miniapp: {
-      intro: 'This is a shop inside Telegram: a catalogue, a cart and payment in one window. A sample, no real order is created.',
-    },
     personal: {
       intro: 'This is how a Personal AI works: the morning brief, mail, your promises, time for tasks and a language lesson. A scripted sample for a coffee shop owner, no real data is connected.',
       name: 'Personal AI',
@@ -3567,12 +3561,6 @@ const en: Dict = {
       you: 'You',
       end: 'Want an AI like this for yourself?',
       restart: 'Start over',
-    },
-    content: {
-      intro: 'The latest articles of our blog. Content on autopilot gives the same rhythm: plan, preparation, approval, publishing.',
-      empty: 'Articles will appear soon.',
-      read: 'Read',
-      all: 'All articles',
     },
     company: {
       intro: 'This is our own company of agents, working right now. We show only counters, and they update by themselves.',

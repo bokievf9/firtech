@@ -32,11 +32,13 @@ export function DemoAssistant({
   gate,
   locale,
   badge,
+  compact = false,
 }: {
   copy: Dict['demoSection']['personal']
   gate: Dict['demoGate']
   locale: 'ru' | 'en'
   badge: string
+  compact?: boolean
 }) {
   const reduce = useReducedMotion()
   const { state: me, refresh } = useCabinetUser()
@@ -95,7 +97,7 @@ export function DemoAssistant({
   return (
     <div className="grid gap-5 lg:grid-cols-12 lg:gap-8">
       <div className="lg:col-span-5">
-        <p className="max-w-[44ch] text-muted">{copy.intro}</p>
+        {!compact && <p className="max-w-[44ch] text-muted">{copy.intro}</p>}
         {scriptMode && <p className="mt-6 inline-flex rounded-full bg-accent/15 px-3 py-1 text-xs text-accent-text">{badge}</p>}
       </div>
       <div className="lg:col-span-7">

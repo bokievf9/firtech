@@ -196,28 +196,14 @@ test('bare paths of known pages redirect to a language (contracts link /terms an
   }
 })
 
-test('home: «Попробуйте сейчас» tabs switch, the booking sample walks to the end and the chat answers in mock mode', async ({ page }) => {
+test('home: «Попробуйте сейчас» has two live tabs and the chat answers in mock mode', async ({ page }) => {
   await open(page, '/ru#demo')
   const tabs = page.locator('[data-demo-tab]')
-  // One tab per product, in the order of `demoTabIds`; the chat has six personas.
-  await expect(tabs).toHaveCount(7)
-  expect(await tabs.evaluateAll((els) => els.map((el) => el.getAttribute('data-demo-tab')))).toEqual([
-    'receptionist', 'admin', 'personal', 'automation', 'content', 'miniapp', 'company',
-  ])
+  await expect(tabs).toHaveCount(2)
+  expect(await tabs.evaluateAll((els) => els.map((el) => el.getAttribute('data-demo-tab')))).toEqual(['receptionist', 'personal'])
   await expect(page.locator('[data-niche]')).toHaveCount(6)
   await tabs.nth(1).click()
-  const booking = page.locator('[data-demo-booking]')
-  await expect(booking).toContainText('ИИ-администратор')
-  for (let i = 0; i < 3; i++) await booking.locator('[data-booking-option="0"]').click()
-  await expect(booking).toContainText('Записал')
-  await tabs.nth(2).click()
   await expect(page.locator('[data-demo-assistant]')).toBeVisible()
-  await tabs.nth(3).click()
-  await expect(page.locator('[data-demo-built="automation"]')).toBeVisible()
-  await tabs.nth(4).click()
-  await expect(page.locator('[data-demo-articles] a').first()).toBeVisible()
-  await tabs.nth(5).click()
-  await expect(page.locator('[data-demo-built="miniapp"]')).toBeVisible()
   await tabs.nth(0).click()
   await page.locator('[data-niche="clinic"]').click()
   // Signed out the chips are the scripted example; the visitor sees the sign-in prompt instead of an input.
