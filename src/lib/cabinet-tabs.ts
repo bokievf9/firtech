@@ -1,17 +1,16 @@
 // Tabs of the cabinet home. v3 (2026-11-22, owner: «в кабинет можно добавить больше»): Проекты (the
-// client's own project and what is needed from them), Документы, Сообщения, Ваш агент (only when the
-// client has one), Материалы, Рекомендации, Профиль. Pure helpers: the tab list, `?tab=` parsing with
+// client's own project and what is needed from them), Документы, Сообщения (Фира answers there,
+// a person on request), Материалы, Рекомендации, Профиль. Pure helpers: the tab list, `?tab=` parsing with
 // legacy names, the badge counts and arrow-key movement. The state lives in the URL (`?tab=`).
 
-export const cabinetTabs = ['projects', 'documents', 'messages', 'agent', 'materials', 'referrals', 'profile'] as const
+export const cabinetTabs = ['projects', 'documents', 'messages', 'materials', 'referrals', 'profile'] as const
 export type CabinetTab = (typeof cabinetTabs)[number]
 
 export const isCabinetTab = (v: unknown): v is CabinetTab =>
   typeof v === 'string' && (cabinetTabs as readonly string[]).includes(v)
 
-// The tabs a client sees: «Ваш агент» only when HQ has a playground agent for them.
-export const visibleTabs = (state: { hasAgent: boolean }): CabinetTab[] =>
-  cabinetTabs.filter((t) => t !== 'agent' || state.hasAgent)
+// The tabs a client sees: all of them (the «Ваш агент» tab was removed 2026-11-23, questions go to Сообщения).
+export const visibleTabs = (): CabinetTab[] => [...cabinetTabs]
 
 // Tabs of the 2026-11-21 cabinet that old links and bookmarks may still carry.
 const legacy: Record<string, CabinetTab> = {
@@ -19,6 +18,7 @@ const legacy: Record<string, CabinetTab> = {
   leads: 'projects',
   invoices: 'documents',
   support: 'messages',
+  agent: 'messages',
 }
 
 // The first screen is always the project (or the request): that is what the client came for.

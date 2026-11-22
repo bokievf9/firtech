@@ -1,9 +1,8 @@
-import type { AgentConversation, ClientAgent } from './cabinet-agent'
 import type { ChatMessage, ChatThread } from './cabinet-chat'
 import { mediaHref } from './cabinet-chat'
 import type { ClientDoc } from './cabinet-docs'
 
-// Development data for the cabinet v3 (documents, messenger, agent) so every screen works without HQ.
+// Development data for the cabinet v3 (documents, messenger) so every screen works without HQ.
 // The state is kept on `globalThis` so the route handlers (separate bundles in `next dev`) share it.
 // Everything here follows the contract draft (`cabinet-docs-contract.md`, sections 2-5); the real HQ
 // replaces it when `HQ_ADMIN_URL` is set. Nothing here ships a secret.
@@ -13,8 +12,6 @@ type MockState = {
   docs: ClientDoc[]
   threads: ChatThread[]
   messages: Record<string, ChatMessage[]>
-  agent: ClientAgent | null
-  conversations: AgentConversation[]
   signatures: { docId: string; name: string; bytes: number }[]
   reviews: { id: number; clientId: number; client: string; projectId: number; rating: number; text: string; at: string }[]
 }
@@ -102,7 +99,6 @@ function seed(): MockState {
     { id: 'lead-14', kind: 'lead', refId: '14', title: 'Заявка: автоматизация заявок', unread: 1, lastAt: at(-0.3) },
     { id: 'project-2', kind: 'project', refId: '2', title: 'Проект: бот для записи в салон', unread: 0, lastAt: at(-0.5) },
     { id: 'project-1', kind: 'project', refId: '1', title: 'Проект: сайт для барбершопа', unread: 2, lastAt: at(-0.1) },
-    { id: 'agent-1', kind: 'agent', refId: 'pg-1', title: 'Ваш агент: Мила', unread: 0, lastAt: at(-2) },
     { id: 'support', kind: 'support', refId: null, title: 'Поддержка', unread: 0, lastAt: at(-5) },
   ]
   const m = (id: string, offset: number, from: ChatMessage['from'], text: string, extra: Partial<ChatMessage> = {}): ChatMessage => ({
@@ -128,29 +124,9 @@ function seed(): MockState {
       m('4', -0.1, 'firtech', 'Если есть правки по тексту, напишите здесь.'),
     ],
     'project-2': [m('1', -0.5, 'firtech', 'Договор готов. Подпишите его в разделе «Документы», и мы выставим счёт на первый этап.')],
-    'agent-1': [
-      m('1', -2, 'agent', 'Здравствуйте! Я Мила, помощник вашего салона. Спросите меня о записи, ценах или адресе.'),
-    ],
     support: [m('1', -5, 'client', 'Можно ли добавить страницу с ценами?', { readAt: at(-4.9) }), m('2', -4.9, 'firtech', 'Да, добавим в рамках этапа 2.')],
   }
-  const agent: ClientAgent = {
-    id: 'pg-1',
-    name: 'Мила',
-    niche: 'Салон красоты',
-    tone: 'friendly',
-    languages: ['ru', 'en'],
-    channels: { web: true, telegram: false, siteWidget: null },
-    state: 'live',
-    limits: { msgsPerDay: 200 },
-    usage: { msgsToday: 18, conversations: 37 },
-  }
-  const conversations: AgentConversation[] = [
-    { id: 'cv-4', startedAt: at(-0.1), lastAt: at(-0.1), channel: 'widget', messages: 6, leadsCaptured: 1 },
-    { id: 'cv-3', startedAt: at(-0.6), lastAt: at(-0.6), channel: 'widget', messages: 4, leadsCaptured: 0 },
-    { id: 'cv-2', startedAt: at(-1.2), lastAt: at(-1.2), channel: 'cabinet', messages: 3, leadsCaptured: 0 },
-    { id: 'cv-1', startedAt: at(-2.4), lastAt: at(-2.4), channel: 'widget', messages: 9, leadsCaptured: 2 },
-  ]
-  return { seq: 100, docs, threads, messages, agent, conversations, signatures: [], reviews: [] }
+  return { seq: 100, docs, threads, messages, signatures: [], reviews: [] }
 }
 
 type G = typeof globalThis & { __firtechCabinetMock?: MockState }
@@ -279,20 +255,7 @@ export function mockSend(threadId: string, text: string, attachments: ChatMessag
   if (!t) return null
   const sent = postMock(threadId, 'client', text, attachments)
   // The earlier firtech messages count as read once the client writes in the thread.
-  if (t.kind === 'agent') {
-    const reply = postMock(threadId, 'agent', mockAgentReply(text))
-    reply.at = new Date(Date.now() + 1000).toISOString()
-    if (s.agent) s.agent.usage.msgsToday += 1
-  }
   return sent
-}
-
-export function mockAgentReply(text: string): string {
-  const q = text.toLowerCase()
-  if (/цен|стоит|price|cost/.test(q)) return 'Маникюр от 120 сомони, окрашивание от 350. Точную цену скажет мастер после консультации. Записать вас?'
-  if (/адрес|где|where|address/.test(q)) return 'Мы на проспекте Рудаки, 45, второй этаж. Работаем с 10:00 до 20:00 каждый день.'
-  if (/запис|book|appointment/.test(q)) return 'Конечно. На какой день и время вам удобно? Свободны суббота в 11:00 и 15:30.'
-  return 'Поняла вас. Уточню у администратора и отвечу, а пока подскажу по записи, ценам или адресу.'
 }
 
 export function mockMessages(threadId: string, after: string | null): ChatMessage[] | null {
@@ -318,22 +281,4 @@ export function mockUpload(threadId: string, name: string, size: number, label: 
   const url = `/media/mock/upload/${nextId()}/${encodeURIComponent(name)}`
   const attachment = { name, href: mediaHref(url, name), size, label }
   return mockSend(threadId, label ? `[${label}]` : '', [attachment])
-}
-
-// ---- agent ------------------------------------------------------------------------------------
-
-export function mockPatchAgent(patch: Record<string, unknown>): ClientAgent | null {
-  const s = mockState()
-  if (!s.agent) return null
-  const a = s.agent
-  if (typeof patch.name === 'string') a.name = patch.name
-  if (typeof patch.tone === 'string') a.tone = patch.tone
-  if (Array.isArray(patch.languages)) a.languages = patch.languages as string[]
-  const ch = patch.channels as Record<string, unknown> | undefined
-  if (ch) {
-    if (ch.telegram === null) a.channels.telegram = false
-    else if (ch.telegram) a.channels.telegram = true
-    if (ch.siteWidget === null) a.channels.siteWidget = null
-  }
-  return a
 }
