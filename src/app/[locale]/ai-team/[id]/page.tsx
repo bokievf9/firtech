@@ -3,7 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AgentRow } from '@/components/ai-team/agent-list'
-import { QuoteLine, TeamGlyph, TrustChip } from '@/components/ai-team/team-parts'
+import { TeamPriceCard } from '@/components/ai-team/team-price'
+import { TeamGlyph, TrustChip } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
@@ -93,7 +94,7 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
           </h1>
           <p className="mt-6 max-w-[56ch] text-lead text-muted">{page.promise}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link href={aiTeamBuilderHref(locale)} data-cta={`aiteam_${id}_build`} className={cn(buttonStyles.primary, 'group')}>
+            <Link href={aiTeamBuilderHref(locale, id)} data-cta={`aiteam_${id}_build`} className={cn(buttonStyles.primary, 'group')}>
               {t.ctaBuild}
               <ArrowRight size={16} className="transition-transform duration-300 group-hover:translate-x-1" />
             </Link>
@@ -103,9 +104,9 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
           </div>
         </HeroIntro>
         <Reveal className="lg:col-span-4" delay={0.3}>
-          <div className={cn('rounded-card border bg-surface p-7', accent.border)}>
-            <QuoteLine dict={dict} />
-            <p className="mt-6 border-t border-line pt-5 text-sm leading-relaxed text-muted">{page.forWhom}</p>
+          <div className={cn('rounded-card border bg-surface p-3', accent.border)}>
+            <TeamPriceCard id={id} dict={dict} />
+            <p className="px-4 pt-4 pb-3 text-sm leading-relaxed text-muted">{page.forWhom}</p>
           </div>
         </Reveal>
       </section>
@@ -200,7 +201,7 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
               <p className="mt-3 max-w-[52ch] leading-relaxed text-muted">{t.page.finalText}</p>
             </div>
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-              <Link href={aiTeamBuilderHref(locale)} data-cta={`aiteam_${id}_final`} className={buttonStyles.primary}>
+              <Link href={aiTeamBuilderHref(locale, id)} data-cta={`aiteam_${id}_final`} className={buttonStyles.primary}>
                 {t.ctaBuild}
               </Link>
               <ChatOpenButton source={`aiteam_${id}`} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>

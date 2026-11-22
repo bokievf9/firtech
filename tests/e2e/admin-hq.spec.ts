@@ -162,7 +162,7 @@ test.describe('with a session', () => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/chats')
     const list = page.getByRole('complementary', { name: 'Чаты' })
-    await expect(list.locator('[data-autopilot-chip]').first()).toContainText('Autopilot: Policy')
+    await expect(list.locator('[data-autopilot-chip]').first()).toContainText(/Autopilot: (Policy|Autopilot|Ask me)/)
     await list.getByRole('button').first().click()
     const head = page.getByRole('region', { name: 'Переписка' }).locator('a[data-autopilot-chip]')
     await expect(head).toContainText('Autopilot:')

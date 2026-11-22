@@ -16,7 +16,7 @@ import { isAgentId, isAiTeamId } from '../src/lib/ai-teams.ts'
 const dicts = { ru, en }
 
 test('products: the two flagships first, then the products from COMPANY.md, texts in both languages', () => {
-  assert.deepEqual(productIds, ['personal', 'company', 'admin', 'receptionist', 'automation', 'content', 'miniapp', 'implementation'])
+  assert.deepEqual(productIds, ['personal', 'company', 'admin', 'receptionist', 'automation', 'content', 'miniapp'])
   for (const dict of [ru, en]) {
     for (const id of productIds) {
       const item = dict.products.items[id]
@@ -53,11 +53,11 @@ test('product prices come only from pricing.ts (as the builder counts them), or 
   assert.equal(productPrice.personal.kind, 'plans')
   assert.equal(productPrice.company.kind, 'plans')
   // Owner 2026-11-22: Personal AI from $290 + $29 a month in three levels, the AI company from $1,490 + $149.
-  assert.deepEqual(personalPlans[0], { id: 'basic', setup: 290, monthly: 29 })
+  assert.deepEqual(personalPlans[0], { id: 'basic', setup: 290, monthly: 29, byokMonthly: 14 })
   assert.deepEqual(personalPlans.map((p) => p.id), ['basic', 'plus', 'max'])
   for (let i = 1; i < personalPlans.length; i++) assert.ok(personalPlans[i].setup > personalPlans[i - 1].setup && personalPlans[i].monthly > personalPlans[i - 1].monthly)
-  assert.deepEqual(companyPlan, { id: 'company', setup: 1490, monthly: 149 })
-  assert.equal(productPrice.implementation.kind, 'from')
+  assert.deepEqual(companyPlan, { id: 'company', setup: 1490, monthly: 149, byokMonthly: 104 })
+  assert.equal(productPrice.implementation, undefined)
   // Every plan id has a label in both dictionaries.
   for (const dict of [ru, en])
     for (const p of [...personalPlans, companyPlan, ...agentPlans, ...contentPlans]) assert.ok(dict.products.plans[p.id], p.id)
@@ -110,7 +110,7 @@ test('footer: products lead, every link points to an existing route, labels exis
   for (const locale of ['ru', 'en']) {
     const cols = footerColumns(locale)
     assert.equal(cols[0].id, 'products')
-    assert.equal(cols[0].links.length, 9) // eight products + the AI-team page (2026-11-21)
+    assert.equal(cols[0].links.length, 8) // seven products + the AI-team page (2026-11-21)
     assert.deepEqual(cols[0].links.slice(0, 2).map((l) => l.id), ['personal', 'company']) // flagships first
     for (const col of cols)
       for (const link of col.links) {

@@ -290,9 +290,7 @@ test('store: a broken or hand-edited file never breaks the site', async () => {
 // --- admin route ---
 const ORIGIN = 'http://localhost'
 async function session() {
-  const issued = await auth.issueCode(Date.now(), { browser: 'b1' })
-  const verified = await auth.verifyCode(issued.code, Date.now(), 'b1')
-  return verified.token
+  return (await auth.createSession()).token
 }
 function req(method, body, { cookie, origin = ORIGIN, type = 'application/json' } = {}) {
   const headers = { host: 'localhost', 'content-type': type }

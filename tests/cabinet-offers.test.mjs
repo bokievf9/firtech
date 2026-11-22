@@ -47,10 +47,10 @@ test('a request but no project yet: audit and subscriptions, not the start block
   assert.ok(plan.cards.every((o) => o.href.startsWith('/en/')))
 })
 
-test('a project in work: content subscription, AI implementation, automation, second part without a discount promise', () => {
+test('a project in work: content subscription, the AI company, automation, second part without a discount promise', () => {
   const plan = offers.pickOffers({ leadCount: 1, projectCount: 1, projectInWork: true }, 'ru')
   assert.equal(plan.stage, 'grow')
-  assert.deepEqual(ids(plan.cards), ['product-content', 'product-implementation', 'product-automation', 'second'])
+  assert.deepEqual(ids(plan.cards), ['product-content', 'product-company', 'product-automation', 'second'])
   assert.equal(plan.cards.at(-1).href, '/ru/builder')
   // bundleDiscount is the discount of one estimate (two parts); the second-part copy never promises it.
   for (const dict of [ru, en]) {

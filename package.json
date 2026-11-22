@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test",
+    "test:e2e:login": "playwright test --config playwright.login.config.ts",
     "test": "node --import ./tests/ts-resolve.mjs --test \"tests/*.test.mjs\""
   },
   "engines": {

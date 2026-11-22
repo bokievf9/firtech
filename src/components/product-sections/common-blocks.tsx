@@ -18,7 +18,7 @@ import { DemoChat } from '../demo/demo-chat'
 import { HeroIntro } from '../hero-intro'
 import { CapabilityMock, type MockKind } from '../products/capability-mock'
 import { FiraHero } from '../products/fira-hero'
-import { PlanLevels } from '../products/plan-levels'
+import { CompanyPlan, PlanLevels } from '../products/plan-levels'
 import { productIcons } from '../products/product-icons'
 import { ProductPriceTag } from '../products/product-price'
 import { Reveal } from '../reveal'
@@ -223,7 +223,7 @@ export function PriceBlock({ ctx, band }: Props) {
         <div className="rounded-card border border-line bg-surface p-6 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             {/* The Personal AI shows its three levels as cards below instead of the plan lines. */}
-            {id !== 'personal' && (
+            {id !== 'personal' && id !== 'company' && (
               <ProductPriceTag id={id} copy={dict.products} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
             )}
             {term && (
@@ -235,7 +235,12 @@ export function PriceBlock({ ctx, band }: Props) {
           </div>
           {id === 'personal' && (
             <div className="mt-8">
-              <PlanLevels products={dict.products} copy={t.planLevels} />
+              <PlanLevels products={dict.products} copy={t.planLevels} sub={dict.subscription} />
+            </div>
+          )}
+          {id === 'company' && (
+            <div className="mt-2">
+              <CompanyPlan sub={dict.subscription} />
             </div>
           )}
           {payment.kind === 'stages' && payment.byQuote && <p className="mt-6 max-w-[60ch] text-sm leading-relaxed text-muted">{t.fromNote}</p>}

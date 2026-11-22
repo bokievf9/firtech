@@ -23,7 +23,6 @@ export const builderProduct: Record<ProductId, CatalogProductId> = {
   automation: 'automation',
   content: 'content',
   miniapp: 'miniapp',
-  implementation: 'aiteam',
 }
 
 // The build the builder opens with: the product picked (`p.<id>` in the link) and its parts.

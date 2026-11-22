@@ -47,8 +47,8 @@ export function pickOffers(state: OfferState, locale: string): OfferPlan {
     const cards = [audit(locale), product(locale, 'content'), product(locale, 'automation')]
     return { stage, cards, strip: [cards[0]!, cards[1]!] }
   }
-  // A project exists: subscription, AI implementation, automation. «Second part» only while one is in work.
-  const cards: Offer[] = [product(locale, 'content'), product(locale, 'implementation'), product(locale, 'automation')]
+  // A project exists: subscription, the AI company, automation. «Second part» only while one is in work.
+  const cards: Offer[] = [product(locale, 'content'), product(locale, 'company'), product(locale, 'automation')]
   if (state.projectInWork) cards.push(second(locale))
   return { stage, cards, strip: [cards[0]!, state.projectInWork ? second(locale) : cards[1]!] }
 }

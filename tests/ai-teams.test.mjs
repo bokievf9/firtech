@@ -116,30 +116,38 @@ test('ai teams: meta descriptions are 120-160 characters, titles within 70', () 
   }
 })
 
-test('ai teams: no price anywhere, the quote pattern and the delivery note are in the copy', () => {
+test('ai teams: prices only from the pricing helpers, never typed, and the delivery note is in the copy', () => {
   for (const [, dict] of dicts) {
-    assert.ok(dict.aiTeams.quote && dict.aiTeams.quoteNote)
     assert.match(dict.aiTeams.page.delivery, /HQ/)
+    assert.equal(dict.aiTeams.quote, undefined, 'the «по смете» line is gone, teams and agents show their subscription')
   }
-  assert.equal(ru.aiTeams.quote, 'По смете')
   assert.equal(ru.aiTeams.ctaDiscuss, 'Спросить агента')
   const files = [
     'src/app/[locale]/ai-team/page.tsx',
     'src/app/[locale]/ai-team/[id]/page.tsx',
+    'src/app/[locale]/ai-team/agent/[id]/page.tsx',
     'src/components/ai-team/team-parts.tsx',
+    'src/components/ai-team/team-price.tsx',
     'src/lib/ai-teams.ts',
   ]
   for (const file of files) {
     const text = readFileSync(file, 'utf8')
-    assert.doesNotMatch(text, /formatUsd|from '@\/lib\/pricing'|\$\d/, file)
+    assert.doesNotMatch(text, /\$\d|\b(?:setup|monthly):\s*\d/, file)
   }
+  // The team page and the agent page both read the live pricing through the shared card.
+  assert.match(readFileSync('src/components/ai-team/team-price.tsx', 'utf8'), /getPricing/)
+  assert.match(readFileSync('src/app/[locale]/ai-team/[id]/page.tsx', 'utf8'), /TeamPriceCard/)
+  assert.match(readFileSync('src/app/[locale]/ai-team/agent/[id]/page.tsx', 'utf8'), /AgentPriceCard/)
 })
 
-test('ai teams: the builder link opens with the aiteam product picked', () => {
-  const href = teams.aiTeamBuilderHref('ru')
+test('ai teams: the builder link opens with the AI company picked and the team as its option', () => {
+  const href = teams.aiTeamBuilderHref('ru', 'support')
   assert.match(href, /^\/ru\/builder\?b=/)
   const build = decodeBuild(new URL(href, 'https://x.test').searchParams.get('b'))
-  assert.ok(build.products.includes('aiteam'))
+  assert.ok(build.products.includes('company'))
+  assert.ok(build.options.company.includes('support'))
+  const whole = decodeBuild(new URL(teams.aiTeamBuilderHref('en'), 'https://x.test').searchParams.get('b'))
+  assert.ok(whole.products.includes('company'))
 })
 
 test('ai teams: pages exist, in localePages, in the sitemap with alternates', async () => {
@@ -164,7 +172,7 @@ test('ai teams: one footer link in the Products column, labelled in both languag
     assert.equal(links.length, 1)
     assert.equal(dict.footer.pages['ai-team'], dict.nav.aiTeams)
   }
-  assert.equal(ru.footer.pages['ai-team'], 'ИИ-отделы')
+  assert.equal(ru.footer.pages['ai-team'], 'ИИ-команды')
 })
 
 test('ai teams: the index shows the live proof from the public office feed, labelled as our own', () => {
@@ -229,7 +237,7 @@ test('agents: full copy in both locales, same shape, three FAQ, trust note, work
   // The Director is a «managing agent» and says it needs a department.
   assert.match(ru.aiTeams.agents.items.director.title, /управляющий агент/)
   assert.match(en.aiTeams.agents.items.director.title, /managing agent/)
-  assert.match(ru.aiTeams.agents.items.director.worksNote, /хотя бы один отдел/)
+  assert.match(ru.aiTeams.agents.items.director.worksNote, /хотя бы одна команда/)
   // Agent copy never carries digits, dollars, long dashes or exclamation marks.
   for (const [locale, dict] of dicts)
     for (const [at, text] of strings(dict.aiTeams.agents)) {

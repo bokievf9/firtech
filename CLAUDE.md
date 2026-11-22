@@ -45,7 +45,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `docs/cabinet.md` and `docs/shell.md`, section «2026-11-23».
 - **Front v3 (owner review 2026-11-22, supersedes the home notes below where they differ).** Product names (ids and prices
   unchanged): `admin` ИИ-администратор, `receptionist` ИИ-менеджер заявок, `automation` Автоматизация процессов, `content` Контент на
-  автопилоте, `miniapp` Telegram Mini App, `implementation` ИИ-отдел под ключ, plus the flagships `personal` Персональный ИИ and `company` ИИ-компания (see «Flagships») (EN in `products.items`
+  автопилоте, `miniapp` Telegram Mini App, plus the flagships `personal` Персональный ИИ and `company` ИИ вашей компании (see «Flagships»; `implementation` was removed 2026-11-22) (EN in `products.items`
   and `builder-catalog.ts`); «бот» stays only as a delivery channel. The builder is «Сборка проекта» everywhere (nav, titles, buttons;
   the words «калькулятор» and «конструктор» are gone everywhere, the cabinet and the Пульт included (test in `copy-qa`); «приёмщик» is
   gone too, the lead agent is «Менеджер заявок» / «Lead manager»; the classic bots service reads «Агенты в Telegram»). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
@@ -292,12 +292,25 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   Only `TELEGRAM_CHAT_ID` may press buttons. `scripts/telegram-webhook.mjs set` after deploy;
   `scripts/telegram-poll.mjs` forwards updates to localhost for testing (delete the webhook first).
 - Owner panel `/admin` (`src/app/admin`, API `src/app/api/admin`, copy `src/content/admin.ts`,
-  logic `src/lib/admin-*.ts`): login by a one-time code the bot sends to `TELEGRAM_CHAT_ID` (5 min,
-  5 tries, 1 per minute, 10 per hour); 30-day sessions in `$DATA_DIR/admin.json` (hashes only,
-  revocable; back it up with `leads.json`). Pages and `/api/admin/*` check the session on the
+  logic `src/lib/admin-*.ts`): login by PASSWORD since 2026-11-23 (owner; the Telegram code login and
+  `/api/admin/code` are deleted). Server env `ADMIN_PASSWORD_HASH` = `scrypt$<N>$<salt>$<hash>` (N 16384 or
+  32768, r 8, p 1, 64-byte key, salt and hash base64url without padding), printed by
+  `node scripts/admin-password.mjs` (hidden prompt; or argv / a pipe). In `shared/.env.production` (read by
+  `node --env-file`) paste the line as is; in `.env.local` (read by `next dev`, which expands `$`) write
+  every `$` as `\$`. Missing or malformed = login closed («Password is not set up.», `POST /api/admin/login`
+  503 `not_configured`), never a default. `src/lib/admin-password.ts` (strict parse, async scrypt +
+  `timingSafeEqual`, one full scrypt even without a hash, 256-character cap) and `loginWithPassword` in
+  `admin-auth.ts`: per IP (`visitorIp`) 5 free tries an hour, then 1 a minute, 10 an hour; 30 wrong an hour for
+  all IPs closes the login until the hour clears; 800 ms pause on a wrong password; every attempt counts as
+  wrong until confirmed (parallel requests cannot pass). 30-day sessions in `$DATA_DIR/admin.json` (hashes only,
+  revocable; back it up with `leads.json`), each with `fp` = fingerprint of the hash line: a new hash ends the
+  sessions made with the old one; sessions without `fp` (before 2026-11-23, the e2e hand-written ones) stay
+  valid until they expire. «Sign out» in the Shell header and the «...» menu (`POST /api/admin/logout` revokes
+  server-side and clears the cookie). Threat model: `docs/shell.md` «Login». Tests `tests/admin-login.test.mjs`,
+  e2e `npm run test:e2e:login` (own server, `playwright.login.config.ts`). Pages and `/api/admin/*` check the session on the
   server, POSTs also check `Origin`. Status and booking changes go through `setLeadStatus` and
   `bookingAction` in `lead-bot.ts`, shared with the bot buttons. Private `notes` never leave the
-  site. Bot `/admin` sends the link. Since 2026-11-19 (owner: «в админке всё кроме офиса не нужно») the
+  site. Bot `/admin` sends the panel link only (no code). Since 2026-11-19 (owner: «в админке всё кроме офиса не нужно») the
   panel has ONE page, the пульт below; `/admin` redirects to `/admin/office`, the old overview
   (Pulse), `/admin/leads` and `/admin/calendar` and their code are deleted (404). Site-form leads and
   call bookings live in the Sales panel as tabs «Заявки с сайта» and «Созвоны» (see below).
@@ -411,6 +424,14 @@ never summed into the one-time total. Pages: own blocks in `components/product-s
 interactive day, `pult-tour.tsx`), plan cards `components/products/plan-levels.tsx`, Fira hero `components/products/fira-hero.tsx`
 (SVG, WebGL only on wide screens when idle), pilot offer «первые 1-2 пилота бесплатно за кейс и отзыв» only on the flagships.
 HQ contract: `docs/products-contract.md`; playbook section «Флагманы»; tests `tests/flagships.test.mjs`.
+**Products v4 (owner 2026-11-22 night).** Every AI product is a subscription: setup + monthly (model usage included, we connect our
+Anthropic) and `byokMonthly` with the client's own API key: `Subscription` type, `personalPlans`, `companyPlan`, `agentSubscription`,
+`teamDiscount` (15, a team = the sum of its agents minus it), `companyPerEmployee` (9 above five staff), all in `pricing.ts`, editable
+in the Пульт, in `/api/prices`; card `components/products/subscription-card.tsx` (product, team and agent pages; team/agent wrappers in
+`components/ai-team/team-price.tsx`). Personal AI levels: Спутник / Второй пилот / Второе я (Companion / Copilot / Alter Ego). The
+company product is «ИИ вашей компании»: one brain on Fira that knows the business, roles plug in as skills (no org chart). `implementation`
+is gone (`/products/implementation` redirects to `/ai-team`, `p.implementation` decodes as `p.company`); «ИИ-отделы» are «ИИ-команды».
+Channels as equals: `lib/channels.ts` and the «Где живёт» strip (`product-sections/channels-block.tsx`).
 
 ## Fira (2026-11-22)
 Brand mascot «Фира» (the lime dot of the logo come alive; cute and soft, not a tree, not a robot), concept stage: three

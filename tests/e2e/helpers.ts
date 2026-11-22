@@ -55,7 +55,6 @@ export const PUBLIC_PAGES = [
   '/products/automation',
   '/products/content',
   '/products/miniapp',
-  '/products/implementation',
   '/blog',
   '/blog/website-cost-2026',
   '/blog/website-or-telegram-bot',

@@ -29,7 +29,7 @@ export async function DemoSection({ dict, locale }: { dict: Dict; locale: Locale
     content: dict.products.items.content.name,
     miniapp: dict.products.items.miniapp.name,
     personal: dict.products.items.personal.name,
-    implementation: dict.products.items.implementation.name,
+    company: dict.products.items.company.name,
   }
   const buildHrefs: Record<DemoTabId, string> = {
     receptionist: productBuilderHref(locale, 'receptionist'),
@@ -38,7 +38,7 @@ export async function DemoSection({ dict, locale }: { dict: Dict; locale: Locale
     content: productBuilderHref(locale, 'content'),
     miniapp: productBuilderHref(locale, 'miniapp'),
     personal: productBuilderHref(locale, 'personal'),
-    implementation: productBuilderHref(locale, 'implementation'),
+    company: productBuilderHref(locale, 'company'),
   }
   return (
     <section id="demo" className="relative isolate overflow-hidden py-section">

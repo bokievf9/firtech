@@ -4,12 +4,24 @@ import { adminContext, LOGOUT_TOKEN, noHorizontalOverflow, SIZES, watchErrors, o
 // The owner panel with a hand-written session in the throwaway DATA_DIR (see global-setup.ts) and
 // the dev mock of HQ (HQ_ADMIN_URL empty, NODE_ENV development).
 
-test('admin login page renders the code form for a visitor without a session', async ({ page }) => {
+// This server runs without ADMIN_PASSWORD_HASH: the login is closed. The open login (wrong, then the
+// right password) is tests/e2e-login/admin-login.spec.ts with its own server (npm run test:e2e:login).
+test('admin login page says the password is not set up when ADMIN_PASSWORD_HASH is missing', async ({ page, request, baseURL }) => {
   const response = await open(page, '/admin/login')
   expect(response?.status()).toBe(200)
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Получить код в Telegram' })).toBeVisible()
+  await expect(page.getByRole('heading', { level: 1, name: 'Sign in to Shell' })).toBeVisible()
+  await expect(page.locator('form [role=alert]')).toHaveText('Password is not set up.')
+  await expect(page.getByLabel('Password', { exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Sign in' })).toBeDisabled()
+  await expect(page.getByText('Telegram')).toHaveCount(0)
   expect(await page.locator('meta[name=robots]').getAttribute('content')).toContain('noindex')
+  const api = await request.post('/api/admin/login', {
+    data: { password: 'any-throwaway-password' },
+    headers: { origin: baseURL! },
+  })
+  expect(api.status()).toBe(503)
+  expect(await api.json()).toEqual({ ok: false, error: 'not_configured' })
+  expect((await request.post('/api/admin/code', { data: {} })).status()).toBe(404)
 })
 
 test('admin pages and API refuse a visitor without a session', async ({ page, request }) => {

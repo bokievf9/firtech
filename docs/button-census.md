@@ -68,7 +68,7 @@ Legend of `E:` tags (file : test title):
 | `E:chat-api` | flows.spec : «chat API: validation (400) and mock answer (200)» |
 | `E:service` | flows.spec : «service page: the format link «Собрать проект: …» opens the builder with that format» |
 | `E:solution` | flows.spec : «solution page opens the builder with its preset» |
-| `E:adm-login` | admin.spec : «admin login page renders the code form for a visitor without a session» |
+| `E:adm-login` | admin.spec : «admin login page says the password is not set up when ADMIN_PASSWORD_HASH is missing» |
 | `E:adm-guard` | admin.spec : «admin pages and API refuse a visitor without a session» |
 | `E:hub` | admin.spec : «hub loads with counters, presence switch and the office» (also the phone variant «hub fits a phone») |
 | `E:keys` | admin.spec : «keys 1-7 open the panels, Esc closes, 8 opens the go-live page» |
@@ -318,7 +318,8 @@ Legend of `E:` tags (file : test title):
 
 | Page | Element | What it does | Leads to / calls | Verified by | Status |
 |---|---|---|---|---|---|
-| `/admin/login` | «Получить код в Telegram» | sends a one-time code to the owner's chat; then the 6-digit input | `POST /api/admin/code`, `/api/admin/login` | `E:adm-login` (page), `U:admin`, `U:telegram` | pass (page), untested (code flow needs Telegram) |
+| `/admin/login` | password field, «Show password», «Sign in» | password login; «Password is not set up.» without `ADMIN_PASSWORD_HASH` | `POST /api/admin/login` | `E:adm-login` (closed), `npm run test:e2e:login` (wrong, then right), `U:admin-login` | pass |
+| Shell header | «Sign out» | ends this session on the server, back to the login | `POST /api/admin/logout` | `npm run test:e2e:login`, `U:admin-login` | pass |
 | `/admin/*`, `/api/admin/*` | session guard | redirect to login, 401 | `admin-guard.ts` | `E:adm-guard`, `U:admin` | pass |
 | `/admin` | redirect | `/admin/office` | - | `E:adm-guard` | pass |
 | `/admin/office` | presence «На месте» / «Не на месте» (also named on phones) | `POST HQ presence` (mock) | `/api/admin/hq/presence` | `E:hub`, `U:hq-admin` | pass |

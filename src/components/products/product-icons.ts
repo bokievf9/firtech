@@ -1,5 +1,4 @@
 import {
-  Brain,
   Buildings,
   CalendarCheck,
   DeviceMobile,
@@ -20,5 +19,4 @@ export const productIcons: Record<ProductId, Icon> = {
   automation: FlowArrow,
   content: Newspaper,
   miniapp: DeviceMobile,
-  implementation: Brain,
 }

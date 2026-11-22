@@ -1,4 +1,5 @@
 import type { ProductSectionId } from '@/content/product-pages'
+import { ChannelsBlock } from './channels-block'
 import {
   CapabilitiesBlock,
   DemoBlock,
@@ -31,9 +32,7 @@ import {
   DayBlock,
   FactsBlock,
   FlowBlock,
-  GrowBlock,
   KnowsBlock,
-  OrgBlock,
   PhonesBlock,
   RolesBlock,
   RoutinesBlock,
@@ -46,7 +45,7 @@ export type { ProductSectionContext } from './shell'
 // One block of a product page by its id from `src/content/product-pages.ts`. `band` alternates the tinted
 // background so neighbouring sections read apart whatever the order.
 export function ProductSection({ section, ctx, band }: { section: ProductSectionId; ctx: ProductSectionContext; band: boolean }) {
-  const { page, dict, locale } = ctx
+  const { page, dict } = ctx
   const t = dict.productPage
   switch (section) {
     case 'hero':
@@ -69,6 +68,8 @@ export function ProductSection({ section, ctx, band }: { section: ProductSection
       return <ObjectionsBlock ctx={ctx} band={band} />
     case 'readiness':
       return <ReadinessBlock ctx={ctx} band={band} />
+    case 'channels':
+      return <ChannelsBlock ctx={ctx} band={band} />
     case 'day':
       return page.day ? <DayBlock copy={page.day} band={band} note={t.mockNote} /> : null
     case 'flow':
@@ -89,10 +90,6 @@ export function ProductSection({ section, ctx, band }: { section: ProductSection
       return page.scenarios ? <ScenariosBlock copy={page.scenarios} band={band} /> : null
     case 'knows':
       return page.knows ? <KnowsBlock copy={page.knows} band={band} /> : null
-    case 'org':
-      return page.org ? <OrgBlock copy={page.org} band={band} /> : null
-    case 'grow':
-      return page.grow ? <GrowBlock copy={page.grow} band={band} href={`/${locale}/ai-team#levels`} /> : null
     case 'myday':
       return page.myday ? <MyDayBlock copy={page.myday} band={band} note={t.mockNote} /> : null
     case 'memory':

@@ -63,6 +63,9 @@ export default defineConfig({
       LEAD_INTAKE_URL: '',
       TELEGRAM_BOT_TOKEN: '',
       TELEGRAM_CHAT_ID: '',
+      // The login stays closed here (the admin specs use hand-written sessions); the open login has
+      // its own server in playwright.login.config.ts.
+      ADMIN_PASSWORD_HASH: '',
     },
   },
   ],

@@ -14,17 +14,16 @@ import { ProductDemo } from './product-demo'
 import { ProductPriceTag } from './product-price'
 import { productIcons } from './product-icons'
 
-// Bento of the eight products (#products). lg: 12 columns, the two flagships first as 6+6 (owner
-// 2026-11-22), then 4+4+4 and 4+4+4. Each card's demo replays on hover and focus.
+// Bento of the seven products (#products). lg: 12 columns, the two flagships first as 6+6 (owner
+// 2026-11-22), then 4+4+4 and 6+6. Each card's demo replays on hover and focus.
 const spans: Record<ProductId, string> = {
   personal: 'lg:col-span-6',
   company: 'lg:col-span-6',
   admin: 'lg:col-span-4',
   receptionist: 'lg:col-span-4',
   automation: 'lg:col-span-4',
-  content: 'lg:col-span-4',
-  miniapp: 'lg:col-span-4',
-  implementation: 'lg:col-span-4',
+  content: 'lg:col-span-6',
+  miniapp: 'lg:col-span-6',
 }
 
 export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Dict }) {

@@ -37,7 +37,7 @@ const stageTemplateNames: Record<StageTemplateId, string> = {
   automation: 'Автоматизация',
   app: 'Приложение и Mini App',
   small: 'Малый проект',
-  company: 'ИИ-компания',
+  company: 'ИИ вашей компании',
 }
 const extraNames: Record<string, string> = {
   support: 'Поддержка',
@@ -46,10 +46,11 @@ const extraNames: Record<string, string> = {
   rescue: 'Спасение проекта',
 }
 const planNames: Record<string, string> = {
-  basic: 'Персональный ИИ, уровень «Старт»',
-  plus: 'Персональный ИИ, уровень «Плюс»',
-  max: 'Персональный ИИ, уровень «Максимум»',
-  company: 'ИИ-компания, цена «от»',
+  basic: 'Персональный ИИ, «Спутник»',
+  plus: 'Персональный ИИ, «Второй пилот»',
+  max: 'Персональный ИИ, «Второе я»',
+  company: 'ИИ вашей компании, цена «от»',
+  agent: 'Один ИИ-агент (команда: сумма агентов со скидкой)',
   dono: 'Dono (снят с продажи, нужен Shell)',
   polly: 'Polly (снят с продажи, нужен Shell)',
   content: 'Контент на автопилоте',
@@ -94,11 +95,19 @@ function field(path: string, def: number): PriceField {
     case 'companyPlan':
     case 'agentPlans':
     case 'contentPlans':
+    case 'agentSubscription': {
+      const key = root === 'agentSubscription' ? a : b
+      const plan = root === 'agentSubscription' ? 'agent' : a
       return {
-        path, def, group: 'plans', section: planNames[a] ?? a,
-        label: b === 'setup' ? 'Подключение' : 'В месяц',
-        ...usd, unit: b === 'setup' ? 'usd' : 'usd_month', step: 5,
+        path, def, group: 'plans', section: planNames[plan] ?? plan,
+        label: key === 'setup' ? 'Подключение' : key === 'byokMonthly' ? 'В месяц со своим API-ключом' : 'В месяц',
+        ...usd, unit: key === 'setup' ? 'usd' : 'usd_month', step: 5,
       }
+    }
+    case 'teamDiscount':
+      return { path, def, group: 'discounts', section: 'Скидки', label: 'Скидка ИИ-команды: сумма агентов минус', unit: 'percent', min: 0, max: 50, step: 1 }
+    case 'companyPerEmployee':
+      return { path, def, group: 'plans', section: planNames.company ?? 'company', label: 'За каждого сотрудника сверх пяти, в месяц', ...usd, unit: 'usd_month', step: 1 }
     case 'bundleDiscount':
       return { path, def, group: 'discounts', section: 'Скидки', label: 'Скидка на сборку из двух и более частей', unit: 'percent', min: 0, max: 50, step: 1 }
     case 'referralPercent':
