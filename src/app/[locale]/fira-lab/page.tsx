@@ -7,7 +7,7 @@ import { isLocale } from '@/lib/i18n'
 import { isAccessory, isEventKind, isTurtle } from '@/lib/fira/turtle'
 
 // Hidden concept lab for the Fira mascot: noindex, not in the sitemap or the localePages list.
-// The lab reads its view from the query (?round=4, ?solo=...): a static render would always show the default round.
+// The lab reads its view from the query (default: the turtles; ?round=3 the old faces; ?solo=...): a static render would always show the default round.
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
@@ -82,6 +82,6 @@ export default async function FiraLabPage({ params, searchParams }: PageProps<'/
   const { locale } = await params
   if (!isLocale(locale)) notFound()
   const sp = await searchParams
-  if (one(sp.round) === '4') return <FiraLab4 query={parseLab4(sp)} />
+  if (one(sp.round) !== '3') return <FiraLab4 query={parseLab4(sp)} />
   return <FiraLab capture={parseCapture(sp)} all={one(sp.all) === '1'} />
 }

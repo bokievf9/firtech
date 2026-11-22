@@ -91,7 +91,8 @@ test('wiring: lazy chunk, lab round=4, lights layer, matte only, procedural only
   const kit = read('src/components/fira/fira-kit4.ts') + scene + read('src/components/fira/fira-acc4.tsx')
   assert.ok(!/blush|tongue|TextureLoader|useGLTF/i.test(kit), 'no blush, no textures')
   const page = read('src/app/[locale]/fira-lab/page.tsx')
-  assert.match(page, /round[^\n]*'4'/)
+  // Turtles are the lab default since 2026-11-22; `?round=3` opens the old faces.
+  assert.match(page, /round[^\n]*!== '3'/)
   assert.match(page, /\?solo=n/)
   assert.match(read('src/components/fira/fira-lab4.tsx'), /data-fira-ctx/)
   const home = read('src/components/fira/fira.tsx')

@@ -167,7 +167,7 @@ export function FiraLab4({ query: q }: { query: Lab4Query }) {
       <h1 className="font-display text-3xl font-semibold tracking-tight">Фира: раунд 4, черепашка с HQ на панцире</h1>
       <p className="mt-2 max-w-[70ch] text-muted">
         Четыре черепашки: у каждой на панцире экранчики, антенна и огоньки, которые отвечают на события и на голос. Аксессуары, страницы и речь с облачком
-        переключаются кнопками. Звука пока нет. Светлая и тёмная тема в шапке сайта. Прежние раунды: <a className="underline" href="?">раунд 3</a>.
+        переключаются кнопками. Звука пока нет. Светлая и тёмная тема в шапке сайта. Прежние раунды: <a className="underline" href="?round=3">раунд 3</a>.
       </p>
       <div className="mt-6 flex flex-wrap items-center gap-2" role="group" aria-label="Вид">
         {views.map(([k, l]) => <button key={k} type="button" aria-pressed={view === k} onClick={() => setView(k)} className={pill(view === k)}>{l}</button>)}
