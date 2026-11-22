@@ -47,7 +47,7 @@ export function TxLink({ inv }: { inv: Pick<Invoice, 'paidVia' | 'txId'> }) {
   const url = txExplorerUrl(inv.paidVia, inv.txId)
   if (!url) return inv.txId ? <span className="font-mono text-xs text-faint" title={inv.txId}>{inv.txId.slice(0, 10)}…</span> : null
   return (
-    <a href={url} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 text-xs text-accent-text underline-offset-4 hover:underline">
+    <a href={url} className="inline-flex items-center gap-1 text-xs text-accent-text underline-offset-4 hover:underline">
       {i.tx} <ArrowSquareOut size={12} aria-hidden="true" />
     </a>
   )

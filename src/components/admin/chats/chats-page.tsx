@@ -340,7 +340,7 @@ function ChatsPageInner() {
                               {m.attachments.map((a) => (
                                 <span key={a.name} className="mt-1 flex items-center gap-1 text-xs text-muted">
                                   <Paperclip size={12} aria-hidden="true" />
-                                  {a.url ? <a href={a.url} target="_blank" rel="noreferrer noopener" className="underline">{a.name}</a> : a.name}
+                                  {a.url ? <a href={a.url} className="underline">{a.name}</a> : a.name}
                                 </span>
                               ))}
                             </div>

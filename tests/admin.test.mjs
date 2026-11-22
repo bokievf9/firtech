@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readdirSync, readFileSync } from 'node:fs'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { registerHooks } from 'node:module'
 import { tmpdir } from 'node:os'
@@ -456,4 +457,12 @@ test('filters, contact links and calendar', () => {
   const monday = Object.fromEntries(days[1].slots.map((s) => [s.slot, s]))
   assert.equal(monday['2026-10-19T09:30:00.000Z'].state, 'confirmed')
   assert.equal(monday['2026-10-19T10:00:00.000Z'].state, 'free')
+})
+
+test('the admin opens nothing in a new tab: no target="_blank", no window.open', () => {
+  const walkDir = (d) => readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walkDir(`${d}/${e.name}`) : /\.(tsx?|ts)$/.test(e.name) ? [`${d}/${e.name}`] : []))
+  for (const f of [...walkDir('src/components/admin'), ...walkDir('src/app/admin')]) {
+    const t = readFileSync(f, 'utf8')
+    assert.doesNotMatch(t, /_blank|window\.open|rel="noopener|noreferrer/, f)
+  }
 })

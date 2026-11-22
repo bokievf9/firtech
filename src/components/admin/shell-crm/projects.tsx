@@ -278,7 +278,7 @@ function ProjectBody({
               <li key={i.number} className="flex items-center gap-2 text-sm">
                 <span className="font-mono text-xs text-faint">#{i.number}</span>
                 {i.url ? (
-                  <a href={i.url} target="_blank" rel="noreferrer noopener" className="min-w-0 flex-1 truncate underline-offset-4 hover:underline">
+                  <a href={i.url} className="min-w-0 flex-1 truncate underline-offset-4 hover:underline">
                     {i.title} <ArrowSquareOut size={12} className="inline" aria-hidden="true" />
                   </a>
                 ) : (

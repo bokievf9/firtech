@@ -122,7 +122,7 @@ export function ContentBody({ item, onAct, extra }: { item: ContentItem; extra?:
         <Chip tone={statusTone[item.status]}>{k.statuses[item.status]}</Chip>
         {item.sourceSlug ? <span className="text-xs text-faint">{fill(k.fromArticle, { slug: item.sourceSlug })}</span> : null}
         {item.publishedUrl ? (
-          <a href={item.publishedUrl} target="_blank" rel="noreferrer noopener" className="text-xs text-accent-text underline-offset-4 hover:underline">
+          <a href={item.publishedUrl} className="text-xs text-accent-text underline-offset-4 hover:underline">
             {k.openPublished}
           </a>
         ) : null}

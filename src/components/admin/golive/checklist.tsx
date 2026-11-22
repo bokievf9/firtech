@@ -134,7 +134,6 @@ function ItemRow({
             {item.link ? (
               <a
                 href={item.link}
-                {...(item.link.startsWith('http') ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                 aria-label={`${t.link}: ${item.title}`}
                 title={t.link}
                 className="inline-flex size-7 items-center justify-center rounded-full text-muted hover:text-accent-text"

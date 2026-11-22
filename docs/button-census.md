@@ -496,7 +496,7 @@ Tag `E:hq` = `tests/e2e/admin-hq.spec.ts`; `U:hq-shell` = `tests/hq-shell.test.m
 | Page | Element | What it does | Calls | Verified by | Status |
 |---|---|---|---|---|---|
 | `/admin/*` HQ | section menu (12 links, keys 1-9) | opens the section; «Soon» ones show a placeholder | - | `E:hq`, `U:hq-shell` | pass (links, key 1), untested (other keys) |
-| HQ top bar | «Office» | opens `/admin/office` in a new tab | - | `E:hq` (target attribute) | pass |
+| HQ top bar | «Office» | opens `/admin/office` in the same tab (no admin link opens a new tab, `U:admin`) | - | `E:hq`, `E:office` | pass |
 | HQ top bar | search ⌘K | the palette with sections, tabs and HQ search | `GET crm/*?q=` | `E:hq` (button present via palette code shared with the hub) | untested (open) |
 | Inbox | tabs Notifications, Approvals | `?tab=`; rows open the object in its section | `GET hub`, `GET approvals` | `E:hq` (Approvals tab) | pass (tab), untested (row click) |
 | Inbox / Approvals | approve, reject, edit, release queue | same calls as the hub, optimistic with rollback and a toast | `POST approvals/:id`, command `approve` | `E:shell-overflow` (shared card), `U:orders` | untested here |

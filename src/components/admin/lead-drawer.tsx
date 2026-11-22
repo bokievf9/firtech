@@ -180,7 +180,7 @@ function DrawerBody({
       <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5 sm:px-6">
         <div className="flex flex-wrap gap-2">
           {links.telegram ? (
-            <a href={links.telegram} target="_blank" rel="noreferrer" className={quick}>
+            <a href={links.telegram} className={quick}>
               <TelegramLogo size={16} aria-hidden="true" />
               {t.openTelegram}
             </a>
@@ -196,7 +196,7 @@ function DrawerBody({
             {copied ? t.copied : t.copy}
           </button>
           {page ? (
-            <a href={page.url} target="_blank" rel="noreferrer" className={quick}>
+            <a href={page.url} className={quick}>
               <ArrowSquareOut size={16} aria-hidden="true" />
               {page.builder ? t.openBuilder : t.openPage}
             </a>

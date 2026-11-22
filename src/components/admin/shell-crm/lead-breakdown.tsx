@@ -56,7 +56,7 @@ function Preview({ b }: { b: Breakdown }) {
           <Eye size={14} aria-hidden="true" /> {shown ? t.hidePreview : t.showPreview}
         </button>
         {b.previewHref ? (
-          <a href={b.previewHref} target="_blank" rel="noreferrer noopener" className={link}>
+          <a href={b.previewHref} className={link}>
             <ArrowSquareOut size={14} aria-hidden="true" /> {t.openPreview}
           </a>
         ) : null}
@@ -86,12 +86,12 @@ export function LeadBreakdown({ input, className }: { input: BreakdownInput; cla
         </h3>
         <span className="ml-auto flex flex-wrap gap-2">
           {b.estimateHref ? (
-            <a href={b.estimateHref} target="_blank" rel="noreferrer noopener" className={link}>
+            <a href={b.estimateHref} className={link}>
               <ArrowSquareOut size={14} aria-hidden="true" /> {t.openEstimate}
             </a>
           ) : null}
           {b.buildHref ? (
-            <a href={b.buildHref} target="_blank" rel="noreferrer noopener" className={link}>
+            <a href={b.buildHref} className={link}>
               <Cube size={14} aria-hidden="true" /> {t.openBuild}
             </a>
           ) : null}

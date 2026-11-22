@@ -79,7 +79,7 @@ export function ResultsDialog({ title, message, results, onClose }: { title: str
             <li key={r.platform} className="rounded-xl border border-line bg-inset p-3 text-sm">
               <span className={r.state === 'failed' || r.state === 'not_ready' ? 'text-danger' : undefined}>{resultText(r)}</span>
               {r.url ? (
-                <a href={r.url} target="_blank" rel="noreferrer noopener" className="mt-1 block truncate text-xs text-accent-text underline">
+                <a href={r.url} className="mt-1 block truncate text-xs text-accent-text underline">
                   {r.url}
                 </a>
               ) : null}
