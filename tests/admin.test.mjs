@@ -205,7 +205,7 @@ test('bot: /admin replies with the panel link, only to the owner', async () => {
           'content-type': 'application/json',
           'x-telegram-bot-api-secret-token': 'test-webhook-secret',
         },
-        body: JSON.stringify({ message: { message_id: 1, chat: { id: chatId }, text: '/admin' } }),
+        body: JSON.stringify({ message: { message_id: 1, chat: { id: chatId, type: 'private' }, from: { id: chatId }, text: '/admin' } }),
       }),
     )
   await post(42)
