@@ -1,7 +1,6 @@
 // Content Studio (HQ section «Content», 2026-11-23): view models over HQ's `GET /admin/content/feed` and
 // `GET|POST /admin/content/orders` (contract: agents/docs/admin-crm-api.md, «Content Studio»). Pure, no React.
-import { renderState, type ReviewItem } from '@/lib/review'
-import { CONTENT_KINDS, CONTENT_STATUSES, fileUrl, parseContentItem, type ContentItem } from '@/lib/shell'
+import { CONTENT_KINDS, CONTENT_STATUSES, parseContentItem, type ContentItem } from '@/lib/shell'
 
 export const STUDIO_TYPES = ['clip', 'post', 'carousel', 'story'] as const
 export type StudioType = (typeof STUDIO_TYPES)[number]
@@ -52,17 +51,9 @@ export function normalizeFeed(body: unknown): Feed | null {
     const o = rec(r.origin)
     const mode = pick(o.mode, ORDER_MODES)
     const orderId = posInt(o.orderId)
-    items.push({
-      ...item,
-      reviewId: reviewIdOf(r.reviewId),
-      origin: mode && orderId ? { orderId, mode, fromItemId: posInt(o.fromItemId) } : null,
-    })
+    items.push({ ...item, reviewId: reviewIdOf(r.reviewId), origin: mode && orderId ? { orderId, mode, fromItemId: posInt(o.fromItemId) } : null })
   }
-  return {
-    items,
-    nextCursor: typeof b.nextCursor === 'string' && /^\d{1,6}$/.test(b.nextCursor) ? b.nextCursor : null,
-    total: typeof b.total === 'number' ? b.total : items.length,
-  }
+  return { items, nextCursor: typeof b.nextCursor === 'string' && /^\d{1,6}$/.test(b.nextCursor) ? b.nextCursor : null, total: typeof b.total === 'number' ? b.total : items.length }
 }
 
 export function parseOrder(raw: unknown): StudioOrder | null {
@@ -90,15 +81,15 @@ export function parseOrder(raw: unknown): StudioOrder | null {
 export function normalizeOrders(body: unknown): StudioOrder[] | null {
   const b = rec(body)
   if (!Array.isArray(b.items)) return null
-  return list(b.items, 100)
-    .map(parseOrder)
-    .filter((o): o is StudioOrder => o !== null)
+  return list(b.items, 100).map(parseOrder).filter((o): o is StudioOrder => o !== null)
 }
 export const normalizeOrder = (body: unknown) => parseOrder(rec(body).order)
 
 // The body of `POST content/orders`; null when the input is not worth sending (HQ checks again).
 export type OrderInput =
-  { mode: 'prompt'; prompt: string; type: StudioType } | { mode: 'variant'; fromItemId: number; note?: string } | { mode: 'niche'; fromItemId: number; niche: string; note?: string }
+  | { mode: 'prompt'; prompt: string; type: StudioType }
+  | { mode: 'variant'; fromItemId: number; note?: string }
+  | { mode: 'niche'; fromItemId: number; niche: string; note?: string }
 export function orderBody(i: OrderInput): Rec | null {
   if (i.mode === 'prompt') {
     const prompt = i.prompt.trim()
@@ -112,8 +103,7 @@ export function orderBody(i: OrderInput): Rec | null {
 }
 
 // «Ещё вариант» and «Под нишу» work on reels, posts, carousels and stories that exist as items (not articles, not the profile kit).
-export const canReorder = (item: Pick<ContentItem, 'kind' | 'id'>) =>
-  (CONTENT_KINDS as readonly string[]).includes(item.kind) && item.kind !== 'article' && item.kind !== 'profile' && /^\d+$/.test(String(item.id))
+export const canReorder = (item: Pick<ContentItem, 'kind' | 'id'>) => (CONTENT_KINDS as readonly string[]).includes(item.kind) && item.kind !== 'article' && item.kind !== 'profile' && /^\d+$/.test(String(item.id))
 
 // A feed row of the plan as the owner reads it: the cards a given day carries, newest first is HQ's order.
 export const feedHref = (status?: string, kind?: string, cursor?: string | null) => {
@@ -122,79 +112,4 @@ export const feedHref = (status?: string, kind?: string, cursor?: string | null)
   if (kind) q.set('kind', kind)
   if (cursor) q.set('cursor', cursor)
   return `content/feed?${q}`
-}
-
-// ---- the one-screen view of an item: what the player shows --------------------------------------------
-
-export type PreviewMedia = {
-  type: 'video' | 'image' | 'pdf' | 'html'
-  src: string
-  poster: string | null
-  w: number | null
-  h: number | null
-}
-export type RenderState = 'none' | 'rendering' | 'ready' | 'failed'
-export type StudioPreview = {
-  // `pending`: there is nothing to look at yet (honest state, never a fake render).
-  mode: 'video' | 'carousel' | 'image' | 'pdf' | 'html' | 'pending'
-  media: PreviewMedia[]
-  state: RenderState
-  // The aspect ratio of the frame (w / h): 9:16 for a reel, the file's own for pictures.
-  ratio: number
-}
-
-const RENDER_STATES: readonly RenderState[] = ['none', 'rendering', 'ready', 'failed']
-
-// The preview of an item: HQ's `media[]` of its approval card (types video|image|pdf|html) when the card is known,
-// else the files of the feed row. The render state is `meta.render.state` of the card, else read from the
-// item's status (`rendering`, an error on a draft = failed, a card waiting for the owner or an approved one without files = none).
-export function studioPreview(item: ContentItem, review: ReviewItem | null): StudioPreview {
-  const fromReview: PreviewMedia[] = (review?.media ?? []).map((m) => ({
-    type: m.type,
-    src: m.src,
-    poster: m.poster,
-    w: m.w,
-    h: m.h,
-  }))
-  const fromFiles: PreviewMedia[] = item.files
-    .filter((f) => item.kind !== 'profile' || f.type === 'png')
-    .map((f) => ({
-      type: f.type === 'mp4' ? 'video' : 'image',
-      src: fileUrl(f.path),
-      poster: null,
-      w: f.w || null,
-      h: f.h || null,
-    }))
-  const media = fromReview.length ? fromReview : fromFiles
-  const posterOfFiles = fromFiles.find((m) => m.type === 'image')?.src ?? null
-  const video = media.find((m) => m.type === 'video')
-  if (video && !video.poster && posterOfFiles) video.poster = posterOfFiles
-  const reported = review ? renderState(review) : null
-  const state: RenderState = (RENDER_STATES as readonly string[]).includes(reported ?? '')
-    ? (reported as RenderState)
-    : item.status === 'rendering'
-      ? 'rendering'
-      : item.status === 'draft' && item.error
-        ? 'failed'
-        : media.length
-          ? 'ready'
-          : 'none'
-  const images = media.filter((m) => m.type === 'image')
-  const pdf = media.find((m) => m.type === 'pdf')
-  const html = media.find((m) => m.type === 'html')
-  if (video) return { mode: 'video', media: [video], state, ratio: 9 / 16 }
-  if (images.length > 1) return { mode: 'carousel', media: images, state, ratio: ratioOf(images[0]!) }
-  if (images.length === 1) return { mode: 'image', media: images, state, ratio: ratioOf(images[0]!) }
-  if (pdf) return { mode: 'pdf', media: [pdf], state, ratio: 3 / 4 }
-  if (html) return { mode: 'html', media: [html], state, ratio: 4 / 5 }
-  return { mode: 'pending', media: [], state: state === 'ready' ? 'none' : state, ratio: 9 / 16 }
-}
-const ratioOf = (m: PreviewMedia) => (m.w && m.h ? m.w / m.h : 4 / 5)
-
-// The sentence under «Render pending»: why there is nothing to look at and what happens next.
-export function pendingReason(item: Pick<ContentItem, 'status' | 'error'>, state: RenderState): string {
-  if (state === 'rendering') return 'The video and pictures are being rendered, this takes a few minutes.'
-  if (state === 'failed') return item.error ? `The render failed: ${item.error}` : 'The render failed. Use Re-render to try again.'
-  if (item.status === 'pending') return 'Pictures and video are rendered after approval. Until then you can read and edit the text.'
-  return 'No files yet. Approve the material or press Re-render to draw them.'
 }
