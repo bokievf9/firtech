@@ -297,10 +297,10 @@ test('demo: tabs per product, the chat persona is validated and forwarded, the b
   // A demo request never creates a lead: a contact is answered by the route.
   const route = read('src/app/api/chat/route.ts')
   assert.match(route, /if \(parsed\.data\.persona\) \{[\s\S]*auth_required[\s\S]*wouldCreateLead/)
-  // HQ reads persona and ref now (2026-11-22): the TODO(agents) notes are gone.
-  assert.doesNotMatch(read('src/lib/chat.ts') + read('src/lib/chat-hq.ts'), /TODO\(agents\)/)
+  // HQ reads persona and ref now (2026-11-22): the old TODO(agents) notes are gone (the one new note is about `personaKind`, front v4).
+  assert.equal((read('src/lib/chat.ts') + read('src/lib/chat-hq.ts')).match(/TODO\(agents\)/g)?.length, 1)
   assert.match(read('src/components/demo/demo-chat.tsx'), /callPersona\(forNiche/)
-  assert.match(read('src/components/demo/persona-call.ts'), /persona \}\)/)
+  assert.match(read('src/components/demo/persona-call.ts'), /persona(, \.\.\.\(personaKind|\s*\})/)
 })
 
 test('demo booking: a full dialogue walks service, master, time, reminder, review and restarts', () => {
