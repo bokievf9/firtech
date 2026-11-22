@@ -6,6 +6,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btn, btnDanger, btnPrimary, Empty, inputClass, Loading, Offline, useConfirm, useHqView } from '@/components/admin/hub/ui'
+import { PageHeader } from '@/components/admin/hq/page-header'
+import { filterPill, cn } from '@/components/admin/kit'
 import { ReviewPage } from '@/components/admin/review/review-page'
 import {
   APPROVAL_TABS,
@@ -29,7 +31,6 @@ import {
   type ApprovalTab,
   type BatchAction,
 } from '@/lib/approvals'
-import { cn } from '@/lib/cn'
 import { deptTheme } from '@/lib/shell-theme'
 import {
   dropCount,
@@ -167,29 +168,28 @@ function ApprovalsPageInner() {
 
   return (
     <div className="absolute inset-0 flex flex-col bg-bg text-fg">
-      <h1 className="sr-only">Approvals</h1>
+      <PageHeader
+        title="Approvals"
+        hint="Waiting for your decision"
+        actions={
+          <label className="flex min-h-9 shrink-0 cursor-pointer items-center gap-2 text-callout text-muted">
+            <input type="checkbox" checked={showDecided} onChange={(e) => setShowDecided(e.target.checked)} className="size-4 accent-[var(--color-accent)]" />
+            Decided
+          </label>
+        }
+      >
+        <nav aria-label="Approvals sections" className="-mx-3 flex gap-1.5 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:px-0">
+          {APPROVAL_TABS.map((t) => (
+            <button key={t} type="button" aria-pressed={tab === t} onClick={() => switchTab(t)} className={filterPill(tab === t)}>
+              {TAB_LABEL[t]}
+              <span className="text-xs tabular-nums text-faint" aria-label={`Waiting for a decision: ${counts[t]}`}>{counts[t]}</span>
+            </button>
+          ))}
+        </nav>
+      </PageHeader>
 
-      <nav aria-label="Approvals sections" className="flex gap-1.5 overflow-x-auto border-b border-line px-2 py-2 sm:px-4 [scrollbar-width:none]">
-        {APPROVAL_TABS.map((t) => (
-          <button
-            key={t}
-            type="button"
-            aria-pressed={tab === t}
-            onClick={() => switchTab(t)}
-            className={cn('inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm transition-colors', tab === t ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-muted hover:border-accent hover:text-fg')}
-          >
-            {TAB_LABEL[t]}
-            <span className="font-mono text-xs tabular-nums opacity-80" aria-label={`Waiting for a decision: ${counts[t]}`}>{counts[t]}</span>
-          </button>
-        ))}
-        <label className="ml-auto flex shrink-0 items-center gap-2 pl-3 text-sm text-muted">
-          <input type="checkbox" checked={showDecided} onChange={(e) => setShowDecided(e.target.checked)} className="size-4 accent-[var(--color-accent)]" />
-          Decided
-        </label>
-      </nav>
-
-      <div className="flex min-h-14 flex-wrap items-center gap-2 border-b border-line px-2 py-2 sm:px-4" role="toolbar" aria-label="Batch decisions">
-        <label className="flex min-h-10 items-center gap-2 text-sm">
+      <div className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 border-b border-b-hairline border-line px-4 py-1.5 sm:px-6" role="toolbar" aria-label="Batch decisions">
+        <label className="flex min-h-9 cursor-pointer items-center gap-2 text-callout">
           <input
             type="checkbox"
             checked={allSelected}
@@ -199,21 +199,21 @@ function ApprovalsPageInner() {
           />
           Select all
         </label>
-        <span className="font-mono text-xs tabular-nums text-muted" aria-live="polite">Selected: {sel.size}</span>
+        <span className="text-footnote tabular-nums text-muted" aria-live="polite">Selected: {sel.size}</span>
         <div className="ml-auto flex gap-2">
-          <button type="button" className={btnPrimary} disabled={busy || !sel.size} onClick={() => void decideBatch('approve')}>
+          <button type="button" className={cn(btnPrimary, 'min-h-9')} disabled={busy || !sel.size} onClick={() => void decideBatch('approve')}>
             <CheckCircle size={16} aria-hidden="true" />
             Approve selected
           </button>
-          <button type="button" className={btnDanger} disabled={busy || !sel.size} onClick={() => void decideBatch('reject')}>Reject selected</button>
+          <button type="button" className={cn(btnDanger, 'min-h-9')} disabled={busy || !sel.size} onClick={() => void decideBatch('reject')}>Reject selected</button>
         </div>
       </div>
 
-      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-3 sm:px-4">
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6">
         {!data.view && data.error ? <Offline error={errText(data.error)} onRetry={data.reload} /> : null}
         {!data.view && !data.error ? <Loading rows={4} /> : null}
         {data.view && !list.length ? <Empty>No material waiting for a decision in {TAB_LABEL[tab]}.</Empty> : null}
-        <ul aria-label={`Queue ${TAB_LABEL[tab]}`} className="mx-auto grid max-w-4xl gap-2">
+        <ul aria-label={`Queue ${TAB_LABEL[tab]}`} className={cn('grid divide-y divide-line overflow-hidden rounded-card border border-hairline border-line bg-surface', !list.length && 'hidden')}>
           {list.map((it) => (
             <Row
               key={it.id}
@@ -273,8 +273,8 @@ function Row({
   const canBatch = batchable(item, 'approve') || batchable(item, 'reject')
   const Caret = expanded ? CaretDown : CaretRight
   return (
-    <li className={cn('rounded-card border bg-surface', checked ? 'border-accent' : 'border-line', !pending && 'opacity-70')}>
-      <div className="flex items-center gap-2 p-2">
+    <li className={cn('transition-colors', checked && 'bg-accent/8', !pending && 'opacity-70')}>
+      <div className="flex items-center gap-2.5 px-3 py-1.5 sm:px-4">
         <input
           type="checkbox"
           checked={checked}
@@ -286,8 +286,8 @@ function Row({
         <button type="button" onClick={onExpand} aria-expanded={expanded} className="flex min-h-11 min-w-0 flex-1 items-center gap-2 text-left">
           <Caret size={14} aria-hidden="true" className="shrink-0 text-faint" />
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm">{item.title || item.summary}</span>
-            <span className="flex items-center gap-1.5 text-xs text-faint">
+            <span className="block truncate text-callout">{item.title || item.summary}</span>
+            <span className="flex items-center gap-1.5 text-footnote text-faint">
               <span aria-hidden="true" className={cn('size-1.5 rounded-full', t.cls.bg)} />
               <span className="truncate">{KIND_LABEL[item.kind] ?? item.kind}{pending ? '' : `, ${STATUS_LABEL[item.status]}`}{item.currentVersion > 1 ? `, v${item.currentVersion}` : ''}</span>
             </span>
@@ -344,7 +344,7 @@ function Detail({ item, onOpenReader, busy, onDecide, call, notify, setBusy, mut
   }
 
   return (
-    <div className="grid gap-4 border-t border-line p-3 sm:p-4">
+    <div className="grid gap-4 border-t border-t-hairline border-line bg-bg/40 p-4 sm:p-5">
       {item.summary && item.summary !== item.title ? <p className="text-sm text-muted">{item.summary}</p> : null}
       {item.error ? <p role="alert" className="text-sm text-danger">{item.error}</p> : null}
 

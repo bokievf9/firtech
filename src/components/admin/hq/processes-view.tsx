@@ -151,9 +151,9 @@ export function ProcessesView() {
   const v = view.view
   return (
     <div className="flex min-h-full flex-col" data-section-view="processes">
-      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur">
+      <div className="material-thick sticky top-0 z-10 border-b border-b-hairline border-line">
         <div className="flex flex-wrap items-baseline gap-x-3 px-4 py-3 sm:px-5">
-          <h1 className="font-brand text-xl">{info.label}</h1>
+          <h1 className="text-title-3 font-semibold">{info.label}</h1>
           <p className="text-sm text-muted">{t.sectionHints.processes}</p>
           <button type="button" onClick={() => void view.reload()} className={cn(btn, 'ml-auto min-h-9 px-3')} aria-label={p.retry}>
             <ArrowsClockwise size={16} aria-hidden="true" />

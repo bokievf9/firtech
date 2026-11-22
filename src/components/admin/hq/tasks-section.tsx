@@ -1,6 +1,7 @@
 'use client'
 
-import { ArrowsClockwise } from '@phosphor-icons/react'
+import { ArrowsClockwise, CaretDown } from '@phosphor-icons/react'
+import { cn } from '@/components/admin/kit'
 import { deptLabel } from '@/lib/admin-labels'
 import { useSearchParams } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
@@ -9,8 +10,8 @@ import { BarePanel } from '@/components/admin/control/cc-panel'
 import { errText, fill, hq, usePoll } from '@/components/admin/control/api'
 import { TaskDrawer } from '@/components/admin/control/task-drawer'
 import { btn, inputClass, useHub } from '@/components/admin/hub/ui'
+import { PageHeader } from '@/components/admin/hq/page-header'
 import { admin } from '@/content/admin'
-import { cn } from '@/lib/cn'
 import type { HqTask, Id } from '@/lib/hq-admin-view'
 import { sectionById } from '@/lib/hq-shell'
 import { agentOptions, filterByStatus, plainFirst, TASK_STATUS_FILTERS, taskDepts, type TaskStatusFilter } from '@/lib/tasks-hq'
@@ -22,13 +23,16 @@ const deptName = (id: string) => (admin.office.depts as Record<string, string>)[
 
 const label = (v: TaskStatusFilter) => (v === 'all' ? k.statusAll : v === 'cancelled' ? admin.orders.status.cancelled : admin.cc.tasks.columns[v])
 
-function Select({ id, name, value, onChange, children }: { id: string; name: string; value: string; onChange: (v: string) => void; children: React.ReactNode }) {
+export function Select({ id, name, value, onChange, children }: { id: string; name: string; value: string; onChange: (v: string) => void; children: React.ReactNode }) {
   return (
-    <label className="flex min-w-0 flex-col gap-1 text-xs text-muted" htmlFor={id}>
+    <label className="flex min-w-0 flex-col gap-1 text-footnote text-muted" htmlFor={id}>
       {name}
-      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={cn(inputClass, 'min-h-10 py-1.5 pr-8')}>
-        {children}
-      </select>
+      <span className="relative block">
+        <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={cn(inputClass, 'min-h-10 appearance-none py-1.5 pr-9')}>
+          {children}
+        </select>
+        <CaretDown size={14} aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-faint" />
+      </span>
     </label>
   )
 }
@@ -73,16 +77,17 @@ export function TasksSection() {
 
   return (
     <div className="flex min-h-full flex-col" data-section-view="tasks">
-      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur">
-        <div className="flex flex-wrap items-baseline gap-x-3 px-4 pt-3 sm:px-5">
-          <h1 className="font-brand text-xl">{info.label}</h1>
-          <p className="text-sm text-muted">{t.sectionHints.tasks}</p>
-          <button type="button" onClick={() => void list.reload()} className={cn(btn, 'ml-auto min-h-9 px-3')} aria-label={k.refresh}>
+      <PageHeader
+        title={info.label}
+        hint={t.sectionHints.tasks}
+        actions={
+          <button type="button" onClick={() => void list.reload()} className={cn(btn, 'min-h-9 px-3')} aria-label={k.refresh}>
             <ArrowsClockwise size={16} aria-hidden="true" />
-            {k.refresh}
+            <span className="hidden sm:inline">{k.refresh}</span>
           </button>
-        </div>
-        <div className="grid grid-cols-1 gap-2 px-3 py-2.5 sm:grid-cols-[repeat(3,minmax(0,12rem))_auto] sm:items-end sm:px-4" role="group" aria-label={k.filters}>
+        }
+      >
+        <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-[repeat(3,minmax(0,13rem))_auto] sm:items-end sm:px-1" role="group" aria-label={k.filters}>
           <Select id="tasks-dept" name={k.dept} value={dept} onChange={pickDept}>
             <option value="">{k.deptAll}</option>
             {depts.map((d) => (
@@ -120,8 +125,8 @@ export function TasksSection() {
             </button>
           ) : null}
         </div>
-      </div>
-      <div className="min-w-0 flex-1 p-3 sm:p-4" data-tasks-list>
+      </PageHeader>
+      <div className="min-w-0 flex-1" data-tasks-list>
         <BarePanel.Provider value>
           <Assignments
             tasks={shown}

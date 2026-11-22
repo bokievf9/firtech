@@ -1,9 +1,10 @@
 'use client'
 
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { admin } from '@/content/admin'
-import { cn } from '@/lib/cn'
+import { TabList, tabId, tabPanelId } from '@/components/ui'
 import { HQ_TABS, sectionById, sectionTab, type HqTabbed } from '@/lib/hq-shell'
+import { PageHeader } from './page-header'
 import { SectionBody } from './sections'
 
 const t = admin.hq
@@ -11,37 +12,30 @@ const t = admin.hq
 // One built section: title, the tab strip (`?tab=`) and the existing panel of the tab. `focus` opens a
 // card (a lead, a client, a project, an invoice) the way a link from another panel does.
 export function SectionView({ section, tab, focus }: { section: HqTabbed; tab: string | null; focus: string | null }) {
+  const router = useRouter()
   const info = sectionById(section)!
   const current = sectionTab(section, tab)
   const tabs = HQ_TABS[section]
   return (
     <div className="flex min-h-full flex-col" data-section-view={section}>
-      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur">
-        <div className="flex flex-wrap items-baseline gap-x-3 px-4 pt-3 sm:px-5">
-          <h1 className="font-brand text-xl">{info.label}</h1>
-          <p className="text-sm text-muted">{t.sectionHints[section]}</p>
-        </div>
+      <PageHeader title={info.label} hint={t.sectionHints[section]}>
         {tabs.length > 1 ? (
-          <div role="tablist" aria-label={info.label} className="flex gap-1 overflow-x-auto px-3 sm:px-4">
-            {tabs.map((id) => (
-              <Link
-                key={id}
-                href={`${info.href}?tab=${id}`}
-                role="tab"
-                aria-selected={id === current}
-                replace
-                className={cn(
-                  'relative inline-flex min-h-11 shrink-0 items-center px-3 text-sm transition-colors',
-                  id === current ? 'text-fg after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-accent' : 'text-muted hover:text-fg',
-                )}
-              >
-                {(t.tabs as Record<string, string>)[id]}
-              </Link>
-            ))}
-          </div>
+          <TabList
+            base={`hq-${section}`}
+            label={info.label}
+            value={current}
+            items={tabs.map((id) => ({ id, label: (t.tabs as Record<string, string>)[id] }))}
+            onChange={(id) => router.replace(`${info.href}?tab=${id}`)}
+            className="-mx-3 px-3 sm:mx-0 sm:px-0"
+          />
         ) : null}
-      </div>
-      <div className="min-w-0 flex-1">
+      </PageHeader>
+      <div
+        className="min-w-0 flex-1"
+        role={tabs.length > 1 ? 'tabpanel' : undefined}
+        id={tabs.length > 1 ? tabPanelId(`hq-${section}`, current) : undefined}
+        aria-labelledby={tabs.length > 1 ? tabId(`hq-${section}`, current) : undefined}
+      >
         <SectionBody key={`${current}:${focus ?? ''}`} section={section} tab={current} focus={focus} />
       </div>
     </div>

@@ -6,8 +6,8 @@ import { ArrowClockwise, BellRinging, MagnifyingGlass, PaperPlaneRight, Trash, U
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { modalOpen, typingIn, useConfirm, useHub } from '@/components/admin/hub/ui'
+import { filterPill, iconBtn, inputClass, cn } from '@/components/admin/kit'
 import { admin } from '@/content/admin'
-import { cn } from '@/lib/cn'
 import { blockedReason, HISTORY_LIMIT, mergeHistory, normalizeDirectorHistory, plainBotText, type ChatMessage, type HqTask, type Id, type TaskColumn } from '@/lib/hq-admin-view'
 import { formatDuration, formatUntil, minutesSince } from '@/lib/office-view'
 import {
@@ -48,7 +48,7 @@ const columnTone: Record<TaskColumn | 'gone', string> = {
 const statusText = (column: TaskColumn | 'gone') => (column === 'gone' ? t.status.cancelled : t.status[column])
 
 const small =
-  'inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-xs text-muted transition-[background-color,color,border-color,transform] duration-150 hover:border-accent hover:text-fg active:scale-[0.97] disabled:opacity-50'
+  'pressable inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-footnote text-muted hover:bg-fill hover:text-fg disabled:pointer-events-none disabled:opacity-50'
 
 function TaskEntry({
   e,
@@ -68,17 +68,17 @@ function TaskEntry({
   const actions = orderActions(task)
   const age = minutesSince(task.updatedAt, now)
   return (
-    <div className={cn('min-w-0 rounded-xl border bg-inset transition-colors hover:border-line-strong', column === 'blocked' ? 'border-danger/40' : 'border-line')} data-task={String(task.id)}>
-      <button type="button" onClick={() => onOpen(task.id)} aria-label={`${t.open}: ${task.title}`} className="block w-full px-3.5 pt-3 pb-2 text-left">
+    <div className={cn('min-w-0 rounded-card border border-hairline bg-surface transition-colors hover:bg-surface-2', column === 'blocked' ? 'border-danger/40' : 'border-line')} data-task={String(task.id)}>
+      <button type="button" onClick={() => onOpen(task.id)} aria-label={`${t.open}: ${task.title}`} className="block w-full rounded-t-card px-4 pt-3.5 pb-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-text">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-3 px-2.5 py-0.5 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-fill-strong px-2.5 py-0.5 text-caption">
             <span aria-hidden="true" className={cn('size-1.5 rounded-full', columnTone[column])} />
             {statusText(column)}
           </span>
           <span className="text-xs text-muted">{deptName(task.dept)}</span>
           <span className="ml-auto font-mono text-[11px] text-faint">#{task.id}</span>
         </span>
-        <span className="mt-1.5 block text-sm leading-snug font-medium break-words">{task.title}</span>
+        <span className="mt-1.5 block text-callout leading-snug font-medium break-words">{task.title}</span>
         <span className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted">
           <span>{task.assigneeTitle ? `${t.assignee}: ${task.assigneeTitle}` : t.assignee}</span>
           <span className={task.dueAt ? '' : 'text-faint'}>{task.dueAt ? fill(t.deadline, { t: formatUntil(task.dueAt, now) || formatDuration(0) }) : t.noDeadline}</span>
@@ -99,9 +99,9 @@ function TaskEntry({
         </p>
       ) : null}
       {actions.length ? (
-        <div className="flex flex-wrap gap-1.5 px-3 pb-3">
+        <div className="flex flex-wrap gap-1.5 px-4 pb-3.5">
           {actions.includes('start') ? (
-            <button type="button" className={cn(small, 'border-accent/60 text-accent-text')} disabled={busy !== null} onClick={() => onAction(task, 'start')}>
+            <button type="button" className={cn(small, 'text-accent-text')} disabled={busy !== null} onClick={() => onAction(task, 'start')}>
               <ArrowClockwise size={13} weight="bold" aria-hidden="true" className={busy === `start${task.id}` ? 'animate-spin' : ''} />
               {t.start}
             </button>
@@ -250,10 +250,10 @@ export function Assignments({
   }
 
   const personChip = person.assigneeId ? (
-    <span className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full border border-accent bg-surface-2 pr-1 pl-3 text-xs">
+    <span className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-full bg-accent/15 pr-1 pl-3 text-footnote text-accent-text">
       <UserFocus size={14} aria-hidden="true" className="text-accent-text" />
       {fill(admin.cc.tasks.person, { name: person.label ?? person.assigneeId })}
-      <button type="button" onClick={() => onPerson({ dept: person.dept, assigneeId: null })} aria-label={admin.cc.tasks.clear} className="grid size-7 place-items-center rounded-full hover:bg-surface-3">
+      <button type="button" onClick={() => onPerson({ dept: person.dept, assigneeId: null })} aria-label={admin.cc.tasks.clear} className="pressable grid size-7 place-items-center rounded-full hover:bg-fill-strong">
         <X size={12} weight="bold" aria-hidden="true" />
       </button>
     </span>
@@ -264,22 +264,15 @@ export function Assignments({
       id="tasks"
       title={t.title}
       className={className}
-      aside={
-        messages.length ? (
-          <button type="button" onClick={clearChat} aria-label={t.clear} title={t.clear} className="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface-3 hover:text-fg">
-            <Trash size={16} aria-hidden="true" />
-          </button>
-        ) : null
-      }
     >
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="sticky top-0 z-10 border-b border-line bg-surface/95 p-3 backdrop-blur">
+        <div className="border-b border-b-hairline border-line px-3 py-4 sm:px-5">
           <form
             onSubmit={(e) => {
               e.preventDefault()
               void send(text)
             }}
-            className="relative flex items-end gap-2"
+            className="relative flex items-end gap-2 rounded-2xl border border-line-strong bg-field p-1.5 transition-[border-color,box-shadow] duration-150 focus-within:border-accent-text focus-within:ring-2 focus-within:ring-accent/25"
           >
             <label htmlFor="orders-composer" className="sr-only">
               {t.composerLabel}
@@ -329,14 +322,14 @@ export function Assignments({
                   void send(text)
                 }
               }}
-              className="ym-disable-keys max-h-40 min-h-[3.25rem] flex-1 resize-none rounded-xl border border-line-strong bg-field px-3.5 py-2.5 text-base leading-relaxed outline-none [field-sizing:content] focus:border-accent md:text-sm"
+              className="ym-disable-keys max-h-40 min-h-[3rem] flex-1 resize-none bg-transparent px-3 py-2.5 text-base leading-relaxed outline-none placeholder:text-faint [field-sizing:content] md:text-sm"
             />
             <button
               type="submit"
               disabled={sending || !text.trim()}
               aria-label={t.send}
               title={t.send}
-              className="grid size-11 shrink-0 place-items-center rounded-full bg-accent text-accent-ink transition-[opacity,transform] duration-150 active:scale-[0.96] disabled:opacity-40"
+              className="pressable grid size-10 shrink-0 place-items-center rounded-full bg-accent text-accent-ink hover:bg-accent-strong disabled:pointer-events-none disabled:opacity-40"
             >
               <PaperPlaneRight size={18} weight="fill" aria-hidden="true" />
             </button>
@@ -360,11 +353,11 @@ export function Assignments({
               </ul>
             ) : null}
           </form>
-          <p className="mt-1.5 hidden text-[11px] text-faint sm:block">{t.hint}</p>
+          <p className="mt-2 hidden px-1 text-caption text-faint sm:block">{t.hint}</p>
         </div>
 
         {approvals && (approvals.items === null ? approvals.error : approvals.items.length > 0 || approvals.queued > 0) ? (
-          <section aria-label={t.approvals.title} data-orders-approvals className="border-b border-line p-3">
+          <section aria-label={t.approvals.title} data-orders-approvals className="border-b border-b-hairline border-line p-3 sm:px-5">
             <h3 className="mb-2 flex items-center gap-2 px-1 text-sm font-medium">
               {t.approvals.title}
               {approvals.items?.length ? <span className="rounded-full bg-accent px-2 py-0.5 font-mono text-xs text-accent-ink tabular-nums">{approvals.items.length}</span> : null}
@@ -373,7 +366,7 @@ export function Assignments({
           </section>
         ) : null}
 
-        <div className="grid gap-2.5 px-3 pt-3">
+        <div className="grid gap-2.5 px-3 pt-4 sm:px-5">
           <div className="flex gap-1.5 overflow-x-auto" role="group" aria-label={t.filters.label}>
             {ORDER_FILTERS.map((id) => (
               <button
@@ -384,15 +377,16 @@ export function Assignments({
                   setFilter(id)
                   setLimit(PAGE)
                 }}
-                className={cn('inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors', filter === id ? 'border-fg bg-fg text-bg' : 'border-line text-muted hover:text-fg')}
+                className={filterPill(filter === id, 'sm')}
               >
                 {t.filters[id]}
-                <span className={cn('font-mono tabular-nums', filter === id ? 'opacity-70' : 'text-faint')}>{counts[id]}</span>
+                <span className="text-xs tabular-nums text-faint">{counts[id]}</span>
               </button>
             ))}
             {personChip}
           </div>
-          <label className="relative block">
+          <div className="flex items-center gap-2">
+          <label className="relative block min-w-0 flex-1">
             <span className="sr-only">{t.search}</span>
             <MagnifyingGlass size={16} aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint" />
             <input
@@ -403,12 +397,18 @@ export function Assignments({
                 setLimit(PAGE)
               }}
               placeholder={t.search}
-              className="ym-disable-keys min-h-10 w-full rounded-xl border border-line-strong bg-field pr-3 pl-9 text-base outline-none focus:border-accent md:text-sm"
+              className={cn(inputClass, "min-h-10 pr-3 pl-9")}
             />
           </label>
+            {messages.length ? (
+              <button type="button" onClick={clearChat} aria-label={t.clear} title={t.clear} className={iconBtn}>
+                <Trash size={16} aria-hidden="true" />
+              </button>
+            ) : null}
+          </div>
         </div>
 
-        <div role="log" aria-live="polite" aria-relevant="additions" className="px-3 py-3">
+        <div role="log" aria-live="polite" aria-relevant="additions" className="px-3 py-4 sm:px-5">
           {error && !tasks ? <PanelError error={error} /> : null}
           {!tasks && !error ? <PanelWait /> : null}
           {sending ? (
@@ -421,8 +421,8 @@ export function Assignments({
               {t.thinking}
             </p>
           ) : null}
-          {tasks && !timeline.length ? <p className="rounded-xl border border-dashed border-line px-3 py-6 text-center text-sm text-muted">{counts.all || messages.length ? t.nothing : t.empty}</p> : null}
-          <ul className="grid grid-cols-[minmax(0,1fr)] gap-2.5">
+          {tasks && !timeline.length ? <p className="rounded-card border border-dashed border-line px-3 py-10 text-center text-callout text-muted">{counts.all || messages.length ? t.nothing : t.empty}</p> : null}
+          <ul className="grid grid-cols-[minmax(0,1fr)] gap-2">
             <AnimatePresence initial={false}>
               {shown.map((e) => (
                 <motion.li key={e.key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>

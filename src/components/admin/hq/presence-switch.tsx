@@ -2,10 +2,10 @@
 
 import { Desktop, PaperPlaneTilt } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
+import { cn } from '@/components/admin/kit'
 import { errText, hq, usePoll } from '@/components/admin/control/api'
 import { useHub } from '@/components/admin/hub/ui'
 import { admin } from '@/content/admin'
-import { cn } from '@/lib/cn'
 import { looksLikeState, presenceChange, presenceView, type HqState, type PresenceMode, type PresenceView } from '@/lib/hq-admin-view'
 
 const cc = admin.cc
@@ -65,7 +65,7 @@ export function PresenceSwitch() {
   const view = presenceView(state.data, now)
   const note = !view ? '' : view.autoAway ? t.autoNote : view.telegram ? t.awayNote : t.deskNote
   return (
-    <div role="radiogroup" aria-label={t.label} aria-busy={busy} title={note} data-presence className="grid shrink-0 grid-cols-2 rounded-full border border-line-strong bg-field p-0.5">
+    <div role="radiogroup" aria-label={t.label} aria-busy={busy} title={note} data-presence className="grid shrink-0 grid-cols-2 rounded-full bg-fill p-0.5">
       {(['desk', 'away'] as const).map((m) => {
         const active = view?.mode === m
         const ModeIcon = m === 'desk' ? Desktop : PaperPlaneTilt
@@ -79,11 +79,11 @@ export function PresenceSwitch() {
             disabled={!view}
             onClick={() => void change(m)}
             className={cn(
-              'relative inline-flex h-8 items-center justify-center gap-1.5 rounded-full px-2 text-xs md:px-2.5 font-medium whitespace-nowrap transition-colors',
-              active ? (m === 'desk' ? 'bg-accent text-accent-ink' : 'bg-surface-2 text-fg') : 'text-muted hover:text-fg',
+              'pressable relative inline-flex h-8 items-center justify-center gap-1.5 rounded-full px-2 text-footnote font-medium whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-accent-text md:px-2.5',
+              active ? 'bg-elevated text-fg shadow-card' : 'text-muted hover:text-fg',
             )}
           >
-            <ModeIcon size={15} weight={active ? 'fill' : 'regular'} aria-hidden="true" />
+            <ModeIcon size={15} weight={active ? 'fill' : 'regular'} aria-hidden="true" className={active && m === 'desk' ? 'text-accent-text' : ''} />
             <span className="hidden md:inline">{m === 'desk' ? t.desk : t.away}</span>
             {active && m === 'desk' && view?.autoAway ? <span aria-hidden="true" className="size-1.5 rounded-full bg-danger" /> : null}
           </button>

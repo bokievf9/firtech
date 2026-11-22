@@ -1,8 +1,8 @@
 'use client'
 
 import { ArrowSquareOut } from '@phosphor-icons/react'
+import { cn } from '@/components/admin/kit'
 import { admin } from '@/content/admin'
-import { cn } from '@/lib/cn'
 import { txExplorerUrl, type Invoice } from '@/lib/shell'
 
 const i = admin.pult.invoices
@@ -13,12 +13,12 @@ export function Chip({ tone = 'plain', children }: { tone?: Tone; children: Reac
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-xs whitespace-nowrap',
-        tone === 'accent' && 'border-accent/50 text-accent-text',
-        tone === 'warn' && 'border-warn/50 text-warn',
-        tone === 'bad' && 'border-danger/50 text-danger',
-        tone === 'plain' && 'border-line-strong text-muted',
-        tone === 'dim' && 'border-dashed border-line-strong text-faint',
+        'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-caption whitespace-nowrap',
+        tone === 'accent' && 'bg-accent/15 text-accent-text',
+        tone === 'warn' && 'bg-warn/15 text-warn',
+        tone === 'bad' && 'bg-danger/12 text-danger',
+        tone === 'plain' && 'bg-fill-strong text-muted',
+        tone === 'dim' && 'text-faint ring-1 ring-inset ring-line',
       )}
     >
       {children}

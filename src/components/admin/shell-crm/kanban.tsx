@@ -1,8 +1,8 @@
 'use client'
 
 import { useRef, useState, useSyncExternalStore } from 'react'
+import { cn } from '@/components/admin/kit'
 import { admin } from '@/content/admin'
-import { cn } from '@/lib/cn'
 
 const k = admin.pult.kanban
 
@@ -94,7 +94,7 @@ export function Kanban<T>({
         }}
         onClick={() => onOpen(item)}
         onKeyDown={(e) => onKey(e, item, col, row)}
-        className="cursor-pointer rounded-xl border border-line bg-inset p-2.5 text-sm transition-colors outline-none hover:border-line-strong focus-visible:border-accent active:cursor-grabbing"
+        className="pressable cursor-pointer rounded-xl border border-hairline border-line bg-elevated p-3 text-callout shadow-card outline-none hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent-text active:cursor-grabbing"
       >
         {render(item)}
       </div>
@@ -107,12 +107,12 @@ export function Kanban<T>({
         {columns.map((c) =>
           c.items.length ? (
             <section key={c.key} aria-label={c.label}>
-              <h3 className="mb-1.5 flex items-center gap-2 text-xs text-muted">
-                {c.label} <span className="font-mono tabular-nums text-faint">{c.items.length}</span>
+              <h3 className="mb-1.5 flex items-center gap-2 text-footnote font-medium text-muted">
+                {c.label} <span className="tabular-nums text-faint">{c.items.length}</span>
               </h3>
               <ul className="grid gap-1.5">
                 {c.items.map((item) => (
-                  <li key={idOf(item)} className="rounded-xl border border-line bg-inset p-2.5 text-sm">
+                  <li key={idOf(item)} className="rounded-xl border border-hairline border-line bg-elevated p-3 text-callout shadow-card">
                     <button type="button" onClick={() => onOpen(item)} className="block w-full text-left">
                       {render(item)}
                     </button>
@@ -160,19 +160,19 @@ export function Kanban<T>({
             if (item) onMove(item, c.key)
           }}
           className={cn(
-            'flex w-56 shrink-0 flex-col rounded-2xl border bg-surface-2/40 p-2 transition-colors',
-            over === c.key ? 'border-accent bg-accent/5' : 'border-line',
+            'flex w-60 shrink-0 flex-col rounded-card border border-hairline bg-surface p-2 transition-colors',
+            over === c.key ? 'border-accent-text bg-accent/5' : 'border-line',
             c.muted && 'opacity-80',
           )}
         >
-          <h3 className="mb-2 flex items-center justify-between px-1 text-xs text-muted">
+          <h3 className="mb-2 flex items-center justify-between px-1.5 pt-1 text-footnote font-medium text-muted">
             <span>{c.label}</span>
-            <span className="font-mono tabular-nums text-faint">{c.items.length}</span>
+            <span className="tabular-nums text-faint">{c.items.length}</span>
           </h3>
           {c.items.length ? (
             <ul className="grid gap-1.5">{c.items.map((item, row) => card(item, col, row))}</ul>
           ) : (
-            <p className="rounded-xl border border-dashed border-line px-2 py-4 text-center text-xs text-faint">{k.empty}</p>
+            <p className="rounded-xl border border-dashed border-line px-2 py-6 text-center text-footnote text-faint">{k.empty}</p>
           )}
         </section>
       ))}
