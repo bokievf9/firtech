@@ -39,3 +39,16 @@ test('fail-open on network error and bad status, no throw', async () => {
     console.error = log
   }
 })
+
+test('security 2026-11-23 (P2-5): the lead route and the forward log ids and error codes only, never the lead', async () => {
+  const { readFileSync } = await import('node:fs')
+  for (const file of ['src/app/api/lead/route.ts', 'src/lib/lead-forward.ts']) {
+    const code = readFileSync(file, 'utf8')
+    const logs = [...code.matchAll(/console\.(?:log|info|warn|error|debug)\(([\s\S]*?)\)\s*(?:\n|$|\))/g)].map((m) => m[1])
+    assert.ok(logs.length > 0, file)
+    for (const args of logs) {
+      assert.doesNotMatch(args, /formatLead|lead\.(name|contact|message|email|phone)|parsed\.data|identity|clientEmail|JSON\.stringify/, `${file}: ${args}`)
+      assert.doesNotMatch(args, /,\s*error\s*[,)]|,\s*error\s*$/, `${file}: raw error object (${args})`)
+    }
+  }
+})

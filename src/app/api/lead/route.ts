@@ -72,7 +72,8 @@ async function handle(request: NextRequest) {
     if (error instanceof SlotTakenError) {
       return apiError('slot_taken', 409)
     }
-    console.error('[lead] could not save the lead', error, '\n' + formatLead(lead))
+    // Security 2026-11-23 (P2-5): never the lead's name, contact or text in the PM2 log, only ids and codes.
+    console.error(`[lead] could not save the lead (${why(error)}); it still goes to HQ and Telegram`)
   }
 
   // Copy for the Lead Intake agent, fail-open. Its answer (HQ's lead id, for the cabinet link) is
@@ -96,7 +97,7 @@ async function handle(request: NextRequest) {
       }).catch((error) => console.error('[lead] could not mark the lead', error instanceof Error ? error.message : 'unknown'))
     }
   } else if (!telegramReady) {
-    console.info('[lead] Telegram is not configured, lead not sent:\n' + formatLead(lead))
+    console.info(`[lead] Telegram is not configured (development), lead ${stored ? `#${stored.id}` : '(not stored)'} not sent`)
   } else {
     try {
       if (stored) {
@@ -113,7 +114,7 @@ async function handle(request: NextRequest) {
       }
     } catch (error) {
       // Kept in the server log (PM2) too; a stored lead is resent when Telegram answers again.
-      console.error('[lead] Telegram sendMessage failed', error, '\n' + formatLead(lead))
+      console.error(`[lead] Telegram sendMessage failed for lead ${stored ? `#${stored.id}` : '(not stored)'} (${why(error)})`)
       if (!stored) {
         return apiError('delivery_failed', 502)
       }
@@ -138,6 +139,9 @@ async function handle(request: NextRequest) {
 }
 
 // Anything unexpected becomes a JSON error with a status, never an empty 500 page.
+// The error's name and message only (never a request body or a lead), cut to 200 characters.
+const why = (error: unknown) => (error instanceof Error ? `${error.name}: ${error.message}`.slice(0, 200) : 'unknown')
+
 export async function POST(request: NextRequest) {
   try {
     return await handle(request)

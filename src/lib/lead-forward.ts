@@ -75,7 +75,7 @@ export async function forwardLeadDetailed(
     return { ok: true, id, notified: body?.notified === true, ...(duplicate ? { duplicate: true } : {}) }
   } catch (error) {
     // Only the error, never the lead text, goes to the log.
-    console.error('[lead] could not forward the lead to Lead Intake', error instanceof Error ? error.message : error)
+    console.error('[lead] could not forward the lead to Lead Intake', error instanceof Error ? error.message.slice(0, 200) : 'unknown')
     return { ok: false, id: null }
   }
 }
