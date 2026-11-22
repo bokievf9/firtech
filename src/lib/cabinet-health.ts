@@ -18,7 +18,7 @@ export function cabinetHealth(env: Record<string, string | undefined> = process.
     anonKey: set(env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
     serviceKey: set(env.SUPABASE_SERVICE_ROLE_KEY),
     siteUrl: set(env.NEXT_PUBLIC_SITE_URL),
-    hqConfigured: set(env.HQ_ADMIN_TOKEN),
+    hqConfigured: set(env.HQ_CABINET_TOKEN) || set(env.HQ_ADMIN_TOKEN),
     leadIntake: set(env.LEAD_INTAKE_URL) && set(env.LEAD_INTAKE_TOKEN),
   }
 }

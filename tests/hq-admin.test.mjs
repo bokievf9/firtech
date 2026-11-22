@@ -104,7 +104,7 @@ test('proxy: forwards to HQ with the token, which never comes back; extra query 
   assert.equal(res.status, 200)
   assert.deepEqual(await res.json(), { ok: true, items: [] })
   assert.equal(seen[0].url, 'http://hq.test/admin/tasks?dept=sales&open=1')
-  assert.equal(seen[0].init.headers['x-admin-token'], 'office-secret')
+  assert.equal(seen[0].init.headers['x-admin-token'], undefined, 'the office token is never sent as the admin token (security 2026-11-23, P1-4)')
 
   process.env.HQ_ADMIN_TOKEN = 'admin-secret'
   const post = await call('POST', '/api/admin/hq/approvals/12', ['approvals', '12'], { body: { action: 'approve', part: 'post' } })

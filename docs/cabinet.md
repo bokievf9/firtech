@@ -126,7 +126,12 @@ HQ `POST /clients/<id>/projects/<pid>/milestones/<no>/accept`; 404 `not_found`, 
   `POST /api/cabinet/projects/<pid>/milestones/<no>/accept`, `GET /api/cabinet/me`, `POST /api/cabinet/auth-log` (session required where it matters, JSON, same origin).
 - `src/proxy.ts` refreshes the Supabase session on `/(ru|en)/cabinet/*` except the callback; the `/` language redirect is unchanged.
 
-## HQ contract (header `x-admin-token: HQ_ADMIN_TOKEN`, base `HQ_ADMIN_URL`, default `http://127.0.0.1:8787/admin`)
+## HQ contract (header `x-admin-token: HQ_CABINET_TOKEN`, base `HQ_ADMIN_URL`, default `http://127.0.0.1:8787/admin`)
+Token (security 2026-11-23, P1-4): every cabinet -> HQ call (`lib/cabinet-hq.ts` `cabinetHqToken`, `lib/cabinet-media.ts`,
+so the uploads, threads, documents and media routes too) sends `HQ_CABINET_TOKEN`, which HQ accepts only for
+`/admin/clients/:id/*` and `/admin/clients/by-email`. While it is unset the full `HQ_ADMIN_TOKEN` is used and the
+server logs one warning per process; set it in `shared/.env.production` as soon as HQ accepts the scoped token.
+The owner's panel (`lib/hq-admin.ts`, `lib/hq-files.ts`) uses `HQ_ADMIN_TOKEN` only, no `HQ_OFFICE_TOKEN` fallback.
 - `POST /clients` body `{ email, name, telegram, locale, supabaseId, marketingConsent }` -> `{ ok: true }`.
   Sent once per client: after the first callback or cabinet load while `profiles.hq_synced_at` is null;
   a failure is only logged and retried on the next load. HQ should upsert by email.

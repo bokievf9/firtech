@@ -58,7 +58,7 @@ export async function proxyRenderFile(
     return sampleClip(range)
   }
   const base = (configured || DEFAULT_HQ_ADMIN_URL).replace(/\/+$/, '')
-  const token = env.HQ_ADMIN_TOKEN?.trim() || env.HQ_OFFICE_TOKEN?.trim()
+  const token = env.HQ_ADMIN_TOKEN?.trim()
   const headers: Record<string, string> = {}
   if (token) headers['x-admin-token'] = token
   if (range && /^bytes=\d*-\d*$/.test(range)) headers.range = range

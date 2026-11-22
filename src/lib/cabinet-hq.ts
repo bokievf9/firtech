@@ -34,13 +34,28 @@ const TIMEOUT_MS = 4000
 type Env = Record<string, string | undefined>
 export type CabinetResult<T> = { ok: true; data: T } | { ok: false; error: CabinetError }
 
+// The token of every cabinet -> HQ call (security 2026-11-23, P1-4): HQ_CABINET_TOKEN, scoped in HQ to
+// /admin/clients/:id/* and /admin/clients/by-email, so a bug in the cabinet can no longer reach the whole
+// admin API. Only while it is unset the full HQ_ADMIN_TOKEN is used, with one warning per process.
+let warnedCabinetFallback = false
+export function cabinetHqToken(env: Env = process.env): string {
+  const scoped = env.HQ_CABINET_TOKEN?.trim()
+  if (scoped) return scoped
+  const admin = env.HQ_ADMIN_TOKEN?.trim() ?? ''
+  if (admin && !warnedCabinetFallback) {
+    warnedCabinetFallback = true
+    console.warn('[cabinet] HQ_CABINET_TOKEN is not set: cabinet calls to HQ use the full HQ_ADMIN_TOKEN')
+  }
+  return admin
+}
+
 // HQ's admin API for the client cabinet. Like office-hq.ts it never throws and never puts the
 // token or the URL into a result: errors are the short codes the pages translate. Without
-// HQ_ADMIN_URL and HQ_ADMIN_TOKEN, development gets a mock; production without a token reports
-// `hq_error` and sends nothing.
+// HQ_ADMIN_URL and a token (HQ_CABINET_TOKEN, else HQ_ADMIN_TOKEN), development gets a mock;
+// production without a token reports `hq_error` and sends nothing.
 function setup(env: Env): { base: string; token: string } | 'mock' | null {
   const url = env.HQ_ADMIN_URL?.trim()
-  const token = env.HQ_ADMIN_TOKEN?.trim()
+  const token = cabinetHqToken(env)
   if (!url && !token && env.NODE_ENV !== 'production') return 'mock'
   if (!token) return null
   return { base: (url || DEFAULT_URL).replace(/\/$/, ''), token }

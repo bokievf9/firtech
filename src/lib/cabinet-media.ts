@@ -1,5 +1,5 @@
 import 'server-only'
-import { isMockMode, resolveMediaUrl } from './cabinet-hq'
+import { cabinetHqToken, isMockMode, resolveMediaUrl } from './cabinet-hq'
 import { mockPdf } from './cabinet-hq-mock'
 
 // Files of the cabinet (document PDF and HTML, message attachments) streamed from HQ through the
@@ -61,7 +61,7 @@ export async function streamClientFile(
   }
   const target = resolveMediaUrl(url, env)
   if (!target || !types[ext]) return fail(404, 'not_found')
-  const token = env.HQ_ADMIN_TOKEN?.trim()
+  const token = cabinetHqToken(env)
   let res: Response
   try {
     res = await fetcher(target, {

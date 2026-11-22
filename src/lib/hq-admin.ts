@@ -355,7 +355,7 @@ export async function callHqAdmin(
   }
   const base = (configured || DEFAULT_HQ_ADMIN_URL).replace(/\/+$/, '')
   const qs = new URLSearchParams(query).toString()
-  const token = env.HQ_ADMIN_TOKEN?.trim() || env.HQ_OFFICE_TOKEN?.trim()
+  const token = env.HQ_ADMIN_TOKEN?.trim()
   const headers: Record<string, string> = { accept: 'application/json' }
   if (token) headers['x-admin-token'] = token
   if (method !== 'GET') headers['content-type'] = 'application/json'

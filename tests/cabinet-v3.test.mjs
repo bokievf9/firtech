@@ -510,6 +510,39 @@ test('media links: encoded traversal never leaves /media (security 2026-11-23, P
   assert.equal(r('/media/sig/u/3f2a.png?e=1&s=ab'), 'http://hq.test/media/sig/u/3f2a.png?e=1&s=ab')
 })
 
+test('cabinet calls to HQ use HQ_CABINET_TOKEN, the admin token only while it is unset (security 2026-11-23, P1-4)', async () => {
+  const seen = []
+  const fetcher = async (url, init) => {
+    seen.push({ url: String(url), token: init?.headers?.['x-admin-token'] })
+    return Response.json({ ok: true, items: [] })
+  }
+  const scoped = { ...prod, HQ_ADMIN_TOKEN: 'full-admin', HQ_CABINET_TOKEN: 'cabinet-only' }
+  await hq.fetchThreads(7, scoped, fetcher)
+  await hq.fetchClientDocuments(7, scoped, fetcher)
+  await hq.fetchClientByEmail('a@b.c', scoped, fetcher)
+  assert.ok(seen.length >= 3)
+  for (const s of seen) assert.equal(s.token, 'cabinet-only', s.url)
+  assert.equal(hq.cabinetHqToken(scoped), 'cabinet-only')
+  assert.equal(hq.cabinetHqToken({ HQ_ADMIN_TOKEN: 'full-admin' }), 'full-admin', 'fallback while HQ_CABINET_TOKEN is unset')
+  assert.equal(hq.cabinetHqToken({ HQ_ADMIN_TOKEN: 'full-admin', HQ_CABINET_TOKEN: ' ' }), 'full-admin')
+  assert.equal(hq.cabinetHqToken({ HQ_OFFICE_TOKEN: 'office' }), '', 'never the office token')
+  assert.equal(hq.isMockMode({ HQ_CABINET_TOKEN: 'x', HQ_ADMIN_URL: 'http://hq.test/admin' }), false)
+})
+
+test('the media proxy sends the cabinet token to HQ', async () => {
+  const media = await import('../src/lib/cabinet-media.ts')
+  let token
+  const fetcher = async (_url, init) => {
+    token = init.headers['x-admin-token']
+    return new Response('%PDF-1.4', { status: 200 })
+  }
+  const res = await media.streamClientFile('/media/sig/a.pdf?e=1', {}, { env: { ...prod, HQ_CABINET_TOKEN: 'cabinet-only' }, fetcher })
+  assert.equal(res.status, 200)
+  assert.equal(token, 'cabinet-only')
+  const denied = await media.streamClientFile('/media/x/%2e%2e/%2e%2e/admin/files/cabinet/c7/a.pdf', {}, { env: { ...prod, HQ_CABINET_TOKEN: 'c' }, fetcher: async () => { throw new Error('must not fetch') } })
+  assert.equal(denied.status, 404)
+})
+
 test('the mock PDF is a real PDF', () => {
   const pdf = Buffer.from(mock.mockPdf('Document q-14')).toString('latin1')
   assert.match(pdf, /^%PDF-1\.4/)
