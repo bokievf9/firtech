@@ -41,6 +41,7 @@ import {
   type ThreadChoice,
 } from '@/lib/chats'
 import { RateButtons, RatingsProvider } from '@/components/admin/hq/rate-buttons'
+import { Select } from '@/components/admin/select'
 
 const desktopQuery = '(min-width: 1024px)'
 const subscribeDesktop = (cb: () => void) => {
@@ -378,7 +379,7 @@ function ChatsPageInner() {
                       {choices.length > 1 ? (
                         <label className="flex min-w-0 max-w-full items-center gap-2">
                           <span className={cn('shrink-0 text-xs', pickerHot ? 'text-warn' : 'text-faint')}>Reply in the thread</span>
-                          <select
+                          <Select
                             ref={picker}
                             value={chosen ?? ''}
                             onChange={(e) => {
@@ -390,7 +391,7 @@ function ChatsPageInner() {
                             {choices.map((c) => (
                               <option key={c.id} value={c.id}>{c.label || choiceLabel(c.id)}</option>
                             ))}
-                          </select>
+                          </Select>
                         </label>
                       ) : null}
                       {replyTo ? (

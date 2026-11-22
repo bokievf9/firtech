@@ -3,6 +3,7 @@
 import { useRef, useState, useSyncExternalStore } from 'react'
 import { cn } from '@/components/admin/kit'
 import { admin } from '@/content/admin'
+import { Select } from '@/components/admin/select'
 
 const k = admin.pult.kanban
 
@@ -118,17 +119,17 @@ export function Kanban<T>({
                     </button>
                     <label className="mt-2 flex items-center gap-2 text-xs text-faint">
                       {k.move}
-                      <select
+                      <Select
                         value={c.key}
                         onChange={(e) => onMove(item, e.target.value)}
-                        className="h-9 min-w-0 flex-1 rounded-lg border border-line-strong bg-field px-2 text-sm text-fg"
+                        className="min-w-0 flex-1"
                       >
                         {columns.map((o) => (
                           <option key={o.key} value={o.key}>
                             {o.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </label>
                   </li>
                 ))}

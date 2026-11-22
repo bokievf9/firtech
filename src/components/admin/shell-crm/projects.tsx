@@ -26,6 +26,7 @@ import {
 import { Chip, shortDate } from './bits'
 import { Kanban } from './kanban'
 import { btn, Empty, inputClass, Loading, Offline, useHqView, useHub } from '../hub/ui'
+import { Select } from '@/components/admin/select'
 
 const k = admin.pult.projects
 
@@ -205,13 +206,13 @@ function ProjectBody({
     <>
       <label className="grid gap-1 text-xs text-faint">
         {k.status}
-        <select value={projectColumn(p)} onChange={(e) => void onMove(e.target.value)} className={inputClass}>
+        <Select value={projectColumn(p)} onChange={(e) => void onMove(e.target.value)} className={inputClass}>
           {PROJECT_STATUSES.map((s) => (
             <option key={s} value={s}>
               {k.statuses[s]}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <section className="grid gap-2">

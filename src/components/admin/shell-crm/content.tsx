@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn'
 import { CAPTION_PLATFORMS, fileUrl, kitBlocks, kitSections, type ContentItem, type KitSection, type ProfileKit, YOUTUBE_BANNER } from '@/lib/shell'
 import { Chip, type Tone } from './bits'
 import { btn, btnDanger, btnPrimary, CopyButton, Empty, inputClass } from '../hub/ui'
+import { Select } from '@/components/admin/select'
 const k = admin.pult.content
 export type Action = 'approve' | 'reject' | 'revise' | 'published' | 'rerender'
 
@@ -202,13 +203,13 @@ export function ContentBody({ item, onAct, extra }: { item: ContentItem; extra?:
           </div>
         ) : null}
         <div className="flex flex-wrap items-center gap-2">
-          <select value={platform} onChange={(e) => setPlatform(e.target.value)} aria-label={k.platform} className={cn(inputClass, 'w-auto')}>
+          <Select value={platform} onChange={(e) => setPlatform(e.target.value)} aria-label={k.platform} className={cn(inputClass, 'w-auto')}>
             {['instagram', 'tiktok', 'youtube', 'dzen'].map((p) => (
               <option key={p} value={p}>
                 {(k.platforms as Record<string, string>)[p] ?? p}
               </option>
             ))}
-          </select>
+          </Select>
           <button type="button" className={btn} disabled={busy || item.status === 'published'} onClick={() => void run('published', { platform })}>
             {k.published}
           </button>

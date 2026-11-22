@@ -23,6 +23,7 @@ import {
   type Settings,
   type TrustKind,
 } from '@/lib/settings-hq'
+import { Select } from '@/components/admin/select'
 
 const t = admin.hq.settings
 const GROUP_ORDER: GroupId[] = ['schedule', 'notices', 'alerts', 'limits', 'calls', 'kp', 'playground', 'service']
@@ -122,13 +123,13 @@ function Row({ spec, label, settings, onSave, hint, disabled, extra }: { spec: F
         {spec.kind === 'bool' ? (
           <Switch id={id} on={Boolean(current)} label={text} busy={status.state === 'saving' || disabled} onChange={(v) => void commit(v)} />
         ) : spec.kind === 'select' ? (
-          <select id={id} value={String(current)} disabled={disabled || status.state === 'saving'} onChange={(e) => void commit(spec.path === 'schedule.digestDay' ? Number(e.target.value) : e.target.value)} className={cn(inputClass, 'sm:w-48')}>
+          <Select id={id} value={String(current)} disabled={disabled || status.state === 'saving'} onChange={(e) => void commit(spec.path === 'schedule.digestDay' ? Number(e.target.value) : e.target.value)} className={cn(inputClass, 'sm:w-48')}>
             {spec.options?.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
-          </select>
+          </Select>
         ) : (
           <input
             id={id}

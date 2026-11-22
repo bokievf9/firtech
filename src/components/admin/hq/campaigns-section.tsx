@@ -23,6 +23,7 @@ import {
   type CampaignStatus,
 } from '@/lib/campaigns-hq'
 import { cn } from '@/lib/cn'
+import { Select } from '@/components/admin/select'
 
 const t = admin.hq
 const c = admin.hq.campaigns
@@ -123,13 +124,13 @@ function NewCampaign({ onCreated }: { onCreated: () => void }) {
       </p>
       <label className={label}>
         {c.kind}
-        <select className={inputClass} value={form.kind} onChange={(e) => set({ kind: e.target.value === 'recommendation' ? 'recommendation' : 'news' })}>
+        <Select className={inputClass} value={form.kind} onChange={(e) => set({ kind: e.target.value === 'recommendation' ? 'recommendation' : 'news' })}>
           {CAMPAIGN_KINDS.map((k) => (
             <option key={k} value={k}>
               {c.kinds[k]}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <div className="grid gap-3 md:grid-cols-2">
         <label className={label}>
@@ -154,11 +155,11 @@ function NewCampaign({ onCreated }: { onCreated: () => void }) {
         <legend className="mb-1 text-xs text-muted">{c.segmentTitle}</legend>
         <label className={label}>
           {c.locale}
-          <select className={inputClass} value={form.locale} onChange={(e) => set({ locale: e.target.value === 'ru' ? 'ru' : e.target.value === 'en' ? 'en' : '' })}>
+          <Select className={inputClass} value={form.locale} onChange={(e) => set({ locale: e.target.value === 'ru' ? 'ru' : e.target.value === 'en' ? 'en' : '' })}>
             <option value="">{c.localeAny}</option>
             <option value="ru">RU</option>
             <option value="en">EN</option>
-          </select>
+          </Select>
         </label>
         <label className={label}>
           {c.niche}

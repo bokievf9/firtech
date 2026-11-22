@@ -9,11 +9,11 @@ import { admin } from '@/content/admin'
 import { appendEntries, AUDIT_KINDS, auditHref, auditPath, emptyFilter, isAuditKind, isFilterActive, normalizeAudit, type AuditEntry, type AuditFilter, type AuditPage } from '@/lib/audit-hq'
 import { cn } from '@/lib/cn'
 import { sectionById } from '@/lib/hq-shell'
+import { Select } from '@/components/admin/select'
 
 const t = admin.hq
 const a = admin.hq.audit
 
-const field = 'min-h-10 rounded-lg border border-line-strong bg-surface px-2.5 text-sm'
 const KIND_DOT: Record<(typeof AUDIT_KINDS)[number], string> = {
   decision: 'bg-dept-sales',
   setting: 'bg-faint',
@@ -77,7 +77,7 @@ export function AuditSection() {
         <div className="flex flex-wrap items-end gap-2 px-3 py-2 sm:px-4" role="group" aria-label={a.filters}>
           <label className="grid gap-0.5 text-xs text-muted">
             {a.kind}
-            <select className={field} value={filter.kind} onChange={(e) => patch({ kind: isAuditKind(e.target.value) ? e.target.value : '' })}>
+            <Select value={filter.kind} onChange={(e) => patch({ kind: isAuditKind(e.target.value) ? e.target.value : '' })}>
               <option value="">{a.kindAll}</option>
               {AUDIT_KINDS.map((k) => (
                 <option key={k} value={k}>
@@ -85,26 +85,26 @@ export function AuditSection() {
                   {data ? ` (${data.counts[k]})` : ''}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="grid gap-0.5 text-xs text-muted">
             {a.actor}
-            <select className={field} value={filter.actor} onChange={(e) => patch({ actor: e.target.value })}>
+            <Select value={filter.actor} onChange={(e) => patch({ actor: e.target.value })}>
               <option value="">{a.actorAll}</option>
               {(data?.actors ?? []).map((x) => (
                 <option key={x} value={x}>
                   {actorName(x)}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="grid gap-0.5 text-xs text-muted">
             {a.from}
-            <input type="date" className={field} value={filter.from} max={filter.to || undefined} onChange={(e) => patch({ from: e.target.value })} />
+            <input type="date" value={filter.from} max={filter.to || undefined} onChange={(e) => patch({ from: e.target.value })} />
           </label>
           <label className="grid gap-0.5 text-xs text-muted">
             {a.to}
-            <input type="date" className={field} value={filter.to} min={filter.from || undefined} onChange={(e) => patch({ to: e.target.value })} />
+            <input type="date" value={filter.to} min={filter.from || undefined} onChange={(e) => patch({ to: e.target.value })} />
           </label>
           {isFilterActive(filter) ? (
             <button type="button" className={btn} onClick={() => patch({ ...emptyFilter })}>
