@@ -173,6 +173,23 @@ export const AUTOPILOT_LABELS: Record<AutopilotMode, string> = {
   autopilot: 'Автопилот: зови только если просят человека, злость, юридическое',
 }
 
+export type LogEntry = { at: number; key: string; old: string; next: string; source: string }
+
+// `GET /admin/settings/log`: the journal of settings_log, newest first (values of settings only). Rows without a key are dropped.
+export function normalizeLog(body: unknown): LogEntry[] | null {
+  const items = rec(body).items
+  if (!Array.isArray(items)) return null
+  const out: LogEntry[] = []
+  for (const raw of items.slice(0, 200)) {
+    const r = rec(raw)
+    const key = str(r.key, '', 120)
+    const at = typeof r.at === 'string' ? Date.parse(r.at) : num(r.at, NaN)
+    if (!key || !Number.isFinite(at)) continue
+    out.push({ at, key, old: str(r.old, '', 200), next: str(r.new, '', 200), source: str(r.source, 'owner', 40) })
+  }
+  return out
+}
+
 export type SessionChange = { at: number; key: string; old: string; next: string }
 const show = (v: unknown) => (v === null || v === undefined || v === '' ? '(none)' : String(v))
 

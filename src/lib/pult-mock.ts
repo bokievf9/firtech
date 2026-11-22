@@ -267,7 +267,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   const settingsMock = createSettingsMock()
 
   return function handle(method: 'GET' | 'POST' | 'PATCH', seg: string[], query: Json, body: Json, now: number): Reply | null {
-    const settings = settingsMock(method, seg, body)
+    const settings = settingsMock(method, seg, body, query, now)
     if (settings) return settings
     const agents = agentsMock(method, seg, body, now)
     if (agents) return agents
@@ -572,6 +572,54 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       const counts = { call: 0, milestone: 0, routine: 0, content: 0 } as Record<string, number>
       for (const e of events) counts[String(e.kind)] = (counts[String(e.kind)] ?? 0) + 1
       return ok({ from: query.from, to: query.to, tz: 'Asia/Tashkent', today: iso(now).slice(0, 10), counts, events })
+    }
+
+    // ---- audit log (read only): decisions, settings, instructions, trust levels and owner actions, newest first, paged by cursor
+    if (seg[0] === 'audit' && method === 'GET' && seg.length === 1) {
+      const kinds = ['decision', 'setting', 'instruction', 'trust', 'owner']
+      if (query.kind && !kinds.includes(String(query.kind))) return bad('invalid')
+      const entries: Row[] = []
+      const actions: [string, string, string, string, string][] = [
+        ['decision', 'owner', 'decision', 'approval', 'lead_reply approve'],
+        ['setting', 'owner', 'setting_changed', 'setting', 'quiet_hours'],
+        ['instruction', 'owner', 'instructions_changed', 'agent', 'v2'],
+        ['trust', 'owner', 'level_set', 'kind', '1'],
+        ['owner', 'owner', 'chat_reply', 'chat', 'web:sent'],
+        ['decision', 'system', 'decision', 'approval', 'content_item auto'],
+      ]
+      for (let i = 0; i < 60; i++) {
+        const [kind, actor, action, objectType, detail] = actions[i % actions.length]!
+        const objectId = kind === 'instruction' ? 'marketing-head' : kind === 'setting' ? 'quiet_hours' : String(100 - i)
+        entries.push({ id: `${kind.slice(0, 3)}:${100 - i}`, kind, at: iso(now - (i + 1) * 47 * 60_000), actor, action, objectType, objectId, detail })
+      }
+      const day = (v: unknown) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? Date.parse(`${v}T00:00:00Z`) : null)
+      const lo = day(query.from)
+      const hi = day(query.to)
+      const keep = (e: Row) => (!query.kind || e.kind === query.kind) && (!query.actor || e.actor === query.actor) && (lo === null || Date.parse(String(e.at)) >= lo) && (hi === null || Date.parse(String(e.at)) < hi + 86_400_000)
+      const rows = entries.filter(keep)
+      const offset = /^\d{1,6}_0_0$/.test(String(query.cursor ?? '')) ? Number(String(query.cursor).split('_')[0]) : 0
+      const limit = Math.min(Math.max(Number(query.limit) || 50, 1), 200)
+      const page = rows.slice(offset, offset + limit)
+      const counts = Object.fromEntries(kinds.map((k) => [k, entries.filter((e) => e.kind === k && (!query.actor || e.actor === query.actor)).length]))
+      return ok({ tz: 'Asia/Tashkent', kinds, counts, total: rows.length, actors: ['owner', 'system'], nextCursor: offset + limit < rows.length ? `${offset + limit}_0_0` : null, entries: page })
+    }
+
+    // ---- analytics (read only): the funnel and site events of «Цифры» for a week and the previous one, first answer time, sources
+    if (seg[0] === 'analytics' && method === 'GET' && seg.length === 1) {
+      const week = typeof query.week === 'string' && /^\d{4}-W\d{2}$/.test(query.week) ? query.week : isoWeek(now)
+      if (query.week && week !== query.week) return bad('invalid')
+      const cur = ((): Row => ({ leads: 14, qualified: 9, proposals: 5, contracts: 3, paid: 2, projects: 2 }))()
+      const prev: Row = { leads: 11, qualified: 6, proposals: 4, contracts: 2, paid: 1, projects: 1 }
+      const site = { chat_open: 63, builder_done: 18, estimate_pdf: 7, lead_sent: 14, audit_sent: 3, ref_click: 9, cabinet_signup: 5, pay_view: 4, blog_view: 120, cabinet_offer_click: 2 }
+      const prevSite = { chat_open: 48, builder_done: 21, estimate_pdf: 5, lead_sent: 11, audit_sent: 4, ref_click: 6, cabinet_signup: 3, pay_view: 2, blog_view: 96, cabinet_offer_click: 0 }
+      const from = weekDates(week)[0] ?? ''
+      const to = weekDates(week)[6] ?? ''
+      return ok({
+        week, from, to, prevWeek: shiftWeek(week, -1), tz: 'Asia/Tashkent', funnel: cur, prevFunnel: prev, site, prevSite,
+        firstResponse: { leads: 14, answered: 12, avgMinutes: 18.5, medianMinutes: 9, within1hShare: 0.83 },
+        prevFirstResponse: { leads: 11, answered: 9, avgMinutes: 41, medianMinutes: 22, within1hShare: 0.56 },
+        sources: [{ source: 'site', leads: 9, qualified: 6, paid: 1 }, { source: 'bot', leads: 3, qualified: 2, paid: 1 }, { source: 'ref', leads: 2, qualified: 1, paid: 0 }],
+      })
     }
 
     // ---- processes

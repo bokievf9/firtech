@@ -92,6 +92,9 @@ test('client validation mirrors the HQ ranges', () => {
 test('proxy whitelist: GET and PATCH settings only, strict body, autopilot included', () => {
   const { resolveEndpoint: r } = proxy
   assert.equal(r('GET', ['settings'], none, undefined).ok, true)
+  const lg = r('GET', ['settings', 'log'], new URLSearchParams('limit=200&x=1'), undefined)
+  assert.deepEqual([lg.ok, lg.query], [true, { limit: '200' }])
+  assert.equal(r('POST', ['settings', 'log'], none, {}).ok, false)
   assert.equal(r('POST', ['settings'], none, { kp: { validDays: 10 } }).ok, false)
   assert.equal(r('PATCH', ['settings'], none, { autopilot: { leadManager: 'autopilot' } }).ok, true)
   assert.equal(r('PATCH', ['settings'], none, { autopilot: { leadManager: 'yolo' } }).ok, false)
@@ -157,6 +160,19 @@ test('the session journal shows old and new values', () => {
   assert.equal(by['calls.slotHours'], '11:00, 15:00 > 10:00, 16:00')
   assert.equal(by['trust.levels.content_item'], '0 > 1')
   assert.equal(by['autopilot.leadManager'], 'policy > autopilot')
+})
+
+test('the full log: whitelisted with limit only, normalized, kept by the mock newest first', () => {
+  assert.equal(s.normalizeLog({ nope: 1 }), null)
+  assert.deepEqual(s.normalizeLog({ items: [{ at: '2026-11-23T10:00:00.000Z', key: 'kp.validDays', old: '14', new: '21', source: 'owner' }, { key: '', at: 'x' }] }), [{ at: Date.parse('2026-11-23T10:00:00.000Z'), key: 'kp.validDays', old: '14', next: '21', source: 'owner' }])
+  const { m } = view()
+  assert.deepEqual(m('GET', ['settings', 'log'], {}).items, [])
+  m('PATCH', ['settings'], { schedule: { summaryTime: '09:30' } })
+  m('PATCH', ['settings'], { autopilot: { leadManager: 'ask_me' } })
+  const items = m('GET', ['settings', 'log'], {}, { limit: '1' }).items
+  assert.equal(items.length, 1)
+  assert.deepEqual([items[0].key, items[0].old, items[0].new, items[0].source], ['autopilot.leadManager', 'policy', 'ask_me', 'owner'])
+  assert.equal(m('GET', ['settings', 'log'], {}).items.length, 2)
 })
 
 test('the screen: every group and the autopilot sit in the component, copy has no long dashes, no «Пульт»', () => {

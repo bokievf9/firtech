@@ -179,9 +179,10 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // The owner accepts a client's finished stage from the project drawer (same call as the cabinet button).
   // Numeric client id only (a client without an account has no cabinet to accept in).
   { method: 'POST', path: /^clients\/\d{1,12}\/projects\/\d{1,12}\/milestones\/\d{1,3}\/accept$/, body: empty },
-    { method: 'GET', path: /^settings$/ },
+  { method: 'GET', path: /^settings$/ },
+  { method: 'GET', path: /^settings\/log$/, query: ['limit'] },
   { method: 'PATCH', path: /^settings$/, body: SETTINGS_BODY },
-// HQ «Agents» (2026-11-23): list, card, one instruction version, edit and rollback of the instructions.
+  // HQ «Agents» (2026-11-23): list, card, one instruction version, edit and rollback of the instructions.
   { method: 'GET', path: /^agents$/ },
   { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}$/ },
   { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/\d{1,6}$/ },
@@ -191,6 +192,9 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^processes$/ },
   // HQ «Calendar»: calls, milestones, routine runs and planned content of a date range (read only).
   { method: 'GET', path: /^calendar$/, query: ['from', 'to'] },
+  // HQ «Audit log» and «Analytics»: the journal of decisions and changes, the funnel and sources (read only).
+  { method: 'GET', path: /^audit$/, query: ['kind', 'actor', 'from', 'to', 'cursor', 'limit'] },
+  { method: 'GET', path: /^analytics$/, query: ['week'] },
   { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },

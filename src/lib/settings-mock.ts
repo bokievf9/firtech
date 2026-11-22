@@ -1,6 +1,6 @@
 // Development stand-in for HQ's `GET` and `PATCH /admin/settings` (contract `agents/docs/admin-crm-api.md` «Настройки»): the same
 // shape, validation and `changed` list, kept in memory so a save behaves like HQ until the dev server restarts.
-import { AUTOPILOT_MODES, BUDGET_DEPTS, NOTICE_ALERTS, NOTICE_TYPES } from './settings-hq'
+import { AUTOPILOT_MODES, BUDGET_DEPTS, diffChanged, NOTICE_ALERTS, NOTICE_TYPES, normalizeSettings } from './settings-hq'
 
 type Reply = { ok: true; [k: string]: unknown } | { ok: false; error: string; [k: string]: unknown }
 type Rec = Record<string, unknown>
@@ -28,6 +28,7 @@ export function createSettingsMock() {
   }
   const usage = { deptMonthUsd: { marketing: 4.2, sales: 1.1, support: 0, production: 0, backoffice: 0, director: 0.6 }, clientLlmToday: 41, monthStartedAt: '2026-10-31T19:00:00.000Z' }
   const restart = new Set<string>()
+  const log: { at: string; key: string; old: string; new: string; source: string }[] = []
   const view = () => ({ settings: structuredClone(s), usage, restartRequired: restart.size > 0, restartKeys: [...restart] })
 
   const bad = (error: string, extra: Rec = {}): Reply => ({ ok: false, error, ...extra })
@@ -110,14 +111,23 @@ export function createSettingsMock() {
     return invalid.length ? { invalid } : out
   }
 
-  return function handle(method: string, seg: string[], body: Rec): Reply | null {
+  return function handle(method: string, seg: string[], body: Rec, query: Rec = {}, now: number = Date.now()): Reply | null {
+    if (seg.length === 2 && seg[0] === 'settings' && seg[1] === 'log') {
+      if (method !== 'GET') return null
+      const raw = Number(query.limit ?? 50)
+      const limit = Number.isFinite(raw) ? Math.min(200, Math.max(1, Math.trunc(raw))) : 50
+      return { ok: true, items: log.slice(0, limit) }
+    }
     if (seg.length !== 1 || seg[0] !== 'settings') return null
     if (method === 'GET') return { ok: true, ...view() }
     if (method !== 'PATCH') return null
     const p = plan(body)
     if (!Array.isArray(p)) return 'invalid' in p ? bad('invalid', { fields: p.invalid }) : (p as Reply)
     const changed = p.filter((x) => x.key && !x.same).map((x) => x.key)
+    const before = normalizeSettings({ settings: structuredClone(s) })
     for (const x of p) x.apply()
+    const after = normalizeSettings({ settings: structuredClone(s) })
+    if (before && after) for (const c of diffChanged(before.settings, after.settings, changed, now).reverse()) log.unshift({ at: new Date(c.at).toISOString(), key: c.key, old: c.old, new: c.next, source: 'owner' })
     return { ok: true, changed, ...view() }
   }
 }
