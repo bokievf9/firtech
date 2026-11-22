@@ -458,7 +458,8 @@ page and session (`film.companion`, `companionKind`). The face everywhere is the
 - GitHub (since 2026-10-19): private repo `bokievf9/firtech`, remote `origin`, over HTTPS (the SSH
   config maps github.com to Vibely's deploy key, so SSH would use the wrong key). **Pushing to
   `main` deploys** through CI (checks, build, upload, health check, rollback), so never push `main`
-  without the owner's OK for a deploy. Feature branches are pushed only when useful; do not push
+  without the owner's OK for a deploy. Actions are pinned by SHA; the restricted CI user `firtech-ci` (forced command
+  `receive.sh`, no sudo/docker, switched on by the variable `DEPLOY_RECEIVE=1`) is set up by `docs/ci-user.md` (security 2026-11-23, P1-5). Feature branches are pushed only when useful; do not push
   branches with large media (`instagram-launch` carries about 50 MB of videos) unless the owner
   asks. Environment `production` (only `main` may deploy) has secrets `VPS_HOST`, `VPS_USER`,
   `VPS_SSH_KEY` (a dedicated key "github-actions-firtech", authorised for `deploy` on the server;

@@ -6,6 +6,8 @@ on:
   workflow_dispatch:
 
 # The token only reads the repository; nothing here writes to GitHub.
+# Actions are pinned by commit SHA (security 2026-11-23, P1-5): a moved tag cannot change what runs
+# with the deploy key. Update a pin: `git ls-remote https://github.com/actions/<name> refs/tags/v4`.
 permissions:
   contents: read
 
@@ -18,8 +20,8 @@ jobs:
   check:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -51,8 +53,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: .nvmrc
           cache: npm
@@ -75,7 +77,18 @@ jobs:
           install -m 700 -d ~/.ssh
           (umask 077 && printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key)
           printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
+      # Restricted CI user (docs/ci-user.md): the key of `firtech-ci` can only run receive.sh, which takes
+      # the tarball on stdin and waits for `deploy` to activate it. Switched on by the repository variable
+      # DEPLOY_RECEIVE=1 once the server side is set up (VPS_USER=firtech-ci and its key as VPS_SSH_KEY).
+      - name: Upload and activate (restricted CI user)
+        if: vars.DEPLOY_RECEIVE == '1'
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes "$VPS_USER@$VPS_HOST" "$RELEASE" < release.tgz
       - name: Upload and activate
+        if: vars.DEPLOY_RECEIVE != '1'
         env:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
