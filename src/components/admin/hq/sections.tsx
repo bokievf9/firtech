@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { ApprovalsSection } from '@/components/admin/control/approvals-panel'
 import { BarePanel } from '@/components/admin/control/cc-panel'
 import { CallsPanel } from '@/components/admin/control/calls-panel'
 import { useCrmLeads } from '@/components/admin/control/crm-data'
@@ -24,32 +23,16 @@ import { normalizeHub } from '@/lib/pult'
 import { useRouter } from 'next/navigation'
 import { ContentSection } from './content-studio'
 import { PaymentsTab, CostsTab } from './finance-view'
-import { useApprovals } from './use-approvals'
+import { InboxApprovals } from './inbox-approvals'
 
 const q = `?limit=${LIST_LIMIT}`
 
 // Inbox: the notifications HQ collects (GET /admin/hub, `inbox`) and the approvals waiting for the owner.
-export function InboxSection({ tab, focus }: { tab: string; focus: string | null }) {
-  const { now, notify } = useHub()
+export function InboxSection({ tab }: { tab: string; focus: string | null }) {
+  const { now } = useHub()
   const router = useRouter()
   const hub = useHqView('hub', normalizeHub, { visible: 15_000, hidden: 60_000 })
-  const approvals = useApprovals(notify)
-  if (tab === 'approvals') {
-    return (
-      <div className="p-3 sm:p-4">
-        <ApprovalsSection
-          items={approvals.items}
-          error={approvals.error}
-          now={now}
-          focus={focus ? { id: focus, key: 1 } : null}
-          queued={approvals.queued}
-          onAct={approvals.onAct}
-          onEdit={approvals.onEdit}
-          onRelease={approvals.onRelease}
-        />
-      </div>
-    )
-  }
+  if (tab === 'approvals') return <InboxApprovals />
   if (!hub.view) return hub.error ? <Offline error={hub.error} onRetry={() => hub.reload()} /> : <Loading />
   return (
     <Notifications

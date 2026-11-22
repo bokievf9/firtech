@@ -2,14 +2,11 @@
 
 import { ArrowLeft, CaretLeft, CaretRight, CheckCircle, Link as LinkIcon, ListBullets, Tray } from '@phosphor-icons/react'
 import { AnimatePresence, motion, MotionConfig } from 'motion/react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btn, btnDanger, btnPrimary, modalOpen, Offline, typingIn, useConfirm } from '@/components/admin/hub/ui'
 import { useHqView } from '@/components/admin/hub/ui'
-import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { cn } from '@/lib/cn'
 import { deptTheme } from '@/lib/pult-theme'
 import type { PanelId } from '@/lib/pult'
@@ -77,9 +74,14 @@ function Thumb({ item }: { item: ReviewItem }) {
   return <span aria-hidden="true" className="grid size-11 shrink-0 place-items-center rounded-lg border border-dashed border-line-strong text-faint"><Tray size={16} /></span>
 }
 
-// `initialId` comes from `?id=ap_203` (a link from a trend or the director panel): that item opens in the full list.
-function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
-  const router = useRouter()
+// The reader and editor of the Approvals section (`/admin/approvals?id=ap_203`). `initialId` opens that item in
+// the full list; `onBack` returns to the Approvals list; `onSelect` keeps the URL on the item being read.
+// Shell owns the digit keys (1-9 sections), so the reader has none: departments are clicked.
+function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: string | null; onBack: () => void; onSelect?: (id: string) => void }) {
+  const onBackRef = useRef(onBack)
+  useEffect(() => void (onBackRef.current = onBack))
+  const onSelectRef = useRef(onSelect)
+  useEffect(() => void (onSelectRef.current = onSelect))
   const desktop = useDesktop()
   const [toast, setToast] = useState<ToastMessage | null>(null)
   const notify = useCallback((text: string, tone: ToastMessage['tone'] = 'info') => setToast({ id: Date.now() + Math.random(), text, tone }), [])
@@ -111,6 +113,9 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
   const itemId = item?.id ?? null
   const u = useMemo<Ui>(() => (ui.id === itemId ? ui : { ...blankUi, id: itemId }), [ui, itemId])
   const patch = useCallback((p: Partial<Ui>) => setUi({ ...u, id: item?.id ?? null, ...p }), [u, item?.id])
+  useEffect(() => {
+    if (current?.id && current.id !== initialId) onSelectRef.current?.(current.id)
+  }, [current?.id, initialId])
   const position = current ? list.indexOf(current) + 1 : 0
 
   const openId = useCallback((id: string) => {
@@ -276,7 +281,7 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
         return
       }
       const cmd = keyCommand(e)
-      if (!cmd) return
+      if (!cmd || cmd.type === 'rail') return
       if (typing && cmd.type !== 'back') return
       const tag = (e.target as HTMLElement | null)?.tagName
       if (cmd.type === 'play' && (tag === 'BUTTON' || tag === 'A' || tag === 'SUMMARY')) return
@@ -286,11 +291,7 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
           if (typing) (e.target as HTMLElement).blur()
           if (sheetRef.current) setSheet(false)
           else if (uiRef.current.editing || uiRef.current.reviseOpen) setUi({ ...uiRef.current, editing: false, reviseOpen: false, values: {}, note: '' })
-          else router.push('/admin/office')
-          return
-        case 'rail':
-          setRail(cmd.rail)
-          setSel(null)
+          else onBackRef.current()
           return
         case 'step':
           setSel(stepItem(listRef.current, curRef.current, cmd.dir))
@@ -319,7 +320,7 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [router])
+  }, [])
   const buttons: ActionButton[] = current ? actionButtons(current) : []
   const total = counts ? railCount(counts, 'director') : 0
 
@@ -368,13 +369,13 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="fixed inset-0 flex flex-col bg-bg text-fg">
+      <div className="flex h-full min-h-0 flex-col bg-bg text-fg">
         <header className="flex min-h-14 items-center gap-2 border-b border-line bg-bg px-2 sm:gap-3 sm:px-4">
-          <Link href="/admin/office" title="Офис (Esc)" aria-label="Назад в офис" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text">
+          <button type="button" onClick={onBack} title="К списку (Esc)" aria-label="К списку Approvals" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text">
             <ArrowLeft size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">Офис</span>
-          </Link>
-          <h1 className="font-brand text-sm tracking-wide sm:text-base">Ревью</h1>
+            <span className="hidden sm:inline">К списку</span>
+          </button>
+          <h1 className="font-brand text-sm tracking-wide sm:text-base">Approvals</h1>
           <span className="rounded-full bg-surface-2 px-2.5 py-1 font-mono text-xs tabular-nums text-muted" aria-label={`Ждут решения: ${total}`}>{total}</span>
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             {current ? (
@@ -388,8 +389,6 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
                 </button>
               </div>
             ) : null}
-            <Link href="/admin/chats" className="hidden h-10 items-center rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text sm:inline-flex">Чаты</Link>
-            <ThemeToggle />
           </div>
         </header>
 
@@ -408,7 +407,7 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
           {desktop ? (
             <aside aria-label="Отделы и очередь" className="flex min-h-0 flex-col border-r border-line">
               <nav aria-label="Отделы" className="grid gap-0.5 p-2">
-                {railButtons.map(({ id, i, n, t, active }) => (
+                {railButtons.map(({ id, n, t, active }) => (
                   <button
                     key={id}
                     type="button"
@@ -419,7 +418,6 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
                     <span aria-hidden="true" className={cn('size-2 rounded-full', t ? t.cls.bg : 'bg-faint')} />
                     <span className="min-w-0 flex-1 truncate text-left">{RAIL_LABEL[id]}</span>
                     <span className={cn('font-mono text-xs tabular-nums', n ? (t ? t.cls.text : 'text-fg') : 'text-faint')}>{n ?? '·'}</span>
-                    <kbd className="hidden w-5 rounded border border-line text-center font-mono text-[0.7rem] text-faint xl:block">{i + 1}</kbd>
                   </button>
                 ))}
               </nav>
@@ -495,7 +493,7 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
                     </button>
                   ) : null}
                 </div>
-                {desktop ? <p className="mt-1.5 hidden px-1 text-xs text-faint xl:block">J K следующий и предыдущий, Пробел воспроизведение, M звук, V версии, 1-7 отделы, Esc в офис</p> : null}
+                {desktop ? <p className="mt-1.5 hidden px-1 text-xs text-faint xl:block">J K следующий и предыдущий, Пробел воспроизведение, M звук, V версии, Esc к списку</p> : null}
               </div>
             )}
           </main>
@@ -568,10 +566,10 @@ function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
 }
 
 
-export function ReviewPage({ initialId = null }: { initialId?: string | null }) {
+export function ReviewPage(props: { initialId?: string | null; onBack: () => void; onSelect?: (id: string) => void }) {
   return (
     <RatingsProvider>
-      <ReviewPageInner initialId={initialId} />
+      <ReviewPageInner {...props} />
     </RatingsProvider>
   )
 }

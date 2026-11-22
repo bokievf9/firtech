@@ -37,10 +37,10 @@ const office = (panel: string, tab?: string) => `/admin/office?panel=${panel}${t
 
 export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'inbox', label: 'Inbox', state: 'ready', href: '/admin/inbox', legacy: office('director', 'inbox') },
-  { id: 'approvals', label: 'Approvals', state: 'link', href: '/admin/approvals', legacy: '/admin/approvals' },
+  { id: 'approvals', label: 'Approvals', state: 'ready', href: '/admin/approvals', legacy: '/admin/approvals' },
   { id: 'tasks', label: 'Tasks', state: 'ready', href: '/admin/tasks', legacy: office('director', 'tasks') },
   { id: 'calendar', label: 'Calendar', state: 'ready', href: '/admin/calendar', legacy: office('sales', 'calls') },
-  { id: 'chats', label: 'Chats', state: 'link', href: '/admin/chats', legacy: '/admin/chats' },
+  { id: 'chats', label: 'Chats', state: 'ready', href: '/admin/chats', legacy: '/admin/chats' },
   { id: 'clients', label: 'Clients', state: 'ready', href: '/admin/clients', legacy: office('sales', 'clients') },
   { id: 'projects', label: 'Projects', state: 'ready', href: '/admin/projects', legacy: office('production', 'projects') },
   { id: 'documents', label: 'Documents', state: 'ready', href: '/admin/documents', legacy: office('backoffice', 'documents') },
@@ -101,12 +101,13 @@ const MAP: Record<string, { section: HqTabbed; tab: string }> = {
   'backoffice:referrals': { section: 'documents', tab: 'referrals' },
   'backoffice:reviews': { section: 'documents', tab: 'reviews' },
   'director:inbox': { section: 'inbox', tab: 'notifications' },
-  'director:approvals': { section: 'inbox', tab: 'approvals' },
 }
 
 const safe = (v: string | null | undefined) => (v && /^[\w:.\-Ѐ-ӿ %]{1,80}$/.test(v) ? v : null)
 
 export function hqHref(panel: string, tab?: string | null, focus?: string | null): string {
+  // Approving lives in one place: the Approvals section (the old hub list sends its links there).
+  if (panel === 'director' && tab === 'approvals') return '/admin/approvals'
   const hit = MAP[`${panel}:${tab ?? ''}`] ?? (!tab ? MAP[`${panel}:${panel === 'sales' ? 'leads' : panel === 'production' ? 'projects' : panel === 'backoffice' ? 'invoices' : ''}`] : undefined)
   const f = safe(focus)
   if (hit) {

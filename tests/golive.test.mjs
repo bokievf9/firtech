@@ -125,13 +125,13 @@ test('go-live list is 41 items in 8 blocks, every item in a known block', () => 
 })
 
 test('/admin/golive exists, checks the admin session and renders the stage', () => {
-  assert.ok(existsSync(new URL('../src/app/admin/golive/page.tsx', import.meta.url)))
-  const page = src('src/app/admin/golive/page.tsx')
+  assert.ok(existsSync(new URL('../src/app/admin/(hq)/golive/page.tsx', import.meta.url)))
+  const page = src('src/app/admin/(hq)/golive/page.tsx')
   assert.match(page, /requireAdmin\(\)/)
   assert.match(page, /GolivePage/)
   const stage = src('src/components/admin/golive/golive-page.tsx')
-  assert.match(stage, /href="\/admin\/office"/)
-  assert.match(stage, /ThemeToggle/)
+  // inside the Shell frame: no own header, no «Офис» link (the Shell has the menu and the theme switch)
+  assert.doesNotMatch(stage, /href="\/admin\/office"|ThemeToggle/)
   assert.match(stage, /useReducedMotion/)
 })
 

@@ -1,18 +1,23 @@
 'use client'
 
-import { ArrowLeft, CaretDown, CaretRight, CheckCircle, ClockCounterClockwise } from '@phosphor-icons/react'
-import Link from 'next/link'
-import { useCallback, useMemo, useState } from 'react'
+import { CaretDown, CaretRight, CheckCircle, ClockCounterClockwise } from '@phosphor-icons/react'
+import { useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btn, btnDanger, btnPrimary, Empty, inputClass, Loading, Offline, useConfirm, useHqView } from '@/components/admin/hub/ui'
-import { ThemeToggle } from '@/components/admin/theme-toggle'
+import { ReviewPage } from '@/components/admin/review/review-page'
 import {
   APPROVAL_TABS,
+  APPROVALS_CHANGED,
+  approvalsHrefFor,
+  approvalsSummary,
   batchable,
   batchQuestion,
   batchResultText,
   currentVersion,
+  parseItemId,
+  parseTab,
   planBatch,
   pruneSelection,
   restorableVersions,
@@ -20,6 +25,7 @@ import {
   TAB_LABEL,
   tabCounts,
   tabItems,
+  tabOf,
   type ApprovalTab,
   type BatchAction,
 } from '@/lib/approvals'
@@ -51,16 +57,20 @@ const KIND_LABEL: Record<string, string> = {
 const STATUS_LABEL = { pending: 'ждёт', approved: 'одобрено', rejected: 'отклонено', published: 'вышло', failed: 'сбой' } as const
 type Answer = { item?: unknown; results?: unknown; state?: string; message?: unknown }
 
-// Approvals: the review centre's queue as four working tabs. Edit in place, decide a selection at
-// once, step back to an older version. Full-screen editor, video stage and publishing stay in /admin/review.
-function ApprovalsPageInner({ initialTab = 'documents' }: { initialTab?: ApprovalTab }) {
+// Approvals: the ONE place to approve (Shell section). The review centre's queue as four working tabs:
+// edit in place, decide a selection at once, step back to an older version. «Открыть» swaps the list for
+// the reader and editor (`?id=ap_N`, `components/admin/review/review-page.tsx`) inside the same section.
+// The tab and the open item live in the URL, so a link, the back button and /admin/review?id= all work.
+function ApprovalsPageInner() {
+  const params = useSearchParams()
+  const tab = parseTab(params.get('tab'))
+  const openId = parseItemId(params.get('id'))
   const data = useHqView('review?status=all&limit=200', normalizeReview, { visible: 15_000, hidden: 60_000 })
   const { mutate } = data
   const { ask, dialog } = useConfirm()
   const [toast, setToast] = useState<ToastMessage | null>(null)
   const notify = useCallback((text: string, tone: ToastMessage['tone'] = 'info') => setToast({ id: Date.now() + Math.random(), text, tone }), [])
   const closeToast = useCallback(() => setToast(null), [])
-  const [tab, setTab] = useState<ApprovalTab>(initialTab)
   const [showDecided, setShowDecided] = useState(false)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
   const [open, setOpen] = useState<string | null>(null)
@@ -72,10 +82,22 @@ function ApprovalsPageInner({ initialTab = 'documents' }: { initialTab?: Approva
   const sel = useMemo(() => pruneSelection(selected, list), [selected, list])
   const selectable = list.filter((it) => batchable(it, 'approve') || batchable(it, 'reject'))
 
+  const total = useMemo(() => approvalsSummary(data.view).total, [data.view])
+  useEffect(() => {
+    if (data.view) window.dispatchEvent(new Event(APPROVALS_CHANGED))
+  }, [total, data.view])
+
+  // Tab and item are in the URL; history.* keeps the page mounted and Next reads it back through useSearchParams.
+  const go = (href: string, push: boolean) => (push ? window.history.pushState(null, '', href) : window.history.replaceState(null, '', href))
   const switchTab = (t: ApprovalTab) => {
-    setTab(t)
+    go(approvalsHrefFor({ tab: t }), false)
     setSelected(new Set())
     setOpen(null)
+  }
+  const openReader = (id: string) => go(approvalsHrefFor({ tab: params.get('tab') ? tab : tabOf(items.find((i) => i.id === id) ?? { kind: '' }), id }), true)
+  const closeReader = () => {
+    const it = items.find((i) => i.id === openId)
+    go(approvalsHrefFor({ tab: params.get('tab') ? tab : it ? tabOf(it) : tab }), true)
   }
   const toggle = (id: string) => {
     const next = new Set(sel)
@@ -134,17 +156,18 @@ function ApprovalsPageInner({ initialTab = 'documents' }: { initialTab?: Approva
     notify(`${batchResultText(action, done, failed, plan.skipped.length)}${lastError ? `. ${lastError}` : ''}`, failed ? 'error' : 'info')
   }
 
+  // The reader owns the whole work area (it has its own queue, stage and details); the list comes back with «К списку».
+  if (openId) {
+    return (
+      <div className="absolute inset-0 flex flex-col bg-bg text-fg" data-approvals-reader>
+        <ReviewPage initialId={openId} onBack={closeReader} onSelect={(id) => go(approvalsHrefFor({ tab: params.get('tab') ? tab : null, id }), false)} />
+      </div>
+    )
+  }
+
   return (
-    <div className="fixed inset-0 flex flex-col bg-bg text-fg">
-      <header className="flex min-h-14 items-center gap-2 border-b border-line px-2 sm:gap-3 sm:px-4">
-        <Link href="/admin/office" aria-label="Назад в офис" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text">
-          <ArrowLeft size={16} aria-hidden="true" />
-          <span className="hidden sm:inline">Офис</span>
-        </Link>
-        <h1 className="font-brand text-sm tracking-wide sm:text-base">Approvals</h1>
-        <Link href="/admin/review" className="ml-auto hidden h-10 items-center rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text sm:inline-flex">Ревью-центр</Link>
-        <ThemeToggle />
-      </header>
+    <div className="absolute inset-0 flex flex-col bg-bg text-fg">
+      <h1 className="sr-only">Approvals</h1>
 
       <nav aria-label="Разделы Approvals" className="flex gap-1.5 overflow-x-auto border-b border-line px-2 py-2 sm:px-4 [scrollbar-width:none]">
         {APPROVAL_TABS.map((t) => (
@@ -200,6 +223,7 @@ function ApprovalsPageInner({ initialTab = 'documents' }: { initialTab?: Approva
               busy={busy}
               onToggle={() => toggle(it.id)}
               onExpand={() => setOpen(open === it.id ? null : it.id)}
+              onOpenReader={() => openReader(it.id)}
               onDecide={(a) => void decideOne(it, a)}
               call={call}
               notify={notify}
@@ -224,6 +248,7 @@ function Row({
   busy,
   onToggle,
   onExpand,
+  onOpenReader,
   onDecide,
   call,
   notify,
@@ -236,6 +261,7 @@ function Row({
   busy: boolean
   onToggle: () => void
   onExpand: () => void
+  onOpenReader: () => void
   onDecide: (a: BatchAction) => void
   call: CallFn
   notify: (text: string, tone?: ToastMessage['tone']) => void
@@ -271,12 +297,12 @@ function Row({
           <button type="button" className={cn(btn, 'hidden sm:inline-flex')} disabled={busy} onClick={() => onDecide('approve')}>Одобрить</button>
         ) : null}
       </div>
-      {expanded ? <Detail item={item} busy={busy} onDecide={onDecide} call={call} notify={notify} setBusy={setBusy} mutate={mutate} /> : null}
+      {expanded ? <Detail item={item} onOpenReader={onOpenReader} busy={busy} onDecide={onDecide} call={call} notify={notify} setBusy={setBusy} mutate={mutate} /> : null}
     </li>
   )
 }
 
-function Detail({ item, busy, onDecide, call, notify, setBusy, mutate }: { item: ReviewItem; busy: boolean; onDecide: (a: BatchAction) => void; call: CallFn; notify: (text: string, tone?: ToastMessage['tone']) => void; setBusy: (b: boolean) => void; mutate: (change: (v: ReviewView) => ReviewView) => void }) {
+function Detail({ item, onOpenReader, busy, onDecide, call, notify, setBusy, mutate }: { item: ReviewItem; onOpenReader: () => void; busy: boolean; onDecide: (a: BatchAction) => void; call: CallFn; notify: (text: string, tone?: ToastMessage['tone']) => void; setBusy: (b: boolean) => void; mutate: (change: (v: ReviewView) => ReviewView) => void }) {
   const fields = fieldsOf(item)
   const [values, setValues] = useState<Partial<Record<FieldKey, string>>>({})
   const [note, setNote] = useState('')
@@ -342,14 +368,14 @@ function Detail({ item, busy, onDecide, call, notify, setBusy, mutate }: { item:
         )
       })}
       {isReplyKind(item.kind) ? <RateButtons messageId={item.id} thread="review" /> : null}
-      {!fields.length && !hasDocs ? <p className="text-sm text-muted">У этого материала нет текста. Файлы смотрите в ревью-центре.</p> : null}
-      {hasDocs ? <p className="text-sm text-muted">Пакет из нескольких документов правится в полноэкранном редакторе.</p> : null}
+      {!fields.length && !hasDocs ? <p className="text-sm text-muted">У этого материала нет текста. Файлы смотрите в читалке.</p> : null}
+      {hasDocs ? <p className="text-sm text-muted">Пакет из нескольких документов правится в читалке.</p> : null}
 
       <div className="flex flex-wrap items-center gap-2">
         {canEdit ? <button type="button" className={btnPrimary} disabled={busy || !dirty} onClick={() => void save()}>Сохранить правку</button> : null}
         {item.actions.includes('approve') ? <button type="button" className={btn} disabled={busy || dirty} onClick={() => onDecide('approve')}>Одобрить</button> : null}
         {item.actions.includes('reject') ? <button type="button" className={btnDanger} disabled={busy} onClick={() => onDecide('reject')}>Отклонить</button> : null}
-        <Link href={`/admin/review?id=${item.id}`} className={cn(btn, 'ml-auto')}>Открыть в ревью</Link>
+        <button type="button" onClick={onOpenReader} className={cn(btn, 'ml-auto')}>Открыть читалку</button>
       </div>
 
       {item.actions.includes('revise') ? (
@@ -387,10 +413,10 @@ function Detail({ item, busy, onDecide, call, notify, setBusy, mutate }: { item:
 }
 
 
-export function ApprovalsPage({ initialTab = 'documents' }: { initialTab?: ApprovalTab }) {
+export function ApprovalsPage() {
   return (
     <RatingsProvider>
-      <ApprovalsPageInner initialTab={initialTab} />
+      <ApprovalsPageInner />
     </RatingsProvider>
   )
 }

@@ -2,13 +2,11 @@
 
 import { ArrowBendUpLeft, ArrowLeft, ChatCircleText, EnvelopeSimple, MagnifyingGlass, PaperPlaneTilt, Paperclip, X } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btnPrimary, inputClass, modalOpen, Offline, typingIn, useHqView } from '@/components/admin/hub/ui'
 import { Chip } from '@/components/admin/pult/bits'
-import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { cn } from '@/lib/cn'
 import {
   canReplyTo,
@@ -69,7 +67,6 @@ function ChannelChips({ channels }: { channels: Channel[] }) {
 }
 
 function ChatsPageInner() {
-  const router = useRouter()
   const desktop = useDesktop()
   const [toast, setToast] = useState<ToastMessage | null>(null)
   const notify = useCallback((text: string, tone: ToastMessage['tone'] = 'info') => setToast({ id: Date.now() + Math.random(), text, tone }), [])
@@ -195,35 +192,25 @@ function ChatsPageInner() {
         return
       }
       if (!desktop && sel) setSel(null)
-      else router.push('/admin/office')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [desktop, sel, router])
+  }, [desktop, sel])
 
   const showList = desktop || !sel
   const showThread = desktop || !!sel
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-bg text-fg">
-      <header className="flex min-h-14 items-center gap-2 border-b border-line px-2 sm:gap-3 sm:px-4">
+    <div className="absolute inset-0 flex flex-col bg-bg text-fg">
+      <header className="flex min-h-12 items-center gap-2 border-b border-line px-2 sm:gap-3 sm:px-4">
         {!desktop && sel ? (
           <button type="button" onClick={() => setSel(null)} aria-label="К списку чатов" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm">
             <ArrowLeft size={16} aria-hidden="true" />
             Чаты
           </button>
-        ) : (
-          <Link href="/admin/office" aria-label="Назад в офис" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text">
-            <ArrowLeft size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">Офис</span>
-          </Link>
-        )}
-        <h1 className="font-brand text-sm tracking-wide sm:text-base">Чаты</h1>
+        ) : null}
+        <h1 className={cn('font-brand text-sm tracking-wide sm:text-base', !desktop && sel && 'sr-only')}>Чаты</h1>
         {unread ? <span className="rounded-full bg-accent px-2.5 py-1 font-mono text-xs tabular-nums text-accent-ink" aria-label={`Непрочитанных: ${unread}`}>{unread}</span> : null}
-        <div className="ml-auto flex items-center gap-2">
-          <Link href="/admin/review" className="hidden h-10 items-center rounded-full border border-line-strong px-3 text-sm hover:border-accent hover:text-accent-text sm:inline-flex">Ревью</Link>
-          <ThemeToggle />
-        </div>
       </header>
 
       <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[22rem_minmax(0,1fr)]">

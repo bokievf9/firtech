@@ -1,5 +1,7 @@
 import {
   editPayload,
+  pendingTotal,
+  type Counts,
   hashtagsText,
   isPending,
   type FieldKey,
@@ -40,6 +42,31 @@ export function tabCounts(items: ReviewItem[]): Record<ApprovalTab, number> {
   const out: Record<ApprovalTab, number> = { documents: 0, replies: 0, content: 0, money: 0 }
   for (const it of items) if (isPending(it)) out[tabOf(it)]++
   return out
+}
+
+// The Approvals page tells the Shell (menu badge) that the pending count moved.
+export const APPROVALS_CHANGED = 'fir:approvals-changed'
+
+// `?tab=` and `?id=` of /admin/approvals: anything else falls back (the first tab, no item open).
+export const parseTab = (v: unknown): ApprovalTab => (APPROVAL_TABS as readonly string[]).includes(v as string) ? (v as ApprovalTab) : 'documents'
+export const parseItemId = (v: unknown): string | null => (typeof v === 'string' && /^ap_\d{1,12}$/.test(v) ? v : null)
+export const approvalsHrefFor = (opts: { tab?: ApprovalTab | null; id?: string | null } = {}): string => {
+  const p = new URLSearchParams()
+  if (opts.tab && opts.tab !== 'documents') p.set('tab', opts.tab)
+  const id = parseItemId(opts.id)
+  if (id) p.set('id', id)
+  const q = p.toString()
+  return q ? `/admin/approvals?${q}` : '/admin/approvals'
+}
+
+// One number for «waiting for the owner» everywhere (Shell menu badge, Inbox, the Approvals header, the
+// Office top bar chip): the review `counts` of GET /admin/review. The tab counts come from the loaded
+// items and can only be lower than `total` (the list is capped); `consistent` says they add up.
+export function approvalsSummary(view: { items: ReviewItem[]; counts: Counts } | null | undefined) {
+  const total = view ? pendingTotal(view.counts) : 0
+  const tabs = tabCounts(view?.items ?? [])
+  const tabsSum = APPROVAL_TABS.reduce((n, t) => n + tabs[t], 0)
+  return { total, tabs, tabsSum, consistent: tabsSum === total }
 }
 
 // The list of a tab: pending first (HQ order, newest first), decided ones after them when asked for.

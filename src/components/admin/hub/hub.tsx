@@ -181,8 +181,8 @@ export function Hub({ initial = null }: { initial?: { panel: string; tab?: strin
   const closePanel = useCallback(() => setOpen(null), [])
   // The go-live plan is a full-screen page (key 8, the top bar chip, ⌘K).
   const openGolive = useCallback(() => router.push('/admin/golive'), [router])
-  // The review centre (key 9) and the client chats (key 0) are full-screen pages too.
-  const openReview = useCallback(() => router.push('/admin/review'), [router])
+  // Approvals (key 9) and the client chats (key 0) are sections of the Shell frame.
+  const openReview = useCallback(() => router.push('/admin/approvals'), [router])
   const openChats = useCallback(() => router.push('/admin/chats'), [router])
 
   // ---- presence (kept by pinging while the page is visible) ----
@@ -433,7 +433,7 @@ export function Hub({ initial = null }: { initial?: { panel: string; tab?: strin
       { id: 'cmd:release', group: p.groups.commands, title: p.commands.release, hint: p.commands.releaseHint, dept: 'director', run: () => void run('approve') },
     ]
     const goliveEntry: PaletteItem = { id: 'panel:golive', group: p.groups.panels, title: goliveText.title, hint: '8', dept: 'company', keywords: 'запуск таймер чеклист 72 часа', run: openGolive }
-    const reviewEntry: PaletteItem = { id: 'page:review', group: p.groups.panels, title: 'Ревью-центр', hint: '9', dept: 'marketing', keywords: 'ревью одобрить рилсы правки выкладывай материалы тренды ссылка', run: openReview }
+    const reviewEntry: PaletteItem = { id: 'page:review', group: p.groups.panels, title: 'Approvals', hint: '9', dept: 'marketing', keywords: 'ревью одобрить рилсы правки выкладывай материалы тренды ссылка', run: openReview }
     const chatsEntry: PaletteItem = { id: 'page:chats', group: p.groups.panels, title: 'Чаты с клиентами', hint: '0', dept: 'sales', keywords: 'чаты переписка клиенты ответить сообщения', run: openChats }
     return [...panels, goliveEntry, reviewEntry, chatsEntry, ...commands, ...tabs]
   }, [openPanel, openGolive, openReview, openChats, toTimeline])
@@ -504,13 +504,13 @@ export function Hub({ initial = null }: { initial?: { panel: string; tab?: strin
             <Presence view={view} busy={presenceBusy} onChange={setPresence} />
             <GoliveChip state={golive.data?.state ?? null} />
             <Link
-              href="/admin/review"
-              title="Ревью-центр (9)"
-              aria-label={`Ревью: ждут решения ${reviewPending ?? '?'}`}
+              href="/admin/approvals"
+              title="Approvals (9)"
+              aria-label={`Approvals: ждут решения ${reviewPending ?? '?'}`}
               className={cn('inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-sm tabular-nums transition-colors', reviewPending ? cn(deptTheme('marketing').cls.soft, deptTheme('marketing').cls.border, 'text-fg') : 'border-line bg-surface/80 text-muted hover:text-fg')}
             >
               <Stack size={16} weight={reviewPending ? 'fill' : 'regular'} aria-hidden="true" className={reviewPending ? deptTheme('marketing').cls.text : ''} />
-              <span className="hidden sm:inline">Ревью</span>
+              <span className="hidden sm:inline">Approvals</span>
               {reviewPending ?? '·'}
             </Link>
             <Link

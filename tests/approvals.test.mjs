@@ -75,3 +75,31 @@ test('restorePayload: an old version becomes an ordinary edit, nothing when equa
   const q = a.restorePayload(reply, old)
   assert.equal(typeof q.text.draft, 'string')
 })
+
+test('URL parsing: tab and item id fall back, the href is built back', () => {
+  assert.equal(a.parseTab('money'), 'money')
+  assert.equal(a.parseTab('x'), 'documents')
+  assert.equal(a.parseTab(undefined), 'documents')
+  assert.equal(a.parseItemId('ap_209'), 'ap_209')
+  assert.equal(a.parseItemId('ap_1; drop'), null)
+  assert.equal(a.parseItemId(['ap_1']), null)
+  assert.equal(a.approvalsHrefFor(), '/admin/approvals')
+  assert.equal(a.approvalsHrefFor({ tab: 'money', id: 'ap_5' }), '/admin/approvals?tab=money&id=ap_5')
+  assert.equal(a.approvalsHrefFor({ id: 'bad' }), '/admin/approvals')
+})
+
+test('one count: the badge, Inbox and the Approvals tabs agree with the review counts', () => {
+  const view = r.normalizeReview(createHqMock(T0)('GET', 'review', { status: 'all' }, {}, T0))
+  const s = a.approvalsSummary(view)
+  assert.equal(s.total, r.pendingTotal(view.counts))
+  assert.equal(s.tabsSum, items.filter(r.isPending).length)
+  assert.equal(s.consistent, true)
+  assert.equal(s.total, s.tabs.documents + s.tabs.replies + s.tabs.content + s.tabs.money)
+  // after one decision the optimistic update moves both numbers by one
+  const it = view.items.find((i) => r.isPending(i))
+  const after = { ...view, items: r.withStatus(view.items, it.id, 'approve'), counts: r.dropCount(view.counts, it.dept) }
+  const s2 = a.approvalsSummary(after)
+  assert.equal(s2.total, s.total - 1)
+  assert.equal(s2.consistent, true)
+  assert.equal(a.approvalsSummary(null).total, 0)
+})

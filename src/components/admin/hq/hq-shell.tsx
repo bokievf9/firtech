@@ -29,11 +29,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AdminMenu } from '@/components/admin/admin-shell'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { CommandPalette, type PaletteItem } from '@/components/admin/hub/command-palette'
-import { HubContext, modalOpen, typingIn, type HubApi } from '@/components/admin/hub/ui'
+import { HubContext, modalOpen, typingIn, useHqView, type HubApi } from '@/components/admin/hub/ui'
 import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { Logo } from '@/components/logo'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
+import { APPROVALS_CHANGED, approvalsSummary } from '@/lib/approvals'
+import { normalizeReview } from '@/lib/review'
 import { HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, sectionForKey, type HqSection, type HqSectionId } from '@/lib/hq-shell'
 
 const t = admin.hq
@@ -69,7 +71,7 @@ function useNow(step = 15_000) {
   return now
 }
 
-function NavItem({ s, active, index, compact }: { s: HqSection; active: boolean; index: number; compact: boolean }) {
+function NavItem({ s, active, index, compact, badge }: { s: HqSection; active: boolean; index: number; compact: boolean; badge?: number | null }) {
   const Ico = icons[s.id]
   return (
     <Link
@@ -86,6 +88,9 @@ function NavItem({ s, active, index, compact }: { s: HqSection; active: boolean;
       <Ico size={18} weight={active ? 'fill' : 'regular'} aria-hidden="true" className={active ? 'text-accent-text' : ''} />
       <span className="min-w-0 flex-1 truncate">{s.label}</span>
       {s.state === 'soon' ? <span className="rounded-full border border-line px-1.5 py-px text-[10px] text-faint">{t.soon}</span> : null}
+      {badge ? (
+        <span data-badge={s.id} aria-label={`${badge}`} className="rounded-full bg-accent px-1.5 py-px font-mono text-[10px] tabular-nums text-accent-ink">{badge}</span>
+      ) : null}
       {!compact && index < 9 ? <kbd className="font-mono text-[10px] text-faint">{index + 1}</kbd> : null}
     </Link>
   )
@@ -107,6 +112,15 @@ export function HqShell({ children }: { children: React.ReactNode }) {
     (panel: string, tab?: string, focus: string | null = null) => router.push(hqHref(panel, tab, focus)),
     [router],
   )
+  // «Waiting for the owner»: the review counts, the same number as Inbox, the Approvals header and the Office chip.
+  const review = useHqView('review?status=pending&limit=1', normalizeReview, { visible: 15_000, hidden: 60_000 })
+  const waiting = review.view ? approvalsSummary(review.view).total : null
+  const { reload: reloadReview } = review
+  useEffect(() => {
+    const on = () => void reloadReview()
+    window.addEventListener(APPROVALS_CHANGED, on)
+    return () => window.removeEventListener(APPROVALS_CHANGED, on)
+  }, [reloadReview])
   const api = useMemo<HubApi>(() => ({ now, notify, open }), [now, notify, open])
 
   useEffect(() => {
@@ -197,12 +211,12 @@ export function HqShell({ children }: { children: React.ReactNode }) {
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
           <nav aria-label={t.menu} className="hidden w-56 shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-line p-2 lg:flex">
             {HQ_SECTIONS.map((s, i) => (
-              <NavItem key={s.id} s={s} index={i} compact={false} active={pathname === s.href} />
+              <NavItem key={s.id} s={s} index={i} compact={false} badge={s.id === 'approvals' ? waiting : null} active={pathname === s.href} />
             ))}
           </nav>
           <nav aria-label={t.menu} className="flex shrink-0 gap-1 overflow-x-auto border-b border-line p-1.5 lg:hidden">
             {HQ_SECTIONS.map((s, i) => (
-              <NavItem key={s.id} s={s} index={i} compact active={pathname === s.href} />
+              <NavItem key={s.id} s={s} index={i} compact badge={s.id === 'approvals' ? waiting : null} active={pathname === s.href} />
             ))}
           </nav>
           <main className="relative min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">{children}</main>

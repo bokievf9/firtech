@@ -237,10 +237,10 @@ export function ApprovalsSection({ items, error, now, focus, queued, onAct, onEd
         </div>
       ) : null}
       <p className="mb-3 px-1 text-sm">
-        <Link href="/admin/review" className="inline-flex min-h-9 items-center text-accent-text underline">
-          Открыть в ревью-центре
+        <Link href="/admin/approvals" className="inline-flex min-h-9 items-center text-accent-text underline">
+          Открыть Approvals
         </Link>
-        <span className="text-faint">: читать, править и выкладывать на весь экран</span>
+        <span className="text-faint">: единственное место, где одобряют, читают и правят</span>
       </p>
       {error && !list ? <PanelError error={error} /> : null}
       {!list && !error ? <PanelWait /> : null}

@@ -1,11 +1,9 @@
 'use client'
 
-import { ArrowLeft, ArrowUp } from '@phosphor-icons/react'
+import { ArrowUp } from '@phosphor-icons/react'
 import { motion, MotionConfig, useReducedMotion } from 'motion/react'
-import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { fill, useClock, useGolive } from '@/components/admin/hub/golive'
 import { btn, btnDanger, btnPrimary, useConfirm } from '@/components/admin/hub/ui'
@@ -144,17 +142,10 @@ export function GolivePage() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="bg-bg text-fg">
-        <section ref={hero} aria-label={t.title} className="relative isolate flex min-h-[100svh] flex-col overflow-hidden">
+      <div className="bg-bg text-fg">
+        <section ref={hero} aria-label={t.title} className="relative isolate flex min-h-[calc(100svh-7.5rem)] flex-col overflow-hidden">
           <StageField ref={field} reduce={reduce} />
           <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,color-mix(in_srgb,var(--color-bg)_55%,transparent),transparent_70%)]" />
-          <header className="relative z-10 flex items-center justify-between gap-3 px-3 py-3 sm:px-6">
-            <Link href="/admin/office" aria-label={t.backLabel} className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong bg-bg/60 px-4 text-sm backdrop-blur transition-colors hover:border-accent hover:text-accent-text">
-              <ArrowLeft size={16} aria-hidden="true" />
-              {t.back}
-            </Link>
-            <ThemeToggle />
-          </header>
 
           <div className="relative z-10 flex flex-1 flex-col items-center justify-center gap-7 px-4 pt-2 pb-10 text-center sm:gap-9">
             <motion.h1 {...rise(0)} className="font-brand text-base tracking-wide text-fg/80 sm:text-lg">
@@ -221,7 +212,7 @@ export function GolivePage() {
           type="button"
           inert={heroVisible}
           aria-label={t.top}
-          onClick={() => window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })}
+          onClick={() => hero.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })}
           className={cn(
             'fixed right-4 bottom-4 z-40 inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong bg-elevated px-4 text-sm shadow-dialog transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] hover:border-accent motion-reduce:transition-none sm:right-6 sm:bottom-6',
             heroVisible ? 'translate-y-3 opacity-0' : 'translate-y-0 opacity-100',
@@ -232,7 +223,7 @@ export function GolivePage() {
         </button>
         <Toast message={toast} onClose={closeToast} />
         {dialog ? createPortal(dialog, document.body) : null}
-      </main>
+      </div>
     </MotionConfig>
   )
 }
