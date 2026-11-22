@@ -138,12 +138,12 @@ test('projects: progress, next milestone text, clamps broken counters', () => {
     ],
   }).items
   assert.equal(c.progressPercent(p.tasksDone, p.tasksTotal), 25)
-  assert.equal(c.nextMilestoneText(p), 'Бриф, до 21 нояб.')
+  assert.equal(c.nextMilestoneText(p), 'Бриф, until 21 Nov')
   assert.equal(c.progressPercent(none.tasksDone, none.tasksTotal), null)
-  assert.equal(c.nextMilestoneText(none), 'Вех нет')
-  assert.equal(c.nextMilestoneText(done), 'Все вехи закрыты')
+  assert.equal(c.nextMilestoneText(none), 'No milestones')
+  assert.equal(c.nextMilestoneText(done), 'All milestones closed')
   assert.equal(odd.tasksDone, 2)
-  assert.equal(c.nextMilestoneText(odd), 'Сдача')
+  assert.equal(c.nextMilestoneText(odd), 'Delivery')
 })
 
 test('summary: badges come from available sections only, never a zero', () => {
@@ -175,15 +175,15 @@ test('clients and referrals: defaults and chats totals', () => {
 
 test('dates: relative inside a day, owner time zone (Asia/Kuala_Lumpur) otherwise', () => {
   const ago = (min) => new Date(NOW - min * 60_000).toISOString()
-  assert.equal(c.relativeDate(ago(0), NOW), 'только что')
-  assert.equal(c.relativeDate(ago(5), NOW), '5 мин назад')
-  assert.equal(c.relativeDate(ago(180), NOW), '3 ч назад')
-  assert.equal(c.relativeDate(new Date(NOW + 2 * 3600_000).toISOString(), NOW), 'через 2 ч')
+  assert.equal(c.relativeDate(ago(0), NOW), 'just now')
+  assert.equal(c.relativeDate(ago(5), NOW), '5 min ago')
+  assert.equal(c.relativeDate(ago(180), NOW), '3 h ago')
+  assert.equal(c.relativeDate(new Date(NOW + 2 * 3600_000).toISOString(), NOW), 'in 2 h')
   // 10:00 UTC is 18:00 in Kuala Lumpur (UTC+8); two days earlier is outside the relative window.
-  assert.match(c.relativeDate('2026-11-17T10:00:00.000Z', NOW), /17 нояб\.?,? 18:00/)
+  assert.match(c.relativeDate('2026-11-17T10:00:00.000Z', NOW), /17 Nov,? 18:00/)
   // 20:00 UTC is already the next day in Kuala Lumpur.
-  assert.equal(c.dateLabel('2026-11-17T20:00:00.000Z'), '18 нояб.')
-  assert.equal(c.dateLabel('2026-11-17T20:00:00.000Z', 'UTC'), '17 нояб.')
+  assert.equal(c.dateLabel('2026-11-17T20:00:00.000Z'), '18 Nov')
+  assert.equal(c.dateLabel('2026-11-17T20:00:00.000Z', 'UTC'), '17 Nov')
   assert.equal(c.relativeDate(null, NOW), '')
   assert.equal(c.relativeDate('garbage', NOW), '')
   assert.equal(c.dateLabel(null), '')

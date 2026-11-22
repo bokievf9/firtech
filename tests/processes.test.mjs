@@ -75,12 +75,12 @@ test('normalizeProcesses: shape, defaults, unknown values dropped, chain health 
 
 test('sinceText', () => {
   const now = Date.parse('2026-11-23T12:00:00Z')
-  assert.equal(p.sinceText(null, now), 'ещё не было')
-  assert.equal(p.sinceText('2026-11-23T11:59:30Z', now), 'только что')
-  assert.equal(p.sinceText('2026-11-23T11:30:00Z', now), '30 мин назад')
-  assert.equal(p.sinceText('2026-11-23T09:00:00Z', now), '3 ч назад')
-  assert.equal(p.sinceText('2026-11-22T09:00:00Z', now), 'вчера')
-  assert.equal(p.sinceText('2026-11-18T09:00:00Z', now), '5 дн. назад')
+  assert.equal(p.sinceText(null, now), 'never')
+  assert.equal(p.sinceText('2026-11-23T11:59:30Z', now), 'just now')
+  assert.equal(p.sinceText('2026-11-23T11:30:00Z', now), '30 min ago')
+  assert.equal(p.sinceText('2026-11-23T09:00:00Z', now), '3 h ago')
+  assert.equal(p.sinceText('2026-11-22T09:00:00Z', now), 'yesterday')
+  assert.equal(p.sinceText('2026-11-18T09:00:00Z', now), '5 d ago')
 })
 
 test('whitelist: GET processes and POST processes/drill with start|clear only', () => {

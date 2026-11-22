@@ -65,10 +65,10 @@ test('thread view: messages by time, alias ids open the client thread, reply is 
   assert.equal(reply.sent, true)
   assert.equal(reply.via, 'cabinet')
   assert.equal(reply.thread.unread, 0)
-  assert.equal(c.replyNote(reply), 'Отправлено в кабинет')
+  assert.equal(c.replyNote(reply), 'Sent to the cabinet')
   const anon = c.normalizeReply(m('POST', 'chats/w7f3/reply', {}, { text: 'Привет' }, T0))
   assert.equal(anon.sent, false)
-  assert.match(c.replyNote(anon), /Не доставлено/)
+  assert.match(c.replyNote(anon), /Not delivered/)
   assert.equal(m('GET', 'chats/zzz', {}, {}, T0).error, 'not_found')
 })
 
@@ -81,7 +81,7 @@ test('mergeMessages keeps local replies the server has not returned yet', () => 
 
 test('threadLinks and the Enter rule', () => {
   const t = c.normalizeThread(thread('c3', { client: { id: 3, name: 'Анна' }, leadId: 12, ticketId: 4 }))
-  assert.deepEqual(c.threadLinks(t).map((l) => l.label), ['Открыть лид', 'Открыть тикет', 'Открыть клиента'])
+  assert.deepEqual(c.threadLinks(t).map((l) => l.label), ['Open lead', 'Open ticket', 'Open client'])
   assert.equal(c.threadLinks(t)[0].href, '/admin/clients?tab=pipeline&focus=12')
   assert.equal(c.threadLinks(c.normalizeThread(thread('w1'))).length, 0)
   assert.equal(c.sendsOnEnter({ key: 'Enter', shiftKey: false }), true)

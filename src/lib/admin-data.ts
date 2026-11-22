@@ -259,7 +259,7 @@ export function leadsCsv(
     l.estimate,
     l.page ? `${siteUrl}${l.page}` : '',
     l.locale.toUpperCase(),
-    l.booking ? formatSlot(l.booking.slot, 'ru', false) : '',
+    l.booking ? formatSlot(l.booking.slot, 'en', false) : '',
     l.booking ? names.bookings[l.booking.state] : '',
     l.notes ?? '',
   ])

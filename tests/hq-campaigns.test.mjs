@@ -112,7 +112,7 @@ test('dev mock: list, card with a journal, a draft stays pending and sends nothi
 test('texts: warning names approval and consent, no long dashes, no addresses in the journal view', () => {
   const ui = read('src/components/admin/hq/campaigns-section.tsx')
   const txt = read('src/content/admin.ts')
-  assert.ok(/Ничего не уйдёт без вашего одобрения/.test(txt) && /согласие/.test(txt))
+  assert.ok(/Nothing is sent without your approval/.test(txt) && /consented/.test(txt))
   assert.ok(!/[–—]/.test(ui))
   assert.ok(!/catch\s*(\([^)]*\))?\s*\{\s*\}/.test(ui))
   assert.ok(!/\bemail\b.*\.address|\.contact/.test(ui))

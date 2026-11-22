@@ -199,8 +199,8 @@ test('reviews and cabinet documents of the Пульт: rows, ratings, marks', ()
   assert.equal(d.items[0].mail.state, 'failed')
   assert.equal(d.items[0].deliveredAt, null)
   assert.deepEqual(d.items[0].problems, ['email_failed', 'no_pdf'])
-  assert.equal(crm.problemLabel('email_failed'), 'письмо не ушло')
-  assert.equal(crm.problemLabel('no_pdf'), 'нет PDF')
+  assert.equal(crm.problemLabel('email_failed'), 'email did not go out')
+  assert.equal(crm.problemLabel('no_pdf'), 'no PDF')
 })
 
 test('the Пульт mock follows the contract: call actions, ready_milestone 409 with a hint, resend, reviews', () => {

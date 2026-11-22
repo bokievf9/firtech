@@ -50,7 +50,7 @@ test('sendOf: a /command runs, free text becomes a task through say, blanks do n
 })
 
 test('suggestCommands: autocomplete by prefix first, then by word, only while the command is being typed', () => {
-  assert.deepEqual(o.suggestCommands('/st').map((c) => c.name), ['status', 'costs'], 'prefix first, then a match inside')
+  assert.deepEqual(o.suggestCommands('/st').map((c) => c.name), ['status', 'retry', 'costs', 'org'], 'prefix first, then a match inside')
   assert.deepEqual(o.suggestCommands('/sta').map((c) => c.name), ['status'])
   assert.ok(o.suggestCommands('/').length >= 8, 'a bare slash lists commands')
   assert.equal(o.suggestCommands('/').length, 8)

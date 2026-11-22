@@ -108,8 +108,8 @@ export function leadBreakdown(input: BreakdownInput, pricing: Pricing = defaultP
   out.estimateHref = `/${locale}/builder/estimate?b=${found.code}`
   out.buildHref = `/${locale}/builder?b=${found.code}`
   out.previewHref = `/${locale}/builder?b=${found.code}&step=8`
-  const kindLabel = locale === 'ru' ? 'Ниша' : 'Niche'
-  const productsLabel = locale === 'ru' ? 'Продукты' : 'Products'
+  const kindLabel = 'Niche'
+  const productsLabel = 'Products'
   out.answers = [
     ...(doc.kind ? [{ id: 'kind', label: kindLabel, value: doc.kind }] : []),
     ...(doc.products.length ? [{ id: 'products', label: productsLabel, value: doc.products.join(', ') }] : []),

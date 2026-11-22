@@ -57,10 +57,10 @@ test('planBatch keeps only what HQ allows and reports the rest as skipped', () =
 })
 
 test('batch texts: money warns, results count', () => {
-  assert.match(a.batchQuestion('money', 'approve', 2), /Счета и цены уйдут клиентам/)
-  assert.doesNotMatch(a.batchQuestion('replies', 'approve', 2), /Счета/)
-  assert.equal(a.batchResultText('approve', 3, 0, 0), 'Одобрено: 3')
-  assert.match(a.batchResultText('reject', 1, 2, 1), /не вышло: 2.*пропущено.*: 1/)
+  assert.match(a.batchQuestion('money', 'approve', 2), /Invoices and prices go to clients/)
+  assert.doesNotMatch(a.batchQuestion('replies', 'approve', 2), /Invoices/)
+  assert.equal(a.batchResultText('approve', 3, 0, 0), 'Approved: 3')
+  assert.match(a.batchResultText('reject', 1, 2, 1), /failed: 2.*skipped.*: 1/)
 })
 
 test('restorePayload: an old version becomes an ordinary edit, nothing when equal', () => {

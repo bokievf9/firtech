@@ -464,7 +464,7 @@ test('company tools: tolerant parsing, grouping by prefix, state and limits text
   const search = c.tools.find((t) => t.name === 'web.search')
   assert.deepEqual(search.departments, ['marketing', 'sales'])
   assert.deepEqual(search.env, ['BRAVE_SEARCH_KEY'])
-  assert.equal(p.limitsText(search.limits), 'таймаут 8 с, пауза 1 с, кэш 1 ч, до 10 результатов')
+  assert.equal(p.limitsText(search.limits), 'timeout 8 s, pause 1 s, cache 1 h, up to 10 results')
   assert.equal(c.tools.find((t) => t.name === 'web.getJson').callsToday, 0)
   assert.equal(p.toolState(search), 'ok')
   assert.equal(p.toolState(c.tools.find((t) => t.name === 'google.youtube.channel')), 'missing')

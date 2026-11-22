@@ -72,7 +72,7 @@ test('leads panel: CSV has BOM, header and one row per lead, formulas escaped', 
   assert.equal(lines.length, 3, 'header and two rows; the quoted line break stays inside its cell')
   assert.match(csv, /'=HYPERLINK/)
   assert.match(csv, /"a, b\nc"/)
-  assert.match(csv, /Сделка/)
+  assert.match(csv, /Won/)
 })
 
 test('calls panel: week grouping, today and pending', () => {

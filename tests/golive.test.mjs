@@ -28,7 +28,7 @@ test('remaining: 2 days 3 h reads as 51 h, a fresh 72 h timer as 72:00:00', () =
   assert.equal(chipText(r), '51:00:00')
   assert.equal(chipText(remaining(new Date(T0 + 72 * 3600_000).toISOString(), T0)), '72:00:00')
   assert.equal(chipText(remaining(new Date(T0 + 72 * 3600_000 - 2000).toISOString(), T0)), '71:59:58')
-  assert.equal(agoText(remaining(new Date(T0 - (2 * 86400 + 4 * 3600) * 1000).toISOString(), T0)), '2 д 4 ч')
+  assert.equal(agoText(remaining(new Date(T0 - (2 * 86400 + 4 * 3600) * 1000).toISOString(), T0)), '2 d 4 h')
 })
 
 test('remaining: not started and over', () => {
@@ -37,7 +37,7 @@ test('remaining: not started and over', () => {
   const r = remaining(new Date(T0 - 3 * 3600_000 - 5 * 60_000).toISOString(), T0)
   assert.equal(r.over, true)
   assert.ok(r.totalMs < 0)
-  assert.equal(agoText(r), '3 ч 05 мин')
+  assert.equal(agoText(r), '3 h 05 min')
   assert.equal(remaining(new Date(T0).toISOString(), T0).over, true)
 })
 

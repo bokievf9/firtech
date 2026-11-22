@@ -18,7 +18,7 @@ export const DIRECTOR_COMMANDS: readonly DirectorCommand[] = [
   { name: 'retry', args: '<id>', help: 'retry a stuck task' },
   { name: 'costs', help: 'monthly costs by department' },
   { name: 'org', help: 'org chart and trust' },
-  { name: 'workers', help: 'workers and what starts them' },
+  { name: 'workers', help: 'workers and their triggers' },
   { name: 'builders', help: 'tasks for builders' },
   { name: 'drill', args: '[department]', help: 'drill: check every department' },
   { name: 'pause', args: '<department>', help: 'pause a department' },

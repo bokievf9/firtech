@@ -486,7 +486,7 @@ export const visibleReferrals = (items: Referral[], status: string, q: string) =
 
 function fmt(iso: string, tz: string, opts: Intl.DateTimeFormatOptions): string {
   try {
-    return new Intl.DateTimeFormat('ru-RU', { timeZone: tz, ...opts }).format(Date.parse(iso))
+    return new Intl.DateTimeFormat('en-GB', { timeZone: tz, ...opts }).format(Date.parse(iso))
   } catch {
     return iso
   }

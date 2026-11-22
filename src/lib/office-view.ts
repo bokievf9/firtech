@@ -241,7 +241,7 @@ export function formatDataAge(seconds: number): string {
 // Wall clock "HH:mm" in the given time zone (Asia/Tashkent by default).
 export function formatClock(now: number, tz = 'Asia/Tashkent'): string {
   try {
-    return new Intl.DateTimeFormat('ru-RU', {
+    return new Intl.DateTimeFormat('en-GB', {
       timeZone: tz,
       hour: '2-digit',
       minute: '2-digit',

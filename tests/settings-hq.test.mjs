@@ -51,9 +51,9 @@ test('the normalizer keeps known fields, defaults the rest and rejects a bad bod
 
 test('autopilot: three modes, policy by default, the owner labels', () => {
   assert.deepEqual([...s.AUTOPILOT_MODES], ['ask_me', 'policy', 'autopilot'])
-  assert.equal(s.AUTOPILOT_LABELS.ask_me, 'Зови меня при любом сомнении')
-  assert.equal(s.AUTOPILOT_LABELS.policy, 'Зови меня по политике')
-  assert.equal(s.AUTOPILOT_LABELS.autopilot, 'Автопилот: зови только если просят человека, злость, юридическое')
+  assert.equal(s.AUTOPILOT_LABELS.ask_me, 'Call me at any doubt')
+  assert.equal(s.AUTOPILOT_LABELS.policy, 'Call me by policy')
+  assert.equal(s.AUTOPILOT_LABELS.autopilot, 'Autopilot: call me only when a person is requested, anger, legal matters')
   assert.equal(view().get().settings.autopilot.leadManager, 'policy')
 })
 

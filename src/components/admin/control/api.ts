@@ -39,7 +39,7 @@ export const errText = (error: string) => {
   if (own) return own
   // Already a sentence (a panel passed its own text): show it as it is.
   if (!/^[A-Za-z0-9_]+$/.test(error)) return error
-  const info = describeError({ code: error, locale: 'ru' })
+  const info = describeError({ code: error, locale: 'en' })
   return `${info.message}${info.ref ? ` (${info.ref})` : ''}`
 }
 

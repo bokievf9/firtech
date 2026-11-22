@@ -132,8 +132,8 @@ test('version diff summary and compare pair', () => {
   assert.equal([a.v, b.v].join(), '1,2')
   const ch = r.versionChanges(a, b)
   assert.ok(ch.find((c) => c.key === 'caption' && c.delta > 0))
-  assert.match(r.versionSummary(a, b), /^Изменено: .*Подпись \(\+\d+ зн\.\)/)
-  assert.equal(r.versionSummary(a, a), 'Без изменений в тексте')
+  assert.match(r.versionSummary(a, b), /^Changed: .*Caption \(\+\d+ chars\)/)
+  assert.equal(r.versionSummary(a, a), 'No text changes')
   assert.equal(r.versionSummary(undefined, b), '')
   assert.equal(r.comparePair(v.items.find((i) => i.id === 'ap_204')), null)
 })
@@ -148,7 +148,7 @@ test('meta cards link to the Shell sections; empty media explains itself', () =>
   assert.equal(tk.href, '/admin/chats')
   const owner = v.items.find((i) => i.id === 'ap_203')
   assert.ok(r.metaCards(owner).some((c) => c.id === 'link'))
-  assert.match(r.emptyMediaReason(owner), /после одобрения/)
+  assert.match(r.emptyMediaReason(owner), /after approval/)
   assert.equal(r.renderState(owner), 'none')
 })
 
@@ -236,7 +236,7 @@ test('proxy keeps the item, results and message of a failed decision', async () 
   assert.equal(res.results[0].platform, 'shorts')
   assert.equal(res.message, 'нет квоты')
   assert.equal('token' in res, false)
-  assert.equal(r.resultText(r.normalizeResults(res.results)[0]), 'shorts: не получилось')
+  assert.equal(r.resultText(r.normalizeResults(res.results)[0]), 'shorts: failed')
 })
 
 test('chat ids are encoded toward HQ', async () => {

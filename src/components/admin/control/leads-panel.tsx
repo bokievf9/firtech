@@ -142,7 +142,7 @@ export function LeadsPanel({
                         <span className="mt-1 flex flex-wrap justify-between gap-x-3 font-mono text-xs text-faint">
                           <span>
                             №{lead.id} · {admin.services[lead.service]}
-                            {booking ? ` · ${t.call} ${formatSlot(booking.slot, 'ru', false)}` : ''}
+                            {booking ? ` · ${t.call} ${formatSlot(booking.slot, 'en', false)}` : ''}
                           </span>
                           <span>{formatDateTime(lead.createdAt)}</span>
                         </span>

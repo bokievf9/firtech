@@ -103,7 +103,7 @@ export function CallsPanel({
                     <li key={c.id} className="rounded-xl border border-line p-3">
                       <button type="button" onClick={() => onOpen(c.id)} className="block w-full text-left">
                         <span className="block truncate text-sm font-medium">{c.name}</span>
-                        <span className="font-mono text-xs text-muted">{formatSlot(c.slot, 'ru', false)}</span>
+                        <span className="font-mono text-xs text-muted">{formatSlot(c.slot, 'en', false)}</span>
                       </button>
                       <div className="mt-2 flex flex-wrap gap-2">
                         <button

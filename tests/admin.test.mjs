@@ -245,7 +245,7 @@ test('export route: BOM, header and one row per lead', async () => {
   const bytes = new Uint8Array(await response.arrayBuffer())
   assert.deepEqual([...bytes.slice(0, 3)], [0xef, 0xbb, 0xbf])
   const text = new TextDecoder().decode(bytes.slice(3))
-  assert.ok(text.startsWith('№,Создана (Душанбе),Статус,Имя,Контакт'))
+  assert.ok(text.startsWith('№,Created (Dushanbe),Status,Name,Contact'))
   assert.match(text, /\r\n2,[^\r]*Демо Клиент 2,'\+992 900 00 00 00,/)
   assert.match(text, /"Нужен сайт, ""срочно""\nи бот"/)
 })

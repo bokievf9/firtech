@@ -189,11 +189,11 @@ function eachLine(t: string, s: number, e: number, fn: (line: string, i: number)
   return { text: t.slice(0, a) + next + t.slice(b), start: a, end: a + next.length }
 }
 
-export const TABLE_HEAD = ['Stage', 'What is included', 'Sum'] as const
+export const TABLE_HEAD = ['Этап', 'Что входит', 'Сумма'] as const // i18n-ok: heading of a table in a Russian document
 
 export function applyFormat(t: string, s: number, e: number, kind: FormatKind): Edit {
-  if (kind === 'bold') return wrap(t, s, e, '**', 'text')
-  if (kind === 'italic') return wrap(t, s, e, '*', 'text')
+  if (kind === 'bold') return wrap(t, s, e, '**', 'текст') // i18n-ok: placeholder inside Russian document text
+  if (kind === 'italic') return wrap(t, s, e, '*', 'текст') // i18n-ok: placeholder inside Russian document text
   if (kind === 'heading')
     return eachLine(t, s, e, (l) => (/^#{1,3}\s/.test(l) ? l.replace(/^#{1,3}\s/, '') : `## ${l}`))
   if (kind === 'list') {
@@ -203,7 +203,7 @@ export function applyFormat(t: string, s: number, e: number, kind: FormatKind): 
     return eachLine(t, s, e, (l) => (all ? l.replace(/^[-*]\s/, '') : /^[-*]\s/.test(l) ? l : `- ${l}`))
   }
   if (kind === 'link') {
-    const label = t.slice(s, e) || 'link text'
+    const label = t.slice(s, e) || 'текст ссылки' // i18n-ok: placeholder inside Russian document text
     const url = 'https://'
     const text = `${t.slice(0, s)}[${label}](${url})${t.slice(e)}`
     const urlStart = s + label.length + 3

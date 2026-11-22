@@ -27,13 +27,13 @@ test('minutes since, never negative, null for bad input', () => {
 })
 
 test('duration and data age formatting', () => {
-  assert.equal(v.formatDuration(0), 'меньше минуты')
-  assert.equal(v.formatDuration(5), '5 мин')
-  assert.equal(v.formatDuration(130), '2 ч 10 мин')
-  assert.equal(v.formatDuration(120), '2 ч')
-  assert.equal(v.formatDuration(60 * 49), '2 д')
-  assert.equal(v.formatDataAge(7), '7 с')
-  assert.equal(v.formatDataAge(125), '2 мин')
+  assert.equal(v.formatDuration(0), 'under a minute')
+  assert.equal(v.formatDuration(5), '5 min')
+  assert.equal(v.formatDuration(130), '2 h 10 min')
+  assert.equal(v.formatDuration(120), '2 h')
+  assert.equal(v.formatDuration(60 * 49), '2 d')
+  assert.equal(v.formatDataAge(7), '7 s')
+  assert.equal(v.formatDataAge(125), '2 min')
 })
 
 test('Tashkent clock is UTC+5', () => {
@@ -43,8 +43,8 @@ test('Tashkent clock is UTC+5', () => {
 
 test('countdown to the next run', () => {
   const now = Date.parse('2026-11-19T12:00:00Z')
-  assert.equal(v.formatUntil('2026-11-19T15:05:00Z', now), 'через 3 ч 5 мин')
-  assert.equal(v.formatUntil('2026-11-19T11:00:00Z', now), 'сейчас')
+  assert.equal(v.formatUntil('2026-11-19T15:05:00Z', now), 'in 3 h 5 min')
+  assert.equal(v.formatUntil('2026-11-19T11:00:00Z', now), 'now')
   assert.equal(v.formatUntil(null, now), '')
 })
 

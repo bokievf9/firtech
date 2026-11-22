@@ -412,7 +412,7 @@ test('no component or page computes with the default price constants; client cod
 
 test('Shell: the prices editor lives in Settings, has strings, and is wired in', async () => {
   const { admin } = await import('../src/content/admin.ts')
-  assert.equal(admin.hub.tabs.prices, 'Цены')
+  assert.equal(admin.hub.tabs.prices, 'Prices')
   assert.match(readFileSync('src/components/admin/hq/settings-section.tsx', 'utf8'), /<PricesTab \/>/)
   const ui = readFileSync('src/components/admin/shell-crm/company-prices.tsx', 'utf8')
   // Inline edit: Enter saves, Escape cancels; the stage sum blocks saving.
