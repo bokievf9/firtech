@@ -3,8 +3,8 @@ import { guard } from '@/lib/admin-guard'
 import { json, readJson } from '@/lib/admin-json'
 import { callHqAdmin, resolveEndpoint } from '@/lib/hq-admin'
 
-// Пульт: proxies the allowed HQ admin endpoints (list in ENDPOINTS, src/lib/hq-admin.ts) to the page.
-// Session-checked like every /api/admin route, POSTs also check Origin; the HQ token stays here.
+// HQ: proxies the allowed HQ admin endpoints (the whitelist in src/lib/hq-admin.ts) to the page: GET, POST, PATCH and DELETE.
+// Session-checked like every /api/admin route, writes (POST, PATCH, DELETE) also check Origin; the HQ token stays here.
 // HQ failures come back as { ok: false, error } with HTTP 200, so the page keeps its last data;
 // a missing session is 401, a bad body 400 and anything outside the list 404.
 export const dynamic = 'force-dynamic'
