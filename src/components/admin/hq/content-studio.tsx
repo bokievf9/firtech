@@ -100,13 +100,13 @@ function PromptDrawer({ open, onClose, onSent }: { open: boolean; onClose: () =>
         </label>
         <label className="grid gap-1.5 text-sm">
           {s.typeLabel}
-          <select value={type} onChange={(e) => setType(e.target.value as (typeof STUDIO_TYPES)[number])} className={inputClass}>
+          <Select value={type} onChange={(e) => setType(e.target.value as (typeof STUDIO_TYPES)[number])} className={inputClass}>
             {STUDIO_TYPES.map((t) => (
               <option key={t} value={t}>
                 {k.kinds[t]}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <Pending type="submit" pending={busy} pendingLabel={admin.hq.loading} disabled={!ok} className={`${btnPrimary} justify-self-start`}>
           {s.send}
