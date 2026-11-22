@@ -1,6 +1,6 @@
 'use client'
 
-import { DownloadSimple, DotsThree } from '@phosphor-icons/react'
+import { DownloadSimple, DotsThree, SignOut } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -59,11 +59,11 @@ export function AdminShell({ children, wide = false }: { children: React.ReactNo
   )
 }
 
-// The «...» menu of the admin header (CSV export, logout); the пульт v3 top bar uses it too.
-export function AdminMenu() {
+// Ends the session on the server (or all of them), then the login screen. A network failure still
+// leaves the page: the server-side check sends a stale cookie back to the login screen anyway.
+function useLogout() {
   const router = useRouter()
   const [busy, setBusy] = useState(false)
-
   async function logout(all: boolean) {
     if (all && !window.confirm(admin.nav.logoutAllConfirm)) return
     setBusy(true)
@@ -71,10 +71,34 @@ export function AdminMenu() {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ all }),
-    }).catch(() => null)
+    }).catch((error: unknown) => console.warn('[admin] logout request failed', error))
     router.replace('/admin/login')
     router.refresh()
   }
+  return { busy, logout }
+}
+
+// «Sign out» in the Shell header: icon only on phones, with the word from sm up.
+export function SignOutButton() {
+  const { busy, logout } = useLogout()
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={() => logout(false)}
+      aria-busy={busy}
+      title={admin.hq.signOut}
+      className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-line px-2.5 text-sm text-muted transition-colors hover:text-fg disabled:opacity-60 sm:px-3"
+    >
+      <SignOut size={16} aria-hidden="true" />
+      <span className="sr-only sm:not-sr-only">{admin.hq.signOut}</span>
+    </button>
+  )
+}
+
+// The «...» menu of the admin header (CSV export, logout); the пульт v3 top bar uses it too.
+export function AdminMenu() {
+  const { busy, logout } = useLogout()
 
   return (
     <details className="relative">

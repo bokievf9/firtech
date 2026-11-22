@@ -1,141 +1,93 @@
 'use client'
 
-import { PaperPlaneTilt } from '@phosphor-icons/react'
+import { Eye, EyeSlash } from '@phosphor-icons/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
-import { admin, fillAdmin } from '@/content/admin'
-
-type ApiError = {
-  ok: false
-  error: keyof typeof admin.login.errors
-  retryAfter?: number
-  attemptsLeft?: number
-}
+import { useState } from 'react'
+import { admin } from '@/content/admin'
 
 const t = admin.login
+type ErrorCode = keyof typeof t.errors
 
-function errorText(result: ApiError) {
-  const template = t.errors[result.error] ?? t.errors.network
-  return fillAdmin(template, {
-    s: result.retryAfter ?? 60,
-    m: Math.ceil((result.retryAfter ?? 60) / 60),
-    n: result.attemptsLeft ?? 0,
-  })
+function errorText(code: unknown) {
+  return typeof code === 'string' && code in t.errors ? t.errors[code as ErrorCode] : t.errors.network
 }
 
-async function post(url: string, body: unknown = {}) {
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    return (await response.json()) as { ok: true } | ApiError
-  } catch {
-    return { ok: false, error: 'network' } as ApiError
-  }
-}
-
-export function LoginForm() {
+// One password field. The password goes only to POST /api/admin/login and is cleared after a wrong try.
+export function LoginForm({ configured }: { configured: boolean }) {
   const router = useRouter()
-  const [stage, setStage] = useState<'start' | 'code'>('start')
+  const [password, setPassword] = useState('')
+  const [visible, setVisible] = useState(false)
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-  const [code, setCode] = useState('')
-  const [wait, setWait] = useState(0)
-  const input = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (wait <= 0) return
-    const timer = setTimeout(() => setWait((w) => w - 1), 1000)
-    return () => clearTimeout(timer)
-  }, [wait])
-
-  async function requestCode() {
-    setBusy(true)
-    setError('')
-    const result = await post('/api/admin/code')
-    setBusy(false)
-    if (result.ok) {
-      setStage('code')
-      setCode('')
-      setWait(60)
-      setTimeout(() => input.current?.focus(), 0)
-      return
-    }
-    if (result.retryAfter) setWait(result.retryAfter)
-    setError(errorText(result))
-  }
+  const [error, setError] = useState(configured ? '' : t.errors.not_configured)
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
-    if (code.length !== 6) return
+    if (!password || busy) return
     setBusy(true)
     setError('')
-    const result = await post('/api/admin/login', { code })
-    if (result.ok) {
-      router.replace('/admin/inbox')
-      router.refresh()
-      return
+    let code: unknown = 'network'
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      const body = (await response.json().catch(() => null)) as { ok?: boolean; error?: unknown } | null
+      if (response.ok && body?.ok) {
+        router.replace('/admin/inbox')
+        router.refresh()
+        return
+      }
+      code = body?.error ?? 'network'
+    } catch (failure) {
+      console.warn('[admin] login request failed', failure instanceof Error ? failure.name : 'error')
     }
     setBusy(false)
-    setCode('')
-    setError(errorText(result))
-    if (result.error === 'locked' || result.error === 'expired' || result.error === 'no_code')
-      setStage('start')
+    setPassword('')
+    setError(errorText(code))
   }
 
   return (
-    <div className="mt-7">
-      {stage === 'start' ? (
+    <form onSubmit={submit} className="mt-7" noValidate>
+      <label htmlFor="admin-password" className="text-sm text-muted">
+        {t.password}
+      </label>
+      <div className="relative mt-2">
+        <input
+          id="admin-password"
+          name="password"
+          type={visible ? 'text' : 'password'}
+          autoComplete="current-password"
+          autoFocus={configured}
+          disabled={!configured}
+          maxLength={256}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="ym-disable-keys w-full rounded-xl border border-line-strong bg-field py-3.5 pl-4 pr-12 text-base text-fg outline-none focus:border-accent disabled:opacity-60"
+        />
         <button
           type="button"
-          onClick={requestCode}
-          disabled={busy || wait > 0}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong disabled:opacity-60"
+          onClick={() => setVisible((v) => !v)}
+          disabled={!configured}
+          aria-label={visible ? t.hide : t.show}
+          aria-pressed={visible}
+          aria-controls="admin-password"
+          className="absolute inset-y-0 right-0 grid w-12 place-items-center rounded-r-xl text-muted transition-colors hover:text-fg disabled:opacity-60"
         >
-          <PaperPlaneTilt size={18} weight="fill" aria-hidden="true" />
-          {busy ? t.sending : wait > 0 ? fillAdmin(t.resendIn, { s: wait }) : t.request}
+          {visible ? <EyeSlash size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
         </button>
-      ) : (
-        <form onSubmit={submit}>
-          <p className="mb-4 rounded-xl border border-accent/30 bg-pine/40 px-3.5 py-3 text-sm text-fg">
-            {t.sent}
-          </p>
-          <label htmlFor="admin-code" className="text-sm text-muted">
-            {t.codeLabel}
-          </label>
-          <input
-            ref={input}
-            id="admin-code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={6}
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            className="mt-2 w-full rounded-xl border border-line-strong bg-field px-4 py-3.5 text-center font-mono text-2xl tracking-[0.5em] text-fg outline-none focus:border-accent"
-            placeholder="000000"
-          />
-          <button
-            type="submit"
-            disabled={busy || code.length !== 6}
-            className="mt-4 w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong disabled:opacity-50"
-          >
-            {busy ? t.checking : t.submit}
-          </button>
-          <button
-            type="button"
-            onClick={requestCode}
-            disabled={busy || wait > 0}
-            className="mt-3 w-full rounded-full px-5 py-2.5 text-sm text-muted transition-colors hover:text-fg disabled:opacity-60"
-          >
-            {wait > 0 ? fillAdmin(t.resendIn, { s: wait }) : t.resend}
-          </button>
-        </form>
-      )}
+      </div>
+      <button
+        type="submit"
+        disabled={busy || !configured || !password}
+        aria-busy={busy}
+        className="mt-4 w-full rounded-full bg-accent px-5 py-3.5 text-sm font-semibold text-accent-ink transition-colors hover:bg-accent-strong disabled:opacity-50"
+      >
+        {busy ? t.checking : t.submit}
+      </button>
       <p role="alert" aria-live="polite" className="mt-4 min-h-5 text-sm text-danger">
         {error}
       </p>
-    </div>
+    </form>
   )
 }

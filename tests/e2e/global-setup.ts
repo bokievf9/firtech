@@ -3,15 +3,16 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { ADMIN_TOKEN, LOGOUT_TOKEN, PUBLIC_PAGES } from './helpers'
 
-// A clean throwaway data dir with one hand-written owner session (only the hash is stored, as in
-// src/lib/admin-auth.ts); the admin specs send the same token in the `firtech_admin` cookie.
+// A clean throwaway data dir with hand-written owner sessions (only the hash is stored, as in
+// src/lib/admin-auth.ts; no password fingerprint, so they count like sessions from before the
+// password login); the admin specs send the same token in the `firtech_admin` cookie.
 export default async function globalSetup() {
   const dir = process.env.E2E_DATA_DIR!
   rmSync(dir, { recursive: true, force: true })
   mkdirSync(dir, { recursive: true })
   const now = Date.now()
   const session = (token: string) => ({ id: createHash('sha256').update(token).digest('hex'), createdAt: now, expiresAt: now + 86_400_000 })
-  writeFileSync(path.join(dir, 'admin.json'), JSON.stringify({ codes: [], issued: [], sessions: [session(ADMIN_TOKEN), session(LOGOUT_TOKEN)] }), { mode: 0o600 })
+  writeFileSync(path.join(dir, 'admin.json'), JSON.stringify({ sessions: [session(ADMIN_TOKEN), session(LOGOUT_TOKEN)] }), { mode: 0o600 })
 
   // `next dev` compiles a route on its first request (seconds each), which would make the first
   // test to hit a page time out. Warm every route the suite uses before the tests start; the
