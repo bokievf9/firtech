@@ -39,6 +39,16 @@ test('pages exist, the old office stays, /admin opens HQ, no «Пульт» in a
   assert.doesNotMatch(read('src/content/golive.ts'), /[Пп]ульт/)
 })
 
+test('the workplace is called Shell: no «HQ» in visible admin copy', () => {
+  const code = (f) => read(f).split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n')
+  for (const f of ['src/content/admin.ts', 'src/content/golive.ts', 'src/lib/doc-editor.ts', 'src/lib/pricing-edit.ts']) assert.doesNotMatch(code(f), /\bHQ\b/, f)
+  for (const p of ['inbox', 'clients', 'settings', 'agents', '[section]']) {
+    const t = read(`src/app/admin/(hq)/${p}/page.tsx`)
+    assert.match(t, /Shell · /, p)
+    assert.doesNotMatch(t, /HQ ·/, p)
+  }
+})
+
 test('HQ components have no empty catch and no long dashes', () => {
   for (const f of ['src/components/admin/hq/hq-shell.tsx', 'src/components/admin/hq/finance-view.tsx', 'src/lib/finance.ts', 'src/components/admin/hq/processes-view.tsx', 'src/lib/processes.ts', 'src/components/admin/hq/sections.tsx', 'src/components/admin/hq/section-view.tsx', 'src/components/admin/hq/content-studio.tsx', 'src/components/admin/hq/agents-section.tsx', 'src/lib/agents-hq.ts', 'src/lib/agents-mock.ts', 'src/components/admin/hq/settings-section.tsx', 'src/lib/settings-hq.ts', 'src/lib/settings-mock.ts', 'src/components/admin/hq/use-approvals.ts', 'src/lib/hq-shell.ts', 'src/components/admin/hq/knowledge-section.tsx', 'src/components/admin/hq/quality-section.tsx', 'src/components/admin/hq/kq-ui.tsx', 'src/lib/knowledge-hq.ts', 'src/lib/quality-hq.ts', 'src/lib/knowledge-mock.ts']) {
     const t = read(f)

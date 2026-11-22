@@ -1,6 +1,6 @@
 import { SectionView } from '@/components/admin/hq/section-view'
 
-export const metadata = { title: 'HQ · Inbox' }
+export const metadata = { title: 'Shell · Inbox' }
 
 const one = (v: string | string[] | undefined) => (typeof v === 'string' && /^[\w:.\-Ѐ-ӿ %]{1,80}$/.test(v) ? v : null)
 

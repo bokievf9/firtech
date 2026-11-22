@@ -1,7 +1,7 @@
 import { AgentsSection } from '@/components/admin/hq/agents-section'
 import { isAgentId } from '@/lib/agents-hq'
 
-export const metadata = { title: 'HQ · Agents' }
+export const metadata = { title: 'Shell · Agents' }
 
 export default async function Page({ searchParams }: PageProps<'/admin/agents'>) {
   const q = await searchParams

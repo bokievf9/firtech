@@ -8,7 +8,7 @@ const t = admin.hq
 
 export async function generateMetadata({ params }: PageProps<'/admin/[section]'>) {
   const s = sectionById((await params).section)
-  return { title: `HQ · ${s?.label ?? ''}` }
+  return { title: `Shell · ${s?.label ?? ''}` }
 }
 
 // A section that is not built yet (phase 2): says so and links to the old screen that holds it today.
