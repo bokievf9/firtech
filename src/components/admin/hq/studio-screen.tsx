@@ -7,6 +7,7 @@ import { fill, hq } from '@/components/admin/control/api'
 import { Chip } from '@/components/admin/shell-crm/bits'
 import { statusTone, type Action } from '@/components/admin/shell-crm/content'
 import { btn, btnDanger, btnPrimary, CopyButton, inputClass, modalOpen, typingIn, useHqView, useHub } from '@/components/admin/hub/ui'
+import { Select } from '@/components/admin/select'
 import { Pending } from '@/components/ui/pending'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -82,13 +83,13 @@ export function PromptBox({ onSent, className }: { onSent?: () => void; classNam
       <div className="flex flex-wrap items-end gap-2">
         <label className="grid min-w-32 gap-1.5 text-xs text-muted">
           {s.typeLabel}
-          <select value={type} onChange={(e) => setType(e.target.value as (typeof STUDIO_TYPES)[number])} className={cn(inputClass, 'w-auto')}>
+          <Select value={type} onChange={(e) => setType(e.target.value as (typeof STUDIO_TYPES)[number])} className={cn(inputClass, 'w-auto')}>
             {STUDIO_TYPES.map((t) => (
               <option key={t} value={t}>
                 {k.kinds[t]}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <Pending type="submit" pending={busy} pendingLabel={admin.hq.loading} disabled={!ok} className={btnPrimary}>
           {s.send}
@@ -515,13 +516,13 @@ export function StudioScreen({ item, onBack, onAct, onChanged }: { item: FeedIte
             ) : null}
             {access.markPublished ? (
               <div className="flex flex-wrap items-center gap-2">
-                <select value={platform} onChange={(e) => setPlatform(e.target.value)} aria-label={k.platform} className={cn(inputClass, 'w-auto')}>
+                <Select value={platform} onChange={(e) => setPlatform(e.target.value)} aria-label={k.platform} className={cn(inputClass, 'w-auto')}>
                   {['instagram', 'tiktok', 'youtube', 'dzen'].map((p) => (
                     <option key={p} value={p}>
                       {(k.platforms as Record<string, string>)[p] ?? p}
                     </option>
                   ))}
-                </select>
+                </Select>
                 <button type="button" className={btn} disabled={busy} onClick={() => void run('published', { platform })}>
                   {k.published}
                 </button>
