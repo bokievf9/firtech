@@ -3758,9 +3758,9 @@ const en: Dict = {
   },
   film: {
     name: 'Fira',
-    role: 'AI employee at Fir Tech',
+    role: 'Fir Tech AI assistant',
     scenes: {
-      hello: 'Hi, I am Fira, an AI employee at Fir Tech. I will show you how AI takes the routine for owners and for whole companies.',
+      hello: 'Hi, I am Fira, Fir Tech's AI assistant. I will show you how AI takes the routine for owners and for whole companies.',
       pains: 'Let us start with what hurts. Three situations we hear most often, and what an agent does about them.',
       demo: 'You can try it yourself here. Write as your client would, and the agent answers right in the window.',
       team: 'Meet the team. Each one has a job, and I will introduce them in a line each.',
