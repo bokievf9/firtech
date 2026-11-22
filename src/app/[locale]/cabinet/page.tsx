@@ -27,6 +27,7 @@ import { fillReferralPercent } from '@/lib/referral'
 import { ReviewCard } from '@/components/cabinet/review-card'
 import { requireCabinetUser, syncAfterSignIn } from '@/lib/cabinet-session'
 import { isLocale } from '@/lib/i18n'
+import { buttonClass } from '@/lib/cn'
 import { defaultTelegramBot } from '@/lib/site'
 import { cabinetEnabled } from '@/lib/supabase/config'
 import { logoutAction } from './actions'
@@ -99,17 +100,17 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
       <HeroIntro>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.home.eyebrow}</p>
-            <h1 className="mt-5 text-[2.2rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">
+            <p className="text-caption text-accent-text font-medium">{t.home.eyebrow}</p>
+            <h1 className="mt-5 text-title font-semibold text-balance">
               {name ? fill(t.home.greeting, { name }) : t.home.greetingNoName}
             </h1>
-            <p className="mt-4 max-w-[56ch] text-lg leading-relaxed text-muted">{t.home.sub}</p>
+            <p className="mt-4 max-w-[56ch] text-lead text-muted">{t.home.sub}</p>
           </div>
           <form action={logoutAction}>
             <input type="hidden" name="locale" value={locale} />
             <button
               type="submit"
-              className="rounded-full border border-line-strong px-5 py-2.5 text-sm text-fg transition-colors hover:border-fg/40 hover:bg-fg/5"
+              className={buttonClass('secondary', 'sm')}
             >
               {t.home.logout}
             </button>
@@ -118,13 +119,13 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
       </HeroIntro>
 
       {hqProblem && (
-        <p role="status" className="mt-8 rounded-xl border border-warn/40 px-4 py-3 text-sm text-muted">
+        <p role="status" className="mt-8 rounded-tile border border-warn/40 px-4 py-3 text-callout text-muted">
           {(t.home.hqErrors as Record<string, string>)[hqProblem] ?? t.home.hqDown} {t.home.hqDown}
         </p>
       )}
 
       {one(query.password) === 'updated' && (
-        <p role="status" className="mt-8 rounded-xl border border-accent-text/40 px-4 py-3 text-sm text-fg">
+        <p role="status" className="mt-8 rounded-tile border border-accent-text/40 px-4 py-3 text-callout text-fg">
           {t.home.passwordUpdated}
         </p>
       )}
@@ -151,7 +152,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
               {view.projects.length === 0 && view.leads.length === 0 && !leadParam && <EmptyProjects dict={dict} locale={locale} />}
               {view.projects.length > 0 && (
                 <section aria-labelledby="cabinet-projects-title" data-cabinet-projects>
-                  <h2 id="cabinet-projects-title" className="font-display text-2xl font-semibold tracking-tight">
+                  <h2 id="cabinet-projects-title" className="font-display text-title-2 font-semibold">
                     {t.v3.home.projectsTitle}
                   </h2>
                   <div className="mt-5 grid gap-5">

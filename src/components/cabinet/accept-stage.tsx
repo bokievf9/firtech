@@ -56,12 +56,12 @@ export function AcceptStageButton({
 
   return (
     <div className="grid justify-items-start gap-2" data-accept-stage={stageNo}>
-      {hint && <p className="text-[13px] text-muted">{t.acceptHint}</p>}
+      {hint && <p className="text-footnote text-muted">{t.acceptHint}</p>}
       <button
         type="button"
         onClick={() => void accept()}
         disabled={status !== 'idle'}
-        className={big ? `${buttonStyles.primary} px-8 py-4 text-base` : buttonStyles.primary}
+        className={big ? `${buttonStyles.primary} px-8 py-4 text-body` : buttonStyles.primary}
       >
         {status === 'sending' ? t.accepting : (label ?? t.accept)}
       </button>

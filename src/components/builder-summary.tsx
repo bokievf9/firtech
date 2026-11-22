@@ -5,7 +5,7 @@ import type { Dict } from '@/content'
 import { quote, type Build } from '@/lib/builder'
 import { builderUi, kitNames, pick } from '@/content/builder-catalog'
 import { closestTheme, resolveLook, resolveStyle, usesAxes } from '@/lib/builder-style'
-import { buttonStyles, cn } from '@/lib/cn'
+import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
 import { usePricing } from './pricing-provider'
@@ -49,7 +49,7 @@ export function SummaryStep({
     <button
       type="button"
       onClick={() => onEdit(step)}
-      className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-[13px] text-muted transition-colors hover:text-fg"
+      className={buttonClass('ghost', 'sm')}
     >
       <PencilSimple size={13} />
       {t.edit}
@@ -64,7 +64,7 @@ export function SummaryStep({
     <div className="grid gap-4 lg:grid-cols-12">
       <div className="grid content-start gap-4 lg:col-span-7">
         <div className="grid gap-3">
-          <p className="text-sm text-muted">{pick(faceUi.previewSub, locale)}</p>
+          <p className="text-callout text-muted">{pick(faceUi.previewSub, locale)}</p>
           <LivePreview build={build} dict={dict} locale={locale} />
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -72,13 +72,13 @@ export function SummaryStep({
             <div className="flex items-center gap-4">
               <span
                 aria-hidden="true"
-                className="grid size-14 shrink-0 place-items-center rounded-2xl border border-line-strong"
+                className="grid size-14 shrink-0 place-items-center rounded-card border border-hairline border-line-strong"
                 style={{ background: look.colors.bg }}
               >
                 <span className="size-7 rounded-full" style={{ background: look.colors.accent }} />
               </span>
               <span className="min-w-0">
-                <span className="block text-lg font-medium">
+                <span className="block text-headline">
                   {build.style?.themeId
                     ? themeName
                     : build.style?.kit
@@ -87,7 +87,7 @@ export function SummaryStep({
                       ? pick(ui.customStyle, locale)
                       : t.looks[resolveStyleLook(build)].name}
                 </span>
-                <span className="block text-sm text-muted">
+                <span className="block text-callout text-muted">
                   {brief.style
                     .filter((row) => row.id !== 'look' && row.id !== 'theme')
                     .map((row) => row.value)
@@ -131,7 +131,7 @@ export function SummaryStep({
 
         <Panel title={t.quoteTitle} action={edit(3)}>
           {(doc.kind || doc.products.length > 0) && (
-            <dl className="mb-5 grid gap-1.5 text-sm">
+            <dl className="mb-5 grid gap-1.5 text-callout">
               {doc.kind && (
                 <div className="grid gap-0.5 sm:grid-cols-[9rem_1fr] sm:gap-4">
                   <dt className="text-faint">{pick(ui.kindLabel, locale)}</dt>
@@ -151,37 +151,37 @@ export function SummaryStep({
               <li key={row.id} className="flex items-start justify-between gap-4 py-4">
                 <span className="min-w-0">
                   <span className="block font-medium">{row.name}</span>
-                  <span className="mt-1 block text-sm text-muted">
+                  <span className="mt-1 block text-callout text-muted">
                     {row.detail}
                     <span className="whitespace-nowrap text-faint"> · {row.term}</span>
                   </span>
                 </span>
-                <span className="shrink-0 font-mono text-sm">{row.price}</span>
+                <span className="shrink-0 font-mono text-callout">{row.price}</span>
               </li>
             ))}
             {doc.extras.map((row) => (
               <li key={row.id} className="flex items-start justify-between gap-4 py-4">
                 <span className="font-medium">{row.name}</span>
-                <span className="shrink-0 font-mono text-sm">{row.price}</span>
+                <span className="shrink-0 font-mono text-callout">{row.price}</span>
               </li>
             ))}
             {doc.onRequest.map((row) => (
               <li key={row.id} className="flex items-start justify-between gap-4 py-4">
                 <span className="min-w-0">
                   <span className="block font-medium">{row.name}</span>
-                  <span className="mt-1 block text-sm text-muted">{row.detail}</span>
+                  <span className="mt-1 block text-callout text-muted">{row.detail}</span>
                 </span>
-                <span className="shrink-0 font-mono text-sm text-muted">{row.price}</span>
+                <span className="shrink-0 font-mono text-callout text-muted">{row.price}</span>
               </li>
             ))}
             {doc.monthly && (
               <li className="flex items-start justify-between gap-4 py-4">
                 <span className="font-medium">{dict.extras.items.support.name}</span>
-                <span className="shrink-0 font-mono text-sm">{doc.monthly}</span>
+                <span className="shrink-0 font-mono text-callout">{doc.monthly}</span>
               </li>
             )}
           </ul>
-          <dl className="mt-5 grid gap-2 text-sm">
+          <dl className="mt-5 grid gap-2 text-callout">
             {q.discount && (
               <>
                 <Row label={t.subtotal} value={doc.subtotal} className="text-muted" />
@@ -194,17 +194,17 @@ export function SummaryStep({
             )}
             <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <dt>{t.total}</dt>
-              <dd className="font-mono text-[clamp(1.4rem,3vw,2rem)] tracking-tight text-accent-text">
+              <dd className="font-mono text-title-2 text-accent-text">
                 {doc.total}
               </dd>
             </div>
           </dl>
           {doc.stages.length > 0 && (
             <div className="mt-6">
-              <p className="text-sm font-medium">{t.stagesTitle}</p>
-              <table className="mt-3 w-full border-collapse text-left text-sm">
+              <p className="text-callout font-medium">{t.stagesTitle}</p>
+              <table className="mt-3 w-full border-collapse text-left text-callout">
                 <thead>
-                  <tr className="border-b border-line text-[11px] tracking-[0.08em] text-faint uppercase">
+                  <tr className="border-b border-b-hairline border-line text-caption text-faint font-medium">
                     <th className="py-2 pr-3 font-medium">{t.stageCols.stage}</th>
                     <th className="py-2 pr-3 font-medium">{t.stageCols.what}</th>
                     <th className="py-2 pr-3 text-right font-medium">{t.stageCols.share}</th>
@@ -213,7 +213,7 @@ export function SummaryStep({
                 </thead>
                 <tbody>
                   {doc.stages.map((stage) => (
-                    <tr key={stage.id} className="border-b border-line align-top">
+                    <tr key={stage.id} className="border-b border-b-hairline border-line align-top">
                       <td className="py-2.5 pr-3 whitespace-nowrap text-muted">
                         {t.stageWord} {stage.n}
                       </td>
@@ -224,11 +224,11 @@ export function SummaryStep({
                   ))}
                 </tbody>
               </table>
-              <p className="mt-2 text-[13px] text-faint">{t.stageRule}</p>
+              <p className="mt-2 text-footnote text-faint">{t.stageRule}</p>
             </div>
           )}
           <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
-          <ul className="mt-6 grid gap-2 text-[13px] leading-relaxed text-faint">
+          <ul className="mt-6 grid gap-2 text-footnote leading-relaxed text-faint">
             {doc.onRequest.length > 0 && <li>{pick(ui.onRequestNote, locale)}</li>}
             <li>{t.termsNote}</li>
             {doc.stages.length === 0 && <li>{t.payNote}</li>}
@@ -253,9 +253,9 @@ function Row({ label, value, className }: { label: string; value: string; classN
 }
 
 function Rows({ rows, empty }: { rows: BriefRow[]; empty: string }) {
-  if (!rows.length) return <p className="text-sm text-faint">{empty}</p>
+  if (!rows.length) return <p className="text-callout text-faint">{empty}</p>
   return (
-    <dl className="grid gap-3 text-sm">
+    <dl className="grid gap-3 text-callout">
       {rows.map((row) => (
         <div key={row.id} className="grid gap-0.5 sm:grid-cols-[9rem_1fr] sm:gap-4">
           <dt className="text-faint">{row.label}</dt>

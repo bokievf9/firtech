@@ -17,6 +17,7 @@ import {
   type MaterialLabel,
 } from '@/lib/cabinet-chat'
 import { formatDate } from '@/lib/cabinet-data'
+import { Card } from '@/components/ui'
 import { buttonStyles, cn } from '@/lib/cn'
 import { Chip, Empty, FormMessage, fill } from './ui'
 
@@ -101,27 +102,27 @@ export function MaterialsPanel({ dict, locale, thread }: { dict: Dict; locale: s
 
   return (
     <section aria-labelledby="cabinet-materials-title" data-cabinet-materials>
-      <h2 id="cabinet-materials-title" className="font-display text-2xl font-semibold tracking-tight">
+      <h2 id="cabinet-materials-title" className="font-display text-title-2 font-semibold">
         {t.title}
       </h2>
-      <p className="mt-2 max-w-[62ch] text-sm leading-relaxed text-muted">{t.sub}</p>
+      <p className="mt-2 max-w-[62ch] text-callout leading-relaxed text-muted">{t.sub}</p>
 
       {!thread ? (
-        <div className="mt-5 rounded-card border border-line bg-surface p-6 md:p-8">
+        <Card className="mt-5 md:p-sheet">
           <Empty>{t.noThread}</Empty>
-        </div>
+        </Card>
       ) : (
         <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
-          <div className="rounded-card border border-line bg-surface p-5 md:p-6" data-materials-form>
-            <p className="text-[13px] text-faint">{fill(t.forProject, { title: thread.title })}</p>
+          <Card  data-materials-form>
+            <p className="text-footnote text-faint">{fill(t.forProject, { title: thread.title })}</p>
             <fieldset className="mt-4">
-              <legend className="text-sm text-muted">{t.label}</legend>
+              <legend className="text-callout text-muted">{t.label}</legend>
               <div className="mt-2 flex flex-wrap gap-2">
                 {materialLabels.map((l) => (
                   <label
                     key={l}
                     className={cn(
-                      'cursor-pointer rounded-full border px-3.5 py-1.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent-text',
+                      'cursor-pointer rounded-full border px-3.5 py-1.5 text-callout transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent-text',
                       label === l ? 'border-accent-text bg-accent/10 text-fg' : 'border-line-strong text-muted hover:text-fg',
                     )}
                   >
@@ -140,12 +141,12 @@ export function MaterialsPanel({ dict, locale, thread }: { dict: Dict; locale: s
               onDragLeave={() => setOver(false)}
               onDrop={onDrop}
               className={cn(
-                'mt-5 grid place-items-center gap-3 rounded-xl border border-dashed p-8 text-center transition-colors',
+                'mt-5 grid place-items-center gap-3 rounded-tile border border-dashed p-8 text-center transition-colors',
                 over ? 'border-accent-text bg-accent/[0.07]' : 'border-line-strong',
               )}
             >
               <UploadSimple size={28} aria-hidden="true" className="text-faint" />
-              <p className="max-w-[40ch] text-sm text-muted">{t.drop}</p>
+              <p className="max-w-[40ch] text-callout text-muted">{t.drop}</p>
               <input
                 id={`${uid}-file`}
                 type="file"
@@ -159,17 +160,17 @@ export function MaterialsPanel({ dict, locale, thread }: { dict: Dict; locale: s
               <label htmlFor={`${uid}-file`} className={cn(buttonStyles.secondary, 'cursor-pointer')}>
                 {t.choose}
               </label>
-              <p className="text-[12px] text-faint">{t.formats}</p>
+              <p className="text-caption text-faint">{t.formats}</p>
             </div>
 
             {file && (
-              <div className="mt-4 flex items-center gap-3 rounded-xl border border-line px-4 py-3 text-sm" data-pending-file>
+              <div className="mt-4 flex items-center gap-3 rounded-tile border border-hairline border-line px-4 py-3 text-callout" data-pending-file>
                 <FileText size={20} aria-hidden="true" className="shrink-0 text-faint" />
                 <span className="min-w-0 flex-1 truncate">{file.name}</span>
-                <span className="shrink-0 font-mono text-[12px] text-faint">{formatSize(file.size)}</span>
+                <span className="shrink-0 font-mono text-caption text-faint">{formatSize(file.size)}</span>
               </div>
             )}
-            {label === 'access' && <p className="mt-3 text-[13px] leading-relaxed text-muted">{t.accessNote}</p>}
+            {label === 'access' && <p className="mt-3 text-footnote leading-relaxed text-muted">{t.accessNote}</p>}
             {error && (
               <div className="mt-3">
                 <FormMessage kind="error">{error}</FormMessage>
@@ -183,10 +184,10 @@ export function MaterialsPanel({ dict, locale, thread }: { dict: Dict; locale: s
             <button type="button" onClick={() => void upload()} disabled={!file || state === 'sending'} className={cn(buttonStyles.primary, 'mt-5')} data-upload>
               {state === 'sending' ? t.uploading : t.upload}
             </button>
-          </div>
+          </Card>
 
-          <div className="rounded-card border border-line bg-surface p-5 md:p-6">
-            <h3 className="font-display text-lg font-semibold tracking-tight">{t.listTitle}</h3>
+          <Card >
+            <h3 className="font-display text-headline font-semibold">{t.listTitle}</h3>
             {files.length === 0 ? (
               <div className="mt-3">
                 <Empty>{t.none}</Empty>
@@ -197,12 +198,12 @@ export function MaterialsPanel({ dict, locale, thread }: { dict: Dict; locale: s
                   <li key={`${f.messageId}-${f.name}`}>
                     <a
                       {...(f.href ? { href: f.href } : {})}
-                      className="flex items-center gap-3 rounded-xl border border-line px-3.5 py-2.5 transition-colors hover:border-line-strong"
+                      className="flex items-center gap-3 rounded-tile border border-hairline border-line px-3.5 py-2.5 transition-colors hover:border-line-strong"
                     >
                       <FileText size={18} aria-hidden="true" className="shrink-0 text-faint" />
                       <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm">{f.name}</span>
-                        <span className="block font-mono text-[11px] text-faint">
+                        <span className="block truncate text-callout">{f.name}</span>
+                        <span className="block font-mono text-caption text-faint">
                           {formatDate(f.at, locale)}
                           {f.size > 0 ? `, ${formatSize(f.size)}` : ''}
                         </span>
@@ -213,7 +214,7 @@ export function MaterialsPanel({ dict, locale, thread }: { dict: Dict; locale: s
                 ))}
               </ul>
             )}
-          </div>
+          </Card>
         </div>
       )}
     </section>

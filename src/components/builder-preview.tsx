@@ -87,7 +87,7 @@ export function BuilderPreview({
       style={styleVars(build.style, siteTheme)}
       onPointerMove={parallax.onMove}
       className={cn(
-        'pv-root relative min-h-[420px] overflow-hidden rounded-card border border-line bg-surface-2 p-4 transition-[background-color,border-color] duration-500 md:p-5',
+        'pv-root relative min-h-[420px] overflow-hidden rounded-card border border-hairline border-line bg-surface-2 p-4 transition-[background-color,border-color] duration-500 md:p-5',
         className,
       )}
     >
@@ -101,7 +101,7 @@ export function BuilderPreview({
         <AnimatePresence mode="popLayout" initial={false}>
           {empty && (
             <Item key="empty" className="grid min-h-[380px] place-items-center">
-              <p className="max-w-[26ch] text-center text-sm text-faint">{dict.builder.empty}</p>
+              <p className="max-w-[26ch] text-center text-callout text-faint">{dict.builder.empty}</p>
             </Item>
           )}
 
@@ -115,7 +115,7 @@ export function BuilderPreview({
                   SHADOW,
                 )}
               >
-                <div className="flex items-center gap-1.5 border-b border-line px-3 py-2">
+                <div className="flex items-center gap-1.5 border-b border-b-hairline border-line px-3 py-2">
                   <span className="size-2 rounded-full bg-fg/15" />
                   <span className="size-2 rounded-full bg-fg/15" />
                   <span className="size-2 rounded-full bg-fg/15" />
@@ -123,7 +123,7 @@ export function BuilderPreview({
                     {p.url}
                   </span>
                   <Flag show={Boolean(site?.addons.includes('language'))} className="ml-auto">
-                    <span className="rounded-full border border-line-strong px-2 py-0.5 font-mono text-[9px] text-muted">
+                    <span className="rounded-full border border-hairline border-line-strong px-2 py-0.5 font-mono text-[9px] text-muted">
                       RU · EN
                     </span>
                   </Flag>
@@ -194,7 +194,7 @@ export function BuilderPreview({
                   show={Boolean(site?.addons.includes('telegram'))}
                   className="absolute right-2 bottom-2"
                 >
-                  <span className="flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-2 py-1.5 text-[10px] shadow-card">
+                  <span className="flex items-center gap-1.5 rounded-lg border border-hairline border-line-strong bg-surface px-2 py-1.5 text-[10px] shadow-card">
                     <TelegramLogo size={12} weight="fill" className="text-tg" />
                     {p.toTelegram}
                   </span>
@@ -209,7 +209,7 @@ export function BuilderPreview({
                 {bot && (
                   <Item key="bot">
                     <Phone>
-                      <div className="flex items-center gap-1.5 border-b border-line pb-2">
+                      <div className="flex items-center gap-1.5 border-b border-b-hairline border-line pb-2">
                         <span className="grid size-5 place-items-center rounded-full bg-accent text-[9px] font-bold text-accent-ink">
                           F
                         </span>
@@ -291,12 +291,12 @@ export function BuilderPreview({
                   <Item key="app">
                     <Phone>
                       <Flag show={app.addons.includes('push')}>
-                        <span className="mb-2 flex items-center gap-1.5 rounded-lg border border-line-strong bg-surface px-1.5 py-1.5 text-[9px]">
+                        <span className="mb-2 flex items-center gap-1.5 rounded-lg border border-hairline border-line-strong bg-surface px-1.5 py-1.5 text-[9px]">
                           <Bell size={10} weight="fill" className="text-accent-text" />
                           {p.push}
                         </span>
                       </Flag>
-                      <div className="flex items-center justify-between border-b border-line pb-2">
+                      <div className="flex items-center justify-between border-b border-b-hairline border-line pb-2">
                         <span className={cn(HEAD, 'text-[10px]')}>{p.app}</span>
                         <Flag show={app.addons.includes('accounts')}>
                           <UserCircle size={14} className="text-accent-text" />
@@ -309,7 +309,7 @@ export function BuilderPreview({
                               {[0, 1, 2, 3].map((i) => (
                                 <span
                                   key={i}
-                                  className="grid grid-cols-[1fr_auto] items-center gap-2 rounded-md border border-line px-1.5 py-1"
+                                  className="grid grid-cols-[1fr_auto] items-center gap-2 rounded-md border border-hairline border-line px-1.5 py-1"
                                 >
                                   <Bar className="w-full" />
                                   <span
@@ -325,8 +325,8 @@ export function BuilderPreview({
                             <Item key="cards" className="grid gap-1.5">
                               <span className="h-14 rounded-lg bg-[linear-gradient(135deg,var(--color-pine),var(--color-surface))]" />
                               <span className="grid grid-cols-2 gap-1">
-                                <span className="h-8 rounded-md border border-line" />
-                                <span className="h-8 rounded-md border border-line" />
+                                <span className="h-8 rounded-md border border-hairline border-line" />
+                                <span className="h-8 rounded-md border border-hairline border-line" />
                               </span>
                             </Item>
                           )}
@@ -336,7 +336,7 @@ export function BuilderPreview({
                         <Flag show={app.addons.includes('payments')}>
                           <Pay label={p.pay} />
                         </Flag>
-                        <span className="flex justify-around border-t border-line pt-1.5">
+                        <span className="flex justify-around border-t border-t-hairline border-line pt-1.5">
                           {[0, 1, 2, 3].map((i) => (
                             <span
                               key={i}
@@ -362,7 +362,7 @@ export function BuilderPreview({
 
           {auto && (
             <Item key="auto" className="mt-3">
-              <div className="rounded-xl border border-line-strong bg-bg p-3">
+              <div className="rounded-xl border border-hairline border-line-strong bg-bg p-3">
                 <AnimatePresence mode="popLayout" initial={false}>
                   {auto.variant === 'crm' ? (
                     <Item key="crm" className="grid grid-cols-3 gap-1.5">
@@ -376,7 +376,7 @@ export function BuilderPreview({
                             <span
                               key={k}
                               className={cn(
-                                'h-3.5 rounded-sm border border-line',
+                                'h-3.5 rounded-sm border border-hairline border-line',
                                 i === 1 && k === 0 && 'border-accent-text/60 bg-accent/10',
                               )}
                             />
@@ -385,7 +385,7 @@ export function BuilderPreview({
                       ))}
                     </Item>
                   ) : auto.variant === 'assistant' ? (
-                    <Item key="assistant" className="flex items-center gap-2 text-[11px]">
+                    <Item key="assistant" className="flex items-center gap-2 text-caption">
                       <Sparkle size={14} weight="fill" className="text-accent-text" />
                       {p.assistant}
                     </Item>
@@ -577,7 +577,7 @@ function Pay({ label }: { label: string }) {
 
 function Chip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded-[var(--pv-button)] border border-line-strong bg-bg px-2 py-1 text-[10px] whitespace-nowrap">
+    <span className="inline-flex items-center gap-1 rounded-[var(--pv-button)] border border-hairline border-line-strong bg-bg px-2 py-1 text-[10px] whitespace-nowrap">
       {children}
     </span>
   )
@@ -634,7 +634,7 @@ export function StyleSample({
       aria-hidden="true"
       style={styleVars(style, siteTheme)}
       className={cn(
-        'pv-root block overflow-hidden rounded-xl border border-line bg-surface-2 p-2 transition-colors duration-300',
+        'pv-root block overflow-hidden rounded-xl border border-hairline border-line bg-surface-2 p-2 transition-colors duration-300',
         className,
       )}
     >
@@ -791,8 +791,8 @@ function KindBlock({ mock, c }: { mock: KindMock; c: Copy }) {
         <div className={cn('grid gap-1.5', card)}>
           <span className={cn(HEAD, 'text-[10px]')}>{c.quote[0]}</span>
           <span className="grid grid-cols-2 gap-1">
-            <span className="h-4 rounded-sm border border-line" />
-            <span className="h-4 rounded-sm border border-line" />
+            <span className="h-4 rounded-sm border border-hairline border-line" />
+            <span className="h-4 rounded-sm border border-hairline border-line" />
           </span>
           <span className="flex items-center justify-between text-[9px]">
             <span className="text-muted">{c.quote[1]}</span>

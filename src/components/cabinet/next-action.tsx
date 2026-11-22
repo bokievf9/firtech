@@ -12,7 +12,7 @@ import { fill } from './ui'
 // the proposal, sign the contract, pay a stage, accept a stage, or a calm line when only we are
 // working. Accepting and signing happen in the document viewer (the client must be able to read first),
 // paying opens the pay page, accepting a stage is done in place.
-const big = `${buttonStyles.primary} px-8 py-4 text-base`
+const big = `${buttonStyles.primary} px-8 py-4 text-body`
 
 export function NextActionBlock({
   action,
@@ -47,7 +47,7 @@ export function NextActionBlock({
 
   if (control.control === 'none') {
     return (
-      <div className="flex items-start gap-3 rounded-xl border border-line bg-surface-2/60 p-4 text-sm text-muted" data-next-action="wait">
+      <div className="flex items-start gap-3 rounded-tile border border-hairline border-line bg-surface-2/60 p-4 text-callout text-muted" data-next-action="wait">
         <Hourglass size={20} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-faint" />
         <p className="leading-relaxed">{text}</p>
       </div>
@@ -56,11 +56,11 @@ export function NextActionBlock({
 
   return (
     <div
-      className={cn('rounded-xl border border-accent-text/40 bg-accent/[0.07]', compact ? 'p-4' : 'p-5 md:p-6')}
+      className={cn('rounded-tile border border-accent-text/40 bg-accent/[0.07]', compact ? 'p-4' : 'p-5 md:p-6')}
       data-next-action={action.kind}
     >
-      <p className="text-[13px] text-muted">{t.title}</p>
-      <p className="mt-1 max-w-[56ch] text-[15px] leading-relaxed text-fg">{text}</p>
+      <p className="text-footnote text-muted">{t.title}</p>
+      <p className="mt-1 max-w-[56ch] text-callout leading-relaxed text-fg">{text}</p>
       <div className="mt-4">
         {control.control === 'pay_link' && (
           <a href={control.href} className={big} data-big-action>

@@ -7,7 +7,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { formatDate } from '@/lib/cabinet-data'
 import { REJECT_REASON_MAX, docActions, docNeedsClient, docStateKey, docsNeedingClient, sortDocs, type PublicDoc, type SignaturePayload } from '@/lib/cabinet-docs'
-import { buttonStyles, cn } from '@/lib/cn'
+import { Card } from '@/components/ui'
+import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import { COUNTS_EVENT } from './cabinet-tabs'
 import { useWide } from './use-wide'
 import { SignaturePad } from './signature-pad'
@@ -160,12 +161,12 @@ export function DocumentsPanel({
   if (docs.length === 0) {
     return (
       <section aria-labelledby="cabinet-docs-title" data-cabinet-docs>
-        <h2 id="cabinet-docs-title" className="font-display text-2xl font-semibold tracking-tight">
+        <h2 id="cabinet-docs-title" className="font-display text-title-2 font-semibold">
           {t.title}
         </h2>
-        <div className="mt-5 rounded-card border border-line bg-surface p-6 md:p-8">
+        <Card className="mt-5 md:p-sheet">
           <Empty>{t.empty}</Empty>
-        </div>
+        </Card>
       </section>
     )
   }
@@ -173,7 +174,7 @@ export function DocumentsPanel({
   return (
     <section aria-labelledby="cabinet-docs-title" data-cabinet-docs>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 id="cabinet-docs-title" className="font-display text-2xl font-semibold tracking-tight">
+        <h2 id="cabinet-docs-title" className="font-display text-title-2 font-semibold">
           {t.title}
         </h2>
         {waiting > 0 && <Chip tone="warn">{fill(t.needYou, { n: String(waiting) })}</Chip>}
@@ -193,7 +194,7 @@ export function DocumentsPanel({
                   data-doc={d.id}
                   data-doc-state={d.state}
                   className={cn(
-                    'w-full rounded-xl border p-4 text-left transition-colors',
+                    'w-full rounded-tile border p-4 text-left transition-colors',
                     active
                       ? 'border-accent-text bg-accent/[0.07]'
                       : needs
@@ -202,17 +203,17 @@ export function DocumentsPanel({
                   )}
                 >
                   <span className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[11px] tracking-[0.1em] text-faint uppercase">
+                    <span className="text-caption text-faint font-medium">
                       {t.kind[d.kind]}
                       {d.number ? ` ${fill(t.number, { n: d.number })}` : ''}
                     </span>
                     <Chip tone={toneOf(d)}>{t.state[docStateKey(d)]}</Chip>
                   </span>
-                  <span className="mt-2 block text-[15px] leading-snug font-medium">{d.title}</span>
-                  <span className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[12px] text-faint">
+                  <span className="mt-2 block text-callout leading-snug font-medium">{d.title}</span>
+                  <span className="mt-2 flex flex-wrap items-center justify-between gap-2 text-caption text-faint">
                     <span className="font-mono">{formatDate(d.deliveredAt ?? d.createdAt, locale)}</span>
                     {d.amountUsd !== null && (
-                      <span className="font-mono text-[13px] text-fg">{d.amountUsd.toLocaleString('en-US')} USD</span>
+                      <span className="font-mono text-footnote text-fg">{d.amountUsd.toLocaleString('en-US')} USD</span>
                     )}
                   </span>
                 </button>
@@ -223,7 +224,7 @@ export function DocumentsPanel({
 
         <div ref={viewer} className={cn('scroll-mt-28', !openId && 'hidden lg:block')} data-doc-viewer>
           {!open ? (
-            <div className="grid place-items-center rounded-card border border-dashed border-line-strong p-10 text-center text-sm text-muted">
+            <div className="grid place-items-center rounded-card border border-dashed border-line-strong p-10 text-center text-callout text-muted">
               <FileText size={28} aria-hidden="true" className="mb-3 text-faint" />
               {t.pick}
             </div>
@@ -317,41 +318,41 @@ function Viewer({
     doc.signedAt && fill(t.signedOn, { date: formatDate(doc.signedAt, locale) }),
   ].filter(Boolean)
   const hint = (t.hint as Record<string, string>)[doc.state]
-  const bigButton = cn(buttonStyles.primary, 'px-8 py-4 text-base')
+  const bigButton = cn(buttonStyles.primary, 'px-8 py-4 text-body')
   return (
     <div className="grid gap-4" aria-label={t.viewer} data-doc-open={doc.id}>
-      <div className="rounded-card border border-line bg-surface p-5 md:p-6">
+      <Card >
         <button
           type="button"
           onClick={onBack}
-          className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-fg lg:hidden"
+          className={cn(buttonClass('ghost', 'sm'), 'mb-3 -ml-3 lg:hidden')}
         >
           <ArrowLeft size={16} aria-hidden="true" />
           {t.back}
         </button>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="font-mono text-[11px] tracking-[0.1em] text-faint uppercase">
+            <p className="text-caption text-faint font-medium">
               {t.kind[doc.kind]}
               {doc.number ? ` ${fill(t.number, { n: doc.number })}` : ''}
             </p>
-            <h3 className="mt-1 text-lg leading-snug font-medium">{doc.title}</h3>
-            {dates.length > 0 && <p className="mt-1 font-mono text-[12px] text-faint">{dates.join(', ')}</p>}
+            <h3 className="mt-1 text-headline">{doc.title}</h3>
+            {dates.length > 0 && <p className="mt-1 font-mono text-caption text-faint">{dates.join(', ')}</p>}
           </div>
           <Chip tone={toneOf(doc)}>{t.state[docStateKey(doc)]}</Chip>
         </div>
         {hint && (docNeedsClient(doc) || doc.state === 'declined' || doc.state === 'expired') && (
-          <p className="mt-3 text-sm text-muted" data-doc-hint={doc.state}>
+          <p className="mt-3 text-callout text-muted" data-doc-hint={doc.state}>
             {hint}
           </p>
         )}
         {real && doc.deliveredAt === null && doc.state !== 'void' && (
-          <p className="mt-2 text-[13px] text-faint" data-doc-preparing>
+          <p className="mt-2 text-footnote text-faint" data-doc-preparing>
             {t.preparingMail}
           </p>
         )}
         {doc.kind === 'invoice' && doc.state === 'issued' && (
-          <p className="mt-2 text-[13px] leading-relaxed text-muted" data-pay-help>
+          <p className="mt-2 text-footnote leading-relaxed text-muted" data-pay-help>
             <Link
               href={`/${locale}/pay-how`}
               className="text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
@@ -410,17 +411,17 @@ function Viewer({
             <FormMessage kind="ok">{notice}</FormMessage>
           </div>
         )}
-      </div>
+      </Card>
 
       {canPreview ? (
         <iframe
           title={`${t.viewer}: ${doc.title}`}
           src={file}
-          className="h-[70dvh] min-h-[460px] w-full rounded-card border border-line-strong bg-surface"
+          className="h-[70dvh] min-h-[460px] w-full rounded-card border border-hairline border-line-strong bg-surface"
           data-doc-frame
         />
       ) : (
-        <div className="rounded-card border border-dashed border-line-strong p-8 text-center text-sm text-muted">{t.noPreview}</div>
+        <div className="rounded-card border border-dashed border-line-strong p-8 text-center text-callout text-muted">{t.noPreview}</div>
       )}
 
       {rejecting && <RejectForm dict={dict} busy={busy === 'reject'} error={rejectError} onSend={onRejectSend} onCancel={onRejectCancel} />}
@@ -449,8 +450,8 @@ function RejectForm({
   const [reason, setReason] = useState('')
   const [empty, setEmpty] = useState(false)
   return (
-    <form
-      className="grid gap-4 rounded-card border border-line bg-surface p-5 md:p-6"
+    <Card as="form"
+      className="grid gap-4"
       data-doc-reject-form
       onSubmit={(e) => {
         e.preventDefault()
@@ -462,18 +463,18 @@ function RejectForm({
         onSend({ reason: reason.trim(), mode })
       }}
     >
-      <h4 className="text-base font-medium">{t.title}</h4>
+      <h4 className="text-body font-medium">{t.title}</h4>
       <fieldset className="grid gap-2">
-        <legend className="text-sm text-muted">{t.modeLabel}</legend>
+        <legend className="text-callout text-muted">{t.modeLabel}</legend>
         {(['discuss', 'decline'] as const).map((m) => (
-          <label key={m} className="flex items-center gap-2 text-[15px]">
+          <label key={m} className="flex items-center gap-2 text-callout">
             <input type="radio" name="reject-mode" value={m} checked={mode === m} onChange={() => setMode(m)} />
             {t[m]}
           </label>
         ))}
       </fieldset>
       <div className="grid gap-2">
-        <label htmlFor="reject-reason" className="text-sm text-muted">
+        <label htmlFor="reject-reason" className="text-callout text-muted">
           {t.reason}
         </label>
         <textarea
@@ -485,7 +486,7 @@ function RejectForm({
           aria-invalid={empty}
           className={inputClass}
         />
-        <p className="text-[13px] text-faint">{t.reasonHelp}</p>
+        <p className="text-footnote text-faint">{t.reasonHelp}</p>
       </div>
       {empty && <FormMessage kind="error">{t.empty}</FormMessage>}
       {error && <FormMessage kind="error">{error}</FormMessage>}
@@ -497,6 +498,6 @@ function RejectForm({
           {t.cancel}
         </button>
       </div>
-    </form>
+    </Card>
   )
 }

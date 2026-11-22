@@ -13,6 +13,7 @@ import {
   type Icon,
 } from '@phosphor-icons/react'
 import { useId, useState, type ReactNode } from 'react'
+import { Card, fieldClass } from '@/components/ui'
 import type { Dict } from '@/content'
 import { paletteNames, pick, typeNames } from '@/content/builder-catalog'
 import {
@@ -68,7 +69,7 @@ import {
 } from '@/lib/builder-style'
 import { kindTheme, themeMotion } from '@/lib/builder-themes'
 import { hasAgent, languageRuleBroken, requiredDetails } from '@/lib/builder-v2'
-import { cn } from '@/lib/cn'
+import { buttonStyles, cn } from '@/lib/cn'
 import { formatUsd } from '@/lib/pricing'
 import { useSiteTheme } from '@/lib/use-site-theme'
 import { DiscoveryFields } from './builder-discovery'
@@ -89,8 +90,7 @@ const deadlineIcons: Record<DetailDeadline, Icon> = {
 const toggle = <T,>(list: readonly T[] | undefined, id: T) =>
   list?.includes(id) ? list.filter((x) => x !== id) : [...(list ?? []), id]
 
-const inputClass =
-  'ym-disable-keys w-full rounded-xl border bg-surface px-4 py-3.5 text-base text-fg md:text-[15px] placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text'
+const inputClass = cn('ym-disable-keys', fieldClass)
 
 // ------------------------------------------------------------------- theme
 
@@ -140,13 +140,13 @@ export function ThemeStep({
                   setMood(id)
                   setBuild((b) => setThemeMood(b, id))
                 }}
-                className="rounded-xl p-3.5"
+                className="rounded-tile p-3.5"
               >
                 <span className="flex items-start justify-between gap-2">
-                  <span className="text-[15px] font-medium">{moodText[id].name[loc]}</span>
+                  <span className="text-callout font-medium">{moodText[id].name[loc]}</span>
                   <Tick on={on} />
                 </span>
-                <span className="mt-0.5 block text-[12px] leading-snug text-muted">{moodText[id].hint[loc]}</span>
+                <span className="mt-0.5 block text-caption leading-snug text-muted">{moodText[id].hint[loc]}</span>
               </Choice>
             )
           })}
@@ -172,8 +172,8 @@ export function ThemeStep({
                 />
                 <span className="flex items-start justify-between gap-2 px-1.5 pt-2.5 pb-1">
                   <span className="min-w-0">
-                    <span className="block text-[14px] leading-tight font-medium">{themeText[id].name[loc]}</span>
-                    <span className="mt-0.5 block text-[11px] leading-snug text-muted">{themeText[id].hint[loc]}</span>
+                    <span className="block text-callout leading-tight font-medium">{themeText[id].name[loc]}</span>
+                    <span className="mt-0.5 block text-caption leading-snug text-muted">{themeText[id].hint[loc]}</span>
                     {fits === id && (
                       <span className="mt-1.5 inline-block rounded-full bg-accent/15 px-2 py-0.5 text-[10px] text-accent-text">
                         {pick(themeUi.fitsYou, locale)}
@@ -186,7 +186,7 @@ export function ThemeStep({
             )
           })}
         </div>
-        <p className="mt-3 text-[13px] text-faint">
+        <p className="mt-3 text-footnote text-faint">
           {motion
             ? `${pick(themeUi.motion, locale)}: ${motionText.reveal[motion.reveal][loc]}, ${motionText.parallax[motion.parallax][loc]}, ${motionText.micro[motion.micro][loc]}, ${motionText.hero[motion.hero][loc]}. ${t.noPrice}.`
             : legacy
@@ -200,7 +200,7 @@ export function ThemeStep({
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong px-5 text-sm font-medium transition-colors hover:border-fg/40"
+          className={buttonStyles.secondary}
         >
           <SlidersHorizontal size={16} className="text-accent-text" />
           {open ? pick(themeUi.tuneHide, locale) : pick(themeUi.tune, locale)}
@@ -209,7 +209,7 @@ export function ThemeStep({
           <button
             type="button"
             onClick={() => setBuild(tuned && style?.themeId ? (b) => applyTheme(b, style.themeId!, activeMood) : clearStyle)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm text-muted transition-colors hover:text-fg"
+            className={buttonStyles.ghost}
           >
             <ArrowCounterClockwise size={15} />
             {pick(themeUi.reset, locale)}
@@ -218,8 +218,8 @@ export function ThemeStep({
       </div>
 
       {open && (
-        <div className="grid gap-10 rounded-card border border-line bg-surface/40 p-5 md:p-7">
-          <p className="-mb-4 text-[13px] text-faint">{pick(themeUi.tuneSub, locale)}</p>
+        <Card className="grid gap-10 md:p-sheet">
+          <p className="-mb-4 text-footnote text-faint">{pick(themeUi.tuneSub, locale)}</p>
           <Group
             title={pick(themeUi.paletteLabel, locale)}
             hint={look.palette ? pick(paletteNames[look.palette], locale) : undefined}
@@ -239,12 +239,12 @@ export function ThemeStep({
                     title={name}
                     onClick={() => setAxes({ palette: id })}
                     className={cn(
-                      'group grid justify-items-center gap-1.5 rounded-xl border p-1.5 transition-colors active:scale-95',
+                      'pressable group grid justify-items-center gap-1.5 rounded-tile border p-1.5',
                       on ? 'border-fg' : 'border-transparent hover:border-line-strong',
                     )}
                   >
                     <span
-                      className="relative grid size-11 place-items-center overflow-hidden rounded-full border border-line-strong"
+                      className="relative grid size-11 place-items-center overflow-hidden rounded-full border border-hairline border-line-strong"
                       style={{ background: c.bg }}
                     >
                       <span className="absolute right-0 bottom-0 left-0 h-1/2" style={{ background: c.surface2 }} />
@@ -263,21 +263,21 @@ export function ThemeStep({
               {styleTypes.map((id) => {
                 const on = axes.type === id && Boolean(style && usesAxes(style))
                 return (
-                  <Choice key={id} role="radio" on={on} onClick={() => setAxes({ type: id })} className="rounded-xl p-3">
+                  <Choice key={id} role="radio" on={on} onClick={() => setAxes({ type: id })} className="rounded-tile p-3">
                     <span
                       style={styleVars({ ...axes, type: id })}
                       className="block bg-transparent text-2xl leading-none text-fg [font-family:var(--pv-head-font)] [font-stretch:var(--pv-stretch)] [font-weight:700]"
                     >
                       Aa
                     </span>
-                    <span className="mt-2 block text-[13px] font-medium">{pick(typeNames[id].name, locale)}</span>
-                    <span className="block text-[11px] leading-snug text-faint">{pick(typeNames[id].hint, locale)}</span>
+                    <span className="mt-2 block text-footnote font-medium">{pick(typeNames[id].name, locale)}</span>
+                    <span className="block text-caption leading-snug text-faint">{pick(typeNames[id].hint, locale)}</span>
                   </Choice>
                 )
               })}
             </div>
           </Group>
-        </div>
+        </Card>
       )}
     </div>
   )
@@ -331,9 +331,9 @@ function Field({
     <Group
       title={title}
       hint={undefined}
-      className={cn(invalid && 'rounded-xl border border-danger/50 bg-danger/[0.04] p-4')}
+      className={cn(invalid && 'rounded-tile border border-danger/50 bg-danger/[0.04] p-4')}
     >
-      <p className="-mt-2 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-faint">
+      <p className="-mt-2 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-footnote text-faint">
         <span className={cn(required ? 'text-accent-text' : '')}>{tag}</span>
         {hint && <span>{hint}</span>}
       </p>
@@ -389,7 +389,7 @@ export function DetailsStep({
           aria-required="true"
           aria-invalid={missing.has('company') || undefined}
           onChange={(e) => patch({ company: e.target.value })}
-          className={cn(inputClass, missing.has('company') ? 'border-danger/70' : 'border-line-strong')}
+          className={inputClass}
         />
       </Field>
 
@@ -402,8 +402,9 @@ export function DetailsStep({
           placeholder={detailsUi.clientsPlaceholder[loc]}
           aria-label={detailsUi.clients[loc]}
           aria-required="true"
+          aria-invalid={missing.has('clients') || undefined}
           onChange={(e) => patch({ clients: e.target.value })}
-          className={cn(inputClass, 'mb-3 border-line-strong')}
+          className={cn(inputClass, 'mb-3')}
         />
         <Chips
           loc={loc}
@@ -425,7 +426,7 @@ export function DetailsStep({
           aria-required="true"
           aria-invalid={missing.has('owner') || undefined}
           onChange={(e) => patch({ owner: e.target.value })}
-          className={cn(inputClass, missing.has('owner') ? 'border-danger/70' : 'border-line-strong')}
+          className={inputClass}
         />
       </Field>
 
@@ -440,15 +441,15 @@ export function DetailsStep({
                 role="radio"
                 on={on}
                 onClick={() => patch({ deadline: d.deadline === id ? undefined : id })}
-                className="flex items-center gap-2.5 rounded-xl p-3.5"
+                className="flex items-center gap-2.5 rounded-tile p-3.5"
               >
                 <Glyph size={18} className={cn('shrink-0', on ? 'text-accent-text' : 'text-muted')} />
-                <span className="text-[14px] leading-tight font-medium">{deadlineText[id][loc]}</span>
+                <span className="text-callout leading-tight font-medium">{deadlineText[id][loc]}</span>
               </Choice>
             )
           })}
         </div>
-        <p className="mt-3 text-[13px] text-faint">{t.deadlineNote}</p>
+        <p className="mt-3 text-footnote text-faint">{t.deadlineNote}</p>
       </Field>
 
       <Field
@@ -529,12 +530,12 @@ export function DetailsStep({
               on={langs.includes(id)}
               onClick={() => setBuild((b) => withLangs(b, toggle(b.details?.langs, id), !ruleBroken))}
             >
-              <span className="font-mono text-xs opacity-70">{id.toUpperCase()}</span>
+              <span className="font-mono text-caption opacity-70">{id.toUpperCase()}</span>
               {t.langs[id]}
             </Pill>
           ))}
         </div>
-        <p className="mt-4 flex gap-2.5 rounded-xl border border-line bg-surface px-4 py-3 text-[13px] leading-relaxed text-muted">
+        <p className="mt-4 flex gap-2.5 rounded-tile border border-hairline border-line bg-surface px-4 py-3 text-footnote leading-relaxed text-muted">
           <Info size={16} className="mt-0.5 shrink-0 text-accent-text" />
           <span>
             {hasSite ? (
@@ -571,9 +572,9 @@ export function DetailsStep({
                   placeholder={t.examplePlaceholder}
                   aria-invalid={invalid || undefined}
                   onChange={(e) => setExample(i, e.target.value)}
-                  className={cn(inputClass, 'font-mono md:text-sm', invalid ? 'border-danger/70' : 'border-line-strong')}
+                  className={cn(inputClass, 'font-mono')}
                 />
-                {invalid && <span className="mt-1.5 block text-xs text-danger">{t.exampleInvalid}</span>}
+                {invalid && <span className="mt-1.5 block text-caption text-danger">{t.exampleInvalid}</span>}
               </label>
             )
           })}
@@ -588,7 +589,7 @@ export function DetailsStep({
           placeholder={t.wishPlaceholder}
           aria-label={detailsUi.wish[loc]}
           onChange={(e) => patch({ wish: e.target.value })}
-          className={cn(inputClass, 'resize-y leading-relaxed border-line-strong')}
+          className={cn(inputClass, 'resize-y leading-relaxed')}
         />
       </Field>
 

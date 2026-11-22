@@ -97,7 +97,7 @@ export function CopyLink({ link, dict }: { link: string; dict: Dict }) {
         value={link}
         aria-label={t.title}
         onFocus={(e) => e.currentTarget.select()}
-        className={`${inputClass} font-mono text-[13px]`}
+        className={`${inputClass} font-mono text-footnote`}
       />
       <button type="button" onClick={copy} className={buttonStyles.secondary}>
         {copied ? t.copied : t.copy}
@@ -142,22 +142,22 @@ export function TicketsPanel({
   return (
     <div className="grid gap-8">
       {tickets.length === 0 ? (
-        <p className="text-sm text-faint">{c.noTickets}</p>
+        <p className="text-callout text-faint">{c.noTickets}</p>
       ) : (
         <ul className="grid gap-3">
           {tickets.map((ticket) => (
-            <li key={ticket.id} data-ticket={ticket.id} data-ticket-status={ticket.status} className="rounded-xl border border-line p-4">
+            <li key={ticket.id} data-ticket={ticket.id} data-ticket-status={ticket.status} className="rounded-tile border border-hairline border-line p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-mono text-[12px] text-faint">{formatDate(ticket.createdAt, locale)}</span>
+                <span className="font-mono text-caption text-faint">{formatDate(ticket.createdAt, locale)}</span>
                 <span
-                  className={`rounded-full border px-2.5 py-0.5 font-mono text-[11px] ${
+                  className={`rounded-full border px-2.5 py-0.5 font-mono text-caption ${
                     ticket.status === 'answered' ? 'border-accent-text/40 text-accent-text' : 'border-line-strong text-muted'
                   }`}
                 >
                   {label(c.ticketStatus, ticket.status)}
                 </span>
               </div>
-              <p className="mt-2 text-sm leading-relaxed whitespace-pre-line text-fg">{ticket.text}</p>
+              <p className="mt-2 text-callout leading-relaxed whitespace-pre-line text-fg">{ticket.text}</p>
               {ticket.status !== 'closed' && (
                 <button
                   type="button"

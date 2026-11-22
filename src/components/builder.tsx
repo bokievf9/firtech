@@ -468,7 +468,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     tabIndex={-1}
                     role="status"
                     className={cn(
-                      'mt-8 flex max-w-[60ch] items-start gap-2.5 rounded-xl border px-4 py-3 text-sm leading-snug outline-none',
+                      'mt-8 flex max-w-[60ch] items-start gap-2.5 rounded-tile border px-4 py-3 text-callout leading-snug outline-none',
                       attempted ? 'border-danger/60 bg-danger/[0.06] text-fg' : 'border-line bg-surface text-muted',
                     )}
                   >
@@ -485,7 +485,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
             {preview && (
               <aside className="hidden min-w-0 lg:block">
                 <div className="sticky top-44 grid gap-3">
-                  <p className="text-sm text-muted">{t.previewLabel}</p>
+                  <p className="text-callout text-muted">{t.previewLabel}</p>
                   <BuilderPreview build={build} dict={dict} locale={locale} className="min-h-[520px]" />
                 </div>
               </aside>
@@ -502,11 +502,11 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
         onPreview={preview ? () => setSheet(true) : undefined}
         center={
           <div className="min-w-0">
-            <p className="hidden text-[11px] text-faint sm:block">
+            <p className="hidden text-caption text-faint sm:block">
               {t.stepLabel} {step + 1} {t.of} {total}
               {!last && canGo && <span className="hidden lg:inline"> · {t.enterHint}</span>}
             </p>
-            <p className="truncate font-mono text-sm text-accent-text md:text-base" aria-live="polite">
+            <p className="truncate font-mono text-callout text-accent-text md:text-body" aria-live="polite">
               {personal ? (build.personal?.hand?.length ? `${formatUsd(pricing.personalPlans[tierOf(build.personal)].setup)} + ${formatUsd(pricing.personalPlans[tierOf(build.personal)].monthly)}${t.perMonth}` : '') : hasParts ? formatUsd(q.total) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
               {hasParts && onRequest.length > 0 && (
                 <span className="hidden text-muted sm:inline">

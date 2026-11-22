@@ -6,7 +6,8 @@ import { useCallback, useEffect, useState } from 'react'
 import type { Dict } from '@/content'
 import { formatDate, type CabinetTicket } from '@/lib/cabinet-data'
 import { parseThreads, sortThreads, threadByParam, unreadTotal, type ChatThread, type ThreadKind } from '@/lib/cabinet-chat'
-import { buttonStyles, cn } from '@/lib/cn'
+import { Badge, Card } from '@/components/ui'
+import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import { COUNTS_EVENT } from './cabinet-tabs'
 import { TicketsPanel } from './cabinet-forms'
 import { ThreadPane } from './thread-pane'
@@ -44,9 +45,9 @@ function ResolveBar({ dict, ticketId, onClosed }: { dict: Dict; ticketId: number
     setBusy(false)
   }
   return (
-    <div data-ticket-bar className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-2.5">
-      <span className="text-sm text-muted">{failed ? c.ticketResolveError : c.ticketResolveHint}</span>
-      <button type="button" data-ticket-resolve disabled={busy} onClick={close} className={cn(buttonStyles.secondary, '!px-4 !py-2 text-sm')}>
+    <div data-ticket-bar className="flex flex-wrap items-center justify-between gap-2 border-b border-b-hairline border-line px-4 py-2.5">
+      <span className="text-callout text-muted">{failed ? c.ticketResolveError : c.ticketResolveHint}</span>
+      <button type="button" data-ticket-resolve disabled={busy} onClick={close} className={cn(buttonStyles.secondary, '!px-4 !py-2 text-callout')}>
         {busy ? c.ticketResolving : c.ticketResolve}
       </button>
     </div>
@@ -124,21 +125,21 @@ export function MessagesPanel({
   return (
     <section aria-labelledby="cabinet-messages-title" data-cabinet-messages>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 id="cabinet-messages-title" className="font-display text-2xl font-semibold tracking-tight">
+        <h2 id="cabinet-messages-title" className="font-display text-title-2 font-semibold">
           {t.title}
         </h2>
-        <p className="text-[13px] text-faint">{t.live}</p>
+        <p className="text-footnote text-faint">{t.live}</p>
       </div>
 
       {threads.length === 0 && !showTicket ? (
-        <div className="mt-5 grid justify-items-start gap-4 rounded-card border border-line bg-surface p-6 md:p-8">
+        <Card className="mt-5 grid justify-items-start gap-4 md:p-sheet">
           <Empty>{t.noThreads}</Empty>
           <button type="button" onClick={() => setSelected(TICKET)} className={buttonStyles.secondary}>
             {t.supportCta}
           </button>
-        </div>
+        </Card>
       ) : (
-        <div className="mt-5 grid h-[min(78dvh,720px)] min-h-[520px] overflow-hidden rounded-card border border-line bg-surface lg:grid-cols-[19rem_minmax(0,1fr)]">
+        <Card padded={false} className="mt-5 grid h-[min(78dvh,720px)] min-h-[520px] overflow-hidden lg:grid-cols-[19rem_minmax(0,1fr)]">
           <nav aria-label={t.listLabel} className={cn('flex min-h-0 flex-col border-line lg:border-r', paneOpen && 'hidden lg:flex')}>
             <ul className="min-h-0 flex-1 divide-y divide-line overflow-y-auto">
               {threads.map((x) => {
@@ -160,20 +161,17 @@ export function MessagesPanel({
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center justify-between gap-2">
-                          <span className={cn('truncate text-[15px]', x.unread > 0 ? 'font-semibold text-fg' : 'font-medium')}>
+                          <span className={cn('truncate text-callout', x.unread > 0 ? 'font-semibold text-fg' : 'font-medium')}>
                             {x.title || t.kind[x.kind]}
                           </span>
                           {x.unread > 0 && (
-                            <span
-                              aria-label={fill(t.unread, { n: String(x.unread) })}
-                              className="inline-flex min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 font-mono text-[11px] leading-5 text-accent-ink"
-                            >
+                            <Badge tone="solid" aria-label={fill(t.unread, { n: String(x.unread) })} className="min-w-5 shrink-0 justify-center font-mono">
                               {x.unread}
-                            </span>
+                            </Badge>
                           )}
                         </span>
-                        <span className="mt-0.5 flex items-center justify-between gap-2 font-mono text-[11px] text-faint">
-                          <span className="tracking-[0.08em] uppercase">{t.kind[x.kind]}</span>
+                        <span className="mt-0.5 flex items-center justify-between gap-2 font-mono text-caption text-faint">
+                          <span className="">{t.kind[x.kind]}</span>
                           {x.lastAt && <span>{formatDate(x.lastAt, locale)}</span>}
                         </span>
                       </span>
@@ -183,11 +181,11 @@ export function MessagesPanel({
               })}
             </ul>
             {!hasSupport && (
-              <div className="border-t border-line p-3">
+              <div className="border-t border-t-hairline border-line p-3">
                 <button
                   type="button"
                   onClick={() => setSelected(TICKET)}
-                  className={cn(buttonStyles.secondary, 'w-full !py-2.5 text-sm')}
+                  className={cn(buttonStyles.secondary, 'w-full !py-2.5 text-callout')}
                   data-support-cta
                 >
                   <Lifebuoy size={18} aria-hidden="true" />
@@ -215,19 +213,19 @@ export function MessagesPanel({
               </div>
             ) : showTicket ? (
               <div className="min-h-0 flex-1 overflow-y-auto p-5 md:p-6">
-                <button type="button" onClick={() => setSelected(null)} className="mb-3 text-sm text-muted hover:text-fg lg:hidden">
+                <button type="button" onClick={() => setSelected(null)} className={cn(buttonClass('ghost', 'sm'), 'mb-3 -ml-3 lg:hidden')}>
                   {t.back}
                 </button>
-                <h3 className="font-display text-lg font-semibold tracking-tight">{t.supportTitle}</h3>
+                <h3 className="font-display text-headline font-semibold">{t.supportTitle}</h3>
                 <div className="mt-4">
                   <TicketsPanel dict={dict} locale={locale as 'ru' | 'en'} initial={tickets} />
                 </div>
               </div>
             ) : (
-              <div className="grid flex-1 place-items-center p-10 text-center text-sm text-muted">{t.pick}</div>
+              <div className="grid flex-1 place-items-center p-10 text-center text-callout text-muted">{t.pick}</div>
             )}
           </div>
-        </div>
+        </Card>
       )}
     </section>
   )

@@ -11,13 +11,13 @@ import {
   budgets, discApprover, discBase, discHeard, discHours, discLeads, discPains, discSizes, discSuccess,
 } from '@/lib/builder-ids'
 import { cleanLink, withDiscovery, type Discovery } from '@/lib/builder-personal'
-import { cn } from '@/lib/cn'
+import { fieldClass } from '@/components/ui'
+import { buttonStyles, cn } from '@/lib/cn'
 import { Group, Pill } from './builder-ui'
 
 type SetBuild = (update: (b: Build) => Build) => void
 
-const inputClass =
-  'ym-disable-keys w-full rounded-xl border border-line-strong bg-surface px-4 py-3.5 text-base text-fg md:text-[15px] placeholder:text-faint focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text'
+const inputClass = cn('ym-disable-keys', fieldClass)
 
 // One question, short optional chips with nothing preselected. Used by the business «Детали» step (folded)
 // and the personal «О вас» step (open). Everything here travels in `v.<json>` and the lead `brief`.
@@ -106,7 +106,7 @@ export function DiscoveryFields({
             const raw = e.target.value.trim()
             patch({ [key]: raw === '' ? undefined : (cleanLink(raw) ?? d[key]) } as Partial<Discovery>)
           }}
-          className={cn(inputClass, 'font-mono md:text-sm')}
+          className={cn(inputClass, 'font-mono')}
         />
       </Q>
     )
@@ -118,7 +118,7 @@ export function DiscoveryFields({
           type="button"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong px-5 text-sm font-medium transition-colors hover:border-fg/40"
+          className={buttonStyles.secondary}
         >
           {open ? pick(discUi.less, locale) : pick(discUi.more, locale)}
           <span className="text-faint">{pick(discUi.optional, locale)}</span>

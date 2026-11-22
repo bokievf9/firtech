@@ -45,14 +45,14 @@ export function FlagshipOptions({
   return (
     <section data-flagship-options={product} className="rounded-card border border-accent-text/40 bg-accent/[0.04] p-5 md:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-        <h3 className="text-lg font-semibold">{copy.title[loc]}</h3>
-        <p className="font-mono text-sm text-accent-text" aria-live="polite" data-flagship-price={product}>
+        <h3 className="text-title-3 font-semibold">{copy.title[loc]}</h3>
+        <p className="font-mono text-callout text-accent-text" aria-live="polite" data-flagship-price={product}>
           {label}: {formatUsd(price.plan.setup)} + {formatUsd(price.plan.monthly)}
           {flagshipText.perMonth[loc]}
           {price.byQuote && <span className="text-muted">, {flagshipText.byQuote[loc]}</span>}
         </p>
       </div>
-      <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-muted">{copy.sub[loc]}</p>
+      <p className="mt-2 max-w-[70ch] text-callout leading-relaxed text-muted">{copy.sub[loc]}</p>
       <div className="mt-5 grid gap-6">
         {groups.map((group) => (
           <Group key={group.id} title={group.title}>
@@ -65,11 +65,11 @@ export function FlagshipOptions({
                     key={id}
                     on={on}
                     onClick={() => setBuild((b) => toggleOption(b, product, id))}
-                    className="flex items-start gap-3 rounded-xl p-4"
+                    className="flex items-start gap-3 rounded-tile p-4"
                   >
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[15px] font-medium">{pick(text.name, locale)}</span>
-                      <span className="mt-1 block text-[13px] leading-snug text-muted">{pick(text.hint, locale)}</span>
+                      <span className="block text-callout font-medium">{pick(text.name, locale)}</span>
+                      <span className="mt-1 block text-footnote leading-snug text-muted">{pick(text.hint, locale)}</span>
                     </span>
                     <Tick on={on} round={false} />
                   </Choice>

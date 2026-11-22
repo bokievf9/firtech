@@ -82,8 +82,8 @@ export function CodeForm({
 
   return (
     <div className="grid gap-4" data-code-form={kind}>
-      <h2 className="font-display text-xl font-semibold tracking-tight">{t.codeTitle}</h2>
-      <p className="text-sm leading-relaxed text-muted">{fill(t.codeText, { email })}</p>
+      <h2 className="font-display text-title-3 font-semibold">{t.codeTitle}</h2>
+      <p className="text-callout leading-relaxed text-muted">{fill(t.codeText, { email })}</p>
       <form
         ref={formRef}
         action={action}
@@ -118,12 +118,12 @@ export function CodeForm({
           {t.codeSubmit}
         </Pending>
       </form>
-      <form action={resendFormAction} className="grid gap-2 rounded-xl border border-line p-4" data-resend>
+      <form action={resendFormAction} className="grid gap-2 rounded-tile border border-hairline border-line p-4" data-resend>
         <input type="hidden" name="locale" value={locale} />
         <input type="hidden" name="next" value={next} />
         <input type="hidden" name="email" value={email} />
         <input type="hidden" name="kind" value={kind} />
-        <p className="text-[13px] leading-relaxed text-muted">{t.codeMailNote}</p>
+        <p className="text-footnote leading-relaxed text-muted">{t.codeMailNote}</p>
         {resendState.notice === 'resent' && <FormMessage kind="ok">{fill(t.resent, { email })}</FormMessage>}
         {resendError && note(resendError)}
         <Pending

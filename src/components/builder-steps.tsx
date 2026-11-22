@@ -78,7 +78,8 @@ import {
   visibleAddons,
   visibleExtras,
 } from '@/lib/builder-v2'
-import { cn } from '@/lib/cn'
+import { Card } from '@/components/ui'
+import { buttonStyles, cn } from '@/lib/cn'
 import { extraPrices, formatUsd } from '@/lib/pricing'
 import { usePricing } from './pricing-provider'
 import { serviceSlugs, type ServiceSlug } from '@/lib/site'
@@ -180,8 +181,8 @@ function KindCard({
         {entry.emoji}
       </span>
       <span>
-        <span className="block text-[15px] leading-tight font-medium">{kindName(id, locale)}</span>
-        <span className="mt-1 hidden text-xs leading-snug text-faint sm:block">
+        <span className="block text-callout leading-tight font-medium">{kindName(id, locale)}</span>
+        <span className="mt-1 hidden text-caption leading-snug text-faint sm:block">
           {id === 'other' ? pick(builderUi.kindOtherHint, locale) : usual}
         </span>
       </span>
@@ -212,7 +213,7 @@ export function KindStep({
     })
   return (
     <>
-      <h3 className="mb-4 text-[15px] font-medium">{pick(faceUi.nichesTitle, locale)}</h3>
+      <h3 className="mb-4 text-callout font-medium">{pick(faceUi.nichesTitle, locale)}</h3>
       <div role="radiogroup" aria-label={pick(faceUi.popular, locale)} className="grid grid-cols-3 gap-2.5">
         {popularKinds.map((id) => (
           <KindCard key={id} id={id} locale={locale} on={kind === id} onPick={onPick} big />
@@ -222,7 +223,7 @@ export function KindStep({
         type="button"
         aria-expanded={all}
         onClick={() => setAll((v) => !v)}
-        className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong px-5 text-sm font-medium transition-colors hover:border-fg/40"
+        className={cn(buttonStyles.secondary, 'mt-4')}
       >
         {all ? pick(faceUi.lessNiches, locale) : pick(faceUi.more, locale)}
       </button>
@@ -238,7 +239,7 @@ export function KindStep({
                 : group.kinds.filter((id, i) => i < perCategory || id === kind)
             return (
               <section key={group.category} aria-label={pick(categoryNames[group.category], locale)}>
-                <h3 className="mb-3 text-xs tracking-[0.14em] text-faint uppercase">
+                <h3 className="mb-3 text-caption text-faint font-medium">
                   {pick(categoryNames[group.category], locale)}
                 </h3>
                 <div
@@ -254,7 +255,7 @@ export function KindStep({
                       type="button"
                       aria-expanded={expanded}
                       onClick={() => toggleCategory(group.category)}
-                      className="min-h-[7.5rem] rounded-card border border-dashed border-line-strong p-4 text-sm text-muted transition-colors hover:border-fg/40 hover:text-fg"
+                      className="pressable min-h-[7.5rem] rounded-card border border-dashed border-line-strong p-4 text-callout text-muted hover:border-fg/40 hover:text-fg"
                     >
                       {expanded
                         ? pick(faceUi.lessInCategory, locale)
@@ -269,7 +270,7 @@ export function KindStep({
       )}
       <Link
         href={`/${locale}/solutions`}
-        className="mt-9 inline-flex items-center gap-1.5 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
+        className="mt-9 inline-flex items-center gap-1.5 text-callout text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
       >
         {pick(ui.solutionsLinkAll, locale)}
         <ArrowRight size={14} className="shrink-0 text-accent-text" />
@@ -323,7 +324,7 @@ export function ProductsStep({
       {sections.map((section) => (
         <section key={section.id}>
           {section.title && (
-            <h3 className="mb-4 text-xs tracking-[0.14em] text-faint uppercase">{section.title}</h3>
+            <h3 className="mb-4 text-caption text-faint font-medium">{section.title}</h3>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
             {section.ids.map((id) => {
@@ -350,10 +351,10 @@ export function ProductsStep({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex flex-wrap items-baseline justify-between gap-x-3">
-                      <span className="text-[16px] font-medium">{pick(entry.name, locale)}</span>
+                      <span className="text-body font-medium">{pick(entry.name, locale)}</span>
                       <span
                         className={cn(
-                          'font-mono text-xs',
+                          'font-mono text-caption',
                           from === null && !flagship ? 'text-muted' : 'text-accent-text',
                         )}
                       >
@@ -364,7 +365,7 @@ export function ProductsStep({
                             : `${locale === 'ru' ? 'от' : 'from'} ${formatUsd(from)}`}
                       </span>
                     </span>
-                    <span className="mt-1 block text-sm leading-snug text-muted">
+                    <span className="mt-1 block text-callout leading-snug text-muted">
                       {pick(entry.hint, locale)}
                     </span>
                   </span>
@@ -390,11 +391,11 @@ export function ProductsStep({
                   role="radio"
                   on={on}
                   onClick={() => onSiteNeed(id)}
-                  className="flex items-start gap-3 rounded-xl p-4"
+                  className="flex items-start gap-3 rounded-tile p-4"
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[15px] font-medium">{pick(siteNeedText[id].name, locale)}</span>
-                    <span className="mt-1 block text-[13px] leading-snug text-muted">
+                    <span className="block text-callout font-medium">{pick(siteNeedText[id].name, locale)}</span>
+                    <span className="mt-1 block text-footnote leading-snug text-muted">
                       {pick(siteNeedText[id].hint, locale)}
                     </span>
                   </span>
@@ -405,7 +406,7 @@ export function ProductsStep({
           </div>
         </Group>
       )}
-      <p className="text-[13px] leading-relaxed text-faint">{pick(ui.onRequestNote, locale)}</p>
+      <p className="text-footnote leading-relaxed text-faint">{pick(ui.onRequestNote, locale)}</p>
     </div>
   )
 }
@@ -444,7 +445,7 @@ export function GoalsStep({
             >
               <span className="min-w-0 flex-1">
                 <span className="block font-medium">{pick(text.name, locale)}</span>
-                <span className="mt-1 block text-sm leading-snug text-muted">{pick(text.hint, locale)}</span>
+                <span className="mt-1 block text-callout leading-snug text-muted">{pick(text.hint, locale)}</span>
               </span>
               <Tick on={on} />
             </Choice>
@@ -467,14 +468,14 @@ export function GoalsStep({
                     return next
                   })
                 }
-                className="flex min-h-[5.5rem] flex-col gap-1.5 rounded-xl p-3.5"
+                className="flex min-h-[5.5rem] flex-col gap-1.5 rounded-tile p-3.5"
               >
                 <span className="flex items-center justify-between gap-2">
                   <Glyph size={20} weight={on ? 'fill' : 'regular'} className={on ? 'text-accent-text' : 'text-muted'} />
                   <Tick on={on} round={false} />
                 </span>
-                <span className="text-[14px] leading-tight font-medium">{pick(channelText[id].name, locale)}</span>
-                <span className="text-[12px] leading-snug text-faint">{pick(channelText[id].hint, locale)}</span>
+                <span className="text-callout leading-tight font-medium">{pick(channelText[id].name, locale)}</span>
+                <span className="text-caption leading-snug text-faint">{pick(channelText[id].hint, locale)}</span>
               </Choice>
             )
           })}
@@ -530,9 +531,9 @@ export function SetStep({
                     <span className="grid size-10 shrink-0 place-items-center rounded-full border border-accent-text bg-accent text-accent-ink">
                       <Glyph size={18} />
                     </span>
-                    <span className="text-[16px] font-medium">{pick(productCatalog[id].name, locale)}</span>
+                    <span className="text-body font-medium">{pick(productCatalog[id].name, locale)}</span>
                   </div>
-                  <ul className="mt-3 grid gap-1.5 text-sm leading-snug text-muted">
+                  <ul className="mt-3 grid gap-1.5 text-callout leading-snug text-muted">
                     {lines.map((line) => (
                       <li key={line} className="flex gap-2">
                         <span aria-hidden="true" className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent-text" />
@@ -556,17 +557,17 @@ export function SetStep({
               const variants = dict.estimator.catalog[slug].variants as Variants
               const hints = t.variantHints[slug] as Record<string, string>
               return (
-                <div key={slug} className="rounded-card border border-line bg-surface p-5">
+                <Card key={slug} className="p-5">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="flex items-center gap-3">
                       <Glyph size={20} className="text-accent-text" />
-                      <span className="text-[16px] font-medium">{dict.services.items[slug].name}</span>
+                      <span className="text-body font-medium">{dict.services.items[slug].name}</span>
                     </span>
                     {!owned(slug) && (
                       <button
                         type="button"
                         onClick={() => onToggle(slug)}
-                        className="text-[13px] text-muted underline decoration-line-strong underline-offset-4 hover:text-fg"
+                        className="text-footnote text-muted underline decoration-line-strong underline-offset-4 hover:text-fg"
                       >
                         {pick(builderUi.removePart, locale)}
                       </button>
@@ -581,12 +582,12 @@ export function SetStep({
                         aria-checked={part.variant === id}
                         onClick={() => onVariant(slug, id)}
                         className={cn(
-                          'flex flex-col rounded-xl border p-3.5 text-left transition-colors duration-200',
+                          'pressable flex flex-col rounded-tile border border-hairline p-3.5 text-left',
                           part.variant === id ? 'border-accent-text bg-accent/[0.08]' : 'border-line hover:border-line-strong',
                         )}
                       >
                         <span className="flex items-start justify-between gap-2">
-                          <span className="text-sm font-medium">{v.name}</span>
+                          <span className="text-callout font-medium">{v.name}</span>
                           <span
                             className={cn(
                               'mt-0.5 size-3.5 shrink-0 rounded-full border',
@@ -596,8 +597,8 @@ export function SetStep({
                             )}
                           />
                         </span>
-                        <span className="mt-1 mb-3 block text-xs leading-snug text-muted">{hints[id]}</span>
-                        <span className="mt-auto flex justify-between gap-2 text-xs text-faint">
+                        <span className="mt-1 mb-3 block text-caption leading-snug text-muted">{hints[id]}</span>
+                        <span className="mt-auto flex justify-between gap-2 text-caption text-faint">
                           <span className="inline-flex items-center gap-1">
                             <Clock size={12} />
                             {v.term}
@@ -609,7 +610,7 @@ export function SetStep({
                       </button>
                     ))}
                   </div>
-                </div>
+                </Card>
               )
             })}
           </div>
@@ -632,14 +633,14 @@ export function SetStep({
                   disabled={disabled}
                   onClick={() => onDelivery(id)}
                   className={cn(
-                    'flex items-start gap-3.5 rounded-xl border p-4 text-left transition-colors duration-200 active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-55',
+                    'pressable flex items-start gap-3.5 rounded-tile border border-hairline p-4 text-left disabled:cursor-not-allowed disabled:opacity-55',
                     on ? 'border-accent-text/70 bg-accent/[0.06]' : 'border-line bg-surface hover:border-line-strong',
                   )}
                 >
                   <Glyph size={22} className={cn('mt-0.5 shrink-0', on ? 'text-accent-text' : 'text-muted')} />
                   <span className="min-w-0 flex-1">
-                    <span className="block text-[15px] font-medium">{pick(text.name, locale)}</span>
-                    <span className="mt-1 block text-[13px] leading-snug text-muted">{pick(text.hint, locale)}</span>
+                    <span className="block text-callout font-medium">{pick(text.name, locale)}</span>
+                    <span className="mt-1 block text-footnote leading-snug text-muted">{pick(text.hint, locale)}</span>
                   </span>
                   <Tick on={on} round={false} />
                 </button>
@@ -647,11 +648,11 @@ export function SetStep({
             })}
           </div>
           {need === 'no' && (
-            <p className="mt-4 rounded-xl border border-line bg-surface px-4 py-3 text-[13px] leading-relaxed text-muted">
+            <p className="mt-4 rounded-tile border border-hairline border-line bg-surface px-4 py-3 text-footnote leading-relaxed text-muted">
               {pick(deliveryUi.noSiteDiff, locale)}
             </p>
           )}
-          {!delivery.length && <p className="mt-3 text-sm text-danger">{pick(deliveryUi.pickOne, locale)}</p>}
+          {!delivery.length && <p className="mt-3 text-callout text-danger">{pick(deliveryUi.pickOne, locale)}</p>}
         </Group>
       )}
 
@@ -661,7 +662,7 @@ export function SetStep({
             type="button"
             aria-expanded={more}
             onClick={() => setMore((v) => !v)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-line-strong px-5 text-sm font-medium transition-colors hover:border-fg/40"
+            className={buttonStyles.secondary}
           >
             {more ? pick(faceUi.addPartsHide, locale) : pick(faceUi.addPartsOpen, locale)}
           </button>
@@ -687,11 +688,11 @@ export function SetStep({
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-baseline justify-between gap-x-3">
                           <span className="font-medium">{dict.services.items[slug].name}</span>
-                          <span className="font-mono text-xs text-accent-text">
+                          <span className="font-mono text-caption text-accent-text">
                             {dict.services.from} {formatUsd(pricing.startingPrice[slug])}
                           </span>
                         </span>
-                        <span className="mt-1 block text-sm leading-snug text-muted">
+                        <span className="mt-1 block text-callout leading-snug text-muted">
                           {dict.services.items[slug].short}
                         </span>
                       </span>
@@ -704,7 +705,7 @@ export function SetStep({
           </AnimatePresence>
         </div>
       )}
-      {!picked.length && !present.length && <p className="text-sm text-danger">{t.pickOne}</p>}
+      {!picked.length && !present.length && <p className="text-callout text-danger">{t.pickOne}</p>}
     </div>
   )
 }
@@ -797,16 +798,16 @@ function Option({
   price: string
 }) {
   return (
-    <Choice on={on} onClick={onClick} className="flex items-start gap-3.5 rounded-xl p-4">
+    <Choice on={on} onClick={onClick} className="flex items-start gap-3.5 rounded-tile p-4">
       <Tick on={on} round={false} />
       <span className="min-w-0 flex-1">
         <span className="flex items-baseline justify-between gap-3">
-          <span className="text-[15px] font-medium">{name}</span>
-          <span className={cn('shrink-0 font-mono text-xs', on ? 'text-accent-text' : 'text-faint')}>
+          <span className="text-callout font-medium">{name}</span>
+          <span className={cn('shrink-0 font-mono text-caption', on ? 'text-accent-text' : 'text-faint')}>
             {price}
           </span>
         </span>
-        <span className="mt-1 block text-[13px] leading-snug text-muted">{hint}</span>
+        <span className="mt-1 block text-footnote leading-snug text-muted">{hint}</span>
       </span>
     </Choice>
   )

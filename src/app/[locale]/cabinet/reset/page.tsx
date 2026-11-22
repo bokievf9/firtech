@@ -25,11 +25,11 @@ export default async function ResetPage({ params }: PageProps<'/[locale]/cabinet
   return (
     <section className="mx-auto max-w-xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <HeroIntro>
-        <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-        <h1 className="mt-5 text-[2.2rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">
+        <p className="text-caption text-accent-text font-medium">{t.eyebrow}</p>
+        <h1 className="mt-5 text-title font-semibold text-balance">
           {t.title}
         </h1>
-        <p className="mt-4 text-lg leading-relaxed text-muted">{data.user ? t.sub : t.needLink}</p>
+        <p className="mt-4 text-lead text-muted">{data.user ? t.sub : t.needLink}</p>
       </HeroIntro>
       <div className="mt-10">
         {data.user ? (

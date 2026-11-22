@@ -13,6 +13,7 @@ import {
 import type { Dict } from '@/content'
 import { clearVerifierCookies } from '@/lib/auth-cookies'
 import type { AuthErrorKey } from '@/lib/cabinet-auth'
+import { Card, TabList } from '@/components/ui'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { ConsentText } from '../consent-text'
@@ -78,7 +79,7 @@ export function AuthForms({
       {compact && <input type="hidden" name="stay" value="1" />}
     </>
   )
-  const box = compact ? 'rounded-card border border-accent-text/30 bg-surface-2 p-5' : 'rounded-card border border-line bg-surface p-6 md:p-8'
+  const box = compact ? 'border-accent-text/30 bg-surface-2' : 'md:p-sheet'
 
   const tabs: { id: 'in' | 'up'; label: string }[] = [
     { id: 'in', label: t.tabIn },
@@ -87,9 +88,9 @@ export function AuthForms({
 
   if (mode === 'forgot') {
     return (
-      <div className={box}>
-        <h2 className="font-display text-xl font-semibold tracking-tight">{t.forgotTitle}</h2>
-        <p className="mt-2 text-sm leading-relaxed text-muted">{t.forgotText}</p>
+      <Card className={box}>
+        <h2 className="font-display text-title-3 font-semibold">{t.forgotTitle}</h2>
+        <p className="mt-2 text-callout leading-relaxed text-muted">{t.forgotText}</p>
         {forgotState.notice === 'reset_sent' ? (
           <div className="mt-6 grid gap-3">
             <FormMessage kind="ok">{fill(t.forgotSent, { email: forgotState.email ?? '' })}</FormMessage>
@@ -119,45 +120,30 @@ export function AuthForms({
         <button
           type="button"
           onClick={() => setMode('in')}
-          className="mt-6 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
+          className="mt-6 text-callout text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
         >
           {t.back}
         </button>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className={box} data-auth-forms={compact ? 'compact' : 'page'}>
+    <Card className={box} data-auth-forms={compact ? 'compact' : 'page'}>
       {compact && (
         <div className="mb-5">
-          <p className="font-display text-lg font-semibold tracking-tight">{t.inlineTitle}</p>
-          <p className="mt-1 text-sm leading-relaxed text-muted">{t.inlineText}</p>
+          <p className="font-display text-headline font-semibold">{t.inlineTitle}</p>
+          <p className="mt-1 text-callout leading-relaxed text-muted">{t.inlineText}</p>
         </div>
       )}
-      <div
-        role="tablist"
-        aria-label={t.tabsLabel}
-        className="flex rounded-full border border-line-strong p-1 text-sm"
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            id={id(`tab-${tab.id}`)}
-            aria-selected={mode === tab.id}
-            aria-controls={id(`panel-${tab.id}`)}
-            onClick={() => setMode(tab.id)}
-            className={cn(
-              'flex-1 rounded-full px-4 py-2 font-medium transition-colors',
-              mode === tab.id ? 'bg-accent text-accent-ink' : 'text-muted hover:text-fg',
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <TabList
+        base={uid}
+        label={t.tabsLabel}
+        items={tabs}
+        value={mode}
+        onChange={(next) => setMode(next as Mode)}
+        className="mx-0 w-full px-0 md:flex"
+      />
 
       {callbackError && (
         <div className="mt-5">
@@ -179,7 +165,7 @@ export function AuthForms({
         ))}
       </div>
 
-      <p className="my-6 flex items-center gap-3 text-[13px] text-faint before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line">
+      <p className="my-6 flex items-center gap-3 text-footnote text-faint before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line">
         {t.or}
       </p>
 
@@ -225,7 +211,7 @@ export function AuthForms({
           <button
             type="button"
             onClick={() => setMode('forgot')}
-            className="justify-self-start text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
+            className="justify-self-start text-callout text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
           >
             {t.forgot}
           </button>
@@ -241,7 +227,7 @@ export function AuthForms({
             stay={compact}
             onSignedIn={onSignedIn}
           />
-          <p className="text-[13px] leading-relaxed text-faint">{t.codeLinkFallback}</p>
+          <p className="text-footnote leading-relaxed text-faint">{t.codeLinkFallback}</p>
         </div>
       ) : (
         <form
@@ -302,7 +288,7 @@ export function AuthForms({
             </Field>
           )}
           {!compact && (
-            <label className="flex items-start gap-3 text-sm text-muted">
+            <label className="flex items-start gap-3 text-callout text-muted">
               <input type="checkbox" name="marketing" className="mt-1 size-4 accent-[var(--color-accent)]" />
               {t.marketing}
             </label>
@@ -311,19 +297,19 @@ export function AuthForms({
           <button type="submit" disabled={upPending} className={buttonStyles.primary}>
             {upPending ? t.sending : t.submitUp}
           </button>
-          <p className="text-[13px] leading-relaxed text-faint">
+          <p className="text-footnote leading-relaxed text-faint">
             <ConsentText text={t.consent} href={`/${locale}/privacy`} />
           </p>
         </form>
       )}
       {compact && (
-        <p className="mt-5 text-[13px] text-faint">
+        <p className="mt-5 text-footnote text-faint">
           <Link href={`/${locale}/cabinet/login`} className="underline decoration-line-strong underline-offset-4 hover:text-fg">
             {t.inlineFullPage}
           </Link>
         </p>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -333,11 +319,11 @@ export function ResendBox({ dict, locale, email, next }: { dict: Dict; locale: L
   const errors = t.errors as Record<string, string>
   const [state, action, pending] = useActionState(resendAction, initial)
   return (
-    <form action={action} onSubmit={() => clearVerifierCookies()} className="grid gap-2 rounded-xl border border-line p-4" data-resend>
+    <form action={action} onSubmit={() => clearVerifierCookies()} className="grid gap-2 rounded-tile border border-hairline border-line p-4" data-resend>
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="next" value={next} />
       <input type="hidden" name="email" value={email} />
-      <p className="text-[13px] leading-relaxed text-muted">{t.mailLimit}</p>
+      <p className="text-footnote leading-relaxed text-muted">{t.mailLimit}</p>
       {state.notice === 'resent' && <FormMessage kind="ok">{fill(t.resent, { email })}</FormMessage>}
       {state.error && <FormMessage kind="error">{errors[state.error] ?? errors.generic}</FormMessage>}
       <button type="submit" disabled={pending} className={cn(buttonStyles.secondary, 'justify-self-start')}>
@@ -353,7 +339,7 @@ export function ResetForm({ dict, locale }: { dict: Dict; locale: Locale }) {
   const uid = useId()
   const [state, action, pending] = useActionState(resetPasswordAction, initial)
   return (
-    <form action={action} className="grid gap-5 rounded-card border border-line bg-surface p-6 md:p-8">
+    <Card as="form" action={action} className="grid gap-5 md:p-sheet">
       <input type="hidden" name="locale" value={locale} />
       <Field id={`${uid}-pw`} label={t.password} help={dict.cabinet.auth.passwordHint}>
         <input
@@ -371,7 +357,7 @@ export function ResetForm({ dict, locale }: { dict: Dict; locale: Locale }) {
       <button type="submit" disabled={pending} className={buttonStyles.primary}>
         {pending ? dict.cabinet.auth.sending : t.submit}
       </button>
-    </form>
+    </Card>
   )
 }
 

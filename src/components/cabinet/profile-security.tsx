@@ -45,8 +45,8 @@ function Block({ title, text, children }: { title: string; text: string; childre
   return (
     <div className="grid gap-3 py-6 first:pt-0 last:pb-0">
       <div>
-        <h4 className="text-[15px] font-medium text-fg">{title}</h4>
-        <p className="mt-1 max-w-[60ch] text-[13px] leading-relaxed text-faint">{text}</p>
+        <h4 className="text-callout font-medium text-fg">{title}</h4>
+        <p className="mt-1 max-w-[60ch] text-footnote leading-relaxed text-faint">{text}</p>
       </div>
       {children}
     </div>
@@ -71,14 +71,14 @@ export function ProfileSecurity({ dict, locale, hasPassword }: { dict: Dict; loc
           <input type="hidden" name="locale" value={locale} />
           {hasPassword && (
             <div className="grid min-w-0 gap-2">
-              <label htmlFor={`${uid}-current`} className="text-sm text-muted">
+              <label htmlFor={`${uid}-current`} className="text-callout text-muted">
                 {s.currentPassword}
               </label>
               <input id={`${uid}-current`} name="current" type="password" autoComplete="current-password" required className={inputClass} />
             </div>
           )}
           <div className="grid min-w-0 gap-2">
-            <label htmlFor={`${uid}-new`} className="text-sm text-muted">
+            <label htmlFor={`${uid}-new`} className="text-callout text-muted">
               {s.newPassword}
             </label>
             <input id={`${uid}-new`} name="password" type="password" autoComplete="new-password" minLength={8} required className={inputClass} />
@@ -95,7 +95,7 @@ export function ProfileSecurity({ dict, locale, hasPassword }: { dict: Dict; loc
         <form action={emAction} className="grid gap-3" data-security="email">
           <input type="hidden" name="locale" value={locale} />
           <div className="grid min-w-0 gap-2 sm:max-w-md">
-            <label htmlFor={`${uid}-email`} className="text-sm text-muted">
+            <label htmlFor={`${uid}-email`} className="text-callout text-muted">
               {s.newEmail}
             </label>
             <input id={`${uid}-email`} name="email" type="email" autoComplete="email" required defaultValue={em.email ?? ''} className={inputClass} />
@@ -135,7 +135,7 @@ export function DeleteAccount({ dict, locale }: { dict: Dict; locale: Locale }) 
         <form action={action} className="grid gap-3" data-security="delete">
           <input type="hidden" name="locale" value={locale} />
           <div className="grid min-w-0 gap-2 sm:max-w-xs">
-            <label htmlFor={`${uid}-word`} className="text-sm text-muted">
+            <label htmlFor={`${uid}-word`} className="text-callout text-muted">
               {t.deleteWord.replace('{word}', word)}
             </label>
             <input
@@ -164,7 +164,7 @@ export function DeleteAccount({ dict, locale }: { dict: Dict; locale: Locale }) 
                 setConfirming(false)
                 setTyped('')
               }}
-              className="text-sm text-muted hover:text-fg"
+              className="text-callout text-muted hover:text-fg"
             >
               {t.deleteCancel}
             </button>

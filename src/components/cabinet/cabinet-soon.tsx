@@ -10,11 +10,11 @@ export function CabinetSoon({ locale, dict }: { locale: Locale; dict: Dict }) {
   return (
     <section className="mx-auto max-w-3xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <HeroIntro>
-        <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-        <h1 className="mt-5 text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+        <p className="text-caption text-accent-text font-medium">{t.eyebrow}</p>
+        <h1 className="mt-5 text-title font-semibold text-balance">
           {t.title}
         </h1>
-        <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-muted">{t.text}</p>
+        <p className="mt-6 max-w-[56ch] text-lead text-muted">{t.text}</p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link href={`/${locale}/builder`} className={buttonStyles.primary}>
             {t.contact}

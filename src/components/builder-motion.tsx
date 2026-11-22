@@ -214,9 +214,9 @@ export function ThemedSite({
   const title = (
     <span className={cn(headClass, heroClass, 'block max-w-[20ch] leading-[1.1]')}>{headline}</span>
   )
-  const lead = sub ? <span className="block max-w-[38ch] text-[11px] leading-snug text-muted">{sub}</span> : null
+  const lead = sub ? <span className="block max-w-[38ch] text-caption leading-snug text-muted">{sub}</span> : null
   const button = (
-    <Cta preset={preset} className="mt-1 px-3 py-1.5 text-[11px] font-medium">
+    <Cta preset={preset} className="mt-1 px-3 py-1.5 text-caption font-medium">
       {cta}
     </Cta>
   )
@@ -270,7 +270,7 @@ export function ThemedSite({
           {button}
           <div className="grid grid-cols-3 gap-1.5">
             {[0, 1, 2].map((i) => (
-              <span key={i} className="grid gap-1 rounded-[var(--radius-md)] border border-line p-1.5">
+              <span key={i} className="grid gap-1 rounded-[var(--radius-md)] border border-hairline border-line p-1.5">
                 <span className={cn(tile, 'h-10')} />
                 <span className="h-1.5 w-3/4 rounded-full bg-fg/15" />
               </span>
@@ -284,7 +284,7 @@ export function ThemedSite({
         <div className="relative grid gap-2 overflow-hidden py-1">
           {art}
           {title}
-          <span className="flex items-center gap-1.5 rounded-[var(--pv-button)] border border-line-strong bg-surface p-1 pl-3">
+          <span className="flex items-center gap-1.5 rounded-[var(--pv-button)] border border-hairline border-line-strong bg-surface p-1 pl-3">
             <span className="h-1.5 w-1/2 rounded-full bg-fg/20" />
             <Cta preset={preset} className="ml-auto px-3 py-1 text-[10px] font-medium">
               {cta}
@@ -311,7 +311,7 @@ export function ThemedSite({
     <div onPointerMove={onMove} className={cn('grid gap-(--pv-gap)', className)} data-hero={preset.hero}>
       <RevealGroup preset={preset} themeKey={themeKey} className="grid gap-(--pv-gap)">
         <Reveal className="flex items-center justify-between gap-2">
-          <span className={cn(headClass, 'min-w-0 truncate text-[12px]')}>{brand}</span>
+          <span className={cn(headClass, 'min-w-0 truncate text-caption')}>{brand}</span>
           <span className="flex shrink-0 gap-2 text-[9px] text-muted">
             {menu.map((m) => (
               <span key={m}>{m}</span>
@@ -322,10 +322,10 @@ export function ThemedSite({
         {block && <Reveal>{block}</Reveal>}
         {sections.map((section) => (
           <Reveal key={section.title} className="grid gap-1.5">
-            <span className={cn(headClass, 'text-[11px]')}>{section.title}</span>
+            <span className={cn(headClass, 'text-caption')}>{section.title}</span>
             <span className="grid grid-cols-3 gap-1.5">
               {section.items.map((item, i) => (
-                <span key={item} className="grid content-start gap-1 rounded-[var(--radius-md)] border border-line p-2 [border-width:var(--pv-border)]">
+                <span key={item} className="grid content-start gap-1 rounded-[var(--radius-md)] border border-hairline border-line p-2 [border-width:var(--pv-border)]">
                   <span className="grid size-4 place-items-center rounded-full bg-accent/70 font-mono text-[8px] text-accent-ink">
                     {i + 1}
                   </span>
