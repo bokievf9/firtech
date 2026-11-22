@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, CloudSlash, Copy, Tray } from '@phosphor-icons/react'
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { errText, hq, POLL_HIDDEN, POLL_VISIBLE } from '@/components/admin/control/api'
 import { Pending } from '@/components/ui/pending'
@@ -208,15 +208,13 @@ export function useConfirm() {
     return () => window.removeEventListener('keydown', onKey, true)
   }, [state, done])
   const reduce = useReducedMotion()
-  const dialog = (
-    <AnimatePresence>
-      {state ? (
+  // `dialog` stays null while closed (callers portal it with `dialog ? ... : null`), so it only animates in.
+  const dialog = state ? (
         <motion.div
           key="confirm"
           className="fixed inset-0 z-[80] grid place-items-center bg-scrim p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
           transition={fade}
         >
           <motion.div
@@ -226,7 +224,6 @@ export function useConfirm() {
             className="material-chrome w-full max-w-sm rounded-card p-5 shadow-dialog"
             initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 6 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97 }}
             transition={reduce ? fade : spring.snappy}
           >
             <p className="text-callout">{state.text}</p>
@@ -240,9 +237,7 @@ export function useConfirm() {
             </div>
           </motion.div>
         </motion.div>
-      ) : null}
-    </AnimatePresence>
-  )
+  ) : null
   return { ask, dialog }
 }
 
