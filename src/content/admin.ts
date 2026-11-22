@@ -1501,7 +1501,7 @@ export const admin = {
     cancel: 'Cancel',
     remind: 'Remind',
     cancelAsk: 'Cancel assignment #{id}? The Director will take it off the assignee.',
-    cancelYes: 'Cancel',
+    cancelYes: 'Cancel assignment',
     started: 'Assignment #{id} is running again.',
     asked: 'Sent to the Director: {t}',
     failed: 'Failed: {e}.',

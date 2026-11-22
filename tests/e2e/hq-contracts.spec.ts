@@ -60,11 +60,11 @@ test.describe('cabinet, signed in', () => {
     await expect(viewer.locator('[data-doc-accept]')).toBeVisible()
     await viewer.locator('[data-doc-reject]').click()
     // An empty answer is refused before anything is sent.
-    await viewer.getByRole('button', { name: 'Send', exact: true }).click()
+    await viewer.getByRole('button', { name: 'Отправить', exact: true }).click()
     await expect(viewer.getByText('Напишите несколько слов.')).toBeVisible()
     await viewer.getByRole('radio', { name: 'Обсудить условия' }).check()
     await viewer.getByRole('textbox', { name: /Ваш ответ менеджеру/ }).fill('Хочу обсудить срок и цену этапа 1')
-    await viewer.getByRole('button', { name: 'Send', exact: true }).click()
+    await viewer.getByRole('button', { name: 'Отправить', exact: true }).click()
     await expect(viewer.getByText(/Ответ отправлен/)).toBeVisible()
     await expect(viewer.getByText('Отклонено', { exact: true })).toBeVisible()
     await expect(viewer.locator('[data-doc-hint="declined"]')).toBeVisible()
@@ -137,7 +137,7 @@ test.describe('demo page, signed in', () => {
     })
     await open(page, '/ru/demo/ag_demo1?k=demo-key-0001')
     await page.getByRole('textbox', { name: 'Ваше сообщение' }).fill('Сколько стоит стрижка?')
-    await page.getByRole('button', { name: 'Send' }).click()
+    await page.getByRole('button', { name: 'Отправить' }).click()
     await expect(page.locator('[data-demo-msg="agent"]')).toContainText('Демо-ответ агента')
     await expect(page.locator('[data-demo-limit]')).toContainText('Осталось сообщений: 4 из 5')
     expect(requests).toHaveLength(1)
@@ -147,7 +147,7 @@ test.describe('demo page, signed in', () => {
 
     await open(page, '/ru/demo/ag_demo1?k=wrong-key-9999')
     await page.getByRole('textbox', { name: 'Ваше сообщение' }).fill('Привет')
-    await page.getByRole('button', { name: 'Send' }).click()
+    await page.getByRole('button', { name: 'Отправить' }).click()
     await expect(page.locator('[data-demo-error]')).toContainText('Ссылка демо не подошла')
 
     // No key at all: a sentence, no chat.

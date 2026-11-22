@@ -115,7 +115,7 @@ test.describe('with a session', () => {
     await expect(card.first().getByRole('button', { name: 'Cancel' })).toBeVisible()
     // Cancelling asks first, then the Director takes it off.
     await card.first().getByRole('button', { name: 'Cancel' }).click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel', exact: true }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Cancel assignment', exact: true }).click()
     await expect(page.locator('[data-tasks-list] [data-task]').filter({ hasText: 'Подготовь КП для салона Нигины' })).toHaveCount(0)
     expect(errors).toEqual([])
   })
@@ -187,7 +187,7 @@ test.describe('with a session', () => {
     await page.getByRole('button', { name: 'Edit', exact: true }).first().click()
     const dialog = page.getByRole('dialog', { name: 'Document editor' })
     await expect(dialog).toBeVisible()
-    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toHaveValue(/Estimate/)
+    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toHaveValue(/Смета/)
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
     await page.keyboard.press('e')
