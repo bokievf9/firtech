@@ -1,5 +1,6 @@
 'use client'
 
+import { useHub } from '@/components/admin/hub/ui'
 import { ArrowSquareOut, Copy, Phone, TelegramLogo, X } from '@phosphor-icons/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -112,6 +113,7 @@ function DrawerBody({
   onChange: (lead: AdminLead) => void
 }) {
   const router = useRouter()
+  const { notify } = useHub()
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<{ text: string; bad?: boolean } | null>(null)
   const [notes, setNotes] = useState(lead.notes ?? '')
@@ -126,13 +128,21 @@ function DrawerBody({
     try {
       const result = await send(lead.id, body)
       onChange(result.lead)
-      if (result.warning) setMessage({ text: t.telegramFailed, bad: true })
-      else setMessage({ text: body.action === 'notes' ? t.saved : (result.reply ?? t.saved) })
+      if (result.warning) {
+        setMessage({ text: t.telegramFailed, bad: true })
+        notify(t.telegramFailed, 'error')
+      } else {
+        const text = body.action === 'notes' ? t.saved : (result.reply ?? t.saved)
+        setMessage({ text })
+        notify(text)
+      }
     } catch (error) {
       // Session expired or revoked on another device: back to the login screen.
       if (String(error).includes('unauthorized')) router.replace('/admin/login')
       // The reason (HQ down, timeout...) next to the generic line.
-      setMessage({ text: `${t.failed} ${describeError({ code: String(error instanceof Error ? error.message : error).replace(/^Error: /, '') }).message}`, bad: true })
+      const failed = `${t.failed} ${describeError({ code: String(error instanceof Error ? error.message : error).replace(/^Error: /, '') }).message}`
+      setMessage({ text: failed, bad: true })
+      notify(failed, 'error')
     } finally {
       setBusy(false)
     }

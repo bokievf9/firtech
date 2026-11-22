@@ -5,7 +5,7 @@ import { useCallback, useId, useRef, useState } from 'react'
 import { PageHeader } from '@/components/admin/hq/page-header'
 import { errText, fill, hqPatch } from '@/components/admin/control/api'
 import { PricesTab } from '@/components/admin/shell-crm/company-prices'
-import { Loading, Offline, inputClass, useConfirm, useHqView } from '@/components/admin/hub/ui'
+import { Empty, Loading, Offline, inputClass, useConfirm, useHqView } from '@/components/admin/hub/ui'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import {
@@ -23,6 +23,7 @@ import {
   type Settings,
   type TrustKind,
 } from '@/lib/settings-hq'
+import { Select } from '@/components/admin/select'
 
 const t = admin.hq.settings
 const GROUP_ORDER: GroupId[] = ['schedule', 'notices', 'alerts', 'limits', 'calls', 'kp', 'playground', 'service']
@@ -122,13 +123,13 @@ function Row({ spec, label, settings, onSave, hint, disabled, extra }: { spec: F
         {spec.kind === 'bool' ? (
           <Switch id={id} on={Boolean(current)} label={text} busy={status.state === 'saving' || disabled} onChange={(v) => void commit(v)} />
         ) : spec.kind === 'select' ? (
-          <select id={id} value={String(current)} disabled={disabled || status.state === 'saving'} onChange={(e) => void commit(spec.path === 'schedule.digestDay' ? Number(e.target.value) : e.target.value)} className={cn(inputClass, 'sm:w-48')}>
+          <Select id={id} value={String(current)} disabled={disabled || status.state === 'saving'} onChange={(e) => void commit(spec.path === 'schedule.digestDay' ? Number(e.target.value) : e.target.value)} className={cn(inputClass, 'sm:w-48')}>
             {spec.options?.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
             ))}
-          </select>
+          </Select>
         ) : (
           <input
             id={id}
@@ -370,7 +371,7 @@ export function SettingsSection() {
                 </button>
               </p>
             ) : !logList.view ? (
-              <p className="mt-2 text-sm text-muted">{t.journal.loading}</p>
+              <Loading rows={2} />
             ) : journal.length ? (
               <ul className="mt-2 grid gap-1 font-mono text-xs" data-journal>
                 {journal.map((c, i) => (
@@ -381,7 +382,7 @@ export function SettingsSection() {
                 ))}
               </ul>
             ) : (
-              <p className="mt-2 text-sm text-muted">{t.journal.empty}</p>
+              <div className="mt-2"><Empty>{t.journal.empty}</Empty></div>
             )}
           </section>
         </div>

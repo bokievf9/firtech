@@ -149,6 +149,15 @@ export function Empty({ children, icon: Glyph = Tray }: { children: React.ReactN
   )
 }
 
+// `Empty` inside a panel body (same gutter as the rows above it).
+export function PanelEmpty({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="p-3">
+      <Empty>{children}</Empty>
+    </div>
+  )
+}
+
 export function CopyButton({ text, label = u.copy, className }: { text: string; label?: string; className?: string }) {
   const [done, setDone] = useState(false)
   useEffect(() => {
@@ -179,24 +188,29 @@ export function CopyButton({ text, label = u.copy, className }: { text: string; 
   )
 }
 
-// A small confirm dialog: `ask` resolves true on «Да», false on cancel or Escape.
+// A small confirm dialog: `ask` resolves true on «Да», false on cancel or Escape. It leaves with an exit
+// animation: `done` only marks it closing and resolves at once (the caller never waits for the animation);
+// the element is removed when the exit finishes. `dialog` is still null until the first `ask`, so SSR and
+// pages that never ask render nothing (an always-present element broke SSR on /admin/golive).
 export function useConfirm() {
-  const [state, setState] = useState<{ text: string; yes: string; danger: boolean; resolve: (ok: boolean) => void } | null>(null)
+  const [state, setState] = useState<{ text: string; yes: string; danger: boolean; resolve: (ok: boolean) => void; closing: boolean } | null>(null)
   const yesRef = useRef<HTMLButtonElement>(null)
   const ask = useCallback(
     (text: string, { yes = u.yes, danger = false }: { yes?: string; danger?: boolean } = {}) =>
-      new Promise<boolean>((resolve) => setState({ text, yes, danger, resolve })),
+      new Promise<boolean>((resolve) => setState({ text, yes, danger, resolve, closing: false })),
     [],
   )
   const done = useCallback(
     (ok: boolean) => {
-      state?.resolve(ok)
-      setState(null)
+      if (!state || state.closing) return
+      state.resolve(ok)
+      setState({ ...state, closing: true })
     },
     [state],
   )
+  const open = !!state && !state.closing
   useEffect(() => {
-    if (!state) return
+    if (!open) return
     yesRef.current?.focus()
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -206,37 +220,41 @@ export function useConfirm() {
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [state, done])
+  }, [open, done])
   const reduce = useReducedMotion()
-  // `dialog` stays null while closed (callers portal it with `dialog ? ... : null`), so it only animates in.
+  const closing = !!state?.closing
   const dialog = state ? (
-        <motion.div
-          key="confirm"
-          className="fixed inset-0 z-[80] grid place-items-center bg-scrim p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={fade}
-        >
-          <motion.div
-            role="alertdialog"
-            aria-modal="true"
-            aria-label={state.text}
-            className="material-chrome w-full max-w-sm rounded-card p-5 shadow-dialog"
-            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={reduce ? fade : spring.snappy}
-          >
-            <p className="text-callout">{state.text}</p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button type="button" onClick={() => done(false)} className="pressable inline-flex min-h-10 items-center rounded-full px-4 text-sm text-muted hover:bg-fill-strong hover:text-fg">
-                {u.cancel}
-              </button>
-              <button ref={yesRef} type="button" onClick={() => done(true)} className={state.danger ? 'pressable inline-flex min-h-10 items-center rounded-full bg-danger px-4 text-sm font-medium text-danger-ink' : btnPrimary}>
-                {state.yes}
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
+    <motion.div
+      key="confirm"
+      className={cn('fixed inset-0 z-[80] grid place-items-center bg-scrim p-4', closing && 'pointer-events-none')}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: closing ? 0 : 1 }}
+      transition={fade}
+      onAnimationComplete={() => {
+        if (closing) setState(null)
+      }}
+    >
+      <motion.div
+        role="alertdialog"
+        aria-modal={closing ? undefined : 'true'}
+        aria-hidden={closing || undefined}
+        aria-label={state.text}
+        className="material-chrome w-full max-w-sm rounded-card p-5 shadow-dialog"
+        initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 6 }}
+        animate={closing ? (reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 6 }) : { opacity: 1, scale: 1, y: 0 }}
+        transition={reduce || closing ? fade : spring.snappy}
+      >
+        <p className="text-callout">{state.text}</p>
+        <div className="mt-5 flex justify-end gap-2">
+          <button type="button" onClick={() => done(false)} className="pressable inline-flex min-h-10 items-center rounded-full px-4 text-sm text-muted hover:bg-fill-strong hover:text-fg">
+            {u.cancel}
+          </button>
+          <button ref={yesRef} type="button" onClick={() => done(true)} className={state.danger ? 'pressable inline-flex min-h-10 items-center rounded-full bg-danger px-4 text-sm font-medium text-danger-ink' : btnPrimary}>
+            {state.yes}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   ) : null
   return { ask, dialog }
 }

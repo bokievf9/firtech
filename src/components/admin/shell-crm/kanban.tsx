@@ -3,6 +3,8 @@
 import { useRef, useState, useSyncExternalStore } from 'react'
 import { cn } from '@/components/admin/kit'
 import { admin } from '@/content/admin'
+import { focusRow, focusRowClass, useFocusRow } from '@/components/admin/hub/focus-row'
+import { Select } from '@/components/admin/select'
 
 const k = admin.pult.kanban
 
@@ -31,6 +33,7 @@ export function Kanban<T>({
   render,
   onOpen,
   onMove,
+  focus = null,
 }: {
   label: string
   columns: Column<T>[]
@@ -38,7 +41,10 @@ export function Kanban<T>({
   render: (item: T) => React.ReactNode
   onOpen: (item: T) => void
   onMove: (item: T, to: string) => void
+  // A card id from ⌘K or a link: marked (aria-current) and scrolled into view.
+  focus?: string | null
 }) {
+  useFocusRow(focus, columns.some((c) => c.items.length > 0))
   const wide = useWide()
   const [over, setOver] = useState<string | null>(null)
   const dragged = useRef<T | null>(null)
@@ -82,6 +88,7 @@ export function Kanban<T>({
         }}
         role="button"
         tabIndex={0}
+        {...focusRow(idOf(item), focus)}
         draggable={wide}
         onDragStart={(e) => {
           dragged.current = item
@@ -94,7 +101,7 @@ export function Kanban<T>({
         }}
         onClick={() => onOpen(item)}
         onKeyDown={(e) => onKey(e, item, col, row)}
-        className="pressable cursor-pointer rounded-xl border border-hairline border-line bg-elevated p-3 text-callout shadow-card outline-none hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent-text active:cursor-grabbing"
+        className={cn('pressable cursor-pointer rounded-xl border border-hairline border-line bg-elevated p-3 text-callout shadow-card outline-none hover:border-line-strong focus-visible:ring-2 focus-visible:ring-accent-text active:cursor-grabbing', idOf(item) === focus && focusRowClass)}
       >
         {render(item)}
       </div>
@@ -118,17 +125,17 @@ export function Kanban<T>({
                     </button>
                     <label className="mt-2 flex items-center gap-2 text-xs text-faint">
                       {k.move}
-                      <select
+                      <Select
                         value={c.key}
                         onChange={(e) => onMove(item, e.target.value)}
-                        className="h-9 min-w-0 flex-1 rounded-lg border border-line-strong bg-field px-2 text-sm text-fg"
+                        className="min-w-0 flex-1"
                       >
                         {columns.map((o) => (
                           <option key={o.key} value={o.key}>
                             {o.label}
                           </option>
                         ))}
-                      </select>
+                      </Select>
                     </label>
                   </li>
                 ))}

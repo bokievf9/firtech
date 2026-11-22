@@ -32,6 +32,7 @@ import {
   type NoteDraft,
 } from '@/lib/knowledge-hq'
 import { Fail, TwoStepDelete, when } from './kq-ui'
+import { Select } from '@/components/admin/select'
 
 const t = admin.hq
 const k = admin.hq.knowledge
@@ -102,13 +103,13 @@ function NoteForm({ id, initial, onDone, onCancel }: { id: string | null; initia
       </label>
       <label className="grid gap-1 text-xs text-muted">
         {k.noteTierLabel}
-        <select className={field} value={draft.tier} onChange={(e) => setDraft({ ...draft, tier: isTier(e.target.value) ? e.target.value : 'internal' })}>
+        <Select value={draft.tier} onChange={(e) => setDraft({ ...draft, tier: isTier(e.target.value) ? e.target.value : 'internal' })}>
           {KNOWLEDGE_TIERS.map((x) => (
             <option key={x} value={x}>
               {k.tiers[x]} - {k.tierHints[x]}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
       <label className="grid gap-1 text-xs text-muted">
         {k.noteTextLabel}
@@ -284,25 +285,25 @@ export function KnowledgeSection() {
           </form>
           <label className="grid gap-0.5 text-xs text-muted">
             {k.tier}
-            <select className={field} value={filter.tier} onChange={(e) => setFilter((f) => ({ ...f, tier: isTier(e.target.value) ? e.target.value : '' }))}>
+            <Select value={filter.tier} onChange={(e) => setFilter((f) => ({ ...f, tier: isTier(e.target.value) ? e.target.value : '' }))}>
               <option value="">{k.tierAll}</option>
               {KNOWLEDGE_TIERS.map((x) => (
                 <option key={x} value={x}>
                   {k.tiers[x]}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           <label className="grid gap-0.5 text-xs text-muted">
             {k.source}
-            <select className={field} value={filter.source} onChange={(e) => setFilter((f) => ({ ...f, source: isSource(e.target.value) ? e.target.value : '' }))}>
+            <Select value={filter.source} onChange={(e) => setFilter((f) => ({ ...f, source: isSource(e.target.value) ? e.target.value : '' }))}>
               <option value="">{k.sourceAll}</option>
               {KNOWLEDGE_SOURCES.map((x) => (
                 <option key={x} value={x}>
                   {k.sources[x]}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           {isKnowledgeFilterActive(filter) || q ? (
             <button type="button" className={btn} onClick={reset}>

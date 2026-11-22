@@ -3,7 +3,7 @@
 import { Star } from '@phosphor-icons/react'
 import { admin } from '@/content/admin'
 import { relativeDate, type Review } from '@/lib/admin-crm-hq'
-import { useHub } from '@/components/admin/hub/ui'
+import { PanelEmpty, useHub } from '@/components/admin/hub/ui'
 import { fill } from './api'
 import { CcPanel } from './cc-panel'
 import type { CrmFeed } from './crm-hq-data'
@@ -51,7 +51,7 @@ export function ReviewsPanel({ feed, badge, className }: { feed: CrmFeed<Review>
                 </ul>
               </>
             ) : (
-              <p className="p-3 text-sm text-muted">{k.empty}</p>
+              <PanelEmpty>{k.empty}</PanelEmpty>
             )
           }}
         </FeedBody>

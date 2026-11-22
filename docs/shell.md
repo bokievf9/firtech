@@ -400,3 +400,8 @@ Settings, блок «Цены» внизу страницы (⌘K «Settings»).
 - Поле адреса заполнено `site`; проверка http/https до запроса (`checkAddress`), ответы `invalid_url`, `invalid`, `not_found`, `rate_limited` переведены в фразы. Кнопка «Import site» с состоянием ожидания, пока задача идёт, поле и кнопка заблокированы.
 - Опрос раз в 3 с только пока `running` или `queued`, на скрытой вкладке пауза, при возврате сразу запрос. Мок: импорт становится `done` после трёх чтений; адрес с `fail` даёт `failed`.
 - Тесты: `tests/client-knowledge.test.mjs`, блок в `tests/hq-admin.test.mjs`, e2e `tests/e2e/admin-client-knowledge.spec.ts` (`KNOWLEDGE_SHOTS=<dir>` сохраняет скрины).
+
+## 2026-11-23: Settings, Prices audit (products v4)
+- Every numeric leaf of `Pricing` is an editable field (the field list is built from `defaultPricing`, so a new number is editable automatically; `tests/pricing-store.test.mjs` «v4» checks labels in English, units, bounds, rejection of out-of-range and fractional values). Group titles are English.
+- New rule: `byokMonthly` may not exceed `monthly` for the three Personal AI levels, the AI company and one agent (`byok_above_monthly:<path>` refusal, `badSubscriptions` in `pricing-edit.ts`; a stored override that breaks it reverts that subscription to the defaults). Raise `monthly` first, or send both in one batch.
+- After a save that changed something, `POST /api/admin/prices` calls HQ `POST /admin/prices/reload` (3 s, best effort) and answers `hqReload: ok|failed|skipped`; if HQ is unreachable it refetches `/api/prices` within 15 minutes. `/api/prices` carries every v4 field (`agentSubscription`, `teamDiscountPercent`, `companyPerEmployee`, `bundleDiscountPercent`, `personalPlans[].byokMonthly`, `companyPlan.byokMonthly`).

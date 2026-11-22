@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowsClockwise, CaretDown } from '@phosphor-icons/react'
+import { ArrowsClockwise } from '@phosphor-icons/react'
 import { cn } from '@/components/admin/kit'
 import { deptLabel } from '@/lib/admin-labels'
 import { useSearchParams } from 'next/navigation'
@@ -9,13 +9,14 @@ import { Assignments } from '@/components/admin/control/assignments'
 import { BarePanel } from '@/components/admin/control/cc-panel'
 import { errText, fill, hq, usePoll } from '@/components/admin/control/api'
 import { TaskDrawer } from '@/components/admin/control/task-drawer'
-import { btn, inputClass, useHub } from '@/components/admin/hub/ui'
+import { btn, useHub } from '@/components/admin/hub/ui'
 import { PageHeader } from '@/components/admin/hq/page-header'
 import { admin } from '@/content/admin'
 import type { HqTask, Id } from '@/lib/hq-admin-view'
 import { sectionById } from '@/lib/hq-shell'
 import { agentOptions, filterByStatus, plainFirst, TASK_STATUS_FILTERS, taskDepts, type TaskStatusFilter } from '@/lib/tasks-hq'
 import type { PersonFilter } from '@/lib/orders'
+import { Select } from '@/components/admin/select'
 
 const t = admin.hq
 const k = admin.hq.tasks
@@ -23,16 +24,13 @@ const deptName = (id: string) => (admin.office.depts as Record<string, string>)[
 
 const label = (v: TaskStatusFilter) => (v === 'all' ? k.statusAll : v === 'cancelled' ? admin.orders.status.cancelled : admin.cc.tasks.columns[v])
 
-export function Select({ id, name, value, onChange, children }: { id: string; name: string; value: string; onChange: (v: string) => void; children: React.ReactNode }) {
+export function SelectField({ id, name, value, onChange, children }: { id: string; name: string; value: string; onChange: (v: string) => void; children: React.ReactNode }) {
   return (
     <label className="flex min-w-0 flex-col gap-1 text-footnote text-muted" htmlFor={id}>
       {name}
-      <span className="relative block">
-        <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={cn(inputClass, 'min-h-10 appearance-none py-1.5 pr-9')}>
-          {children}
-        </select>
-        <CaretDown size={14} aria-hidden="true" className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-faint" />
-      </span>
+      <Select id={id} value={value} onChange={(e) => onChange(e.target.value)}>
+        {children}
+      </Select>
     </label>
   )
 }
@@ -88,29 +86,29 @@ export function TasksSection() {
         }
       >
         <div className="grid grid-cols-2 gap-2 pt-1 sm:grid-cols-[repeat(3,minmax(0,13rem))_auto] sm:items-end sm:px-1" role="group" aria-label={k.filters}>
-          <Select id="tasks-dept" name={k.dept} value={dept} onChange={pickDept}>
+          <SelectField id="tasks-dept" name={k.dept} value={dept} onChange={pickDept}>
             <option value="">{k.deptAll}</option>
             {depts.map((d) => (
               <option key={d} value={d}>
                 {deptName(d)}
               </option>
             ))}
-          </Select>
-          <Select id="tasks-agent" name={k.agent} value={agent} onChange={setAgent}>
+          </SelectField>
+          <SelectField id="tasks-agent" name={k.agent} value={agent} onChange={setAgent}>
             <option value="">{k.agentAll}</option>
             {agents.map((a) => (
               <option key={a.id} value={a.id}>
                 {a.title}
               </option>
             ))}
-          </Select>
-          <Select id="tasks-status" name={k.status} value={status} onChange={(v) => setStatus(v as TaskStatusFilter)}>
+          </SelectField>
+          <SelectField id="tasks-status" name={k.status} value={status} onChange={(v) => setStatus(v as TaskStatusFilter)}>
             {TASK_STATUS_FILTERS.map((v) => (
               <option key={v} value={v}>
                 {label(v)}
               </option>
             ))}
-          </Select>
+          </SelectField>
           {filtered ? (
             <button
               type="button"
@@ -129,6 +127,7 @@ export function TasksSection() {
       <div className="min-w-0 flex-1" data-tasks-list>
         <BarePanel.Provider value>
           <Assignments
+            focus={fromLink}
             tasks={shown}
             error={list.error}
             now={now}

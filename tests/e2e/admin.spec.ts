@@ -254,6 +254,12 @@ test.describe('with a session', () => {
     expect(bad.status()).toBe(422)
     expect((await bad.json()).error).toMatch(/^out_of_range/)
 
+    // Products v4: an own-key monthly above the normal monthly fee is refused with its own key.
+    const byok = await request.post('/api/admin/prices', { data: { path: 'agentSubscription.byokMonthly', value: 100 }, headers })
+    expect(byok.status()).toBe(422)
+    expect((await byok.json()).error).toMatch(/^byok_above_monthly/)
+    expect((await state()).fields.some((f: { path: string }) => f.path === 'companyPerEmployee')).toBe(true)
+
     // Reset through the API: no overrides left, the default is back.
     expect((await request.post('/api/admin/prices', { data: { action: 'reset', path: 'referralPercent' }, headers })).status()).toBe(200)
     const after = await state()

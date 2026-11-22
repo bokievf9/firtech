@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { guard } from '@/lib/admin-guard'
 import { editorView, type Op } from '@/lib/pricing-edit'
+import { callHqAdmin } from '@/lib/hq-admin'
 import { getPricesState, updatePrices } from '@/lib/pricing-store'
 
 // Prices of the Пульт: the owner edits every price of the site; the overrides live in
@@ -63,7 +64,14 @@ export async function POST(request: Request) {
       revalidatePath('/', 'layout')
       console.log(`prices: ${result.changed} change(s)`)
     }
-    return NextResponse.json({ ...(await view()), changed: result.changed }, { headers })
+    // Tell HQ to reload GET /api/prices now (else it does within 15 minutes). Best effort: a failure
+    // never fails the save.
+    let hqReload: 'ok' | 'failed' | 'skipped' = 'skipped'
+    if (result.changed > 0) {
+      hqReload = (await callHqAdmin('POST', 'prices/reload', {}, { timeoutMs: 3000 })).ok ? 'ok' : 'failed'
+      if (hqReload === 'failed') console.warn('prices: HQ reload failed, HQ will refetch within 15 minutes')
+    }
+    return NextResponse.json({ ...(await view()), changed: result.changed, hqReload }, { headers })
   } catch {
     return NextResponse.json({ ok: false, error: 'store_error' }, { status: 500, headers })
   }

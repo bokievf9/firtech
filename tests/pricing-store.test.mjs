@@ -423,3 +423,92 @@ test('Shell: the prices editor lives in Settings, has strings, and is wired in',
   for (const [code, text] of Object.entries(admin.pult.prices.errors)) assert.ok(text, code)
   assert.doesNotMatch(JSON.stringify(admin.pult.prices), /\$\d/, 'no typed prices in the tab copy')
 })
+
+// Products v4 audit (2026-11-23): every v4 price is editable, labelled in English, validated.
+test('v4: every numeric leaf of Pricing is an editable field (none excluded), with an English label and a clear unit', () => {
+  const EXCLUDED = {} // nothing is excluded: a new number in Pricing must be editable or listed here with a reason
+  const paths = edit.leaves(defaultPricing).map(([p]) => p)
+  const fieldPaths = new Set(edit.priceFields.map((f) => f.path))
+  for (const p of paths) assert.ok(fieldPaths.has(p) || EXCLUDED[p], `not editable: ${p}`)
+  for (const p of [
+    'personalPlans.basic.setup', 'personalPlans.plus.monthly', 'personalPlans.max.byokMonthly',
+    'companyPlan.company.setup', 'companyPlan.company.monthly', 'companyPlan.company.byokMonthly',
+    'agentSubscription.setup', 'agentSubscription.monthly', 'agentSubscription.byokMonthly',
+    'teamDiscount', 'companyPerEmployee', 'bundleDiscount', 'referralPercent', 'smallProjectMaxUsd',
+    'stageShares.company.map', 'contentPlans.content.setup', 'agentPlans.dono.monthly',
+  ]) assert.ok(fieldPaths.has(p), p)
+  const units = { setup: 'usd', monthly: 'usd_month', byokMonthly: 'usd_month' }
+  for (const f of edit.priceFields) {
+    for (const text of [f.label, f.section]) {
+      assert.doesNotMatch(text, /[А-Яа-яЁё]/, `${f.path}: ${text}`)
+      assert.ok(text.trim().length >= 2, f.path)
+    }
+    const last = f.path.split('.').at(-1)
+    if (f.path.includes('Plan') || f.path.startsWith('agentSubscription')) assert.equal(f.unit, units[last], f.path)
+  }
+  for (const title of Object.values(edit.groupTitles)) assert.doesNotMatch(title, /[А-Яа-яЁё]/, title)
+  assert.equal(edit.fieldOf('teamDiscount').unit, 'percent')
+  assert.equal(edit.fieldOf('companyPerEmployee').unit, 'usd_month')
+  assert.equal(edit.fieldOf('personalPlans.basic.byokMonthly').label, 'Per month with your own API key')
+})
+
+test('v4: every field rejects out-of-range, fractional and non-numeric values, and accepts its own bounds', () => {
+  for (const f of edit.priceFields) {
+    assert.equal(edit.valueError(f.path, f.min), null, `${f.path} min`)
+    assert.equal(edit.valueError(f.path, f.max), null, `${f.path} max`)
+    assert.equal(edit.valueError(f.path, f.min - 1), 'out_of_range', `${f.path} below`)
+    assert.equal(edit.valueError(f.path, f.max + 1), 'out_of_range', `${f.path} above`)
+    assert.equal(edit.valueError(f.path, f.def + 0.5), 'not_integer', `${f.path} fraction`)
+    assert.equal(edit.valueError(f.path, '5'), 'not_a_number', f.path)
+    assert.equal(edit.valueError(f.path, Infinity), 'not_a_number', f.path)
+  }
+  assert.equal(edit.fieldOf('teamDiscount').max, 50)
+  assert.equal(edit.valueError('teamDiscount', 51), 'out_of_range')
+})
+
+test('v4: an own-key monthly above the normal monthly fee is refused and cannot be stored', () => {
+  const r = edit.applyOps(edit.emptyPrices(), [{ path: 'agentSubscription.byokMonthly', value: 40 }], NOW)
+  assert.deepEqual(r, { ok: false, error: 'byok_above_monthly:agentSubscription' })
+  // raising monthly first in the same batch is fine
+  const batch = ok(edit.applyOps(edit.emptyPrices(), [
+    { path: 'companyPlan.company.monthly', value: 300 },
+    { path: 'companyPlan.company.byokMonthly', value: 200 },
+  ], NOW))
+  assert.equal(edit.resolvePricing(batch.state.overrides).companyPlan.company.byokMonthly, 200)
+  // a hand-edited file that breaks the rule falls back to the default subscription, the rest stays
+  const warnings = []
+  const p = edit.resolvePricing({ agentSubscription: { byokMonthly: 99 }, startingPrice: { websites: 160 } }, (m) => warnings.push(m))
+  assert.deepEqual(p.agentSubscription, defaultPricing.agentSubscription)
+  assert.equal(p.startingPrice.websites, 160)
+  assert.ok(warnings.some((w) => w.includes('byok_above_monthly')))
+})
+
+test('v4: edits of subscriptions reach /api/prices and every refusal key has a readable message', async () => {
+  const ops = [
+    { path: 'agentSubscription.setup', value: 250 },
+    { path: 'personalPlans.plus.byokMonthly', value: 40 },
+    { path: 'teamDiscount', value: 20 },
+    { path: 'companyPerEmployee', value: 12 },
+    { path: 'bundleDiscount', value: 5 },
+  ]
+  const state = ok(edit.applyOps(edit.emptyPrices(), ops, NOW)).state
+  const json = pricesJson(edit.resolvePricing(state.overrides), state.updatedAt)
+  assert.equal(json.agentSubscription.setup, 250)
+  assert.equal(json.personalPlans.find((p) => p.id === 'plus').byokMonthly, 40)
+  assert.equal(json.teamDiscountPercent, 20)
+  assert.equal(json.companyPerEmployee, 12)
+  assert.equal(json.bundleDiscountPercent, 5)
+  assert.equal(json.companyPlan.byokMonthly, defaultPricing.companyPlan.company.byokMonthly)
+  const { admin } = await import('../src/content/admin.ts')
+  const keys = ['out_of_range', 'not_integer', 'not_a_number', 'unknown_path', 'stage_sum', 'byok_above_monthly', 'invalid']
+  for (const k of keys) assert.ok(admin.pult.prices.errors[k], k)
+  for (const r of [
+    edit.applyOps(edit.emptyPrices(), [{ path: 'teamDiscount', value: 99 }], NOW),
+    edit.applyOps(edit.emptyPrices(), [{ path: 'companyPerEmployee', value: 1.5 }], NOW),
+    edit.applyOps(edit.emptyPrices(), [{ path: 'stageShares.company.map', value: 30 }], NOW),
+    edit.applyOps(edit.emptyPrices(), [{ path: 'agentSubscription.byokMonthly', value: 50 }], NOW),
+  ]) {
+    assert.equal(r.ok, false)
+    assert.ok(admin.pult.prices.errors[r.error.split(':')[0]], r.error)
+  }
+})

@@ -27,6 +27,7 @@ import {
 import { Kanban } from './kanban'
 import { LeadBreakdown } from './lead-breakdown'
 import { btn, btnPrimary, CopyButton, Empty, inputClass, Loading, Offline, Pills, useHqView, useHub } from '../hub/ui'
+import { Select } from '@/components/admin/select'
 
 const k = admin.pult.leads
 
@@ -140,6 +141,7 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
           render={(l) => <LeadCard lead={l} now={now} />}
           onOpen={(l) => setOpenId(l.id)}
           onMove={(l, to) => void move(l, to)}
+          focus={focus}
         />
       ) : null}
       <LeadDrawer
@@ -216,13 +218,13 @@ function LeadBody({ lead, onMove, onWrite, onCall, onClient, onDocuments }: Draw
         <>
           <label className="grid gap-1 text-xs text-faint">
             {k.stage}
-            <select value={lead.stage} onChange={(e) => void onMove(lead, e.target.value)} className={inputClass}>
+            <Select value={lead.stage} onChange={(e) => void onMove(lead, e.target.value)} className={inputClass}>
               {ALL_LEAD_STAGES.map((s) => (
                 <option key={s} value={s} disabled={!stageMove(lead.stage, s).ok && s !== lead.stage}>
                   {k.stages[s]}
                 </option>
               ))}
-            </select>
+            </Select>
           </label>
           {lead.stage === 'lost' ? (
             <div className="grid gap-2">

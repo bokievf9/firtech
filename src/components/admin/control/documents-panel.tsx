@@ -6,7 +6,7 @@ import { admin } from '@/content/admin'
 import { formatUsd, groupDocumentsByKind, relativeDate, statusChips, visibleDocuments, type CrmDocument } from '@/lib/admin-crm-hq'
 import { DocEditor } from '@/components/admin/review/doc-editor'
 import { cn } from '@/components/admin/kit'
-import { btn, useHqView, useHub } from '@/components/admin/hub/ui'
+import { PanelEmpty, btn, useHqView, useHub } from '@/components/admin/hub/ui'
 import { targetBase, targetForRow, versionSavePayload, whyNotEditable, withDocText, type DocTarget } from '@/lib/doc-editor'
 import { normalizeItem, normalizeReview, replaceItem } from '@/lib/review'
 import { errText, fill, hq } from './api'
@@ -106,8 +106,8 @@ export function DocumentsPanel({
                 chips={[{ key: 'all', label: t.all }, ...statuses.map((x) => ({ key: x, label: label(k.statuses, x) }))]}
               />
               <Search value={q} onChange={setQ} placeholder={k.search} />
-              {!items.length ? <p className="p-3 text-sm text-muted">{t.empty}</p> : null}
-              {items.length && !shown.length ? <p className="p-3 text-sm text-muted">{t.nothing}</p> : null}
+              {!items.length ? <PanelEmpty>{t.empty}</PanelEmpty> : null}
+              {items.length && !shown.length ? <PanelEmpty>{t.nothing}</PanelEmpty> : null}
               {shown.length ? (
                 <>
                   <Count shown={shown.length} list={list} />

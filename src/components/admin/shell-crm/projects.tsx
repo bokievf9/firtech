@@ -26,6 +26,7 @@ import {
 import { Chip, shortDate } from './bits'
 import { Kanban } from './kanban'
 import { btn, Empty, inputClass, Loading, Offline, useHqView, useHub } from '../hub/ui'
+import { Select } from '@/components/admin/select'
 
 const k = admin.pult.projects
 
@@ -95,6 +96,7 @@ export function ProjectsBoard({ focus }: { focus: string | null }) {
           render={(p) => <ProjectCard p={p} now={now} />}
           onOpen={(p) => setOpenId(p.id)}
           onMove={(p, to) => void move(p, to)}
+          focus={focus}
         />
       ) : null}
       <ProjectDrawer id={openId} onClose={() => setOpenId(null)} onAct={act} onMove={move} />
@@ -192,26 +194,28 @@ function ProjectBody({
   const toggle = async (m: Milestone) => {
     const before = m.doneAt
     onMilestone(m, { doneAt: before ? null : new Date().toISOString() })
-    if (!(await onAct({ action: 'complete_milestone', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id }))) onMilestone(m, { doneAt: before })
+    if (await onAct({ action: 'complete_milestone', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id })) notify(before ? k.milestoneReopened : k.milestoneDone)
+    else onMilestone(m, { doneAt: before })
   }
   const deadline = async (m: Milestone, value: string) => {
     if (!value) return
     const before = m.dueAt
     const dueAt = new Date(`${value}T12:00:00Z`).toISOString()
     onMilestone(m, { dueAt })
-    if (!(await onAct({ action: 'set_deadline', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id, dueAt }))) onMilestone(m, { dueAt: before })
+    if (await onAct({ action: 'set_deadline', milestoneId: /^\d+$/.test(m.id) ? Number(m.id) : m.id, dueAt })) notify(k.deadlineSet)
+    else onMilestone(m, { dueAt: before })
   }
   return (
     <>
       <label className="grid gap-1 text-xs text-faint">
         {k.status}
-        <select value={projectColumn(p)} onChange={(e) => void onMove(e.target.value)} className={inputClass}>
+        <Select value={projectColumn(p)} onChange={(e) => void onMove(e.target.value)} className={inputClass}>
           {PROJECT_STATUSES.map((s) => (
             <option key={s} value={s}>
               {k.statuses[s]}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
 
       <section className="grid gap-2">
@@ -304,7 +308,10 @@ function ProjectBody({
           disabled={!note.trim() || busy}
           onClick={async () => {
             setBusy(true)
-            if (await onAct({ action: 'note', text: note.trim() })) setNote('')
+            if (await onAct({ action: 'note', text: note.trim() })) {
+              setNote('')
+              notify(k.noteSaved)
+            }
             setBusy(false)
           }}
         >

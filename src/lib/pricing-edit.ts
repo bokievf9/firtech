@@ -177,6 +177,14 @@ export const shareSum = (p: Pricing, id: StageTemplateId) =>
 // Templates whose shares do not sum to 100.
 export const badTemplates = (p: Pricing) => stageTemplateIds.filter((id) => shareSum(p, id) !== 100)
 
+// Subscriptions whose own-key monthly fee is above the normal monthly fee (an own key must never cost more).
+export const subscriptionPaths = ['personalPlans.basic', 'personalPlans.plus', 'personalPlans.max', 'companyPlan.company', 'agentSubscription'] as const
+export const badSubscriptions = (p: Pricing): string[] =>
+  subscriptionPaths.filter((path) => {
+    const s = getAt(p, path) as { monthly: number; byokMonthly: number }
+    return s.byokMonthly > s.monthly
+  })
+
 function buildSchema(node: unknown, path: string): z.ZodType {
   if (typeof node === 'number') {
     const f = fieldByPath.get(path)!
@@ -190,6 +198,8 @@ function buildSchema(node: unknown, path: string): z.ZodType {
 const pricingSchema = buildSchema(defaultPricing, '').superRefine((value, ctx) => {
   for (const id of badTemplates(value as Pricing))
     ctx.addIssue({ code: 'custom', message: `stage_sum:${id}`, path: ['stageShares', id] })
+  for (const path of badSubscriptions(value as Pricing))
+    ctx.addIssue({ code: 'custom', message: `byok_above_monthly:${path}`, path: path.split('.') })
 })
 
 // Zod check of a whole pricing; the readable key of the first problem, or null.
@@ -198,7 +208,7 @@ export function pricingError(p: unknown): string | null {
   if (r.success) return null
   const issue = r.error.issues[0]
   if (!issue) return 'invalid'
-  return issue.message.startsWith('stage_sum:') ? issue.message : `invalid:${issue.path.join('.')}`
+  return issue.message.startsWith('stage_sum:') || issue.message.startsWith('byok_above_monthly:') ? issue.message : `invalid:${issue.path.join('.')}`
 }
 
 // The defaults with the overrides laid over them. Anything unknown or invalid in the overrides is
@@ -219,6 +229,11 @@ export function resolvePricing(overrides: unknown, warn: (message: string) => vo
   for (const id of badTemplates(merged)) {
     warn(`price override ignored: stageShares.${id} (stage_sum)`)
     merged.stageShares[id] = { ...defaultPricing.stageShares[id] }
+  }
+  for (const path of badSubscriptions(merged)) {
+    warn(`price override ignored: ${path} (byok_above_monthly)`)
+    setAt(merged as unknown as Overrides, `${path}.byokMonthly`, getAt(defaultPricing, `${path}.byokMonthly`) as number)
+    setAt(merged as unknown as Overrides, `${path}.monthly`, getAt(defaultPricing, `${path}.monthly`) as number)
   }
   return pricingError(merged) ? clone(defaultPricing) : merged
 }

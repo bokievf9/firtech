@@ -1,5 +1,6 @@
 'use client'
 
+import { PanelEmpty } from '@/components/admin/hub/ui'
 import { PanelError, PanelWait } from './panel-error'
 import { Check, LockSimple, PencilSimple, X } from '@phosphor-icons/react'
 import Link from 'next/link'
@@ -242,7 +243,7 @@ export function ApprovalsSection({ items, error, now, focus, queued, onAct, onEd
       </p>
       {error && !list ? <PanelError error={error} /> : null}
       {!list && !error ? <PanelWait /> : null}
-      {list && !list.length ? <p className="p-2 text-sm text-muted">{t.empty}</p> : null}
+      {list && !list.length ? <PanelEmpty>{t.empty}</PanelEmpty> : null}
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         <AnimatePresence initial={false} mode="popLayout">
           {shown?.map((a) => (

@@ -1,5 +1,6 @@
 'use client'
 
+import { focusRow, focusRowClass, useFocusRow } from '@/components/admin/hub/focus-row'
 import { PanelError, PanelWait } from './panel-error'
 import { deptLabel } from '@/lib/admin-labels'
 import { ArrowClockwise, BellRinging, MagnifyingGlass, PaperPlaneRight, Trash, UserFocus, X, XCircle } from '@phosphor-icons/react'
@@ -56,8 +57,10 @@ function TaskEntry({
   busy,
   onOpen,
   onAction,
+  focus,
 }: {
   e: Extract<TimelineEntry, { kind: 'task' }>
+  focus?: string | null
   now: number
   busy: string | null
   onOpen: (id: Id) => void
@@ -68,7 +71,7 @@ function TaskEntry({
   const actions = orderActions(task)
   const age = minutesSince(task.updatedAt, now)
   return (
-    <div className={cn('min-w-0 rounded-card border border-hairline bg-surface transition-colors hover:bg-surface-2', column === 'blocked' ? 'border-danger/40' : 'border-line')} data-task={String(task.id)}>
+    <div className={cn('min-w-0 rounded-card border border-hairline bg-surface transition-colors hover:bg-surface-2', column === 'blocked' ? 'border-danger/40' : 'border-line', String(task.id) === focus && focusRowClass)} data-task={String(task.id)} {...focusRow(task.id, focus)}>
       <button type="button" onClick={() => onOpen(task.id)} aria-label={`${t.open}: ${task.title}`} className="block w-full rounded-t-card px-4 pt-3.5 pb-2.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-text">
         <span className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-fill-strong px-2.5 py-0.5 text-caption">
@@ -148,6 +151,7 @@ export function Assignments({
   person,
   onPerson,
   onOpenTask,
+  focus = null,
   onStart,
   onSent,
   approvals,
@@ -159,6 +163,8 @@ export function Assignments({
   person: PersonFilter
   onPerson: (p: PersonFilter) => void
   onOpenTask: (id: Id) => void
+  // A task id from ⌘K (`?task=`): its entry is marked and scrolled into view.
+  focus?: string | null
   onStart: (task: HqTask) => Promise<void>
   // Something changed in HQ (a task was given, a command ran): the page refreshes its panels.
   onSent: () => void
@@ -167,6 +173,7 @@ export function Assignments({
   className?: string
 }) {
   const { notify } = useHub()
+  useFocusRow(focus, !!tasks)
   const { ask, dialog } = useConfirm()
   const local = useSyncExternalStore(chat.subscribe, chat.get, chat.server)
   const cleared = useSyncExternalStore(clearedAt.subscribe, clearedAt.get, clearedAt.server)
@@ -426,7 +433,7 @@ export function Assignments({
             <AnimatePresence initial={false}>
               {shown.map((e) => (
                 <motion.li key={e.key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}>
-                  {e.kind === 'task' ? <TaskEntry e={e} now={now} busy={busy} onOpen={onOpenTask} onAction={(task, a) => void act(task, a)} /> : <ChatEntry e={e} />}
+                  {e.kind === 'task' ? <TaskEntry e={e} focus={focus} now={now} busy={busy} onOpen={onOpenTask} onAction={(task, a) => void act(task, a)} /> : <ChatEntry e={e} />}
                 </motion.li>
               ))}
             </AnimatePresence>

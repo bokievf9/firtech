@@ -25,6 +25,7 @@ import {
   type StudioOrder,
 } from '@/lib/content-studio'
 import { CONTENT_KINDS, CONTENT_STATUSES, normalizeContentItem, type ContentItem } from '@/lib/shell'
+import { Select } from '@/components/admin/select'
 
 const k = admin.pult.content
 const s = k.studio
@@ -99,13 +100,13 @@ function PromptDrawer({ open, onClose, onSent }: { open: boolean; onClose: () =>
         </label>
         <label className="grid gap-1.5 text-sm">
           {s.typeLabel}
-          <select value={type} onChange={(e) => setType(e.target.value as (typeof STUDIO_TYPES)[number])} className={inputClass}>
+          <Select value={type} onChange={(e) => setType(e.target.value as (typeof STUDIO_TYPES)[number])} className={inputClass}>
             {STUDIO_TYPES.map((t) => (
               <option key={t} value={t}>
                 {k.kinds[t]}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <Pending type="submit" pending={busy} pendingLabel={admin.hq.loading} disabled={!ok} className={`${btnPrimary} justify-self-start`}>
           {s.send}
@@ -183,25 +184,25 @@ function FeedTab({ focus }: { focus: string | null }) {
       <div className="flex flex-wrap items-end gap-2">
         <label className="grid gap-1 text-xs text-muted">
           {s.filterStatus}
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className={`${inputClass} w-auto`}>
+          <Select value={status} onChange={(e) => setStatus(e.target.value)} className={`${inputClass} w-auto`}>
             <option value="">{s.all}</option>
             {CONTENT_STATUSES.map((v) => (
               <option key={v} value={v}>
                 {k.statuses[v]}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
         <label className="grid gap-1 text-xs text-muted">
           {s.filterKind}
-          <select value={kind} onChange={(e) => setKind(e.target.value)} className={`${inputClass} w-auto`}>
+          <Select value={kind} onChange={(e) => setKind(e.target.value)} className={`${inputClass} w-auto`}>
             <option value="">{s.all}</option>
             {CONTENT_KINDS.map((v) => (
               <option key={v} value={v}>
                 {k.kinds[v]}
               </option>
             ))}
-          </select>
+          </Select>
         </label>
       </div>
       <FeedList key={`${status}|${kind}`} status={status} kind={kind} focus={focus} />

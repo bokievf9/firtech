@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { CrmDrawer, Search } from '@/components/admin/control/crm-hq-ui'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
+import { focusRow, focusRowClass, useFocusRow } from '@/components/admin/hub/focus-row'
 import { formatDuration, minutesSince } from '@/lib/office-view'
 import { clientPath, isOverdue, matchesQuery, normalizeClient360, normalizeClientRows, type Client360 } from '@/lib/shell'
 import { knowledgeClientId } from '@/lib/client-knowledge'
@@ -23,6 +24,7 @@ export function ClientsTab({ focus }: { focus: string | null }) {
   const [only, setOnly] = useState<'all' | 'cabinet'>('all')
   const [openId, setOpenId] = useState<string | null>(focus)
   const items = useMemo(() => feed.view?.items ?? [], [feed.view])
+  useFocusRow(focus, !!feed.view)
   const shown = items.filter((x) => (only === 'all' || x.cabinet) && matchesQuery(q, x.name, x.contact))
 
   if (!feed.view) return feed.error ? <Offline error={feed.error} onRetry={() => feed.reload()} /> : <Loading />
@@ -44,7 +46,7 @@ export function ClientsTab({ focus }: { focus: string | null }) {
           const ago = minutesSince(x.lastTouchAt, now)
           return (
             <li key={x.id}>
-              <button type="button" onClick={() => setOpenId(x.id)} className="w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-3 focus-visible:bg-surface-2">
+              <button type="button" onClick={() => setOpenId(x.id)} {...focusRow(x.id, focus)} className={cn('w-full rounded-xl px-3 py-2.5 text-left transition-colors hover:bg-surface-3 focus-visible:bg-surface-2', x.id === focus && focusRowClass)}>
                 <span className="flex items-center gap-2">
                   <span className="min-w-0 flex-1 truncate text-sm font-medium">{x.name || x.contact}</span>
                   {x.cabinet ? <Chip tone="accent">{c.cabinet}</Chip> : null}
