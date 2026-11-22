@@ -101,8 +101,9 @@ export function PlansBlock({ ctx, band }: Props) {
 
 // Three steps on a hairline, then the builder button.
 export function StartBlock({ ctx, band }: Props) {
-  const { locale, page } = ctx
+  const { locale, page, id } = ctx
   const copy = page.start!
+  const href = id === 'personal' ? personalBuilderHref(locale) : ctx.buildHref
   return (
     <SectionShell id="start" title={copy.title} band={band}>
       <ol className="grid gap-8 md:grid-cols-3 md:gap-6" data-start-steps>
@@ -116,7 +117,7 @@ export function StartBlock({ ctx, band }: Props) {
         ))}
       </ol>
       <div className="mt-12">
-        <Link href={personalBuilderHref(locale)} data-cta="product_page_personal_start" className={buttonClass('primary', 'lg')}>
+        <Link href={href} data-cta={`product_page_${id}_start`} className={buttonClass('primary', 'lg')}>
           {copy.cta}
           <ArrowRight size={18} aria-hidden="true" />
         </Link>
@@ -130,7 +131,7 @@ export function QuestionsBlock({ ctx, band }: Props) {
   const copy = ctx.page.questions!
   return (
     <SectionShell id="questions" title={copy.title} band={band} className="pb-section">
-      <QuestionChips items={ctx.page.objections} />
+      <QuestionChips items={ctx.page.objections.slice(0, 4)} />
     </SectionShell>
   )
 }

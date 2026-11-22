@@ -13,7 +13,7 @@ import { personalChannelOrder } from '@/lib/personal-page'
 import { Reveal } from '../reveal'
 import { SectionShell, type ProductSectionContext } from './shell'
 
-const icons: Record<ChannelId, ComponentType<{ size?: number; weight?: 'duotone'; 'aria-hidden'?: boolean | 'true'; className?: string }>> = {
+export const channelIcons: Record<ChannelId, ComponentType<{ size?: number; weight?: 'duotone'; 'aria-hidden'?: boolean | 'true'; className?: string }>> = {
   telegram: PaperPlaneTilt,
   whatsapp: WhatsappLogo,
   web: Browser,
@@ -27,13 +27,13 @@ const icons: Record<ChannelId, ComponentType<{ size?: number; weight?: 'duotone'
 // Data in src/lib/channels.ts; the quote says which of them a project includes.
 export function ChannelsBlock({ ctx, band }: { ctx: ProductSectionContext; band?: boolean }) {
   const { dict, locale, id: product } = ctx
-  // The Personal AI page lists them with Telegram in the middle, never first (owner 2026-11-22).
-  const order = product === 'personal' ? personalChannelOrder : channelIds
+  // The Personal AI and company pages list them with Telegram in the middle, never first (owner 2026-11-22).
+  const order = product === 'personal' || product === 'company' ? personalChannelOrder : channelIds
   return (
     <SectionShell id="channels" title={dict.channelsStrip.title} sub={dict.channelsStrip.sub} band={band}>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-channels>
         {order.map((id, i) => {
-          const Glyph = icons[id]
+          const Glyph = channelIcons[id]
           return (
             <li key={id} data-channel={id}>
               <Reveal delay={(i % 4) * 0.05} className="h-full">
