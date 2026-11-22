@@ -2,10 +2,10 @@
 
 import { ArrowSquareOut, CalendarPlus, ChatCircleText, FileText, NotePencil, UserCircle } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
+import { cn } from '@/components/admin/kit'
 import { errText, fill, hq } from '@/components/admin/control/api'
 import { CrmDrawer, Field, Search } from '@/components/admin/control/crm-hq-ui'
 import { admin } from '@/content/admin'
-import { cn } from '@/lib/cn'
 import { formatDuration, minutesSince } from '@/lib/office-view'
 import {
   ALL_LEAD_STAGES,
@@ -46,7 +46,7 @@ function LeadCard({ lead, now }: { lead: Lead; now: number }) {
   return (
     <>
       <span className="flex items-center gap-2">
-        <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-full', tempTone[lead.temperature] ?? 'bg-line-strong')} />
+        <span role="img" aria-label={lead.temperature || undefined} title={lead.temperature || undefined} className={cn('size-2 shrink-0 rounded-full', tempTone[lead.temperature] ?? 'bg-line-strong')} />
         <span className="min-w-0 flex-1 truncate font-medium">{lead.name || lead.contact || `#${lead.id}`}</span>
         {age !== null ? <span className="shrink-0 text-xs text-faint tabular-nums">{formatDuration(age)}</span> : null}
       </span>
@@ -117,7 +117,7 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
   if (!feed.view.available) return <div className="p-4"><Empty>{k.unavailable}</Empty></div>
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3.5 p-3 sm:p-5">
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <Search value={q} onChange={setQ} placeholder={k.search} />
         <p className="text-xs text-faint">{fill(k.count, { n: shown.length })}</p>

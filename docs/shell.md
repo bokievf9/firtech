@@ -379,3 +379,23 @@ Settings, блок «Цены» внизу страницы (⌘K «Settings»).
 - Сходимость проверяется: юнит (`approvalsSummary` и `paymentsView` против ответа дашборда) и e2e `tests/e2e/admin-dashboard.spec.ts`
   (цифры по вкладкам на Dashboard = вкладки Approvals; ожидает+просрочено = Finance «Awaiting»; оплачено за 30 дней = этот месяц +
   прошлый в Finance), плюс отсутствие горизонтальной прокрутки на 390, 768 и 1440.
+
+## Дизайн Shell на design system v4 (ветка `shell-design`)
+
+Аудит, правила и таблица «было / стало»: `docs/shell-design-audit.md`. Коротко:
+- Рамка (`hq-shell.tsx`): верхняя полоса 52 px на `material-thick` с hairline; иконки Office, тема, выход, меню одного размера (`iconBtn`);
+  боковое меню 240 px, активный пункт - скользящая плашка на `spring.snappy`, цифра горячей клавиши видна по hover/focus; мобильное меню на `material-chrome`.
+- Один заголовок страницы: `hq/page-header.tsx` (`PageHeader`: `text-title-3`, подсказка, действия, вкладки на `TabList`). Его используют `SectionView`, Tasks, Approvals, Chats, Settings, Agents; остальные секции получили тот же материал и шрифт заголовка.
+- Общий набор классов `components/admin/kit.ts`: `btn`, `btnPrimary`, `btnDanger`, `inputClass`, `filterPill`, `iconBtn` (ре-экспорт из `hub/ui`). Выбранный фильтр - поднятая пилюля с hairline, лайм только у главного действия.
+  Для классов с шагами текста v4 (`text-callout`, `text-footnote`, `text-caption`) в Shell использовать `cn` из `kit.ts`: `cn` из `@/lib/cn` не знает эти шаги и теряет их рядом с `text-muted`.
+- Состояния: `Empty` (иконка + фраза), `Loading` (строки-скелеты по форме списка), `Offline`, подтверждение (`useConfirm`) на `material-chrome`, `Toast` на `material-thick` со spring снизу.
+- Поведение, горячие клавиши (1-9, ⌘K, Esc), aria и `data-*` для e2e не менялись.
+
+
+## Знания клиента (2026-11-23, ветка `shell-clientknow`)
+Вкладка «Knowledge» в карточке клиента (`shell-crm/client-knowledge.tsx`, вид-модель `lib/client-knowledge.ts`, мок `lib/client-knowledge-mock.ts`). Контракт HQ: `agents/docs/admin-crm-api.md` «Знания клиента».
+- Прокси: `GET clients/:id/knowledge` и `POST clients/:id/knowledge/import` (тело строго `{url?, maxPages? 1..30}`), только числовой id. Клиент без кабинета (`c:<имя>`) вкладку видит с пояснением, запросов не шлёт.
+- Видно: состояние словами (none, queued, running, done, failed), счётчики (страницы, чанки, ошибки, время последнего импорта), сводка последней задачи, список страниц (заголовок, адрес ссылкой в той же вкладке, знаки, время), без текстов страниц.
+- Поле адреса заполнено `site`; проверка http/https до запроса (`checkAddress`), ответы `invalid_url`, `invalid`, `not_found`, `rate_limited` переведены в фразы. Кнопка «Import site» с состоянием ожидания, пока задача идёт, поле и кнопка заблокированы.
+- Опрос раз в 3 с только пока `running` или `queued`, на скрытой вкладке пауза, при возврате сразу запрос. Мок: импорт становится `done` после трёх чтений; адрес с `fail` даёт `failed`.
+- Тесты: `tests/client-knowledge.test.mjs`, блок в `tests/hq-admin.test.mjs`, e2e `tests/e2e/admin-client-knowledge.spec.ts` (`KNOWLEDGE_SHOTS=<dir>` сохраняет скрины).

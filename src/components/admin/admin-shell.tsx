@@ -4,6 +4,7 @@ import { DownloadSimple, DotsThree, SignOut } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { iconBtn } from '@/components/admin/kit'
 import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { Logo } from '@/components/logo'
 import { admin } from '@/content/admin'
@@ -88,10 +89,10 @@ export function SignOutButton() {
       onClick={() => logout(false)}
       aria-busy={busy}
       title={admin.hq.signOut}
-      className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-line px-2.5 text-sm text-muted transition-colors hover:text-fg disabled:opacity-60 sm:px-3"
+      className={iconBtn}
     >
-      <SignOut size={16} aria-hidden="true" />
-      <span className="sr-only sm:not-sr-only">{admin.hq.signOut}</span>
+      <SignOut size={18} aria-hidden="true" />
+      <span className="sr-only">{admin.hq.signOut}</span>
     </button>
   )
 }
@@ -104,11 +105,11 @@ export function AdminMenu() {
     <details className="relative">
       <summary
         aria-label={admin.pulse.menu}
-        className="grid size-11 cursor-pointer list-none place-items-center rounded-full border border-line text-muted transition-colors hover:text-fg [&::-webkit-details-marker]:hidden"
+        className={`${iconBtn} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}
       >
         <DotsThree size={20} weight="bold" aria-hidden="true" />
       </summary>
-      <div className="absolute right-0 z-40 mt-2 w-72 rounded-card border border-line-strong bg-elevated p-2 shadow-dialog">
+      <div className="material-chrome absolute right-0 z-40 mt-2 w-72 rounded-card border border-hairline border-line-strong p-1.5 shadow-dialog">
         {/* A file download from a route handler, not a page, so a plain link. */}
         <a
           href="/api/admin/export"
@@ -122,7 +123,7 @@ export function AdminMenu() {
           type="button"
           disabled={busy}
           onClick={() => logout(false)}
-          className="min-h-11 w-full rounded-xl px-3 text-left text-sm hover:bg-surface-3"
+          className="pressable flex min-h-11 w-full items-center rounded-xl px-3 text-left text-callout hover:bg-fill-strong"
         >
           {admin.nav.logout}
         </button>
@@ -130,7 +131,7 @@ export function AdminMenu() {
           type="button"
           disabled={busy}
           onClick={() => logout(true)}
-          className="min-h-11 w-full rounded-xl px-3 text-left text-sm text-danger hover:bg-surface-3"
+          className="pressable min-h-11 w-full rounded-xl px-3 text-left text-callout text-danger hover:bg-fill-strong"
         >
           {admin.nav.logoutAll}
         </button>

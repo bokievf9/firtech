@@ -164,9 +164,9 @@ export function AnalyticsSection() {
 
   return (
     <div className="flex min-h-full flex-col" data-section-view="analytics">
-      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur">
+      <div className="material-thick sticky top-0 z-10 border-b border-b-hairline border-line">
         <div className="flex flex-wrap items-baseline gap-x-3 px-4 pt-3 sm:px-5">
-          <h1 className="font-brand text-xl">{info.label}</h1>
+          <h1 className="text-title-3 font-semibold">{info.label}</h1>
           <p className="text-sm text-muted">{t.sectionHints.analytics}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 px-3 py-2 sm:px-4">

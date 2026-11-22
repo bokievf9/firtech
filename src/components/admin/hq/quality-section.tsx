@@ -272,9 +272,9 @@ export function QualitySection() {
   const [tab, setTab] = useState<Tab>('lessons')
   return (
     <div className="flex min-h-full flex-col" data-section-view="quality">
-      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur">
+      <div className="material-thick sticky top-0 z-10 border-b border-b-hairline border-line">
         <div className="flex flex-wrap items-baseline gap-x-3 px-4 pt-3 sm:px-5">
-          <h1 className="font-brand text-xl">{info.label}</h1>
+          <h1 className="text-title-3 font-semibold">{info.label}</h1>
           <p className="text-sm text-muted">{t.sectionHints.quality}</p>
         </div>
         <div role="tablist" aria-label={info.label} className="flex gap-1 overflow-x-auto px-3 sm:px-4">

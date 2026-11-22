@@ -388,7 +388,7 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
             <ArrowLeft size={16} aria-hidden="true" />
             <span className="hidden sm:inline">Back to list</span>
           </button>
-          <h1 className="font-brand text-sm tracking-wide sm:text-base">Approvals</h1>
+          <h1 className="text-headline font-semibold">Approvals</h1>
           <span className="rounded-full bg-surface-2 px-2.5 py-1 font-mono text-xs tabular-nums text-muted" aria-label={`Waiting for a decision: ${total}`}>{total}</span>
           <div className="ml-auto flex items-center gap-1 sm:gap-2">
             {current ? (

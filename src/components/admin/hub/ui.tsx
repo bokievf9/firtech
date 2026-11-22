@@ -1,12 +1,15 @@
 'use client'
 
-import { Check, CloudSlash, Copy } from '@phosphor-icons/react'
+import { Check, CloudSlash, Copy, Tray } from '@phosphor-icons/react'
+import { motion } from 'motion/react'
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { errText, hq, POLL_HIDDEN, POLL_VISIBLE } from '@/components/admin/control/api'
 import { Pending } from '@/components/ui/pending'
 import type { ToastMessage } from '@/components/admin/control/toast'
 import { admin } from '@/content/admin'
-import { cn } from '@/lib/cn'
+import { btnPrimary, filterPill, cn } from '@/components/admin/kit'
+import { fade, spring } from '@/lib/motion'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 const h = admin.hub
 const u = admin.pult.ui
@@ -99,7 +102,7 @@ export function Offline({ error, onRetry }: { error: string; onRetry: () => void
     }
   }
   return (
-    <div role="alert" className="m-3 flex flex-wrap items-center gap-3 rounded-card border border-danger/40 bg-surface p-4 sm:m-4">
+    <div role="alert" className="m-3 flex flex-wrap items-center gap-3 rounded-card border border-danger/40 bg-surface p-4 sm:m-5">
       <CloudSlash size={24} weight="duotone" aria-hidden="true" className="shrink-0 text-danger" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">{h.offline}</p>
@@ -109,7 +112,7 @@ export function Offline({ error, onRetry }: { error: string; onRetry: () => void
         pending={busy}
         pendingLabel={u.loading}
         onClick={() => void retry()}
-        className="inline-flex min-h-10 items-center gap-2 rounded-full bg-accent px-4 text-sm font-medium text-accent-ink"
+        className={btnPrimary}
       >
         {h.retry}
       </Pending>
@@ -118,17 +121,32 @@ export function Offline({ error, onRetry }: { error: string; onRetry: () => void
 }
 
 export function Loading({ rows = 3 }: { rows?: number }) {
+  // Skeleton rows shaped like list rows (a glyph, two lines, a time) so the page does not jump when data lands.
   return (
-    <div className="grid gap-2 p-3 sm:p-4" role="status" aria-label={u.loading}>
+    <div className="grid gap-1 p-3 sm:p-5" role="status" aria-label={u.loading}>
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="skeleton skeleton-block h-16" />
+        <div key={i} className="flex items-center gap-3 rounded-xl px-3 py-3">
+          <span aria-hidden="true" className="skeleton size-9 shrink-0 rounded-full" />
+          <span aria-hidden="true" className="grid flex-1 gap-2">
+            <span className={cn('skeleton block h-3.5', i % 2 ? 'w-2/5' : 'w-3/5')} />
+            <span className="skeleton block h-3 w-1/4" />
+          </span>
+        </div>
       ))}
     </div>
   )
 }
 
-export function Empty({ children }: { children: React.ReactNode }) {
-  return <p className="rounded-xl border border-dashed border-line-strong p-4 text-sm text-muted">{children}</p>
+// Nothing here yet: a quiet centered note with the glyph of the list, never a bare dashed box.
+export function Empty({ children, icon: Glyph = Tray }: { children: React.ReactNode; icon?: typeof Tray }) {
+  return (
+    <div className="flex flex-col items-center gap-2.5 rounded-card border border-dashed border-line px-6 py-10 text-center">
+      <span aria-hidden="true" className="grid size-10 place-items-center rounded-full bg-fill text-faint">
+        <Glyph size={20} />
+      </span>
+      <p className="max-w-sm text-callout text-muted">{children}</p>
+    </div>
+  )
 }
 
 export function CopyButton({ text, label = u.copy, className }: { text: string; label?: string; className?: string }) {
@@ -151,7 +169,7 @@ export function CopyButton({ text, label = u.copy, className }: { text: string; 
         }
       }}
       className={cn(
-        'inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-xs transition-colors hover:border-accent hover:text-accent-text disabled:opacity-40',
+        'pressable inline-flex min-h-9 items-center gap-1.5 rounded-full border border-line-strong px-3 text-xs hover:bg-fill disabled:opacity-40',
         className,
       )}
     >
@@ -189,28 +207,36 @@ export function useConfirm() {
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
   }, [state, done])
+  const reduce = useReducedMotion()
+  // `dialog` stays null while closed (callers portal it with `dialog ? ... : null`), so it only animates in.
   const dialog = state ? (
-    <div className="fixed inset-0 z-[80] grid place-items-center bg-scrim p-4">
-      <div role="alertdialog" aria-modal="true" aria-label={state.text} className="w-full max-w-sm rounded-card border border-line-strong bg-elevated p-5 shadow-dialog">
-        <p className="text-sm leading-relaxed">{state.text}</p>
-        <div className="mt-4 flex justify-end gap-2">
-          <button type="button" onClick={() => done(false)} className="inline-flex min-h-10 items-center rounded-full px-4 text-sm text-muted hover:text-fg">
-            {u.cancel}
-          </button>
-          <button
-            ref={yesRef}
-            type="button"
-            onClick={() => done(true)}
-            className={cn(
-              'inline-flex min-h-10 items-center rounded-full px-4 text-sm font-medium',
-              state.danger ? 'bg-danger text-danger-ink' : 'bg-accent text-accent-ink',
-            )}
+        <motion.div
+          key="confirm"
+          className="fixed inset-0 z-[80] grid place-items-center bg-scrim p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={fade}
+        >
+          <motion.div
+            role="alertdialog"
+            aria-modal="true"
+            aria-label={state.text}
+            className="material-chrome w-full max-w-sm rounded-card p-5 shadow-dialog"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 6 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={reduce ? fade : spring.snappy}
           >
-            {state.yes}
-          </button>
-        </div>
-      </div>
-    </div>
+            <p className="text-callout">{state.text}</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <button type="button" onClick={() => done(false)} className="pressable inline-flex min-h-10 items-center rounded-full px-4 text-sm text-muted hover:bg-fill-strong hover:text-fg">
+                {u.cancel}
+              </button>
+              <button ref={yesRef} type="button" onClick={() => done(true)} className={state.danger ? 'pressable inline-flex min-h-10 items-center rounded-full bg-danger px-4 text-sm font-medium text-danger-ink' : btnPrimary}>
+                {state.yes}
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
   ) : null
   return { ask, dialog }
 }
@@ -247,29 +273,13 @@ export function Pills<K extends string>({
   return (
     <div className="flex flex-wrap gap-1.5" role="group" aria-label={label}>
       {items.map((c) => (
-        <button
-          key={c.key}
-          type="button"
-          aria-pressed={value === c.key}
-          onClick={() => onChange(c.key)}
-          className={cn(
-            'inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors',
-            value === c.key ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-muted hover:border-accent hover:text-fg',
-          )}
-        >
+        <button key={c.key} type="button" aria-pressed={value === c.key} onClick={() => onChange(c.key)} className={filterPill(value === c.key, 'sm')}>
           {c.label}
-          {c.count !== undefined ? <span className="font-mono text-xs tabular-nums opacity-70">{c.count}</span> : null}
+          {c.count !== undefined ? <span className="text-xs tabular-nums text-faint">{c.count}</span> : null}
         </button>
       ))}
     </div>
   )
 }
 
-export const btn =
-  'inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-line-strong px-4 text-sm transition-colors hover:border-accent hover:text-accent-text disabled:opacity-50'
-export const btnPrimary =
-  'inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full bg-accent px-4 text-sm font-medium text-accent-ink transition-opacity hover:opacity-90 disabled:opacity-50'
-export const btnDanger =
-  'inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-danger/50 px-4 text-sm text-danger transition-colors hover:bg-danger/10 disabled:opacity-50'
-export const inputClass =
-  'ym-disable-keys w-full rounded-xl border border-line-strong bg-field px-3 py-2 text-base text-fg outline-none focus:border-accent md:text-sm'
+export { btn, btnPrimary, btnDanger, inputClass } from '@/components/admin/kit'

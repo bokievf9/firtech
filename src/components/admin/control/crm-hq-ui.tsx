@@ -4,7 +4,7 @@ import { X } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { admin } from '@/content/admin'
 import type { CrmList } from '@/lib/admin-crm-hq'
-import { cn } from '@/lib/cn'
+import { btn, filterPill, inputClass, cn } from '@/components/admin/kit'
 import { errText, fill, hq } from './api'
 import type { CrmFeed } from './crm-hq-data'
 import { LIST_LIMIT } from './crm-hq-data'
@@ -35,13 +35,10 @@ export function Chips({
           type="button"
           aria-pressed={value === c.key}
           onClick={() => onChange(c.key)}
-          className={cn(
-            'inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm transition-colors',
-            value === c.key ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-muted hover:border-accent hover:text-fg',
-          )}
+          className={filterPill(value === c.key)}
         >
           {c.label}
-          {c.count !== undefined ? <span className="font-mono text-xs tabular-nums opacity-70">{c.count}</span> : null}
+          {c.count !== undefined ? <span className="text-xs tabular-nums text-faint">{c.count}</span> : null}
         </button>
       ))}
     </div>
@@ -57,7 +54,7 @@ export function Search({ value, onChange, placeholder }: { value: string; onChan
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl border border-line-strong bg-field px-3.5 text-base text-fg outline-none focus:border-accent md:text-sm"
+        className={cn(inputClass, 'h-11 px-3.5 py-0')}
       />
     </label>
   )
@@ -67,10 +64,10 @@ export function Pill({ children, tone = 'plain' }: { children: React.ReactNode; 
   return (
     <span
       className={cn(
-        'inline-flex shrink-0 items-center rounded-full border px-2.5 py-0.5 text-xs whitespace-nowrap',
-        tone === 'accent' && 'border-accent/50 text-accent-text',
-        tone === 'warn' && 'border-danger/50 text-danger',
-        tone === 'plain' && 'border-line-strong text-muted',
+        'inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-caption whitespace-nowrap',
+        tone === 'accent' && 'bg-accent/15 text-accent-text',
+        tone === 'warn' && 'bg-danger/12 text-danger',
+        tone === 'plain' && 'bg-fill-strong text-muted',
       )}
     >
       {children}
@@ -128,8 +125,7 @@ export const rowClass = (active: boolean) =>
 
 export const listClass = 'grid max-h-[34rem] grid-cols-[minmax(0,1fr)] gap-0.5 overflow-y-auto overscroll-contain'
 
-export const buttonClass =
-  'min-h-10 rounded-full border border-line-strong px-4 text-sm transition-colors hover:border-accent hover:text-accent-text disabled:opacity-50'
+export const buttonClass = btn
 
 // A write to HQ (a prospect's or ticket's status and note). On success the row is swapped in the
 // feed; an illegal transition (409) refreshes the list, because the row moved under the owner.

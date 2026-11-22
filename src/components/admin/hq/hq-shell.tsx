@@ -27,7 +27,8 @@ import {
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { motion } from 'motion/react'
+import { useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { AdminMenu, SignOutButton } from '@/components/admin/admin-shell'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { CommandPalette, type PaletteItem } from '@/components/admin/hub/command-palette'
@@ -37,7 +38,9 @@ import { ThemeToggle } from '@/components/admin/theme-toggle'
 import { Logo } from '@/components/logo'
 import { admin } from '@/content/admin'
 import { goliveText } from '@/content/golive'
-import { cn } from '@/lib/cn'
+import { iconBtn, cn } from '@/components/admin/kit'
+import { fade, spring } from '@/lib/motion'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { APPROVALS_CHANGED, approvalsSummary } from '@/lib/approvals'
 import { normalizeReview } from '@/lib/review'
 import { HQ_GROUPS, HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, sectionForKey, type HqSection, type HqSectionId } from '@/lib/hq-shell'
@@ -76,8 +79,9 @@ function useNow(step = 15_000) {
   return now
 }
 
-function NavItem({ s, active, index, badge, onGo }: { s: HqSection; active: boolean; index: number; badge?: number | null; onGo?: () => void }) {
+function NavItem({ s, active, index, badge, onGo, pill }: { s: HqSection; active: boolean; index: number; badge?: number | null; onGo?: () => void; pill: string }) {
   const Ico = icons[s.id]
+  const reduce = useReducedMotion()
   return (
     <Link
       href={s.href}
@@ -86,29 +90,34 @@ function NavItem({ s, active, index, badge, onGo }: { s: HqSection; active: bool
       data-section={s.id}
       title={index < 9 ? `${s.label} (${index + 1})` : s.label}
       className={cn(
-        'flex min-h-10 w-full items-center gap-2.5 rounded-xl px-3 text-sm transition-colors',
-        active ? 'bg-surface-2 text-fg' : 'text-muted hover:bg-surface-3 hover:text-fg',
+        'group pressable relative isolate flex min-h-10 w-full items-center gap-2.5 rounded-xl px-3 text-callout outline-none focus-visible:ring-2 focus-visible:ring-accent-text',
+        active ? 'font-medium text-fg' : 'text-muted hover:bg-fill hover:text-fg',
       )}
     >
+      {active ? (
+        // The highlight slides between rows on the snappy spring (retargets when the owner clicks again).
+        <motion.span layoutId={pill} aria-hidden="true" className="absolute inset-0 -z-10 rounded-xl bg-fill-strong" transition={reduce ? fade : spring.snappy} />
+      ) : null}
       <Ico size={18} weight={active ? 'fill' : 'regular'} aria-hidden="true" className={active ? 'text-accent-text' : ''} />
       <span className="min-w-0 flex-1">{s.label}</span>
       {badge ? (
-        <span data-badge={s.id} aria-label={`${badge}`} className="rounded-full bg-accent px-1.5 py-px font-mono text-[10px] tabular-nums text-accent-ink">{badge}</span>
+        <span data-badge={s.id} aria-label={`${badge}`} className="min-w-5 rounded-full bg-accent px-1.5 text-center text-caption font-medium tabular-nums text-accent-ink">{badge}</span>
       ) : null}
-      {index < 9 ? <kbd className="hidden font-mono text-[10px] text-faint lg:inline">{index + 1}</kbd> : null}
+      {index < 9 ? <kbd className="hidden font-mono text-[10px] text-faint opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 lg:inline">{index + 1}</kbd> : null}
     </Link>
   )
 }
 
 // The grouped list (Work, Clients, Company, Control), the same on the desktop rail and in the phone panel.
 function MenuList({ pathname, waiting, onGo }: { pathname: string; waiting: number | null; onGo?: () => void }) {
+  const pill = useId()
   return (
     <>
       {HQ_GROUPS.map((g) => (
-        <div key={g.id} role="group" aria-labelledby={`hq-group-${g.id}`} data-menu-group={g.id} className="flex flex-col gap-0.5 pb-2">
-          <div id={`hq-group-${g.id}`} className="px-3 pb-0.5 pt-2 text-[11px] font-medium uppercase tracking-wide text-faint">{g.label}</div>
+        <div key={g.id} role="group" aria-labelledby={`hq-group-${g.id}`} data-menu-group={g.id} className="flex flex-col gap-0.5 pb-1">
+          <div id={`hq-group-${g.id}`} className="px-3 pb-1 pt-4 text-caption font-medium text-faint">{g.label}</div>
           {HQ_SECTIONS.map((s, i) =>
-            s.group === g.id ? <NavItem key={s.id} s={s} index={i} onGo={onGo} badge={s.id === 'approvals' ? waiting : null} active={pathname === s.href} /> : null,
+            s.group === g.id ? <NavItem key={s.id} s={s} index={i} onGo={onGo} pill={pill} badge={s.id === 'approvals' ? waiting : null} active={pathname === s.href} /> : null,
           )}
         </div>
       ))}
@@ -203,31 +212,30 @@ export function HqShell({ children }: { children: React.ReactNode }) {
   return (
     <HubContext.Provider value={api}>
       <div className="fixed inset-0 flex flex-col bg-bg" data-hq-shell>
-        <header className="relative z-40 flex min-h-14 items-center gap-1.5 border-b border-line bg-bg/95 px-3 py-1.5 backdrop-blur sm:gap-3 sm:px-4">
-          <Link href="/admin/dashboard" className="flex shrink-0 items-center gap-2.5" aria-label={t.title}>
+        <header className="material-thick relative z-40 flex h-13 shrink-0 items-center gap-1 border-b border-b-hairline border-line px-3 sm:gap-2 sm:px-4">
+          <Link href="/admin/dashboard" className="flex shrink-0 items-baseline gap-2 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-accent-text lg:w-[13.75rem]" aria-label={t.title}>
             <Logo className="text-[16px]" />
-            <span className="hidden rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-muted sm:inline">{t.title}</span>
+            <span className="hidden text-footnote text-faint sm:inline">{t.title}</span>
           </Link>
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
             aria-label={`${t.search} (${admin.hub.searchKey})`}
-            className="ml-auto inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-line px-2.5 text-sm text-muted transition-colors hover:text-fg sm:w-72 sm:justify-start"
+            className="pressable ml-auto inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-fill px-3 text-callout text-muted outline-none hover:bg-fill-strong hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-text max-sm:w-9 max-sm:justify-center max-sm:px-0 sm:w-72 lg:w-96"
           >
             <MagnifyingGlass size={16} aria-hidden="true" />
             <span className="hidden flex-1 text-left sm:inline">{t.search}</span>
-            <kbd className="hidden font-mono text-xs lg:inline">{admin.hub.searchKey}</kbd>
+            <kbd className="hidden font-mono text-xs text-faint lg:inline">{admin.hub.searchKey}</kbd>
           </button>
           <Link
             href="/admin/office"
             title={t.officeHint}
             aria-current={pathname === '/admin/office' ? 'page' : undefined}
             data-header-office
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-line px-2.5 text-sm text-muted transition-colors hover:text-fg sm:px-3"
+            className={cn(iconBtn, pathname === '/admin/office' && 'bg-fill-strong text-fg')}
           >
-            <Desktop size={16} aria-hidden="true" />
-            <span className="hidden sm:inline">{t.office}</span>
-            <span className="sr-only sm:hidden">{t.office}</span>
+            <Desktop size={18} aria-hidden="true" />
+            <span className="sr-only">{t.office}</span>
           </Link>
           <PresenceSwitch />
           <ThemeToggle />
@@ -235,25 +243,25 @@ export function HqShell({ children }: { children: React.ReactNode }) {
           <AdminMenu />
         </header>
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <nav aria-label={t.menu} className="hidden w-56 shrink-0 flex-col overflow-y-auto border-r border-line p-2 lg:flex">
+          <nav aria-label={t.menu} className="hidden w-60 shrink-0 flex-col overflow-y-auto border-r border-line px-3 pb-4 lg:flex">
             <MenuList pathname={pathname} waiting={waiting} />
           </nav>
-          <div className="relative shrink-0 border-b border-line lg:hidden">
+          <div className="relative shrink-0 border-b border-b-hairline border-line lg:hidden">
             <button
               type="button"
               onClick={() => setMenuOpen((v) => !v)}
               aria-expanded={menuOpen}
               aria-controls="hq-menu-panel"
               data-menu-toggle
-              className="flex min-h-11 w-full items-center gap-2.5 px-4 text-sm"
+              className="pressable flex min-h-11 w-full items-center gap-2.5 px-4 text-callout outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-text"
             >
               {menuOpen ? <X size={18} aria-hidden="true" /> : <List size={18} aria-hidden="true" />}
               <span className="font-medium">{t.menuButton}</span>
               <span className="min-w-0 flex-1 truncate text-right text-muted">{current?.label}</span>
-              {waiting ? <span className="rounded-full bg-accent px-1.5 py-px font-mono text-[10px] tabular-nums text-accent-ink">{waiting}</span> : null}
+              {waiting ? <span className="min-w-5 rounded-full bg-accent px-1.5 text-center text-caption font-medium tabular-nums text-accent-ink">{waiting}</span> : null}
             </button>
             {menuOpen ? (
-              <nav id="hq-menu-panel" aria-label={t.menu} className="absolute inset-x-0 top-full z-30 max-h-[calc(100dvh-7rem)] overflow-y-auto border-b border-line bg-bg p-2 shadow-lg">
+              <nav id="hq-menu-panel" aria-label={t.menu} className="material-chrome absolute inset-x-0 top-full z-30 max-h-[calc(100dvh-7rem)] overflow-y-auto border-b border-b-hairline border-line px-3 pb-3 shadow-dialog">
                 <MenuList pathname={pathname} waiting={waiting} onGo={() => setMenuOpen(false)} />
               </nav>
             ) : null}

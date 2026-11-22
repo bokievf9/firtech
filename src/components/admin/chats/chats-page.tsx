@@ -5,10 +5,11 @@ import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
-import { btnPrimary, inputClass, modalOpen, Offline, typingIn, useHqView } from '@/components/admin/hub/ui'
+import { PageHeader } from '@/components/admin/hq/page-header'
+import { btn, btnPrimary, inputClass, modalOpen, Offline, typingIn, useHqView } from '@/components/admin/hub/ui'
+import { filterPill, cn } from '@/components/admin/kit'
 import { Chip } from '@/components/admin/shell-crm/bits'
 import { normalizeSettings } from '@/lib/settings-hq'
-import { cn } from '@/lib/cn'
 import {
   autopilotChip,
   canReplyTo,
@@ -221,33 +222,36 @@ function ChatsPageInner() {
 
   return (
     <div className="absolute inset-0 flex flex-col bg-bg text-fg">
-      <header className="flex min-h-12 items-center gap-2 border-b border-line px-2 sm:gap-3 sm:px-4">
-        {!desktop && sel ? (
-          <button type="button" onClick={() => setSel(null)} aria-label="Back to the chat list" className="inline-flex h-10 items-center gap-1.5 rounded-full border border-line-strong px-3 text-sm">
-            <ArrowLeft size={16} aria-hidden="true" />
-            Chats
-          </button>
-        ) : null}
-        <h1 className={cn('font-brand text-sm tracking-wide sm:text-base', !desktop && sel && 'sr-only')}>Chats</h1>
-        {unread ? <span className="rounded-full bg-accent px-2.5 py-1 font-mono text-xs tabular-nums text-accent-ink" aria-label={`Unread: ${unread}`}>{unread}</span> : null}
-      </header>
+      <PageHeader
+        title="Chats"
+        hint={desktop || !sel ? 'Client conversations in one place' : undefined}
+        badge={unread ? <span className="min-w-5 rounded-full bg-accent px-1.5 text-center text-caption font-medium tabular-nums text-accent-ink" aria-label={`Unread: ${unread}`}>{unread}</span> : undefined}
+        actions={
+          !desktop && sel ? (
+            <button type="button" onClick={() => setSel(null)} aria-label="Back to the chat list" className={cn(btn, 'min-h-9 px-3')}>
+              <ArrowLeft size={16} aria-hidden="true" />
+              Chats
+            </button>
+          ) : null
+        }
+      />
 
       <div className="min-h-0 flex-1 lg:grid lg:grid-cols-[22rem_minmax(0,1fr)]">
         {showList ? (
-          <aside aria-label="Chats" className="flex h-full min-h-0 flex-col border-r border-line">
-            <div className="flex flex-wrap gap-1.5 border-b border-line p-2" role="group" aria-label="Filters">
+          <aside aria-label="Chats" className="flex h-full min-h-0 flex-col border-r border-line bg-surface/40">
+            <div className="flex flex-wrap items-center gap-1.5 border-b border-b-hairline border-line p-3" role="group" aria-label="Filters">
               {(['open', 'all'] as const).map((s) => (
-                <button key={s} type="button" aria-pressed={scope === s} onClick={() => setScope(s)} className={cn('min-h-9 rounded-full border px-3 text-sm', scope === s ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-muted')}>
+                <button key={s} type="button" aria-pressed={scope === s} onClick={() => setScope(s)} className={filterPill(scope === s, 'sm')}>
                   {s === 'open' ? 'Active' : 'All'}
                 </button>
               ))}
               {(['all', 'web', 'telegram', 'cabinet'] as const).map((c) => (
-                <button key={c} type="button" aria-pressed={channel === c} onClick={() => setChannel(c)} className={cn('min-h-9 rounded-full border px-3 text-sm', channel === c ? 'border-accent text-accent-text' : 'border-line text-muted')}>
+                <button key={c} type="button" aria-pressed={channel === c} onClick={() => setChannel(c)} className={filterPill(channel === c, 'sm')}>
                   {c === 'all' ? 'Any channel' : CHANNEL_LABELS[c]}
                 </button>
               ))}
             </div>
-            <div className="border-b border-line p-2">
+            <div className="border-b border-b-hairline border-line p-3">
               <label className="relative block">
                 <span className="sr-only">Search clients</span>
                 <MagnifyingGlass size={16} aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-faint" />
@@ -256,12 +260,12 @@ function ChatsPageInner() {
             </div>
             <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
               {list.error && !list.view ? <li><Offline error={list.error} onRetry={() => list.reload()} /></li> : null}
-              {!list.view && !list.error ? <li role="status" className="p-4 text-sm text-muted">Loading chats</li> : null}
+              {!list.view && !list.error ? <li role="status" aria-label="Loading chats" className="grid gap-3 p-4">{[0, 1, 2, 3].map((i) => <span key={i} aria-hidden="true" className="grid gap-2"><span className="skeleton block h-3.5 w-2/5" /><span className="skeleton block h-3 w-4/5" /></span>)}</li> : null}
               {list.view && !threads.length ? <li className="p-4 text-sm text-muted">{query.trim() ? 'Nobody matches the search.' : 'No chats.'}</li> : null}
               {threads.map((t) => {
                 const active = t.id === activeId
                 return (
-                  <li key={t.id} className="border-b border-line">
+                  <li key={t.id} className="border-b border-b-hairline border-line">
                     <button
                       type="button"
                       onClick={() => {
@@ -269,12 +273,12 @@ function ChatsPageInner() {
                         setReplyTo(null)
                         setPickerHot(false)
                       }}
-                      aria-current={active} className={cn('grid w-full gap-1 p-3 text-left transition-colors', active ? 'bg-surface-2' : 'hover:bg-surface-2/60')}>
+                      aria-current={active} className={cn('grid w-full gap-1 px-4 py-3 text-left outline-none transition-colors focus-visible:bg-fill', active ? 'bg-fill-strong' : 'hover:bg-fill')}>
                       <span className="flex items-center justify-between gap-2">
-                        <span className={cn('truncate text-sm', t.unread ? 'font-semibold' : 'font-medium')}>{t.client.name}</span>
-                        <span className="shrink-0 font-mono text-xs text-faint">{time(t.lastAt)}</span>
+                        <span className={cn('truncate text-callout', t.unread ? 'font-semibold' : 'font-medium')}>{t.client.name}</span>
+                        <span className="shrink-0 text-footnote tabular-nums text-faint">{time(t.lastAt)}</span>
                       </span>
-                      <span className={cn('line-clamp-2 text-sm', t.unread ? 'text-fg' : 'text-muted')}>{t.preview || 'No text'}</span>
+                      <span className={cn('line-clamp-2 text-callout', t.unread ? 'text-fg' : 'text-muted')}>{t.preview || 'No text'}</span>
                       <span className="flex flex-wrap items-center gap-1">
                         <ChannelChips channels={t.channels} />
                         {t.leadId !== null ? <Chip tone="accent">lead #{t.leadId}</Chip> : null}
@@ -317,7 +321,7 @@ function ChatsPageInner() {
                       <EnvelopeSimple size={14} aria-hidden="true" /> Mark as unread
                     </button>
                     {threadLinks(thread).map((l) => (
-                      <Link key={l.href} href={l.href} className="inline-flex min-h-9 items-center text-sm text-accent-text underline">{l.label}</Link>
+                      <Link key={l.href} href={l.href} className="inline-flex min-h-9 items-center text-callout text-accent-text hover:underline">{l.label}</Link>
                     ))}
                   </div>
                 </div>
@@ -335,7 +339,7 @@ function ChatsPageInner() {
                         const mine = m.from !== 'client'
                         return (
                           <li key={m.id} className={cn('flex flex-col', mine ? 'items-end' : 'items-start')}>
-                            <div className={cn('max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap', mine ? 'rounded-br-md bg-accent/20 ring-1 ring-accent/40' : 'rounded-bl-md bg-surface-2')}>
+                            <div className={cn('max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed break-words whitespace-pre-wrap', mine ? 'rounded-br-md bg-accent/15' : 'rounded-bl-md bg-surface-2')}>
                               {m.text}
                               {m.attachments.map((a) => (
                                 <span key={a.name} className="mt-1 flex items-center gap-1 text-xs text-muted">
@@ -344,11 +348,11 @@ function ChatsPageInner() {
                                 </span>
                               ))}
                             </div>
-                            <span className="mt-0.5 flex items-center gap-2 px-1 font-mono text-xs text-faint">
+                            <span className="mt-1 flex items-center gap-2 px-1 text-caption tabular-nums text-faint">
                               {m.from === 'hq' ? 'Fir Tech' : m.from === 'owner' ? 'You' : 'Client'}, {CHANNEL_LABELS[m.channel]}, {time(m.at)}
                               {showThreadChip && m.thread ? <Chip>{choiceLabel(m.thread)}</Chip> : null}
                               {canReplyTo(m) ? (
-                                <button type="button" onClick={() => setReplyTo(m)} aria-label="Reply to this message" className="inline-flex min-h-6 items-center gap-1 font-sans text-accent-text underline">
+                                <button type="button" onClick={() => setReplyTo(m)} aria-label="Reply to this message" className="inline-flex min-h-6 items-center gap-1 text-accent-text hover:underline">
                                   <ArrowBendUpLeft size={12} aria-hidden="true" /> Reply
                                 </button>
                               ) : null}
@@ -367,7 +371,7 @@ function ChatsPageInner() {
                     e.preventDefault()
                     void send()
                   }}
-                  className="border-t border-line bg-bg p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
+                  className="material-thick border-t border-t-hairline border-line p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
                 >
                   {choices.length > 1 || replyTo ? (
                     <div className="mx-auto mb-2 flex max-w-2xl flex-wrap items-center gap-2 text-sm">
