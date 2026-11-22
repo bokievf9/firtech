@@ -5,26 +5,30 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { hq } from '@/components/admin/control/api'
 import { admin } from '@/content/admin'
-import { normalizeProjects } from '@/lib/admin-crm-hq'
+import { normalizeDocuments, normalizeProjects } from '@/lib/admin-crm-hq'
 import { cn } from '@/lib/cn'
 import { deptTheme } from '@/lib/shell-theme'
-import { normalizeInvoices, normalizeLeads, searchPalette, type PaletteEntry } from '@/lib/shell'
+import { matchTasks, normalizeInvoices, normalizeLeads, searchPalette, type PaletteEntry } from '@/lib/shell'
 
 const p = admin.hub.palette
 
 export type PaletteItem = PaletteEntry & { run: () => void }
 
 type Raw = Record<string, unknown>
+type TaskRow = { id: string | number; title: string; assigneeTitle: string | null; status: string }
 const DEBOUNCE_MS = 250
 
-// Searches HQ for the query (leads, clients, projects, invoices; `?q=` on each list, 8 rows each).
-async function remote(q: string, open: (panel: string, tab: string, focus: string) => void): Promise<PaletteItem[]> {
+// Searches HQ for the query: leads, clients, projects, invoices and documents (`?q=` on each list, 8 rows
+// each) and tasks (HQ's task list has no `q`, so the open tasks are filtered here). `failed` = every call failed.
+async function remote(q: string, open: (panel: string, tab: string, focus: string) => void): Promise<{ items: PaletteItem[]; failed: boolean }> {
   const enc = encodeURIComponent(q)
-  const [leads, clients, projects, invoices] = await Promise.all([
+  const [leads, clients, projects, invoices, documents, tasks] = await Promise.all([
     hq<Raw>(`crm/leads?q=${enc}&limit=8`),
     hq<Raw>(`crm/clients?q=${enc}&limit=8`),
     hq<Raw>(`crm/projects?q=${enc}&limit=8`),
     hq<Raw>(`crm/invoices?q=${enc}&limit=8`),
+    hq<Raw>(`crm/documents?q=${enc}&limit=8`),
+    hq<Raw>('tasks?limit=200'),
   ])
   const out: PaletteItem[] = []
   if (leads.ok)
@@ -44,7 +48,19 @@ async function remote(q: string, open: (panel: string, tab: string, focus: strin
   if (invoices.ok)
     for (const inv of normalizeInvoices(invoices)?.items ?? [])
       out.push({ id: `invoice:${inv.id}`, group: p.groups.invoices, title: `${inv.number} · ${inv.client}`, dept: 'backoffice', hint: inv.title, keywords: q, run: () => open('backoffice', 'invoices', inv.id) })
-  return out
+  if (documents.ok)
+    for (const d of normalizeDocuments(documents)?.items ?? [])
+      out.push({ id: `document:${d.id}`, group: p.groups.documents, title: [d.title, d.client].filter(Boolean).join(' · ') || d.kind, dept: 'backoffice', hint: [d.kind, d.number].filter(Boolean).join(' '), keywords: q, run: () => open('backoffice', 'documents', d.id) })
+  if (tasks.ok && Array.isArray(tasks.items)) {
+    const rows: TaskRow[] = []
+    for (const x of tasks.items as Raw[]) {
+      if (!x || typeof x.title !== 'string' || (typeof x.id !== 'string' && typeof x.id !== 'number')) continue
+      rows.push({ id: x.id, title: x.title.slice(0, 160), assigneeTitle: typeof x.assigneeTitle === 'string' ? x.assigneeTitle : null, status: typeof x.status === 'string' ? x.status : '' })
+    }
+    for (const task of matchTasks(rows, q))
+      out.push({ id: `task:${task.id}`, group: p.groups.tasks, title: task.title, dept: 'director', hint: [`#${task.id}`, task.assigneeTitle].filter(Boolean).join(' · '), keywords: q, run: () => open('director', 'tasks', String(task.id)) })
+  }
+  return { items: out, failed: ![leads, clients, projects, invoices, documents, tasks].some((x) => x.ok) }
 }
 
 // ⌘K: one input over everything. Local entries (departments, commands, loaded content) filter as you
@@ -86,7 +102,7 @@ function PaletteBody({
   const [extra] = useState(() => more?.() ?? [])
   const entries = useMemo(() => [...base, ...extra], [base, extra])
   const [q, setQ] = useState('')
-  const [found, setFound] = useState<{ q: string; items: PaletteItem[] } | null>(null)
+  const [found, setFound] = useState<{ q: string; items: PaletteItem[]; failed: boolean } | null>(null)
   const [busy, setBusy] = useState(false)
   const [active, setActive] = useState(0)
   const input = useRef<HTMLInputElement>(null)
@@ -106,10 +122,10 @@ function PaletteBody({
     let alive = true
     const id = setTimeout(async () => {
       setBusy(true)
-      const items = await remote(term, (...a) => openRef.current(...a))
+      const res = await remote(term, (...a) => openRef.current(...a))
       if (!alive) return
       setBusy(false)
-      setFound({ q: term, items })
+      setFound({ q: term, ...res })
     }, DEBOUNCE_MS)
     return () => {
       alive = false
@@ -220,7 +236,7 @@ function PaletteBody({
                   </li>
                 )
               })}
-              {!results.length ? <li className="px-3 py-6 text-center text-sm text-muted">{busy ? p.searching : p.empty}</li> : null}
+              {!results.length ? <li className="px-3 py-6 text-center text-sm text-muted">{busy ? p.searching : found?.failed && found.q === q.trim() ? p.unavailable : p.empty}</li> : null}
             </ul>
             <p className="border-t border-line px-4 py-2 text-xs text-faint">{p.hint}</p>
           </motion.div>

@@ -58,6 +58,28 @@ test.describe('with a session', () => {
     await expect(box).toBeHidden()
   })
 
+  test('⌘K finds documents and tasks in HQ and opens them', async ({ page }) => {
+    await open(page, '/admin/inbox')
+    await expect(page.getByRole('radio', { name: 'In office', exact: true })).toBeVisible()
+    await page.keyboard.press('Control+k')
+    const box = page.locator('input.ym-disable-keys').first()
+    await box.fill('Договор')
+    const list = page.getByRole('listbox')
+    await expect(list.getByText('Documents', { exact: true })).toBeVisible()
+    await expect(list.getByText('Tasks', { exact: true })).toBeVisible()
+    await list.getByRole('option', { name: /Договор-шаблон для сайтов/ }).click()
+    await expect(page).toHaveURL(/\/admin\/tasks\?task=42/)
+    await expect(page.getByRole('dialog').filter({ hasText: /Договор-шаблон для сайтов/ }).first()).toBeVisible()
+  })
+
+  test('⌘K shows an empty state when HQ finds nothing', async ({ page }) => {
+    await open(page, '/admin/inbox')
+    await expect(page.getByRole('radio', { name: 'In office', exact: true })).toBeVisible()
+    await page.keyboard.press('Control+k')
+    await page.locator('input.ym-disable-keys').first().fill('zzzqqq-nothing')
+    await expect(page.getByText('Nothing found.')).toBeVisible()
+  })
+
   test('theme switch flips the panel theme', async ({ page }) => {
     await open(page, '/admin/inbox')
     const before = await page.locator('html').getAttribute('data-theme')

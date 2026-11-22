@@ -1019,6 +1019,19 @@ export type PaletteEntry = { id: string; group: string; title: string; hint?: st
 
 // Entries matching every word of the query (title, hint and keywords; ё = е), best first: a title
 // that starts with the query, then a title containing it, then the rest. Empty query = all.
+// Tasks matching the query (HQ's task list has no `q`, so the palette filters the open tasks itself):
+// every word must appear in the title, the assignee, the status or the `#id`. Newest first, at most `limit`.
+export function matchTasks<T extends { id: string | number; title: string; assigneeTitle?: string | null; status?: string }>(tasks: T[], q: string, limit = 6): T[] {
+  const words = fold(q.trim().replace(/^#/, '')).split(/\s+/).filter(Boolean)
+  if (!words.length) return []
+  return tasks
+    .filter((t) => {
+      const hay = `#${t.id} ${fold(t.title)} ${fold(t.assigneeTitle ?? '')} ${fold(t.status ?? '')}`
+      return words.every((w) => hay.includes(w))
+    })
+    .slice(0, limit)
+}
+
 export function searchPalette<T extends PaletteEntry>(entries: T[], q: string, limit = 40): T[] {
   const words = fold(q.trim()).split(/\s+/).filter(Boolean)
   if (!words.length) return entries.slice(0, limit)

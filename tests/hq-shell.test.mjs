@@ -38,6 +38,11 @@ test('tabs fall back to the first one', () => {
   assert.equal(s.sectionTab('projects', null), 'projects')
 })
 
+test('hqHref opens a task card on the Tasks page (⌘K search)', () => {
+  assert.equal(s.hqHref('director', 'tasks', '42'), '/admin/tasks?task=42')
+  assert.equal(s.hqHref('director', 'tasks'), '/admin/tasks')
+})
+
 test('hqHref sends every panel to its Shell section, the office keeps no panels', () => {
   assert.equal(s.hqHref('sales', 'leads', '12'), '/admin/clients?tab=pipeline&focus=12')
   assert.equal(s.hqHref('production', 'projects', '3'), '/admin/projects?tab=projects&focus=3')

@@ -120,6 +120,11 @@ export const ZONE_SECTION: Record<string, HqSectionId> = {
 const safe = (v: string | null | undefined) => (v && /^[\w:.\-Ѐ-ӿ %]{1,80}$/.test(v) ? v : null)
 
 export function hqHref(panel: string, tab?: string | null, focus?: string | null): string {
+  // A task opens its card on the Tasks page.
+  if (panel === 'director' && tab === 'tasks') {
+    const id = safe(focus)
+    return id ? `/admin/tasks?task=${encodeURIComponent(id)}` : '/admin/tasks'
+  }
   // Approving lives in one place: the Approvals section.
   if (panel === 'director' && tab === 'approvals') return '/admin/approvals'
   const hit = MAP[`${panel}:${tab ?? ''}`] ?? (!tab ? MAP[`${panel}:${panel === 'sales' ? 'leads' : panel === 'production' ? 'projects' : panel === 'backoffice' ? 'invoices' : ''}`] : undefined)

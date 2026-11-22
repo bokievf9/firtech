@@ -2,6 +2,7 @@
 
 import { ArrowsClockwise } from '@phosphor-icons/react'
 import { deptLabel } from '@/lib/admin-labels'
+import { useSearchParams } from 'next/navigation'
 import { useCallback, useMemo, useState } from 'react'
 import { Assignments } from '@/components/admin/control/assignments'
 import { BarePanel } from '@/components/admin/control/cc-panel'
@@ -42,7 +43,9 @@ export function TasksSection() {
   const [dept, setDept] = useState('')
   const [agent, setAgent] = useState('')
   const [status, setStatus] = useState<TaskStatusFilter>('all')
-  const [openId, setOpenId] = useState<Id | null>(null)
+  // `?task=<id>` (from the ⌘K search) opens that task's card at once.
+  const fromLink = useSearchParams().get('task')
+  const [openId, setOpenId] = useState<Id | null>(fromLink && /^[\w-]{1,64}$/.test(fromLink) ? fromLink : null)
   const all = list.data?.items ?? null
 
   const person: PersonFilter = useMemo(() => ({ dept: dept || null, assigneeId: agent || null, label: agentOptions(all ?? [], dept).find((a) => a.id === agent)?.title ?? agent }), [dept, agent, all])

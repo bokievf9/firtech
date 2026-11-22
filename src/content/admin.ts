@@ -935,9 +935,10 @@ export const admin = {
     },
     palette: {
       label: 'Search and commands',
-      placeholder: 'Client, lead, project, invoice or command',
+      placeholder: 'Client, lead, project, invoice, document, task or command',
       empty: 'Nothing found.',
       searching: 'Searching Shell',
+      unavailable: 'Search is not available right now. Departments and commands still work.',
       hint: '↑↓ choose, Enter open, Esc close',
       groups: {
         panels: 'Departments',
@@ -946,6 +947,8 @@ export const admin = {
         clients: 'Clients',
         projects: 'Projects',
         invoices: 'Invoices',
+        documents: 'Documents',
+        tasks: 'Tasks',
         content: 'Content',
       },
       commands: {
