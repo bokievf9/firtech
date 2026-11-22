@@ -391,7 +391,7 @@ test('home demo tab, signed out: «Персональный ИИ» shows the exa
   const tab = page.locator('[data-demo-assistant]')
   await expect(tab).toBeVisible()
   await expect(tab.locator('[data-demo-gate]')).toBeVisible()
-  await expect(tab.locator('[data-demo-login]')).toHaveAttribute('href', /next=%2Fru%3Fdemo%3Dpersonal%23demo/)
+  await expect(tab.locator('[data-demo-login]:visible')).toHaveAttribute('href', /next=%2Fru%3Fdemo%3Dpersonal%23demo/)
 })
 
 test.describe('home demo, signed in', () => {
