@@ -44,6 +44,14 @@ import {
   type ThemeId,
   type ThemeMood,
 } from './builder-ids'
+import {
+  discoveryJson,
+  parseDiscoveryJson,
+  parsePersonalJson,
+  personalJson,
+  type Discovery,
+  type PersonalBrief,
+} from './builder-personal'
 
 // The project builder: a visitor combines several services and extras into one quote. All prices
 // come from pricing.ts, so the builder and the showcase always agree.
@@ -240,6 +248,11 @@ export type Build = {
   // Options of the flagships (services of the Personal AI, departments of the AI company), chunk `f.`.
   // They pick the plan level shown in the builder; the one-time total never includes them.
   options?: Partial<Record<FlagshipProduct, string[]>>
+  // The personal path (2026-11-22): who the person is, what they hand over, where the agent lives, what it
+  // connects to, its character and tier. Chunk `m.<base64url JSON>`. The discovery answers of both paths
+  // (size, volumes, hours, pains, success, how they heard of us) ride in chunk `v.<base64url JSON>`.
+  personal?: PersonalBrief
+  discovery?: Discovery
 }
 
 export const emptyBuild: Build = { parts: {}, extras: [] }
@@ -412,6 +425,10 @@ export function encodeBuild(build: Build) {
   if (build.extras.length) parts.push(`x.${build.extras.join('-')}`)
   if (build.kind) parts.push(`k.${build.kind}`)
   if (build.products?.length) parts.push(`p.${build.products.join('-')}`)
+  const personal = build.personal ? personalJson(build.personal) : ''
+  if (personal) parts.push(`m.${toBase64Url(personal)}`)
+  const discovery = discoveryJson(build.discovery)
+  if (discovery) parts.push(`v.${toBase64Url(discovery)}`)
   if (build.goals?.length) parts.push(`g.${build.goals.join('-')}`)
   if (build.channels?.length) parts.push(`c.${build.channels.join('-')}`)
   // An empty list is a choice too (nothing ticked yet), told apart from "never asked" by `l.none`.
@@ -553,6 +570,16 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       if (products.length) build.products = products
       continue
     }
+    if (head === 'm') {
+      const personal = parsePersonalJson(fromBase64Url(chunk.slice(2)) ?? '')
+      if (personal) build.personal = personal
+      continue
+    }
+    if (head === 'v') {
+      const discovery = parseDiscoveryJson(fromBase64Url(chunk.slice(2)) ?? '')
+      if (discovery) build.discovery = discovery
+      continue
+    }
     if (head === 'f') {
       const product = oneOf(second, flagshipProducts)
       if (product) {
@@ -660,6 +687,8 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       build.style ||
       build.details ||
       build.delivery ||
+      build.personal ||
+      build.discovery ||
       build.siteNeed,
   )
   return Object.keys(build.parts).length || build.extras.length || hasBrief ? build : null
@@ -755,7 +784,8 @@ export function withStyle(build: Build, patch: Partial<BuildStyle>): Build {
 
 // The lead's service for a build: the service itself when the build is one main service with no
 // monthly part, otherwise "bundle".
-export function leadServiceOf(build: Build): ServiceSlug | 'bundle' {
+export function leadServiceOf(build: Build): ServiceSlug | 'ai' | 'bundle' {
+  if (build.personal) return 'ai'
   const q = quote(build)
   const single = q.lines.length === 1 && !q.monthly ? q.lines[0]?.id : undefined
   return single && (serviceSlugs as readonly string[]).includes(single)

@@ -103,3 +103,37 @@ export const flagshipOptionIds = {
   company: [...companyDepts, ...companyParts],
 } as const satisfies Record<FlagshipProduct, readonly string[]>
 export type FlagshipOption<P extends FlagshipProduct = FlagshipProduct> = (typeof flagshipOptionIds)[P][number]
+
+// Personal path of «Сборка проекта» (owner 2026-11-22: the builder was business-only; the personal agent is
+// widened and the builder is where we learn everything about the client). Ids only ever appended.
+export const personalWho = ['student', 'founder', 'doctor', 'freelancer', 'manager', 'parent', 'blogger', 'teacher', 'other'] as const
+export type PersonalWho = (typeof personalWho)[number]
+export const personalHand = ['mail', 'calendar', 'study', 'money', 'health', 'languages', 'content', 'home', 'docs', 'reminders', 'calls', 'search'] as const
+export type PersonalHand = (typeof personalHand)[number]
+// Where the personal agent lives. Telegram is one channel among equals. When the products builder lands
+// `lib/channels.ts`, point this list at it (TODO, see docs/builder-v2.md «brief v4 contract»).
+export const personalChannels = ['telegram', 'whatsapp', 'webchat', 'cabinet', 'voice', 'email', 'desktop'] as const
+export type PersonalChannel = (typeof personalChannels)[number]
+export const personalConnect = ['google', 'microsoft', 'apple', 'moodle', 'notion', 'telegram', 'whatsapp', 'bank', 'other'] as const
+export type PersonalConnect = (typeof personalConnect)[number]
+// Three character axes, each 0..2: formality (friendly..formal), brevity (short..detailed), initiative (waits..proactive).
+export type PersonalTone = [number, number, number]
+export const personalTiers = ['basic', 'plus', 'max'] as const // «Спутник», «Второй пилот», «Второе я»
+
+// Discovery (both paths): optional short answers that help a quote and Fira.
+export const discSizes = ['solo', 's5', 's20', 's20p'] as const
+export type DiscSize = (typeof discSizes)[number]
+export const discLeads = ['d5', 'd20', 'd50', 'd50p'] as const // requests a day
+export type DiscLeads = (typeof discLeads)[number]
+export const discBase = ['k100', 'k1k', 'k10k', 'k10kp'] as const // clients in the base
+export type DiscBase = (typeof discBase)[number]
+export const discHours = ['h9', 'h24', 'hshift', 'hflex'] as const
+export type DiscHours = (typeof discHours)[number]
+export const discApprover = ['owner', 'manager', 'team', 'auto'] as const
+export type DiscApprover = (typeof discApprover)[number]
+export const discPains = ['calls', 'lost', 'slow', 'manual', 'noshow', 'reports', 'chaos', 'time', 'content', 'money'] as const
+export type DiscPain = (typeof discPains)[number]
+export const discSuccess = ['leads', 'time', 'lost', 'revenue', 'calm', 'control'] as const
+export type DiscSuccess = (typeof discSuccess)[number]
+export const discHeard = ['search', 'instagram', 'friend', 'telegram', 'ai', 'ads', 'other'] as const
+export type DiscHeard = (typeof discHeard)[number]

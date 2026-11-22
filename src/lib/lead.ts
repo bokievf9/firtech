@@ -23,6 +23,12 @@ export const leadSchema = z.object({
     .regex(/^(?:ref:[a-z0-9_-]{1,32}|[a-z0-9_-]*)$/)
     .optional()
     .default(''),
+  // The builder's brief as ids (`brief v4 contract`, docs/builder-v2.md): business or personal, for HQ's CRM.
+  // Bounded; anything else is dropped.
+  brief: z
+    .record(z.string().max(40), z.unknown())
+    .refine((b) => JSON.stringify(b).length <= 3500)
+    .optional(),
   // Honeypot: hidden from people, bots fill it in.
   website: z.string().max(200).optional().default(''),
 })

@@ -71,6 +71,7 @@ import { hasAgent, languageRuleBroken, requiredDetails } from '@/lib/builder-v2'
 import { cn } from '@/lib/cn'
 import { formatUsd } from '@/lib/pricing'
 import { useSiteTheme } from '@/lib/use-site-theme'
+import { DiscoveryFields } from './builder-discovery'
 import { StyleSample } from './builder-preview'
 import { Choice, Group, Pill, Tick } from './builder-ui'
 import { usePricing } from './pricing-provider'
@@ -590,6 +591,8 @@ export function DetailsStep({
           className={cn(inputClass, 'resize-y leading-relaxed border-line-strong')}
         />
       </Field>
+
+      <DiscoveryFields locale={locale} build={build} setBuild={setBuild} variant="business" defaultOpen={false} />
     </div>
   )
 }

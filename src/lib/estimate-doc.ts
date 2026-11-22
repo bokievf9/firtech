@@ -29,6 +29,11 @@ import {
   themeText,
   toolText,
 } from '../content/builder-v2'
+import {
+  approverText, baseText, channelNames, connectText, discLabels, handText, heardText, hoursText, leadsText,
+  painText, personalLabels, sizeText, successText, tierText, toneUi, whoText,
+} from '../content/builder-personal'
+import { tierOf } from './builder-personal'
 import { flagshipPrice } from './flagships'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
 import { usesAxes } from './builder-style'
@@ -126,7 +131,7 @@ export function estimateDoc(
     if (id === 'personal' || id === 'company') {
       const f = flagshipPrice(build, id, pricing)
       const loc = locale === 'ru' ? 'ru' : 'en'
-      const level = id === 'personal' ? `${flagshipText.levels[f.plan.id as 'basic' | 'plus' | 'max'][loc]}: ` : `${locale === 'ru' ? 'от' : 'from'} `
+      const level = id === 'personal' ? `${(build.personal ? tierText[f.plan.id as 'basic' | 'plus' | 'max'].name : flagshipText.levels[f.plan.id as 'basic' | 'plus' | 'max'])[loc]}: ` : `${locale === 'ru' ? 'от' : 'from'} `
       return {
         id,
         name: pick(productCatalog[id].name, locale),
@@ -200,6 +205,24 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
     const need = effectiveSiteNeed(build)
     if (need)
       setup.push({ id: 'site', label: detailLabels.site[loc], value: siteNeedText[need].name[loc] })
+  }
+
+  // The personal path: the brief comes first in the lead text (ids `p-...`).
+  const p = build.personal
+  if (p) {
+    const add = (id: string, label: string, value: string | undefined) => {
+      if (value) setup.push({ id: `p-${id}`, label, value })
+    }
+    add('who', personalLabels.who[loc], p.who ? whoText[p.who].name[loc] : undefined)
+    add('hand', personalLabels.hand[loc], p.hand?.map((id) => handText[id].name[loc]).join(', '))
+    add('where', personalLabels.where[loc], p.where?.map((id) => channelNames[id].name[loc]).join(', '))
+    add('connect', personalLabels.connect[loc], p.connect?.map((id) => connectText[id][loc]).join(', '))
+    add(
+      'tone',
+      personalLabels.tone[loc],
+      p.tone ? toneUi.axes.map((axis, i) => axis.options[p.tone![i] ?? 1]?.[loc]).filter(Boolean).join(', ') : undefined,
+    )
+    add('tier', personalLabels.tier[loc], tierText[tierOf(p)].name[loc])
   }
 
   const style: BriefRow[] = []
@@ -280,6 +303,20 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
   if (d.langs?.length) row('langs', t.langsLabel, d.langs.map((id) => id.toUpperCase()).join(', '))
   if (d.examples?.length) row('examples', t.examplesLabel, d.examples.join(', '))
   row('wish', t.wishLabel, d.wish)
+  const v = build.discovery
+  if (v) {
+    row('d-size', discLabels.size[loc], v.size && sizeText[v.size][loc])
+    row('d-leads', discLabels.leads[loc], v.leads && leadsText[v.leads][loc])
+    row('d-base', discLabels.base[loc], v.base && baseText[v.base][loc])
+    row('d-hours', discLabels.hours[loc], v.hours && hoursText[v.hours][loc])
+    row('d-tz', discLabels.tz[loc], v.tz)
+    row('d-approver', discLabels.approver[loc], v.approver && approverText[v.approver][loc])
+    row('d-site', discLabels.site[loc], v.site)
+    row('d-instagram', discLabels.instagram[loc], v.instagram)
+    row('d-pains', discLabels.pains[loc], v.pains?.map((id) => painText[id][loc]).join(', '))
+    row('d-success', discLabels.success[loc], v.success?.map((id) => successText[id][loc]).join(', '))
+    row('d-heard', discLabels.heard[loc], v.heard && heardText[v.heard][loc])
+  }
   return { goals, setup, style, details }
 }
 
@@ -396,7 +433,7 @@ export function leadSummary(
     ...(style.length
       ? [{ id: 'style', label: t.styleLabel, value: style.map((r) => r.value).join(', ') }]
       : []),
-    ...['sources', 'tools', 'has', 'fears', 'budget', 'langs', 'examples']
+    ...['sources', 'tools', 'has', 'fears', 'budget', 'd-pains', 'd-success', 'd-leads', 'd-base', 'd-size', 'd-hours', 'd-tz', 'd-approver', 'd-site', 'd-instagram', 'd-heard', 'langs', 'examples']
       .map(byId)
       .filter((r): r is BriefRow => Boolean(r)),
   ]

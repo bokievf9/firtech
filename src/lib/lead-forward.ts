@@ -34,6 +34,7 @@ export function leadBody(lead: Lead & { siteLeadId?: string }, slot: string | un
     locale: lead.locale,
     page: lead.page,
     slot: slot ?? '',
+    ...(lead.brief && Object.keys(lead.brief).length ? { brief: lead.brief } : {}),
     // HQ's schema rejects an empty source, so the field is sent only when there is one.
     ...(lead.source ? { source: lead.source } : {}),
     ...(validSiteLeadId(lead.siteLeadId) ? { siteLeadId: lead.siteLeadId } : {}),

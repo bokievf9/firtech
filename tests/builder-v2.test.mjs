@@ -493,3 +493,141 @@ test('the playground proxy: validation, no token, scripted fallback without HQ',
   const limited = createDemoLimiter(2, 1000)
   assert.deepEqual([limited('ip', 0), limited('ip', 1), limited('ip', 2), limited('other', 2), limited('ip', 1500)], [false, false, true, false, false])
 })
+
+// ------------------------------------------------- v4: personal path and discovery
+
+const personalMod = await import('../src/lib/builder-personal.ts')
+const personalCopy = await import('../src/content/builder-personal.ts')
+const { leadBody } = await import('../src/lib/lead-forward.ts')
+const { leadSchema } = await import('../src/lib/lead.ts')
+const { leadServiceOf } = await import('../src/lib/builder.ts')
+const { estimateDoc, leadEstimateFields } = await import('../src/lib/estimate-doc.ts')
+const { flagshipPrice, personalLevel } = await import('../src/lib/flagships.ts')
+
+const fullPersonal = () => {
+  let b = personalMod.startPersonal(emptyBuild)
+  b = personalMod.withPersonal(b, {
+    who: 'student', hand: ['mail', 'calendar', 'study', 'reminders'], where: ['telegram', 'webchat', 'voice'],
+    connect: ['google', 'moodle'], tone: [0, 2, 1], tier: 'plus',
+  })
+  return personalMod.withDiscovery(b, { hours: 'h9', tz: 'UTC+5', pains: ['time', 'manual'], success: ['calm'], heard: 'friend', instagram: '@fir.tech' })
+}
+
+test('personal: fork starts and stops the personal path', () => {
+  const p = personalMod.startPersonal({ ...emptyBuild, kind: 'salon' })
+  assert.ok(p.personal && p.products?.[0] === 'personal' && !p.kind)
+  const back = personalMod.stopPersonal(p)
+  assert.ok(!back.personal && !back.products && !back.options)
+})
+
+test('personal: encode and decode keep the brief and the discovery, drop unknown ids', () => {
+  const b = fullPersonal()
+  const back = decodeBuild(encodeBuild(b))
+  assert.deepEqual(back.personal, b.personal)
+  assert.deepEqual(back.discovery, b.discovery)
+  assert.match(encodeBuild(b), /(^|~)m\./)
+  assert.match(encodeBuild(b), /(^|~)v\./)
+  const junk = personalMod.personalJson({ who: 'alien', hand: ['mail', 'zzz'], tier: 'gold' })
+  assert.deepEqual(personalMod.parsePersonalJson(junk), { hand: ['mail'] })
+  assert.equal(personalMod.parsePersonalJson('not json'), undefined)
+  // a link with only an empty personal chunk still opens the personal path
+  assert.deepEqual(decodeBuild(encodeBuild(personalMod.startPersonal(emptyBuild))).personal, {})
+  assert.ok(personalMod.personalJson(fullPersonal().personal).length <= personalMod.personalLimit)
+  const huge = personalMod.discoveryJson({ tz: 'x'.repeat(30), site: 'a.' + 'b'.repeat(95), instagram: '@' + 'c'.repeat(90), pains: [...'calls lost slow manual noshow reports chaos time content money'.split(' ')], success: ['leads', 'time', 'lost', 'revenue', 'calm', 'control'] })
+  assert.ok(huge.length <= personalMod.discoveryLimit)
+  // old business links decode as before: no personal, no discovery
+  const old = decodeBuild(encodeBuild(presets.salon))
+  assert.ok(!old.personal && !old.discovery)
+})
+
+test('personal: required answers, tier from handed-over areas, price from pricing', () => {
+  const b = personalMod.startPersonal(emptyBuild)
+  assert.deepEqual(personalMod.personalIssues(b, 0), ['who'])
+  assert.deepEqual(personalMod.personalIssues(b, 1), ['hand'])
+  assert.deepEqual(personalMod.personalIssues(b, 2), ['where'])
+  assert.deepEqual(personalMod.personalIssues(b, 4), [])
+  assert.ok(personalMod.personalReady(fullPersonal()))
+  assert.equal(personalMod.suggestedTier({ hand: ['mail'] }), 'basic')
+  assert.equal(personalMod.suggestedTier({ hand: ['mail', 'calendar', 'study'] }), 'plus')
+  assert.equal(personalMod.suggestedTier({ hand: [...'mail calendar study money health languages'.split(' ')] }), 'max')
+  // the picked tier decides the flagship level, so the existing price helper stays the one source
+  for (const tier of ['basic', 'plus', 'max']) {
+    const t = personalMod.withPersonal(fullPersonal(), { tier })
+    assert.equal(personalLevel(t.options.personal), tier)
+    assert.equal(flagshipPrice(t, 'personal').plan.setup, defaultPricing.personalPlans[tier].setup)
+  }
+})
+
+test('personal: day timeline follows the choices', () => {
+  const rows = personalMod.dayTimeline({ hand: ['study', 'mail', 'languages'] })
+  assert.equal(rows[0].hand, 'start')
+  assert.equal(rows.at(-1).hand, 'end')
+  assert.deepEqual(rows.slice(1, -1).map((r) => r.hand), ['mail', 'study', 'languages'])
+  assert.equal(personalMod.dayTimeline({ hand: [...'mail calendar study money health languages content home docs'.split(' ')] }).length, 8)
+  for (const hand of Object.keys(personalCopy.dayUi.rows)) assert.ok(personalCopy.dayUi.rows[hand].ru && personalCopy.dayUi.rows[hand].en)
+})
+
+test('personal: lead summary stays inside the limit, brief first, tier named, no Telegram default', () => {
+  const b = fullPersonal()
+  for (const locale of ['ru', 'en']) {
+    const dict = locale === 'ru' ? ru : en
+    const text = leadSummary(b, dict, locale, defaultPricing)
+    assert.ok(text.length <= leadLimit)
+    assert.match(text, locale === 'ru' ? /Второй пилот/ : /Co-pilot/)
+    const rows = briefOf(b, dict, locale).setup
+    assert.ok(rows.length >= 5 && rows.every((r) => r.id.startsWith('p-')))
+    const fields = leadEstimateFields(b, dict, locale, defaultPricing)
+    assert.ok(fields.estimate.length <= 1500 && (fields.message ?? '').length <= 1500)
+  }
+  // worst case: every list full, still bounded
+  const full = personalMod.withDiscovery(personalMod.withPersonal(fullPersonal(), { hand: [...'mail calendar study money health languages content home docs reminders calls search'.split(' ')], connect: [...'google microsoft apple moodle notion telegram whatsapp bank other'.split(' ')], where: [...'telegram whatsapp webchat cabinet voice email desktop'.split(' ')] }), { pains: [...'calls lost slow manual noshow reports chaos time content money'.split(' ')] })
+  assert.ok(leadSummary(full, ru, 'ru', defaultPricing).length <= leadLimit)
+  assert.equal(leadServiceOf(b), 'ai')
+  assert.equal(estimateDoc(b, ru, 'ru', defaultPricing).onRequest[0].price.startsWith('Второй пилот: $'), true)
+})
+
+test('lead payload carries the brief (business and personal), bounded, HQ-compatible', () => {
+  const personal = personalMod.leadBriefOf(fullPersonal())
+  assert.equal(personal.type, 'personal')
+  assert.equal(personal.tier, 'plus')
+  assert.deepEqual(personal.tone, { formality: 0, brevity: 2, initiative: 1 })
+  assert.equal(personal.discovery.hours, 'h9')
+  let biz = applySiteNeed(toggleProduct(presets.salon, 'adminbot'), 'no')
+  biz = withDetails(biz, { company: 'Лола', deadline: 'w2' })
+  biz = personalMod.withDiscovery(biz, { size: 's5', leads: 'd20' })
+  const business = personalMod.leadBriefOf(biz)
+  assert.equal(business.type, 'business')
+  assert.equal(business.niche, 'salon')
+  assert.equal(business.details.company, 'Лола')
+  assert.equal(business.discovery.leads, 'd20')
+  assert.ok(JSON.stringify(business).length <= personalMod.leadBriefLimit)
+  assert.equal(personalMod.leadBriefOf(emptyBuild), null)
+  const base = { name: 'A', contact: 'a@b.cc', locale: 'ru' }
+  const parsed = leadSchema.parse({ ...base, brief: personal })
+  assert.deepEqual(parsed.brief, personal)
+  assert.ok(!leadSchema.safeParse({ ...base, brief: { v: 1, junk: 'x'.repeat(4000) } }).success)
+  assert.equal(leadSchema.parse(base).brief, undefined)
+  assert.deepEqual(leadBody({ ...parsed, siteLeadId: undefined }, undefined).brief, personal)
+  assert.equal('brief' in leadBody(leadSchema.parse(base), undefined), false)
+})
+
+test('discovery copy: every id has RU and EN, no dashes, no «конструктор»', () => {
+  const ids = await_ids()
+  function await_ids() { return import('../src/lib/builder-ids.ts') }
+  return ids.then((m) => {
+    const tables = [
+      [m.discSizes, personalCopy.sizeText], [m.discLeads, personalCopy.leadsText], [m.discBase, personalCopy.baseText],
+      [m.discHours, personalCopy.hoursText], [m.discApprover, personalCopy.approverText], [m.discPains, personalCopy.painText],
+      [m.discSuccess, personalCopy.successText], [m.discHeard, personalCopy.heardText], [m.personalConnect, personalCopy.connectText],
+    ]
+    for (const [list, copy] of tables) for (const id of list) assert.ok(copy[id]?.ru && copy[id]?.en, id)
+    for (const id of m.personalWho) assert.ok(personalCopy.whoText[id].name.ru)
+    for (const id of m.personalHand) assert.ok(personalCopy.handText[id].name.en)
+    for (const id of m.personalChannels) assert.ok(personalCopy.channelNames[id].name.ru)
+    const text = JSON.stringify(personalCopy)
+    assert.ok(!/[–—]/.test(text))
+    assert.ok(!/конструктор|калькулятор/i.test(text))
+    // Telegram is one channel among equals: the personal channel list has more than it and it is not forced
+    assert.ok(m.personalChannels.length >= 7 && m.personalChannels.filter((c) => c === 'telegram').length === 1)
+  })
+})
