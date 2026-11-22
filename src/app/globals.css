@@ -1349,3 +1349,14 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
     transform: none;
   }
 }
+
+/* Fira's tour (components/fira/fira-guide.tsx): the part of the page she is showing. */
+[data-tour-on] {
+  outline: 2px solid color-mix(in oklab, var(--color-accent-text) 65%, transparent);
+  outline-offset: -2px;
+  border-radius: 1rem;
+  transition: outline-color 280ms var(--ease-out-quint);
+}
+.companion-say[role='menu'] {
+  transform-origin: bottom right;
+}

@@ -1,6 +1,5 @@
 'use client'
 
-import { LockSimple } from '@phosphor-icons/react'
 import Link from 'next/link'
 import type { Dict } from '@/content'
 import { buttonClass, buttonStyles, cn } from '@/lib/cn'
@@ -10,6 +9,7 @@ function signupHref(href: string) {
   return href.includes('?') ? `${href}&tab=signup` : `${href}?tab=signup`
 }
 import { inputClass } from '@/components/cabinet/ui'
+import { FiraFlat } from '@/components/fira/fira-flat'
 
 type Gate = Dict['demoGate']
 
@@ -28,7 +28,7 @@ export function DemoGateBar({ gate, href, locked = false, variant = 'bar' }: { g
         className="flex flex-col gap-3 rounded-[1.25rem] border border-hairline border-accent-text/30 bg-[linear-gradient(160deg,var(--color-pine),transparent_90%)] p-4 sm:flex-row sm:items-center"
       >
         <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-elevated text-accent-text shadow-card">
-          <LockSimple size={18} weight="bold" />
+          <FiraFlat emotion="sorry" context="docs" className="block size-9" />
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-headline font-semibold">{locked ? gate.checking : gate.lockTitle}</p>

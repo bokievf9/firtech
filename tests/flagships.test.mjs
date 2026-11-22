@@ -185,7 +185,7 @@ test('flagship pages: their own structure, both cut to the short v4 list (the pi
   }
   // Fira is the face of the company page, light on phones (flat SVG until idle on wide screens).
   const hero = readFileSync('src/components/products/fira-hero.tsx', 'utf8')
-  assert.match(hero, /FiraFallback3/)
+  assert.match(hero, /FiraFlat/)
   assert.match(hero, /min-width: 1024px/)
   assert.match(hero, /useReducedMotion/)
   // the levels come from the live pricing

@@ -1,5 +1,4 @@
 import { expect, test, type Page } from '@playwright/test'
-import ru from '../../src/content/ru'
 import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { adminContext, open, openHomeForChat } from './helpers'
@@ -36,7 +35,8 @@ test('chat: a 500 and a dropped connection show the reason and «Повтори�
     return route.fulfill({ json: { ok: true, reply: 'Здравствуйте.', state: 'chat' }, headers: { 'x-chat-mode': 'hq' } })
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: ru.chat.fab }).click()
+  await page.locator('[data-cta=chat_fab]').click()
+  await page.locator('[data-cta=fira_ask]').click()
   const dialog = page.locator('[role=dialog]')
   await expect(dialog).toContainText('Здравствуйте.')
   await dialog.locator('textarea').fill('Привет')

@@ -35,7 +35,7 @@ export default async function LoginPage({
   const t = dict.cabinet.auth
 
   return (
-    <section className="mx-auto max-w-xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
+    <section data-tour="login" className="mx-auto max-w-xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <HeroIntro>
         <p className="text-caption text-accent-text font-medium">{t.eyebrow}</p>
         <h1 className="mt-5 text-title font-semibold text-balance">

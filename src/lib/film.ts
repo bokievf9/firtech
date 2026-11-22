@@ -16,6 +16,12 @@ export const filmScenes = [
   { id: 'final', sections: ['faq'], emotion: 'wave' },
 ] as const satisfies readonly { id: string; sections: readonly HomeSection[]; emotion: Emotion }[]
 
+// The accessory context Fira wears in each scene (round eight: `accessoriesFor`): headphones for the chat
+// demo, glasses over the prices and the team, a laptop over the office, bare elsewhere.
+export const filmContext = {
+  hello: 'home', pains: 'listening', demo: 'chat', team: 'products', office: 'dashboard', solutions: 'products', process: 'pricing', final: 'home',
+} as const satisfies Record<string, string>
+
 export type FilmSceneId = (typeof filmScenes)[number]['id']
 export type FilmScene = (typeof filmScenes)[number]
 

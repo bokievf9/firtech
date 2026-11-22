@@ -101,7 +101,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       <JsonLd data={list} />
       <JsonLd data={agentList} />
 
-      <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12">
+      <section data-tour="top" className="mx-auto grid max-w-7xl items-center gap-12 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-7">
           <p className="text-footnote font-medium text-accent-text">{t.eyebrow}</p>
           <h1 className="mt-4 max-w-[16ch] font-display text-display text-balance">{t.title}</h1>
@@ -140,7 +140,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         </Reveal>
       </section>
 
-      <Section id="levels">
+      <Section id="levels" data-tour="levels">
         <SectionHeader title={dict.ladder.title} lead={dict.ladder.sub} />
         <div className="mt-10">
           <Ladder locale={locale} dict={dict} heading="h3" />
@@ -162,7 +162,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         </Reveal>
       </Section>
 
-      <Section id="teams">
+      <Section id="teams" data-tour="teams">
         <SectionHeader title={t.deptsTitle} />
         <ul className="mt-12 grid gap-gutter md:grid-cols-2 lg:grid-cols-12">
           {aiTeamIds.map((id, i) => {
@@ -215,7 +215,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         </Reveal>
       </Section>
 
-      <Section id="agents">
+      <Section id="agents" data-tour="agents">
         <SectionHeader title={t.agents.sectionTitle} lead={t.agents.sectionSub} />
         <div className="mt-10">
           <AgentExplorer
@@ -235,7 +235,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         <ChannelsRow dict={dict} locale={locale} />
       </Section>
 
-      <Section id="proof" className="grid items-center gap-10 lg:grid-cols-12">
+      <Section id="proof" data-tour="proof" className="grid items-center gap-10 lg:grid-cols-12">
         <SectionHeader title={t.proof.title} className="lg:col-span-6" />
         <Reveal delay={0.1} className="lg:col-span-6">
           <Card tone="accent" className="p-sheet">

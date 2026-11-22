@@ -47,7 +47,7 @@ export function SectionShell({
     </div>
   )
   return (
-    <section id={id} aria-labelledby={`ps-${id}`} data-product-section={id} className={cn(band && 'border-y border-line bg-surface/40')}>
+    <section id={id} aria-labelledby={`ps-${id}`} data-product-section={id} data-tour={id} className={cn(band && 'border-y border-line bg-surface/40')}>
       {inner}
     </section>
   )
