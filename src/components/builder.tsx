@@ -425,6 +425,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     dict={dict}
                     locale={locale}
                     build={build}
+                    setBuild={setBuild}
                     onAddon={toggleAddon}
                     onExtra={toggleExtra}
                   />

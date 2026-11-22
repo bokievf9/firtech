@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation'
-import { AgentPanel } from '@/components/cabinet/agent-panel'
 import { CabinetSoon } from '@/components/cabinet/cabinet-soon'
 import { ProfilePanel, type NicheGroup } from '@/components/cabinet/profile-panel'
 import { ReferralsCard } from '@/components/cabinet/cabinet-cards'
@@ -35,7 +34,7 @@ import { logoutAction } from './actions'
 // Cabinet home (v3, owner 2026-11-22). Signed-out visitors go to the login page; the client's data comes
 // from HQ by the session's email. The first tab is the client's own project: its status in words, the
 // one big button of what is needed from them, the stage track, then recent documents and messages. Tabs
-// (`?tab=`, cabinet-tabs.ts): Проекты, Документы, Сообщения, Ваш агент (only with an agent), Материалы,
+// (`?tab=`, cabinet-tabs.ts): Проекты, Документы, Сообщения, Материалы,
 // Рекомендации, Профиль. `?lead=<id>|new` arrives right after a request (the card is highlighted or a
 // «принята» note shows), `follow=` keeps the Telegram follow link, `password=updated` after a reset.
 export const dynamic = 'force-dynamic'
@@ -176,9 +175,6 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
           ),
           documents: <DocumentsPanel dict={dict} locale={locale} initial={view.docs} defaultName={profile?.legal_name?.trim() || name} />,
           messages: <MessagesPanel dict={dict} locale={locale} initial={extras.threads} tickets={data.tickets} />,
-          agent: view.agent ? (
-            <AgentPanel dict={dict} locale={locale} agent={view.agent} conversations={extras.conversations} thread={view.agentThread} />
-          ) : null,
           materials: <MaterialsPanel dict={dict} locale={locale} thread={view.materialsThread} />,
           referrals: <ReferralsCard data={data} dict={dict} locale={locale} />,
           profile: (

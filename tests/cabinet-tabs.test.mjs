@@ -27,21 +27,20 @@ const { default: ru } = await import('../src/content/ru.ts')
 const { default: en } = await import('../src/content/en.ts')
 const read = (f) => readFileSync(path.resolve(f), 'utf8')
 
-test('tab list (v3): projects, documents, messages, agent, materials, referrals, profile', () => {
-  assert.deepEqual([...tabs.cabinetTabs], ['projects', 'documents', 'messages', 'agent', 'materials', 'referrals', 'profile'])
+test('tab list (v3): projects, documents, messages, materials, referrals, profile', () => {
+  assert.deepEqual([...tabs.cabinetTabs], ['projects', 'documents', 'messages', 'materials', 'referrals', 'profile'])
   for (const dict of [ru, en]) {
     for (const id of tabs.cabinetTabs) assert.ok(dict.cabinet.tabs[id], id)
     for (const gone of ['overview', 'leads', 'invoices', 'support']) assert.equal(gone in dict.cabinet.tabs, false, gone)
   }
-  assert.deepEqual(tabs.cabinetTabs.map((id) => ru.cabinet.tabs[id]), ['Проекты', 'Документы', 'Сообщения', 'Ваш агент', 'Материалы', 'Рекомендации', 'Профиль'])
-  assert.deepEqual(tabs.cabinetTabs.map((id) => en.cabinet.tabs[id]), ['Projects', 'Documents', 'Messages', 'Your agent', 'Materials', 'Referrals', 'Profile'])
+  assert.deepEqual(tabs.cabinetTabs.map((id) => ru.cabinet.tabs[id]), ['Проекты', 'Документы', 'Сообщения', 'Материалы', 'Рекомендации', 'Профиль'])
+  assert.deepEqual(tabs.cabinetTabs.map((id) => en.cabinet.tabs[id]), ['Projects', 'Documents', 'Messages', 'Materials', 'Referrals', 'Profile'])
 })
 
-test('the agent tab exists only for a client with an agent', () => {
-  assert.equal(tabs.visibleTabs({ hasAgent: true }).includes('agent'), true)
-  assert.deepEqual(tabs.visibleTabs({ hasAgent: false }), ['projects', 'documents', 'messages', 'materials', 'referrals', 'profile'])
-  assert.equal(tabs.parseTab('agent', 'projects', tabs.visibleTabs({ hasAgent: false })), 'projects', '?tab=agent without an agent falls back')
-  assert.equal(tabs.parseTab('agent', 'projects', tabs.visibleTabs({ hasAgent: true })), 'agent')
+test('the «Ваш агент» tab is gone: ?tab=agent opens the messages', () => {
+  assert.equal(tabs.cabinetTabs.includes('agent'), false)
+  assert.deepEqual(tabs.visibleTabs(), ['projects', 'documents', 'messages', 'materials', 'referrals', 'profile'])
+  assert.equal(tabs.parseTab('agent', 'projects', tabs.visibleTabs()), 'messages')
 })
 
 test('the first screen is always the project', () => {
@@ -86,9 +85,8 @@ test('arrow keys wrap over the visible tabs, Home and End jump, other keys do no
   assert.equal(tabs.tabFromKey('documents', 'Home'), 'projects')
   assert.equal(tabs.tabFromKey('documents', 'End'), 'profile')
   assert.equal(tabs.tabFromKey('documents', 'Enter'), null)
-  const noAgent = tabs.visibleTabs({ hasAgent: false })
-  assert.equal(tabs.tabFromKey('messages', 'ArrowRight', noAgent), 'materials')
-  assert.equal(tabs.tabFromKey('agent', 'ArrowRight', noAgent), null)
+  assert.equal(tabs.tabFromKey('messages', 'ArrowRight', tabs.visibleTabs()), 'materials')
+  assert.equal(tabs.tabFromKey('agent', 'ArrowRight', tabs.visibleTabs()), null)
 })
 
 test('the bar is an accessible tablist, polls the unread badge, and the page uses it', () => {

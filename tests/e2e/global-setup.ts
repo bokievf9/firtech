@@ -40,7 +40,6 @@ export default async function globalSetup() {
     '/api/cabinet/me',
     '/api/cabinet/threads',
     '/api/cabinet/documents',
-    '/api/cabinet/agent',
     '/robots.txt',
     '/sitemap.xml',
     '/llms.txt',

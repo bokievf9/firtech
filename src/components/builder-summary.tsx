@@ -8,6 +8,8 @@ import { closestTheme, resolveLook, resolveStyle, usesAxes } from '@/lib/builder
 import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
+import { catalogRows } from '@/lib/builder-capabilities'
+import { catalogUi } from '@/content/capabilities'
 import { usePricing } from './pricing-provider'
 import { LivePreview } from './builder-live-preview'
 import { faceUi, themeText, moodText } from '@/content/builder-v2'
@@ -43,6 +45,7 @@ export function SummaryStep({
   const q = quote(build, pricing)
   const doc = estimateDoc(build, dict, locale, pricing)
   const brief = briefOf(build, dict, locale)
+  const catalog = catalogRows(build, locale, 2000)
   const look = resolveLook(build.style)
   const ui = builderUi
   const edit = (step: number) => (
@@ -107,6 +110,12 @@ export function SummaryStep({
         <Panel title={t.detailsLabel} action={edit(6)}>
           <Rows rows={brief.details} empty={t.nothingYet} />
         </Panel>
+
+        {catalog.length > 0 && (
+          <Panel title={pick(catalogUi.caps, locale)} action={edit(4)}>
+            <Rows rows={catalog} empty={t.nothingYet} />
+          </Panel>
+        )}
 
         {brief.setup.length > 0 && (
           <Panel title={pick(faceUi.partsTitle, locale)} action={edit(3)}>

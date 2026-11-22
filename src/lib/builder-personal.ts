@@ -12,7 +12,7 @@ import {
   personalConnect,
   personalHand,
   personalTiers,
-  personalWho,
+  personalWhoAll,
   type DiscApprover,
   type DiscBase,
   type DiscHeard,
@@ -25,17 +25,19 @@ import {
   type PersonalConnect,
   type PersonalHand,
   type PersonalTone,
-  type PersonalWho,
+  type PersonalWhoAny,
+  toneAxes,
 } from './builder-ids'
 import { personalServices, type FlagshipProduct } from './builder-ids'
 import type { PersonalLevel } from './pricing'
+import { capabilitiesBrief, withCatalog } from './builder-capabilities'
 
 // «Сборка проекта» v4: the personal path and the discovery fields (owner review 2026-11-22). Pure and tested
 // (tests/builder-v2.test.mjs). The personal brief rides in the link as `m.<base64url JSON>`, the discovery
 // answers as `v.<base64url JSON>`; both are bounded and unknown ids are dropped on decode.
 
 export type PersonalBrief = {
-  who?: PersonalWho
+  who?: PersonalWhoAny
   hand?: PersonalHand[]
   where?: PersonalChannel[]
   connect?: PersonalConnect[]
@@ -59,9 +61,9 @@ export type Discovery = {
   heard?: DiscHeard
 }
 
-export const personalLimit = 600
+export const personalLimit = 900
 export const discoveryLimit = 700
-export const defaultTone: PersonalTone = [1, 1, 1]
+export const defaultTone: PersonalTone = [1, 1, 1, 1, 1]
 
 const clean = (text: string, max: number) =>
   text.replace(/[\u0000-\u001f\u007f\s]+/g, ' ').trim().slice(0, max)
@@ -96,7 +98,7 @@ export function parsePersonalJson(text: string): PersonalBrief | undefined {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined
   const o = raw as Record<string, unknown>
   const out: PersonalBrief = {}
-  const who = one(o.w, personalWho)
+  const who = one(o.w, personalWhoAll)
   if (who) out.who = who
   const hand = ids(o.h, personalHand)
   if (hand.length) out.hand = hand
@@ -104,7 +106,8 @@ export function parsePersonalJson(text: string): PersonalBrief | undefined {
   if (where.length) out.where = where
   const connect = ids(o.k, personalConnect)
   if (connect.length) out.connect = connect
-  if (Array.isArray(o.n) && o.n.length === 3 && o.n.every((x) => x === 0 || x === 1 || x === 2)) out.tone = o.n as PersonalTone
+  if (Array.isArray(o.n) && (o.n.length === 3 || o.n.length === toneAxes) && o.n.every((x) => x === 0 || x === 1 || x === 2))
+    out.tone = [...(o.n as number[]), ...defaultTone.slice(o.n.length)]
   const tier = one(o.t, personalTiers)
   if (tier) out.tier = tier
   if (o.b === 0 || o.b === 1) out.byok = o.b === 1
@@ -229,15 +232,26 @@ export function syncPersonal(build: Build): Build {
 
 export function startPersonal(build: Build): Build {
   const next: Build = { parts: {}, extras: [], ...(build.discovery ? { discovery: build.discovery } : {}) }
-  return syncPersonal({ ...next, personal: {} })
+  // Only the personal skills of the catalogue belong to this path.
+  const skl = build.catalog?.skl
+  return syncPersonal({ ...(skl?.length ? withCatalog(next, { skl }) : next), personal: {} })
 }
 
+// Back to the business path: every personal chunk and every business chunk goes, only the discovery answers
+// (shared by both paths) stay. The two paths never carry each other's state.
 export function stopPersonal(build: Build): Build {
-  const next: Build = { ...build, parts: {}, extras: [] }
-  delete next.personal
-  delete next.products
-  delete next.options
-  return next
+  return { parts: {}, extras: [], ...(build.discovery ? { discovery: build.discovery } : {}) }
+}
+
+// The personal path as it is: the brief, its flagship options and the shared discovery. Any business chunk
+// (kind, products, parts, goals, channels, style, details, delivery, site) that rode along from an earlier
+// build or an old link is dropped, so a personal lead and its estimate never name a niche or a product.
+export function personalOnly(build: Build): Build {
+  if (!build.personal) return build
+  const skl = build.catalog?.skl
+  const base: Build = { parts: {}, extras: [], personal: build.personal, ...(build.discovery ? { discovery: build.discovery } : {}) }
+  // The personal skills of the catalogue are part of the personal brief; business picks are dropped.
+  return syncPersonal(skl?.length ? withCatalog(base, { skl }) : base)
 }
 
 export function withDiscovery(build: Build, patch: Partial<Discovery>): Build {
@@ -269,7 +283,8 @@ export type LeadBrief = Record<string, unknown>
 // The `brief` object of the lead JSON for HQ (documented in docs/builder-v2.md «brief v4 contract»): ids only,
 // short keys, at most `leadBriefLimit` characters. HQ's `webLeadSchema` is not strict, so it ignores or reads it.
 export const leadBriefLimit = 3500
-export function leadBriefOf(build: Build): LeadBrief | null {
+export function leadBriefOf(source: Build): LeadBrief | null {
+  const build = personalOnly(source)
   const out: LeadBrief = { v: 1 }
   if (build.personal) {
     out.type = 'personal'
@@ -278,7 +293,7 @@ export function leadBriefOf(build: Build): LeadBrief | null {
     if (p.hand?.length) out.hand = p.hand
     if (p.where?.length) out.where = p.where
     if (p.connect?.length) out.connect = p.connect
-    if (p.tone) out.tone = { formality: p.tone[0], brevity: p.tone[1], initiative: p.tone[2] }
+    if (p.tone) out.tone = { formality: p.tone[0], brevity: p.tone[1], initiative: p.tone[2], humor: p.tone[3] ?? 1, firmness: p.tone[4] ?? 1 }
     out.tier = tierOf(p)
     out.byok = p.byok === true
   } else {
@@ -299,7 +314,18 @@ export function leadBriefOf(build: Build): LeadBrief | null {
     if (Object.keys(details).length) out.details = details
   }
   if (build.discovery) out.discovery = build.discovery
+  // v5: the catalogue picks (ids only). Too long for the limit: the catalogue goes first, the rest stays.
+  const caps = capabilitiesBrief(build)
+  if (caps) out.capabilities = caps
   if (Object.keys(out).length <= 2) return null
+  if (JSON.stringify(out).length > leadBriefLimit && caps) {
+    delete out.capabilities
+    for (const key of ['content', 'integrations', 'channels', 'skills', 'results', 'abilities', 'quote']) {
+      if (JSON.stringify({ ...out, capabilities: caps }).length <= leadBriefLimit) break
+      delete caps[key]
+    }
+    if (Object.keys(caps).length) out.capabilities = caps
+  }
   return JSON.stringify(out).length <= leadBriefLimit ? out : null
 }
 

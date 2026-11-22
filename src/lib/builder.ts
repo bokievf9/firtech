@@ -49,9 +49,11 @@ import {
   parseDiscoveryJson,
   parsePersonalJson,
   personalJson,
+  personalOnly,
   type Discovery,
   type PersonalBrief,
 } from './builder-personal'
+import { catalogJson, isCatalogChunk, keepSubNiches, parseCatalogJson, type CatalogPick } from './builder-capabilities'
 
 // The project builder: a visitor combines several services and extras into one quote. All prices
 // come from pricing.ts, so the builder and the showcase always agree.
@@ -253,6 +255,9 @@ export type Build = {
   // (size, volumes, hours, pains, success, how they heard of us) ride in chunk `v.<base64url JSON>`.
   personal?: PersonalBrief
   discovery?: Discovery
+  // v5 (2026-11-23): picks from the capability catalogue (sub-niches, results, abilities, channel sub-options,
+  // integrations, content, personal skills), one chunk `x.<base64url JSON>` (lib/builder-capabilities.ts).
+  catalog?: CatalogPick
 }
 
 export const emptyBuild: Build = { parts: {}, extras: [] }
@@ -349,7 +354,7 @@ export function applyKind(build: Build, id: BusinessKind): Build {
   const next: Build = { ...build, ...preset }
   if (!preset.products) delete next.products
   if (!build.goals?.length && kindCatalog[id].goals.length) next.goals = [...kindCatalog[id].goals]
-  return withSiteLanguage(next)
+  return keepSubNiches(withSiteLanguage(next))
 }
 
 // Two or more languages already chosen on the details screen keep the paid "second language"
@@ -423,6 +428,8 @@ export function encodeBuild(build: Build) {
     return [[slug, part.variant, ...(part.addons.length ? [part.addons.join('-')] : [])].join('.')]
   })
   if (build.extras.length) parts.push(`x.${build.extras.join('-')}`)
+  const catalog = catalogJson(build.catalog)
+  if (catalog) parts.push(`x.${toBase64Url(catalog)}`)
   if (build.kind) parts.push(`k.${build.kind}`)
   if (build.products?.length) parts.push(`p.${build.products.join('-')}`)
   const personal = build.personal ? personalJson(build.personal) : ''
@@ -551,7 +558,7 @@ export function decodeBuild(value: string | null | undefined): Build | null {
   const build: Build = { parts: {}, extras: [] }
   const style: BuildStyle = {}
   const details: BuildDetails = {}
-  for (const chunk of value.slice(0, 4000).split('~')) {
+  for (const chunk of value.slice(0, 6000).split('~')) {
     const [head = '', second = '', third = '', fourth = '', fifth = '', sixth = ''] =
       chunk.split('.')
     if (head === 'k') {
@@ -621,7 +628,11 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       continue
     }
     if (head === 'x') {
-      build.extras = keepKnown(second, buildExtras)
+      // A catalogue chunk (base64 of `{`, starts with `ey`) shares the letter with the extras list.
+      if (isCatalogChunk(second)) {
+        const catalog = parseCatalogJson(fromBase64Url(second) ?? '')
+        if (catalog) build.catalog = catalog
+      } else build.extras = keepKnown(second, buildExtras)
       continue
     }
     if (head === 'g') {
@@ -677,6 +688,8 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       addons: keepKnown(third, Object.keys(defaultPricing.catalog[slug].addons)),
     }
   }
+  // A personal link never carries the business chunks that happened to ride along.
+  if (build.personal) return personalOnly(build)
   if (Object.keys(style).length) build.style = style
   if (Object.keys(details).length) build.details = details
   const hasBrief = Boolean(
@@ -689,6 +702,7 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       build.delivery ||
       build.personal ||
       build.discovery ||
+      build.catalog ||
       build.siteNeed,
   )
   return Object.keys(build.parts).length || build.extras.length || hasBrief ? build : null
@@ -784,8 +798,8 @@ export function withStyle(build: Build, patch: Partial<BuildStyle>): Build {
 
 // The lead's service for a build: the service itself when the build is one main service with no
 // monthly part, otherwise "bundle".
-export function leadServiceOf(build: Build): ServiceSlug | 'ai' | 'bundle' {
-  if (build.personal) return 'ai'
+export function leadServiceOf(build: Build): ServiceSlug | 'personal' | 'bundle' {
+  if (build.personal) return 'personal'
   const q = quote(build)
   const single = q.lines.length === 1 && !q.monthly ? q.lines[0]?.id : undefined
   return single && (serviceSlugs as readonly string[]).includes(single)
