@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { cspHeader } from './src/lib/csp'
 
 const securityHeaders = [
   { key: 'X-Content-Type-Options', value: 'nosniff' },
@@ -8,7 +9,12 @@ const securityHeaders = [
   ...(process.env.NODE_ENV === 'production'
     ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' }]
     : []),
+  // Security 2026-11-23 (P1-8): stage 1 is Report-Only (lib/csp.ts, reports counted by /api/csp-report).
+  { key: 'Content-Security-Policy-Report-Only', value: cspHeader() },
 ]
+
+// The two routes that open in an iframe of the site itself: same-origin framing in the CSP too.
+const frameSelfCsp = { key: 'Content-Security-Policy-Report-Only', value: cspHeader(process.env, { frameAncestors: "'self'" }) }
 
 const nextConfig: NextConfig = {
   // Self-contained server bundle, same release model as Vibely (built in CI, run by PM2).
@@ -50,12 +56,12 @@ const nextConfig: NextConfig = {
       // framing only, a later rule wins over the global DENY. The session check is in the handler.
       {
         source: '/api/cabinet/documents/:id/file',
-        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }],
+        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }, frameSelfCsp],
       },
       // Content renders (PDF previews) open in an iframe of the Content screen: same-origin framing only. The session check is in the handler.
       {
         source: '/api/admin/files/:path*',
-        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }],
+        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }, frameSelfCsp],
       },
     ]
   },

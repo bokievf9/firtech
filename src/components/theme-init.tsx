@@ -15,10 +15,43 @@ export const themeScript = `(function(){var d=document.documentElement,K='${THEM
 // Next renders an error shell first and the client takes over without the server-inserted script,
 // so `<html>` ended up with no data-theme (a dark visitor saw the light page, tests/e2e). The effect
 // runs the same script once when the attribute is missing.
+//
+// Security 2026-11-23 (P1-8): the fallback used to run the string through `new Function`, which a CSP
+// without 'unsafe-eval' forbids; it is now the same logic as plain code. The server keeps inserting the
+// static string above (no user data in it).
+function storedTheme(): 'dark' | 'light' | null {
+  try {
+    const v = localStorage.getItem(THEME_KEY)
+    return v === 'dark' || v === 'light' ? v : null
+  } catch {
+    return null
+  }
+}
+
+function systemQuery(): MediaQueryList | null {
+  try {
+    return window.matchMedia('(prefers-color-scheme: dark)')
+  } catch {
+    return null
+  }
+}
+
+export function applyThemeFallback() {
+  const apply = () => {
+    const theme = storedTheme() ?? (systemQuery()?.matches ? 'dark' : 'light')
+    document.documentElement.dataset.theme = theme
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor[theme])
+  }
+  apply()
+  systemQuery()?.addEventListener?.('change', () => {
+    if (!storedTheme()) apply()
+  })
+}
+
 export function ThemeInit() {
   useServerInsertedHTML(() => <script dangerouslySetInnerHTML={{ __html: themeScript }} />)
   useEffect(() => {
-    if (!document.documentElement.dataset.theme) new Function(themeScript)()
+    if (!document.documentElement.dataset.theme) applyThemeFallback()
   }, [])
   return null
 }

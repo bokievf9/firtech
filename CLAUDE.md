@@ -262,7 +262,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `{action:'reset', path?}`; refusals are 422 with a key (`out_of_range:<path>`, `not_integer`, `stage_sum:<template>`...).
   Tests: `tests/pricing-store.test.mjs`.
 - Security headers (`next.config.ts`, all paths): nosniff, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
-  `Permissions-Policy` (camera, geolocation and microphone off everywhere), HSTS in production (nginx sends none, so no duplicate). No CSP yet.
+  `Permissions-Policy` (camera, geolocation and microphone off everywhere), HSTS in production (nginx sends none, so no duplicate). CSP stage 1 (security 2026-11-23, P1-8): `Content-Security-Policy-Report-Only` from `src/lib/csp.ts` on every path (`frame-ancestors 'self'` on `/api/cabinet/documents/:id/file` and `/api/admin/files/*`), reports go to `POST /api/csp-report` (counts per directive and blocked host only, logged once a minute, 200/min per IP, body <= 8 KB, `lib/csp-report.ts`); no `new Function`/`eval` anywhere (theme fallback is plain code). Stage 2 = enforce with nonce + strict-dynamic on /cabinet, /pay, /admin once the reports are clean. Tests `tests/csp.test.mjs`.
 - Payment copy (owner 2026-11-19, stages 2026-11-21): USDT (TRC20/TON) or an online wallet named in the estimate; payment by
   stages, each stage BEFORE it starts and the last before handover (rule sentence `builder.stageRule`), projects under
   `smallProjectMaxUsd` in two stages 50/50, subscriptions monthly in advance; «50%» appears only in the terms
