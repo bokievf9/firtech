@@ -28,23 +28,24 @@ const glyph = {
   frag: /* glsl */ `
     uniform float uMode; uniform vec3 uBg; uniform vec3 uLight; uniform vec3 uInk; uniform float uGlow;
     uniform vec4 uMask; uniform float uMaskR; uniform vec2 uHalo; uniform float uRound; uniform float uCount; uniform float uLine; uniform float uHl;
-    uniform vec4 uEye; uniform vec4 uLid; uniform vec4 uEye2; uniform vec4 uMouth; uniform vec3 uMouthO; uniform vec4 uBrow;
+    uniform float uLC; uniform float uScl; uniform vec3 uSclC; uniform vec4 uEye; uniform vec4 uLid; uniform vec4 uEye2; uniform vec4 uMouth; uniform vec3 uMouthO; uniform vec4 uBrow;
     varying vec2 vF; varying vec3 vN; varying vec3 vV;
     float sdBox(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
     float sdEll(vec2 p, vec2 r) { return (length(p / r) - 1.0) * min(r.x, r.y); }
     float sdSeg(vec2 p, vec2 a, vec2 b) { vec2 pa = p - a, ba = b - a; return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0)); }
-    float eye(vec2 p, float s) {
-      float w = uEye.z, h = uEye.w, lt = uLid.x;
+    float eyeK(vec2 p, float s, float k) {
+      float w = uEye.z * k, h = uEye.w * k, lt = uLid.x;
       if (s > 0.0) { h *= 1.0 - 0.32 * uEye2.z; lt += 0.2 * uEye2.z; } else { h *= 1.0 + 0.08 * uEye2.z; }
       h = max(h, uMode > 0.5 ? uLine * 0.8 : 0.006);
       float r = min(w, h);
       float d = mix(sdEll(p, vec2(w, h)), sdBox(p, vec2(w, h), r * 0.92), uRound);
-      d = max(d, p.y - (h * (1.0 - 2.0 * lt) - uLid.w * p.x * s * 0.8));
       float xn = clamp(p.x / w, -1.0, 1.0);
+      d = max(d, p.y - (h * (1.0 - 2.0 * lt) - uLid.w * p.x * s * 0.8 - uLC * h * (1.0 - xn * xn)));
       d = max(d, (-h + 2.0 * h * uLid.y + uLid.z * 0.55 * h * (1.0 - xn * xn)) - p.y);
       float th = 0.28 * r + 0.004;
       return mix(d, abs(d + th) - th, uEye2.w);
     }
+    float eye(vec2 p, float s) { return eyeK(p, s, 1.0); }
     void main() {
       vec2 f = vF - uMask.xy;
       float mask = sdBox(f, uMask.zw, uMaskR);
@@ -85,9 +86,14 @@ const glyph = {
         if (uCount < 1.5) col = mix(col, uLight, (1.0 - smoothstep(0.0, 0.014, abs(mask + 0.02) - 0.008)) * (0.15 + 0.85 * uGlow * uGlow));
         a = inside;
       } else {
-        float dd = min(d, min(dm, db));
+        float dS = uScl > 0.5 ? min(eyeK(e + vec2(uEye.x, 0.0), -1.0, 1.24), eyeK(e - vec2(uEye.x, 0.0), 1.0, 1.24)) : 1e3;
+        float dd = min(min(d, dS), min(dm, db));
         float ww = fwidth(dd) * 1.2 + 1e-4;
         col = uInk;
+        if (uScl > 0.5) {
+          float pale = (1.0 - smoothstep(-ww, ww, dS + 0.006)) * smoothstep(-ww, ww, d);
+          col = mix(col, uSclC, pale);
+        }
         if (uHl > 0.5) {
           float hl = 0.0;
           for (int i = 0; i < 2; i++) {
@@ -118,7 +124,7 @@ export function glyphMaterial(o: { mode: 0 | 1; cyl?: number; mask: [number, num
       uMap: { value: o.cyl ? 1 : 0 }, uR: { value: o.cyl ?? 1 },
       uMode: { value: o.mode }, uBg: { value: new Color('#1d221b') }, uLight: { value: new Color('#c6ff3d') }, uInk: { value: new Color('#0d1408') },
       uGlow: { value: 0.5 }, uHalo: { value: new Vector2(...(o.halo ?? [22, 0.5])) }, uMask: { value: new Vector4(...o.mask) }, uMaskR: { value: o.maskR }, uRound: { value: o.round ?? 0 },
-      uCount: { value: o.count ?? 2 }, uLine: { value: o.line ?? 0.012 }, uHl: { value: 0 },
+      uCount: { value: o.count ?? 2 }, uLine: { value: o.line ?? 0.012 }, uHl: { value: 0 }, uLC: { value: 0 }, uScl: { value: 0 }, uSclC: { value: new Color('#eef8cf') },
       uEye: { value: new Vector4() }, uLid: { value: new Vector4() }, uEye2: { value: new Vector4() },
       uMouth: { value: new Vector4() }, uMouthO: { value: new Vector4() }, uBrow: { value: new Vector4() },
     },

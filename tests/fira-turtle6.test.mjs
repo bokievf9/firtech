@@ -152,7 +152,7 @@ test('SVG fallback per variant and emotion: renders, differs, shows blush, tail,
   assert.equal(count(svg('y', 'listening'), /data-up="1"/g), 1)
 })
 
-test('wiring: own lazy chunk, lab default is round six (?round=5, 4, 3 keep the old ones), blush on both themes, no textures', () => {
+test('wiring: own lazy chunk, lab keeps round six at ?round=6 (?round=5, 4, 3 keep the old ones), blush on both themes, no textures', () => {
   const comp = read('src/components/fira/fira-turtle6.tsx')
   assert.match(comp, /import\('\.\/fira-scene6'\)/)
   assert.match(comp, /useReducedMotion/)
@@ -169,7 +169,7 @@ test('wiring: own lazy chunk, lab default is round six (?round=5, 4, 3 keep the 
   const page = read('src/app/[locale]/fira-lab/page.tsx')
   assert.match(page, /round === '4'/)
   assert.match(page, /round === '5'\) return <FiraLab5/)
-  assert.match(page, /round !== '3'\) return <FiraLab6/)
+  assert.match(page, /round === '6'\) return <FiraLab6/)
   assert.match(page, /index: false/)
   const lab = read('src/components/fira/fira-lab6.tsx')
   assert.match(lab, /data-fira-caption/)
@@ -180,11 +180,11 @@ test('wiring: own lazy chunk, lab default is round six (?round=5, 4, 3 keep the 
   assert.ok(!/fira-lab/.test(read('src/app/sitemap.ts')))
 })
 
-test('code budget: Fira code stays under 400 KB (raised from 340 KB for round six)', () => {
+test('code budget: Fira code stays under 440 KB (raised for round seven)', () => {
   const files = [...readdirSync('src/components/fira').map((f) => `src/components/fira/${f}`), ...readdirSync('src/lib/fira').map((f) => `src/lib/fira/${f}`)]
   const total = files.reduce((n, f) => n + statSync(f).size, 0)
   console.log(`fira code total ${total} bytes`)
-  assert.ok(total < 400 * 1024, `${total} bytes`)
+  assert.ok(total < 440 * 1024, `${total} bytes`)
   const r6 = ['src/lib/fira/turtle6.ts', 'src/components/fira/fira-kit6.ts', 'src/components/fira/fira-scene6.tsx', 'src/components/fira/fira-fallback6.tsx', 'src/components/fira/fira-turtle6.tsx', 'src/components/fira/fira-lab6.tsx']
   const r6n = r6.reduce((n, f) => n + statSync(f).size, 0)
   console.log(`round six ${r6n} bytes`)

@@ -12,7 +12,7 @@ const sm = (a: number, b: number, x: number) => {
 }
 // A limb as a profile of radius along its length (y from 0 down to -len): wide where it grows out of the
 // body, tapering smoothly, a soft swell at the hand or foot, a round cap. r0 root, r1 narrowest, r2 end.
-function limb(len: number, r0: number, r1: number, r2: number, taper: number) {
+export function limb(len: number, r0: number, r1: number, r2: number, taper: number) {
   const pts: Vector2[] = Array.from({ length: 8 }, (_, i) => {
     const a = (1 - i / 8) * (Math.PI / 2)
     return new Vector2(r0 * Math.cos(a), r0 * 1.1 * Math.sin(a))
