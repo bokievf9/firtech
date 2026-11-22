@@ -486,9 +486,12 @@ export const admin = {
         confirmYes: 'Level 1',
       },
       journal: {
-        title: 'Changed in this session',
-        hint: 'HQ keeps the full log (settings_log: key, old, new, time, who) but has no endpoint to read it yet, so only this visit is listed.',
+        title: 'Change log',
+        hint: 'Every change HQ has stored (key, old value, new value, time, who), newest first, up to 200 entries.',
         empty: 'No changes yet.',
+        loading: 'Loading the log',
+        failed: 'Could not load the log.',
+        retry: 'Reload',
       },
       errors: {
         invalid: 'HQ did not accept that value.',

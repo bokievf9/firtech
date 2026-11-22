@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, WarningCircle } from '@phosphor-icons/react'
-import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useId, useRef, useState } from 'react'
 import { errText, fill, hqPatch } from '@/components/admin/control/api'
 import { Loading, Offline, inputClass, useConfirm, useHqView } from '@/components/admin/hub/ui'
 import { admin } from '@/content/admin'
@@ -10,24 +10,22 @@ import {
   AUTOPILOT_MODES,
   buildPatch,
   buildTrustPatch,
-  diffChanged,
   FIELD_GROUPS,
   getValue,
+  normalizeLog,
   normalizeSettings,
   validateField,
   type AutopilotMode,
   type FieldSpec,
   type GroupId,
-  type SessionChange,
   type Settings,
-  type SettingsView,
   type TrustKind,
 } from '@/lib/settings-hq'
 
 const t = admin.hq.settings
 const GROUP_ORDER: GroupId[] = ['schedule', 'notices', 'alerts', 'limits', 'calls', 'kp', 'playground', 'service']
 const usd = (n: number) => `$${n.toFixed(n >= 10 ? 0 : 2)}`
-const stamp = (ms: number) => new Date(ms).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+const stamp = (ms: number) => new Date(ms).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
 type Saved = { ok: true } | { ok: false; error: string }
 type Save = (patch: Record<string, unknown>) => Promise<Saved>
@@ -275,12 +273,10 @@ function Usage({ spent, limit, label }: { spent: number; limit: number; label: s
 
 export function SettingsSection() {
   const list = useHqView('settings', normalizeSettings, { visible: 60_000, hidden: 300_000 })
-  const [journal, setJournal] = useState<SessionChange[]>([])
+  const logList = useHqView('settings/log?limit=200', normalizeLog, { visible: 60_000, hidden: 300_000 })
+  const journal = logList.view ?? []
+  const reloadLog = logList.reload
   const view = list.view
-  const viewRef = useRef<SettingsView | null>(null)
-  useEffect(() => {
-    viewRef.current = view
-  })
   const { mutate } = list
 
   const save: Save = useCallback(
@@ -293,14 +289,11 @@ export function SettingsSection() {
       }
       const next = normalizeSettings(r)
       if (!next) return { ok: false, error: errText('hq_bad_response') }
-      const before = viewRef.current?.settings
-      const rawChanged = (r as { changed?: unknown }).changed
-      const changed = Array.isArray(rawChanged) ? rawChanged.filter((k): k is string => typeof k === 'string') : []
-      if (before && changed.length) setJournal((j) => [...diffChanged(before, next.settings, changed, Date.now()), ...j].slice(0, 50))
       mutate(() => next)
+      void reloadLog()
       return { ok: true }
     },
-    [mutate],
+    [mutate, reloadLog],
   )
 
   return (
@@ -355,11 +348,21 @@ export function SettingsSection() {
           <section className="rounded-card border border-line bg-surface p-4" data-group="journal">
             <h2 className="text-sm font-medium">{t.journal.title}</h2>
             <p className="mt-0.5 text-xs text-muted">{t.journal.hint}</p>
-            {journal.length ? (
+            {logList.error && !logList.view ? (
+              <p className="mt-2 text-sm text-danger" role="alert" data-journal-error>
+                {t.journal.failed}{' '}
+                <button type="button" className="underline" onClick={() => void reloadLog()}>
+                  {t.journal.retry}
+                </button>
+              </p>
+            ) : !logList.view ? (
+              <p className="mt-2 text-sm text-muted">{t.journal.loading}</p>
+            ) : journal.length ? (
               <ul className="mt-2 grid gap-1 font-mono text-xs" data-journal>
                 {journal.map((c, i) => (
                   <li key={`${c.at}-${c.key}-${i}`} className="break-words">
-                    <span className="text-faint">{stamp(c.at)}</span> {c.key}: {c.old} {'->'} {c.next}
+                    <span className="text-faint">{stamp(c.at)}</span> {c.key}: {c.old || '(none)'} {'->'} {c.next || '(none)'}
+                    {c.source !== 'owner' ? <span className="text-faint"> ({c.source})</span> : null}
                   </li>
                 ))}
               </ul>

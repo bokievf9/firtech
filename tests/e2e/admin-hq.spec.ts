@@ -116,7 +116,7 @@ test.describe('with a session', () => {
     // A service flag needs a restart and says so
     await page.getByRole('switch', { name: 'Approval cards in Telegram' }).click()
     await expect(page.locator('[data-restart]')).toContainText('service.tgApprovalCards')
-    // The session journal lists what changed with old and new values
+    // The change log (HQ settings_log) lists what changed with old and new values
     const journal = page.locator('[data-journal]')
     await expect(journal).toContainText('autopilot.leadManager: policy -> autopilot')
     await expect(journal).toContainText('schedule.summaryTime: 08:00 -> 09:30')
@@ -124,6 +124,7 @@ test.describe('with a session', () => {
     // It survives a reload (HQ keeps it)
     await page.reload()
     await expect(page.locator('[data-field="schedule.summaryTime"] input')).toHaveValue('09:30')
+    await expect(page.locator('[data-journal]')).toContainText('schedule.summaryTime: 08:00 -> 09:30')
     expect(errors).toEqual([])
   })
 
