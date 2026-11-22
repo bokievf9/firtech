@@ -1,18 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { emotions, type Emotion } from '@/lib/fira/pose'
 import { ampAt, bubbleAt, speechTimeline } from '@/lib/fira/turtle'
-import { detail7, sheetName7, sheetOrder7, turtles7, type Turtle7 } from '@/lib/fira/turtle7'
+import { accessoriesFor, accessoryContexts, accessoryEmotion, accessoryLabels, isAccessoryContext } from '@/lib/fira/contexts'
+import { detail7, sheetName7, sheetOrder7, turtles7, type AccSet7, type Turtle7 } from '@/lib/fira/turtle7'
 import { SpeechBubble, useSpeech } from './fira-turtle'
+import { FiraFallback7 } from './fira-fallback7'
 import { FiraTurtle7 } from './fira-turtle7'
 
 // Round seven lab (default): the owner's reference turtle in four variants on one rig. Views: overview (A B C D
 // with captions), solo (?solo=a), row (the emotions of one, ?row=a), sheet (all emotions x four). Controls: emotion
 // row named as the owner's sheet, theme, turn/spin, size, talk. ?cap=1 draws the bare view for screenshots.
 export type Lab7Query = {
-  view: 'overview' | 'solo' | 'row' | 'sheet'
+  view: 'overview' | 'solo' | 'row' | 'sheet' | 'ctx'
   v: Turtle7
   emotion: Emotion
   size?: number
@@ -20,6 +22,8 @@ export type Lab7Query = {
   talk: boolean
   spin?: number
   cap: boolean
+  /** `?ctx=`: a page or content context; its accessories replace the variants' own. */
+  ctx?: string
 }
 const SAMPLE = 'Здравствуйте, я Фира. Расскажите, что нужно вашему делу, а я соберу план и отвечу на вопросы.'
 const order: Emotion[] = [...sheetOrder7, ...emotions.filter((e) => !sheetOrder7.includes(e))]
@@ -34,14 +38,14 @@ function useTalk(on: boolean, at?: number) {
   return run
 }
 
-function Overview({ q, size, emotion, follow, spin, talk }: { q: Lab7Query; size: number; emotion: Emotion; follow: boolean; spin?: number; talk: boolean }) {
+function Overview({ q, size, emotion, follow, spin, talk, acc }: { q: Lab7Query; size: number; emotion: Emotion; follow: boolean; spin?: number; talk: boolean; acc?: AccSet7 }) {
   const sp = useTalk(talk, q.clock)
   return (
     <div className={cn('grid gap-4', q.cap ? 'grid-cols-4' : 'grid-cols-1 sm:grid-cols-2 xl:grid-cols-4')} data-fira-overview="">
       {turtles7.map((v) => (
         <section key={v} className={cn('flex flex-col items-center', !q.cap && 'rounded-card border border-line bg-surface p-4')}>
           <div className="relative" style={{ width: size, height: size }}>
-            <FiraTurtle7 variant={v} emotion={sp.talking ? 'talking' : emotion} size={size} clock={q.clock} mouth={talk ? sp.amp : undefined} spin={spin} lookAt={follow} label={detail7[v].name} />
+            <FiraTurtle7 variant={v} acc={acc} emotion={sp.talking ? 'talking' : emotion} size={size} clock={q.clock} mouth={talk ? sp.amp : undefined} spin={spin} lookAt={follow} label={detail7[v].name} />
             {talk ? <div className="pointer-events-none absolute left-0 top-0 z-10"><SpeechBubble text={SAMPLE} shown={sp.words} opacity={sp.opacity} className="!max-w-[12rem] !text-[12px]" /></div> : null}
           </div>
           <h2 className="mt-2 font-display text-lg font-semibold">{detail7[v].name}</h2>
@@ -52,12 +56,51 @@ function Overview({ q, size, emotion, follow, spin, talk }: { q: Lab7Query; size
   )
 }
 
-function Row({ v, size, clock, follow }: { v: Turtle7; size: number; clock?: number; follow: boolean }) {
+// «По контексту»: the page context picks the accessories; on a change they slide and scale in or out (under 400 ms),
+// in 3D and in the SVG fallback side by side. Auto-cycles home, products, chat, builder, ... unless the time is fixed.
+const CYCLE = ['home', 'products', 'chat', 'builder']
+function ByContext({ q, size }: { q: Lab7Query; size: number }) {
+  const [dark, setDark] = useState(false)
+  useEffect(() => {
+    const sync = () => setDark(document.documentElement.dataset.theme === 'dark')
+    sync()
+    const obs = new MutationObserver(sync)
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => obs.disconnect()
+  }, [])
+  const [ctx, setCtx] = useState(q.ctx && isAccessoryContext(q.ctx) ? q.ctx : 'home')
+  const [auto, setAuto] = useState(!q.cap && q.clock === undefined && !q.ctx)
+  useEffect(() => {
+    if (!auto) return
+    const id = window.setInterval(() => setCtx((c) => CYCLE[(CYCLE.indexOf(c) + 1) % CYCLE.length]!), 2600)
+    return () => window.clearInterval(id)
+  }, [auto])
+  const acc = accessoriesFor(ctx)
+  const emotion = accessoryEmotion[ctx] ?? 'idle'
+  const pill = (on: boolean) => cn('rounded-full border px-3 py-1.5 text-sm transition-colors duration-150 ease-out', on ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-fg hover:bg-surface-2')
+  return (
+    <div data-fira-ctx={ctx} data-fira-acc={acc.join('+') || 'none'}>
+      {q.cap ? null : (
+        <div className="mb-4 flex flex-wrap items-center gap-2" role="group" aria-label="Контекст">
+          {accessoryContexts.map((c) => <button key={c} type="button" aria-pressed={ctx === c} onClick={() => { setAuto(false); setCtx(c) }} className={pill(ctx === c)}>{accessoryLabels[c]}</button>)}
+          <label className="flex items-center gap-2 rounded-full border border-line-strong px-3 py-1.5 text-sm"><input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} />Автоцикл</label>
+        </div>
+      )}
+      <p className="mb-2 text-sm text-muted">{accessoryLabels[ctx]}: {acc.length ? acc.map((a) => ({ glasses: 'очки', headphones: 'наушники', laptop: 'ноутбук' })[a]).join(' + ') : 'без аксессуаров (база)'}</p>
+      <div className="flex flex-wrap gap-6">
+        <figure><FiraTurtle7 variant="a" acc={acc} emotion={emotion} size={size} clock={q.clock} lookAt={!q.cap} label={`3D: ${accessoryLabels[ctx]}`} /><figcaption className="text-center text-xs text-muted">3D</figcaption></figure>
+        <figure><div style={{ width: size, height: size }}><FiraFallback7 variant="a" acc={acc} morph emotion={emotion} dark={dark} style={{ width: '100%', height: '100%' }} /></div><figcaption className="text-center text-xs text-muted">SVG</figcaption></figure>
+      </div>
+    </div>
+  )
+}
+
+function Row({ v, size, clock, follow, acc }: { v: Turtle7; size: number; clock?: number; follow: boolean; acc?: AccSet7 }) {
   return (
     <div className="flex flex-nowrap gap-1" data-fira-row={v}>
       {order.map((e) => (
         <div key={e} className="flex flex-col items-center">
-          <FiraTurtle7 variant={v} emotion={e} size={size} clock={clock ?? 0.6} mouth={e === 'talking' ? 0.55 : undefined} lookAt={follow && e !== 'sleep'} label={`${detail7[v].name}: ${sheetName7[e]}`} />
+          <FiraTurtle7 variant={v} acc={acc} emotion={e} size={size} clock={clock ?? 0.6} mouth={e === 'talking' ? 0.55 : undefined} lookAt={follow && e !== 'sleep'} label={`${detail7[v].name}: ${sheetName7[e]}`} />
           <span className="-mt-3 text-xs text-muted" data-fira-emotion={e}>{sheetName7[e]}</span>
         </div>
       ))}
@@ -65,12 +108,12 @@ function Row({ v, size, clock, follow }: { v: Turtle7; size: number; clock?: num
   )
 }
 
-function TalkSolo({ v, size, emotion, clock, spin, follow, talk }: { v: Turtle7; size: number; emotion: Emotion; clock?: number; spin?: number; follow: boolean; talk: boolean }) {
+function TalkSolo({ v, size, emotion, clock, spin, follow, talk, acc }: { v: Turtle7; size: number; emotion: Emotion; clock?: number; spin?: number; follow: boolean; talk: boolean; acc?: AccSet7 }) {
   const [ready, setReady] = useState(false)
   const sp = useTalk(talk && (ready || clock !== undefined), clock)
   return (
     <div className="relative" style={{ width: size, height: size }}>
-      <FiraTurtle7 onReady={() => setReady(true)} variant={v} emotion={sp.talking ? 'talking' : emotion} size={size} mouth={talk ? sp.amp : undefined} clock={clock} spin={spin} lookAt={follow} label={detail7[v].name} />
+      <FiraTurtle7 onReady={() => setReady(true)} variant={v} acc={acc} emotion={sp.talking ? 'talking' : emotion} size={size} mouth={talk ? sp.amp : undefined} clock={clock} spin={spin} lookAt={follow} label={detail7[v].name} />
       {talk ? <div className="absolute left-[4%] top-[6%] z-10"><SpeechBubble text={SAMPLE} shown={sp.words} opacity={sp.opacity} /></div> : null}
     </div>
   )
@@ -85,20 +128,22 @@ export function FiraLab7({ query: q }: { query: Lab7Query }) {
   const [v, setV] = useState<Turtle7>(q.v)
   const [talk, setTalk] = useState(q.talk)
   const sz = q.size ?? size
+  const accOver = q.ctx && isAccessoryContext(q.ctx) ? accessoriesFor(q.ctx) : undefined
   const setTheme = (t: 'light' | 'dark') => {
     document.documentElement.dataset.theme = t
     document.documentElement.style.colorScheme = t
   }
 
   const body =
-    view === 'row' ? <Row v={v} size={q.cap ? sz : 150} clock={q.clock} follow={follow && !q.cap} />
-    : view === 'sheet' ? <div className="flex flex-col gap-1">{turtles7.map((t) => <Row key={t} v={t} size={q.cap ? sz : 110} clock={q.clock} follow={false} />)}</div>
-    : view === 'solo' ? <TalkSolo v={v} size={sz} emotion={emotion} clock={q.clock} spin={spin} follow={follow && !q.cap} talk={talk} />
-    : <Overview q={q} size={q.cap ? sz : size} emotion={emotion} follow={follow && !q.cap} spin={spin} talk={talk} />
+    view === 'row' ? <Row v={v} acc={accOver} size={q.cap ? sz : 150} clock={q.clock} follow={follow && !q.cap} />
+    : view === 'sheet' ? <div className="flex flex-col gap-1">{turtles7.map((t) => <Row key={t} v={t} acc={accOver} size={q.cap ? sz : 110} clock={q.clock} follow={false} />)}</div>
+    : view === 'solo' ? <TalkSolo v={v} acc={accOver} size={sz} emotion={emotion} clock={q.clock} spin={spin} follow={follow && !q.cap} talk={talk} />
+    : view === 'ctx' ? <ByContext q={q} size={q.cap ? sz : Math.min(size, 360)} />
+    : <Overview q={q} acc={accOver} size={q.cap ? sz : size} emotion={emotion} follow={follow && !q.cap} spin={spin} talk={talk} />
 
   if (q.cap) return <div className="fixed inset-0 z-[200] grid place-items-center overflow-hidden bg-bg" data-fira-capture="">{body}</div>
 
-  const views: [Lab7Query['view'], string][] = [['overview', 'Четыре рядом'], ['solo', 'Одна'], ['row', 'Ряд эмоций'], ['sheet', 'Все эмоции']]
+  const views: [Lab7Query['view'], string][] = [['overview', 'Четыре рядом'], ['solo', 'Одна'], ['row', 'Ряд эмоций'], ['sheet', 'Все эмоции'], ['ctx', 'По контексту']]
   const pill = (on: boolean) => cn('rounded-full border px-4 py-2 text-sm transition-colors duration-150 ease-out', on ? 'border-accent bg-accent text-accent-ink' : 'border-line-strong text-fg hover:bg-surface-2')
   return (
     <div className="mx-auto w-full max-w-[1500px] px-4 pt-28 pb-24 sm:px-6">

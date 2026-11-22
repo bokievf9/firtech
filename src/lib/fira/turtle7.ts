@@ -3,6 +3,7 @@
 // tests cover them. Measured on ref-hero-glasses.jpg (1080 px): head 433 x 355 px of a 825 px figure.
 import { emotions, type Emotion } from './pose'
 import type { T3 } from './pose3'
+import { spring } from '@/lib/motion'
 import { targets6 } from './turtle6'
 
 export const turtles7 = ['a', 'b', 'c', 'd'] as const
@@ -33,12 +34,12 @@ export const detail7: Record<Turtle7, Detail7> = {
 
 // ---- Rig (scene units, feet on y = 0, she faces +z). Pixel measures on the hero art * 0.00315 ----
 export const rig7 = {
-  head: { rx: 0.68, ry: 0.56, rz: 0.52, y: 2.04 },
-  body: { rx: 0.62, ry: 0.72, rz: 0.46, y: 0.88 },
+  head: { rx: 0.7, ry: 0.56, rz: 0.52, y: 2.04 },
+  body: { rx: 0.66, ry: 0.72, rz: 0.46, y: 0.88 },
   shell: { rx: 0.86, ry: 0.8, rz: 0.18, y: 1.06, z: -0.55, tilt: -0.05 },
-  plastron: { rx: 0.49, ry: 0.59, rz: 0.14, y: 0.9, z: 0.36, cols: 2, rows: 3 },
+  plastron: { rx: 0.5, ry: 0.59, rz: 0.14, y: 0.9, z: 0.36, cols: 2, rows: 3 },
   foot: { x: 0.34, y: 0.14, rx: 0.27, ry: 0.15, rz: 0.34 },
-  arm: { x: 0.46, y: 1.38, len: 0.62, r: 0.115 },
+  arm: { x: 0.46, y: 1.38, len: 0.62, r: 0.14 },
   tail: { x: 0.5, y: 0.3, z: -0.15 },
 }
 export const ratios7 = () => {
@@ -67,24 +68,39 @@ const tw: Partial<Record<Emotion, Partial<T3>>> = {
   idle: { lidTop: 0.4, slant: 0.2, lidBot: 0.04, smile: 0.5, browY: 0.12, browTilt: -0.05, asym: 0.05, eyeH: 1.05, pointer: 1 },
   thinking: { head: -0.04, headRoll: -0.04, lean: 0, roll: 0, lidTop: 0.36, slant: 0.05, browY: 0.55, browTilt: -0.25, asym: 0.6, smile: 0.3, lookX: -0.3, lookY: 0.3, lidBot: 0.06 },
   happy: { lidTop: 0, lidBot: 0.5, bend: 1, smile: 1, mouthW: 1.2, browY: 0.5 },
-  surprised: { lidTop: 0, lidBot: 0, eyeH: 1.5, eyeW: 1.15, mouthO: 0.75, browY: 1.2, smile: 0 },
+  surprised: { lidTop: 0, lidBot: 0, eyeH: 1.22, eyeW: 1.12, mouthO: 0.75, browY: 1.2, smile: 0 },
   sorry: { lidTop: 0.5, lidBot: 0.05, asym: 0.85, browTilt: -0.45, browY: 0.3, smile: -0.05, mouthW: 0.75, slant: 0.25 },
   listening: { lidTop: 0.2, slant: 0.05, lidBot: 0.1, smile: 0.75, browY: 0.3, eyeH: 1.02 },
   talking: { lidTop: 0.2, slant: 0.05, smile: 0.5 },
-  wave: { lidTop: 0, lidBot: 0.5, bend: 1, smile: 0.9 },
+  wave: { lidTop: 0.08, lidBot: 0.04, bend: 0, smile: 0.85, browY: 0.3, eyeH: 1.05 },
 }
 export const targets7: Record<Emotion, T3> = Object.fromEntries(emotions.map((e) => [e, { ...targets6[e], ...tw[e] }])) as Record<Emotion, T3>
 
-export const EYE_W7 = 0.085
-export const EYE_H7 = 0.12
+// Target renders (ref-3d-target-*.jpg): big round dark eyes, about 0.23 of the head half width in radius.
+export const EYE_W7 = 0.122
+export const EYE_H7 = 0.132
 export const eyeShare7 = (maxEyeH: number) => (2 * EYE_H7 * maxEyeH) / 1.0
 
 // Laptop (D) is always held up in front; the logo lid faces the viewer.
 export const laptopHeld7 = (v: Turtle7) => detail7[v].laptop
 // Notes rise from the headphones on `listening`, dark theme only (as in the video frames).
-export const notesOn7 = (v: Turtle7, emotion: Emotion, dark: boolean) => detail7[v].headphones && emotion === 'listening' && dark
+export const notesOnFor7 = (headphones: boolean, emotion: Emotion, dark: boolean) => headphones && emotion === 'listening' && dark
+export const notesOn7 = (v: Turtle7, emotion: Emotion, dark: boolean) => notesOnFor7(detail7[v].headphones, emotion, dark)
 export const NOTE_PERIOD = 3.6
 export function noteState7(i: number, t: number): { x: number; y: number; a: number } {
   const u = (((t + i * (NOTE_PERIOD / 3)) % NOTE_PERIOD) + NOTE_PERIOD) % NOTE_PERIOD / NOTE_PERIOD
   return { x: (i - 1) * 0.55 + Math.sin(u * 6 + i) * 0.1, y: u, a: Math.min(1, u * 5) * Math.min(1, (1 - u) * 3) }
 }
+
+// ---- Round eight: separate accessories (glasses, headphones, laptop) that come and go with the page context ----
+export type Acc7 = 'glasses' | 'headphones' | 'laptop'
+export type AccSet7 = readonly Acc7[] // empty = the bare base
+export const accOf7 = (v: Turtle7): AccSet7 => [...(['glasses', 'headphones', 'laptop'] as const).filter((a) => detail7[v][a])]
+export const accFlags7 = (set: AccSet7) => ({ glasses: set.includes('glasses'), headphones: set.includes('headphones'), laptop: set.includes('laptop') })
+// A put-on or take-off takes at most 400 ms: the snappy spring of lib/motion.ts (critically damped), as stiffness k.
+export const ACC_MORPH7 = { duration: spring.snappy.duration, k: (2 * Math.PI / spring.snappy.duration) ** 2, z: 1 } as const
+// Feet and hands of the target renders: three toes with pale nails, three short fingers with nails.
+export const TOES7 = 3
+export const FINGERS7 = 3
+// Light hexagonal scutes on the teal shell (x mirrored, scene units on the visible rim).
+export const scutes7 = [{ x: 0.62, y: 1.4 }, { x: 0.66, y: 0.92 }, { x: 0.56, y: 0.48 }, { x: 0.4, y: 1.72 }] as const

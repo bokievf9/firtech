@@ -42,6 +42,7 @@ const { renderToStaticMarkup } = await import('react-dom/server')
 const { createElement } = await import('react')
 const T7 = await import('../src/lib/fira/turtle7.ts')
 const P = await import('../src/lib/fira/pose.ts')
+const C = await import('../src/lib/fira/contexts.ts')
 const { FiraFallback7 } = await import('../src/components/fira/fira-fallback7.tsx')
 const read = (f) => readFileSync(f, 'utf8')
 const svg = (v, e, dark = false) => renderToStaticMarkup(createElement(FiraFallback7, { variant: v, emotion: e, dark }))
@@ -114,7 +115,7 @@ test('face: half-lidded chill, one brow up for the know-it-all, closed smiling e
   assert.ok(t.idle.smile >= 0.4 && t.idle.smile <= 0.7, 'small smile')
   assert.ok(t.thinking.asym >= 0.4 && t.thinking.browY > t.idle.browY + 0.3, 'brow up')
   assert.ok(t.happy.bend === 1 && t.happy.lidBot >= 0.4 && t.happy.lidTop === 0, 'closed arcs')
-  assert.ok(t.surprised.lidTop === 0 && t.surprised.eyeH > 1.3 && t.surprised.mouthO > 0.5, 'round eyes, o mouth')
+  assert.ok(t.surprised.lidTop === 0 && t.surprised.eyeH > 1.15 && t.surprised.mouthO > 0.5, 'round eyes, o mouth')
   assert.ok(t.sorry.asym >= 0.8 && Math.abs(t.sorry.smile) < 0.1, 'skeptic: one brow, flat mouth')
   assert.ok(t.listening.smile >= 0.6, 'content')
   assert.deepEqual(Object.keys(t).sort(), [...P.emotions].sort())
@@ -191,13 +192,78 @@ test('wiring: own lazy chunk, lab default is round seven (?round=6, 5, 4, 3 keep
   for (const f of ['ref-emotions', 'ref-accessories', 'ref-hero-glasses', 'ref-3d-chill', 'video-0.5', 'video-2', 'video-4', 'video-6']) assert.ok(statSync(`docs/fira-ref/${f}.jpg`).size > 10000, f)
 })
 
-test('code budget: Fira code stays under 440 KB (raised from 400 KB for round seven, which is about 56 KB)', () => {
+test('accessoriesFor: the context picks glasses, headphones, laptop (round eight mapping table)', () => {
+  const table = {
+    home: [], landing: [],
+    products: ['glasses'], pricing: ['glasses'], docs: ['glasses'], quote: ['glasses'],
+    chat: ['headphones'], listening: ['headphones'], support: ['headphones'],
+    builder: ['glasses', 'laptop'], content: ['glasses', 'laptop'], dashboard: ['glasses', 'laptop'],
+  }
+  for (const [id, want] of Object.entries(table)) assert.deepEqual([...C.accessoriesFor(id)].sort(), [...want].sort(), id)
+  assert.deepEqual([...C.accessoriesFor({ id: 'chat' })], ['headphones'], 'a context object works too')
+  assert.deepEqual([...C.accessoriesFor('nope')], [], 'unknown -> bare base')
+  assert.deepEqual([...C.accessoriesFor(undefined)], [])
+  assert.ok(C.isAccessoryContext('builder') && !C.isAccessoryContext('x'))
+  for (const id of C.accessoryContexts) assert.ok(C.accessoryLabels[id] && P.isEmotion(C.accessoryEmotion[id]), id)
+  // the lab keeps the manual A B C D overview and every variant keeps its own set
+  assert.deepEqual(T7.turtles7.map((v) => T7.accOf7(v)), [[], ['headphones'], ['glasses'], ['glasses', 'laptop']])
+})
+
+test('accessory morph: at most 400 ms, the snappy spring of lib/motion.ts; SVG morph keeps all three in the markup', () => {
+  assert.ok(T7.ACC_MORPH7.duration <= 0.4 && T7.ACC_MORPH7.z === 1)
+  const html = renderToStaticMarkup(createElement(FiraFallback7, { variant: 'a', emotion: 'idle', acc: ['glasses'], morph: true }))
+  assert.equal(count(html, /data-acc="/g), 4, 'glasses, laptop, band, cups')
+  assert.match(html, /data-acc="glasses" data-on="1"/)
+  assert.match(html, /data-acc="laptop" data-on="0"/)
+  assert.match(html, /transition:opacity 280ms/)
+  // without morph, only what is worn is drawn
+  assert.equal(count(svg('a', 'idle'), /data-part="(glasses|band|laptop)"/g), 0)
+  const withAcc = renderToStaticMarkup(createElement(FiraFallback7, { variant: 'a', emotion: 'idle', acc: ['glasses', 'laptop'] }))
+  assert.equal(count(withAcc, /data-part="glasses"/g), 1)
+  assert.equal(count(withAcc, /data-part="laptop"/g), 1)
+})
+
+test('face as meshes: eye, brow and lid flags per emotion, three fingers and three toes, scutes', () => {
+  const t = T7.targets7
+  const open = (e) => t[e].bend < 0.5
+  assert.ok(!open('happy') && open('idle') && open('surprised') && open('sorry'), 'only «Радость» closes into happy arcs')
+  assert.ok(t.idle.lidTop >= 0.3 && t.idle.lidTop <= 0.5, 'chill: half-lidded')
+  assert.equal(t.surprised.lidTop, 0, 'surprised: round eyes, no lid')
+  assert.ok(t.surprised.eyeH > 1.1 && t.surprised.browY > 1)
+  assert.ok(t.sorry.asym > 0.6 && t.sorry.browTilt < -0.3, 'skepsis: one raised brow')
+  assert.ok(t.thinking.asym > 0.4, 'know-it-all: one brow up')
+  assert.equal(T7.FINGERS7, 3)
+  assert.equal(T7.TOES7, 3)
+  assert.ok(T7.scutes7.length >= 4)
+  for (const c of T7.scutes7) assert.ok(c.x >= 0.4 && c.x < rig_shell_x())
+  const scene = read('src/components/fira/fira-scene7.tsx')
+  assert.match(scene, /FINGERS7/)
+  assert.match(scene, /TOES7/)
+  assert.match(scene, /scutes7/)
+  assert.match(scene, /accG|accH|accL/, 'accessories are separate groups')
+  assert.match(read('src/components/fira/fira-kit7.ts'), /driveEyes7/)
+  assert.equal(count(svg('c', 'idle'), /data-part="finger"/g), 6, 'three fingers on each hand')
+  assert.equal(count(svg('c', 'idle'), /data-part="toe"/g), 6, 'three toes on each foot')
+  assert.equal(count(svg('c', 'idle'), /data-part="scute"/g), 4)
+})
+
+test('lab: «По контексту» view and the ?ctx= override are wired', () => {
+  const lab = read('src/components/fira/fira-lab7.tsx')
+  assert.match(lab, /По контексту/)
+  assert.match(lab, /accessoriesFor/)
+  assert.match(lab, /FiraFallback7/)
+  assert.match(read('src/app/[locale]/fira-lab/page.tsx'), /isAccessoryContext/)
+})
+
+function rig_shell_x() { return T7.rig7.shell.rx }
+
+test('code budget: Fira code stays under 480 KB (raised from 440 KB for round eight: face meshes, context accessories, fingers, scutes; round seven is about 75 KB)', () => {
   const files = [...readdirSync('src/components/fira').map((f) => `src/components/fira/${f}`), ...readdirSync('src/lib/fira').map((f) => `src/lib/fira/${f}`)]
   const total = files.reduce((n, f) => n + statSync(f).size, 0)
   console.log(`fira code total ${total} bytes`)
-  assert.ok(total < 440 * 1024, `${total} bytes`)
+  assert.ok(total < 480 * 1024, `${total} bytes`)
   const r7 = ['src/lib/fira/turtle7.ts', 'src/components/fira/fira-kit7.ts', 'src/components/fira/fira-scene7.tsx', 'src/components/fira/fira-fallback7.tsx', 'src/components/fira/fira-turtle7.tsx', 'src/components/fira/fira-lab7.tsx']
   const n = r7.reduce((a, f) => a + statSync(f).size, 0)
   console.log(`round seven ${n} bytes`)
-  assert.ok(n < 64 * 1024, 'round seven itself is under 64 KB')
+  assert.ok(n < 96 * 1024, "round seven itself is under 96 KB")
 })

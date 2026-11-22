@@ -27,3 +27,27 @@ export const nicheContexts: FiraContext[] = [
 
 export const allContexts = [...pageContexts, ...nicheContexts]
 export const contextById = (id: string) => allContexts.find((c) => c.id === id)
+
+// ---- Round eight: which accessories Fira wears where (the owner, 2026-11-23: all variants stay, the context picks) ----
+export type AccKey = 'glasses' | 'headphones' | 'laptop'
+export const accessoryByContext: Record<string, readonly AccKey[]> = {
+  home: [], landing: [],
+  products: ['glasses'], pricing: ['glasses'], docs: ['glasses'], quote: ['glasses'],
+  chat: ['headphones'], listening: ['headphones'], support: ['headphones'],
+  builder: ['glasses', 'laptop'], content: ['glasses', 'laptop'], dashboard: ['glasses', 'laptop'],
+}
+export const accessoryContexts = Object.keys(accessoryByContext)
+export const accessoryLabels: Record<string, string> = {
+  home: 'Главная', landing: 'Лендинг', products: 'Продукты', pricing: 'Цены', docs: 'Документы', quote: 'Смета',
+  chat: 'Чат', listening: 'Слушает', support: 'Поддержка', builder: 'Сборка проекта', content: 'Контент', dashboard: 'Дашборд',
+}
+export const accessoryEmotion: Record<string, Emotion> = {
+  home: 'wave', landing: 'idle', products: 'idle', pricing: 'idle', docs: 'thinking', quote: 'thinking',
+  chat: 'listening', listening: 'listening', support: 'listening', builder: 'idle', content: 'idle', dashboard: 'idle',
+}
+/** The accessories for a page or content context (id or FiraContext). An empty list is the bare base; unknown ids give the base. */
+export function accessoriesFor(ctx: string | { id: string } | undefined | null): readonly AccKey[] {
+  const id = typeof ctx === 'string' ? ctx : ctx?.id
+  return (id && accessoryByContext[id]) || []
+}
+export const isAccessoryContext = (v: unknown): v is string => typeof v === 'string' && v in accessoryByContext
