@@ -1139,7 +1139,7 @@ export const admin = {
         title: 'Knowledge from the client site',
         hint: 'The pages of the client site become knowledge of their agent. Page texts stay on the server; only titles and sizes are shown here.',
         noCabinet: 'Knowledge is kept for clients with a cabinet. This client has none yet.',
-        states: { none: 'Not imported', queued: 'Waiting in the queue', running: 'Reading the site', done: 'Imported', failed: 'Import failed' },
+        states: { none: 'Not imported', pending: 'Waiting for account confirmation', queued: 'Waiting in the queue', running: 'Reading the site', done: 'Imported', failed: 'Import failed' },
         counters: { pages: 'Pages', chunks: 'Chunks', errors: 'Errors', last: 'Last import' },
         never: 'never',
         job: {
@@ -1157,6 +1157,9 @@ export const admin = {
         addressHint: 'Only http or https. Prefilled with the site from the request; type one if it is empty.',
         placeholder: 'https://client-site.example',
         import: 'Import site',
+        importAnyway: 'Import anyway',
+        pendingBadge: 'Import waiting for account confirmation',
+        pendingHint: 'The site was not read: the client has no confirmed account. Import it by hand if you trust the address.',
         reimport: 'Import again',
         importing: 'Starting',
         started: 'Import started. The page list updates on its own.',
