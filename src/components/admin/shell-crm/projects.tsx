@@ -96,6 +96,7 @@ export function ProjectsBoard({ focus }: { focus: string | null }) {
           render={(p) => <ProjectCard p={p} now={now} />}
           onOpen={(p) => setOpenId(p.id)}
           onMove={(p, to) => void move(p, to)}
+          focus={focus}
         />
       ) : null}
       <ProjectDrawer id={openId} onClose={() => setOpenId(null)} onAct={act} onMove={move} />

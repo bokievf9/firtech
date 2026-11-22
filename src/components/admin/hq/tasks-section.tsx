@@ -127,6 +127,7 @@ export function TasksSection() {
       <div className="min-w-0 flex-1" data-tasks-list>
         <BarePanel.Provider value>
           <Assignments
+            focus={fromLink}
             tasks={shown}
             error={list.error}
             now={now}

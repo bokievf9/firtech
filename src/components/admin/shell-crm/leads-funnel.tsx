@@ -141,6 +141,7 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
           render={(l) => <LeadCard lead={l} now={now} />}
           onOpen={(l) => setOpenId(l.id)}
           onMove={(l, to) => void move(l, to)}
+          focus={focus}
         />
       ) : null}
       <LeadDrawer

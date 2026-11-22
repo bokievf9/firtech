@@ -1,11 +1,12 @@
 'use client'
 
 import { BellRinging, CheckCircle, Prohibit } from '@phosphor-icons/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { errText, fill, hq } from '@/components/admin/control/api'
 import { Search } from '@/components/admin/control/crm-hq-ui'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
+import { focusRow, focusRowClass, useFocusRow } from '@/components/admin/hub/focus-row'
 import { INVOICE_STATUSES, isOverdue, matchesQuery, normalizeInvoiceItem, normalizeInvoices, type Invoice } from '@/lib/shell'
 import { InvoiceChip, shortDate, shortTime, TxLink, usd } from './bits'
 import { CopyButton, Empty, Loading, Offline, Pills, useConfirm, useHqView, useHub } from '../hub/ui'
@@ -31,12 +32,7 @@ export function InvoicesTab({ focus }: { focus: string | null }) {
       matchesQuery(q, i.number, i.client, i.title),
   )
 
-  useEffect(() => {
-    if (!focus || !feed.view) return
-    const el = rowRefs.current.get(focus)
-    el?.scrollIntoView({ block: 'center' })
-    el?.focus()
-  }, [focus, feed.view])
+  useFocusRow(focus, !!feed.view)
 
   const act = async (inv: Invoice, action: Action) => {
     if (action !== 'remind') {
@@ -121,8 +117,9 @@ export function InvoicesTab({ focus }: { focus: string | null }) {
                       else rowRefs.current.delete(inv.id)
                     }}
                     tabIndex={0}
+                    {...focusRow(inv.id, focus)}
                     onKeyDown={(e) => onRowKey(e, index)}
-                    className={cn('align-top outline-none focus-visible:bg-surface-2 [&>td]:border-t [&>td]:border-line', inv.id === focus && 'bg-surface-2')}
+                    className={cn('align-top outline-none focus-visible:bg-surface-2 [&>td]:border-t [&>td]:border-line', inv.id === focus && focusRowClass)}
                   >
                     <td className="px-3 py-2.5">
                       <span className="font-mono text-xs">{inv.number}</span>
