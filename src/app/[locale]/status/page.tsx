@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/status'>
     description: t.metaDescription,
     alternates: {
       canonical: `/${locale}/status`,
-      languages: { ru: '/ru/status', en: '/en/status' },
+      languages: { ru: '/ru/status', en: '/en/status', 'x-default': '/ru/status' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: {

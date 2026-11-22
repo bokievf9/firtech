@@ -71,7 +71,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
     >
       <head>
         <ThemeInit />
-        <link rel="alternate" type="application/rss+xml" title="Fir Tech" href="/rss.xml" />
+        <link rel="alternate" type="application/rss+xml" title="Fir Tech" href={locale === 'en' ? '/rss-en.xml' : '/rss.xml'} />
       </head>
       <body className="grain min-h-[100dvh]">
         {/* Without JavaScript Motion never reveals the blocks it renders hidden. */}

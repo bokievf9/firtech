@@ -113,6 +113,36 @@ test('seo: titles are present and not too long', () => {
   }
 })
 
+test('seo: page titles stay within 65 characters, the terms title is a real one', async () => {
+  const { blogPostTitle } = { blogPostTitle: (x, l) => `${x[l].title} | Fir Tech` }
+  for (const [locale, dict] of [['ru', ru], ['en', en]]) {
+    const titles = [
+      [`${locale} solutions`, dict.solutions.metaTitle],
+      [`${locale} terms`, dict.terms.metaTitle],
+      ...Object.entries(dict.products.items).map(([id, p]) => [`${locale} product ${id}`, p.metaTitle]),
+      ...articles.map((a) => [`${locale} post ${a.slug}`, blogPostTitle(a, locale)]),
+      ...allSolutionKinds.map((kind) => [`${locale} solution ${kind}`, solutionCopy(kind, locale, dict).metaTitle]),
+    ].filter(([, t]) => typeof t === 'string')
+    for (const [label, t] of titles) assert.ok(t.length <= 65, `${label}: ${t.length} ${t}`)
+    assert.ok(dict.terms.metaTitle.length >= 30, `${locale} terms title`)
+  }
+})
+
+test('seo: every page names x-default (the Russian page) in its hreflang, locale 404 is 404 + noindex', () => {
+  const walk = (dir) =>
+    readdirSync(dir).flatMap((f) => {
+      const full = path.join(dir, f)
+      return statSync(full).isDirectory() ? walk(full) : [full]
+    })
+  for (const file of walk('src/app/[locale]').filter((f) => f.endsWith('page.tsx') || f.endsWith('layout.tsx'))) {
+    const code = readFileSync(file, 'utf8')
+    for (const m of code.matchAll(/languages: .*/g)) assert.match(m[0], /'x-default'/, file)
+  }
+  const nf = readFileSync('src/app/[locale]/not-found.tsx', 'utf8')
+  assert.match(nf, /title: '404/)
+  assert.match(nf, /index: false/)
+})
+
 test('sitemap: every page, 55 solutions, services, blog, legal pages, with alternates', async () => {
   const entries = (await sitemap())
   const urls = entries.map((e) => e.url)

@@ -162,7 +162,7 @@ export function HeroSequence({
         <HeroField />
         <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: glow }} />
         <motion.div
-          className="relative mx-auto grid h-full w-full max-w-7xl grid-cols-[minmax(0,1fr)] content-center gap-x-8 gap-y-7 px-4 pt-28 pb-10 md:px-8 lg:grid-cols-12 lg:grid-rows-[auto_minmax(0,1fr)_auto_auto] lg:content-normal lg:gap-y-6 lg:pt-28 lg:pb-[7.5rem]"
+          className="relative mx-auto grid h-full w-full max-w-7xl grid-cols-[minmax(0,1fr)] content-center gap-x-8 gap-y-7 px-4 pt-28 pb-10 md:px-8 lg:grid-cols-12 lg:grid-rows-[auto_minmax(0,1fr)_auto_auto] lg:content-normal lg:gap-y-6 lg:pt-28 lg:pb-[7.5rem] [@media(min-width:1024px)_and_(max-height:960px)]:pt-24 [@media(min-width:1024px)_and_(max-height:960px)]:pb-[5.5rem] [@media(min-width:1024px)_and_(max-height:960px)]:gap-y-3"
           style={{ scale: scrollDriven ? release : 1 }}
         >
           <motion.div
@@ -229,17 +229,19 @@ export function HeroSequence({
 
         {/* Progress rail: seven dots (buttons) and, on the scroll track, a filling line. */}
         <div className="absolute inset-x-0 bottom-0 z-10 hidden lg:block">
-          <div className="mx-auto flex max-w-7xl items-center gap-5 px-4 pb-7 md:px-8 lg:pr-64">
+          <div className="mx-auto flex max-w-7xl items-center gap-5 px-4 pb-7 md:px-8" data-hero-rail>
+            <div className="flex min-w-0 items-center gap-5 lg:max-w-[min(30rem,calc(44vw-5rem))] lg:flex-1">
             <Dots products={products} active={active} onPick={show} label={copy.pick} />
-            <div className="relative h-px flex-1 bg-line">
+            <div className="relative hidden h-px min-w-6 flex-1 bg-line xl:block">
               {scrollDriven && (
                 <motion.div className="absolute inset-0 origin-left bg-accent/70" style={{ scaleX: rail }} />
               )}
             </div>
-            <p className="flex items-center gap-2 text-footnote text-faint">
+            <p className="hidden items-center gap-2 text-footnote text-faint xl:flex" data-hero-hint>
               <ArrowDown size={12} aria-hidden="true" className="hero-nudge" />
               {copy.hint}
             </p>
+            </div>
           </div>
         </div>
         <div className="flex justify-center pb-10 lg:hidden">

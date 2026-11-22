@@ -134,7 +134,7 @@ export const tierUi = {
     'Свой ключ ИИ-модели (BYOK) можно принести: подключим. Условия назовём в смете.',
     'You can bring your own AI model key (BYOK) and we connect it. Terms come in the quote.',
   ),
-  // TODO(prices): read `subscription` fields from pricing.ts once they land in main; until then personalPlans.
+  // Amounts are never typed here: setup, monthly and own-key monthly come from `pricing.personalPlans` (src/lib/pricing.ts).
 }
 
 export const dayUi = {

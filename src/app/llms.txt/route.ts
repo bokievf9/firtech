@@ -87,7 +87,7 @@ export async function GET() {
     `- English: ${siteUrl}/en`,
     `- Project builder and estimate: ${siteUrl}/en/builder`,
     `- How we work: ${siteUrl}/en/how-we-work`,
-    `- Blog: ${siteUrl}/en/blog (RSS feed with the Russian articles: ${siteUrl}/rss.xml)`,
+    `- Blog: ${siteUrl}/en/blog (RSS feeds: ${siteUrl}/rss-en.xml in English, ${siteUrl}/rss.xml in Russian)`,
     ...(telegramHandle ? [`- Telegram: ${telegramHandle}`] : []),
     '',
     ...blocks.flatMap((block) => [block, '']),

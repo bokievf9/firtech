@@ -45,20 +45,26 @@ test('flagships: Personal AI page, twelve skills, persona day, locked demo, thre
   expect(errors).toEqual([])
 })
 
-test('flagships: AI company page, Fira, call first, control room tour, four stages', async ({ page }) => {
+test('flagships: AI company page (v4), Fira, one brain diagram, company day, locked demo, subscription', async ({ page }) => {
   const errors = watchErrors(page, [/WebGL|THREE/])
   await open(page, '/ru/products/company')
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Компания, где рутину ведут агенты, а решения принимаете вы')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Один ИИ, который знает вашу компанию')
   await expect(page.locator('[data-fira-hero]')).toBeVisible()
   const got = await page.locator('[data-product-section]').evaluateAll((els) => els.map((el) => el.getAttribute('data-product-section')))
-  expect(got).toEqual(['hero', 'structure', 'pult', 'knowledge', 'trust', 'teamgets', 'rollout', 'included', 'price', 'offer', 'pilot', 'objections', 'next'])
-  // the call is the first action, the builder the second
-  const hero = page.locator('[data-product-section="hero"]')
-  await expect(hero.locator('a, button').filter({ hasText: 'Договориться о созвоне' })).toBeVisible()
-  await page.locator('[data-pult-tab="review"]').click()
-  await expect(page.locator('[data-pult-tour] [role=tabpanel]')).toContainText('КП для клиники')
-  await expect(page.locator('[data-stage-table] tbody tr')).toHaveCount(4)
-  await expect(page.locator('[data-product-section="price"]')).toContainText('$1,490')
+  expect(got).toEqual(['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions'])
+  // the brain diagram: sources, the centre, outputs, roles
+  for (const part of ['data-brain-sources', 'data-brain-center', 'data-brain-outputs', 'data-brain-roles']) await expect(page.locator(`[${part}]`)).toBeVisible()
+  // the company day and the channels as equals
+  await expect(page.locator('[data-company-day] [data-company-hour]').first()).toBeVisible()
+  expect(await page.locator('[data-channels] > li').first().getAttribute('data-channel')).not.toBe('telegram')
+  // signed out: a still example under a lock plate, no input
+  const demo = page.locator('[data-company-demo]')
+  await expect(demo).toHaveAttribute('data-company-demo', 'locked')
+  await expect(demo.locator('[data-company-example]')).toBeVisible()
+  await expect(demo.locator('[data-demo-lock]')).toContainText('Войдите, чтобы попробовать на своих данных')
+  await expect(demo.locator('[data-demo-login]')).toBeVisible()
+  await expect(demo.getByRole('textbox')).toHaveCount(0)
+  await expect(page.locator('[data-company-plan]')).toBeVisible()
   expect(errors).toEqual([])
 })
 

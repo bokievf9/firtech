@@ -1,13 +1,14 @@
-'use client'
-
-import { useParams } from 'next/navigation'
-import { NotFoundView } from '@/components/not-found/not-found-view'
-import { defaultLocale, isLocale } from '@/lib/i18n'
+import type { Metadata } from 'next'
+import { LocaleNotFound } from '@/components/not-found/locale-not-found'
 
 // 404 inside a language (unknown paths under /ru or /en, see [...rest]): header, footer and chat
-// come from the locale layout.
+// come from the locale layout. The metadata is static (a not-found page has no params), so the
+// title is the same in both languages: «404» first, noindex so the error is never listed.
+export const metadata: Metadata = {
+  title: '404: Not found | Fir Tech',
+  robots: { index: false, follow: false },
+}
+
 export default function NotFound() {
-  const params = useParams<{ locale?: string }>()
-  const locale = params.locale && isLocale(params.locale) ? params.locale : defaultLocale
-  return <NotFoundView locale={locale} />
+  return <LocaleNotFound />
 }

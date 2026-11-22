@@ -19,6 +19,55 @@ type MockState = {
   reviews: { id: number; clientId: number; client: string; projectId: number; rating: number; text: string; at: string }[]
 }
 
+// Realistic document bodies (markdown, as HQ sends them): the quote and the contract cut before «Подписи сторон».
+const QUOTE_TEXT = `# Коммерческое предложение
+
+**Автоматизация заявок из Instagram**
+
+## Что мы сделаем
+
+- Подключим директ Instagram к таблице заявок.
+- Настроим ответ на частые вопросы и передачу заявки менеджеру.
+- Добавим уведомление в Telegram о каждой новой заявке.
+
+## Этапы и сроки
+
+1. Разбор и настройка: 3 рабочих дня.
+2. Подключение и тесты: 4 рабочих дня.
+3. Запуск и передача: 2 рабочих дня.
+
+## Стоимость
+
+Итого **450 USD**, оплата по этапам: 30% / 40% / 30%. Каждый этап оплачивается до его начала.
+
+## Что не входит
+
+Платная реклама, ведение аккаунта и доработки сверх согласованного списка.
+
+Предложение действует 14 дней.`
+const CONTRACT_TEXT = `# Договор на разработку
+
+**Д-2026-012**, исполнитель Fir Tech, заказчик указан в карточке проекта.
+
+## 1. Предмет договора
+
+Исполнитель разрабатывает и запускает *бота для записи в салон* в объёме, согласованном в коммерческом предложении КП-2026-012.
+
+## 2. Стоимость и оплата
+
+1. Стоимость работ: **340 USD**.
+2. Оплата тремя этапами: 30% до начала, 40% после показа прототипа, 30% после запуска.
+3. Счёт на каждый этап выставляется до его начала.
+
+## 3. Сроки и приёмка
+
+- Срок работ: 14 рабочих дней с момента оплаты первого этапа.
+- Каждый этап принимается заказчиком в кабинете; молчание 5 рабочих дней считается приёмкой.
+
+## 4. Права и данные
+
+Права на результат переходят заказчику после полной оплаты. Данные клиентов заказчика обрабатываются только для работы бота.`
+
 const day = 86_400_000
 const at = (offsetDays: number) => new Date(Date.now() + offsetDays * day).toISOString()
 
@@ -35,13 +84,14 @@ function seed(): MockState {
     amountUsd: null,
     stageNo: null,
     payUrl: null,
+    text: null,
     ...d,
   })
   const docs: ClientDoc[] = [
-    doc({ id: 'q-14', kind: 'quote', title: 'Коммерческое предложение: автоматизация заявок', number: 'КП-2026-014', leadId: 14, state: 'awaiting_client', createdAt: at(-0.3), amountUsd: 450 }),
-    doc({ id: 'q-7', kind: 'quote', title: 'Коммерческое предложение: сайт-визитка', number: 'КП-2026-007', leadId: 7, state: 'declined', createdAt: at(-9), amountUsd: 300 }),
+    doc({ id: 'q-14', kind: 'quote', title: 'Коммерческое предложение: автоматизация заявок', number: 'КП-2026-014', leadId: 14, state: 'awaiting_client', createdAt: at(-0.3), amountUsd: 450, text: QUOTE_TEXT }),
+    doc({ id: 'q-7', kind: 'quote', title: 'Коммерческое предложение: сайт-визитка', number: 'КП-2026-007', leadId: 7, state: 'declined', createdAt: at(-9), amountUsd: 300, pdfUrl: null }),
     doc({ id: 'q-6', kind: 'quote', title: 'Коммерческое предложение: чат-бот', number: 'КП-2026-006', leadId: 6, state: 'expired', createdAt: at(-20), amountUsd: 280 }),
-    doc({ id: 'c-2', kind: 'contract', title: 'Договор: бот для записи в салон', number: 'Д-2026-012', leadId: 12, projectId: 2, state: 'awaiting_signature', createdAt: at(-0.6), amountUsd: 340 }),
+    doc({ id: 'c-2', kind: 'contract', title: 'Договор: бот для записи в салон', number: 'Д-2026-012', leadId: 12, projectId: 2, state: 'awaiting_signature', createdAt: at(-0.6), amountUsd: 340, text: CONTRACT_TEXT }),
     doc({ id: 'q-12', kind: 'quote', title: 'Коммерческое предложение: бот для записи', number: 'КП-2026-012', leadId: 12, projectId: 2, state: 'accepted', createdAt: at(-1.6), acceptedAt: at(-1.2), amountUsd: 340 }),
     doc({ id: 'c-1', kind: 'contract', title: 'Договор: сайт для барбершопа', number: 'Д-2026-009', leadId: 9, projectId: 1, state: 'signed', createdAt: at(-14), signedAt: at(-13.5), amountUsd: 400 }),
     doc({ id: 'i-1-3', kind: 'invoice', title: 'Счёт, этап 3: запуск и передача', number: 'FT-2026-004', leadId: 9, projectId: 1, state: 'issued', createdAt: at(-1), amountUsd: 100, stageNo: 3, payUrl: 'https://firtech.pro/ru/pay/FT-2026-004?k=mock' }),

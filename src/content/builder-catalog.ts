@@ -640,7 +640,7 @@ export const kindCatalog: Record<KindId, KindEntry> = {
     ['Косметолог', 'Сайт и ИИ-администратор для косметолога с онлайн-записью', 'Процедуры, цены, запись и напоминания о повторном визите.',
       ['Клиенты спрашивают одно и то же по процедурам', 'Повторные визиты никто не отслеживает', 'Нет места, где видны результаты и отзывы'],
       ['Ответы на частые вопросы по процедурам', 'Напоминание о повторном визите', 'Страница с результатами и отзывами']],
-    ['Cosmetologist', 'A site and an AI booking assistant for a cosmetologist with online booking', 'Procedures, prices, booking and follow-up visit reminders.',
+    ['Cosmetologist', 'A site and an AI booking assistant for a cosmetologist', 'Procedures, prices, booking and follow-up visit reminders.',
       ['Clients ask the same questions about procedures', 'Repeat visits are not tracked by anyone', 'No place to show results and reviews'],
       ['Answers to common questions on procedures', 'A reminder for the next visit', 'A page with results and reviews']]),
   dentist: k('beauty', '🦷', 'booking', ['booking', 'leads'], ['adminbot', 'intake'], CLINIC,

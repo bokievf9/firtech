@@ -103,7 +103,7 @@ test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minu
   assert.match(hero, /\/builder/)
   assert.match(hero, /ChatOpenButton/)
   assert.match(hero, /GuaranteeLine/)
-  assert.match(hero, /dict\.sla\.line/)
+  assert.match(hero, /dict\.sla\.short/)
   assert.match(hero, /\/ai-team/)
   // No product numbers in the sequence either.
   const sequence = read('src/components/hero/hero-sequence.tsx')

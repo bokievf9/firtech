@@ -29,7 +29,7 @@ export async function generateMetadata({
     description: t.metaDescription,
     alternates: {
       canonical: `/${locale}/privacy`,
-      languages: { ru: '/ru/privacy', en: '/en/privacy' },
+      languages: { ru: '/ru/privacy', en: '/en/privacy', 'x-default': '/ru/privacy' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: {

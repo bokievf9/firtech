@@ -17,6 +17,10 @@ import {
 } from '@/lib/estimate-doc'
 import { siteUrl, telegramHandle, telegramUrl } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { estimateAccess, estimateReturnPath } from '@/lib/estimate-gate'
+import type { Locale } from '@/lib/i18n'
+import { LeadAuthStep } from './cabinet/lead-auth'
+import { useCabinetUser } from './cabinet/use-cabinet-user'
 import { Logo } from './logo'
 import { usePricing } from './pricing-provider'
 
@@ -29,6 +33,8 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
   const reduce = useReducedMotion()
   const pricing = usePricing()
   const [state, setState] = useState<{ build: Build | null; date: string } | null>(null)
+  const { state: me, refresh } = useCabinetUser()
+  const [returnPath, setReturnPath] = useState('')
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from the URL
@@ -36,6 +42,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
       build: decodeBuild(new URLSearchParams(window.location.search).get('b')),
       date: formatDocDate(new Date(), locale),
     })
+    setReturnPath(estimateReturnPath(window.location.pathname, window.location.search, window.location.hash))
   }, [locale])
 
   const builderHref = `/${locale}/builder`
@@ -50,6 +57,21 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
         <Link href={builderHref} className={cn(buttonStyles.primary, 'mt-8')}>
           {t.emptyCta}
         </Link>
+      </section>
+    )
+  }
+
+  // The sheet follows the PDF flow's rule: no account, no sheet. Back from sign-in the same link opens it.
+  const access = estimateAccess(me.status)
+  if (access === 'wait') return <div className="min-h-[80dvh]" aria-busy="true" />
+  if (access === 'gate') {
+    return (
+      <section className="mx-auto flex min-h-[80dvh] max-w-xl flex-col items-start justify-center px-4 pt-24 md:px-8" data-estimate-gate>
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl">{t.gateTitle}</h1>
+        <p className="mt-3 text-lg text-muted">{t.gateText}</p>
+        <div className="w-full">
+          <LeadAuthStep dict={dict} locale={locale as Locale} returnPath={returnPath} onSignedIn={() => void refresh()} />
+        </div>
       </section>
     )
   }

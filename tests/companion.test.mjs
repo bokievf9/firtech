@@ -22,6 +22,8 @@ test('companion: one line per kind of page, none on the home page, once per page
   assert.equal(companionKind('/ru'), null)
   assert.equal(companionKind('/en/'), null)
   assert.equal(companionKind('/ru/products/admin'), 'product')
+  assert.equal(companionKind('/ru/products/personal'), 'personal')
+  assert.equal(companionKind('/en/products/personal/'), 'personal')
   assert.equal(companionKind('/ru/services/sites'), 'service')
   assert.equal(companionKind('/en/solutions/salon'), 'solution')
   assert.equal(companionKind('/ru/solutions'), 'solutions')

@@ -9,16 +9,18 @@ export function GuaranteeLine({
   dict,
   locale,
   className,
+  short = false,
 }: {
   dict: Dict
   locale: string
   className?: string
+  short?: boolean
 }) {
   return (
     <p className={cn('flex items-start gap-2.5 text-sm leading-relaxed text-muted', className)}>
       <ShieldCheck size={18} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
       <span>
-        {dict.guarantee.line}{' '}
+        {short ? dict.guarantee.short : dict.guarantee.line}{' '}
         <Link
           href={`/${locale}/terms#terms-guarantee`}
           className="text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"

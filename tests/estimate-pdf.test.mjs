@@ -66,3 +66,18 @@ test('scope line: nothing, both, or one of domain and hosting', () => {
   assert.match(ru.builder.scope.none, /Домен, хостинг, сервер и платные сторонние сервисы \(SMS, API, платежи\) в сумму не входят/)
   assert.match(leadSummary(base, ru, 'ru'), /в сумму не входят/)
 })
+
+test('estimate sheet: signed out gets the sign-in step with a return link, signed in and off open it', async () => {
+  const { estimateAccess, estimateReturnPath } = await import('../src/lib/estimate-gate.ts')
+  assert.equal(estimateAccess('loading'), 'wait')
+  assert.equal(estimateAccess('out'), 'gate')
+  assert.equal(estimateAccess('in'), 'open')
+  assert.equal(estimateAccess('off'), 'open')
+  const link = '/en/builder/estimate?b=websites.landing~bots.booking'
+  assert.equal(estimateReturnPath('/en/builder/estimate', '?b=websites.landing~bots.booking'), link)
+  const { readFileSync } = await import('node:fs')
+  const sheet = readFileSync('src/components/estimate-sheet.tsx', 'utf8')
+  assert.match(sheet, /estimateAccess\(me\.status\)/)
+  assert.match(sheet, /<LeadAuthStep[^>]*returnPath=\{returnPath\}/)
+  for (const d of [ru, en]) assert.ok(d.builder.estimate.gateTitle && d.builder.estimate.gateText)
+})

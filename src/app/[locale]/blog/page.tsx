@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/blog'>):
     description: t.metaDescription,
     alternates: {
       canonical: `/${locale}/blog`,
-      languages: { ru: '/ru/blog', en: '/en/blog' },
+      languages: { ru: '/ru/blog', en: '/en/blog', 'x-default': '/ru/blog' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: {

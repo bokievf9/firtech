@@ -304,3 +304,14 @@ Without `HQ_ADMIN_URL` and `HQ_ADMIN_TOKEN` (development) `cabinet-hq.ts` answer
   Меняет в Auth проекта `mailer_templates_*_content` и `mailer_subjects_*`, остальное не трогает.
 - Тесты: `tests/cabinet-auth.test.mjs` (схема, ошибки, письма), e2e `tests/e2e/auth-code.spec.ts` (заглушка
   `tests/e2e/fake-supabase.mjs`: код 123456 верный, 999999 лимит, любой другой `otp_expired`).
+
+## Текст документа в просмотре (2026-11-23, аудит P1: клиент подписывал вслепую)
+HQ отдаёт у каждого документа кабинета `text` (markdown ≤ 60 КБ или `null`; договор обрезан до «Подписи сторон»). Он идёт через
+`ClientDoc.text` (`lib/cabinet-docs.ts`, `DOC_TEXT_MAX`) в `PublicDoc` и дальше в просмотр. Просмотр (`documents-panel.tsx`):
+сверху карточка с названием и статусом, потом тело, потом кнопки. Тело выбирает `docBody`: `text` (читаемый документ,
+PDF по кнопке «Показать PDF»), `pdf` (рамка с файлом, если текста нет) или `missing` (честное «Текст и файл пока недоступны» и
+кнопка «Запросить документ», она шлёт обращение через `POST /api/cabinet/tickets`; «Принять» и «Подписать» тогда скрыты, вслепую
+не принимают). «Скачать PDF» есть, когда есть файл. Разметка: `lib/cabinet-markdown.ts` (заголовки #-###, абзацы, списки,
+**жирный**, *курсив*, линия) отдаёт дерево, `document-text.tsx` рисует его узлами React; HTML, ссылки и картинки остаются
+буквальным текстом, `dangerouslySetInnerHTML` нет. Dev-мок: у КП `q-14` и договора `c-2` есть текст, у отклонённого `q-7` нет ни
+текста, ни файла. Тесты: `tests/cabinet-doc-text.test.mjs`, `tests/e2e/cabinet-doc-text.spec.ts`.

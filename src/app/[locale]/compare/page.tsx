@@ -23,7 +23,7 @@ export async function generateMetadata({
     description: t.metaDescription,
     alternates: {
       canonical: `/${locale}/compare`,
-      languages: { ru: '/ru/compare', en: '/en/compare' },
+      languages: { ru: '/ru/compare', en: '/en/compare', 'x-default': '/ru/compare' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: {

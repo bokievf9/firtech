@@ -516,7 +516,6 @@ const en: Dict = {
     },
     stepLabel: 'Step',
     of: 'of',
-    intro: 'Seven short steps. The price and the mockup update as you go.',
     enterHint: 'Enter for next',
     showPreview: 'Show mockup',
     hidePreview: 'Hide mockup',
@@ -698,6 +697,8 @@ const en: Dict = {
       emptyText:
         'The link is empty or out of date. Build your project, it takes a couple of minutes, and download the estimate from there.',
       emptyCta: 'Build a project',
+      gateTitle: 'Sign in to open the estimate',
+      gateText: 'Sign in or create an account: after that this same link opens the estimate.',
     },
     preview: {
       headline: 'Everything your customers need',
@@ -730,7 +731,7 @@ const en: Dict = {
     },
   },
   solutions: {
-    metaTitle: 'Solutions for small business: cafes, salons, shops, delivery, services',
+    metaTitle: 'Solutions for small business: cafes, salons, shops, services',
     metaDescription:
       'Ready starting sets for your business: website, AI booking assistant, online booking, online store, Mini App and CRM. Contents, price and timing on one page.',
     eyebrow: 'Solutions',
@@ -768,7 +769,7 @@ const en: Dict = {
     othersTitle: 'Other solutions',
     items: {
       cafe: {
-        metaTitle: 'Website, table booking and orders in Telegram for a cafe or restaurant',
+        metaTitle: 'Website, table booking and Telegram orders for a cafe',
         metaDescription:
           'A website with the menu, table bookings and paid Telegram orders, and a place on maps. Contents, price and timing of the starting set for a cafe or restaurant.',
         title: 'Website, booking and orders in Telegram for a cafe or restaurant',
@@ -1444,7 +1445,7 @@ const en: Dict = {
     footerLink: 'Privacy policy',
   },
   terms: {
-    metaTitle: 'Terms of service | Fir Tech',
+    metaTitle: 'Terms of service: scope, payment, guarantee | Fir Tech',
     metaDescription:
       'The terms Fir Tech works on: how we agree an estimate, take payment, hand over the work and answer for the result. The document is under legal review.',
     eyebrow: 'Document',
@@ -1596,6 +1597,7 @@ const en: Dict = {
   },
   guarantee: {
     line: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment.',
+    short: 'Not happy with the first stage? We refund it.',
     more: 'Guarantee terms',
     llms: 'Guarantee: if you do not like the first screen of the website or the first agent scenario, the first stage payment is returned.',
   },
@@ -2330,10 +2332,23 @@ const en: Dict = {
         ask: 'Ask a question',
         sign: 'Sign',
         pay: 'Pay',
-        download: 'Download',
+        download: 'Download PDF',
         back: 'Back to the list',
         viewer: 'Document preview',
         noPreview: 'No preview. Download the file if it is available.',
+        textLabel: 'Document text',
+        showPdf: 'Show the PDF',
+        hidePdf: 'Hide the PDF',
+        readFirst: 'Read the whole document first, the buttons are below.',
+        missing: {
+          title: 'The text and the file are not available yet',
+          body: 'We cannot show this document here. Do not accept or sign what you have not seen: request it and we will send it.',
+          request: 'Request the document',
+          sending: 'Sending...',
+          sent: 'Request sent. We will answer in Messages or by email.',
+          failed: 'The request could not be sent. Write to us in Messages.',
+          text: 'Please send the document: {title}{number}. It does not open in the cabinet.',
+        },
         loading: 'Opening the document...',
         signPad: {
           title: 'Sign the contract',
@@ -3356,7 +3371,7 @@ const en: Dict = {
         ],
       },
       receptionist: {
-        metaTitle: 'AI lead manager: a reply within a minute, then handover | Fir Tech',
+        metaTitle: 'AI lead manager: a reply in a minute, then handover | Fir Tech',
         metaDescription:
           'The AI lead manager answers clients in Telegram and on your site, asks the right questions and hands you a ready request. Price, payment stages and FAQ.',
         result: 'No request waits until morning for an answer',
@@ -3785,13 +3800,14 @@ const en: Dict = {
       close: 'Hide the hint',
       lines: {
         product: 'Want to know how this product fits your business? Ask me.',
+        personal: 'Want to hear how an AI could take over your personal routine: mail, tasks, reminders? Ask me.',
         service: 'Not sure which format to pick? Ask me and I will help.',
         solution: 'You can adjust this set. Ask me what to change in it.',
         solutions: 'Did not find your niche? Tell me what you do and I will pick a set.',
         builder: 'Stuck on a step? Ask me and I will help you choose.',
         cabinet: 'This is your project. If something is unclear, write to me.',
         aiTeam: 'You can start with one agent. Ask me which one.',
-        blog: 'A question about the article? Ask me and I will answer for your business.',
+        blog: 'A question about the article? Ask me and I will answer with your own example.',
         howWeWork: 'Questions about stages or payment left? Ask me.',
         other: 'Need a hand? I am right here, ask me.',
       },

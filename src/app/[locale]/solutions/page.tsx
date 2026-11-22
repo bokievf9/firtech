@@ -28,7 +28,7 @@ export async function generateMetadata({
     description: t.metaDescription,
     alternates: {
       canonical: `/${locale}/solutions`,
-      languages: { ru: '/ru/solutions', en: '/en/solutions' },
+      languages: { ru: '/ru/solutions', en: '/en/solutions', 'x-default': '/ru/solutions' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: {

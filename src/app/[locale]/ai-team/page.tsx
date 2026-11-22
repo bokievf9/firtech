@@ -52,7 +52,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/ai-team'
     description: t.metaDescription,
     alternates: {
       canonical: `/${locale}/ai-team`,
-      languages: { ru: '/ru/ai-team', en: '/en/ai-team' },
+      languages: { ru: '/ru/ai-team', en: '/en/ai-team', 'x-default': '/ru/ai-team' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: {

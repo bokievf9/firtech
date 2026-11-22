@@ -31,8 +31,13 @@ export type ClientDoc = {
   amountUsd: number | null
   stageNo: number | null
   payUrl: string | null
+  // The readable text of the document (markdown, ≤ 60 KB) for quotes, contracts and other documents; null for
+  // invoices and acts and when HQ has none. The viewer shows it when the PDF is absent or does not open.
+  text: string | null
 }
 export type PublicDoc = Omit<ClientDoc, 'pdfUrl'> & { hasPdf: boolean }
+
+export const DOC_TEXT_MAX = 60_000
 
 // A file link from HQ: https, or a path on HQ's own host (`/media/...`, resolved by the proxy).
 const fileUrl = (v: unknown) =>
@@ -61,6 +66,7 @@ export function parseClientDoc(r: Record<string, unknown>): ClientDoc | null {
     amountUsd: amount,
     stageNo: intOrNull(r.stageNo),
     payUrl: state === 'issued' ? httpsUrl(r.payUrl) : null,
+    text: typeof r.text === 'string' && r.text.trim() ? r.text.slice(0, DOC_TEXT_MAX) : null,
   }
 }
 
@@ -82,6 +88,13 @@ export const docStateKey = (d: Pick<ClientDoc, 'kind' | 'state'>): DocState | 'd
 
 export const docNeedsClient = (d: Pick<ClientDoc, 'kind' | 'state'>) =>
   d.state === 'awaiting_client' || d.state === 'awaiting_signature' || (d.kind === 'invoice' && d.state === 'issued')
+
+// What the viewer shows as the body: the text first (readable on every device), else the PDF preview, else
+// an honest «no document» state with a request button. The PDF stays reachable as a download.
+export type DocBody = 'text' | 'pdf' | 'missing'
+export function docBody(d: Pick<PublicDoc, 'text' | 'hasPdf'>): DocBody {
+  return d.text ? 'text' : d.hasPdf ? 'pdf' : 'missing'
+}
 
 export type DocAction = 'accept' | 'reject' | 'sign' | 'pay' | 'download'
 
