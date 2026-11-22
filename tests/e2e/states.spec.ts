@@ -137,10 +137,10 @@ test.describe('Пульт', () => {
     await shot(page, page.locator('body'), 'pult-loading')
     const alert = main.getByRole('alert')
     await expect(alert).toContainText('Shell did not answer within 5 s')
-    await expect(alert.getByRole('button', { name: 'Повторить' })).toBeVisible()
+    await expect(alert.getByRole('button', { name: 'Retry' })).toBeVisible()
     await shot(page, page.locator('body'), 'pult-error')
-    // The retry button works while it waits (aria-busy) and then offers itself again.
-    await alert.getByRole('button', { name: 'Повторить' }).click()
+    // The Shell panel retry works while it waits (aria-busy) and then offers itself again.
+    await alert.getByRole('button', { name: 'Retry' }).click()
     await expect(alert.getByRole('button').first()).toHaveAttribute('aria-busy', 'true')
     expect(calls).toBeGreaterThan(0)
   })

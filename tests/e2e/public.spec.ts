@@ -156,12 +156,16 @@ test('AI team: the index lists six departments and every card opens its page', a
   await open(page, '/ru/ai-team')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   for (const id of departments) await expect(page.locator(`main a[href="/ru/ai-team/${id}"]`).first(), id).toBeAttached()
+  // The index shows a price line on each of the six team cards (setup + monthly, in USD).
+  const prices = page.locator('main [data-team-price]')
+  await expect(prices).toHaveCount(6)
+  for (const text of await prices.allTextContents()) expect(text).toMatch(/\$\d/)
   await expect(page.locator('main a[href^="/ru/ai-team/agent/"]').first()).toBeAttached()
   await page.locator('main a[href="/ru/ai-team/support"]').first().click()
   await expect(page).toHaveURL(/\/ru\/ai-team\/support$/)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  // The page names no price for the department, only «По смете» (the contact form's budget chips are not prices of it).
-  await expect(page.locator('main')).toContainText('По смете')
+  // The department page carries a subscription price card for its team.
+  await expect(page.locator('main [data-subscription-card]').first()).toContainText('$')
 })
 
 test('AI team: a department page lists its agents and an agent page opens the builder or the chat', async ({ page }) => {
@@ -265,7 +269,8 @@ test('home film: eight scenes, each with Fira on her mark and her line in the HT
   await expect(page.locator('[data-film-line]').first()).toContainText('Привет, я Фира')
   await expect(page.locator('#pains [data-pain]')).toHaveCount(3)
   await expect(page.locator('#office [data-office-room]')).toHaveCount(6)
-  await expect(page.locator('#products [data-film-intro]')).toHaveCount(8)
+  // One Fira line per product (seven products in productIds); the scenes themselves are eight.
+  await expect(page.locator('#products [data-film-intro]')).toHaveCount(7)
   await expect(page.locator('[data-film-finale] [data-cta="film_build"]')).toHaveAttribute('href', '/ru/builder')
   await expect(page.locator('h1')).toHaveCount(1)
 })
