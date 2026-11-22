@@ -29,11 +29,11 @@ const en: Dict = {
   },
   theme: { light: 'Light theme', dark: 'Dark theme', toggle: 'Switch theme' },
   hero: {
-    title: 'AI agents and automation that take over business routine',
+    title: 'AI takes the routine, you stay in charge',
     // The h1 in two lines; the second one is the accent.
-    lines: ['AI agents and automation', 'that take over business routine'],
+    lines: ['AI takes the routine,', 'you stay in charge'],
     eyebrow: 'Fir Tech, AI agent studio',
-    sub: 'They book clients, answer leads at night and put reports together. Price and timeline are fixed before we start.',
+    sub: 'Personal AI runs your day, an AI company runs the routine by department. Fira and her agents prepare, you approve in Telegram. Price and timeline are fixed before we start.',
     sequence: {
       label: 'Product',
       hint: 'Scroll: the products in turn',
@@ -163,8 +163,8 @@ const en: Dict = {
   },
   products: {
     eyebrow: 'Products',
-    title: 'Ready products for business tasks',
-    sub: 'Each product covers one job: booking, leads, reports, content. Take one or put several together, and see the price and timeline in the project builder.',
+    title: 'Start with AI for yourself or for the whole company',
+    sub: 'The two flagships come first. Below are agents for a single role: booking, leads, reports, content. Take one or put several together, and the project builder shows the price and timeline.',
     forWhom: 'Who it is for',
     inside: 'What is inside',
     from: 'from',
@@ -183,7 +183,7 @@ const en: Dict = {
     items: {
       personal: {
         name: 'Personal AI',
-        benefit: 'Knows your work, your people and your deadlines and runs the day with you',
+        benefit: 'Your day under control: the AI remembers people, deadlines and promises',
         forWhom: 'Business owners, managers, freelancers, students',
         inside: [
           'Mail, calendar, tasks and study in one Telegram chat',
@@ -193,7 +193,7 @@ const en: Dict = {
       },
       company: {
         name: 'AI company',
-        benefit: 'Agents run the routine by department, you make the decisions',
+        benefit: 'Agents run the routine by department, the decisions stay with you',
         forWhom: 'Companies where routine eats the day of several people',
         inside: [
           'Fira as the Director and departments for your business',
@@ -203,7 +203,7 @@ const en: Dict = {
       },
       admin: {
         name: 'AI booking assistant',
-        benefit: 'Books clients, sends reminders, collects reviews',
+        benefit: 'Clients book themselves and show up',
         forWhom: 'Salons, clinics, studios, car services',
         inside: [
           'Booking in Telegram by free slots',
@@ -213,7 +213,7 @@ const en: Dict = {
       },
       receptionist: {
         name: 'AI lead manager',
-        benefit: 'Replies within a minute, qualifies, hands over to your team',
+        benefit: 'No lead goes unanswered, even at night',
         forWhom: 'Businesses that get messages in chat apps',
         inside: [
           'Telegram and a site chat from day one, WhatsApp and Instagram as a separate line of the quote',
@@ -223,7 +223,7 @@ const en: Dict = {
       },
       automation: {
         name: 'Process automation',
-        benefit: 'Reports, mailings and leads move without manual work',
+        benefit: 'Reports and mailings go out on schedule by themselves',
         forWhom: 'Teams that live in spreadsheets and chats',
         inside: [
           'Google Sheets, CRM and messengers connected',
@@ -233,7 +233,7 @@ const en: Dict = {
       },
       content: {
         name: 'Content on autopilot',
-        benefit: 'Posts go out on plan, you only approve',
+        benefit: 'Posts go out on plan, you press one button',
         forWhom: 'Shops, cafes and experts on social media',
         inside: [
           'A posting plan a month ahead',
@@ -243,7 +243,7 @@ const en: Dict = {
       },
       miniapp: {
         name: 'Telegram Mini App',
-        benefit: 'A shop and booking right inside Telegram',
+        benefit: 'Customers order and book without leaving Telegram',
         forWhom: 'Delivery, shops, coffee places',
         inside: [
           'Catalog, cart and payment in one window',
@@ -253,7 +253,7 @@ const en: Dict = {
       },
       implementation: {
         name: 'AI department, turnkey',
-        benefit: 'Role-based agents run a whole direction: marketing, sales or support',
+        benefit: 'Agents run a whole direction, you see the result',
         forWhom: 'Companies whose know-how and routine sit with people and in folders',
         inside: [
           'Agents by role, set up for your business',
@@ -329,7 +329,7 @@ const en: Dict = {
   work: {
     eyebrow: 'Process',
     title: 'Four steps from a call to launch',
-    sub: 'The rules are simple and written into the quote.',
+    sub: 'You see every stage in the cabinet and pay before it starts.',
     step: 'Step',
     more: 'More: the cabinet, acceptance, payment, guarantee',
     rulesTitle: 'Our rules',
@@ -354,8 +354,8 @@ const en: Dict = {
   },
   pricingHome: {
     eyebrow: 'Price',
-    title: 'The price is fixed before we start',
-    sub: 'Build your project and see the exact price and timeline. Payment by stages, with a guarantee on the first one.',
+    title: 'You see the price before you ask',
+    sub: 'Build a project and the builder shows the price and timeline. You pay by stages, and the first stage is under guarantee.',
     // Link under the price block to the comparison page.
     compareLink: 'Why cheaper than an agency',
     builderEyebrow: 'Builder',
@@ -1145,7 +1145,7 @@ const en: Dict = {
     steps: [
       {
         title: 'Call',
-        text: '30 minutes, free. We look at your task and suggest a solution, even if you end up working with someone else.',
+        text: '30 minutes, free. We go through your routine and tell you honestly where to start, even if it is not our product.',
       },
       {
         title: 'Quote',
@@ -1153,11 +1153,11 @@ const en: Dict = {
       },
       {
         title: 'Build',
-        text: 'You see progress every week. Payment by stages, each stage before it starts.',
+        text: 'Progress is visible every week, stages are in the cabinet. You pay for a stage before it starts.',
       },
       {
         title: 'Launch',
-        text: 'We go live, show your team how everything works and fix any bugs free for a month.',
+        text: 'We launch, train your team to work with the agents and fix bugs free for 30 days.',
       },
     ],
   },
@@ -1223,6 +1223,14 @@ const en: Dict = {
       {
         q: 'What happens after launch?',
         a: 'We fix bugs free for a month. After that you can take a support plan or come to us with one-off tasks.',
+      },
+      {
+        q: 'I do not trust AI: what if it says too much to clients?',
+        a: 'The agent answers only with what you gave it at launch, and names only the prices and deadlines you allow. A new task goes through your approval first. Check it yourself: the demo on this page answers like a real agent.',
+      },
+      {
+        q: 'It is expensive. Why is this better than a live employee?',
+        a: 'An agent works around the clock without days off, you see the price before you apply, you pay by stages and the first stage is under guarantee. You can start with one agent and grow to a department without rebuilding.',
       },
       {
         q: 'Do the agents decide things about money and contracts?',
@@ -2720,7 +2728,7 @@ const en: Dict = {
   },
   footer: {
     tagline: 'AI agent studio. AI booking assistant, AI lead manager, automation, websites and apps for business.',
-    ctaTitle: 'Got a task? Start by building the project',
+    ctaTitle: 'Routine eating your day? Build a project',
     telegramLink: 'Or message us on Telegram',
     top: 'Back to top',
     products: 'Products',
@@ -3567,7 +3575,7 @@ const en: Dict = {
   demoSection: {
     eyebrow: 'Demo',
     title: 'Try it now',
-    sub: 'Pick a product and try it in action. These are our own agents, the same kind we set up for clients.',
+    sub: 'Try a product before you talk to us. These are our own agents, the same kind we set up for clients.',
     tabsLabel: 'Products to try',
     exampleBadge: 'Example',
     receptionist: {
@@ -3663,7 +3671,7 @@ const en: Dict = {
   solutionsHome: {
     eyebrow: 'Solutions',
     title: 'Solutions for your business',
-    sub: 'Pick your niche: we show the contents, the price and the stages. If yours is not listed, build a project from scratch.',
+    sub: 'Pick your niche: we show what changes, what it costs and how you pay. If yours is not listed, build a project from scratch.',
     all: 'All solutions',
     from: 'from',
   },
@@ -3752,7 +3760,7 @@ const en: Dict = {
     name: 'Fira',
     role: 'AI employee at Fir Tech',
     scenes: {
-      hello: 'Hi, I am Fira, an AI employee at Fir Tech. I will show you how agents like me work for our clients.',
+      hello: 'Hi, I am Fira, an AI employee at Fir Tech. I will show you how AI takes the routine for owners and for whole companies.',
       pains: 'Let us start with what hurts. Three situations we hear most often, and what an agent does about them.',
       demo: 'You can try it yourself here. Write as your client would, and the agent answers right in the window.',
       team: 'Meet the team. Each one has a job, and I will introduce them in a line each.',
