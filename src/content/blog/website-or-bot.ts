@@ -6,13 +6,13 @@ export const websiteOrBot: Article = {
   published: true,
   date: '2026-10-16',
   ru: {
-    title: 'Сайт или агент в Telegram: что выбрать бизнесу',
+    title: 'Сайт или агент в мессенджере: что выбрать бизнесу',
     description:
-      'Когда бизнесу нужен сайт, когда хватит агента в Telegram, а когда лучше и то и другое. Разбираем на примерах кофейни, салона и магазина, с ценами.',
+      'Когда бизнесу нужен сайт, когда хватит агента в мессенджере, а когда лучше и то и другое. Разбираем на примерах кофейни, салона и магазина, с ценами.',
     blocks: [
       {
         type: 'p',
-        text: 'Многие владельцы бизнеса в Таджикистане и соседних странах общаются с клиентами в основном через Telegram. Отсюда логичный вопрос: может, сайт уже не нужен и достаточно агента в Telegram? Или наоборот, это игрушка, а серьёзному бизнесу нужен сайт?',
+        text: 'Многие владельцы бизнеса в Таджикистане и соседних странах общаются с клиентами в основном через Telegram. Отсюда логичный вопрос: может, сайт уже не нужен и достаточно агента в мессенджере? Или наоборот, это игрушка, а серьёзному бизнесу нужен сайт?',
       },
       {
         type: 'p',
@@ -25,7 +25,7 @@ export const websiteOrBot: Article = {
       },
       {
         type: 'p',
-        text: 'Агент работает как администратор в мессенджере. Он отвечает на частые вопросы, записывает на удобное время, принимает заказ, напоминает о визите и присылает вам уведомление. Клиенту не нужно ничего искать: он уже в Telegram, и разговор продолжается там же.',
+        text: 'Агент работает как администратор в мессенджере. Он отвечает на частые вопросы, записывает на удобное время, принимает заказ, напоминает о визите и присылает вам уведомление. Клиенту не нужно ничего искать: он уже в своём мессенджере, и разговор продолжается там же.',
       },
       {
         type: 'p',
@@ -47,7 +47,7 @@ export const websiteOrBot: Article = {
       },
       {
         type: 'p',
-        text: `Лендинг у нас стоит от ${p.landing}, сайт компании от ${p.company}. Заявки с сайта можно сразу получать в Telegram, это ещё от ${p.siteTelegram}.`,
+        text: `Лендинг у нас стоит от ${p.landing}, сайт компании от ${p.company}. Заявки с сайта можно сразу получать в мессенджер, это ещё от ${p.siteTelegram}.`,
       },
       { type: 'h2', text: 'Когда хватит агента' },
       {
@@ -84,7 +84,7 @@ export const websiteOrBot: Article = {
       { type: 'h2', text: 'Когда нужны оба' },
       {
         type: 'p',
-        text: 'Часто сайт и агент лучше всего работают в паре. Человек находит вас в поиске, смотрит сайт, нажимает кнопку «Записаться в Telegram» и попадает к агенту, который сразу предлагает свободное время. Заявки с сайта тоже приходят в Telegram, поэтому все клиенты видны в одном месте, а не в пяти разных.',
+        text: 'Часто сайт и агент лучше всего работают в паре. Человек находит вас в поиске, смотрит сайт, нажимает кнопку «Записаться» и попадает к агенту, который сразу предлагает свободное время. Заявки с сайта тоже приходят туда же, поэтому все клиенты видны в одном месте, а не в пяти разных.',
       },
       {
         type: 'p',
@@ -117,13 +117,13 @@ export const websiteOrBot: Article = {
     ],
   },
   en: {
-    title: 'Website or Telegram agent: which one to choose',
+    title: 'Website or a messenger agent: which one to choose',
     description:
-      'When a business needs a website, when a Telegram agent is enough and when it is better to have both. Examples for a cafe, a salon and a shop, with prices.',
+      'When a business needs a website, when a messenger agent is enough and when it is better to have both. Examples for a cafe, a salon and a shop, with prices.',
     blocks: [
       {
         type: 'p',
-        text: 'Many business owners in Tajikistan and nearby countries talk to customers mostly through Telegram. That raises a fair question: maybe a website is no longer needed and an agent is enough? Or the other way round, an agent is a toy and a serious business needs a website?',
+        text: 'Many business owners in Tajikistan and nearby countries talk to customers mostly through Telegram. That raises a fair question: maybe a website is no longer needed and an agent in a messenger is enough? Or the other way round, an agent is a toy and a serious business needs a website?',
       },
       {
         type: 'p',
@@ -136,7 +136,7 @@ export const websiteOrBot: Article = {
       },
       {
         type: 'p',
-        text: 'An agent works like a receptionist inside the messenger. It answers common questions, books a convenient time, takes an order, reminds about a visit and sends you a notification. The customer does not have to look for anything: they are already in Telegram, and the conversation continues there.',
+        text: 'An agent works like a receptionist inside the messenger. It answers common questions, books a convenient time, takes an order, reminds about a visit and sends you a notification. The customer does not have to look for anything: they are already in their messenger, and the conversation continues there.',
       },
       {
         type: 'p',
@@ -158,7 +158,7 @@ export const websiteOrBot: Article = {
       },
       {
         type: 'p',
-        text: `A landing page with us starts from ${p.landing}, a company website from ${p.company}. Requests from the site can go straight to Telegram for another ${p.siteTelegram} and up.`,
+        text: `A landing page with us starts from ${p.landing}, a company website from ${p.company}. Requests from the site can go straight to a messenger for another ${p.siteTelegram} and up.`,
       },
       { type: 'h2', text: 'When an agent is enough' },
       {
@@ -195,7 +195,7 @@ export const websiteOrBot: Article = {
       { type: 'h2', text: 'When you need both' },
       {
         type: 'p',
-        text: 'Often a website and an agent work best as a pair. Someone finds you in search, looks at the site, taps "Book in Telegram" and lands with the agent, which offers free slots right away. Requests from the site also arrive in Telegram, so every customer is in one place instead of five.',
+        text: 'Often a website and an agent work best as a pair. Someone finds you in search, looks at the site, taps "Book a visit" and lands with the agent, which offers free slots right away. Requests from the site arrive in the same place, so every customer is in one place instead of five.',
       },
       {
         type: 'p',

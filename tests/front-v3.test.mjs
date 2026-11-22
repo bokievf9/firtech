@@ -80,10 +80,10 @@ test('names: «бот» leaves every product name, the new names are in place', 
   }
   // The ladder titles and the tab labels never say «бот» either.
   for (const [at, text] of strings(ru.ladder.tracks)) if (/\.title$/.test(at)) assert.doesNotMatch(text, /бот/i, at)
-  // «Бот» is a delivery channel, never a name (owner 2026-11-22): the classic service reads «Агенты в Telegram».
+  // «Бот» is a delivery channel, never a name (owner 2026-11-22): the classic service reads «Агенты в мессенджерах».
   assert.doesNotMatch(ru.services.items.bots.name, /бот/i)
-  assert.equal(ru.services.items.bots.name, 'Агенты в Telegram')
-  assert.equal(en.services.items.bots.name, 'Telegram agents')
+  assert.equal(ru.services.items.bots.name, 'Агенты в мессенджерах')
+  assert.equal(en.services.items.bots.name, 'Agents in messengers')
 })
 
 test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minute promise', () => {

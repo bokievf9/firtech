@@ -47,7 +47,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   автопилоте, `miniapp` Telegram Mini App, plus the flagships `personal` Персональный ИИ and `company` ИИ вашей компании (see «Flagships»; `implementation` was removed 2026-11-22) (EN in `products.items`
   and `builder-catalog.ts`); «бот» stays only as a delivery channel. The builder is «Сборка проекта» everywhere (nav, titles, buttons;
   the words «калькулятор» and «конструктор» are gone everywhere, the cabinet and the Пульт included (test in `copy-qa`); «приёмщик» is
-  gone too, the lead agent is «Менеджер заявок» / «Lead manager»; the classic bots service reads «Агенты в Telegram»). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
+  gone too, the lead agent is «Менеджер заявок» / «Lead manager»; the classic bots service reads «Агенты в мессенджерах»). Home order (`homeSections`): hero (headline in two lines about ИИ-агенты и автоматизация, no numbers; buttons «Собрать проект»
   and «Спросить агента», third item the link to `/ai-team`, then the guarantee and the 5-minute line), products (`#products`: seven
   cards each with «Подробнее» to `/[locale]/products/[id]`, the ladder `#levels`, the departments strip), demo (`#demo` «Попробуйте
   сейчас», tabs, `components/demo/`), solutions (`#solutions`: six cards from `homeSolutionKinds` in `components/solutions-home.tsx` (salon, clinic, cafe, onlineschool, carservice, shop) and the «Все решения» button; the «Сделано на себе» section was removed 2026-11-22, `dict.proof` keeps only `live` for the demo office tab and `/ai-team`), process (`#process`, short, links to `/how-we-work`), pricing (builder teaser and payment line only; the estimator is gone everywhere), faq (`#faq`: the only FAQ, with the «Остались вопросы? Спросите агента» strip), footer.
@@ -161,7 +161,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   `getPricing().startingPrice` plus the `StageTable` of the service's template, then the same two CTAs), other services.
   No estimator, no FAQ, no contact section (owner 2026-11-22; the only FAQ is on the home page). `Estimator`,
   `pickInCalculator` and the `estimator` copy are deleted; `dict.estimator` now holds only the catalogue (`catalog`, `variant`)
-  that the builder reads. `/services/bots` is titled «Агенты в Telegram» (the word «бот» stays only as the channel in body copy).
+  that the builder reads. `/services/bots` is titled «Агенты в мессенджерах» (the word «бот» stays only as the channel in body copy).
 - Solutions (`/[locale]/solutions`, `/[locale]/solutions/[kind]`, kinds in `src/lib/solutions.ts` =
   builder `businessKinds` without `other`; `allSolutionKinds`, copy via `solutionCopy`, the footer lists only the original five): niche pages for search built on `presets[kind]`
   (price from `quote()`, CTA opens the builder with that preset, mockup `BuilderPreview` labelled
