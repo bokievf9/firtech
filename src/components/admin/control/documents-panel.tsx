@@ -1,10 +1,11 @@
 'use client'
 
 import { FileText, PencilSimpleLine } from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { admin } from '@/content/admin'
 import { formatUsd, groupDocumentsByKind, relativeDate, statusChips, visibleDocuments, type CrmDocument } from '@/lib/admin-crm-hq'
 import { DocEditor } from '@/components/admin/review/doc-editor'
+import { cn } from '@/components/admin/kit'
 import { btn, useHqView, useHub } from '@/components/admin/hub/ui'
 import { targetBase, targetForRow, versionSavePayload, whyNotEditable, withDocText, type DocTarget } from '@/lib/doc-editor'
 import { normalizeItem, normalizeReview, replaceItem } from '@/lib/review'
@@ -31,6 +32,7 @@ export function DocumentsPanel({
   now,
   className,
   by = 'kind',
+  focus = null,
 }: {
   feed: CrmFeed<CrmDocument>
   badge: string | null
@@ -38,7 +40,18 @@ export function DocumentsPanel({
   className?: string
   // `kind`: the back-office tab (grouped by kind). `client`: the Director's tab, the latest documents grouped by client.
   by?: 'kind' | 'client'
+  // A document id from a link or ⌘K: its row is scrolled into view and highlighted.
+  focus?: string | null
 }) {
+  const scrolled = useRef<string | null>(null)
+  const listItems = feed.list
+  useEffect(() => {
+    if (!focus || scrolled.current === focus || !listItems) return
+    const el = document.querySelector<HTMLElement>(`[data-document="${focus.replace(/["\\]/g, '')}"]`)
+    if (!el) return
+    scrolled.current = focus
+    el.scrollIntoView({ block: 'center' })
+  }, [focus, listItems])
   const [kind, setKind] = useState('all')
   const [status, setStatus] = useState('all')
   const [q, setQ] = useState('')
@@ -104,7 +117,7 @@ export function DocumentsPanel({
                         <h3 className="mb-1 px-3 text-xs text-faint">{g.title}</h3>
                         <ul className="grid grid-cols-[minmax(0,1fr)] gap-0.5">
                           {g.items.map((d) => (
-                            <li key={d.id} className="rounded-xl px-3 py-2.5 hover:bg-surface-3">
+                            <li key={d.id} data-document={d.id} aria-current={d.id === focus ? 'true' : undefined} className={cn('rounded-xl px-3 py-2.5 hover:bg-surface-3', d.id === focus && 'bg-accent/10 ring-1 ring-accent-text/50')}>
                               <span className="flex items-center justify-between gap-3">
                                 <span className="min-w-0 truncate text-sm font-medium">{d.title || label(k.kindOne, d.kind)}</span>
                                 <Pill tone={d.status === 'pending' || d.status === 'draft' || d.status === 'issued' ? 'accent' : 'plain'}>

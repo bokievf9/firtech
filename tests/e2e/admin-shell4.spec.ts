@@ -224,4 +224,12 @@ test.describe('with a session', () => {
     expect(box!.y).toBeGreaterThan(SIZES.mobile.height / 2)
     await noHorizontalOverflow(page, 'editor')
   })
+
+  test('documents: a ?focus= link (⌘K result) finds, highlights and scrolls to the row', async ({ page }) => {
+    await open(page, '/admin/documents?tab=documents&focus=bo:2')
+    const row = page.locator('[data-document="bo:2"]')
+    await expect(row).toBeVisible()
+    await expect(row).toHaveAttribute('aria-current', 'true')
+    await expect(row).toContainText('Договор на разработку сайта')
+  })
 })

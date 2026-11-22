@@ -63,9 +63,9 @@ function Prospects() {
   const { now } = useHub()
   return <ProspectsPanel feed={useFeed(`crm/prospects${q}`, normalizeProspects)} badge={null} now={now} />
 }
-function Documents() {
+function Documents({ focus }: { focus: string | null }) {
   const { now } = useHub()
-  return <DocumentsPanel feed={useFeed(`crm/documents${q}`, normalizeDocuments)} badge={null} now={now} />
+  return <DocumentsPanel feed={useFeed(`crm/documents${q}`, normalizeDocuments)} badge={null} now={now} focus={focus} />
 }
 function Referrals() {
   const { now } = useHub()
@@ -90,7 +90,7 @@ export function SectionBody({ section, tab, focus }: { section: 'inbox' | 'clien
   } else if (section === 'projects') body = <ProjectsBoard focus={focus} />
   else if (tab === 'referrals') body = <Referrals />
   else if (tab === 'reviews') body = <Reviews />
-  else body = <Documents />
+  else body = <Documents focus={focus} />
   return <BarePanel.Provider value>{body}</BarePanel.Provider>
 }
 
