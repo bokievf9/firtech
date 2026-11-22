@@ -535,6 +535,35 @@ export function resolveMediaUrl(url: string, env: Env = process.env): string | n
   return target.href
 }
 
+// Security 2026-11-23 (P2-14): a deleted account also leaves HQ. `POST /clients/:id/anonymize` makes HQ blank
+// the client's personal data (name, email, Telegram, phone, messages' authorship) and keep only what the
+// books need. Best effort: the Supabase account is already gone, so a failure is logged and never shown.
+// HQ adds the endpoint separately; until then it answers 404, which counts as `unsupported` (tolerated).
+// HQ_ANONYMIZE_ON_DELETE=0 switches the call off.
+export type AnonymizeOutcome = 'ok' | 'skipped' | 'unsupported' | 'no_client' | CabinetError
+
+export async function anonymizeClient(clientId: number, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<AnonymizeOutcome> {
+  if (env.HQ_ANONYMIZE_ON_DELETE?.trim() === '0') return 'skipped'
+  if (!Number.isInteger(clientId) || clientId <= 0) return 'no_client'
+  if (setup(env) === 'mock') return 'ok'
+  const res = await call(`/clients/${clientId}/anonymize`, { method: 'POST', body: { reason: 'account_deleted' } }, env, fetcher)
+  if (!res.ok) return res.error === 'not_found' ? 'unsupported' : res.error
+  const body = res.body as { ok?: unknown } | null
+  return body && body.ok === true ? 'ok' : 'hq_error'
+}
+
+// By the auth email (the account being deleted). Never throws.
+export async function anonymizeClientByEmail(email: string, env: Env = process.env, fetcher: typeof fetch = fetch): Promise<AnonymizeOutcome> {
+  try {
+    if (env.HQ_ANONYMIZE_ON_DELETE?.trim() === '0') return 'skipped'
+    const found = await fetchClientByEmail(email, env, fetcher)
+    if (!found.ok) return found.error === 'not_found' ? 'no_client' : found.error
+    return await anonymizeClient(found.data.client.id, env, fetcher)
+  } catch {
+    return 'hq_error'
+  }
+}
+
 export function isMockMode(env: Env = process.env): boolean {
   return setup(env) === 'mock'
 }

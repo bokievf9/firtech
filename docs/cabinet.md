@@ -322,3 +322,11 @@ PDF по кнопке «Показать PDF»), `pdf` (рамка с файло
 **жирный**, *курсив*, линия) отдаёт дерево, `document-text.tsx` рисует его узлами React; HTML, ссылки и картинки остаются
 буквальным текстом, `dangerouslySetInnerHTML` нет. Dev-мок: у КП `q-14` и договора `c-2` есть текст, у отклонённого `q-7` нет ни
 текста, ни файла. Тесты: `tests/cabinet-doc-text.test.mjs`, `tests/e2e/cabinet-doc-text.spec.ts`.
+
+## Удаление аккаунта и HQ (security 2026-11-23, P2-14)
+
+После удаления пользователя Supabase (`deleteAccountAction`, нужен `SUPABASE_SERVICE_ROLE_KEY`) сайт зовёт HQ
+`POST /admin/clients/:id/anonymize` `{ reason: 'account_deleted' }` (`anonymizeClientByEmail` в `lib/cabinet-hq.ts`): HQ
+обезличивает карточку клиента (имя, email, Telegram, телефон), оставляя только то, что нужно бухгалтерии. Вызов best effort,
+итог в логе `[cabinet] account deleted; HQ anonymize: ok|unsupported|no_client|skipped|hq_*`; 404 (у HQ ещё нет маршрута) =
+`unsupported`, не ошибка. `HQ_ANONYMIZE_ON_DELETE=0` выключает вызов. Нужно от HQ: сам маршрут (agents).

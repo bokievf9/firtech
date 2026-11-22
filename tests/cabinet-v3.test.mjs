@@ -543,6 +543,25 @@ test('the media proxy sends the cabinet token to HQ', async () => {
   assert.equal(denied.status, 404)
 })
 
+test('account deletion: HQ anonymize is called best effort, a 404 is tolerated (security 2026-11-23, P2-14)', async () => {
+  const seen = []
+  const ok = await hq.anonymizeClient(7, prod, async (url, init) => {
+    seen.push({ url: String(url), method: init.method, body: JSON.parse(init.body) })
+    return Response.json({ ok: true })
+  })
+  assert.equal(ok, 'ok')
+  assert.deepEqual(seen, [{ url: 'http://hq.test/admin/clients/7/anonymize', method: 'POST', body: { reason: 'account_deleted' } }])
+  assert.equal(await hq.anonymizeClient(7, prod, async () => new Response('{}', { status: 404 })), 'unsupported')
+  assert.equal(await hq.anonymizeClient(7, prod, async () => new Response('{}', { status: 500 })), 'hq_error')
+  assert.equal(await hq.anonymizeClient(7, prod, async () => { throw new Error('down') }), 'hq_unreachable')
+  assert.equal(await hq.anonymizeClient(7, { ...prod, HQ_ANONYMIZE_ON_DELETE: '0' }, async () => { throw new Error('must not call') }), 'skipped')
+  assert.equal(await hq.anonymizeClient(0, prod), 'no_client')
+  assert.equal(await hq.anonymizeClientByEmail('nobody@x.test', prod, async () => new Response('{}', { status: 404 })), 'no_client')
+  const { readFileSync } = await import('node:fs')
+  const actions = readFileSync('src/app/[locale]/cabinet/actions.ts', 'utf8')
+  assert.match(actions, /deleteUser\(user\.id\)[\s\S]*anonymizeClientByEmail\(user\.email[\s\S]*redirect\(/)
+})
+
 test('the mock PDF is a real PDF', () => {
   const pdf = Buffer.from(mock.mockPdf('Document q-14')).toString('latin1')
   assert.match(pdf, /^%PDF-1\.4/)

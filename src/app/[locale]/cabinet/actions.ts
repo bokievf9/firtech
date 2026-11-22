@@ -21,7 +21,7 @@ import {
   type AuthErrorKey,
 } from '@/lib/cabinet-auth'
 import { deleteWordOk } from '@/lib/cabinet-profile'
-import { createClientTicket, fetchClientByEmail, syncClientToHq } from '@/lib/cabinet-hq'
+import { anonymizeClientByEmail, createClientTicket, fetchClientByEmail, syncClientToHq } from '@/lib/cabinet-hq'
 import { requireCabinetUser } from '@/lib/cabinet-session'
 import { isLocale, type Locale } from '@/lib/i18n'
 import { supabaseConfig } from '@/lib/supabase/config'
@@ -264,6 +264,9 @@ export async function deleteAccountAction(_: FormState, form: FormData): Promise
     const admin = createAdminClient(config.url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } })
     const { error } = await admin.auth.admin.deleteUser(user.id)
     if (!error) {
+      // P2-14: HQ blanks the client's personal data too (best effort, a 404 = HQ without the endpoint yet).
+      const outcome = await anonymizeClientByEmail(user.email ?? '')
+      console.info(`[cabinet] account deleted; HQ anonymize: ${outcome}`)
       await supabase.auth.signOut()
       redirect(`/${locale}`)
     }
