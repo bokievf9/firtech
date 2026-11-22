@@ -18,3 +18,11 @@ test('no raw <select> in the Shell: everything goes through components/admin/sel
   const bad = files.filter((f) => !f.endsWith('admin/select.tsx') && /<select[\s>]/.test(fs.readFileSync(f, 'utf8')))
   assert.deepEqual(bad, [])
 })
+
+test('useConfirm: exit animation, and `dialog` is null until the first ask (SSR on /admin/golive)', () => {
+  const src = fs.readFileSync('src/components/admin/hub/ui.tsx', 'utf8')
+  assert.match(src, /closing: true/)
+  assert.match(src, /onAnimationComplete/)
+  assert.match(src, /const dialog = state \? \(/)
+  assert.match(src, /\) : null\n  return \{ ask, dialog \}/)
+})
