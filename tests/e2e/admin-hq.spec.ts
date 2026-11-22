@@ -175,7 +175,7 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  test('Content: feed, item drawer with the player and Studio buttons, «Промпт» order, orders tab, campaigns tab', async ({ page }) => {
+  test('Content: feed, one screen per material (player, text, Prompt, variant, niche), orders tab, campaigns tab', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/content')
     await expect(page.getByRole('heading', { name: 'Content', level: 1 })).toBeVisible()
@@ -185,21 +185,46 @@ test.describe('with a session', () => {
     // a status filter narrows the feed
     await page.getByLabel('Status').selectOption('pending')
     await expect(page.locator('[data-feed] li').first()).toBeVisible()
-    // a reel opens with the player; «Ещё вариант» takes the order and the toast says so
+    // a reel opens as a screen (no dialog): the player, the text, Prompt, variants
     await page.getByLabel('Format').first().selectOption('clip')
     await cards.first().click()
-    const drawer = page.getByRole('dialog')
-    await expect(drawer.locator('video')).toBeVisible()
-    await drawer.getByRole('button', { name: 'Another variant' }).click()
+    const screen = page.locator('[data-studio="screen"]')
+    await expect(screen).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    const player = screen.locator('video[data-studio="player"]')
+    await expect(player).toBeVisible()
+    await expect.poll(() => player.evaluate((v: HTMLVideoElement) => v.readyState)).toBeGreaterThan(0)
+    await player.evaluate((v: HTMLVideoElement) => {
+      v.muted = true
+      return v.play()
+    })
+    await expect.poll(() => player.evaluate((v: HTMLVideoElement) => v.currentTime)).toBeGreaterThan(0)
+    await expect(screen.getByRole('button', { name: 'Approve' })).toBeVisible()
+    await expect(screen.getByRole('form', { name: 'Prompt' })).toBeVisible()
+    // edit the caption in place and save: a new version, the text stays
+    const caption = screen.locator('[data-studio="text"] textarea').first()
+    await caption.fill('Новая подпись от владельца про ночные заявки')
+    await screen.getByRole('button', { name: 'Save text' }).click()
+    await expect(page.getByText('Text saved, a new version is added.')).toBeVisible()
+    await expect(caption).toHaveValue('Новая подпись от владельца про ночные заявки')
+    await expect(screen.getByRole('button', { name: 'Save text' })).toHaveCount(0)
+    // «Another variant» and «For a niche» are inline; each takes its order and the toast says so
+    await screen.getByRole('button', { name: 'Another variant' }).click()
     await expect(page.getByText('Order accepted: one more variant is being prepared.')).toBeVisible()
-    // «Промпт» from any tab
-    await page.getByRole('button', { name: 'Prompt' }).click()
-    const prompt = page.getByRole('dialog', { name: 'New material for Content Maker' })
+    await expect(page.locator('[data-studio="screen"]')).toHaveCount(0)
+    await cards.first().click()
+    const nicheButton = page.getByRole('button', { name: 'Rewrite for the niche' })
+    await expect(nicheButton).toBeDisabled()
+    await page.getByLabel('Niche').fill('барбершоп')
+    await nicheButton.click()
+    await expect(page.getByText('Order accepted: rewriting for the "барбершоп" niche.')).toBeVisible()
+    // «Prompt» without a drawer: from the feed list
+    const prompt = page.locator('form[data-studio="prompt"]')
     await prompt.getByLabel('What the material is about').fill('Про ночные заявки в барбершопе')
     await prompt.getByRole('button', { name: 'Send to Content Maker' }).click()
     await expect(page).toHaveURL(/tab=orders/)
     const orders = page.locator('[data-orders] li')
-    await expect(orders).toHaveCount(2)
+    await expect(orders).toHaveCount(3)
     await expect(orders.first()).toContainText('Про ночные заявки')
     await expect(orders.first().getByRole('link', { name: 'Open in the feed' })).toBeVisible()
     await expect(page.getByRole('tab', { name: 'Calendar' })).toHaveCount(0)
@@ -207,6 +232,31 @@ test.describe('with a session', () => {
     await expect(page).toHaveURL(/tab=campaigns/)
     expect(errors).toEqual([])
   })
+
+  test('Content: a material without files says «Render pending» with the render state, never a fake render', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/content')
+    await page.getByLabel('Status').selectOption('approved')
+    await page.locator('[data-feed] li button').first().click()
+    const screen = page.locator('[data-studio="screen"]')
+    await expect(screen).toBeVisible()
+    await expect(screen.getByText('Render pending')).toBeVisible()
+    await expect(screen.locator('[data-studio="render-state"]')).toContainText('Render: after approval')
+    await expect(screen.locator('video')).toHaveCount(0)
+    await expect(page.getByText('demo render')).toHaveCount(0)
+    expect(errors).toEqual([])
+  })
+
+  for (const [name, size] of Object.entries(SIZES)) {
+    test(`Content screen: no horizontal overflow ${name}`, async ({ page }) => {
+      await page.setViewportSize(size)
+      await open(page, '/admin/content')
+      await page.getByLabel('Format').first().selectOption('clip')
+      await page.locator('[data-feed] li button').first().click()
+      await expect(page.locator('[data-studio="screen"]')).toBeVisible()
+      await noHorizontalOverflow(page)
+    })
+  }
 
   for (const [name, size] of Object.entries(SIZES)) {
     test(`no horizontal overflow ${name}`, async ({ page }) => {

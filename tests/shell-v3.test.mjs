@@ -360,10 +360,12 @@ test('file proxy: session required, paths outside the renders refused, range and
   assert.equal((await get(['c', 'x.png'], { cookie: null })).status, 401)
   assert.equal((await get(['..', 'etc', 'passwd.png'])).status, 404)
   assert.equal((await get(['c', 'x.exe'])).status, 404)
-  // Development without HQ: a labelled SVG for images, 404 for videos.
+  // Development without HQ: a labelled SVG for images, a short sample clip (with Range) for videos.
   let res = await get(['c', 'slide.png'])
   assert.equal(res.headers.get('content-type'), 'image/svg+xml')
-  assert.equal((await get(['c', 'clip.mp4'])).status, 404)
+  res = await get(['c', 'clip.mp4'])
+  assert.equal(res.headers.get('content-type'), 'video/mp4')
+  assert.equal((await get(['c', 'clip.mp4'], { headers: { range: 'bytes=0-9' } })).status, 206)
 
   process.env.HQ_ADMIN_URL = 'http://hq.test/admin'
   process.env.HQ_ADMIN_TOKEN = 'secret-admin'

@@ -1,5 +1,6 @@
 import 'server-only'
 import { DEFAULT_HQ_ADMIN_URL } from './hq-admin'
+import { SAMPLE_MP4_BASE64 } from './hq-files-sample'
 import { renderType, safeRenderPath } from './shell'
 
 // Content renders (PNG slides, MP4 clips) for the пульт: the browser asks /api/admin/files/<path>,
@@ -22,7 +23,19 @@ const fail = (status: number, error: string) =>
 
 export function placeholderSvg(path: string): string {
   const name = path.split('/').pop()!.replace(/[^\w.-]/g, '')
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><rect width="1080" height="1350" fill="#11160f"/><rect x="60" y="60" width="960" height="1230" rx="48" fill="none" stroke="#c6f432" stroke-width="6" stroke-dasharray="24 18"/><text x="540" y="640" fill="#c6f432" font-family="monospace" font-size="56" text-anchor="middle">demo render</text><text x="540" y="720" fill="#8a9384" font-family="monospace" font-size="36" text-anchor="middle">${name}</text></svg>`
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350"><rect width="1080" height="1350" fill="#11160f"/><rect x="60" y="60" width="960" height="1230" rx="48" fill="none" stroke="#c6f432" stroke-width="6" stroke-dasharray="24 18"/><text x="540" y="640" fill="#c6f432" font-family="monospace" font-size="56" text-anchor="middle">sample slide</text><text x="540" y="720" fill="#8a9384" font-family="monospace" font-size="36" text-anchor="middle">dev mock, no HQ · ${name}</text></svg>`
+}
+
+// The dev clip with Range support (a <video> seeks with 206 answers).
+function sampleClip(range: string | null): Response {
+  const bytes = Buffer.from(SAMPLE_MP4_BASE64, 'base64')
+  const m = range ? /^bytes=(\d*)-(\d*)$/.exec(range) : null
+  if (!m || (!m[1] && !m[2])) return new Response(bytes, { headers: { ...headersOut('video/mp4'), 'accept-ranges': 'bytes', 'content-length': String(bytes.length) } })
+  const start = m[1] ? Number(m[1]) : Math.max(0, bytes.length - Number(m[2]))
+  const end = m[1] && m[2] ? Math.min(Number(m[2]), bytes.length - 1) : bytes.length - 1
+  if (start > end || start >= bytes.length) return new Response(null, { status: 416, headers: { 'content-range': `bytes */${bytes.length}` } })
+  const part = bytes.subarray(start, end + 1)
+  return new Response(part, { status: 206, headers: { ...headersOut('video/mp4'), 'accept-ranges': 'bytes', 'content-range': `bytes ${start}-${end}/${bytes.length}`, 'content-length': String(part.length) } })
 }
 
 export async function proxyRenderFile(
@@ -37,7 +50,7 @@ export async function proxyRenderFile(
   const configured = env.HQ_ADMIN_URL?.trim()
   if (!configured && env.NODE_ENV !== 'production') {
     if (type.startsWith('image/')) return new Response(placeholderSvg(path), { headers: headersOut('image/svg+xml') })
-    return fail(404, 'mock_no_file')
+    return sampleClip(range)
   }
   const base = (configured || DEFAULT_HQ_ADMIN_URL).replace(/\/+$/, '')
   const token = env.HQ_ADMIN_TOKEN?.trim() || env.HQ_OFFICE_TOKEN?.trim()
