@@ -63,7 +63,7 @@ export function NextActionBlock({
       <p className="mt-1 max-w-[56ch] text-[15px] leading-relaxed text-fg">{text}</p>
       <div className="mt-4">
         {control.control === 'pay_link' && (
-          <a href={control.href} target="_blank" rel="noopener noreferrer" className={big} data-big-action>
+          <a href={control.href} className={big} data-big-action>
             {label}
             <ArrowUpRight size={18} weight="bold" aria-hidden="true" />
           </a>

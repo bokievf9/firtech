@@ -28,7 +28,7 @@ export function FilmFinale({ scene, dict, locale }: { scene: FilmScene; dict: Di
             {f.finale.call}
           </ChatOpenButton>
           {telegramUrl ? (
-            <a href={telegramUrl} target="_blank" rel="noopener noreferrer" data-place="film_final" className={buttonStyles.secondary}>
+            <a href={telegramUrl} data-place="film_final" className={buttonStyles.secondary}>
               <TelegramLogo size={18} aria-hidden="true" className="text-accent-text" />
               {f.finale.telegram}
             </a>

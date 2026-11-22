@@ -379,7 +379,7 @@ function Viewer({
             </button>
           )}
           {actions.includes('pay') && doc.payUrl && (
-            <a href={doc.payUrl} target="_blank" rel="noopener noreferrer" className={bigButton} data-doc-pay>
+            <a href={doc.payUrl} className={bigButton} data-doc-pay>
               {t.pay}
             </a>
           )}

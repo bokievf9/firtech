@@ -84,7 +84,7 @@ function serviceLabel(dict: Dict, slug: string): string {
 
 function FollowLink({ href, label }: { href: string; label: string }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" data-place="cabinet-lead" className={cn(buttonStyles.secondary, 'mt-4')}>
+    <a href={href} data-place="cabinet-lead" className={cn(buttonStyles.secondary, 'mt-4')}>
       <TelegramLogo size={18} weight="fill" />
       {label}
     </a>

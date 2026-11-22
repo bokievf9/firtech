@@ -383,8 +383,6 @@ export function ReadinessBlock({ ctx, band }: Props) {
                 {telegramUrl && (
                   <a
                     href={telegramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     data-place={`product_${id}`}
                     className="inline-flex items-center gap-2 self-center text-sm text-muted underline decoration-line-strong underline-offset-4 hover:text-accent-text"
                   >

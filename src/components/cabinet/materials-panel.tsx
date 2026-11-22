@@ -196,7 +196,7 @@ export function MaterialsPanel({ dict, locale, thread }: { dict: Dict; locale: s
                 {files.map((f) => (
                   <li key={`${f.messageId}-${f.name}`}>
                     <a
-                      {...(f.href ? { href: f.href, target: '_blank', rel: 'noopener noreferrer' } : {})}
+                      {...(f.href ? { href: f.href } : {})}
                       className="flex items-center gap-3 rounded-xl border border-line px-3.5 py-2.5 transition-colors hover:border-line-strong"
                     >
                       <FileText size={18} aria-hidden="true" className="shrink-0 text-faint" />
