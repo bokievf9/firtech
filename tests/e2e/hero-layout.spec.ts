@@ -20,10 +20,19 @@ for (const size of sizes) {
       const card = [...document.querySelectorAll<HTMLElement>('.hero-card')].find((e) => e.dataset.active === 'true')
       return {
         card: r(card),
+        cue: r(document.querySelector('[data-hero-cue] [data-film-line]')),
         parts: ['[data-hero-promises]', '[data-hero-rail] > div'].map((s) => r(document.querySelector(s))),
       }
     })
     expect(boxes.card).not.toBeNull()
+    // Fira's greeting stays on the first screen at every height (owner), inside the viewport and clear of the card.
+    expect(boxes.cue).not.toBeNull()
+    expect(boxes.cue!.t).toBeGreaterThanOrEqual(0)
+    expect(boxes.cue!.b).toBeLessThanOrEqual(size.height)
+    expect(boxes.cue!.r <= boxes.card!.l || boxes.cue!.b <= boxes.card!.t).toBe(true)
+    // the guarantee and the response lines end above the dots row and inside the screen
+    expect(boxes.parts[0]!.b).toBeLessThanOrEqual(boxes.parts[1]!.t)
+    expect(boxes.parts[0]!.b).toBeLessThanOrEqual(size.height)
     for (const p of boxes.parts) {
       expect(p).not.toBeNull()
       const c = boxes.card!

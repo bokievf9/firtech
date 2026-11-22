@@ -162,7 +162,7 @@ export function HeroSequence({
         <HeroField />
         <motion.div aria-hidden="true" className="pointer-events-none absolute inset-0" style={{ background: glow }} />
         <motion.div
-          className="relative mx-auto grid h-full w-full max-w-7xl grid-cols-[minmax(0,1fr)] content-center gap-x-8 gap-y-7 px-4 pt-28 pb-10 md:px-8 lg:grid-cols-12 lg:grid-rows-[auto_minmax(0,1fr)_auto_auto] lg:content-normal lg:gap-y-6 lg:pt-28 lg:pb-[7.5rem]"
+          className="relative mx-auto grid h-full w-full max-w-7xl grid-cols-[minmax(0,1fr)] content-center gap-x-8 gap-y-7 px-4 pt-28 pb-10 md:px-8 lg:grid-cols-12 lg:grid-rows-[auto_minmax(0,1fr)_auto_auto] lg:content-normal lg:gap-y-6 lg:pt-28 lg:pb-[7.5rem] [@media(min-width:1024px)_and_(max-height:960px)]:pt-24 [@media(min-width:1024px)_and_(max-height:960px)]:pb-[5.5rem] [@media(min-width:1024px)_and_(max-height:960px)]:gap-y-3"
           style={{ scale: scrollDriven ? release : 1 }}
         >
           <motion.div

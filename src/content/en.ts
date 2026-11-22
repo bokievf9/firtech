@@ -1597,6 +1597,7 @@ const en: Dict = {
   },
   guarantee: {
     line: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment.',
+    short: 'Not happy with the first stage? We refund it.',
     more: 'Guarantee terms',
     llms: 'Guarantee: if you do not like the first screen of the website or the first agent scenario, the first stage payment is returned.',
   },

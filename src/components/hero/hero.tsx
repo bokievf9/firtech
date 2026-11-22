@@ -41,7 +41,7 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
             title={h.title}
             lines={h.lines}
             accent={1}
-            className="hero-display font-display font-semibold [font-variation-settings:'SHRP'_60]"
+            className="hero-display font-display font-semibold [font-variation-settings:'SHRP'_60] [@media(min-width:1024px)_and_(max-height:960px)]:!text-[min(8.4vh,5.4rem)]"
           />
         </>
       }
@@ -52,7 +52,7 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
       }
       actions={
         <HeroIntro delay={0.64}>
-          {cue ? <div className="mb-6 [@media(min-width:1024px)_and_(max-height:960px)]:hidden" data-hero-cue>{cue}</div> : null}
+          {cue ? <div className="mb-6 [@media(min-width:1024px)_and_(max-height:960px)]:mb-3" data-hero-cue>{cue}</div> : null}
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Magnetic>
               <Link
@@ -88,11 +88,11 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
             </Link>
           </p>
           {/* Go-live trust lines (owner 2026-11-21): the guarantee and the response promise on the first screen. */}
-          <div className="mt-4 grid max-w-[46ch] gap-2 lg:max-w-[min(30rem,calc(44vw-5rem))]" data-hero-promises>
-            <GuaranteeLine dict={dict} locale={locale} className="text-footnote" />
+          <div className="mt-4 grid max-w-[46ch] gap-2 [@media(min-width:1024px)_and_(max-height:960px)]:mt-3 [@media(min-width:1024px)_and_(max-height:960px)]:gap-1 lg:max-w-[min(30rem,calc(44vw-5rem))]" data-hero-promises>
+            <GuaranteeLine dict={dict} locale={locale} className="text-footnote" short />
             <p className="flex items-start gap-2.5 text-footnote text-muted">
               <Clock size={18} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-              <span>{dict.sla.line}</span>
+              <span>{dict.sla.short}</span>
             </p>
           </div>
           <ul className="mt-4 flex flex-wrap gap-2 lg:hidden">
