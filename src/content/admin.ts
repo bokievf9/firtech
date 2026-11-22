@@ -753,6 +753,7 @@ export const admin = {
       handoff: 'Передача человеку',
       tools: 'Вызовы инструментов',
       noData: 'нет данных',
+    },
     campaigns: {
       refresh: 'Обновить',
       newButton: 'Новая рассылка',
