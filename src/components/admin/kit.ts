@@ -1,12 +1,6 @@
-import { clsx, type ClassValue } from 'clsx'
-import { extendTailwindMerge } from 'tailwind-merge'
+import { cn } from '@/lib/cn'
 
-// `cn` from '@/lib/cn' does not know the v4 text steps (`text-callout`, `text-footnote`, `text-caption`...) and drops
-// them next to a text colour (`text-muted`), so Shell code merges classes with `cn` below, which does.
-const merge = extendTailwindMerge({
-  extend: { classGroups: { 'font-size': [{ text: ['display', 'title', 'title-2', 'title-3', 'lead', 'headline', 'body', 'callout', 'footnote', 'caption'] }] } },
-})
-export const cn = (...inputs: ClassValue[]) => merge(clsx(inputs))
+export { cn }
 
 // Shell class kit on design system v4 (docs/design-system-v4.md, docs/shell-design-audit.md): one look for
 // the small controls every Shell panel uses. Pure strings, no hooks, so server and client files import it.
