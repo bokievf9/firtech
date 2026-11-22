@@ -531,7 +531,6 @@ const ru = {
     },
     stepLabel: 'Шаг',
     of: 'из',
-    intro: 'Семь коротких шагов. Цена и макет обновляются сразу.',
     enterHint: 'Enter - дальше',
     showPreview: 'Показать макет',
     hidePreview: 'Скрыть макет',

@@ -516,7 +516,6 @@ const en: Dict = {
     },
     stepLabel: 'Step',
     of: 'of',
-    intro: 'Seven short steps. The price and the mockup update as you go.',
     enterHint: 'Enter for next',
     showPreview: 'Show mockup',
     hidePreview: 'Hide mockup',
