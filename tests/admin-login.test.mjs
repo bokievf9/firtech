@@ -336,3 +336,31 @@ test('the Telegram code login is gone', async () => {
   assert.match(form, /autoComplete="current-password"/)
   assert.doesNotMatch(form, /api\/admin\/code|one-time-code/)
 })
+
+test('security 2026-11-23 (P2-1): IPv6 counts per /64, mapped IPv4 as IPv4', async () => {
+  assert.equal(auth.ipBucket('2001:db8:1:2:aaaa::1'), '2001:db8:1:2::/64')
+  assert.equal(auth.ipBucket('2001:0db8:0001:0002:ffff:1:2:3'), '2001:db8:1:2::/64')
+  assert.equal(auth.ipBucket('[2001:db8::1]'), '2001:db8:0:0::/64')
+  assert.equal(auth.ipBucket('::ffff:203.0.113.9'), '203.0.113.9')
+  assert.equal(auth.ipBucket('203.0.113.9'), '203.0.113.9')
+  const now = Date.now()
+  // Rotating the host part inside one /64 no longer gives fresh tries.
+  for (let i = 0; i < auth.LOGIN_FREE_TRIES; i++)
+    assert.equal((await auth.loginWithPassword('nope-nope-nope', fast(`2001:db8:7:7::${i + 1}`, { now: now + i }))).error, 'wrong')
+  assert.equal((await auth.loginWithPassword('nope-nope-nope', fast('2001:db8:7:7:dead:beef:0:1', { now: now + 100 }))).error, 'too_many')
+  assert.equal((await auth.loginWithPassword('nope-nope-nope', fast('2001:db8:7:8::1', { now: now + 100 }))).error, 'wrong', 'another /64 is not held back')
+})
+
+test('security 2026-11-23 (P2-1): attempts are capped and written debounced, not on every try', async () => {
+  const now = Date.now()
+  await auth.loginWithPassword('nope-nope-nope', fast('10.77.0.1', { now }))
+  const file = path.join(process.env.DATA_DIR, 'admin.json')
+  await assert.rejects(readFile(file, 'utf8'), 'nothing written synchronously')
+  await auth.flushLoginAttempts()
+  assert.equal(JSON.parse(await readFile(file, 'utf8')).attempts.length, 1)
+  assert.ok(auth.ATTEMPTS_CAP >= 100 && auth.ATTEMPTS_CAP <= 5000)
+  // Booking only (no scrypt), many IPs: the list never grows past the cap.
+  await Promise.all(Array.from({ length: auth.ATTEMPTS_CAP + 50 }, (_, i) => auth.reserveAttempt(`ip-${i}`, now + 1)))
+  await auth.flushLoginAttempts()
+  assert.ok(JSON.parse(await readFile(file, 'utf8')).attempts.length <= auth.ATTEMPTS_CAP)
+})

@@ -30,6 +30,11 @@ export const WRONG_DELAY_MS = 800
 // Largest login body read at all (the password itself is capped at 256 characters).
 export const PASSWORD_BODY_LIMIT = 2048
 const HOUR_MS = 60 * 60_000
+// Security 2026-11-23 (P2-1): the attempts list is capped (newest kept) and kept in memory, written to
+// admin.json at most once per ATTEMPTS_FLUSH_MS (it used to be rewritten on every attempt), and an IPv6
+// visitor counts per /64 (one host gets a whole /64, so rotating addresses inside it gave fresh limits).
+export const ATTEMPTS_CAP = 1000
+export const ATTEMPTS_FLUSH_MS = 2000
 
 // `fp` = fingerprint of ADMIN_PASSWORD_HASH when the session was made. Sessions written before the
 // password login (no `fp`) stay valid until they expire, so a deploy does not sign the owner out.
@@ -62,17 +67,78 @@ async function save(db: AdminDb) {
 
 let queue: Promise<unknown> = Promise.resolve()
 
+// Login attempts per admin.json path (the tests switch DATA_DIR): the in-memory list is the truth,
+// loaded once from the file and written back by every save.
+const memAttempts = new Map<string, Attempt[]>()
+const loadingAttempts = new Map<string, Promise<Attempt[]>>()
+const flushTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
+function attemptsFor(file: string): Promise<Attempt[]> {
+  const ready = memAttempts.get(file)
+  if (ready) return Promise.resolve(ready)
+  let loading = loadingAttempts.get(file)
+  if (!loading) {
+    loading = load().then((db) => {
+      const list = memAttempts.get(file) ?? db.attempts.slice(-ATTEMPTS_CAP)
+      memAttempts.set(file, list)
+      loadingAttempts.delete(file)
+      return list
+    })
+    loadingAttempts.set(file, loading)
+  }
+  return loading
+}
+
+function setAttempts(file: string, list: Attempt[]) {
+  memAttempts.set(file, list.length > ATTEMPTS_CAP ? list.slice(-ATTEMPTS_CAP) : list)
+  if (flushTimers.has(file)) return
+  const timer = setTimeout(() => {
+    flushTimers.delete(file)
+    void serialize(() => undefined).catch(() => console.warn('[admin] could not store login attempts'))
+  }, ATTEMPTS_FLUSH_MS)
+  timer.unref?.()
+  flushTimers.set(file, timer)
+}
+
+// Writes pending attempts now (tests, and nothing else needs it).
+export async function flushLoginAttempts() {
+  for (const [file, timer] of flushTimers) {
+    clearTimeout(timer)
+    flushTimers.delete(file)
+  }
+  await serialize(() => undefined)
+}
+
 // One read-modify-write at a time, like the lead store. A failed task rejects its own caller; the
 // queue goes on with the next one.
 function serialize<T>(task: (db: AdminDb) => Promise<T> | T): Promise<T> {
   const run = queue.then(async () => {
     const db = await load()
     const result = await task(db)
+    const mem = memAttempts.get(fileName())
+    if (mem) db.attempts = mem
     await save(db)
     return result
   })
   queue = run.catch(() => undefined)
   return run
+}
+
+// The key a login attempt counts under: IPv4 as is, an IPv4-mapped IPv6 as its IPv4, any other IPv6
+// as its /64 network.
+export function ipBucket(raw: string): string {
+  const ip = String(raw ?? '').trim().toLowerCase().replace(/^\[|\]$/g, '').split('%')[0] ?? ''
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/.exec(ip)
+  if (mapped) return mapped[1]!
+  if (!ip.includes(':')) return ip
+  const halves = ip.split('::')
+  if (halves.length > 2) return ip
+  const head = halves[0] ? halves[0].split(':') : []
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(':') : []
+  const groups = halves.length === 2 ? [...head, ...Array(Math.max(0, 8 - head.length - tail.length)).fill('0'), ...tail] : head
+  const prefix = groups.slice(0, 4).map((g) => (/^[0-9a-f]{1,4}$/.test(g) ? parseInt(g, 16).toString(16) : '0'))
+  while (prefix.length < 4) prefix.push('0')
+  return `${prefix.join(':')}::/64`
 }
 
 const sha256 = (value: string) => createHash('sha256').update(value).digest('hex')
@@ -99,13 +165,17 @@ export function createSession(now = Date.now(), fp?: string) {
 
 type Reserve = { ok: true; id: string; slow: boolean } | { ok: false; retryAfter: number }
 
-// Checks the limits and books this attempt as wrong in the same step.
-function reserveAttempt(ip: string, now: number): Promise<Reserve> {
-  return serialize((db): Reserve => {
-    db.attempts = db.attempts.filter((a) => a.at > now - HOUR_MS)
-    const mine = db.attempts.filter((a) => a.ip === ip)
+// Checks the limits and books this attempt as wrong in the same step (synchronous after the first load,
+// so parallel requests cannot slip past the limits).
+export async function reserveAttempt(ip: string, now: number): Promise<Reserve> {
+  const file = fileName()
+  await attemptsFor(file)
+  // Read the CURRENT list after the await: another attempt may have replaced it meanwhile.
+  const recent = (memAttempts.get(file) ?? []).filter((a) => a.at > now - HOUR_MS)
+  const result = ((): Reserve => {
+    const mine = recent.filter((a) => a.ip === ip)
     // The all-IP ceiling only slows the answer down; the per-IP limits below still apply.
-    const slow = db.attempts.length >= LOGIN_MAX_PER_HOUR_ALL
+    const slow = recent.length >= LOGIN_MAX_PER_HOUR_ALL
     if (mine.length >= LOGIN_MAX_PER_HOUR) {
       const oldest = mine[mine.length - LOGIN_MAX_PER_HOUR]?.at ?? now
       return { ok: false, retryAfter: retryAfter(oldest + HOUR_MS, now) }
@@ -115,9 +185,11 @@ function reserveAttempt(ip: string, now: number): Promise<Reserve> {
       return { ok: false, retryAfter: retryAfter(last.at + LOGIN_MIN_GAP_MS, now) }
     }
     const id = randomBytes(8).toString('hex')
-    db.attempts.push({ id, at: now, ip })
+    recent.push({ id, at: now, ip })
     return { ok: true, id, slow }
-  })
+  })()
+  setAttempts(file, recent)
+  return result
 }
 
 export type LoginResult =
@@ -143,7 +215,7 @@ export async function loginWithPassword(
 ): Promise<LoginResult> {
   const config = passwordConfig(env)
   if (!config.ok) return { ok: false, error: 'not_configured' }
-  const who = sha256(ip)
+  const who = sha256(ipBucket(ip))
   const reserved = await reserveAttempt(who, now)
   if (!reserved.ok) return { ok: false, error: 'too_many', retryAfter: reserved.retryAfter }
   const right = await verifyPassword(password, config.hash)
@@ -152,9 +224,9 @@ export async function loginWithPassword(
     await sleep(delayMs)
     return { ok: false, error: 'wrong' }
   }
-  await serialize((db) => {
-    db.attempts = db.attempts.filter((a) => a.ip !== who)
-  })
+  const file = fileName()
+  await attemptsFor(file)
+  setAttempts(file, (memAttempts.get(file) ?? []).filter((a) => a.ip !== who))
   const session = await createSession(now, config.fingerprint)
   return { ok: true, ...session }
 }
