@@ -267,7 +267,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   const settingsMock = createSettingsMock()
 
   return function handle(method: 'GET' | 'POST' | 'PATCH', seg: string[], query: Json, body: Json, now: number): Reply | null {
-    const settings = settingsMock(method, seg, body)
+    const settings = settingsMock(method, seg, body, query, now)
     if (settings) return settings
     const agents = agentsMock(method, seg, body, now)
     if (agents) return agents

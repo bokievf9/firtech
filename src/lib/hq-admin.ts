@@ -180,6 +180,7 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // Numeric client id only (a client without an account has no cabinet to accept in).
   { method: 'POST', path: /^clients\/\d{1,12}\/projects\/\d{1,12}\/milestones\/\d{1,3}\/accept$/, body: empty },
   { method: 'GET', path: /^settings$/ },
+  { method: 'GET', path: /^settings\/log$/, query: ['limit'] },
   { method: 'PATCH', path: /^settings$/, body: SETTINGS_BODY },
   // HQ «Agents» (2026-11-23): list, card, one instruction version, edit and rollback of the instructions.
   { method: 'GET', path: /^agents$/ },
