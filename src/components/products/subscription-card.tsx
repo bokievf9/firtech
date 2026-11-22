@@ -33,12 +33,12 @@ export function SubscriptionCard({ copy, setup, monthly, byokMonthly, from, titl
     <div
       data-subscription-card
       className={cn(
-        'glass flex flex-col rounded-card border p-6',
-        highlight ? 'border-accent-text/50' : 'border-line',
+        'material-regular flex flex-col rounded-card border border-hairline p-card',
+        highlight ? 'border-accent-text/50' : 'border-glass-line',
         className,
       )}
     >
-      {title && <p className="font-mono text-xs tracking-[0.14em] text-accent-text uppercase">{title}</p>}
+      {title && <p className="text-footnote font-medium text-accent-text">{title}</p>}
       <p className={cn('font-mono', title && 'mt-4')}>
         {from && <span className="mr-1.5 text-sm text-muted">{copy.from}</span>}
         <span className="text-3xl text-fg" data-sub-setup>
@@ -53,13 +53,13 @@ export function SubscriptionCard({ copy, setup, monthly, byokMonthly, from, titl
         </span>{' '}
         {copy.monthly}
       </p>
-      <div role="radiogroup" aria-label={copy.whoseKey} className="mt-5 grid grid-cols-2 gap-1 rounded-full border border-line bg-surface-2/60 p-1">
+      <div role="radiogroup" aria-label={copy.whoseKey} className="mt-5 grid grid-cols-2 gap-1 rounded-full bg-fill p-1">
         {([false, true] as const).map((value) => (
           <label
             key={String(value)}
             className={cn(
-              'cursor-pointer rounded-full px-3 py-1.5 text-center text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent-text',
-              own === value ? 'bg-fg text-bg' : 'text-muted hover:text-fg',
+              'pressable cursor-pointer rounded-full px-3 py-1.5 text-center text-callout transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent-text',
+              own === value ? 'bg-elevated text-fg shadow-card' : 'text-muted hover:text-fg',
             )}
           >
             <input type="radio" name={name} className="sr-only" checked={own === value} onChange={() => setOwn(value)} data-byok={value ? 'own' : 'ours'} />
@@ -67,15 +67,15 @@ export function SubscriptionCard({ copy, setup, monthly, byokMonthly, from, titl
           </label>
         ))}
       </div>
-      <p className="mt-3 text-sm leading-relaxed text-muted" data-sub-note>
+      <p className="mt-3 text-footnote text-muted" data-sub-note>
         {own ? copy.ownNote : copy.oursNote}
       </p>
       {own && monthly > byokMonthly && (
-        <p className="mt-1 text-sm text-accent-text">{copy.saves.replace('{amount}', formatUsd(monthly - byokMonthly))}</p>
+        <p className="mt-1 text-footnote text-accent-text">{copy.saves.replace('{amount}', formatUsd(monthly - byokMonthly))}</p>
       )}
-      {children && <div className="mt-4 border-t border-line pt-4 leading-relaxed text-muted">{children}</div>}
+      {children && <div className="mt-4 border-t border-t-hairline border-line pt-4 text-callout text-muted">{children}</div>}
       {notes && notes.length > 0 && (
-        <ul className="mt-4 grid gap-1 border-t border-line pt-4 text-sm text-faint">
+        <ul className="mt-4 grid gap-1 border-t border-t-hairline border-line pt-4 text-footnote text-faint">
           {notes.map((n) => (
             <li key={n}>{n}</li>
           ))}

@@ -216,13 +216,14 @@ test('product pages: each product has its own section order, every block has cop
   const sellingBlocks = ['hero', 'included', 'price', 'offer', 'objections', 'readiness']
   // Front v4 (owner 2026-11-22): the Personal AI page is cut to hero, channels, skills, who you are with the demo, levels,
   // how to start and four questions; it carries its own short selling blocks instead of the shared ones.
-  const sharedOf = (id) => (id === 'personal' ? ['hero', 'channels', 'plans', 'questions'] : sellingBlocks)
+  // The AI company page is cut the same way: hero, channels, the subscription block (cplan) and four questions.
+  const sharedOf = (id) => (id === 'personal' ? ['hero', 'channels', 'plans', 'questions'] : id === 'company' ? ['hero', 'channels', 'cplan', 'questions'] : sellingBlocks)
   const signatures = new Set()
   const ownBlocks = new Set()
   for (const id of productIds) {
     const { sections, demo } = productPages[id]
     assert.equal(sections[0], 'hero', id)
-    if (id !== 'personal') assert.equal(sections.at(-1), 'readiness', id)
+    if (id !== 'personal' && id !== 'company') assert.equal(sections.at(-1), 'readiness', id)
     assert.equal(new Set(sections).size, sections.length, `${id} has a section twice`)
     for (const s of sections) assert.ok(productSectionIds.includes(s), `${id} ${s}`)
     const shared = sharedOf(id)

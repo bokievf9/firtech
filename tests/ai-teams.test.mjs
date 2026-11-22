@@ -118,7 +118,7 @@ test('ai teams: meta descriptions are 120-160 characters, titles within 70', () 
 
 test('ai teams: prices only from the pricing helpers, never typed, and the delivery note is in the copy', () => {
   for (const [, dict] of dicts) {
-    assert.match(dict.aiTeams.page.delivery, /HQ/)
+    assert.match(dict.aiTeams.page.delivery, /каналах|channels/)
     assert.equal(dict.aiTeams.quote, undefined, 'the «по смете» line is gone, teams and agents show their subscription')
   }
   assert.equal(ru.aiTeams.ctaDiscuss, 'Спросить агента')

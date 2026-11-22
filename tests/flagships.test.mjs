@@ -138,20 +138,21 @@ test('builder: the estimate and the lead list the flagship with its plan, apart 
   }
 })
 
-test('flagship pages: their own structure, the brief order, the pilot offer only on the company page (the Personal AI page is cut to the short v4 list)', () => {
+test('flagship pages: their own structure, both cut to the short v4 list (the pilot block left the company page, its copy stays)', () => {
   const personal = productPages.personal.sections
   const company = productPages.company.sections
   // Personal AI (front v4): result -> where it lives -> twelve skills -> who you are + demo -> levels -> start -> questions.
   const order = (list, ids) => ids.every((id, i) => i === 0 || list.indexOf(ids[i - 1]) < list.indexOf(id))
   assert.deepEqual(personal, ['hero', 'channels', 'skills', 'myday', 'plans', 'start', 'questions'])
-  assert.ok(order(company, ['hero', 'structure', 'pult', 'knowledge', 'trust', 'teamgets', 'rollout', 'price', 'offer', 'objections', 'readiness']))
-  assert.equal(company[1], 'structure')
+  // AI company (front v4): the brain diagram -> where it lives -> a company day -> ask Fira -> subscription -> start -> questions.
+  assert.deepEqual(company, ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions'])
+  assert.ok(order(company, ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions']))
   assert.equal(productPages.company.face, 'fira')
   assert.equal(productPages.company.callFirst, true)
   // the two pages share no block of their own
-  const shared = new Set(['hero', 'channels'])
+  const shared = new Set(['hero', 'channels', 'start', 'questions'])
   assert.equal(personal.filter((s) => !shared.has(s) && company.includes(s)).length, 0)
-  for (const id of productIds) assert.equal(productPages[id].sections.includes('pilot'), id === 'company', `${id} pilot`)
+  for (const id of productIds) assert.equal(productPages[id].sections.includes('pilot'), false, `${id} pilot`)
   for (const [locale, dict] of dicts) {
     const p = dict.productPage.items.personal
     const c = dict.productPage.items.company
@@ -166,6 +167,15 @@ test('flagship pages: their own structure, the brief order, the pilot offer only
     assert.equal(c.trust.levels.length, 3)
     assert.equal(c.pult.tabs.length, 3)
     assert.ok(c.pilot.title && c.pilot.terms.length >= 2, locale)
+    // the company page's own blocks have copy, no founder / Dono / Polly mentions, four chips as questions
+    for (const key of ['brain', 'cday', 'cdemo', 'cplan', 'start', 'questions', 'heroCta']) assert.ok(c[key], `${locale} company ${key}`)
+    assert.equal(c.brain.sources.length, 4, locale)
+    assert.equal(c.brain.outputs.length, 2, locale)
+    assert.ok(c.brain.roles.length >= 3, locale)
+    assert.equal(c.cday.items.length, 5, locale)
+    assert.equal(c.cplan.points.length, 3, locale)
+    assert.equal(c.start.steps.length, 3, locale)
+    assert.doesNotMatch(JSON.stringify([c.brain, c.cday, c.cdemo, c.cplan, c.start, c.heroCta, c.result, c.lead]), /Dono|Polly|основател|founder/i, locale)
     for (const page of [p, c]) assert.ok(page.objections.length >= 4, `${locale} objections`)
     // The «demo on your data in 24 hours» promise is not written yet (owner 2026-11-22).
     assert.doesNotMatch(JSON.stringify([p, c]), /24 час|24 hours/i)
