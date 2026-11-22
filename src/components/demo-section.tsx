@@ -1,44 +1,21 @@
 import type { Dict } from '@/content'
-import { formatArticleDate } from '@/content/blog'
-import { allArticles } from '@/lib/blog-hq'
 import type { Locale } from '@/lib/i18n'
 import { productBuilderHref } from '@/lib/products'
-import { DemoTabs, type DemoArticle, type DemoTabId } from './demo/demo-tabs'
+import { DemoTabs, type DemoTabId } from './demo/demo-tabs'
 import { SectionHeader } from './ui/section'
 
-// «Попробуйте сейчас» (#demo, owner 2026-11-22): tabs per product, each with a demo that works on our
-// own agents. The articles for the «Контент на автопилоте» tab are the three newest published ones
-// (bundled or approved in HQ). A reel poster would come from HQ, but neither /api/office/public nor
-// the blog API carries one today, so the tab shows the articles only.
-export async function DemoSection({ dict, locale }: { dict: Dict; locale: Locale }) {
+// «Попробуйте сейчас» (#demo): only live demos that call the real agent (owner 2026-11-23): the receptionist
+// chat with its niche tabs and the «Персональный ИИ» chat. Signed out, each ends in the lock plate over a
+// static example. No explainer tabs; those live inside the product pages.
+export function DemoSection({ dict, locale }: { dict: Dict; locale: Locale }) {
   const d = dict.demoSection
-  const articles: DemoArticle[] = (await allArticles())
-    .filter((a) => a.published)
-    .slice(0, 3)
-    .map((a) => ({
-      slug: a.slug,
-      title: a[locale].title,
-      description: a[locale].description,
-      date: a.date,
-      dateLabel: formatArticleDate(a.date, locale),
-    }))
   const names: Record<DemoTabId, string> = {
     receptionist: dict.products.items.receptionist.name,
-    admin: dict.products.items.admin.name,
-    automation: dict.products.items.automation.name,
-    content: dict.products.items.content.name,
-    miniapp: dict.products.items.miniapp.name,
     personal: dict.products.items.personal.name,
-    company: dict.products.items.company.name,
   }
   const buildHrefs: Record<DemoTabId, string> = {
     receptionist: productBuilderHref(locale, 'receptionist'),
-    admin: productBuilderHref(locale, 'admin'),
-    automation: productBuilderHref(locale, 'automation'),
-    content: productBuilderHref(locale, 'content'),
-    miniapp: productBuilderHref(locale, 'miniapp'),
     personal: productBuilderHref(locale, 'personal'),
-    company: productBuilderHref(locale, 'company'),
   }
   return (
     <section id="demo" className="relative isolate scroll-mt-24 overflow-hidden py-section">
@@ -49,7 +26,7 @@ export async function DemoSection({ dict, locale }: { dict: Dict; locale: Locale
       <div className="mx-auto max-w-7xl px-4 md:px-8">
         <SectionHeader eyebrow={d.eyebrow} title={d.title} lead={d.sub} />
         <div className="mt-10">
-          <DemoTabs dict={dict} locale={locale} articles={articles} names={names} buildHrefs={buildHrefs} />
+          <DemoTabs dict={dict} locale={locale} names={names} buildHrefs={buildHrefs} />
         </div>
       </div>
     </section>

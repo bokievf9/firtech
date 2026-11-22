@@ -2332,10 +2332,23 @@ const en: Dict = {
         ask: 'Ask a question',
         sign: 'Sign',
         pay: 'Pay',
-        download: 'Download',
+        download: 'Download PDF',
         back: 'Back to the list',
         viewer: 'Document preview',
         noPreview: 'No preview. Download the file if it is available.',
+        textLabel: 'Document text',
+        showPdf: 'Show the PDF',
+        hidePdf: 'Hide the PDF',
+        readFirst: 'Read the whole document first, the buttons are below.',
+        missing: {
+          title: 'The text and the file are not available yet',
+          body: 'We cannot show this document here. Do not accept or sign what you have not seen: request it and we will send it.',
+          request: 'Request the document',
+          sending: 'Sending...',
+          sent: 'Request sent. We will answer in Messages or by email.',
+          failed: 'The request could not be sent. Write to us in Messages.',
+          text: 'Please send the document: {title}{number}. It does not open in the cabinet.',
+        },
         loading: 'Opening the document...',
         signPad: {
           title: 'Sign the contract',
@@ -3553,7 +3566,7 @@ const en: Dict = {
   demoSection: {
     eyebrow: 'Demo',
     title: 'Try it now',
-    sub: 'Try a product before you talk to us. These are our own agents, the same kind we set up for clients.',
+    sub: 'Live agents: you write, they answer.',
     tabsLabel: 'Products to try',
     exampleBadge: 'Example',
     receptionist: {
@@ -3609,12 +3622,6 @@ const en: Dict = {
       you: 'Client',
       agent: 'AI booking assistant',
     },
-    automation: {
-      intro: 'This is how an automation chain looks: a request arrives, the data lands in a sheet and the CRM on its own, and a message reaches you. A sample scheme, no real data is used.',
-    },
-    miniapp: {
-      intro: 'This is a shop inside Telegram: a catalogue, a cart and payment in one window. A sample, no real order is created.',
-    },
     personal: {
       intro: 'This is how a Personal AI works: the morning brief, mail, your promises, time for tasks and a language lesson. A scripted sample for a coffee shop owner, no real data is connected.',
       name: 'Personal AI',
@@ -3630,12 +3637,6 @@ const en: Dict = {
       you: 'You',
       end: 'Want an AI like this for yourself?',
       restart: 'Start over',
-    },
-    content: {
-      intro: 'The latest articles of our blog. Content on autopilot gives the same rhythm: plan, preparation, approval, publishing.',
-      empty: 'Articles will appear soon.',
-      read: 'Read',
-      all: 'All articles',
     },
     company: {
       intro: 'This is our own company of agents, working right now. We show only counters, and they update by themselves.',

@@ -32,11 +32,13 @@ export function DemoAssistant({
   gate,
   locale,
   badge,
+  compact = false,
 }: {
   copy: Dict['demoSection']['personal']
   gate: Dict['demoGate']
   locale: 'ru' | 'en'
   badge: string
+  compact?: boolean
 }) {
   const reduce = useReducedMotion()
   const { state: me, refresh } = useCabinetUser()
@@ -93,12 +95,12 @@ export function DemoAssistant({
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-12 lg:gap-8">
-      <div className="lg:col-span-5">
-        <p className="max-w-[44ch] text-muted">{copy.intro}</p>
-        {scriptMode && <p className="mt-6 inline-flex rounded-full bg-accent/15 px-3 py-1 text-xs text-accent-text">{badge}</p>}
+    <div className={cn('grid gap-5', !compact && 'lg:grid-cols-12 lg:gap-8')}>
+      <div className={cn(!compact && 'lg:col-span-5')}>
+        {!compact && <p className="max-w-[44ch] text-muted">{copy.intro}</p>}
+        {scriptMode && <p className={cn('inline-flex rounded-full bg-accent/15 px-3 py-1 text-xs text-accent-text', !compact && 'mt-6')}>{badge}</p>}
       </div>
-      <div className="lg:col-span-7">
+      <div className={cn(!compact && 'lg:col-span-7')}>
         <div className={cn('material-thick flex flex-col overflow-hidden rounded-panel', scriptMode ? 'h-[38rem] lg:h-[32rem]' : 'h-[26rem]')} data-demo-assistant>
           <div className="flex items-center gap-3 border-b border-b-hairline border-glass-line px-4 py-3">
             <span className="grid size-9 place-items-center rounded-full bg-pine font-brand text-xs text-accent-text">ft</span>
