@@ -45,7 +45,7 @@ test('every path carries a Report-Only CSP that parses, with the policy of the r
   assert.deepEqual(p['report-uri'], ['/api/csp-report'])
   assert.ok(p['connect-src'].some((s) => /^https:\/\/[a-z0-9]+\.supabase\.co$/.test(s)))
   assert.ok(p['connect-src'].some((s) => /^wss:\/\/[a-z0-9]+\.supabase\.co$/.test(s)))
-  assert.ok('upgrade-insecure-requests' in p)
+  assert.ok(!('upgrade-insecure-requests' in p), 'ignored (and a console error) in Report-Only; comes with stage 2')
   for (const part of value.split(';')) assert.match(part.trim(), /^[a-z-]+( [^\s;]+)*$/, part)
 })
 

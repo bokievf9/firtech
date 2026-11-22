@@ -34,7 +34,8 @@ export function cspDirectives(env: Env = process.env, opts: { frameAncestors?: s
     ['object-src', ["'none'"]],
     ['worker-src', ["'self'", 'blob:']],
     ['manifest-src', ["'self'"]],
-    ['upgrade-insecure-requests', []],
+    // `upgrade-insecure-requests` comes with stage 2: browsers ignore it in a Report-Only policy and log a console
+    // error on every page (the e2e console checks caught it). The site is HTTPS-only through nginx and HSTS anyway.
     ['report-uri', ['/api/csp-report']],
   ]
 }
