@@ -1,5 +1,6 @@
 'use client'
 
+import { PanelEmpty } from '@/components/admin/hub/ui'
 import { PanelWait } from './panel-error'
 import { DownloadSimple, MagnifyingGlass, UsersThree } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
@@ -114,8 +115,8 @@ export function LeadsPanel({
             </p>
           ) : null}
           {!leads && !error ? <PanelWait label={t.loading} /> : null}
-          {leads && !leads.length ? <p className="p-3 text-sm text-muted">{t.empty}</p> : null}
-          {leads && leads.length && !shown.length ? <p className="p-3 text-sm text-muted">{t.nothing}</p> : null}
+          {leads && !leads.length ? <PanelEmpty>{t.empty}</PanelEmpty> : null}
+          {leads && leads.length && !shown.length ? <PanelEmpty>{t.nothing}</PanelEmpty> : null}
 
           {shown.length ? (
             <>

@@ -26,3 +26,9 @@ test('useConfirm: exit animation, and `dialog` is null until the first ask (SSR 
   assert.match(src, /const dialog = state \? \(/)
   assert.match(src, /\) : null\n  return \{ ask, dialog \}/)
 })
+
+test('panel bodies use the shared Empty, not a bare muted paragraph, for «nothing here» states', () => {
+  const bare = /<p className="p-[23] text-sm text-muted">\{[a-z]+\.(empty|nothing)\}<\/p>/
+  const bad = files.filter((f) => bare.test(fs.readFileSync(f, 'utf8')))
+  assert.deepEqual(bad, [])
+})

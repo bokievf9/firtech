@@ -236,7 +236,7 @@ function AgentCardView({ id, onChanged }: { id: string; onChanged: () => void })
                   <li key={r.id}>#{r.id} {r.status} <span className="text-faint">{stamp(r.at)}</span></li>
                 ))}
               </ul>
-            ) : <p className="mt-1 text-muted">{t.empty}</p>}
+            ) : <p className="mt-1 text-sm text-faint">{t.empty}</p>}
           </div>
           <div>
             <p className="text-xs text-muted">{t.recentDecisions}</p>
@@ -246,7 +246,7 @@ function AgentCardView({ id, onChanged }: { id: string; onChanged: () => void })
                   <li key={`${r.approvalId}-${i}`}>{r.approvalId !== null ? `#${r.approvalId} ` : ''}{r.kind} {r.decision} <span className="text-faint">{stamp(r.at)}</span></li>
                 ))}
               </ul>
-            ) : <p className="mt-1 text-muted">{t.empty}</p>}
+            ) : <p className="mt-1 text-sm text-faint">{t.empty}</p>}
           </div>
         </div>
       </Block>

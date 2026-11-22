@@ -149,6 +149,15 @@ export function Empty({ children, icon: Glyph = Tray }: { children: React.ReactN
   )
 }
 
+// `Empty` inside a panel body (same gutter as the rows above it).
+export function PanelEmpty({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="p-3">
+      <Empty>{children}</Empty>
+    </div>
+  )
+}
+
 export function CopyButton({ text, label = u.copy, className }: { text: string; label?: string; className?: string }) {
   const [done, setDone] = useState(false)
   useEffect(() => {

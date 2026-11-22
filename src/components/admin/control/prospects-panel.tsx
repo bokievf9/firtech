@@ -1,5 +1,6 @@
 'use client'
 
+import { PanelEmpty } from '@/components/admin/hub/ui'
 import { Binoculars } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { admin } from '@/content/admin'
@@ -50,8 +51,8 @@ export function ProspectsPanel({ feed, badge, now, className }: { feed: CrmFeed<
                   />
                 ) : null}
                 <Search value={q} onChange={setQ} placeholder={p.search} />
-                {!items.length ? <p className="p-3 text-sm text-muted">{t.empty}</p> : null}
-                {items.length && !shown.length ? <p className="p-3 text-sm text-muted">{t.nothing}</p> : null}
+                {!items.length ? <PanelEmpty>{t.empty}</PanelEmpty> : null}
+                {items.length && !shown.length ? <PanelEmpty>{t.nothing}</PanelEmpty> : null}
                 {shown.length ? (
                   <>
                     <Count shown={shown.length} list={list} />

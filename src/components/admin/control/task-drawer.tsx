@@ -1,5 +1,6 @@
 'use client'
 
+import { Loading } from '@/components/admin/hub/ui'
 import { ArrowClockwise, X } from '@phosphor-icons/react'
 import { deptLabel } from '@/lib/admin-labels'
 import { AnimatePresence, motion } from 'motion/react'
@@ -45,10 +46,12 @@ function Body({
 }) {
   const { data, error, reload } = usePoll<TaskDetail>(`tasks/${encodeURIComponent(String(id))}`)
   if (!data) {
-    return (
-      <p role="status" className={cn('p-5 text-sm', error ? 'text-danger' : 'text-muted')}>
-        {error ? fill(t.failed, { e: errText(error) }) : t.loading}
+    return error ? (
+      <p role="status" className="p-5 text-sm text-danger">
+        {fill(t.failed, { e: errText(error) })}
       </p>
+    ) : (
+      <Loading rows={4} />
     )
   }
   const { task, events, approvals, children } = data
