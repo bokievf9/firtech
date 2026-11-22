@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
+import { Badge, Card as Surface, fieldClass } from '@/components/ui'
 import { cn } from '@/lib/cn'
 
-// Shared bits of the cabinet, in the look of the contact form: 12px inputs, 20px cards, lime accent.
-export const inputClass =
-  'ym-disable-keys w-full rounded-xl border border-line-strong bg-bg px-4 py-3 text-base text-fg md:text-[15px] placeholder:text-faint transition-colors focus:border-accent-text focus:outline-none aria-[invalid=true]:border-danger'
+// Shared bits of the cabinet, built on the v4 primitives: the field class and labels of `Input`, `Card`
+// (hairline surface, 20px corners, card padding), `Badge`. Same exports as before, so the callers stay.
+export const inputClass = cn('ym-disable-keys', fieldClass)
 
 export function Field({
   id,
@@ -18,12 +19,12 @@ export function Field({
 }) {
   return (
     <div className="grid content-start gap-2">
-      <label htmlFor={id} className="text-sm text-muted">
+      <label htmlFor={id} className="text-footnote font-medium text-fg">
         {label}
       </label>
       {children}
       {help && (
-        <p id={`${id}-help`} className="text-[13px] text-faint">
+        <p id={`${id}-help`} className="text-footnote text-muted">
           {help}
         </p>
       )}
@@ -33,10 +34,7 @@ export function Field({
 
 export function FormMessage({ kind, children }: { kind: 'error' | 'ok'; children: ReactNode }) {
   return (
-    <p
-      role={kind === 'error' ? 'alert' : 'status'}
-      className={cn('text-[13px] leading-relaxed', kind === 'error' ? 'text-danger' : 'text-accent-text')}
-    >
+    <p role={kind === 'error' ? 'alert' : 'status'} className={cn('text-footnote', kind === 'error' ? 'text-danger' : 'text-accent-text')}>
       {children}
     </p>
   )
@@ -54,36 +52,21 @@ export function Card({
   id?: string
 }) {
   return (
-    <section
-      id={id}
-      aria-labelledby={id ? `${id}-title` : undefined}
-      className={cn('rounded-card border border-line bg-surface p-6 md:p-8', className)}
-    >
-      <h2 id={id ? `${id}-title` : undefined} className="font-display text-xl font-semibold tracking-tight">
+    <Surface as="section" id={id} aria-labelledby={id ? `${id}-title` : undefined} className={cn('md:p-sheet', className)}>
+      <h2 id={id ? `${id}-title` : undefined} className="font-display text-title-3 font-semibold">
         {title}
       </h2>
       <div className="mt-5">{children}</div>
-    </section>
+    </Surface>
   )
 }
 
 export function Chip({ children, tone = 'muted' }: { children: ReactNode; tone?: 'muted' | 'accent' | 'warn' }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 font-mono text-[11px] whitespace-nowrap',
-        tone === 'accent' && 'border-accent-text/40 text-accent-text',
-        tone === 'warn' && 'border-warn/50 text-warn',
-        tone === 'muted' && 'border-line-strong text-muted',
-      )}
-    >
-      {children}
-    </span>
-  )
+  return <Badge tone={tone === 'accent' ? 'accent' : tone === 'warn' ? 'warn' : 'neutral'}>{children}</Badge>
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <p className="text-sm text-faint">{children}</p>
+  return <p className="text-callout text-muted">{children}</p>
 }
 
 export const fill = (text: string, values: Record<string, string>) =>

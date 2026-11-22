@@ -3154,8 +3154,8 @@ const en: Dict = {
         metaTitle: 'Your company’s AI: Fira knows your business | Fir Tech',
         metaDescription:
           'Fira in your company: one AI that knows your site, prices and documents, answers staff and clients in their channels and remembers context. Subscription.',
-        result: 'One AI that knows your company and answers for it in any channel',
-        lead: 'We install Fira in your company: it reads your site, price list, documents and rules, answers staff and clients where they already are, and remembers context. Sales, support and content plug in as skills, and the decisions stay with you.',
+        result: 'One AI that knows your whole company',
+        lead: 'Fira reads your site, price list, documents and rules and answers staff and clients in their channels. Roles plug in as skills.',
         capabilities: [
           { title: 'Knows your business', text: 'Your site, prices, documents and rules sit in one knowledge base, and answers come with a link to the source.', example: 'Returns within 14 days. Rules, section 2.', mock: 'chat', chips: ['Site', 'Price list', 'Rules'] },
           { title: 'Answers your staff', text: 'An employee asks Fira instead of digging through folders and chats and gets an answer with its source.', example: 'What discount do regulars get? Fira answers from your price list.', mock: 'chat', chips: ['Question', 'Answer', 'Source'] },
@@ -3170,6 +3170,67 @@ const en: Dict = {
         },
         needs: ['One person who approves decisions', 'Your site, documents, price list and rules', 'Access to channels and services', 'Staff time for training'],
         not: ['Money, prices and contracts stay with people', 'Never starts a new task without your approval', 'Never works with data it has no access to', 'Never rates or dismisses your staff for you'],
+        brain: {
+          title: 'One brain for the company',
+          sub: 'Fira reads your materials once and answers people in any channel.',
+          sourcesLabel: 'What it knows',
+          sources: [
+            { id: 'site', name: 'Site' },
+            { id: 'price', name: 'Price list' },
+            { id: 'docs', name: 'Documents' },
+            { id: 'rules', name: 'Rules' },
+          ],
+          centerLine: 'knows your business',
+          outputsLabel: 'Who it answers',
+          outputs: [
+            { id: 'staff', name: 'Staff', line: 'An answer with its source, no folder digging' },
+            { id: 'clients', name: 'Clients', line: 'An answer where the client wrote' },
+          ],
+          rolesLabel: 'Roles plug in as skills',
+          roles: ['Sales', 'Support', 'Content', 'Back office'],
+          more: 'More skills by the quote',
+          note: 'Money, prices and contracts stay with people.',
+        },
+        cday: {
+          title: 'A company day with AI',
+          sub: 'An example for a service company.',
+          items: [
+            { time: '09:00', icon: 'sales', role: 'Sales', text: 'Overnight requests got a reply, the offer waits for your price.' },
+            { time: '11:30', icon: 'support', role: 'Support', text: 'A refund question was closed by the rules, with a link.' },
+            { time: '14:00', icon: 'knowledge', role: 'Knowledge', text: 'A new hire asked about discounts and got the price list answer.' },
+            { time: '17:00', icon: 'backoffice', role: 'Back office', text: 'The invoice went out, the payment reminder reached the client.' },
+            { time: '19:00', icon: 'content', role: 'Content', text: 'The week of posts waits for your Approve.' },
+          ],
+        },
+        cdemo: {
+          title: 'Ask Fira',
+          sub: 'An example for a service company. We connect your data at launch.',
+          ask: 'Can I return an item after a month?',
+          answer: 'Returns are accepted within 14 days with a receipt. After a month we can offer a warranty exchange.',
+          source: 'Returns policy, section 2',
+          signedIn: 'You are signed in. Open the chat and ask Fira how we work.',
+          open: 'Open the chat with Fira',
+        },
+        cplan: {
+          title: 'Subscription',
+          sub: 'A one-time setup and a monthly fee. Model usage is included.',
+          points: [
+            { title: 'Your own API key', text: 'The fee is lower, model costs go to your own account.' },
+            { title: 'Staff', text: 'Five people are included, each one after that costs extra.' },
+            { title: 'Paid by stages', text: 'Four stages, each paid before it starts, the first under guarantee.' },
+          ],
+        },
+        start: {
+          title: 'How to start',
+          steps: [
+            { title: 'A 30 minute call', text: 'You describe the business, we name the price and scope.' },
+            { title: 'Sources and channels', text: 'We connect your site, documents and the first channel.' },
+            { title: 'The first skill', text: 'Fira works on your tasks, everything through approval.' },
+          ],
+          cta: 'Build the project',
+        },
+        questions: { title: 'What people ask' },
+        heroCta: { cta: 'Build the project', ask: 'Ask Fira' },
         structure: {
           title: 'One brain, many skills',
           sub: 'A sample for a service company. We decide which skills you need in the first stage and write them into the quote.',
@@ -3765,7 +3826,7 @@ const en: Dict = {
     nav: 'A team of AI agents',
     metaTitle: 'A team of AI agents for your business | Fir Tech',
     metaDescription:
-      'A marketing, sales or support team, or a whole company of AI agents in your own Telegram. Agents prepare, you approve with a button. Monthly subscription.',
+      'A marketing, sales or support team, or a whole company of AI agents in your own channels. Agents prepare, you approve with a button. Monthly subscription.',
     eyebrow: 'A team of AI agents',
     title: 'A whole team works and you only approve',
     sub: 'Marketing, sales or support on AI agents. Agents prepare the work, you approve with a button in your channel. Take one team or the whole company.',
@@ -3783,7 +3844,7 @@ const en: Dict = {
       title: 'One working cycle',
       steps: [
         { title: 'The agent prepares', text: 'A post, a reply to a client or a proposal goes into the queue.' },
-        { title: 'You approve', text: 'Buttons in Telegram: approve, edit, reject.' },
+        { title: 'You approve', text: 'Buttons in your channel: approve, edit, reject.' },
         { title: 'The agent acts', text: 'It publishes, sends and reports back to you.' },
       ],
     },
@@ -3800,7 +3861,7 @@ const en: Dict = {
       },
       {
         title: 'Agents prepare, you decide',
-        text: 'Batches of material, replies and documents arrive in Telegram. Each one has approval buttons.',
+        text: 'Batches of material, replies and documents arrive in your channel. Each one has approval buttons.',
       },
       {
         title: 'Trust grows step by step',
@@ -3811,6 +3872,15 @@ const en: Dict = {
         text: 'An owner panel: who is doing what, the approval queue and the daily summary.',
       },
     ],
+    together: {
+      title: 'How the team works together',
+      steps: [
+        { title: 'You set the rules', text: 'The business, channels and limits.' },
+        { title: 'Agents prepare', text: 'Material, replies and documents.' },
+        { title: 'You approve', text: 'With a button in your channel.' },
+        { title: 'Trust grows', text: 'Routine can be let go, money stays with you.' },
+      ],
+    },
     trust: {
       propose: 'You approve',
       auto: 'Acts alone, reports back',
@@ -3824,13 +3894,14 @@ const en: Dict = {
     },
     page: {
       back: 'All teams',
+      channelsLine: 'The result arrives in your channels, and no single one is required. The ones we connect go into the quote.',
       insideTitle: 'What is inside',
       routinesTitle: 'On a schedule',
       howTitle: 'How it works',
       needsTitle: 'What we need from you',
       deliveryTitle: 'Delivery',
       delivery:
-        'We deploy a separate HQ instance with your Telegram group and your access keys. Timing and scope go into the quote.',
+        'The agent works in your channels: a site chat, messengers, email, voice or a cabinet. The ones we connect go into the quote.',
       scopeNote:
         'The scope follows the roles in our own company. What exactly goes into your delivery is fixed in the quote.',
       faqTitle: 'Questions',
@@ -3844,11 +3915,14 @@ const en: Dict = {
       stripCta: 'See all agents',
       sectionTitle: 'Every agent on its own',
       sectionSub: 'Any role can be taken without the rest of the team. What the agent needs on input is written on its page.',
+      filterLabel: 'Team',
+      allLabel: 'All',
       more: 'Details',
       standaloneYes: 'Available on its own',
       standaloneNo: 'Only with a team',
       page: {
         back: 'All agents',
+        partOf: 'Part of:',
         deptLabel: 'Team',
         whatTitle: 'What it does',
         needsTitle: 'What we need from you',
@@ -3879,7 +3953,7 @@ const en: Dict = {
           needs: [
             'A description of your niche and a few of your competitors',
             'The platforms that matter to you',
-            'A Telegram chat for the digest',
+            'A channel for the digest: chat, email or cabinet',
           ],
           worksNote: 'The content maker uses the digest, but you can read it yourself as a source of post ideas.',
           alone: 'Collects trends and sends the digest without waiting for your approval.',
@@ -3926,7 +4000,7 @@ const en: Dict = {
             },
             {
               q: 'Can I use it without the publisher?',
-              a: 'Yes. Ready materials arrive in your Telegram and you post them yourself.',
+              a: 'Yes. Ready materials arrive in the channel you chose and you post them yourself.',
             },
             {
               q: 'How much does it cost?',
@@ -3978,7 +4052,7 @@ const en: Dict = {
           does: [
             'Collects channel and lead metrics',
             'Compares the week with the previous one',
-            'Sends a weekly report in Telegram',
+            'Sends a weekly report to your channel',
             'Suggests what to repeat and what to drop',
           ],
           needs: [
@@ -4224,12 +4298,12 @@ const en: Dict = {
           does: [
             'Checks the availability of sites and services from a list',
             'Notices errors in how they run',
-            'Sends an alert to Telegram',
+            'Sends an alert to your channel',
             'Reports when the service is back',
           ],
           needs: [
             'A list of site and service addresses',
-            'A Telegram chat for alerts',
+            'A channel for alerts: chat, email or voice',
             'Who should be told when something fails',
           ],
           worksNote: 'Works on its own and depends on nobody.',
@@ -4509,7 +4583,7 @@ const en: Dict = {
           ],
           needs: [
             'At least one team or a few agents',
-            'The Director chat in Telegram (we create it together)',
+            'A channel to talk to the Director (we create it together)',
             'Rules: what only you decide',
           ],
           worksNote: 'The Director needs at least one team. Without working agents there is nothing to assign. It plugs into what already runs.',
@@ -4544,7 +4618,7 @@ const en: Dict = {
         forWhom: 'Small businesses and studios without a marketer or time for regular content.',
         metaTitle: 'A marketing team of AI agents | Fir Tech',
         metaDescription:
-          'Trend scout, content maker, publisher and analyst: reels, carousels, articles and a weekly plan. You approve in Telegram. Monthly subscription.',
+          'Trend scout, content maker, publisher and analyst: reels, carousels, articles and a weekly plan. You approve in your own channel. Monthly subscription.',
         agents: [
           { name: 'Trend Scout', does: 'Collects rising topics and formats from social networks and search every day for the content maker.', trust: 'auto' },
           { name: 'Content Maker', does: 'Makes reels, carousels and articles from topics and trends in the languages you need.', trust: 'propose' },
@@ -4553,13 +4627,13 @@ const en: Dict = {
         ],
         routines: [
           'Every day: a digest of rising topics and formats',
-          'A batch of material for approval in Telegram',
+          'A batch of material for approval in your channel',
           'Weekly: a channel report and the plan for the week',
         ],
         how: 'The content maker sends material in a batch. You press approve, edit or reject. The publisher goes live after your yes, and once the quality suits you, some tasks can move to working alone.',
         needs: [
           'Access to the channels you choose: Instagram, Telegram, YouTube or others',
-          'A Telegram chat or group for talking to the team (we create it together)',
+          'A chat or group for talking to the team (we create it together)',
           'A description of the business, examples of posts you like and a list of topics to avoid',
           'Access keys for the AI model and services that you pay for',
         ],
@@ -4627,7 +4701,7 @@ const en: Dict = {
         ],
         how: 'The agent answers questions that are in the base from the base. When there is no answer, it opens a ticket and passes it to you. Invoices and reminders are prepared in advance and go out after your approval.',
         needs: [
-          'A channel where clients ask questions: a Telegram chat or a site chat',
+          'A channel where clients ask questions: a site chat, a messenger or email',
           'Your answers to common questions, rules and policies',
           'A list of sites and services to watch',
           'Subscription and invoice data in the sheet or service you use',
@@ -4661,7 +4735,7 @@ const en: Dict = {
         needs: [
           'A proposal template or a description of how you take an order',
           'Access to the task tracker or sheet where the work is kept',
-          'A channel to clients: a Telegram chat or a work chat',
+          'A channel to clients: a messenger, email or a work chat',
           'Acceptance rules: what counts as done',
         ],
         faq: [
@@ -4709,7 +4783,7 @@ const en: Dict = {
         card: 'A Director, every team and a control panel. You talk to one agent.',
         promise:
           'The Director hands tasks to the teams and collects the approval queue. You run the company from one chat and one panel.',
-        forWhom: 'An owner who wants to run a company from Telegram and not keep ten processes in mind.',
+        forWhom: 'An owner who wants to run a company from one window and not keep ten processes in mind.',
         metaTitle: 'A company of AI agents: the Director and every team | Fir Tech',
         metaDescription:
           'A Director, marketing, sales, support, production and back office teams, a control panel and owner approvals. Its own HQ. Monthly subscription.',
@@ -4724,9 +4798,9 @@ const en: Dict = {
           'The approval queue in one place',
           'A weekly report across all teams',
         ],
-        how: 'All teams work in one HQ. Approvals gather in one queue: Telegram for quick decisions, the panel for the full picture. Money, prices and contracts stay with you.',
+        how: 'All teams work in one HQ. Approvals gather in one queue: your channel for quick decisions, the panel for the full picture. Money, prices and contracts stay with you.',
         needs: [
-          'The Director\'s chat in Telegram (we create it together)',
+          'A channel to talk to the Director (we create it together)',
           'Access to the channels, messengers and sheets we connect',
           'Material about the business: services, price list, templates, answers to common questions',
           'Access keys for the AI model and services that you pay for',

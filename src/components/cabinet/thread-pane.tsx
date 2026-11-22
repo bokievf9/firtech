@@ -18,6 +18,7 @@ import {
   type ChatMessage,
   type ChatThread,
 } from '@/lib/cabinet-chat'
+import { IconButton } from '@/components/ui'
 import { buttonStyles, cn } from '@/lib/cn'
 import { FormMessage } from './ui'
 
@@ -257,15 +258,15 @@ export function ThreadPane({
   return (
     <div className={cn('flex min-h-0 flex-col', className)} data-thread={thread.id} data-thread-kind={thread.kind}>
       {chrome && (
-        <div className="flex items-center gap-3 border-b border-line px-4 py-3.5">
+        <div className="flex items-center gap-3 border-b border-b-hairline border-line px-4 py-3.5">
           {onBack && (
-            <button type="button" onClick={onBack} aria-label={t.back} className="-ml-1 rounded-full p-1.5 text-muted transition-colors hover:text-fg lg:hidden">
+            <IconButton label={t.back} onClick={onBack} className="-ml-2 lg:hidden">
               <ArrowLeft size={18} aria-hidden="true" />
-            </button>
+            </IconButton>
           )}
           <div className="min-w-0">
-            <p className="truncate text-[15px] font-medium">{label}</p>
-            <p className="font-mono text-[11px] tracking-[0.08em] text-faint uppercase">{t.kind[thread.kind]}</p>
+            <p className="truncate text-callout font-medium">{label}</p>
+            <p className="text-caption text-faint font-medium">{t.kind[thread.kind]}</p>
           </div>
         </div>
       )}
@@ -279,12 +280,12 @@ export function ThreadPane({
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4"
         data-messages
       >
-        {status === 'loading' && <p className="py-10 text-center text-sm text-faint">{t.loading}</p>}
-        {status === 'error' && <p className="py-10 text-center text-sm text-danger">{errors.hq}</p>}
-        {status === 'ready' && messages.length === 0 && <p className="py-10 text-center text-sm text-faint">{t.noMessages}</p>}
+        {status === 'loading' && <p className="py-10 text-center text-callout text-faint">{t.loading}</p>}
+        {status === 'error' && <p className="py-10 text-center text-callout text-danger">{errors.hq}</p>}
+        {status === 'ready' && messages.length === 0 && <p className="py-10 text-center text-callout text-faint">{t.noMessages}</p>}
         {groups.map((g) => (
           <div key={g.day || 'x'}>
-            <p className="my-3 text-center font-mono text-[11px] tracking-[0.08em] text-faint uppercase">
+            <p className="my-3 text-center text-caption text-faint font-medium">
               {g.day === today ? t.today : g.day === yesterday ? t.yesterday : new Date(g.items[0]?.at ?? '').toLocaleDateString(locale === 'en' ? 'en-US' : 'ru-RU', { day: 'numeric', month: 'long' })}
             </p>
             <ul className="grid gap-2">
@@ -296,15 +297,15 @@ export function ThreadPane({
         ))}
       </div>
 
-      <div className="border-t border-line p-3 md:p-4">
+      <div className="border-t border-t-hairline border-line p-3 md:p-4">
         {file && (
-          <div className="mb-2 inline-flex max-w-full items-center gap-2 rounded-full border border-line-strong py-1 pr-1 pl-3 text-[13px]" data-pending-file>
+          <div className="mb-2 inline-flex max-w-full items-center gap-2 rounded-full border border-hairline border-line-strong py-1 pr-1 pl-3 text-footnote" data-pending-file>
             <FileText size={16} aria-hidden="true" className="shrink-0 text-faint" />
             <span className="truncate">{file.name}</span>
-            <span className="shrink-0 font-mono text-[11px] text-faint">{formatSize(file.size)}</span>
-            <button type="button" onClick={() => setFile(null)} aria-label={t.removeFile} className="rounded-full p-1 text-muted hover:text-fg">
+            <span className="shrink-0 font-mono text-caption text-faint">{formatSize(file.size)}</span>
+            <IconButton label={t.removeFile} onClick={() => setFile(null)} className="size-7">
               <X size={14} aria-hidden="true" />
-            </button>
+            </IconButton>
           </div>
         )}
         <div className="flex items-end gap-2">
@@ -319,15 +320,9 @@ export function ThreadPane({
               e.target.value = ''
             }}
           />
-          <button
-            type="button"
-            onClick={() => pick.current?.click()}
-            aria-label={t.attach}
-            title={t.attach}
-            className="grid size-11 shrink-0 place-items-center rounded-full border border-line-strong text-muted transition-colors hover:border-fg/40 hover:text-fg"
-          >
+          <IconButton label={t.attach} title={t.attach} tone="outline" onClick={() => pick.current?.click()} className="size-11">
             <Paperclip size={20} aria-hidden="true" />
-          </button>
+          </IconButton>
           <div className="min-w-0 flex-1">
             <label htmlFor={`${uid}-text`} className="sr-only">
               {t.composer}
@@ -351,7 +346,7 @@ export function ThreadPane({
                   void submit()
                 }
               }}
-              className="ym-disable-keys block max-h-40 min-h-11 w-full resize-none rounded-[22px] border border-line-strong bg-bg px-4 py-2.5 text-base text-fg transition-colors placeholder:text-faint focus:border-accent-text focus:outline-none md:text-[15px]"
+              className="ym-disable-keys block max-h-40 min-h-11 w-full resize-none rounded-[22px] border border-hairline border-line-strong bg-bg px-4 py-2.5 text-body text-fg transition-colors placeholder:text-faint focus:border-accent-text focus:outline-none md:text-callout"
               data-composer
             />
           </div>
@@ -366,7 +361,7 @@ export function ThreadPane({
             <PaperPlaneRight size={20} weight="fill" aria-hidden="true" />
           </button>
         </div>
-        <p id={`${uid}-hint`} className="mt-2 hidden px-1 text-[12px] text-faint md:block">
+        <p id={`${uid}-hint`} className="mt-2 hidden px-1 text-caption text-faint md:block">
           {t.hint}
         </p>
         {error && (
@@ -399,13 +394,13 @@ function Bubble({
     <li className={cn('flex flex-col', own ? 'items-end' : 'items-start')} data-message={m.id} data-from={m.from}>
       <div
         className={cn(
-          'max-w-[88%] rounded-[18px] px-3.5 py-2.5 text-[15px] leading-snug whitespace-pre-line',
-          own ? 'rounded-br-md bg-accent text-accent-ink' : 'rounded-bl-md border border-line bg-surface-2 text-fg',
+          'max-w-[88%] rounded-[18px] px-3.5 py-2.5 text-callout leading-snug whitespace-pre-line',
+          own ? 'rounded-br-md bg-accent text-accent-ink' : 'rounded-bl-md border border-hairline border-line bg-surface-2 text-fg',
           m.state === 'sending' && 'opacity-70',
           m.state === 'failed' && 'border border-danger',
         )}
       >
-        {!own && <span className="mb-0.5 block text-xs font-medium text-accent-text">{who}</span>}
+        {!own && <span className="mb-0.5 block text-caption font-medium text-accent-text">{who}</span>}
         {m.text}
         {m.attachments.length > 0 && (
           <ul className={cn('grid gap-1.5', m.text && 'mt-2')}>
@@ -414,20 +409,20 @@ function Bubble({
                 <a
                   {...(a.href ? { href: a.href } : {})}
                   className={cn(
-                    'flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-[13px] break-all',
+                    'flex items-center gap-2 rounded-tile border px-2.5 py-1.5 text-footnote break-all',
                     own ? 'border-accent-ink/25 hover:bg-accent-ink/10' : 'border-line-strong hover:bg-fg/5',
                   )}
                 >
                   <FileText size={16} aria-hidden="true" className="shrink-0" />
                   <span className="min-w-0">{a.name}</span>
-                  {a.size > 0 && <span className="shrink-0 font-mono text-[11px] opacity-70">{formatSize(a.size)}</span>}
+                  {a.size > 0 && <span className="shrink-0 font-mono text-caption opacity-70">{formatSize(a.size)}</span>}
                 </a>
               </li>
             ))}
           </ul>
         )}
       </div>
-      <div className="mt-1 flex items-center gap-2 px-1 font-mono text-[11px] text-faint">
+      <div className="mt-1 flex items-center gap-2 px-1 font-mono text-caption text-faint">
         <span>{timeOf(m.at, locale)}</span>
         {m.state === 'failed' && (
           <button type="button" onClick={onRetry} className="inline-flex items-center gap-1 text-danger underline underline-offset-2">

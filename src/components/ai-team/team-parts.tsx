@@ -10,6 +10,7 @@ import type { ComponentType } from 'react'
 import type { Dict } from '@/content'
 import { aiTeamAccent, type AiTeamId, type AiTeamTrust } from '@/lib/ai-teams'
 import { cn } from '@/lib/cn'
+import { Badge } from '../ui'
 
 export const aiTeamIcons: Record<AiTeamId, ComponentType<{ size?: number; weight?: 'duotone'; 'aria-hidden'?: boolean | 'true' }>> = {
   marketing: Megaphone,
@@ -26,7 +27,7 @@ export function TeamGlyph({ id, size = 22, className }: { id: AiTeamId; size?: n
   const accent = aiTeamAccent[id]
   return (
     <span
-      className={cn('grid size-11 shrink-0 place-items-center rounded-xl', accent.soft, accent.text, className)}
+      className={cn('grid size-11 shrink-0 place-items-center rounded-tile', accent.soft, accent.text, className)}
     >
       <Glyph size={size} weight="duotone" aria-hidden="true" />
     </span>
@@ -37,8 +38,6 @@ export function TeamGlyph({ id, size = 22, className }: { id: AiTeamId; size?: n
 export function TrustChip({ trust, dict }: { trust: AiTeamTrust | string; dict: Dict }) {
   const label = dict.aiTeams.trust[trust as AiTeamTrust] ?? trust
   return (
-    <span className="inline-flex rounded-full border border-line-strong px-2.5 py-0.5 text-xs text-muted">
-      {label}
-    </span>
+    <Badge className="whitespace-normal">{label}</Badge>
   )
 }

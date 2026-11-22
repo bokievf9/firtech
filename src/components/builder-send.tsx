@@ -150,11 +150,11 @@ export function ProjectSend({
   if (status === 'sent') {
     return (
       <div id="contact" ref={root} role="status" className="grid gap-3 scroll-mt-40">
-        <p className="flex items-center gap-2 text-lg font-medium">
+        <p className="flex items-center gap-2 text-headline">
           <CheckCircle size={24} weight="light" className="text-accent-text" />
           {t.successTitle}
         </p>
-        <p className="text-sm leading-relaxed text-muted">{queued ? t.successQueued : cabinet ? dict.leadAuth.redirecting : t.successText}</p>
+        <p className="text-callout leading-relaxed text-muted">{queued ? t.successQueued : cabinet ? dict.leadAuth.redirecting : t.successText}</p>
         {cabinet && (
           <a href={cabinet} className={buttonStyles.secondary}>
             {dict.leadAuth.toCabinet}
@@ -167,7 +167,7 @@ export function ProjectSend({
   return (
     <div id="contact" ref={root} className="grid gap-3 scroll-mt-40">
       {cameBack && me.status === 'in' && !authStep && (
-        <p role="status" className="rounded-xl border border-accent-text/30 bg-accent/[0.06] px-4 py-3 text-sm text-fg">
+        <p role="status" className="rounded-tile border border-accent-text/30 bg-accent/[0.06] px-4 py-3 text-callout text-fg">
           {pick(faceUi.sendDraft, locale)}
         </p>
       )}
@@ -178,9 +178,9 @@ export function ProjectSend({
         </Pending>
       )}
       {status === 'error' && failure && <ErrorNote error={failure} locale={locale} onRetry={() => void onPress()} />}
-      <p className="text-[12px] leading-snug text-faint">{pick(faceUi.sendHint, locale)}</p>
+      <p className="text-caption leading-snug text-faint">{pick(faceUi.sendHint, locale)}</p>
       <LeadAccountNote dict={dict} state={me} />
-      <p className="text-[12px] leading-relaxed text-faint">
+      <p className="text-caption leading-relaxed text-faint">
         <ConsentText text={t.consent} href={`/${locale}/privacy`} />
       </p>
       {authStep && (

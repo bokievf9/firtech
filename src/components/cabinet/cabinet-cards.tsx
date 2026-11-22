@@ -17,19 +17,19 @@ export async function ReferralsCard({ data, dict, locale }: { data: CabinetData;
   return (
     <Card title={c.referrals} id="cabinet-referrals">
       <div className="grid gap-5">
-        <p className="text-sm leading-relaxed text-muted">
+        <p className="text-callout leading-relaxed text-muted">
           {fillReferralPercent(t.rule, pricing)}
         </p>
         {link ? (
           <div className="grid gap-2">
-            <p className="text-sm font-medium">{t.title}</p>
+            <p className="text-callout font-medium">{t.title}</p>
             <CopyLink link={link} dict={dict} />
           </div>
         ) : (
-          <p className="text-[13px] text-faint">{t.pending}</p>
+          <p className="text-footnote text-faint">{t.pending}</p>
         )}
         <div>
-          <p className="text-sm font-medium">{t.listTitle}</p>
+          <p className="text-callout font-medium">{t.listTitle}</p>
           {data.referrals.length === 0 ? (
             <div className="mt-2">
               <Empty>{c.noReferrals}</Empty>
@@ -37,7 +37,7 @@ export async function ReferralsCard({ data, dict, locale }: { data: CabinetData;
           ) : (
             <ul className="mt-3 grid gap-2">
               {data.referrals.map((r) => (
-                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 text-callout">
                   <span>{r.referred}</span>
                   <Chip tone={r.status === 'rewarded' ? 'accent' : 'muted'}>{label(c.referralStatus, r.status)}</Chip>
                 </li>
@@ -47,7 +47,7 @@ export async function ReferralsCard({ data, dict, locale }: { data: CabinetData;
         </div>
         <Link
           href={`/${locale}/referral`}
-          className="justify-self-start text-sm text-muted underline decoration-line-strong underline-offset-4 hover:text-fg"
+          className="justify-self-start text-callout text-muted underline decoration-line-strong underline-offset-4 hover:text-fg"
         >
           {t.more}
         </Link>

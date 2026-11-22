@@ -59,11 +59,11 @@ export function ReviewCard({
   if (status === 'done') {
     return (
       <section className="rounded-card border border-accent-text/40 bg-surface p-6 md:p-8" data-review-done aria-live="polite">
-        <h2 className="font-display text-xl font-semibold tracking-tight">{t.thanks}</h2>
-        <p className="mt-3 max-w-[60ch] text-sm leading-relaxed text-muted">{thanksSub}</p>
+        <h2 className="font-display text-title-3 font-semibold">{t.thanks}</h2>
+        <p className="mt-3 max-w-[60ch] text-callout leading-relaxed text-muted">{thanksSub}</p>
         {refLink && (
           <div className="mt-4 grid gap-2">
-            <p className="text-sm font-medium">{t.refLabel}</p>
+            <p className="text-callout font-medium">{t.refLabel}</p>
             <CopyLink link={refLink} dict={dict} />
           </div>
         )}
@@ -73,10 +73,10 @@ export function ReviewCard({
 
   return (
     <section className="rounded-card border border-accent-text/40 bg-surface p-6 md:p-8" data-review-form aria-labelledby="cabinet-review-title">
-      <h2 id="cabinet-review-title" className="font-display text-xl font-semibold tracking-tight">
+      <h2 id="cabinet-review-title" className="font-display text-title-3 font-semibold">
         {t.title}
       </h2>
-      <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-muted">{t.sub}</p>
+      <p className="mt-2 max-w-[60ch] text-callout leading-relaxed text-muted">{t.sub}</p>
       <form
         className="mt-5 grid max-w-xl gap-4"
         onSubmit={(e) => {
@@ -85,7 +85,7 @@ export function ReviewCard({
         }}
       >
         <fieldset className="grid gap-2">
-          <legend className="text-sm text-muted">{t.rating}</legend>
+          <legend className="text-callout text-muted">{t.rating}</legend>
           <div className="flex gap-1" role="radiogroup" aria-label={t.rating}>
             {[1, 2, 3, 4, 5].map((n) => (
               <button
@@ -96,7 +96,7 @@ export function ReviewCard({
                 aria-label={t.star.replace('{n}', String(n))}
                 data-rating={n}
                 onClick={() => setRating(n)}
-                className="rounded-md p-1 text-faint transition-colors hover:text-fg focus-visible:outline-2 focus-visible:outline-accent-text"
+                className="pressable rounded-full p-1 text-faint hover:text-fg focus-visible:outline-2 focus-visible:outline-accent-text"
               >
                 <Star size={32} weight={n <= rating ? 'fill' : 'regular'} aria-hidden="true" className={cn(n <= rating && 'text-accent-text')} />
               </button>
@@ -104,7 +104,7 @@ export function ReviewCard({
           </div>
         </fieldset>
         <div className="grid gap-2">
-          <label htmlFor="review-text" className="text-sm text-muted">
+          <label htmlFor="review-text" className="text-callout text-muted">
             {t.text}
           </label>
           <textarea
@@ -115,7 +115,7 @@ export function ReviewCard({
             maxLength={REVIEW_TEXT_MAX}
             className={inputClass}
           />
-          <p className="text-[13px] text-faint">{t.textHelp}</p>
+          <p className="text-footnote text-faint">{t.textHelp}</p>
         </div>
         {error && <FormMessage kind="error">{error}</FormMessage>}
         <button type="submit" disabled={status === 'sending'} className={cn(buttonStyles.primary, 'justify-self-start')}>

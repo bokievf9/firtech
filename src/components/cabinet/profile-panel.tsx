@@ -2,6 +2,7 @@
 
 import { Check, LockSimple } from '@phosphor-icons/react'
 import { useEffect, useId, useState, type ReactNode } from 'react'
+import { Badge, Card } from '@/components/ui'
 import { ErrorNote } from '@/components/ui/error-note'
 import { Spinner } from '@/components/ui/spinner'
 import type { Dict } from '@/content'
@@ -63,7 +64,7 @@ function FieldStatus({ status, t }: { status?: Status; t: Dict['cabinet']['profi
   }, [savedAt])
   const fresh = savedAt !== 0 && faded !== savedAt
   return (
-    <span aria-live="polite" className="inline-flex min-h-5 items-center gap-1.5 text-[12px] text-faint">
+    <span aria-live="polite" className="inline-flex min-h-5 items-center gap-1.5 text-caption text-faint">
       {status?.state === 'saving' ? (
         <>
           <Spinner className="size-3" />
@@ -108,14 +109,14 @@ function Row({
   return (
     <div className={cn('grid min-w-0 content-start gap-2', wide && 'sm:col-span-2')}>
       <div className="flex items-center justify-between gap-3">
-        <label htmlFor={id} className="text-sm text-muted">
+        <label htmlFor={id} className="text-callout text-muted">
           {label}
         </label>
         <FieldStatus status={status} t={t} />
       </div>
       {children}
       {hint ? (
-        <p id={`${id}-help`} className="text-[13px] leading-relaxed text-faint">
+        <p id={`${id}-help`} className="text-footnote leading-relaxed text-faint">
           {hint}
         </p>
       ) : null}
@@ -221,10 +222,10 @@ function Switch({
     <div className="grid gap-2 py-4" data-pref={field}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p id={`${id}-label`} className="text-[15px] font-medium text-fg">
+          <p id={`${id}-label`} className="text-callout font-medium text-fg">
             {title}
           </p>
-          <p id={`${id}-text`} className="mt-1 text-[13px] leading-relaxed text-faint">
+          <p id={`${id}-text`} className="mt-1 text-footnote leading-relaxed text-faint">
             {text}
           </p>
           {status ? <FieldStatus status={status} t={ctx.t.status} /> : null}
@@ -260,16 +261,16 @@ function Switch({
 
 function Section({ id, title, text, badge, children }: { id: string; title: string; text: string; badge?: ReactNode; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="scroll-mt-28 rounded-card border border-line bg-surface p-5 sm:p-6 md:p-8">
+    <Card as="section" id={id} aria-labelledby={`${id}-title`} className="scroll-mt-28 md:p-sheet">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-        <h3 id={`${id}-title`} className="font-display text-xl font-semibold tracking-tight">
+        <h3 id={`${id}-title`} className="font-display text-title-3 font-semibold">
           {title}
         </h3>
         {badge}
       </div>
-      <p className="mt-1.5 max-w-[60ch] text-sm leading-relaxed text-muted">{text}</p>
+      <p className="mt-1.5 max-w-[60ch] text-callout leading-relaxed text-muted">{text}</p>
       <div className="mt-6">{children}</div>
-    </section>
+    </Card>
   )
 }
 
@@ -327,8 +328,8 @@ export function ProfilePanel({
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-6 md:grid-cols-[200px_minmax(0,1fr)] md:gap-10" data-profile-panel>
       <nav aria-label={t.sectionsLabel} className="min-w-0 md:sticky md:top-28 md:self-start">
-        <h2 className="font-display text-2xl font-semibold tracking-tight">{t.title}</h2>
-        <p className="mt-2 text-[13px] leading-relaxed text-faint">{t.intro}</p>
+        <h2 className="font-display text-title-2 font-semibold">{t.title}</h2>
+        <p className="mt-2 text-footnote leading-relaxed text-faint">{t.intro}</p>
         <ul className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:gap-1 md:overflow-visible md:px-0">
           {SECTIONS.map((s) => (
             <li key={s} className="shrink-0">
@@ -336,7 +337,7 @@ export function ProfilePanel({
                 href={`#profile-${s}`}
                 aria-current={active === s ? 'true' : undefined}
                 className={cn(
-                  'block rounded-full border px-3.5 py-1.5 text-sm whitespace-nowrap transition-colors md:rounded-xl md:border-transparent md:px-3 md:py-2',
+                  'pressable block rounded-full border px-3.5 py-1.5 text-callout whitespace-nowrap md:rounded-tile md:border-transparent md:px-3 md:py-2',
                   active === s ? 'border-accent-text/50 text-fg md:bg-fg/5' : 'border-line text-muted hover:text-fg',
                 )}
               >
@@ -349,7 +350,7 @@ export function ProfilePanel({
 
       <div className="grid min-w-0 gap-5">
         {legacy && (
-          <p role="status" className="rounded-xl border border-warn/40 px-4 py-3 text-sm text-muted">
+          <p role="status" className="rounded-tile border border-warn/40 px-4 py-3 text-callout text-muted">
             {t.legacy}
           </p>
         )}
@@ -358,11 +359,11 @@ export function ProfilePanel({
           <div className="grid gap-5 sm:grid-cols-2">
             <TextInput ctx={ctx} field="name" label={t.you.name} placeholder={t.you.namePlaceholder} autoComplete="name" maxLength={80} />
             <div className="grid min-w-0 content-start gap-2">
-              <label htmlFor={`${uid}-email`} className="text-sm text-muted">
+              <label htmlFor={`${uid}-email`} className="text-callout text-muted">
                 {t.you.email}
               </label>
               <input id={`${uid}-email`} value={profile.email} readOnly aria-describedby={`${uid}-email-help`} className={cn(inputClass, 'text-muted')} />
-              <p id={`${uid}-email-help`} className="text-[13px] leading-relaxed text-faint">
+              <p id={`${uid}-email-help`} className="text-footnote leading-relaxed text-faint">
                 <a href="#profile-security" className="underline decoration-line-strong underline-offset-4 hover:text-fg">
                   {t.you.emailHint}
                 </a>
@@ -406,9 +407,7 @@ export function ProfilePanel({
           title={t.docs.title}
           text={t.docs.text}
           badge={
-            <span className="inline-flex items-center rounded-full border border-accent-text/40 px-2.5 py-0.5 font-mono text-[11px] text-accent-text">
-              {t.docs.badge}
-            </span>
+            <Badge tone="accent">{t.docs.badge}</Badge>
           }
         >
           <div className="grid gap-5 sm:grid-cols-2">
@@ -422,19 +421,19 @@ export function ProfilePanel({
           <div className="divide-y divide-line">
             <div className="flex items-start justify-between gap-4 pb-4" data-pref="project">
               <div className="min-w-0">
-                <p className="text-[15px] font-medium text-fg">{t.notify.project}</p>
-                <p className="mt-1 text-[13px] leading-relaxed text-faint">{t.notify.projectText}</p>
+                <p className="text-callout font-medium text-fg">{t.notify.project}</p>
+                <p className="mt-1 text-footnote leading-relaxed text-faint">{t.notify.projectText}</p>
               </div>
-              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-line-strong px-2.5 py-1 text-[12px] whitespace-nowrap text-muted">
+              <Badge className="shrink-0">
                 <LockSimple size={12} aria-hidden="true" />
                 {t.notify.locked}
-              </span>
+              </Badge>
             </div>
             <Switch ctx={ctx} field="marketing" title={t.notify.marketing} text={t.notify.marketingText} />
             <Switch ctx={ctx} field="recommendations" title={t.notify.recommendations} text={t.notify.recommendationsText} />
             <div className="grid gap-3 pt-4" data-pref="channel">
               <div className="flex items-center justify-between gap-3">
-                <p id={`${uid}-channel-label`} className="text-[15px] font-medium text-fg">
+                <p id={`${uid}-channel-label`} className="text-callout font-medium text-fg">
                   {t.notify.channel}
                 </p>
                 <FieldStatus status={channelStatus} t={t.status} />
@@ -447,7 +446,7 @@ export function ProfilePanel({
                     <label
                       key={c}
                       className={cn(
-                        'flex min-h-11 cursor-pointer items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm transition-colors',
+                        'pressable flex min-h-11 cursor-pointer items-center gap-2.5 rounded-tile border px-3.5 py-2.5 text-callout',
                         checked ? 'border-accent-text bg-fg/5 text-fg' : 'border-line-strong text-muted hover:text-fg',
                         disabled && 'cursor-not-allowed opacity-50 hover:text-muted',
                       )}
@@ -466,7 +465,7 @@ export function ProfilePanel({
                   )
                 })}
               </div>
-              {!profile.telegram && <p className="text-[13px] text-faint">{t.notify.needTelegram}</p>}
+              {!profile.telegram && <p className="text-footnote text-faint">{t.notify.needTelegram}</p>}
               <StatusError status={channelStatus} locale={locale} />
             </div>
           </div>

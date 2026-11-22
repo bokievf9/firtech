@@ -93,7 +93,7 @@ test('call sites: clicks are tracked, the strip is compact and the cabinet has n
   const view = read('src/components/cabinet/offers.tsx')
   assert.match(view, /ProductPriceTag/)
   assert.match(view, /data-offers-strip/)
-  assert.match(view, /rounded-xl border border-line bg-surface p-4/)
+  assert.match(view, /<Card as="li"/)
   assert.doesNotMatch(view, /\/status|Overview/)
   const page = read('src/app/[locale]/cabinet/page.tsx')
   assert.match(page, /<OffersStrip/)

@@ -58,16 +58,16 @@ export function ForkToggle({ locale, personal, onPick }: { locale: string; perso
           aria-pressed={on}
           onClick={() => !on && onPick(id)}
           className={cn(
-            'flex items-center gap-4 rounded-card border p-4 text-left backdrop-blur-xl transition-[border-color,background-color,transform] duration-300 ease-out-expo active:scale-[0.985]',
-            on ? 'border-accent-text/70 bg-accent/[0.07]' : 'border-line bg-surface/70 hover:border-line-strong',
+            'pressable flex items-center gap-4 rounded-card border border-hairline p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text',
+            on ? 'border-accent-text/70 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_68%)]' : 'border-line bg-surface hover:border-line-strong',
           )}
         >
           <span className={cn('grid size-11 shrink-0 place-items-center rounded-full border', on ? 'border-accent-text bg-accent/15 text-accent-text' : 'border-line-strong text-muted')}>
             <Glyph size={22} weight="light" />
           </span>
           <span className="min-w-0">
-            <span className="block text-base font-medium">{pick(name, locale)}</span>
-            <span className="block text-[13px] leading-snug text-faint">{pick(hint, locale)}</span>
+            <span className="block text-body font-medium">{pick(name, locale)}</span>
+            <span className="block text-footnote leading-snug text-faint">{pick(hint, locale)}</span>
           </span>
         </button>
       ))}
@@ -103,8 +103,8 @@ export function PersonalStep({
             <Choice key={id} role="radio" on={p.who === id} onClick={() => patch({ who: id })} className="flex min-h-[7rem] flex-col justify-between gap-3 p-3.5 sm:p-4">
               <Glyph size={24} weight="light" className={p.who === id ? 'text-accent-text' : 'text-muted'} />
               <span>
-                <span className="block text-[15px] leading-tight font-medium">{whoText[id].name[l]}</span>
-                <span className="mt-1 hidden text-xs leading-snug text-faint sm:block">{whoText[id].hint[l]}</span>
+                <span className="block text-callout leading-tight font-medium">{whoText[id].name[l]}</span>
+                <span className="mt-1 hidden text-caption leading-snug text-faint sm:block">{whoText[id].hint[l]}</span>
               </span>
             </Choice>
           )
@@ -121,8 +121,8 @@ export function PersonalStep({
             <Choice key={id} on={on} onClick={() => patch({ hand: toggle(p.hand, id) })} className="flex items-start gap-3 p-4">
               <Tick on={on} />
               <span>
-                <span className="block text-[15px] font-medium">{handText[id].name[l]}</span>
-                <span className="mt-0.5 block text-[13px] leading-snug text-faint">{handText[id].hint[l]}</span>
+                <span className="block text-callout font-medium">{handText[id].name[l]}</span>
+                <span className="mt-0.5 block text-footnote leading-snug text-faint">{handText[id].hint[l]}</span>
               </span>
             </Choice>
           )
@@ -140,8 +140,8 @@ export function PersonalStep({
             <Choice key={id} on={on} onClick={() => patch({ where: toggle(p.where, id) })} className="flex items-center gap-3 p-4">
               <Glyph size={22} weight="light" className={on ? 'text-accent-text' : 'text-muted'} />
               <span className="min-w-0 flex-1">
-                <span className="block text-[15px] font-medium">{channelNames[id].name[l]}</span>
-                <span className="block text-[13px] leading-snug text-faint">{channelNames[id].hint[l]}</span>
+                <span className="block text-callout font-medium">{channelNames[id].name[l]}</span>
+                <span className="block text-footnote leading-snug text-faint">{channelNames[id].hint[l]}</span>
               </span>
               <Tick on={on} />
             </Choice>
@@ -167,9 +167,9 @@ export function PersonalStep({
       <div className="grid max-w-2xl gap-9">
         {toneUi.axes.map((axis, i) => (
           <div key={axis.id}>
-            <label htmlFor={`tone-${axis.id}`} className="flex items-baseline justify-between gap-4 text-[15px] font-medium">
+            <label htmlFor={`tone-${axis.id}`} className="flex items-baseline justify-between gap-4 text-callout font-medium">
               <span>{axis.name[l]}</span>
-              <span className="text-sm text-accent-text" aria-live="polite">{axis.options[tone[i] ?? 1]![l]}</span>
+              <span className="text-callout text-accent-text" aria-live="polite">{axis.options[tone[i] ?? 1]![l]}</span>
             </label>
             <input
               id={`tone-${axis.id}`}
@@ -185,7 +185,7 @@ export function PersonalStep({
               }}
               className="mt-4 w-full accent-[var(--color-accent)]"
             />
-            <div className="mt-1 flex justify-between text-xs text-faint">
+            <div className="mt-1 flex justify-between text-caption text-faint">
               {axis.options.map((o) => (
                 <span key={o[l]}>{o[l]}</span>
               ))}
@@ -208,11 +208,11 @@ export function PersonalStep({
             return (
               <Choice key={id} role="radio" on={on} onClick={() => patch({ tier: id })} className="grid content-between gap-6 p-5 backdrop-blur-xl">
                 <span>
-                  {suggested === id && <span className="mb-3 inline-block rounded-full bg-accent/15 px-2.5 py-0.5 text-[11px] text-accent-text">{pick(tierUi.suggested, locale)}</span>}
-                  <span className="block text-xl font-semibold tracking-tight">{tierText[id].name[l]}</span>
-                  <span className="mt-2 block text-[13px] leading-snug text-muted">{tierText[id].hint[l]}</span>
+                  {suggested === id && <span className="mb-3 inline-block rounded-full bg-accent/15 px-2.5 py-0.5 text-caption text-accent-text">{pick(tierUi.suggested, locale)}</span>}
+                  <span className="block text-title-3 font-semibold">{tierText[id].name[l]}</span>
+                  <span className="mt-2 block text-footnote leading-snug text-muted">{tierText[id].hint[l]}</span>
                 </span>
-                <span className="grid gap-1 font-mono text-sm">
+                <span className="grid gap-1 font-mono text-callout">
                   <span>{formatUsd(plan.setup)} <span className="text-faint">{pick(tierUi.setup, locale)}</span></span>
                   <span>{formatUsd(plan.monthly)} <span className="text-faint">{pick(tierUi.perMonth, locale)}</span></span>
                 </span>
@@ -220,7 +220,7 @@ export function PersonalStep({
             )
           })}
         </div>
-        <p className="mt-5 max-w-[60ch] text-[13px] leading-relaxed text-faint">{pick(tierUi.byok, locale)}</p>
+        <p className="mt-5 max-w-[60ch] text-footnote leading-relaxed text-faint">{pick(tierUi.byok, locale)}</p>
       </>
     )
   }
@@ -266,12 +266,12 @@ export function PersonalDay({
                 transition={{ delay: reduce ? 0 : i * 0.07, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className="grid grid-cols-[3.5rem_1.25rem_1fr] items-start gap-3 py-3.5"
               >
-                <span className="font-mono text-sm text-muted">{row.time}</span>
+                <span className="font-mono text-callout text-muted">{row.time}</span>
                 <span aria-hidden="true" className="relative mt-1.5 flex h-full justify-center">
                   <span className="size-2.5 rounded-full bg-accent" />
                   {i < rows.length - 1 && <span className="absolute top-4 -bottom-[1.1rem] w-px bg-line-strong" />}
                 </span>
-                <span className="text-[15px] leading-snug">{text}</span>
+                <span className="text-callout leading-snug">{text}</span>
               </motion.li>
             )
           })}
@@ -293,17 +293,17 @@ export function PersonalDay({
         </Panel>
         <Panel title={pick(personalSteps.steps, locale)[5]}>
           <div data-tier-card className="grid gap-3">
-            <p className="text-2xl font-semibold tracking-tight">{tierText[tier].name[l]}</p>
-            <p className="text-sm text-muted">{tierText[tier].hint[l]}</p>
-            <p className="font-mono text-sm">
+            <p className="text-title-2 font-semibold">{tierText[tier].name[l]}</p>
+            <p className="text-callout text-muted">{tierText[tier].hint[l]}</p>
+            <p className="font-mono text-callout">
               {formatUsd(plan.setup)} <span className="text-faint">{pick(tierUi.setup, locale)}</span>
               {' + '}
               {formatUsd(plan.monthly)} <span className="text-faint">{pick(tierUi.perMonth, locale)}</span>
             </p>
-            <p className="text-[13px] leading-relaxed text-faint">{pick(tierUi.byok, locale)}</p>
+            <p className="text-footnote leading-relaxed text-faint">{pick(tierUi.byok, locale)}</p>
           </div>
           <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
-          <ul className="mt-5 grid gap-2 text-[13px] leading-relaxed text-faint">
+          <ul className="mt-5 grid gap-2 text-footnote leading-relaxed text-faint">
             <li>{doc.scope}</li>
             <li>{t.note}</li>
           </ul>

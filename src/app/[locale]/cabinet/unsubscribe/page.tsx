@@ -39,8 +39,8 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
   return (
     <section className="mx-auto max-w-xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <HeroIntro>
-        <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-        <h1 className="mt-5 text-[2.2rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">{t.title}</h1>
+        <p className="text-caption text-accent-text font-medium">{t.eyebrow}</p>
+        <h1 className="mt-5 text-title font-semibold text-balance">{t.title}</h1>
       </HeroIntro>
       <div className="mt-8 grid gap-6">
         <p
@@ -48,10 +48,10 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
           data-unsubscribe={body.tone}
           className={
             body.tone === 'error'
-              ? 'rounded-xl border border-danger/40 bg-danger/10 px-4 py-3 text-danger'
+              ? 'rounded-tile border border-danger/40 bg-danger/10 px-4 py-3 text-danger'
               : body.tone === 'ok'
-                ? 'rounded-xl border border-accent-text/40 px-4 py-3 text-fg'
-                : 'text-lg leading-relaxed text-muted'
+                ? 'rounded-tile border border-accent-text/40 px-4 py-3 text-fg'
+                : 'text-lead text-muted'
           }
         >
           {body.text}
@@ -64,7 +64,7 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
               <UnsubscribeButton label={t.button} pending={t.pending} />
             </form>
           )}
-          <Link href={`/${locale}/cabinet?tab=profile#profile-notify`} className={body.tone === 'ask' ? 'text-sm text-muted underline underline-offset-4 hover:text-fg' : buttonStyles.secondary}>
+          <Link href={`/${locale}/cabinet?tab=profile#profile-notify`} className={body.tone === 'ask' ? 'text-callout text-muted underline underline-offset-4 hover:text-fg' : buttonStyles.secondary}>
             {t.toCabinet}
           </Link>
         </div>

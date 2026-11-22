@@ -43,14 +43,14 @@ export function LeadsSection({
   return (
     <section id="cabinet-leads" aria-labelledby="cabinet-leads-title" data-cabinet-leads>
       {focus !== null && <ScrollTo id={`lead-${focus}`} />}
-      <h2 id="cabinet-leads-title" className="font-display text-2xl font-semibold tracking-tight">
+      <h2 id="cabinet-leads-title" className="font-display text-title-2 font-semibold">
         {dict.cabinet.v3.home.requestsTitle}
       </h2>
 
       {pending && (
         <div role="status" className="mt-5 rounded-card border border-accent-text/40 bg-accent/[0.06] p-5" data-lead-pending>
           <p className="font-medium">{t.pending}</p>
-          <p className="mt-1 text-sm text-muted">{t.pendingText}</p>
+          <p className="mt-1 text-callout text-muted">{t.pendingText}</p>
           {follow && <FollowLink href={follow} label={t.follow} />}
         </div>
       )}
@@ -128,8 +128,8 @@ function LeadCard({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-medium">{service || fill(t.number, { id: String(lead.id) })}</h3>
-          <p className="mt-1 font-mono text-[12px] text-faint">
+          <h3 className="text-headline">{service || fill(t.number, { id: String(lead.id) })}</h3>
+          <p className="mt-1 font-mono text-caption text-faint">
             {fill(t.number, { id: String(lead.id) })}
             {lead.createdAt ? `, ${formatDate(lead.createdAt, locale)}` : ''}
           </p>
@@ -137,7 +137,7 @@ function LeadCard({
         {lost && <Chip>{t.lost}</Chip>}
       </div>
 
-      <p className="mt-4 max-w-[60ch] text-lg leading-snug text-fg" data-lead-status>
+      <p className="mt-4 max-w-[60ch] text-headline text-fg" data-lead-status>
         {leadNextStep(lead, t.defaultNext)}
       </p>
 
@@ -147,7 +147,7 @@ function LeadCard({
         </div>
       )}
 
-      <ol aria-label={t.trackLabel} className="mt-6 grid grid-cols-3 gap-2 text-[13px] sm:grid-cols-6" data-track>
+      <ol aria-label={t.trackLabel} className="mt-6 grid grid-cols-3 gap-2 text-footnote sm:grid-cols-6" data-track>
         {steps.map((step) => (
           <li
             key={step.stage}
@@ -165,24 +165,24 @@ function LeadCard({
       </ol>
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <dl className="grid content-start gap-3 text-sm">
+        <dl className="grid content-start gap-3 text-callout">
           {facts
             .filter(([, v]) => v)
             .map(([k, v]) => (
               <div key={k}>
-                <dt className="text-[13px] text-faint">{k}</dt>
+                <dt className="text-footnote text-faint">{k}</dt>
                 <dd className="mt-0.5 whitespace-pre-line">{v}</dd>
               </div>
             ))}
         </dl>
         <div>
-          <p className="text-[13px] text-muted">{t.timelineTitle}</p>
-          <ol className="mt-2 grid gap-2 text-sm" data-timeline>
+          <p className="text-footnote text-muted">{t.timelineTitle}</p>
+          <ol className="mt-2 grid gap-2 text-callout" data-timeline>
             {timeline.map((row, i) => (
               <li key={`${row.kind}-${i}`} className="flex gap-3">
                 <span aria-hidden="true" className="mt-1.5 size-2 shrink-0 rounded-full bg-accent" />
                 <span className="flex-1">{row.title}</span>
-                {row.date && <span className="font-mono text-[12px] text-faint">{row.date}</span>}
+                {row.date && <span className="font-mono text-caption text-faint">{row.date}</span>}
               </li>
             ))}
           </ol>
@@ -191,12 +191,12 @@ function LeadCard({
 
       {follow && <FollowLink href={follow} label={t.follow} />}
 
-      <div className="mt-6 border-t border-line pt-5">
+      <div className="mt-6 border-t border-t-hairline border-line pt-5">
         <TabLink
           tab="messages"
           extra={{ ref: `lead-${lead.id}` }}
           data-lead-thread={lead.id}
-          className="text-sm text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
+          className="text-callout text-fg underline decoration-line-strong underline-offset-4 hover:text-accent-text"
         >
           {t.openThread}
         </TabLink>

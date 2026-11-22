@@ -6,6 +6,7 @@ import type { Dict } from '@/content'
 import { agentLanguages, agentTones, checkBotToken, usageShare, type AgentConversation, type ClientAgent } from '@/lib/cabinet-agent'
 import type { ChatThread } from '@/lib/cabinet-chat'
 import { formatDate } from '@/lib/cabinet-data'
+import { Card } from '@/components/ui'
 import { buttonStyles, cn } from '@/lib/cn'
 import { Chip, Empty, Field, FormMessage, fill, inputClass } from './ui'
 import { ThreadPane } from './thread-pane'
@@ -112,41 +113,40 @@ export function AgentPanel({
     setConnecting(false)
   }
 
-  const card = 'rounded-card border border-line bg-surface p-5 md:p-6'
-  const h = 'font-display text-lg font-semibold tracking-tight'
+  const h = 'font-display text-headline font-semibold'
 
   return (
     <section aria-labelledby="cabinet-agent-title" data-cabinet-agent>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id="cabinet-agent-title" className="font-display text-2xl font-semibold tracking-tight">
+          <h2 id="cabinet-agent-title" className="font-display text-title-2 font-semibold">
             {t.title}: {agent.name}
           </h2>
-          <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-muted">{t.sub}</p>
+          <p className="mt-2 max-w-[60ch] text-callout leading-relaxed text-muted">{t.sub}</p>
         </div>
         <Chip tone={agent.state === 'live' ? 'accent' : 'muted'}>{agent.state === 'live' ? t.live : t.draft}</Chip>
       </div>
 
       <div className="mt-6 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)]">
         <div className="grid gap-5">
-          <div className="flex h-[min(70dvh,620px)] min-h-[460px] flex-col overflow-hidden rounded-card border border-line bg-surface">
-            <div className="flex items-center gap-3 border-b border-line px-4 py-3.5">
+          <Card padded={false} className="flex h-[min(70dvh,620px)] min-h-[460px] flex-col overflow-hidden">
+            <div className="flex items-center gap-3 border-b border-b-hairline border-line px-4 py-3.5">
               <span className="grid size-9 place-items-center rounded-full bg-accent text-accent-ink">
                 <Robot size={20} weight="fill" aria-hidden="true" />
               </span>
               <div>
-                <p className="text-[15px] font-medium">{t.chatTitle}</p>
-                <p className="text-[12px] text-faint">{t.chatHint}</p>
+                <p className="text-callout font-medium">{t.chatTitle}</p>
+                <p className="text-caption text-faint">{t.chatHint}</p>
               </div>
             </div>
             {thread ? (
               <ThreadPane key={thread.id} thread={thread} dict={dict} locale={locale} agentReply chrome={false} className="min-h-0 flex-1" />
             ) : (
-              <div className="grid flex-1 place-items-center p-8 text-center text-sm text-muted">{t.noThread}</div>
+              <div className="grid flex-1 place-items-center p-8 text-center text-callout text-muted">{t.noThread}</div>
             )}
-          </div>
+          </Card>
 
-          <div className={card}>
+          <Card>
             <h3 className={h}>{t.conversationsTitle}</h3>
             {conversations.length === 0 ? (
               <div className="mt-3">
@@ -155,35 +155,35 @@ export function AgentPanel({
             ) : (
               <ul className="mt-3 grid gap-2" data-conversations>
                 {conversations.map((c) => (
-                  <li key={c.id} className="rounded-xl border border-line px-4 py-3">
+                  <li key={c.id} className="rounded-tile border border-hairline border-line px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="truncate text-sm text-fg">
+                      <span className="truncate text-callout text-fg">
                         {(t.channel as Record<string, string>)[c.channel] ?? c.channel}, {fill(t.messagesCount, { n: String(c.messages) })}
                       </span>
-                      <span className="shrink-0 font-mono text-[11px] text-faint">{formatDate(c.lastAt, locale)}</span>
+                      <span className="shrink-0 font-mono text-caption text-faint">{formatDate(c.lastAt, locale)}</span>
                     </div>
                     {c.leadsCaptured > 0 && (
-                      <p className="mt-1 font-mono text-[11px] tracking-[0.06em] text-faint uppercase">{fill(t.leadsCaptured, { n: String(c.leadsCaptured) })}</p>
+                      <p className="mt-1 text-caption text-faint font-medium">{fill(t.leadsCaptured, { n: String(c.leadsCaptured) })}</p>
                     )}
                   </li>
                 ))}
               </ul>
             )}
-          </div>
+          </Card>
         </div>
 
         <div className="grid gap-5">
-          <div className={card} data-agent-usage>
+          <Card data-agent-usage>
             <h3 className={h}>{t.usageTitle}</h3>
-            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <dl className="mt-4 grid grid-cols-2 gap-3 text-callout">
               <div>
-                <dt className="text-[12px] text-faint">{t.today}</dt>
-                <dd className="mt-1 font-mono text-xl">{agent.usage.msgsToday}</dd>
-                {agent.limits.msgsPerDay && <dd className="font-mono text-[11px] text-faint">{fill(t.limit, { n: String(agent.limits.msgsPerDay) })}</dd>}
+                <dt className="text-caption text-faint">{t.today}</dt>
+                <dd className="mt-1 font-mono text-title-3">{agent.usage.msgsToday}</dd>
+                {agent.limits.msgsPerDay && <dd className="font-mono text-caption text-faint">{fill(t.limit, { n: String(agent.limits.msgsPerDay) })}</dd>}
               </div>
               <div>
-                <dt className="text-[12px] text-faint">{t.conversations}</dt>
-                <dd className="mt-1 font-mono text-xl">{agent.usage.conversations || conversations.length}</dd>
+                <dt className="text-caption text-faint">{t.conversations}</dt>
+                <dd className="mt-1 font-mono text-title-3">{agent.usage.conversations || conversations.length}</dd>
               </div>
             </dl>
             {share !== null && (
@@ -198,10 +198,11 @@ export function AgentPanel({
                 <div className="h-full rounded-full bg-accent" style={{ width: `${share}%` }} />
               </div>
             )}
-          </div>
+          </Card>
 
-          <form
-            className={cn(card, 'grid gap-4')}
+          <Card
+            as="form"
+            className="grid gap-4"
             onSubmit={(e) => {
               e.preventDefault()
               void save()
@@ -228,7 +229,7 @@ export function AgentPanel({
               </select>
             </Field>
             <fieldset className="grid gap-2">
-              <legend className="mb-1 text-sm text-muted">{t.languages}</legend>
+              <legend className="mb-1 text-callout text-muted">{t.languages}</legend>
               <div className="flex flex-wrap gap-2">
                 {agentLanguages.map((l) => {
                   const on = form.languages.includes(l)
@@ -236,7 +237,7 @@ export function AgentPanel({
                     <label
                       key={l}
                       className={cn(
-                        'cursor-pointer rounded-full border px-3.5 py-1.5 text-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent-text',
+                        'cursor-pointer rounded-full border px-3.5 py-1.5 text-callout transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-accent-text',
                         on ? 'border-accent-text bg-accent/10 text-fg' : 'border-line-strong text-muted hover:text-fg',
                       )}
                     >
@@ -254,7 +255,7 @@ export function AgentPanel({
             </fieldset>
 
             <div className="grid gap-2">
-              <p className="text-sm text-muted">{t.channels}</p>
+              <p className="text-callout text-muted">{t.channels}</p>
               <ChannelRow label={t.web}>
                 <Chip tone="accent">{t.on}</Chip>
               </ChannelRow>
@@ -271,9 +272,9 @@ export function AgentPanel({
             <button type="submit" disabled={state === 'saving'} className={cn(buttonStyles.primary, 'justify-self-start')}>
               {state === 'saving' ? t.saving : t.save}
             </button>
-          </form>
+          </Card>
 
-          <div className={card} data-agent-telegram>
+          <Card data-agent-telegram>
             <h3 className={h}>{t.connectTitle}</h3>
             {agent.channels.telegram ? (
               <div className="mt-3 grid justify-items-start gap-3">
@@ -290,7 +291,7 @@ export function AgentPanel({
                   void connect()
                 }}
               >
-                <p className="text-sm leading-relaxed text-muted">{t.connectText}</p>
+                <p className="text-callout leading-relaxed text-muted">{t.connectText}</p>
                 <Field id={`${uid}-token`} label={t.token} help={t.tokenHint}>
                   <input
                     id={`${uid}-token`}
@@ -322,7 +323,7 @@ export function AgentPanel({
                 <FormMessage kind="error">{tgError}</FormMessage>
               </div>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </section>
@@ -331,7 +332,7 @@ export function AgentPanel({
 
 function ChannelRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-line px-4 py-2.5 text-sm">
+    <div className="flex items-center justify-between gap-3 rounded-tile border border-hairline border-line px-4 py-2.5 text-callout">
       <span>{label}</span>
       {children}
     </div>

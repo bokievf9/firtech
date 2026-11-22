@@ -12,6 +12,7 @@ import {
   ReadinessBlock,
   ScopeBlock,
 } from './common-blocks'
+import { BrainBlock, CdayBlock, CdemoBlock, CompanyHero, CplanBlock } from './company-blocks'
 import { PersonaBlock, PersonalHero, PlansBlock, QuestionsBlock, SkillsBlock, StartBlock } from './personal-blocks'
 import {
   KnowledgeBlock,
@@ -45,7 +46,7 @@ export function ProductSection({ section, ctx, band }: { section: ProductSection
   const t = dict.productPage
   switch (section) {
     case 'hero':
-      return id === 'personal' ? <PersonalHero ctx={ctx} /> : <ProductHero ctx={ctx} />
+      return id === 'personal' ? <PersonalHero ctx={ctx} /> : id === 'company' ? <CompanyHero ctx={ctx} /> : <ProductHero ctx={ctx} />
     case 'demo':
       return <DemoBlock ctx={ctx} band={band} />
     case 'capabilities':
@@ -90,6 +91,14 @@ export function ProductSection({ section, ctx, band }: { section: ProductSection
       return page.skills ? <SkillsBlock ctx={ctx} band={band} /> : null
     case 'myday':
       return page.myday ? <PersonaBlock ctx={ctx} band={band} /> : null
+    case 'brain':
+      return page.brain ? <BrainBlock ctx={ctx} band={band} /> : null
+    case 'cday':
+      return page.cday ? <CdayBlock ctx={ctx} band={band} /> : null
+    case 'cdemo':
+      return page.cdemo ? <CdemoBlock ctx={ctx} band={band} /> : null
+    case 'cplan':
+      return page.cplan ? <CplanBlock ctx={ctx} band={band} /> : null
     case 'plans':
       return page.plans ? <PlansBlock ctx={ctx} band={band} /> : null
     case 'start':

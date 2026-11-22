@@ -2,11 +2,11 @@
 
 import { ArrowLeft, ArrowRight, Eye, X } from '@phosphor-icons/react'
 import { AnimatePresence, motion } from 'motion/react'
-import { useEffect, useRef, type ReactNode } from 'react'
-import { buttonStyles, cn } from '@/lib/cn'
+import type { ReactNode } from 'react'
+import { Button, IconButton, Sheet } from '@/components/ui'
+import { cn } from '@/lib/cn'
+import { fade, spring } from '@/lib/motion'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
-
-const ease = [0.16, 1, 0.3, 1] as const
 
 // Top of every builder screen: the page title and the steps, each clickable once reachable.
 export function StepBar({
@@ -25,16 +25,16 @@ export function StepBar({
   onGo: (i: number) => void
 }) {
   return (
-    <div className="sticky top-16 z-30 border-b border-line bg-bg/85 backdrop-blur-xl md:top-[72px]">
+    <div className="material-thick sticky top-16 z-30 rounded-none border-x-0 border-t-0 md:top-[72px]">
       <div className="mx-auto max-w-7xl px-4 pt-3 pb-2.5 md:px-8 md:pt-4">
         <div className="flex items-baseline justify-between gap-4">
-          <h1 className="truncate text-sm font-medium">
-            <span className="mr-2 font-mono text-[11px] tracking-[0.14em] text-accent-text uppercase">
+          <h1 className="truncate text-callout font-medium">
+            <span className="mr-2 text-caption font-medium text-accent-text">
               {eyebrow}
             </span>
             <span className="text-muted">{title}</span>
           </h1>
-          <span className="shrink-0 font-mono text-xs text-faint md:hidden">
+          <span className="shrink-0 text-footnote text-muted md:hidden">
             {steps[step]}
           </span>
         </div>
@@ -50,14 +50,14 @@ export function StepBar({
                   aria-current={i === step ? 'step' : undefined}
                   aria-label={`${i + 1}. ${label}`}
                   className={cn(
-                    'group flex w-full flex-col gap-2 py-1 text-left',
+                    'group flex w-full flex-col gap-2 rounded-md py-1 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text',
                     !can && 'cursor-not-allowed',
                   )}
                 >
                   <span className="relative block h-1 overflow-hidden rounded-full bg-line-strong">
                     <span
                       className={cn(
-                        'absolute inset-0 origin-left rounded-full transition-[transform,background-color] duration-500 ease-out-expo motion-reduce:transition-none',
+                        'absolute inset-0 origin-left rounded-full transition-[transform,background-color] duration-300 ease-drawer motion-reduce:transition-none',
                         i <= step ? 'scale-x-100' : 'scale-x-0',
                         i === step ? 'bg-accent' : 'bg-accent/45',
                       )}
@@ -65,7 +65,7 @@ export function StepBar({
                   </span>
                   <span
                     className={cn(
-                      'hidden truncate text-xs transition-colors md:block',
+                      'hidden truncate text-footnote transition-colors md:block',
                       i === step
                         ? 'text-fg'
                         : can
@@ -111,34 +111,26 @@ export function BottomNav({
           initial={reduce ? { opacity: 0 } : { y: 96, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={reduce ? { opacity: 0 } : { y: 96, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 320, damping: 34 }}
-          className="print-hidden fixed inset-x-0 bottom-0 z-40 border-t border-line-strong bg-bg/85 backdrop-blur-xl"
+          transition={reduce ? fade : spring.sheet}
+          className="print-hidden material-thick fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
           <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 md:gap-4 md:px-8">
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               onClick={onBack}
               disabled={!onBack}
               aria-label={backLabel}
-              className={cn(
-                buttonStyles.secondary,
-                'size-12 shrink-0 px-0 md:w-auto md:px-5 disabled:opacity-30',
-              )}
+              className="size-12 shrink-0 px-0 md:w-auto md:px-5 disabled:opacity-30"
             >
               <ArrowLeft size={16} />
               <span className="hidden md:inline">{backLabel}</span>
-            </button>
+            </Button>
             <div className="min-w-0 flex-1 px-1">{center}</div>
             {onPreview && previewLabel && (
-              <button
-                type="button"
-                onClick={onPreview}
-                aria-label={previewLabel}
-                className={cn(buttonStyles.secondary, 'size-12 shrink-0 px-0 lg:hidden')}
-              >
+              <IconButton label={previewLabel} tone="outline" onClick={onPreview} className="size-12 lg:hidden">
                 <Eye size={18} />
-              </button>
+              </IconButton>
             )}
             {primary}
           </div>
@@ -148,7 +140,7 @@ export function BottomNav({
   )
 }
 
-// Phones and tablets: the mockup in a sheet from the bottom.
+// Phones and tablets: the mockup in a sheet from the bottom (shared Sheet: focus trap, Esc, scroll lock).
 export function PreviewSheet({
   open,
   title,
@@ -162,61 +154,16 @@ export function PreviewSheet({
   onClose: () => void
   children: ReactNode
 }) {
-  const reduce = useReducedMotion()
-  const close = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    close.current?.focus()
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
-    }
-  }, [open, onClose])
-
   return (
-    <AnimatePresence>
-      {open && (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={title}>
-          <motion.button
-            type="button"
-            aria-label={closeLabel}
-            tabIndex={-1}
-            onClick={onClose}
-            className="absolute inset-0 bg-scrim backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-          <motion.div
-            initial={reduce ? { opacity: 0 } : { y: '100%' }}
-            animate={reduce ? { opacity: 1 } : { y: 0 }}
-            exit={reduce ? { opacity: 0 } : { y: '100%' }}
-            transition={{ duration: 0.45, ease }}
-            className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-card border-t border-line-strong bg-surface px-4 pt-3 pb-6"
-            style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
-          >
-            <span className="mx-auto mb-3 block h-1 w-10 rounded-full bg-fg/20" />
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <p className="font-medium">{title}</p>
-              <button
-                ref={close}
-                type="button"
-                onClick={onClose}
-                aria-label={closeLabel}
-                className="grid size-10 place-items-center rounded-full border border-line-strong"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            {children}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <Sheet open={open} onClose={onClose} label={title} side="bottom" className="lg:hidden">
+      <div className="flex items-center justify-between gap-4 px-4 pt-4 pb-2">
+        <p className="text-headline">{title}</p>
+        <IconButton label={closeLabel} tone="outline" onClick={onClose}>
+          <X size={16} />
+        </IconButton>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-5">{children}</div>
+    </Sheet>
   )
 }
 
@@ -231,14 +178,13 @@ export function NextButton({
   onClick: () => void
 }) {
   return (
-    <button
-      type="button"
+    <Button
       aria-disabled={blocked || undefined}
       onClick={onClick}
-      className={cn(buttonStyles.primary, 'h-12 shrink-0 px-5 md:px-7', blocked && 'opacity-50')}
+      className={cn('shrink-0 px-5 md:px-7', blocked && 'opacity-50')}
     >
       {label}
       <ArrowRight size={16} />
-    </button>
+    </Button>
   )
 }

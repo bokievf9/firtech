@@ -4,7 +4,8 @@ import { Eraser } from '@phosphor-icons/react'
 import { useCallback, useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { Dict } from '@/content'
 import { buildSignaturePayload, checkSignaturePng, type SignatureError, type SignaturePayload } from '@/lib/cabinet-docs'
-import { buttonStyles, cn } from '@/lib/cn'
+
+import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import { Field, FormMessage, inputClass } from './ui'
 
 // The e-signature pad (owner 2026-11-22: «электронная подпись мышкой», no code): a canvas for mouse,
@@ -174,11 +175,11 @@ export function SignaturePad({
 
   const shown = localError || error
   return (
-    <div className="rounded-xl border border-accent-text/40 bg-surface p-5 md:p-6" data-signature-pad>
-      <h3 className="font-display text-lg font-semibold tracking-tight">{t.title}</h3>
-      <p className="mt-1 text-sm text-muted">{t.draw}</p>
+    <div className="rounded-tile border border-accent-text/40 bg-surface p-5 md:p-6" data-signature-pad>
+      <h3 className="font-display text-headline font-semibold">{t.title}</h3>
+      <p className="mt-1 text-callout text-muted">{t.draw}</p>
 
-      <div ref={wrap} className="relative mt-4 overflow-hidden rounded-xl border border-line-strong" style={{ background: PAPER }}>
+      <div ref={wrap} className="relative mt-4 overflow-hidden rounded-tile border border-hairline border-line-strong" style={{ background: PAPER }}>
         <canvas
           ref={canvas}
           role="img"
@@ -194,7 +195,7 @@ export function SignaturePad({
         {!hasInk && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm"
+            className="pointer-events-none absolute inset-0 flex items-center justify-center text-callout"
             style={{ color: '#5d626a' }}
           >
             {t.placeholder}
@@ -207,7 +208,7 @@ export function SignaturePad({
           type="button"
           onClick={clear}
           disabled={!hasInk || busy}
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm text-muted transition-colors hover:text-fg disabled:opacity-50"
+          className={buttonClass('ghost', 'sm')}
         >
           <Eraser size={16} aria-hidden="true" />
           {t.clear}
@@ -225,7 +226,7 @@ export function SignaturePad({
             className={inputClass}
           />
         </Field>
-        <label className="flex items-start gap-3 text-sm leading-relaxed text-muted">
+        <label className="flex items-start gap-3 text-callout leading-relaxed text-muted">
           <input
             type="checkbox"
             checked={consent}
@@ -240,7 +241,7 @@ export function SignaturePad({
             type="button"
             onClick={submit}
             disabled={busy || !hasInk || !consent || name.trim().length < 2}
-            className={cn(buttonStyles.primary, 'px-8 py-4 text-base')}
+            className={cn(buttonStyles.primary, 'px-8 py-4 text-body')}
           >
             {busy ? t.submitting : t.submit}
           </button>

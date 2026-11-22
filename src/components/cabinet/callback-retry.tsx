@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { authErrorKey, type AuthErrorKey } from '@/lib/cabinet-auth'
+import { Card } from '@/components/ui'
 import { buttonStyles } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { createClient } from '@/lib/supabase/client'
@@ -57,20 +58,20 @@ export function CallbackRetry({
   }, [next, reason])
 
   return (
-    <div className="rounded-card border border-line bg-surface p-6 md:p-8" aria-live="polite">
+    <Card className="md:p-sheet" aria-live="polite">
       {failed ? (
         <div className="grid justify-items-start gap-5">
-          <h1 className="font-display text-xl font-semibold tracking-tight">{t.retryFailedTitle}</h1>
+          <h1 className="font-display text-title-3 font-semibold">{t.retryFailedTitle}</h1>
           <FormMessage kind="error">{errors[failed] ?? errors.callback}</FormMessage>
           <Link href={`/${locale}/cabinet/login`} className={buttonStyles.primary}>
             {t.retryLogin}
           </Link>
         </div>
       ) : (
-        <p role="status" className="text-sm text-muted">
+        <p role="status" className="text-callout text-muted">
           {t.retrying}
         </p>
       )}
-    </div>
+    </Card>
   )
 }

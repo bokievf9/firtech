@@ -26,7 +26,11 @@ export const productSectionIds = [
   'plans', // the three levels as subscription cards with the own-key switch
   'start', // how to start: three steps and the builder button
   'questions', // four short questions as expandable chips (answers: `objections`)
-  // Flagship blocks: AI company
+  // Flagship blocks: AI company (front v4: the short visual list is brain, cday, cdemo, cplan, start, questions)
+  'brain', // «Один мозг компании»: the diagram (sources, Fira, who she answers, roles as skill chips)
+  'cday', // «День компании с ИИ»: a compact timeline
+  'cdemo', // Ask Fira: locked plate when signed out, the real chat when signed in
+  'cplan', // the subscription card with the own-key switch and the per-employee line
   'structure', // one brain, many skills: Fira knows the business, skills (sales, support, content) plug in
   'pult', // a tour of the control room we work in ourselves
   'knowledge', // knowledge from your documents, site and chats
@@ -57,12 +61,12 @@ export const productPages: Record<ProductId, ProductPageLayout> = {
   personal: {
     sections: ['hero', 'channels', 'skills', 'myday', 'plans', 'start', 'questions'],
   },
-  // Flagship. Fira installed in the client's company: the map of the company, the control room we use ourselves,
-  // knowledge, trust levels, the team, four stages and the price «от» by the quote. A call is the first action.
+  // Flagship (front v4). Fira installed in the client's company: one brain as a diagram, where it lives, a company day,
+  // the demo (locked when signed out), the subscription, how to start, four questions. A call is the first action.
   company: {
     face: 'fira',
     callFirst: true,
-    sections: ['hero', 'structure', 'channels', 'pult', 'knowledge', 'trust', 'teamgets', 'rollout', 'included', 'price', 'offer', 'pilot', 'objections', 'readiness'],
+    sections: ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions'],
   },
   // The salon owner wants to see booking happen without them: the demo comes first, then a day by the hour.
   admin: {
@@ -119,6 +123,22 @@ export type ProductBlocks = {
     // The ids are the builder's `personalWho` ids; names come from the builder's strings.
     personas: { id: string; steps: { time: string; hand: string; text: string }[]; asks: string[] }[]
   }
+  brain?: {
+    title: string
+    sub: string
+    sourcesLabel: string
+    sources: { id: string; name: string }[]
+    centerLine: string
+    outputsLabel: string
+    outputs: { id: string; name: string; line: string }[]
+    rolesLabel: string
+    roles: string[]
+    more: string
+    note: string
+  }
+  cday?: { title: string; sub: string; items: { time: string; icon: string; role: string; text: string }[] }
+  cdemo?: { title: string; sub: string; ask: string; answer: string; source: string; signedIn: string; open: string }
+  cplan?: { title: string; sub: string; points: { title: string; text: string }[] }
   plans?: { title: string; sub: string }
   start?: { title: string; steps: { title: string; text: string }[]; cta: string }
   questions?: { title: string }
@@ -170,6 +190,10 @@ export const sectionCopyKey: Partial<Record<ProductSectionId, keyof ProductBlock
   myday: 'myday',
   skills: 'skills',
   plans: 'plans',
+  brain: 'brain',
+  cday: 'cday',
+  cdemo: 'cdemo',
+  cplan: 'cplan',
   start: 'start',
   questions: 'questions',
   structure: 'structure',

@@ -1,39 +1,44 @@
 import { ArrowUpRight } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
-import { agentCopy, agentOffer, agentPath, type AgentId } from '@/lib/ai-teams'
+import { agentCopy, agentOffer, agentPath, aiTeamPath, type AgentId } from '@/lib/ai-teams'
 import { cn } from '@/lib/cn'
-import { TrustChip } from './team-parts'
+import { Badge, Card } from '../ui'
+import { TeamGlyph } from './team-parts'
 
-// One agent as a link row: title, the one-line promise and two plain chips (how much it does alone,
-// whether it can be taken without the department). Used on the index and the department pages.
-export function AgentRow({ id, locale, dict, className }: { id: AgentId; locale: string; dict: Dict; className?: string }) {
+// One agent as a card (v4): the department glyph, the name, the one-line result, how much it does alone and the link
+// to the team it belongs to. The whole card opens the agent page (stretched title link); the team link sits above it.
+export function AgentCard({ id, locale, dict, showTeam = true, className }: { id: AgentId; locale: string; dict: Dict; showTeam?: boolean; className?: string }) {
   const copy = agentCopy(id, dict)
   const offer = agentOffer(id)
-  const t = dict.aiTeams.agents
+  const t = dict.aiTeams
   return (
-    <Link
-      href={`/${locale}${agentPath(id)}`}
-      className={cn(
-        'group flex h-full flex-col gap-3 rounded-card border border-line bg-surface p-5 transition-[border-color,transform] duration-300 ease-out-expo hover:-translate-y-0.5 hover:border-line-strong',
-        className,
-      )}
-    >
-      <span className="flex items-start justify-between gap-3">
-        <span className="text-lg font-semibold tracking-tight">{copy.title}</span>
+    <Card interactive className={cn('group flex h-full flex-col gap-3', className)} data-agent-card={id}>
+      <div className="flex items-start justify-between gap-3">
+        <TeamGlyph id={offer.dept} />
         <ArrowUpRight
           size={18}
           aria-hidden="true"
-          className="mt-1 shrink-0 text-faint transition-[transform,color] duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent-text"
+          className="mt-1 shrink-0 text-faint transition-[transform,color] duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-accent-text"
         />
-      </span>
-      <span className="text-sm leading-relaxed text-muted">{copy.promise}</span>
-      <span className="mt-auto flex flex-wrap gap-2 pt-1">
-        <TrustChip trust={offer.trust} dict={dict} />
-        <span className="inline-flex rounded-full border border-line px-2.5 py-0.5 text-xs text-faint">
-          {offer.standalone ? t.standaloneYes : t.standaloneNo}
-        </span>
-      </span>
-    </Link>
+      </div>
+      <h3 className="text-title-3 font-semibold">
+        <Link href={`/${locale}${agentPath(id)}`} className="after:absolute after:inset-0 after:rounded-card">
+          {copy.title}
+        </Link>
+      </h3>
+      <p className="text-callout text-muted">{copy.headline}</p>
+      <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
+        <Badge className="whitespace-normal">{t.trust[offer.trust]}</Badge>
+        {showTeam && (
+          <Link
+            href={`/${locale}${aiTeamPath(offer.dept)}`}
+            className="relative z-10 text-footnote text-muted underline-offset-4 hover:text-accent-text hover:underline"
+          >
+            {t.agents.page.partOf} {t.items[offer.dept].title}
+          </Link>
+        )}
+      </div>
+    </Card>
   )
 }

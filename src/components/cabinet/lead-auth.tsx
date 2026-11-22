@@ -24,7 +24,7 @@ export function LeadAuthStep({
 }) {
   return (
     <div className="mt-4 grid gap-3" data-lead-auth>
-      <p role="status" className="text-sm font-medium text-fg">
+      <p role="status" className="text-callout font-medium text-fg">
         {dict.leadAuth.authRequired}
       </p>
       <AuthForms
@@ -45,7 +45,7 @@ export function LeadAuthStep({
 export function LeadAccountNote({ dict, state }: { dict: Dict; state: CabinetUserState }) {
   if (state.status === 'off') return null
   return (
-    <p className="text-[13px] leading-relaxed text-muted" data-lead-why>
+    <p className="text-footnote leading-relaxed text-muted" data-lead-why>
       {dict.leadAuth.why}
       {state.status === 'in' && (
         <>
