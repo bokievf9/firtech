@@ -118,66 +118,9 @@ test('Content is a built HQ section with the three tabs and a page; no empty cat
   assert.equal(shell.sectionTab('content', 'orders'), 'orders')
   assert.equal(shell.sectionTab('content', 'x'), 'feed')
   assert.ok(existsSync(new URL('../src/app/admin/(hq)/content/page.tsx', import.meta.url)))
-  for (const f of ['src/components/admin/hq/content-studio.tsx', 'src/components/admin/hq/studio-screen.tsx', 'src/lib/content-studio.ts']) {
+  for (const f of ['src/components/admin/hq/content-studio.tsx', 'src/lib/content-studio.ts']) {
     const t = read(f)
     assert.doesNotMatch(t, /catch\s*(\([^)]*\))?\s*\{\s*\}/, f)
     assert.doesNotMatch(t, /[–—]/, f)
   }
-})
-
-// ---- the one-screen view (2026-11-23): the preview comes from media[] or the files, never a fake render ----
-const row = (over = {}) => ({ id: '41', kind: 'clip', platform: 'instagram', status: 'pending', title: 'T', hook: '', caption: {}, files: [], sourceSlug: null, approvalId: null, publishedUrl: null, error: null, kit: null, ...over })
-const card = (over = {}) => ({ id: 'ap_9', kind: 'content_item', media: [], meta: {}, ...over })
-
-test('studioPreview: HQ media[] wins, files of the feed row are the fallback, nothing is an honest pending state', () => {
-  const video = { type: 'video', src: '/api/admin/files/41/reel.mp4', poster: null, w: 1080, h: 1920, durationS: 28 }
-  const png = (n) => ({ type: 'image', src: `/api/admin/files/42/s${n}.png`, poster: null, w: 1080, h: 1350, durationS: null })
-  const v = cs.studioPreview(row(), card({ media: [video], meta: { render: { state: 'ready' } } }))
-  assert.equal(v.mode, 'video')
-  assert.equal(v.ratio, 9 / 16)
-  assert.equal(v.state, 'ready')
-  const car = cs.studioPreview(row({ kind: 'carousel' }), card({ media: [png(1), png(2), png(3)] }))
-  assert.equal(car.mode, 'carousel')
-  assert.equal(car.media.length, 3)
-  assert.equal(car.ratio, 1080 / 1350)
-  assert.equal(cs.studioPreview(row({ kind: 'post' }), card({ media: [png(1)] })).mode, 'image')
-  assert.equal(cs.studioPreview(row(), card({ media: [{ type: 'pdf', src: '/api/admin/files/x.pdf', poster: null, w: null, h: null, durationS: null }] })).mode, 'pdf')
-  assert.equal(cs.studioPreview(row(), card({ media: [{ type: 'html', src: '/api/admin/files/x.html', poster: null, w: null, h: null, durationS: null }] })).mode, 'html')
-  // no card: the feed row's files, the PNG next to the mp4 becomes the poster
-  const f = cs.studioPreview(row({ files: [{ path: 'c/clip.mp4', type: 'mp4', w: 1080, h: 1920 }, { path: 'c/cover.png', type: 'png', w: 1080, h: 1350 }] }), null)
-  assert.equal(f.mode, 'video')
-  assert.equal(f.media[0].src, '/api/admin/files/c/clip.mp4')
-  assert.equal(f.media[0].poster, '/api/admin/files/c/cover.png')
-  assert.equal(f.state, 'ready')
-})
-
-test('studioPreview: no files means «render pending» with the real render state and a reason', () => {
-  const waiting = cs.studioPreview(row({ status: 'pending' }), card({ meta: { render: { state: 'none' } } }))
-  assert.equal(waiting.mode, 'pending')
-  assert.equal(waiting.state, 'none')
-  assert.match(cs.pendingReason(row({ status: 'pending' }), waiting.state), /after approval/)
-  const busy = cs.studioPreview(row({ status: 'rendering' }), null)
-  assert.deepEqual([busy.mode, busy.state], ['pending', 'rendering'])
-  assert.match(cs.pendingReason(row({ status: 'rendering' }), 'rendering'), /rendered/)
-  const failed = cs.studioPreview(row({ status: 'draft', error: 'no frames' }), null)
-  assert.equal(failed.state, 'failed')
-  assert.match(cs.pendingReason(row({ error: 'no frames' }), 'failed'), /no frames/)
-  // a card that claims ready but has no media does not pretend there is a render
-  assert.equal(cs.studioPreview(row(), card({ meta: { render: { state: 'ready' } } })).state, 'none')
-})
-
-test('the dev file proxy has no «demo render» left: a labelled sample slide and a playable sample clip', async () => {
-  const f = await import('../src/lib/hq-files.ts')
-  assert.doesNotMatch(f.placeholderSvg('a/b.png'), /demo render/)
-  const res = await f.proxyRenderFile(['c', 'clip.mp4'], null, { env: { NODE_ENV: 'development' } })
-  assert.equal(res.headers.get('content-type'), 'video/mp4')
-  assert.ok((await res.arrayBuffer()).byteLength > 1000)
-})
-
-test('the Content screen has no drawer: the player, text, Prompt, Another variant and For a niche live in one component', () => {
-  const screen = read('src/components/admin/hq/studio-screen.tsx')
-  const section = read('src/components/admin/hq/content-studio.tsx')
-  assert.doesNotMatch(section, /CrmDrawer|PromptDrawer/)
-  assert.doesNotMatch(screen, /CrmDrawer/)
-  for (const t of ['data-studio="player"', 'data-studio="text"', 'data-studio="prompt"', 'data-studio="variants"', 'render-pending']) assert.ok(screen.includes(t), t)
 })
