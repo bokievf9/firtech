@@ -27,7 +27,7 @@ const glyph = {
     }`,
   frag: /* glsl */ `
     uniform float uMode; uniform vec3 uBg; uniform vec3 uLight; uniform vec3 uInk; uniform float uGlow;
-    uniform vec4 uMask; uniform float uMaskR; uniform vec2 uHalo; uniform float uRound; uniform float uCount; uniform float uLine;
+    uniform vec4 uMask; uniform float uMaskR; uniform vec2 uHalo; uniform float uRound; uniform float uCount; uniform float uLine; uniform float uHl;
     uniform vec4 uEye; uniform vec4 uLid; uniform vec4 uEye2; uniform vec4 uMouth; uniform vec3 uMouthO; uniform vec4 uBrow;
     varying vec2 vF; varying vec3 vN; varying vec3 vV;
     float sdBox(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + r; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - r; }
@@ -88,6 +88,16 @@ const glyph = {
         float dd = min(d, min(dm, db));
         float ww = fwidth(dd) * 1.2 + 1e-4;
         col = uInk;
+        if (uHl > 0.5) {
+          float hl = 0.0;
+          for (int i = 0; i < 2; i++) {
+            vec2 p = e + vec2(i == 0 ? uEye.x : -uEye.x, 0.0);
+            float r = min(uEye.z, uEye.w);
+            hl = max(hl, 1.0 - smoothstep(-ww, ww, length(p - vec2(-0.3 * uEye.z, 0.34 * uEye.w)) - 0.27 * r));
+            hl = max(hl, 1.0 - smoothstep(-ww, ww, length(p - vec2(0.36 * uEye.z, -0.3 * uEye.w)) - 0.12 * r));
+          }
+          col = mix(col, uBg, hl * (1.0 - smoothstep(-ww, ww, d)));
+        }
         a = (1.0 - smoothstep(-ww, ww, dd)) * inside;
       }
       gl_FragColor = vec4(col, a);
@@ -108,7 +118,7 @@ export function glyphMaterial(o: { mode: 0 | 1; cyl?: number; mask: [number, num
       uMap: { value: o.cyl ? 1 : 0 }, uR: { value: o.cyl ?? 1 },
       uMode: { value: o.mode }, uBg: { value: new Color('#1d221b') }, uLight: { value: new Color('#c6ff3d') }, uInk: { value: new Color('#0d1408') },
       uGlow: { value: 0.5 }, uHalo: { value: new Vector2(...(o.halo ?? [22, 0.5])) }, uMask: { value: new Vector4(...o.mask) }, uMaskR: { value: o.maskR }, uRound: { value: o.round ?? 0 },
-      uCount: { value: o.count ?? 2 }, uLine: { value: o.line ?? 0.012 },
+      uCount: { value: o.count ?? 2 }, uLine: { value: o.line ?? 0.012 }, uHl: { value: 0 },
       uEye: { value: new Vector4() }, uLid: { value: new Vector4() }, uEye2: { value: new Vector4() },
       uMouth: { value: new Vector4() }, uMouthO: { value: new Vector4() }, uBrow: { value: new Vector4() },
     },

@@ -245,3 +245,31 @@ All four carry the logo's lime dot as a glowing pearl on the crown of the shell.
 - Budget: Fira code raised from 260 to 340 KB (now about 305 KB); round five itself is about 50 KB.
 - Rough edges: the thinking pose is a straight arm to the head (no elbow), the pearl halo is pale on the
   light theme, the lamps of T are only partly visible in the default view (spin shows all).
+
+## Round six (2026-11-23): correcting round five by the owner's words
+Four variants on one rig (`fira-scene6.tsx`, `fira-kit6.ts`, `fira-fallback6.tsx`, `fira-lab6.tsx`, pure parts
+`src/lib/fira/turtle6.ts`, tests `tests/fira-turtle6.test.mjs`). Each verdict turned into a change:
+- «похож на Лунтика»: head 0.8 of 2.43 total height = 33% (was 41%), body a lathe pear 1.2 wide and 1.44
+  high (`ratios6()` pins head share 0.28 to 0.33).
+- «руки ноги ужас»: every arm and leg is ONE tapered lathe volume of the body clay (round shoulder, narrowest
+  at the wrist, soft swell at the hand), legs end in a flat foot; three small cream claws on every hand and foot.
+- «панцирь слишком толстый»: thin plate hugging the back, depth 0.28 = 0.23 of the body width (was 0.5), width 1.4 times the body so the rim frames the shoulders, height
+  0.92 of the body, lime seams kept, the lime pearl on its upper edge (the crown is hidden behind the head from the front).
+- «убери пузо»: no belly plate, the body is one colour with soft shading (`belly: false`).
+- «хвостик»: a small cone tail with a round tip under the shell, it wags on the `tail` fidget.
+- «смотрит в одну сторону»: default yaw 0.14 rad (front three-quarter). The whole body turns toward the pointer
+  (`bodyYaw6`, up to about 0.8 rad, springy), the head follows a little more; with no pointer for 4 s she runs a slow
+  look-around cycle (about 14 s per sweep, at most 0.55 rad); idle breathes, shifts weight, turns the head, blinks.
+- «милые зрачки»: eye half size 0.088 (about 18% of the head), round (lids 0.03/0.05 at rest), two highlights per eye
+  (glyph shader flag `uHl`), soft lower lids, a small smile, brows as before.
+- «румяна»: soft blush discs on the cheeks, `palette.blush`, stronger in the light theme (0.95) than the dark (0.8).
+- Accessories: real over-ear headphones (band over the head, two cups with padding and a lime disc; on `listening`
+  the hand presses a cup), or round the neck (W: the cup lifts to the ear). Glasses are an option. A small laptop:
+  closed against her side at rest, held open in front on `thinking` and `talking`; the screen takes the page colour
+  (`screenTint6`: lime, amber, mint, rose from the `ctxLamp` tints of the page contexts).
+- Variants: V headphones on head + laptop, W glasses + neck headphones + laptop, X glasses + laptop, Y headphones
+  on head only. All with pearl, blush, tail, claws.
+- Lab: round six is the default (`?round=5`, `?round=4`, `?round=3` keep the older ones); overview with captions,
+  `?solo=v`, emotion row, «Следит за курсором» on, spin, talk, page context.
+- Budget: Fira code raised from 340 to 400 KB (now about 360 KB); round six itself about 54 KB.
+- Rough edges: arm reach is a straight stretch (no elbow), the closed laptop is a plain slab, the shell pearl halo is strong on white.

@@ -215,12 +215,12 @@ test('component files and exports', () => {
 })
 
 // Budget raised from 60 KB to 160 KB in round two (five more characters, a clay shader, a face rig,
-// the lab) and to 220 KB in round three (five more, the glyph face shader, pose3) and to 260 KB in round four (the turtle: shell and screen shaders, accessories, lab, speech) and to 340 KB in round five (the standing turtle: one rig, four details, shell-lamp shader, SVG fallback, lab); still procedural
+// the lab) and to 220 KB in round three (five more, the glyph face shader, pose3) and to 260 KB in round four (the turtle: shell and screen shaders, accessories, lab, speech) and to 340 KB in round five (the standing turtle: one rig, four details, shell-lamp shader, SVG fallback, lab); and to 400 KB in round six (rig of V W X Y, limbs, laptop, lab); still procedural
 // code only, no assets (docs/fira.md).
-test('procedural only: under 340 KB of code, no textures or external assets', () => {
+test('procedural only: under 400 KB of code, no textures or external assets', () => {
   const files = [...readdirSync('src/components/fira').map((f) => `src/components/fira/${f}`), ...readdirSync('src/lib/fira').map((f) => `src/lib/fira/${f}`)]
   const total = files.reduce((n, f) => n + statSync(f).size, 0)
-  assert.ok(total < 340 * 1024, `${total} bytes`)
+  assert.ok(total < 400 * 1024, `${total} bytes`)
   for (const f of files) {
     const code = read(f)
     assert.ok(!/TextureLoader|useTexture|useGLTF|\.(png|jpe?g|webp|glb|gltf|hdr)['"]/.test(code), f)
