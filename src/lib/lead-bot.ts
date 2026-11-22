@@ -141,7 +141,7 @@ export async function flushPending(exceptId?: number) {
 export type Update = {
   message?: {
     message_id: number
-    chat: { id: number }
+    chat: { id: number; type?: string }
     from?: { id: number; language_code?: string }
     text?: string
   }
@@ -149,18 +149,26 @@ export type Update = {
     id: string
     from: { id: number }
     data?: string
-    message?: { message_id: number; chat: { id: number } }
+    message?: { message_id: number; chat: { id: number; type?: string } }
   }
 }
 
 export async function handleUpdate(update: Update) {
   const { ownerChatId } = telegramEnv()
-  const isOwner = (chatId?: number) => chatId !== undefined && String(chatId) === ownerChatId
+  // Security 2026-11-23 (P2-4): the owner is the SENDER (from.id), in the private chat with the bot. A
+  // check on chat.id alone also let any member of a group whose id equals the setting press buttons.
+  const isOwner = (fromId?: number, chat?: { id: number; type?: string }) =>
+    Boolean(ownerChatId) &&
+    fromId !== undefined &&
+    String(fromId) === ownerChatId &&
+    chat !== undefined &&
+    String(chat.id) === ownerChatId &&
+    chat.type === 'private'
 
   if (update.callback_query) {
     const query = update.callback_query
     // Buttons only work in the owner's chat; anyone else gets a polite no and nothing changes.
-    if (!isOwner(query.message?.chat.id)) {
+    if (!isOwner(query.from?.id, query.message?.chat)) {
       await answerCallbackQuery(query.id, 'Нет доступа')
       return
     }
@@ -185,7 +193,7 @@ export async function handleUpdate(update: Update) {
     await handleStart(message.chat.id, start[1] ?? '', message.from?.language_code)
     return
   }
-  if (isOwner(message.chat.id) && /^\/leads(@\w+)?$/.test(text)) {
+  if (isOwner(message.from?.id, message.chat) && /^\/leads(@\w+)?$/.test(text)) {
     const leads = await listLeads(10)
     await sendMessage(
       message.chat.id,
@@ -195,7 +203,7 @@ export async function handleUpdate(update: Update) {
     )
     return
   }
-  if (isOwner(message.chat.id) && /^\/admin(@\w+)?$/.test(text)) {
+  if (isOwner(message.from?.id, message.chat) && /^\/admin(@\w+)?$/.test(text)) {
     await sendMessage(message.chat.id, `Панель заявок: ${adminUrl}`)
   }
 }

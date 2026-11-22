@@ -101,12 +101,12 @@ function postUpdate(update, secret = SECRET) {
     }),
   )
 }
-const callback = (data, chatId = OWNER, msg = 77) => ({
+const callback = (data, chatId = OWNER, msg = 77, { fromId = chatId, type = 'private' } = {}) => ({
   callback_query: {
     id: 'cb1',
-    from: { id: chatId },
+    from: { id: fromId },
     data,
-    message: { message_id: msg, chat: { id: chatId } },
+    message: { message_id: msg, chat: { id: chatId, type } },
   },
 })
 
@@ -226,7 +226,7 @@ test('webhook: owner changes the status, the message is edited with buttons kept
   assert.match(sent('answerCallbackQuery')[0].body.text, /Взял в работу/)
 
   calls = []
-  await postUpdate({ message: { message_id: 2, chat: { id: OWNER }, text: '/leads' } })
+  await postUpdate({ message: { message_id: 2, chat: { id: OWNER, type: 'private' }, from: { id: OWNER }, text: '/leads' } })
   assert.match(
     sent('sendMessage')[0].body.text,
     /№1 · Мадина · Не знает, нужна консультация · Взял в работу/,
@@ -412,4 +412,21 @@ test('lead route: HQ notified:true means the site bot stays quiet; queued or no 
   } finally {
     console.error = log
   }
+})
+
+test('security 2026-11-23 (P2-4): only the owner as sender, in the private chat, may press buttons or ask /leads', async () => {
+  const stored = await store.createLead(lead())
+  // A group whose id equals the setting, or another member of it: no access.
+  await postUpdate(callback(`st:${stored.id}:won`, OWNER, 77, { fromId: 4242 }))
+  await postUpdate(callback(`st:${stored.id}:won`, OWNER, 77, { type: 'group' }))
+  await postUpdate(callback(`st:${stored.id}:won`, OWNER, 77, { type: 'supergroup', fromId: OWNER }))
+  assert.equal((await store.getLead(stored.id)).status, 'new')
+  assert.equal(sent('answerCallbackQuery').length, 3)
+  assert.ok(sent('answerCallbackQuery').every((c) => c.body.text === 'Нет доступа'))
+  await postUpdate({ message: { message_id: 3, chat: { id: OWNER, type: 'group' }, from: { id: 999 }, text: '/leads' } })
+  await postUpdate({ message: { message_id: 4, chat: { id: OWNER, type: 'private' }, text: '/leads' } })
+  await postUpdate({ message: { message_id: 5, chat: { id: OWNER, type: 'private' }, from: { id: 999 }, text: '/admin' } })
+  assert.equal(sent('sendMessage').length, 0)
+  await postUpdate(callback(`st:${stored.id}:won`))
+  assert.equal((await store.getLead(stored.id)).status, 'won')
 })
