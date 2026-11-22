@@ -8,9 +8,9 @@ import { clampLook, stepSpring, type Emotion } from '@/lib/fira/pose'
 import { blink3, blinkLen3, channels3, springFor, tempo3, type T3 } from '@/lib/fira/pose3'
 import { nextFidget } from '@/lib/fira/turtle'
 import { BASE_YAW6, bodyYaw6, feel6, lensFlash6 } from '@/lib/fira/turtle6'
-import { EYE_H7, EYE_W7, detail7, noteState7, notesOn7, rig7, targets7, type Turtle7 } from '@/lib/fira/turtle7'
+import { ACC_MORPH7, FINGERS7, TOES7, accFlags7, accOf7, noteState7, notesOnFor7, rig7, scutes7, targets7, type AccSet7, type Turtle7 } from '@/lib/fira/turtle7'
 import { driveGlyph, type FaceSpec3 } from './fira-kit3'
-import { makeKit7, paint7, type Kit7 } from './fira-kit7'
+import { driveEyes7, EYE_PARTS, face7, faceG7, makeKit7, paint7, type Kit7 } from './fira-kit7'
 import { uni } from './materials'
 
 // Round seven: one standing rig for A B C D traced from the owner's reference art. Egg body with a cream plastron,
@@ -19,6 +19,8 @@ import { uni } from './materials'
 // faces the viewer, the whole body turns toward the pointer, breathing, blinks, look-around, fidgets.
 export type Scene7Props = {
   variant: Turtle7
+  /** Accessories now worn (glasses, headphones, laptop); they change with the page context. Default: the variant's own. */
+  acc?: AccSet7
   emotion: Emotion
   lookAt?: boolean
   mouth?: number
@@ -29,9 +31,9 @@ export type Scene7Props = {
   onReady?: () => void
 }
 type Live = Omit<Scene7Props, 'variant' | 'theme' | 'active' | 'onReady'>
+const sub0 = (L: Live) => (L.clock !== undefined ? 8 : 1)
 const clamp01 = (v: number) => Math.min(1, Math.max(0, v))
-const face7: FaceSpec3 = { sep: 0.19, y: -0.035, w: EYE_W7, h: EYE_H7, mouthY: -0.27, mouthW: 0.11, brow: [0.12, 0.06], look: [0.07, 0.05] }
-const faceG: FaceSpec3 = { ...face7, brow: [0.24, 0.06] }
+const faceM: FaceSpec3 = { sep: 0.235, y: -0.05, w: 0.122, h: 0.132, mouthY: -0.265, mouthW: 0.085, look: [0.07, 0.05] }
 const { head: H, body: B, shell: SH, foot: F, arm: AR, plastron: PL } = rig7
 const SH_A = new Vector3(-AR.x, AR.y, 0.2), SH_B = new Vector3(AR.x, AR.y, 0.2)
 const REST_A = new Vector3(-0.3, 0.97, 0.66), REST_B = new Vector3(0.3, 0.97, 0.66)
@@ -47,10 +49,10 @@ function Part({ g, m, ol, p = [0, 0, 0], s = [1, 1, 1], r = [0, 0, 0] }: { g: Bu
   )
 }
 
-function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.RefObject<Live>; theme?: 'light' | 'dark'; onReady?: () => void }) {
+function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObject<Live>; theme?: 'light' | 'dark'; onReady?: () => void }) {
   const kit = useMemo(() => makeKit7(), [])
   useEffect(() => () => kit.dispose(), [kit])
-  const d = detail7[variant]
+  const f0 = accFlags7(acc0)
   const pal = useRef({ light: palettes.light.accent, accent: palettes.light.accent, dark: false })
   useEffect(() => {
     const apply = () => {
@@ -69,12 +71,13 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
     sp: Object.fromEntries(channels3.map((c) => [c, { x: targets7.idle[c], v: 0 }])) as Record<keyof T3, { x: number; v: number }>,
     P: { ...targets7.idle }, wave: { x: 0, v: 0 }, point: { x: 0, v: 0 }, think: { x: 0, v: 0 }, skep: { x: 0, v: 0 }, lift: { x: 0, v: 0 },
     t: 0, ph: 0, next: 2.4, bt: -1, dbl: false, prev: 'idle' as Emotion, px: 0, py: 0, mo: 0, by: BASE_YAW6, lastMove: -99,
+    acg: { x: f0.glasses ? 1 : 0, v: 0 }, ach: { x: f0.headphones ? 1 : 0, v: 0 }, acl: { x: f0.laptop ? 1 : 0, v: 0 }, hp: f0.headphones,
     fid: { at: 6, kind: 'look' as string, t: -1, dir: 1 }, sv: 0, sy: 0, ready: false,
   })
   const turn = useRef<Group>(null), lean = useRef<Group>(null), sq = useRef<Group>(null), head = useRef<Group>(null), tail = useRef<Group>(null)
   const armA = useRef<Group>(null), armB = useRef<Group>(null), handA = useRef<Group>(null), handB = useRef<Group>(null)
   const glints = useRef<(Mesh | null)[]>([null, null]), rings = useRef<(Mesh | null)[]>([null, null]), noteG = useRef<(Group | null)[]>([null, null, null])
-  const lapG = useRef<Group>(null)
+  const lapG = useRef<Group>(null), accG = useRef<Group>(null), accH = useRef<Group>(null), accL = useRef<Group>(null)
   const shadowA = useRef<Mesh>(null), shadowB = useRef<Mesh>(null)
   const tmp = useRef({ down: new Vector3(0, -1, 0), v: new Vector3(), a: new Vector3(), b: new Vector3() })
 
@@ -128,6 +131,15 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
     const fixed = L.clock !== undefined
     const clock = L.clock ?? s.t
     const em = L.emotion
+    const accW = accFlags7(L.acc ?? acc0)
+    let wg = 0, wh = 0, wl = 0
+    for (let i = 0; i < sub0(L); i++) {
+      wg = stepSpring(s.acg, accW.glasses ? 1 : 0, dt, ACC_MORPH7.k, ACC_MORPH7.z)
+      wh = stepSpring(s.ach, accW.headphones ? 1 : 0, dt, ACC_MORPH7.k, ACC_MORPH7.z)
+      wl = stepSpring(s.acl, accW.laptop ? 1 : 0, dt, ACC_MORPH7.k, ACC_MORPH7.z)
+    }
+    s.hp = wh > 0.5
+    const lapOn = wl > 0.5
     const tg = targets7[em]
     const P = s.P
     const sub = fixed ? 8 : 1
@@ -145,8 +157,8 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
     for (let i = 0; i < sub; i++) {
       wv = stepSpring(s.wave, P.wave > 0.5 ? 1 : 0, dt, 60, 0.8)
       pt = stepSpring(s.point, P.arm > 0.5 ? 1 : 0, dt, 60, 0.8)
-      th = stepSpring(s.think, em === 'thinking' && !d.laptop ? 1 : 0, dt, 60, 0.8)
-      sk = stepSpring(s.skep, em === 'sorry' && !d.laptop ? 1 : 0, dt, 60, 0.8)
+      th = stepSpring(s.think, em === 'thinking' && !lapOn ? 1 : 0, dt, 60, 0.8)
+      sk = stepSpring(s.skep, em === 'sorry' && !lapOn ? 1 : 0, dt, 60, 0.8)
       lf = stepSpring(s.lift, em === 'happy' || em === 'listening' ? 0.5 : em === 'surprised' ? 1 : 0, dt, 50, 0.7)
     }
     const hz = tempo3[em] * feel6.tempo
@@ -210,7 +222,8 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
     hd.rotation.set(P.head * 1.1 + P.lean * 0.3 - s.py * 0.4 + s.sy * 0.3 + Math.sin(clock * 0.43) * 0.03 + (em === 'sleep' ? 0.15 : 0) + (fid === 'look' ? fk * -0.08 : 0), yaw, P.headRoll * 0.9 - s.px * 0.08)
 
     const Pv = { ...P, smile: P.smile + 0.1, lookX: P.lookX + s.px * 0.5 - lag * 0.25, lookY: P.lookY + s.py * 0.6 }
-    driveGlyph(kit.face, d.glasses ? faceG : face7, Pv, blink, s.mo, pal.current, {})
+    driveGlyph(kit.face, faceM, Pv, blink, s.mo, pal.current, {})
+    driveEyes7(kit.eyes, accW.glasses ? faceG7 : face7, Pv, blink, em === 'sleep', Pv.lookX, Pv.lookY)
 
     // Arms hang down-forward; B lifts beside the head to think or wave, A points, crosses when skeptical, both hold the laptop.
     const a = armA.current, b = armB.current
@@ -221,7 +234,7 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
       g(-0.95, 1.6, 0.8, pt)
       g(0.12, 1.0, 0.7, sk)
       g(-0.6, 1.5, 0.55, lf)
-      if (d.laptop) R.set(HOLD_A.x, HOLD_A.y, HOLD_A.z)
+      if (wl > 0.01) R.lerp(HOLD_A, Math.min(wl, 1))
       reach(a, handA.current, SH_A, R)
     }
     if (b) {
@@ -230,9 +243,14 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
       g(0.86, 1.82, 0.25, th)
       g(0.9 + Math.sin(clock * 5.2) * 0.12, 1.95, 0.2, wv)
       g(0.6, 1.5, 0.55, lf)
-      if (d.laptop) R.set(HOLD_B.x, HOLD_B.y, HOLD_B.z)
+      if (wl > 0.01) R.lerp(HOLD_B, Math.min(wl, 1))
       reach(b, handB.current, SH_B, R)
     }
+    // Accessories are separate objects: they slide and scale in on a context change (the snappy spring, under 400 ms).
+    const gg = accG.current, hh = accH.current, ll = accL.current
+    if (gg) { gg.visible = wg > 0.01; gg.position.set(0, (1 - wg) * 0.32, (1 - wg) * 0.3); gg.scale.setScalar(0.6 + 0.4 * wg) }
+    if (hh) { hh.visible = wh > 0.01; hh.position.set(0, (1 - wh) * 0.45, 0); hh.scale.setScalar(0.65 + 0.35 * wh) }
+    if (ll) { ll.visible = wl > 0.01; ll.position.set(0, -(1 - wl) * 0.8, (1 - wl) * 0.3); ll.scale.setScalar(0.6 + 0.4 * wl) }
     if (lapG.current) lapG.current.rotation.x = -0.12 + (em === 'thinking' ? 0.08 : 0) + breath * 0.5
     if (tail.current) tail.current.rotation.y = Math.sin(clock * (fid === 'tail' ? 9 : 1.2)) * (fid === 'tail' ? 0.5 * fk : 0.1)
 
@@ -245,7 +263,7 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
     uni(kit.mats.glint).uGlow!.value = 0.15 + fl * 0.85
     glints.current.forEach((gm) => gm?.scale.set(1 + fl * 0.8, 1 + fl * 1.2, 1))
     // Notes float up from the headphones while she listens (dark theme).
-    const on = notesOn7(variant, em, pal.current.dark)
+    const on = notesOnFor7(s.hp, em, pal.current.dark)
     noteG.current.forEach((g, i) => {
       if (!g) return
       const n = noteState7(i, clock)
@@ -275,16 +293,21 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
   })
   return (
     <group>
+      {/* dark theme: a soft lime glow behind the figure (as in the video frames) */}
+      <mesh material={kit.glow} position={[0, 1.4, -1.4]} scale={[3.4, 3.8, 1]} renderOrder={-1}><planeGeometry args={[1, 1]} /></mesh>
       <mesh ref={shadowB} material={kit.shadow2} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, -0.1]}><circleGeometry args={[1, 40]} /></mesh>
       <mesh ref={shadowA} material={kit.shadow} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.006, 0]}><circleGeometry args={[1, 40]} /></mesh>
       <group ref={turn}>
         <group ref={lean}>
           <group ref={sq}>
-            {/* shell: teal plate on the back, wider than the body so it shows on both sides */}
+            {/* shell: dark teal plate pressed to the back, wider than the body so it shows on both sides, with light hexagonal scutes */}
             <group position={[0, SH.y, SH.z]} rotation={[SH.tilt, 0, 0]}>
               <mesh geometry={geos.shell} material={kit.shell} scale={[SH.rx, SH.ry, SH.rz]} />
               <mesh geometry={geos.shell} material={ol} scale={[SH.rx, SH.ry, SH.rz]} />
             </group>
+            {scutes7.flatMap((c) => [-1, 1].map((sx) => (
+              <mesh key={`${c.y}${sx}`} geometry={geos.hex} material={kit.scute} position={[sx * c.x, c.y, SH.z + 0.04 + 0.07 * Math.sqrt(Math.max(0, 1 - (c.x / SH.rx) ** 2 - ((c.y - SH.y) / SH.ry) ** 2))]} rotation={[0, sx * 0.55, Math.PI / 6]} scale={[0.1, 0.1, 1]} />
+            )))}
             {/* tail: a tiny cone at the lower right */}
             <group ref={tail} position={[AR.x + 0.04, rig7.tail.y, rig7.tail.z]}>
               <Part g={geos.shell} m={mats.lime} ol={ol} p={[0.12, -0.03, -0.1]} s={[0.17, 0.07, 0.07]} r={[0, 0.5, -0.35]} />
@@ -292,43 +315,53 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
             {/* body: egg, cream plastron with 2 x 3 segments on the front */}
             <Part g={geos.body} m={mats.lime} ol={ol} p={[0, B.y, 0]} s={[B.rx / 1.1, B.ry, B.rz]} />
             <mesh geometry={sp} material={kit.plastron} position={[0, PL.y, PL.z]} scale={[PL.rx, PL.ry, PL.rz]} />
-            {/* feet with three pale toes */}
+            {/* feet: a short thick leg with three pale nails */}
             {[-1, 1].map((sx) => (
               <group key={sx} position={[sx * F.x, F.y, 0.1]}>
                 <Part g={sp} m={mats.lime} ol={ol} s={[F.rx, F.ry, F.rz]} />
-                {[-1, 0, 1].map((c) => <Part key={c} g={sp} m={mats.cream} ol={null} p={[c * 0.1, -0.06, 0.3 - Math.abs(c) * 0.03]} s={[0.045, 0.03, 0.03]} />)}
+                {Array.from({ length: TOES7 }, (_, i) => i - 1).map((c) => <Part key={c} g={sp} m={mats.cream} ol={null} p={[c * 0.11 + sx * 0.02, -0.05, 0.3 - Math.abs(c) * 0.04]} s={[0.05, 0.036, 0.034]} />)}
               </group>
             ))}
-            {/* arms: one stubby tapered volume from the shoulder */}
+            {/* arms: one stubby tapered volume from the shoulder, a paw of three short fingers with pale nails */}
             {[-1, 1].map((sx) => (
               <group key={sx} ref={sx < 0 ? armA : armB} position={[sx * AR.x, AR.y, 0.2]}>
                 <mesh material={mats.lime} geometry={geos.arm} />
                 <mesh material={ol} geometry={geos.arm} />
-                <group ref={sx < 0 ? handA : handB} position={[0, -AR.len, 0]} />
+                <group ref={sx < 0 ? handA : handB} position={[0, -AR.len, 0]}>
+                  {Array.from({ length: FINGERS7 }, (_, i) => i - 1).map((c) => (
+                    <group key={c} position={[c * 0.065, -0.085 - (c === 0 ? 0.015 : 0), 0.06]}>
+                      <Part g={sp} m={mats.lime} ol={ol} s={[0.05, 0.062, 0.05]} />
+                      <Part g={sp} m={mats.cream} ol={null} p={[0, -0.04, 0.03]} s={[0.03, 0.02, 0.022]} />
+                    </group>
+                  ))}
+                </group>
               </group>
             ))}
 
-            {/* laptop held in front: dark lid toward the viewer with a lime hexagon logo */}
-            {d.laptop ? (
+            {/* laptop (a separate object, comes with the context): dark lid toward the viewer with a lime hexagon logo */}
+            <group ref={accL} visible={f0.laptop}>
               <group ref={lapG} position={[0, 0.66, 0.74]}>
                 <mesh material={kit.pad}><boxGeometry args={[1.12, 0.7, 0.05]} /></mesh>
                 <mesh material={ol} scale={1.05}><boxGeometry args={[1.12, 0.7, 0.05]} /></mesh>
                 <mesh material={mats.graphite} position={[0, -0.36, -0.02]}><boxGeometry args={[1.2, 0.045, 0.14]} /></mesh>
                 <mesh ref={(el) => void (rings.current[0] = el)} material={mats.light} position={[0, 0, 0.03]} rotation={[0, 0, Math.PI / 6]}><torusGeometry args={[0.1, 0.02, 6, 6]} /></mesh>
               </group>
-            ) : null}
+            </group>
 
-            {/* head: wide flattened dome, face glyph (half-lidded eyes, brows, smile), blush, accessories in world units */}
+            {/* head: wide dome, face parts as meshes on the surface (eyes with lids, brows, nose dots, gloss), mouth by shader, blush */}
             <group ref={head}>
               <group scale={[H.rx / 0.5, H.ry / 0.5, H.rz / 0.5]}>
                 <mesh material={mats.lime} geometry={sp} scale={0.5} />
                 <mesh material={ol} geometry={sp} scale={0.5} />
                 <mesh geometry={geos.faceCap} material={kit.face} renderOrder={2} />
+                {kit.eyes.sides.flatMap((m, i) => EYE_PARTS.map((n, k) => <mesh key={`${i}${n}`} geometry={kit.eyes.geoOf[n]} material={m[n]} frustumCulled={false} renderOrder={3 + k} />))}
+                {(['noseL', 'noseR', 'gloss', 'dotA', 'dotB'] as const).map((n) => <mesh key={n} geometry={kit.eyes.circle} material={kit.eyes.extra[n]} frustumCulled={false} renderOrder={3} />)}
                 {cheek.map((c) => (
                   <mesh key={c.sx} material={kit.blush} position={c.p} rotation={[c.pitch, c.yaw, 0, 'YXZ']} renderOrder={1}><planeGeometry args={[0.26, 0.15]} /></mesh>
                 ))}
               </group>
-              {d.headphones ? (
+              {/* headphones: a separate object */}
+              <group ref={accH} visible={f0.headphones}>
                 <group position={[0, -0.04, -0.02]}>
                   <mesh material={mats.graphite} scale={[0.72, 0.82, 1.4]}><torusGeometry args={[1, 0.058, 10, 56, Math.PI]} /></mesh>
                   {[-1, 1].map((sx) => (
@@ -340,25 +373,26 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
                     </group>
                   ))}
                 </group>
-              ) : null}
-              {d.glasses ? (
-                <group position={[0, 0.02, 0.5]}>
+              </group>
+              {/* glasses: a separate object resting on the face, thin round black rims, temples back to the ears */}
+              <group ref={accG} visible={f0.glasses}>
+                <group position={[0, -0.05, 0.5]}>
                   {[-1, 1].map((sx, i) => (
-                    <group key={sx} position={[sx * 0.26, 0, 0]}>
-                      <mesh material={mats.graphite}><torusGeometry args={[0.215, 0.02, 10, 44]} /></mesh>
-                      <mesh material={mats.glass} position={[0, 0, -0.004]}><circleGeometry args={[0.212, 32]} /></mesh>
-                      <mesh ref={(el) => void (glints.current[i] = el)} material={mats.glint} position={[-0.08, 0.09, 0.006]} rotation={[0, 0, 0.7]}><capsuleGeometry args={[0.012, 0.07, 4, 8]} /></mesh>
-                      <mesh material={mats.graphite} position={[sx * 0.2, 0, -0.17]} rotation={[0, Math.PI / 2 + sx * 0.12, 0]}><cylinderGeometry args={[0.012, 0.012, 0.4, 6]} /></mesh>
+                    <group key={sx} position={[sx * 0.31, 0, -sx * sx * 0.02]} rotation={[0, sx * 0.34, 0]}>
+                      <mesh material={mats.graphite}><torusGeometry args={[0.235, 0.014, 10, 48]} /></mesh>
+                      <mesh material={mats.glass} position={[0, 0, -0.004]}><circleGeometry args={[0.232, 32]} /></mesh>
+                      <mesh ref={(el) => void (glints.current[i] = el)} material={mats.glint} position={[-0.07, 0.08, 0.006]} rotation={[0, 0, 0.7]}><capsuleGeometry args={[0.01, 0.06, 4, 8]} /></mesh>
+                      <mesh material={mats.graphite} position={[sx * 0.25, 0.01, -0.2]} rotation={[0, Math.PI / 2 - sx * 0.2, 0]}><cylinderGeometry args={[0.01, 0.01, 0.46, 6]} /></mesh>
                     </group>
                   ))}
-                  <mesh material={mats.graphite} rotation={[0, 0, Math.PI / 2]}><capsuleGeometry args={[0.014, 0.1, 4, 8]} /></mesh>
+                  <mesh material={mats.graphite} position={[0, 0.02, 0.01]} rotation={[0, 0, Math.PI / 2]}><capsuleGeometry args={[0.011, 0.08, 4, 8]} /></mesh>
                 </group>
-              ) : null}
+              </group>
             </group>
           </group>
         </group>
         {/* floating notes (headphones, dark theme) */}
-        {d.headphones
+        {true
           ? [0, 1, 2].map((i) => (
               <group key={i} ref={(el) => void (noteG.current[i] = el)} visible={false}>
                 <mesh material={mats.light} scale={[0.065, 0.045, 0.03]} geometry={sp} />
@@ -372,10 +406,10 @@ function Rig({ variant, live, theme, onReady }: { variant: Turtle7; live: React.
   )
 }
 
-export default function FiraScene7({ variant, emotion, lookAt, mouth, theme, active, clock, spin, onReady }: Scene7Props) {
-  const live = useRef<Live>({ emotion, lookAt, mouth, clock, spin })
+export default function FiraScene7({ variant, acc, emotion, lookAt, mouth, theme, active, clock, spin, onReady }: Scene7Props) {
+  const live = useRef<Live>({ emotion, lookAt, mouth, clock, spin, acc })
   useEffect(() => {
-    live.current = { emotion, lookAt, mouth, clock, spin }
+    live.current = { emotion, lookAt, mouth, clock, spin, acc }
   })
   return (
     <Canvas
@@ -388,7 +422,7 @@ export default function FiraScene7({ variant, emotion, lookAt, mouth, theme, act
       style={{ width: '100%', height: '100%', background: 'transparent' }}
       aria-hidden="true"
     >
-      <Rig variant={variant} live={live} theme={theme} onReady={onReady} />
+      <Rig acc0={acc ?? accOf7(variant)} live={live} theme={theme} onReady={onReady} />
     </Canvas>
   )
 }

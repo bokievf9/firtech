@@ -1,6 +1,6 @@
 import { useId, type CSSProperties, type ReactNode } from 'react'
 import type { Emotion } from '@/lib/fira/pose'
-import { detail7, notesOn7, targets7, type Turtle7 } from '@/lib/fira/turtle7'
+import { FINGERS7, accFlags7, accOf7, notesOnFor7, targets7, type AccSet7, type Turtle7 } from '@/lib/fira/turtle7'
 
 // Round seven in flat SVG (server HTML, no WebGL, reduced motion): traced from the owner's reference art
 // (docs/fira-ref/ref-hero-glasses.jpg, 1080 px; the coordinates below are that image's pixels). Wide flattened
@@ -26,8 +26,14 @@ function armEnds(emotion: Emotion, laptop: boolean): [Pt, Pt] {
   }
 }
 
-export function FiraFallback7({ variant, emotion, dark = false, className, style }: { variant: Turtle7; emotion: Emotion; dark?: boolean; className?: string; style?: CSSProperties }) {
-  const d = detail7[variant]
+// `acc` overrides the variant's accessories (the context picks them); `morph` keeps all three in the markup and lets
+// CSS slide and fade each one in or out (280 ms, the snappy spring of lib/motion.ts as a cubic-bezier).
+export function FiraFallback7({ variant, emotion, dark = false, className, style, acc, morph = false }: { variant: Turtle7; emotion: Emotion; dark?: boolean; className?: string; style?: CSSProperties; acc?: AccSet7; morph?: boolean }) {
+  const d = accFlags7(acc ?? accOf7(variant))
+  const slot = (name: string, on: boolean, node: ReactNode, dy: number): ReactNode =>
+    morph ? (
+      <g key={name} data-acc={name} data-on={on ? '1' : '0'} style={{ opacity: on ? 1 : 0, transform: on ? 'none' : `translateY(${dy}px) scale(0.9)`, transformOrigin: '540px 330px', transition: 'opacity 280ms cubic-bezier(0.23, 1, 0.32, 1), transform 280ms cubic-bezier(0.23, 1, 0.32, 1)' }}>{node}</g>
+    ) : on ? node : null
   const T = targets7[emotion]
   const id = useId().replace(/[^a-zA-Z0-9]/g, '')
   const [A, B] = armEnds(emotion, d.laptop)
@@ -85,8 +91,19 @@ export function FiraFallback7({ variant, emotion, dark = false, className, style
 
   const arm = (k: number, to: Pt) => {
     const [sx, sy] = SH[k]!
+    const L = Math.hypot(to[0] - sx, to[1] - sy) || 1
+    const ux = (to[0] - sx) / L, uy = (to[1] - sy) / L
     return (
       <g key={k} data-part="arm">
+        {Array.from({ length: FINGERS7 }, (_, i) => i - 1).map((c) => {
+          const fx = to[0] + ux * (34 - Math.abs(c) * 4) - uy * c * 24, fy = to[1] + uy * (34 - Math.abs(c) * 4) + ux * c * 24
+          return (
+            <g key={c} data-part="finger">
+              <circle cx={f1(fx)} cy={f1(fy)} r="14" fill="#9be63a" stroke={OUT} strokeWidth="4" />
+              <ellipse cx={f1(fx + ux * 6)} cy={f1(fy + uy * 6)} rx="5" ry="3.5" fill="#f3e4a6" />
+            </g>
+          )
+        })}
         <path d={`M${sx} ${sy}L${to[0]} ${to[1]}`} stroke={OUT} strokeWidth="76" strokeLinecap="round" />
         <path d={`M${sx} ${sy}L${to[0]} ${to[1]}`} stroke={`url(#${id}a)`} strokeWidth="64" strokeLinecap="round" />
         <circle cx={f1(sx + (to[0] - sx) * 0.1 + (k ? 12 : -12))} cy={f1(sy + (to[1] - sy) * 0.14 + 8)} r="10" fill="#fff" opacity="0.5" />
@@ -141,14 +158,14 @@ export function FiraFallback7({ variant, emotion, dark = false, className, style
           <path data-part="seg" d="M390 745Q540 755 690 741" />
         </g>
       </g>
-      {d.laptop ? (
+      {slot('laptop', d.laptop, (
         <g data-part="laptop" stroke="#0f170f" strokeWidth="6">
           <rect x="352" y="650" width="376" height="208" rx="16" fill="#243224" />
           <rect x="330" y="852" width="420" height="30" rx="10" fill="#33433a" />
           <path data-part="logo" d="M540 712l32 18v38l-32 18l-32-18v-38z" fill="none" stroke="#c6ff3d" strokeWidth="10" strokeLinejoin="round" filter={dark ? `url(#${id}g)` : undefined} />
         </g>
-      ) : null}
-      {d.headphones ? <g data-part="band"><path d="M312 300C296 30 784 30 768 300" fill="none" stroke="#0f170f" strokeWidth="30" strokeLinecap="round" /><path d="M312 300C296 30 784 30 768 300" fill="none" stroke="#2b3a2b" strokeWidth="19" strokeLinecap="round" /></g> : null}
+      ), 70)}
+      {slot('headphones-band', d.headphones, <g data-part="band"><path d="M312 300C296 30 784 30 768 300" fill="none" stroke="#0f170f" strokeWidth="30" strokeLinecap="round" /><path d="M312 300C296 30 784 30 768 300" fill="none" stroke="#2b3a2b" strokeWidth="19" strokeLinecap="round" /></g>, -40)}
       <g data-part="head" transform={`rotate(${roll} 540 317)`}>
         <path d="M324 330C324 200 420 140 540 140C660 140 756 200 756 330C756 430 660 497 540 497C420 497 324 430 324 330Z" fill={`url(#${id}h)`} stroke={OUT} strokeWidth="7" strokeLinejoin="round" />
         <ellipse cx="540" cy="440" rx="112" ry="44" fill="#c4f77a" opacity="0.45" />
@@ -158,19 +175,19 @@ export function FiraFallback7({ variant, emotion, dark = false, className, style
         {SIDES.map(eye)}
         <circle cx={f1(522 + lx * 0.5)} cy="384" r="4.5" fill={INK} /><circle cx={f1(558 + lx * 0.5)} cy="384" r="4.5" fill={INK} />
         {mouth}
-        {d.glasses ? (
+        {slot('glasses', d.glasses, (
           <g data-part="glasses">
             {SIDES.map(lens)}
             <path d="M522 318Q540 308 558 318" fill="none" stroke="#161b16" strokeWidth="9" />
             <path d="M392 302L326 298M688 302L754 298" stroke="#161b16" strokeWidth="9" strokeLinecap="round" />
           </g>
-        ) : null}
+        ), -40)}
         {SIDES.map(brow)}
-        {d.headphones ? SIDES.map(cup) : null}
+        {slot('headphones-cups', d.headphones, <g>{SIDES.map(cup)}</g>, -40)}
       </g>
       {arm(0, A)}
       {arm(1, B)}
-      {notesOn7(variant, emotion, dark)
+      {notesOnFor7(d.headphones, emotion, dark)
         ? [[225, 250, 74], [845, 190, 64], [770, 110, 54]].map(([x, y, fs], i) => <text key={i} data-part="note" x={x} y={y} fontSize={fs} fill="#c6ff3d" filter={`url(#${id}g)`}>{i === 1 ? '♫' : '♪'}</text>)
         : null}
     </svg>

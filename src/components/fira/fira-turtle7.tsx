@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { Emotion } from '@/lib/fira/pose'
-import type { Turtle7 } from '@/lib/fira/turtle7'
+import type { AccSet7, Turtle7 } from '@/lib/fira/turtle7'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { FiraFallback7 } from './fira-fallback7'
 
@@ -14,6 +14,8 @@ const Scene7 = dynamic(() => import('./fira-scene7'), { ssr: false })
 
 export type FiraTurtle7Props = {
   variant?: Turtle7
+  /** Accessories now worn (from `accessoriesFor(ctx)`); changing it slides them in or out. Default: the variant's own. */
+  acc?: AccSet7
   emotion?: Emotion
   size?: number
   lookAt?: boolean
@@ -41,7 +43,7 @@ function hasWebGL(): boolean {
   return glOk
 }
 
-export function FiraTurtle7({ variant = 'a', emotion = 'idle', size = 320, lookAt = true, mouth, theme, clock, spin, className, style, label, onReady }: FiraTurtle7Props) {
+export function FiraTurtle7({ variant = 'a', acc, emotion = 'idle', size = 320, lookAt = true, mouth, theme, clock, spin, className, style, label, onReady }: FiraTurtle7Props) {
   const reduce = useReducedMotion()
   const host = useRef<HTMLDivElement>(null)
   const [gl, setGl] = useState(false)
@@ -86,11 +88,12 @@ export function FiraTurtle7({ variant = 'a', emotion = 'idle', size = 320, lookA
       data-fira-ready={shown ? '1' : '0'}
       data-fira={`${variant}-${emotion}`}
     >
-      <FiraFallback7 variant={variant} emotion={emotion} dark={theme ? theme === 'dark' : dk} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: use3d && shown ? 0 : 1, transition: fade }} />
+      <FiraFallback7 variant={variant} acc={acc} morph={acc !== undefined} emotion={emotion} dark={theme ? theme === 'dark' : dk} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: use3d && shown ? 0 : 1, transition: fade }} />
       {use3d ? (
         <div style={{ position: 'absolute', inset: 0, opacity: shown ? 1 : 0, transition: fade }}>
           <Scene7
             variant={variant}
+            acc={acc}
             emotion={emotion}
             lookAt={lookAt}
             mouth={mouth}

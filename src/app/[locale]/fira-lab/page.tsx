@@ -11,6 +11,7 @@ import { isAccessory, isEventKind, isTurtle } from '@/lib/fira/turtle'
 import { isTurtle5 } from '@/lib/fira/turtle5'
 import { isTurtle6 } from '@/lib/fira/turtle6'
 import { isTurtle7 } from '@/lib/fira/turtle7'
+import { isAccessoryContext } from '@/lib/fira/contexts'
 
 // Hidden concept lab for the Fira mascot: noindex, not in the sitemap or the localePages list.
 // The lab reads its view from the query (default: round seven, the reference turtle A B C D; ?round=6 the round-six turtles V W X Y; ?round=5 the round-five turtles R S T U; ?round=4 the round-four turtles; ?round=3 the old faces; ?solo=...): a static render would always show the default round.
@@ -152,8 +153,11 @@ function parseLab7(sp: Record<string, string | string[] | undefined>): Lab7Query
   if (isTurtle7(solo)) view = 'solo'
   else if (isTurtle7(row)) view = 'row'
   else if (one(sp.sheet) === '1') view = 'sheet'
+  else if (lower('view') === 'ctx') view = 'ctx'
+  const ctx = lower('ctx')
   return {
     view,
+    ctx: isAccessoryContext(ctx) ? ctx : undefined,
     v: [solo, row, lower('v')].find(isTurtle7) ?? 'a',
     emotion: isEmotion(emo) ? emo : 'idle',
     size: Number.isFinite(size) && size >= 100 ? Math.min(size, 1200) : undefined,
