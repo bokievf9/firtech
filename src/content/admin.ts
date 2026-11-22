@@ -321,6 +321,7 @@ export const admin = {
   hq: {
     title: 'Shell',
     menu: 'Sections',
+    menuButton: 'Menu',
     office: 'Office',
     officeHint: 'Pixel office, opens in a new window',
     search: 'Search',
@@ -521,6 +522,7 @@ export const admin = {
       feed: 'Feed',
       calendar: 'Calendar',
       orders: 'Orders',
+      campaigns: 'Campaigns',
       invoices: 'Invoices',
       costs: 'Costs',
     },

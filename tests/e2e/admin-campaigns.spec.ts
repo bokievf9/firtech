@@ -5,7 +5,7 @@ import { adminContext, noHorizontalOverflow, open, SIZES, watchErrors } from './
 const noise = [/WebGL|GPU stall|swiftshader|Failed to load resource/i]
 
 test('Campaigns refuses a visitor without a session', async ({ page }) => {
-  await open(page, '/admin/campaigns')
+  await open(page, '/admin/content?tab=campaigns')
   await expect(page).toHaveURL(/\/admin\/login/)
 })
 
@@ -14,8 +14,9 @@ test.describe('with a session', () => {
 
   test('list with statuses and counters, card with a journal without addresses', async ({ page }) => {
     const errors = watchErrors(page, noise)
-    await open(page, '/admin/campaigns')
-    await expect(page.getByRole('heading', { name: 'Campaigns', level: 1 })).toBeVisible()
+    await open(page, '/admin/content?tab=campaigns')
+    await expect(page.getByRole('heading', { name: 'Content', level: 1 })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Campaigns', selected: true })).toBeVisible()
     await expect(page.locator('[data-soon]')).toHaveCount(0)
     for (const s of ['pending', 'sent', 'rejected', 'failed']) await expect(page.locator(`[data-campaign][data-status="${s}"]`).first()).toBeVisible()
     await expect(page.locator('[data-campaign="3"]')).toContainText('Письмо ушло')
@@ -29,7 +30,7 @@ test.describe('with a session', () => {
 
   test('new mailing: warning, validation, draft in the list, link to Approvals', async ({ page }) => {
     const errors = watchErrors(page, noise)
-    await open(page, '/admin/campaigns')
+    await open(page, '/admin/content?tab=campaigns')
     await page.locator('[data-campaign-new]').click()
     await expect(page.locator('[data-campaign-warning]')).toContainText('Ничего не уйдёт без вашего одобрения')
     await page.getByRole('button', { name: 'Создать черновик' }).click()
@@ -50,13 +51,13 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  test('the menu lists Campaigns after Finance and there is no horizontal overflow', async ({ page }) => {
-    await open(page, '/admin/inbox')
-    await page.getByRole('link', { name: /^Campaigns/ }).first().click()
-    await expect(page).toHaveURL(/\/admin\/campaigns/)
+  test('/admin/campaigns redirects into Content, Campaigns is a tab and there is no horizontal overflow', async ({ page }) => {
+    await open(page, '/admin/campaigns')
+    await expect(page).toHaveURL(/\/admin\/content\?tab=campaigns/)
+    await expect(page.getByRole('link', { name: /^Campaigns/ })).toHaveCount(0)
     for (const size of Object.values(SIZES)) {
       await page.setViewportSize(size)
-      await noHorizontalOverflow(page, '/admin/campaigns')
+      await noHorizontalOverflow(page, '/admin/content?tab=campaigns')
     }
   })
 })

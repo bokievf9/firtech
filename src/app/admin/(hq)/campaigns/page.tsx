@@ -1,7 +1,6 @@
-import { CampaignsSection } from '@/components/admin/hq/campaigns-section'
+import { redirect } from 'next/navigation'
 
-export const metadata = { title: 'Shell · Campaigns' }
-
+// Campaigns moved into Content as a tab (owner audit 2026-11-23).
 export default function Page() {
-  return <CampaignsSection />
+  redirect('/admin/content?tab=campaigns')
 }

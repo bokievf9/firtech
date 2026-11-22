@@ -87,7 +87,7 @@ export function SectionBody({ section, tab, focus }: { section: 'inbox' | 'clien
     else if (tab === 'calls') body = <SiteLeads calls />
     else if (tab === 'prospects') body = <Prospects />
     else body = <LeadsBoard focus={focus} />
-  } else if (section === 'projects') body = tab === 'payments' ? <InvoicesTab focus={focus} /> : <ProjectsBoard focus={focus} />
+  } else if (section === 'projects') body = <ProjectsBoard focus={focus} />
   else if (tab === 'referrals') body = <Referrals />
   else if (tab === 'reviews') body = <Reviews />
   else body = <Documents />

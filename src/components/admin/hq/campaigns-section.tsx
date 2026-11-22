@@ -23,7 +23,6 @@ import {
   type CampaignStatus,
 } from '@/lib/campaigns-hq'
 import { cn } from '@/lib/cn'
-import { sectionById } from '@/lib/hq-shell'
 
 const t = admin.hq
 const c = admin.hq.campaigns
@@ -261,8 +260,7 @@ function CampaignCard({ id }: { id: number }) {
 
 // Campaigns: news and recommendation mailings to cabinet clients. A new mailing is only a draft: it goes to the
 // approval queue and nothing is sent before the owner approves it there (HQ contract «Рассылки клиентам»).
-export function CampaignsSection() {
-  const info = sectionById('campaigns')!
+export function CampaignsSection({ embedded = false }: { embedded?: boolean }) {
   const view = useHqView('campaigns', normalizeCampaigns, { visible: 30_000, hidden: 120_000 })
   const [formOpen, setFormOpen] = useState(false)
   const [selected, setSelected] = useState<number | null>(null)
@@ -270,9 +268,8 @@ export function CampaignsSection() {
 
   return (
     <div className="flex min-h-full flex-col" data-section-view="campaigns">
-      <div className="sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur">
+      <div className={cn('border-b border-line', !embedded && 'sticky top-0 z-10 bg-bg/95 backdrop-blur')}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:px-5">
-          <h1 className="font-brand text-xl">{info.label}</h1>
           <p className="text-sm text-muted">{t.sectionHints.campaigns}</p>
           <button type="button" className={cn(btnPrimary, 'ml-auto')} aria-expanded={formOpen} onClick={() => setFormOpen((o) => !o)} data-campaign-new>
             {formOpen ? c.closeForm : c.newButton}

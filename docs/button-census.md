@@ -695,3 +695,13 @@ Tag `E:cp` = `tests/e2e/admin-campaigns.spec.ts`; `U:cp` = `tests/hq-campaigns.t
 | `/admin/approvals` Replies | «Хорошо» / «Плохо» in an open reply card | same thumbs (messageId = card id, thread `review`) | `POST quality/rate` | `E:ap` | pass |
 | `/admin/review` | «Хорошо» / «Плохо» in the details of a reply (lead_reply, lead_price, support_answer, support_money) | same thumbs | `POST quality/rate` | `U:kq` (`isReplyKind`) | untested (browser) |
 | Quality / Оценки | list «Оценки» | the real ratings from HQ (value, id, thread, time, note); «HQ не отвечает» with «Повторить» on failure; the form «Оценить по id» stays | `GET quality/ratings` | `E:kq`, `U:kq` | pass |
+
+## Shell menu (2026-11-23, `shell-menu`), changes to the rows above
+Tag `E:menu` = `tests/e2e/admin-hq.spec.ts` (menu), `tests/e2e/admin-campaigns.spec.ts`; `U:hq-shell`.
+| Where | Control | Result | Status |
+|---|---|---|---|
+| Shell menu (desktop) | four labelled groups Work, Clients, Company, Control; keys 1-9 | links, key hints on the first nine | `E:menu`, `U:hq-shell` pass |
+| Shell menu (phone) | «Menu» button | opens a full-width grouped panel, closes on a link, Esc or a second tap | `E:menu` pass |
+| Projects | «Payments» tab | removed; `?tab=payments` redirects to Finance | `E:menu` pass |
+| Content | «Calendar» tab | removed (Calendar section); `?tab=calendar` shows the feed | `U:hq-shell` pass |
+| Content | «Campaigns» tab | the Campaigns list and form (rows `/admin/campaigns` above now live here); `/admin/campaigns` redirects | `E:cp` pass |

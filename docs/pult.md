@@ -287,3 +287,9 @@
 - Код: `components/admin/hq/campaigns-section.tsx`, модель и жёсткая zod-схема тела `lib/campaigns-hq.ts`, dev-мок `lib/campaigns-mock.ts` (в `pult-mock.ts`; черновик остаётся `pending`, ничего не «отправляется»). Whitelist-прокси: `GET campaigns`, `GET campaigns/<id>`, `POST campaigns` (лишние поля 400).
 - Тесты: `tests/hq-campaigns.test.mjs`, `tests/e2e/admin-campaigns.spec.ts`; кнопки в `docs/button-census.md`.
 
+
+## Меню Shell: группы, без дублей (2026-11-23, ветка `shell-menu`, аудит владельца №7)
+- Меню в четырёх группах (`HQ_GROUPS`, поле `group` у раздела в `lib/hq-shell.ts`): Work = Inbox, Approvals, Tasks, Calendar, Chats; Clients = Clients, Projects, Documents, Finance; Company = Content, Agents, Processes, Knowledge, Settings; Control = Quality, Audit log, Analytics. Клавиши 1-9 = первые девять по этому порядку (9 = Finance). На телефоне вместо ленты кнопка «Menu» открывает панель во всю ширину с теми же группами.
+- Платежи только в Finance (вкладки invoices, payments, costs); у Projects одна вкладка, старый `/admin/projects?tab=payments` уводит в `/admin/finance?tab=invoices`; ссылки хаба `backoffice:invoices|payments` идут в Finance с `focus`.
+- Вкладки Content: feed, orders, campaigns. Календарь контента только в разделе Calendar (его ссылки открывают ленту Content с `focus`); старый `?tab=calendar` падает на ленту.
+- Campaigns больше не раздел, а вкладка Content (`CampaignsSection embedded`); `/admin/campaigns` редиректит в `/admin/content?tab=campaigns`.

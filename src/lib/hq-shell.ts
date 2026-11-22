@@ -15,15 +15,17 @@ export type HqSectionId =
   | 'processes'
   | 'content'
   | 'finance'
-  | 'campaigns'
   | 'settings'
   | 'audit'
   | 'analytics'
   | 'knowledge'
   | 'quality'
 
+export type HqGroupId = 'work' | 'clients' | 'company' | 'control'
+
 export type HqSection = {
   id: HqSectionId
+  group: HqGroupId
   label: string
   // 'ready' = a page of its own under /admin; 'link' = an existing full-screen page; 'soon' = placeholder.
   state: 'ready' | 'link' | 'soon'
@@ -36,24 +38,31 @@ export type HqSection = {
 const office = (panel: string, tab?: string) => `/admin/office?panel=${panel}${tab ? `&tab=${tab}` : ''}`
 
 export const HQ_SECTIONS: readonly HqSection[] = [
-  { id: 'inbox', label: 'Inbox', state: 'ready', href: '/admin/inbox', legacy: office('director', 'inbox') },
-  { id: 'approvals', label: 'Approvals', state: 'ready', href: '/admin/approvals', legacy: '/admin/approvals' },
-  { id: 'tasks', label: 'Tasks', state: 'ready', href: '/admin/tasks', legacy: office('director', 'tasks') },
-  { id: 'calendar', label: 'Calendar', state: 'ready', href: '/admin/calendar', legacy: office('sales', 'calls') },
-  { id: 'chats', label: 'Chats', state: 'ready', href: '/admin/chats', legacy: '/admin/chats' },
-  { id: 'clients', label: 'Clients', state: 'ready', href: '/admin/clients', legacy: office('sales', 'clients') },
-  { id: 'projects', label: 'Projects', state: 'ready', href: '/admin/projects', legacy: office('production', 'projects') },
-  { id: 'documents', label: 'Documents', state: 'ready', href: '/admin/documents', legacy: office('backoffice', 'documents') },
-  { id: 'agents', label: 'Agents', state: 'ready', href: '/admin/agents', legacy: office('company', 'company') },
-  { id: 'processes', label: 'Processes', state: 'ready', href: '/admin/processes', legacy: office('company', 'company') },
-  { id: 'content', label: 'Content', state: 'ready', href: '/admin/content', legacy: office('marketing', 'content') },
-  { id: 'finance', label: 'Finance', state: 'ready', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
-  { id: 'campaigns', label: 'Campaigns', state: 'ready', href: '/admin/campaigns', legacy: office('marketing', 'content') },
-  { id: 'settings', label: 'Settings', state: 'ready', href: '/admin/settings', legacy: office('company', 'prices') },
-  { id: 'audit', label: 'Audit log', state: 'ready', href: '/admin/audit', legacy: office('company', 'company') },
-  { id: 'analytics', label: 'Analytics', state: 'ready', href: '/admin/analytics', legacy: office('marketing', 'metrics') },
-  { id: 'knowledge', label: 'Knowledge', state: 'ready', href: '/admin/knowledge', legacy: office('company', 'company') },
-  { id: 'quality', label: 'Quality', state: 'ready', href: '/admin/quality', legacy: office('company', 'company') },
+  { id: 'inbox', group: 'work', label: 'Inbox', state: 'ready', href: '/admin/inbox', legacy: office('director', 'inbox') },
+  { id: 'approvals', group: 'work', label: 'Approvals', state: 'ready', href: '/admin/approvals', legacy: '/admin/approvals' },
+  { id: 'tasks', group: 'work', label: 'Tasks', state: 'ready', href: '/admin/tasks', legacy: office('director', 'tasks') },
+  { id: 'calendar', group: 'work', label: 'Calendar', state: 'ready', href: '/admin/calendar', legacy: office('sales', 'calls') },
+  { id: 'chats', group: 'work', label: 'Chats', state: 'ready', href: '/admin/chats', legacy: '/admin/chats' },
+  { id: 'clients', group: 'clients', label: 'Clients', state: 'ready', href: '/admin/clients', legacy: office('sales', 'clients') },
+  { id: 'projects', group: 'clients', label: 'Projects', state: 'ready', href: '/admin/projects', legacy: office('production', 'projects') },
+  { id: 'documents', group: 'clients', label: 'Documents', state: 'ready', href: '/admin/documents', legacy: office('backoffice', 'documents') },
+  { id: 'finance', group: 'clients', label: 'Finance', state: 'ready', href: '/admin/finance', legacy: office('backoffice', 'invoices') },
+  { id: 'content', group: 'company', label: 'Content', state: 'ready', href: '/admin/content', legacy: office('marketing', 'content') },
+  { id: 'agents', group: 'company', label: 'Agents', state: 'ready', href: '/admin/agents', legacy: office('company', 'company') },
+  { id: 'processes', group: 'company', label: 'Processes', state: 'ready', href: '/admin/processes', legacy: office('company', 'company') },
+  { id: 'knowledge', group: 'company', label: 'Knowledge', state: 'ready', href: '/admin/knowledge', legacy: office('company', 'company') },
+  { id: 'settings', group: 'company', label: 'Settings', state: 'ready', href: '/admin/settings', legacy: office('company', 'prices') },
+  { id: 'quality', group: 'control', label: 'Quality', state: 'ready', href: '/admin/quality', legacy: office('company', 'company') },
+  { id: 'audit', group: 'control', label: 'Audit log', state: 'ready', href: '/admin/audit', legacy: office('company', 'company') },
+  { id: 'analytics', group: 'control', label: 'Analytics', state: 'ready', href: '/admin/analytics', legacy: office('marketing', 'metrics') },
+] as const
+
+// The menu groups, in order (owner audit 2026-11-23): labels are English like the sections.
+export const HQ_GROUPS: readonly { id: HqGroupId; label: string }[] = [
+  { id: 'work', label: 'Work' },
+  { id: 'clients', label: 'Clients' },
+  { id: 'company', label: 'Company' },
+  { id: 'control', label: 'Control' },
 ] as const
 
 export const isSoonSection = (v: unknown): v is HqSectionId =>
@@ -72,9 +81,9 @@ export function sectionForKey(key: string): HqSection | null {
 export const HQ_TABS = {
   inbox: ['notifications', 'approvals'],
   clients: ['pipeline', 'clients', 'site', 'calls', 'prospects'],
-  projects: ['projects', 'payments'],
+  projects: ['projects'],
   documents: ['documents', 'referrals', 'reviews'],
-  content: ['feed', 'calendar', 'orders'],
+  content: ['feed', 'orders', 'campaigns'],
   finance: ['invoices', 'payments', 'costs'],
 } as const satisfies Partial<Record<HqSectionId, readonly string[]>>
 
@@ -96,7 +105,8 @@ const MAP: Record<string, { section: HqTabbed; tab: string }> = {
   'sales:calls': { section: 'clients', tab: 'calls' },
   'sales:prospects': { section: 'clients', tab: 'prospects' },
   'production:projects': { section: 'projects', tab: 'projects' },
-  'backoffice:invoices': { section: 'projects', tab: 'payments' },
+  'backoffice:invoices': { section: 'finance', tab: 'invoices' },
+  'backoffice:payments': { section: 'finance', tab: 'payments' },
   'backoffice:documents': { section: 'documents', tab: 'documents' },
   'backoffice:referrals': { section: 'documents', tab: 'referrals' },
   'backoffice:reviews': { section: 'documents', tab: 'reviews' },

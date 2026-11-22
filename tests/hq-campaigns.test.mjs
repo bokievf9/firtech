@@ -36,14 +36,10 @@ const T0 = Date.parse('2026-11-23T06:00:00Z')
 const r = (m, seg, b) => proxy.resolveEndpoint(m, seg, none, b)
 const good = { kind: 'news', subject: { ru: 'Тема' }, text: { ru: 'Текст' } }
 
-test('section: Campaigns follows Finance, ready, with a page and a hint', () => {
-  const ids = shell.HQ_SECTIONS.map((s) => s.id)
-  assert.equal(ids[ids.indexOf('finance') + 1], 'campaigns')
-  const s = shell.sectionById('campaigns')
-  assert.equal(s.state, 'ready')
-  assert.equal(s.label, 'Campaigns')
-  assert.equal(s.href, '/admin/campaigns')
-  assert.ok(read('src/app/admin/(hq)/campaigns/page.tsx').length > 0)
+test('section: Campaigns is a tab of Content, /admin/campaigns redirects', () => {
+  assert.ok(!shell.HQ_SECTIONS.some((x) => x.id === 'campaigns'))
+  assert.ok(shell.HQ_TABS.content.includes('campaigns'))
+  assert.ok(read('src/app/admin/(hq)/campaigns/page.tsx').includes('/admin/content?tab=campaigns'))
   assert.ok(read('src/content/admin.ts').includes("campaigns: 'News and"))
 })
 

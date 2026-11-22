@@ -21,7 +21,8 @@ import {
   CheckCircle,
   UsersThree,
   Desktop,
-  EnvelopeSimple,
+  List,
+  X,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -36,7 +37,7 @@ import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { APPROVALS_CHANGED, approvalsSummary } from '@/lib/approvals'
 import { normalizeReview } from '@/lib/review'
-import { HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, sectionForKey, type HqSection, type HqSectionId } from '@/lib/hq-shell'
+import { HQ_GROUPS, HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, sectionForKey, type HqSection, type HqSectionId } from '@/lib/hq-shell'
 
 const t = admin.hq
 const p = admin.hub.palette
@@ -54,7 +55,6 @@ const icons: Record<HqSectionId, Icon> = {
   processes: Graph,
   content: Megaphone,
   finance: Money,
-  campaigns: EnvelopeSimple,
   settings: Gear,
   audit: ClockCounterClockwise,
   analytics: ChartLineUp,
@@ -71,28 +71,44 @@ function useNow(step = 15_000) {
   return now
 }
 
-function NavItem({ s, active, index, compact, badge }: { s: HqSection; active: boolean; index: number; compact: boolean; badge?: number | null }) {
+function NavItem({ s, active, index, badge, onGo }: { s: HqSection; active: boolean; index: number; badge?: number | null; onGo?: () => void }) {
   const Ico = icons[s.id]
   return (
     <Link
       href={s.href}
+      onClick={onGo}
       aria-current={active ? 'page' : undefined}
       data-section={s.id}
       title={index < 9 ? `${s.label} (${index + 1})` : s.label}
       className={cn(
-        'flex shrink-0 items-center gap-2.5 rounded-xl text-sm transition-colors',
-        compact ? 'min-h-10 px-3' : 'min-h-10 w-full px-3',
+        'flex min-h-10 w-full items-center gap-2.5 rounded-xl px-3 text-sm transition-colors',
         active ? 'bg-surface-2 text-fg' : 'text-muted hover:bg-surface-3 hover:text-fg',
       )}
     >
       <Ico size={18} weight={active ? 'fill' : 'regular'} aria-hidden="true" className={active ? 'text-accent-text' : ''} />
-      <span className="min-w-0 flex-1 truncate">{s.label}</span>
+      <span className="min-w-0 flex-1">{s.label}</span>
       {s.state === 'soon' ? <span className="rounded-full border border-line px-1.5 py-px text-[10px] text-faint">{t.soon}</span> : null}
       {badge ? (
         <span data-badge={s.id} aria-label={`${badge}`} className="rounded-full bg-accent px-1.5 py-px font-mono text-[10px] tabular-nums text-accent-ink">{badge}</span>
       ) : null}
-      {!compact && index < 9 ? <kbd className="font-mono text-[10px] text-faint">{index + 1}</kbd> : null}
+      {index < 9 ? <kbd className="hidden font-mono text-[10px] text-faint lg:inline">{index + 1}</kbd> : null}
     </Link>
+  )
+}
+
+// The grouped list (Work, Clients, Company, Control), the same on the desktop rail and in the phone panel.
+function MenuList({ pathname, waiting, onGo }: { pathname: string; waiting: number | null; onGo?: () => void }) {
+  return (
+    <>
+      {HQ_GROUPS.map((g) => (
+        <div key={g.id} role="group" aria-labelledby={`hq-group-${g.id}`} data-menu-group={g.id} className="flex flex-col gap-0.5 pb-2">
+          <div id={`hq-group-${g.id}`} className="px-3 pb-0.5 pt-2 text-[11px] font-medium uppercase tracking-wide text-faint">{g.label}</div>
+          {HQ_SECTIONS.map((s, i) =>
+            s.group === g.id ? <NavItem key={s.id} s={s} index={i} onGo={onGo} badge={s.id === 'approvals' ? waiting : null} active={pathname === s.href} /> : null,
+          )}
+        </div>
+      ))}
+    </>
   )
 }
 
@@ -102,8 +118,13 @@ export function HqShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const now = useNow()
+  const current = HQ_SECTIONS.find((x) => pathname === x.href)
   const [toast, setToast] = useState<ToastMessage | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
+  // The phone menu is open for the page it was opened on, so a navigation closes it without an effect.
+  const [menuAt, setMenuAt] = useState<string | null>(null)
+  const menuOpen = menuAt === pathname
+  const setMenuOpen = useCallback((v: boolean | ((o: boolean) => boolean)) => setMenuAt((at) => ((typeof v === 'function' ? v(at === pathname) : v) ? pathname : null)), [pathname])
   const notify = useCallback((text: string, tone: ToastMessage['tone'] = 'info') => {
     setToast({ id: Date.now() + Math.random(), text, tone })
   }, [])
@@ -122,6 +143,13 @@ export function HqShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener(APPROVALS_CHANGED, on)
   }, [reloadReview])
   const api = useMemo<HubApi>(() => ({ now, notify, open }), [now, notify, open])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    const onEsc = (e: KeyboardEvent) => e.key === 'Escape' && setMenuOpen(false)
+    window.addEventListener('keydown', onEsc)
+    return () => window.removeEventListener('keydown', onEsc)
+  }, [menuOpen, setMenuOpen])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -209,16 +237,29 @@ export function HqShell({ children }: { children: React.ReactNode }) {
           <AdminMenu />
         </header>
         <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <nav aria-label={t.menu} className="hidden w-56 shrink-0 flex-col gap-0.5 overflow-y-auto border-r border-line p-2 lg:flex">
-            {HQ_SECTIONS.map((s, i) => (
-              <NavItem key={s.id} s={s} index={i} compact={false} badge={s.id === 'approvals' ? waiting : null} active={pathname === s.href} />
-            ))}
+          <nav aria-label={t.menu} className="hidden w-56 shrink-0 flex-col overflow-y-auto border-r border-line p-2 lg:flex">
+            <MenuList pathname={pathname} waiting={waiting} />
           </nav>
-          <nav aria-label={t.menu} className="flex shrink-0 gap-1 overflow-x-auto border-b border-line p-1.5 lg:hidden">
-            {HQ_SECTIONS.map((s, i) => (
-              <NavItem key={s.id} s={s} index={i} compact badge={s.id === 'approvals' ? waiting : null} active={pathname === s.href} />
-            ))}
-          </nav>
+          <div className="relative shrink-0 border-b border-line lg:hidden">
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-expanded={menuOpen}
+              aria-controls="hq-menu-panel"
+              data-menu-toggle
+              className="flex min-h-11 w-full items-center gap-2.5 px-4 text-sm"
+            >
+              {menuOpen ? <X size={18} aria-hidden="true" /> : <List size={18} aria-hidden="true" />}
+              <span className="font-medium">{t.menuButton}</span>
+              <span className="min-w-0 flex-1 truncate text-right text-muted">{current?.label}</span>
+              {waiting ? <span className="rounded-full bg-accent px-1.5 py-px font-mono text-[10px] tabular-nums text-accent-ink">{waiting}</span> : null}
+            </button>
+            {menuOpen ? (
+              <nav id="hq-menu-panel" aria-label={t.menu} className="absolute inset-x-0 top-full z-30 max-h-[calc(100dvh-7rem)] overflow-y-auto border-b border-line bg-bg p-2 shadow-lg">
+                <MenuList pathname={pathname} waiting={waiting} onGo={() => setMenuOpen(false)} />
+              </nav>
+            ) : null}
+          </div>
           <main className="relative min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">{children}</main>
         </div>
       </div>

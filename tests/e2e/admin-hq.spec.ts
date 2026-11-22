@@ -32,12 +32,33 @@ test.describe('with a session', () => {
     await page.getByRole('tab', { name: 'Clients' }).click()
     await expect(page).toHaveURL(/tab=clients/)
     await open(page, '/admin/projects?tab=payments')
-    await expect(page.getByRole('tab', { name: 'Payments', selected: true })).toBeVisible()
+    await expect(page).toHaveURL(/\/admin\/finance\?tab=invoices/)
+    await expect(page.getByRole('heading', { name: 'Finance', level: 1 })).toBeVisible()
     await open(page, '/admin/documents')
     await expect(page.getByRole('heading', { name: 'Documents', level: 1 })).toBeVisible()
     await page.keyboard.press('1')
     await expect(page).toHaveURL(/\/admin\/inbox/)
     expect(errors).toEqual([])
+  })
+
+  test('menu: four groups on the desktop; on a phone a Menu button opens a full-width grouped panel', async ({ page }) => {
+    await page.setViewportSize(SIZES.desktop)
+    await open(page, '/admin/inbox')
+    for (const g of ['work', 'clients', 'company', 'control']) await expect(page.locator(`nav [data-menu-group="${g}"]`).first()).toBeVisible()
+    await page.setViewportSize(SIZES.mobile)
+    await open(page, '/admin/inbox')
+    await expect(page.locator('[data-menu-toggle]')).toBeVisible()
+    await expect(page.locator('#hq-menu-panel')).toHaveCount(0)
+    await page.locator('[data-menu-toggle]').click()
+    const panel = page.locator('#hq-menu-panel')
+    await expect(panel).toBeVisible()
+    for (const label of ['Inbox', 'Approvals', 'Finance', 'Content', 'Knowledge', 'Audit log', 'Analytics']) await expect(panel.getByRole('link', { name: new RegExp(`^${label}`) })).toBeVisible()
+    const clipped = await panel.locator('[data-section] span.min-w-0').evaluateAll((els) => els.filter((e) => e.scrollWidth > e.clientWidth + 1).length)
+    expect(clipped).toBe(0)
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
+    await panel.getByRole('link', { name: /^Finance/ }).click()
+    await expect(page).toHaveURL(/\/admin\/finance/)
+    await expect(page.locator('#hq-menu-panel')).toHaveCount(0)
   })
 
   test('the old office still opens next to HQ', async ({ page }) => {
@@ -128,7 +149,7 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  test('Content: feed, item drawer with the player and Studio buttons, «Промпт» order, orders tab, calendar', async ({ page }) => {
+  test('Content: feed, item drawer with the player and Studio buttons, «Промпт» order, orders tab, campaigns tab', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/content')
     await expect(page.getByRole('heading', { name: 'Content', level: 1 })).toBeVisible()
@@ -155,8 +176,9 @@ test.describe('with a session', () => {
     await expect(orders).toHaveCount(2)
     await expect(orders.first()).toContainText('Про ночные заявки')
     await expect(orders.first().getByRole('link', { name: 'Открыть в ленте' })).toBeVisible()
-    await page.getByRole('tab', { name: 'Calendar' }).click()
-    await expect(page).toHaveURL(/tab=calendar/)
+    await expect(page.getByRole('tab', { name: 'Calendar' })).toHaveCount(0)
+    await page.getByRole('tab', { name: 'Campaigns' }).click()
+    await expect(page).toHaveURL(/tab=campaigns/)
     expect(errors).toEqual([])
   })
 

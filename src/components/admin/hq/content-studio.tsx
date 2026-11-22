@@ -7,8 +7,9 @@ import { useEffect, useState } from 'react'
 import { errText, fill, hq } from '@/components/admin/control/api'
 import { CrmDrawer } from '@/components/admin/control/crm-hq-ui'
 import { Chip, type Tone } from '@/components/admin/pult/bits'
-import { ContentBody, ContentCard, ContentTab, nextStatus, type Action } from '@/components/admin/pult/content'
+import { ContentBody, ContentCard, nextStatus, type Action } from '@/components/admin/pult/content'
 import { btn, btnPrimary, Empty, inputClass, Loading, Offline, useHqView, useHub } from '@/components/admin/hub/ui'
+import { CampaignsSection } from '@/components/admin/hq/campaigns-section'
 import { Pending } from '@/components/ui/pending'
 import { admin } from '@/content/admin'
 import {
@@ -28,8 +29,8 @@ import { CONTENT_KINDS, CONTENT_STATUSES, normalizeContentItem, type ContentItem
 const k = admin.pult.content
 const s = k.studio
 
-// The Content section of HQ: the feed of everything, the week calendar (the marketing panel) and the orders
-// for the Content Maker. «Промпт» is on every tab.
+// The Content section of HQ: the feed of everything, the orders for the Content Maker and the client
+// mailings (Campaigns). The week calendar lives in the Calendar section. «Промпт» is on every tab.
 export function ContentSection({ tab, focus }: { tab: string; focus: string | null }) {
   const router = useRouter()
   const [prompt, setPrompt] = useState(false)
@@ -40,7 +41,7 @@ export function ContentSection({ tab, focus }: { tab: string; focus: string | nu
           <Sparkle size={16} weight="fill" aria-hidden="true" /> {s.prompt}
         </button>
       </div>
-      {tab === 'calendar' ? <ContentTab focus={focus} /> : tab === 'orders' ? <OrdersTab /> : <FeedTab focus={focus} />}
+      {tab === 'campaigns' ? <CampaignsSection embedded /> : tab === 'orders' ? <OrdersTab /> : <FeedTab focus={focus} />}
       <PromptDrawer
         open={prompt}
         onClose={() => setPrompt(false)}
