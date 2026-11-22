@@ -7,9 +7,12 @@ import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btnPrimary, inputClass, modalOpen, Offline, typingIn, useHqView } from '@/components/admin/hub/ui'
 import { Chip } from '@/components/admin/shell-crm/bits'
+import { normalizeSettings } from '@/lib/settings-hq'
 import { cn } from '@/lib/cn'
 import {
+  autopilotChip,
   canReplyTo,
+  chatAutopilotKind,
   CHANNEL_LABELS,
   choiceLabel,
   choicesFrom,
@@ -66,6 +69,19 @@ function ChannelChips({ channels }: { channels: Channel[] }) {
   )
 }
 
+// `plain` = no link (the list row is itself a button).
+function AutopilotChip({ settings, thread, lastThread = null, plain = false }: { settings: Parameters<typeof autopilotChip>[0]; thread: ChatThread; lastThread?: string | null; plain?: boolean }) {
+  const chip = autopilotChip(settings, chatAutopilotKind(thread, lastThread))
+  if (!chip) return null
+  const cls = 'inline-flex shrink-0 items-center rounded-full border border-line px-2 py-0.5 text-xs text-muted'
+  if (plain) return <span title={chip.title} data-autopilot-chip={chip.mode} className={cls}>{chip.text}</span>
+  return (
+    <Link href="/admin/settings" title={chip.title} data-autopilot-chip={chip.mode} className={cn(cls, 'hover:border-line-strong hover:text-fg')}>
+      {chip.text}
+    </Link>
+  )
+}
+
 function ChatsPageInner() {
   const desktop = useDesktop()
   const [toast, setToast] = useState<ToastMessage | null>(null)
@@ -84,6 +100,9 @@ function ChatsPageInner() {
   const [hqChoices, setHqChoices] = useState<{ for: string; list: ThreadChoice[] } | null>(null)
   const picker = useRef<HTMLSelectElement>(null)
 
+  // The Autopilot modes are read once for the page; a failed call simply hides the chips.
+  const settingsRes = useHqView('settings', normalizeSettings, { visible: 86_400_000, hidden: 86_400_000 })
+  const autopilot = settingsRes.view?.settings ?? null
   const list = useHqView(`chats?status=${scope}&limit=100`, normalizeChats, { visible: 30_000, hidden: 120_000 })
   const threads = useMemo(
     () => searchThreads(sortThreads(list.view?.items ?? []), query).filter((t) => channel === 'all' || t.channels.includes(channel)),
@@ -260,6 +279,7 @@ function ChatsPageInner() {
                         <ChannelChips channels={t.channels} />
                         {t.leadId !== null ? <Chip tone="accent">лид #{t.leadId}</Chip> : null}
                         {t.ticketId !== null ? <Chip tone={t.openTicket ? 'warn' : 'plain'}>тикет #{t.ticketId}</Chip> : null}
+                        <AutopilotChip settings={autopilot} thread={t} plain />
                         {t.unread ? <span className="ml-auto rounded-full bg-accent px-2 py-0.5 font-mono text-xs text-accent-ink" aria-label="Есть непрочитанное">{t.unread}</span> : null}
                       </span>
                     </button>
@@ -287,6 +307,7 @@ function ChatsPageInner() {
                     <p className="truncate text-xs text-muted">{[thread.client.contact, thread.client.email].filter(Boolean).join(' · ') || 'Контактов нет'}</p>
                   </div>
                   <ChannelChips channels={thread.channels} />
+                  <AutopilotChip settings={autopilot} thread={thread} lastThread={lastThread} />
                   <div className="ml-auto flex flex-wrap items-center gap-x-3">
                     <button
                       type="button"

@@ -170,14 +170,17 @@ function Card({ id, title, hint, children }: { id: string; title: string; hint: 
   )
 }
 
-function Autopilot({ mode, onSave }: { mode: AutopilotMode; onSave: Save }) {
+type AutopilotKey = 'leadManager' | 'support'
+
+function AutopilotRow({ field, mode, onSave }: { field: AutopilotKey; mode: AutopilotMode; onSave: Save }) {
   const { status, run } = useFieldStatus()
   const a = t.autopilot
+  const row = a.rows[field]
   return (
-    <section className="rounded-card border border-accent/40 bg-surface p-4" data-group="autopilot" data-status={status.state}>
-      <h2 className="text-sm font-medium">{a.title}</h2>
-      <p className="mt-0.5 text-xs text-muted">{a.hint}</p>
-      <div role="radiogroup" aria-label={a.label} className="mt-3 grid gap-2">
+    <div className="mt-3" data-autopilot-row={field}>
+      <h3 className="text-sm font-medium">{row.title}</h3>
+      <p className="mt-0.5 text-xs text-muted">{row.hint}</p>
+      <div role="radiogroup" aria-label={row.label} className="mt-2 grid gap-2">
         {AUTOPILOT_MODES.map((m) => (
           <button
             key={m}
@@ -186,7 +189,7 @@ function Autopilot({ mode, onSave }: { mode: AutopilotMode; onSave: Save }) {
             aria-checked={mode === m}
             data-mode={m}
             disabled={status.state === 'saving'}
-            onClick={() => mode !== m && void run(() => onSave({ autopilot: { leadManager: m } }))}
+            onClick={() => mode !== m && void run(() => onSave({ autopilot: { [field]: m } }))}
             className={cn('flex min-h-11 items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm transition-colors disabled:opacity-60', mode === m ? 'border-accent bg-surface-2' : 'border-line hover:border-line-strong')}
           >
             <span className={cn('grid size-4 shrink-0 place-items-center rounded-full border', mode === m ? 'border-accent' : 'border-line-strong')} aria-hidden="true">
@@ -199,6 +202,18 @@ function Autopilot({ mode, onSave }: { mode: AutopilotMode; onSave: Save }) {
       <div className="mt-2">
         <StatusMark status={status} />
       </div>
+    </div>
+  )
+}
+
+function Autopilot({ modes, onSave }: { modes: Record<AutopilotKey, AutopilotMode>; onSave: Save }) {
+  const a = t.autopilot
+  return (
+    <section className="rounded-card border border-accent/40 bg-surface p-4" data-group="autopilot">
+      <h2 className="text-sm font-medium">{a.title}</h2>
+      <p className="mt-0.5 text-xs text-muted">{a.hint}</p>
+      <AutopilotRow field="leadManager" mode={modes.leadManager} onSave={onSave} />
+      <AutopilotRow field="support" mode={modes.support} onSave={onSave} />
     </section>
   )
 }
@@ -312,7 +327,7 @@ export function SettingsSection() {
               <p className="text-muted">{fill(t.restartText, { keys: view.restartKeys.join(', ') })}</p>
             </div>
           ) : null}
-          <Autopilot mode={view.settings.autopilot.leadManager} onSave={save} />
+          <Autopilot modes={view.settings.autopilot} onSave={save} />
           {GROUP_ORDER.slice(0, 3).map((g) => (
             <Card key={g} id={g} title={t.groups[g].title} hint={t.groups[g].hint}>
               {FIELD_GROUPS[g].map((spec) => (

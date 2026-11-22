@@ -222,3 +222,29 @@ export function lastClientThread(messages: Pick<ChatMessage, 'from' | 'thread' |
 
 // The distinct threads the messages were written in; the chip next to a message shows only when there are several.
 export const messageThreads = (messages: Pick<ChatMessage, 'thread'>[]): string[] => [...new Set(messages.flatMap((m) => (m.thread ? [m.thread] : [])))]
+
+// ---- Autopilot chip (2026-11-23): which Settings mode governs a chat --------------------------------
+// Threads of kind `lead` are the lead manager's, `support` and `project-<id>` are Support's.
+export type AutopilotKind = 'leadManager' | 'support'
+export type AutopilotModeName = 'ask_me' | 'policy' | 'autopilot'
+export const AUTOPILOT_CHIP_MODES: Record<AutopilotModeName, string> = { ask_me: 'Ask me', policy: 'Policy', autopilot: 'Autopilot' }
+
+export const autopilotKindOf = (threadName: string | null): AutopilotKind => (threadName === 'support' || (threadName !== null && threadName.startsWith('project-')) ? 'support' : 'leadManager')
+
+// A list row has no message threads: a ticket without a lead is Support's, everything else the lead manager's.
+// An open chat uses the thread of the client's last message when it is known.
+export function chatAutopilotKind(t: Pick<ChatThread, 'leadId' | 'ticketId'>, lastThread: string | null = null): AutopilotKind {
+  if (lastThread) return autopilotKindOf(lastThread)
+  return t.ticketId !== null && t.leadId === null ? 'support' : 'leadManager'
+}
+
+export function autopilotChip(settings: { autopilot?: Partial<Record<AutopilotKind, string>> } | null, kind: AutopilotKind): { text: string; title: string; mode: AutopilotModeName } | null {
+  const raw = settings?.autopilot?.[kind]
+  if (raw !== 'ask_me' && raw !== 'policy' && raw !== 'autopilot') return null
+  const who = kind === 'support' ? 'Support' : 'Lead manager'
+  return {
+    mode: raw,
+    text: `Autopilot: ${AUTOPILOT_CHIP_MODES[raw]}`,
+    title: `${who} mode in Settings: ${AUTOPILOT_CHIP_MODES[raw]}. It decides how much the agent answers alone in this kind of chat. Click to change it.`,
+  }
+}

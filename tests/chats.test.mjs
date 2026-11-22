@@ -153,3 +153,20 @@ test('chat search and «mark unread» through HQ', async () => {
   assert.equal(resolveEndpoint('POST', ['chats', 't4', 'unread'], new URLSearchParams(), { a: 1 }).ok, false)
   assert.equal(resolveEndpoint('GET', ['chats', 't4', 'unread'], new URLSearchParams(), null).ok, false)
 })
+
+test('autopilot chip: lead threads use the lead manager, support and project threads use support, no settings = no chip', () => {
+  assert.equal(c.autopilotKindOf('lead'), 'leadManager')
+  assert.equal(c.autopilotKindOf('support'), 'support')
+  assert.equal(c.autopilotKindOf('project-4'), 'support')
+  assert.equal(c.autopilotKindOf(null), 'leadManager')
+  assert.equal(c.chatAutopilotKind({ leadId: 1, ticketId: 2 }), 'leadManager')
+  assert.equal(c.chatAutopilotKind({ leadId: null, ticketId: 2 }), 'support')
+  assert.equal(c.chatAutopilotKind({ leadId: 1, ticketId: null }, 'project-9'), 'support')
+  const st = { autopilot: { leadManager: 'autopilot', support: 'ask_me' } }
+  assert.equal(c.autopilotChip(st, 'leadManager').text, 'Autopilot: Autopilot')
+  assert.equal(c.autopilotChip(st, 'support').text, 'Autopilot: Ask me')
+  assert.equal(c.autopilotChip({ autopilot: { leadManager: 'policy' } }, 'leadManager').text, 'Autopilot: Policy')
+  assert.match(c.autopilotChip(st, 'support').title, /Support mode in Settings/)
+  assert.equal(c.autopilotChip(null, 'support'), null)
+  assert.equal(c.autopilotChip({ autopilot: { support: 'bogus' } }, 'support'), null)
+})

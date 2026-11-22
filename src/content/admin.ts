@@ -400,9 +400,12 @@ export const admin = {
       restartTitle: 'Restart needed',
       restartText: 'Shell reads these at start, so the change applies after the next restart: {keys}.',
       autopilot: {
-        title: 'Lead manager autopilot',
-        hint: 'How much the lead manager (Fira) may decide alone before it calls you. Applies at once.',
-        label: 'Lead manager mode',
+        title: 'Autopilot',
+        hint: 'How much the agents may decide alone before they call you. Applies at once.',
+        rows: {
+          leadManager: { title: 'Lead manager', hint: 'Lead conversations: the lead manager (Fira) answers new requests.', label: 'Lead manager mode' },
+          support: { title: 'Support', hint: 'Client questions in the cabinet, in Telegram and in the website chat.', label: 'Support mode' },
+        },
         modes: {
           ask_me: 'Зови меня при любом сомнении',
           policy: 'Зови меня по политике',
