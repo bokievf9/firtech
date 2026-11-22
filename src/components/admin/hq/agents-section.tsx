@@ -119,7 +119,7 @@ function AgentCardView({ id, onChanged }: { id: string; onChanged: () => void })
           {t.list}
         </Link>
         <div className="min-w-0 flex-1">
-          <h2 className="font-brand text-xl">{a.title}</h2>
+          <h2 className="text-title-3 font-semibold">{a.title}</h2>
           <p className="text-sm text-muted">
             {deptName(a.dept)} · {t.roles[a.role]} · {t.status[a.status]}
             {a.gloss ? ` · ${a.gloss}` : ''}
