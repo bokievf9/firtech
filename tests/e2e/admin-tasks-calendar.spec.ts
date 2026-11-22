@@ -24,20 +24,20 @@ test.describe('with a session', () => {
     const all = await tasks.count()
     expect(all).toBeGreaterThan(8)
 
-    await page.getByLabel('Отдел').selectOption('sales')
+    await page.getByLabel('Department').selectOption('sales')
     await expect(page.locator('[data-task="23"]')).toBeVisible()
     await expect(page.locator('[data-task="12"]')).toHaveCount(0)
     // the agent list follows the department
-    await expect(page.getByLabel('Агент').locator('option', { hasText: 'Content Maker' })).toHaveCount(0)
+    await expect(page.getByLabel('Agent').locator('option', { hasText: 'Content Maker' })).toHaveCount(0)
 
-    await page.getByLabel('Статус').selectOption('approval')
+    await page.getByLabel('Status').selectOption('approval')
     await expect(page.locator('[data-task="23"]')).toBeVisible()
     await expect(page.locator('[data-task="21"]')).toHaveCount(0)
 
-    await page.getByRole('button', { name: 'Сбросить фильтры' }).click()
+    await page.getByRole('button', { name: 'Reset filters' }).click()
     await expect(tasks).toHaveCount(all)
 
-    await page.getByLabel('Агент').selectOption('content-maker')
+    await page.getByLabel('Agent').selectOption('content-maker')
     await expect(page.locator('[data-task="13"]')).toBeVisible()
     await expect(page.locator('[data-task="21"]')).toHaveCount(0)
 
@@ -49,10 +49,10 @@ test.describe('with a session', () => {
 
   test('Tasks: the composer of the orders is there and a blocked task offers «В работу»', async ({ page }) => {
     await open(page, '/admin/tasks')
-    await expect(page.getByLabel('Новое поручение Директору')).toBeVisible()
-    await page.getByLabel('Статус').selectOption('blocked')
+    await expect(page.getByLabel('New assignment for the Director')).toBeVisible()
+    await page.getByLabel('Status').selectOption('blocked')
     await expect(page.locator('[data-task="15"]')).toBeVisible()
-    await expect(page.locator('[data-task="15"]').getByRole('button', { name: /В работу/ })).toBeVisible()
+    await expect(page.locator('[data-task="15"]').getByRole('button', { name: /Start/ })).toBeVisible()
   })
 
   test('Calendar: week grid with all four kinds, month view, filters, a click opens the section', async ({ page }) => {
@@ -73,18 +73,18 @@ test.describe('with a session', () => {
 
     // next week, then back to today
     const title = (await page.locator('[data-cal-title]').textContent()) ?? ''
-    await page.getByRole('button', { name: 'Вперёд' }).click()
+    await page.getByRole('button', { name: 'Forward' }).click()
     await expect(page.locator('[data-cal-title]')).not.toHaveText(title)
-    await page.getByRole('button', { name: 'Сегодня' }).click()
+    await page.getByRole('button', { name: 'Today' }).click()
     await expect(page.locator('[data-cal-title]')).toHaveText(title)
 
     // month view: whole weeks, today marked
-    await page.getByRole('button', { name: 'Месяц', exact: true }).click()
+    await page.getByRole('button', { name: 'Month', exact: true }).click()
     const month = page.locator('[data-cal-grid="month"]')
     await expect(month).toBeVisible()
     expect(await month.locator('[data-cal-day]').count() % 7).toBe(0)
     await expect(month.locator('[data-today="true"]')).toHaveCount(1)
-    await page.getByRole('button', { name: 'Неделя', exact: true }).click()
+    await page.getByRole('button', { name: 'Week', exact: true }).click()
 
     // a click on a call goes to the calls tab of Clients, a stage to Projects, content to Content
     const call = page.locator('[data-cal-event][data-kind="call"]').first()

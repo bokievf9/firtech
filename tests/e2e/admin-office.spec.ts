@@ -57,10 +57,10 @@ test.describe('Office, with a session', () => {
     await expect(page.locator('[data-office-strip]')).toBeVisible()
     await expect(page.locator('canvas').first()).toBeVisible()
     // The presence switch lives in the Shell top bar and still switches.
-    await page.getByRole('radio', { name: 'Не на месте', exact: true }).click()
-    await expect(page.getByRole('radio', { name: 'Не на месте', exact: true })).toBeChecked()
-    await page.getByRole('radio', { name: 'На месте', exact: true }).click()
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeChecked()
+    await page.getByRole('radio', { name: 'Away', exact: true }).click()
+    await expect(page.getByRole('radio', { name: 'Away', exact: true })).toBeChecked()
+    await page.getByRole('radio', { name: 'In office', exact: true }).click()
+    await expect(page.getByRole('radio', { name: 'In office', exact: true })).toBeChecked()
     // Nothing slides in: no side panel, no tabs, no dialog.
     await expect(page.locator('aside')).toHaveCount(0)
     await expect(page.getByRole('tab')).toHaveCount(0)

@@ -29,9 +29,9 @@ test.describe('with a session', () => {
     await expect(page.locator('[data-stage="1"]')).toBeVisible()
     await expect(page.locator('[data-payment="FT-2026-005"]')).toBeVisible()
     await expect(page.locator('[data-stat="awaiting"]')).toContainText('$1')
-    await page.getByRole('button', { name: 'Предыдущий месяц' }).click()
+    await page.getByRole('button', { name: 'Previous month' }).click()
     await expect(page.locator('[data-payments-table]')).toBeHidden()
-    await expect(page.getByRole('button', { name: 'Следующий месяц' })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Next month' })).toBeEnabled()
     expect(errors).toEqual([])
   })
 

@@ -12,11 +12,11 @@ test.describe('with a session', () => {
   test('tabs show their own queue and counts', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/approvals')
-    const nav = page.getByRole('navigation', { name: 'Разделы Approvals' })
+    const nav = page.getByRole('navigation', { name: 'Approvals sections' })
     for (const name of ['Documents', 'Replies', 'Content', 'Money']) await expect(nav.getByRole('button', { name })).toBeVisible()
     // Content is the tab no other test decides in (they share one mock), so its queue is stable.
     await nav.getByRole('button', { name: /Content/ }).click()
-    const queue = page.getByRole('list', { name: 'Очередь Content' })
+    const queue = page.getByRole('list', { name: 'Queue Content' })
     await expect(queue.getByText('Запись ночью')).toBeVisible()
     await expect(queue.getByText('Счёт Sadaf Clinic')).toHaveCount(0)
     expect(errors).toEqual([])
@@ -24,40 +24,40 @@ test.describe('with a session', () => {
 
   test('edit in place saves a new version and a version can be restored', async ({ page }) => {
     await open(page, '/admin/approvals?tab=replies')
-    const row = page.getByRole('list', { name: 'Очередь Replies' }).getByRole('listitem').filter({ hasText: 'Ответ Нигине' })
+    const row = page.getByRole('list', { name: 'Queue Replies' }).getByRole('listitem').filter({ hasText: 'Ответ Нигине' })
     await row.getByRole('button', { name: /Ответ Нигине/ }).click()
-    const field = row.getByRole('textbox', { name: 'Текст' })
+    const field = row.getByRole('textbox', { name: 'Text' })
     const stamp = `s${Date.now()}`
     await field.fill(`Здравствуйте, Нигина! Правка ${stamp}.`)
-    await row.getByRole('button', { name: 'Сохранить правку' }).click()
-    await expect(page.getByText('Правка сохранена, версия добавлена')).toBeVisible()
-    await expect(row.getByRole('region', { name: 'Версии' }).getByRole('button', { name: /Вернуть v1/ })).toBeVisible()
-    await row.getByRole('button', { name: /Вернуть v1/ }).click()
-    await expect(page.getByText(/Версия v1 возвращена как новая/)).toBeVisible()
+    await row.getByRole('button', { name: 'Save edit' }).click()
+    await expect(page.getByText('Edit saved, version added')).toBeVisible()
+    await expect(row.getByRole('region', { name: 'Versions' }).getByRole('button', { name: /Restore v1/ })).toBeVisible()
+    await row.getByRole('button', { name: /Restore v1/ }).click()
+    await expect(page.getByText(/Version v1 restored as new/)).toBeVisible()
   })
 
   test('a reply card can be rated, and the rating can be changed', async ({ page }) => {
     await open(page, '/admin/approvals?tab=replies')
-    const row = page.getByRole('list', { name: 'Очередь Replies' }).getByRole('listitem').first()
+    const row = page.getByRole('list', { name: 'Queue Replies' }).getByRole('listitem').first()
     await row.getByRole('button').first().click()
     const rate = row.locator('[data-rate]')
     await expect(rate).toBeVisible()
-    await rate.getByRole('button', { name: 'Хороший ответ' }).click()
+    await rate.getByRole('button', { name: 'Good answer' }).click()
     await expect(rate.locator('[data-rate-state]')).toHaveAttribute('data-rate-state', 'up')
-    await rate.getByRole('button', { name: 'Плохой ответ' }).click()
+    await rate.getByRole('button', { name: 'Bad answer' }).click()
     await rate.locator('[data-rate-send]').click()
     await expect(rate.locator('[data-rate-state]')).toHaveAttribute('data-rate-state', 'down')
   })
 
   test('batch approve with a confirmation', async ({ page }) => {
     await open(page, '/admin/approvals?tab=money')
-    await page.getByRole('checkbox', { name: 'Выбрать все' }).check()
-    await expect(page.getByText(/Выбрано: [1-9]/)).toBeVisible()
-    await page.getByRole('button', { name: 'Одобрить выбранное' }).click()
+    await page.getByRole('checkbox', { name: 'Select all' }).check()
+    await expect(page.getByText(/Selected: [1-9]/)).toBeVisible()
+    await page.getByRole('button', { name: 'Approve selected' }).click()
     const dialog = page.getByRole('alertdialog')
-    await expect(dialog).toContainText('Счета и цены уйдут клиентам')
-    await dialog.getByRole('button', { name: 'Одобрить' }).click()
-    await expect(page.getByText(/Одобрено: \d/)).toBeVisible()
+    await expect(dialog).toContainText('Invoices and prices go to clients')
+    await dialog.getByRole('button', { name: 'Approve' }).click()
+    await expect(page.getByText(/Approved: \d/)).toBeVisible()
   })
 
   test('no horizontal overflow on a phone', async ({ page }) => {
@@ -72,17 +72,17 @@ test.describe('with a session', () => {
     await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_203$/)
     const shell = page.locator('[data-hq-shell]')
     await expect(shell.getByRole('navigation', { name: 'Sections' }).first()).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Назад в офис' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Back to the office' })).toHaveCount(0)
     await expect(page.locator('[data-approvals-reader]')).toBeVisible()
     // digits belong to the Shell: a department is clicked, not keyed
     await page.keyboard.press('j')
     await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_/)
     // «К списку» returns to the tabs of the item
-    await page.getByRole('button', { name: 'К списку Approvals' }).click()
-    await expect(page.getByRole('navigation', { name: 'Разделы Approvals' })).toBeVisible()
+    await page.getByRole('button', { name: 'Back to the Approvals list' }).click()
+    await expect(page.getByRole('navigation', { name: 'Approvals sections' })).toBeVisible()
     // the menu badge, the Approvals tabs and the Inbox tab show one number
     const sum = async () => {
-      const nav = page.getByRole('navigation', { name: 'Разделы Approvals' })
+      const nav = page.getByRole('navigation', { name: 'Approvals sections' })
       let n = 0
       for (const name of ['Documents', 'Replies', 'Content', 'Money']) n += Number((await nav.getByRole('button', { name }).locator('span').textContent()) ?? 0)
       return n

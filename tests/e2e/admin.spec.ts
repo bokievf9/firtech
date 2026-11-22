@@ -38,17 +38,17 @@ test.describe('with a session', () => {
   test('the presence switch lives in the Shell top bar', async ({ page }) => {
     const errors = watchErrors(page)
     await open(page, '/admin/inbox')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
-    await page.getByRole('radio', { name: 'Не на месте', exact: true }).click()
-    await expect(page.getByRole('radio', { name: 'Не на месте', exact: true })).toBeChecked()
-    await page.getByRole('radio', { name: 'На месте', exact: true }).click()
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeChecked()
+    await expect(page.getByRole('radio', { name: 'In office', exact: true })).toBeVisible()
+    await page.getByRole('radio', { name: 'Away', exact: true }).click()
+    await expect(page.getByRole('radio', { name: 'Away', exact: true })).toBeChecked()
+    await page.getByRole('radio', { name: 'In office', exact: true }).click()
+    await expect(page.getByRole('radio', { name: 'In office', exact: true })).toBeChecked()
     expect(errors).toEqual([])
   })
 
   test('⌘K opens the palette, filters and closes with Esc', async ({ page }) => {
     await open(page, '/admin/inbox')
-    await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
+    await expect(page.getByRole('radio', { name: 'In office', exact: true })).toBeVisible()
     await page.keyboard.press('Control+k')
     const box = page.locator('input.ym-disable-keys').first()
     await expect(box).toBeVisible()
@@ -61,7 +61,7 @@ test.describe('with a session', () => {
   test('theme switch flips the panel theme', async ({ page }) => {
     await open(page, '/admin/inbox')
     const before = await page.locator('html').getAttribute('data-theme')
-    await page.getByRole('button', { name: /Включить (светлую|тёмную) тему/ }).click()
+    await page.getByRole('button', { name: /Switch to the (light|dark) theme/ }).click()
     await expect.poll(() => page.locator('html').getAttribute('data-theme')).not.toBe(before)
   })
 
@@ -88,10 +88,10 @@ test.describe('with a session', () => {
 
     // The page shows the odometer and the 41 items; the reset button clears the timer, keeps the ticks.
     await open(page, '/admin/golive')
-    await expect(page.getByText(/Готово 1 из 41/)).toBeVisible()
-    await page.getByRole('button', { name: 'Сбросить' }).click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Сбросить' }).click()
-    await expect(page.getByRole('button', { name: 'Запустить 72 часа' })).toBeVisible()
+    await expect(page.getByText(/Done 1 of 41/)).toBeVisible()
+    await page.getByRole('button', { name: 'Reset' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Reset' }).click()
+    await expect(page.getByRole('button', { name: 'Start 72 hours' })).toBeVisible()
     // The page updates at once and saves in the background: poll the saved state.
     await expect
       .poll(async () => (await (await request.get('/api/admin/golive', { headers })).json()).state.deadline)
@@ -99,9 +99,9 @@ test.describe('with a session', () => {
     state = await (await request.get('/api/admin/golive', { headers })).json()
     expect(state.state.done['launch-sla']).toBeTruthy()
 
-    await page.getByRole('button', { name: 'Запустить 72 часа' }).click()
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Да' }).click()
-    await expect(page.getByRole('button', { name: 'Перезапустить' })).toBeVisible()
+    await page.getByRole('button', { name: 'Start 72 hours' }).click()
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Yes' }).click()
+    await expect(page.getByRole('button', { name: 'Restart' })).toBeVisible()
     await expect
       .poll(async () => (await (await request.get('/api/admin/golive', { headers })).json()).state.deadline)
       .not.toBeNull()
@@ -126,12 +126,12 @@ test.describe('with a session', () => {
     // the old link redirects into Approvals and keeps the item
     await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_201$/)
     await expect(page.getByRole('heading', { name: 'Approvals', level: 1 })).toBeVisible()
-    const rail = page.getByRole('navigation', { name: 'Отделы' })
-    await expect(rail.getByRole('button', { name: /^Все/ })).toHaveAttribute('aria-pressed', 'true')
+    const rail = page.getByRole('navigation', { name: 'Departments' })
+    await expect(rail.getByRole('button', { name: /^All/ })).toHaveAttribute('aria-pressed', 'true')
     // The rail has seven entries, each with a count.
     await expect(rail.getByRole('button')).toHaveCount(7)
-    await expect(rail.getByRole('button', { name: /^Маркетинг \d+/ })).toBeVisible()
-    const queue = page.getByRole('list', { name: 'Очередь' })
+    await expect(rail.getByRole('button', { name: /^Marketing \d+/ })).toBeVisible()
+    const queue = page.getByRole('list', { name: 'Queue' })
     await expect(queue.getByRole('button').first()).toBeVisible()
 
     // J and K step through the queue; the position counter follows.
@@ -145,12 +145,12 @@ test.describe('with a session', () => {
     await expect(position).toHaveText(new RegExp(`^${at} / ${all}$`))
 
     // Another department narrows the queue; the first key goes back to «Все».
-    await rail.getByRole('button', { name: /^Маркетинг/ }).click()
-    await expect(rail.getByRole('button', { name: /^Маркетинг/ })).toHaveAttribute('aria-pressed', 'true')
+    await rail.getByRole('button', { name: /^Marketing/ }).click()
+    await expect(rail.getByRole('button', { name: /^Marketing/ })).toHaveAttribute('aria-pressed', 'true')
     await expect(queue.getByRole('button').first()).toBeVisible()
 
     // «Правки» opens the revise composer, Esc closes it again (and stays on the page).
-    await page.getByRole('button', { name: /^Правки/ }).first().click()
+    await page.getByRole('button', { name: /^Revise/ }).first().click()
     const note = page.locator('#revise-note')
     await expect(note).toBeVisible()
     await note.fill('хук короче')
@@ -159,45 +159,45 @@ test.describe('with a session', () => {
     await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_/)
 
     // «Скинуть ссылку»: the dialog opens with a URL field, rejects junk and closes with Esc.
-    await page.getByRole('button', { name: 'Скинуть ссылку' }).click()
-    const dialog = page.getByRole('dialog', { name: 'Скинуть ссылку Трендвотчеру' })
+    await page.getByRole('button', { name: 'Send a link' }).click()
+    const dialog = page.getByRole('dialog', { name: 'Send a link to the Trendwatcher' })
     await expect(dialog).toBeVisible()
     await dialog.locator('input[type=url]').fill('https://example.com/some-video')
-    await dialog.getByRole('button', { name: 'Отправить' }).click()
+    await dialog.getByRole('button', { name: 'Send' }).click()
     await expect(dialog.getByRole('alert')).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
     // A supported link goes to the Trendwatcher (mock) and the dialog closes with a toast.
-    await page.getByRole('button', { name: 'Скинуть ссылку' }).click()
+    await page.getByRole('button', { name: 'Send a link' }).click()
     await dialog.locator('input[type=url]').fill('https://www.youtube.com/shorts/e2e12345678')
-    await dialog.getByRole('button', { name: 'Отправить' }).click()
+    await dialog.getByRole('button', { name: 'Send' }).click()
     await expect(dialog).toBeHidden()
-    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Ссылка принята|уже в работе/ }).first()).toBeVisible()
+    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Link accepted|already in progress/ }).first()).toBeVisible()
     expect(errors).toEqual([])
   })
 
   test('chats: a thread opens, the reply box sends with Enter and the answer joins the thread', async ({ page }) => {
     const errors = watchErrors(page, [/Failed to load resource/i])
     await open(page, '/admin/chats')
-    await expect(page.getByRole('heading', { name: /Чаты/, level: 1 }).or(page.getByRole('heading', { level: 1 })).first()).toBeVisible()
-    const list = page.getByRole('complementary', { name: 'Чаты' })
+    await expect(page.getByRole('heading', { name: /Chats/, level: 1 }).or(page.getByRole('heading', { level: 1 })).first()).toBeVisible()
+    const list = page.getByRole('complementary', { name: 'Chats' })
     await expect(list.getByRole('button').first()).toBeVisible()
     await list.getByRole('button').first().click()
-    const thread = page.getByRole('region', { name: 'Переписка' })
+    const thread = page.getByRole('region', { name: 'Chatting' })
     await expect(thread).toBeVisible()
     const box = thread.locator('textarea')
     await expect(box).toBeVisible()
-    await expect(box).toHaveAttribute('placeholder', /^Ответ клиенту/)
+    await expect(box).toHaveAttribute('placeholder', /^Reply to the client/)
     // Anna has a lead, a project and support threads: the picker offers them, the thread of her last message (project 4) is preselected and the messages carry thread chips.
-    const picker = thread.getByRole('combobox', { name: 'Ответить в тред' })
+    const picker = thread.getByRole('combobox', { name: 'Reply in the thread' })
     await expect(picker).toBeVisible()
     await expect(picker).toHaveValue('project-4')
-    await expect(thread.getByText('Заявка', { exact: true }).first()).toBeVisible()
+    await expect(thread.getByText('Lead', { exact: true }).first()).toBeVisible()
     await picker.selectOption('lead')
     // The list has a search box and «mark unread».
-    await list.getByRole('searchbox', { name: 'Поиск по клиентам' }).fill('нет такого клиента')
-    await expect(list.getByText('По запросу никого нет.')).toBeVisible()
-    await list.getByRole('searchbox', { name: 'Поиск по клиентам' }).fill('')
+    await list.getByRole('searchbox', { name: 'Search clients' }).fill('нет такого клиента')
+    await expect(list.getByText('Nobody matches the search.')).toBeVisible()
+    await list.getByRole('searchbox', { name: 'Search clients' }).fill('')
     await box.fill('e2e: ответ владельца')
     await box.press('Enter')
     await expect(thread.getByText('e2e: ответ владельца').first()).toBeVisible()
@@ -214,18 +214,18 @@ test.describe('with a session', () => {
 
     await open(page, '/admin/settings')
     // The referral reward is the one price no other test asserts.
-    const cell = page.getByRole('button', { name: /^Изменить цену: Награда за приведённого клиента/ })
+    const cell = page.getByRole('button', { name: /^Change the price: Reward for a referred client/ })
     await cell.scrollIntoViewIfNeeded()
     const before = (await state()).merged.referralPercent as number
     const next = before === 12 ? 13 : 12
     await cell.click()
-    const input = page.getByRole('textbox', { name: /^Новая цена: Награда за приведённого клиента/ })
+    const input = page.getByRole('textbox', { name: /^New price: Reward for a referred client/ })
     await input.fill(String(next))
     await input.press('Enter')
-    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Сохранено/ }).first()).toBeVisible()
+    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Saved/ }).first()).toBeVisible()
     await expect.poll(async () => (await state()).merged.referralPercent).toBe(next)
     expect((await state()).overridden).toContain('referralPercent')
-    await expect(page.getByRole('button', { name: /^Вернуть по умолчанию: Награда за приведённого клиента/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Reset to default: Reward for a referred client/ })).toBeVisible()
 
     // Out of range is refused by the API with a key, the stored value stays.
     const bad = await request.post('/api/admin/prices', { data: { path: 'referralPercent', value: 5000 }, headers })
@@ -244,14 +244,14 @@ test.describe('with a session', () => {
     await open(page, '/admin/projects')
     await page.getByText('Сайт студии').first().click()
     const drawer = page.getByRole('dialog').or(page.locator('aside').last())
-    const accept = drawer.getByRole('button', { name: 'Принять этап' })
+    const accept = drawer.getByRole('button', { name: 'Accept stage' })
     await expect(accept).toHaveCount(1)
-    await expect(drawer.getByText('ждёт приёмки')).toBeVisible()
-    await expect(drawer.getByText('ждёт оплаты')).toBeVisible()
+    await expect(drawer.getByText('waiting for acceptance')).toBeVisible()
+    await expect(drawer.getByText('waiting for payment')).toBeVisible()
     await accept.click()
-    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Этап 1 (уже был )?принят/ }).first()).toBeVisible()
-    await expect(drawer.getByRole('button', { name: 'Принять этап' })).toHaveCount(0)
-    await expect(drawer.getByText('принят', { exact: true })).toBeVisible()
+    await expect(page.locator('[role=status], [role=alert]').filter({ hasText: /Stage 1 (was already )?accepted/ }).first()).toBeVisible()
+    await expect(drawer.getByRole('button', { name: 'Accept stage' })).toHaveCount(0)
+    await expect(drawer.getByText('accepted', { exact: true })).toBeVisible()
   })
 
   test('CSV export answers with a csv for the owner', async ({ request, page }) => {
@@ -265,8 +265,8 @@ test.describe('with a session', () => {
     await context.clearCookies()
     await adminContext(context, baseURL!, LOGOUT_TOKEN)
     await open(page, '/admin/inbox')
-    await page.locator('summary[aria-label="Ещё"]').click()
-    await page.getByRole('button', { name: 'Выйти', exact: true }).click()
+    await page.locator('summary[aria-label="More"]').click()
+    await page.getByRole('button', { name: 'Sign out', exact: true }).click()
     await page.waitForURL(/\/admin\/login/)
     await open(page, '/admin/inbox')
     await expect(page).toHaveURL(/\/admin\/login/)

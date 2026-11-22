@@ -1,7 +1,8 @@
 import type { Lead } from '@/lib/lead'
 import type { LeadStatus } from '@/lib/store'
 
-// Owner panel copy (/admin). Russian only: the panel is a tool for the owner, not part of the site.
+// Owner panel copy (/admin). English (owner decision): menus, labels, toasts and errors; the content
+// (documents, agent texts, client messages) stays Russian. The panel is a tool, not part of the site.
 // No em or en dashes, like the rest of the copy.
 
 export const admin = {
