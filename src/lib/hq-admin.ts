@@ -179,9 +179,9 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // The owner accepts a client's finished stage from the project drawer (same call as the cabinet button).
   // Numeric client id only (a client without an account has no cabinet to accept in).
   { method: 'POST', path: /^clients\/\d{1,12}\/projects\/\d{1,12}\/milestones\/\d{1,3}\/accept$/, body: empty },
-    { method: 'GET', path: /^settings$/ },
+  { method: 'GET', path: /^settings$/ },
   { method: 'PATCH', path: /^settings$/, body: SETTINGS_BODY },
-// HQ «Agents» (2026-11-23): list, card, one instruction version, edit and rollback of the instructions.
+  // HQ «Agents» (2026-11-23): list, card, one instruction version, edit and rollback of the instructions.
   { method: 'GET', path: /^agents$/ },
   { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}$/ },
   { method: 'GET', path: /^agents\/[a-z0-9][a-z0-9-]{0,63}\/instructions\/\d{1,6}$/ },
