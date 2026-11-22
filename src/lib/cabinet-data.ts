@@ -540,6 +540,7 @@ export function legacyDocs(d: Pick<CabinetData, 'invoices' | 'documents'>): Publ
     stageNo: null,
     payUrl: null,
     hasPdf: false,
+    text: null,
   }
   const out: PublicDoc[] = []
   for (const i of d.invoices) {

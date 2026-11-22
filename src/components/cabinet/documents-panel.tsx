@@ -6,11 +6,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { formatDate } from '@/lib/cabinet-data'
-import { REJECT_REASON_MAX, docActions, docNeedsClient, docStateKey, docsNeedingClient, sortDocs, type PublicDoc, type SignaturePayload } from '@/lib/cabinet-docs'
+import { REJECT_REASON_MAX, docActions, docBody, docNeedsClient, docStateKey, docsNeedingClient, sortDocs, type PublicDoc, type SignaturePayload } from '@/lib/cabinet-docs'
 import { Card } from '@/components/ui'
 import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import { COUNTS_EVENT } from './cabinet-tabs'
 import { useWide } from './use-wide'
+import { DocumentText } from './document-text'
 import { SignaturePad } from './signature-pad'
 import { TabLink } from './tab-link'
 import { Chip, Empty, FormMessage, fill, inputClass } from './ui'
@@ -308,10 +309,14 @@ function Viewer({
   pad: ReactNode
 }) {
   const t = dict.cabinet.v3.docs
-  const actions = docActions(doc)
+  const allActions = docActions(doc)
   const real = isReal(doc)
   const file = `/api/cabinet/documents/${encodeURIComponent(doc.id)}/file`
   const canPreview = real && doc.hasPdf
+  const body = real ? docBody(doc) : doc.text ? 'text' : 'missing'
+  // Nothing to read: no accepting or signing blind.
+  const actions = body === 'missing' ? allActions.filter((a) => a !== 'accept' && a !== 'sign') : allActions
+  const [showPdf, setShowPdf] = useState(false)
   const dates = [
     doc.deliveredAt && fill(t.deliveredOn, { date: formatDate(doc.deliveredAt, locale) }),
     doc.acceptedAt && fill(t.acceptedOn, { date: formatDate(doc.acceptedAt, locale) }),
@@ -368,7 +373,39 @@ function Viewer({
           </p>
         )}
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+      </Card>
+
+      {body === 'text' && doc.text ? (
+        <Card className="md:p-sheet" data-doc-body="text">
+          <DocumentText text={doc.text} label={t.textLabel} />
+          {canPreview && (
+            <div className="mt-5 border-t border-line pt-4">
+              <button type="button" onClick={() => setShowPdf((v) => !v)} aria-expanded={showPdf} className={buttonStyles.secondary} data-doc-pdf-toggle>
+                {showPdf ? t.hidePdf : t.showPdf}
+              </button>
+            </div>
+          )}
+        </Card>
+      ) : body === 'missing' ? (
+        <MissingDoc doc={doc} dict={dict} />
+      ) : null}
+
+      {canPreview && (body === 'pdf' || showPdf) && (
+        <iframe
+          title={`${t.viewer}: ${doc.title}`}
+          src={file}
+          className="h-[70dvh] min-h-[460px] w-full rounded-card border border-hairline border-line-strong bg-surface"
+          data-doc-frame
+        />
+      )}
+
+      <Card>
+        {body !== 'missing' && (actions.includes('accept') || actions.includes('sign')) && (
+          <p className="mb-3 text-footnote text-faint" data-doc-read-first>
+            {t.readFirst}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
           {actions.includes('accept') && (
             <button type="button" onClick={onAccept} disabled={busy !== null} className={bigButton} data-doc-accept>
               {busy === 'accept' ? t.accepting : t.accept}
@@ -412,17 +449,6 @@ function Viewer({
           </div>
         )}
       </Card>
-
-      {canPreview ? (
-        <iframe
-          title={`${t.viewer}: ${doc.title}`}
-          src={file}
-          className="h-[70dvh] min-h-[460px] w-full rounded-card border border-hairline border-line-strong bg-surface"
-          data-doc-frame
-        />
-      ) : (
-        <div className="rounded-card border border-dashed border-line-strong p-8 text-center text-callout text-muted">{t.noPreview}</div>
-      )}
 
       {rejecting && <RejectForm dict={dict} busy={busy === 'reject'} error={rejectError} onSend={onRejectSend} onCancel={onRejectCancel} />}
 
@@ -498,6 +524,36 @@ function RejectForm({
           {t.cancel}
         </button>
       </div>
+    </Card>
+  )
+}
+
+// Neither the text nor the file: say so and let the client ask for the document (a support ticket).
+function MissingDoc({ doc, dict }: { doc: PublicDoc; dict: Dict }) {
+  const t = dict.cabinet.v3.docs
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle')
+  async function request() {
+    setState('sending')
+    try {
+      const text = fill(t.missing.text, { title: doc.title, number: doc.number ? ` ${fill(t.number, { n: doc.number })}` : '' })
+      const res = await fetch('/api/cabinet/tickets', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) })
+      const data = (await res.json().catch(() => null)) as { ok?: boolean } | null
+      setState(res.ok && data?.ok ? 'sent' : 'failed')
+    } catch {
+      setState('failed')
+    }
+  }
+  return (
+    <Card className="grid gap-3 border-dashed" data-doc-body="missing">
+      <p className="text-body font-medium">{t.missing.title}</p>
+      <p className="text-callout text-muted">{t.missing.body}</p>
+      <div>
+        <button type="button" onClick={() => void request()} disabled={state === 'sending' || state === 'sent'} className={buttonStyles.secondary} data-doc-request>
+          {state === 'sending' ? t.missing.sending : t.missing.request}
+        </button>
+      </div>
+      {state === 'sent' && <FormMessage kind="ok">{t.missing.sent}</FormMessage>}
+      {state === 'failed' && <FormMessage kind="error">{t.missing.failed}</FormMessage>}
     </Card>
   )
 }
