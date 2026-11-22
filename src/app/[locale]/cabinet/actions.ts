@@ -273,7 +273,7 @@ export async function deleteAccountAction(_: FormState, form: FormData): Promise
   let client = await fetchClientByEmail(email)
   if (!client.ok && client.error === 'not_found') {
     const { data: profile } = await supabase.from('profiles').select('email,name,telegram,locale,marketing_consent').eq('id', user.id).maybeSingle()
-    if (profile) await syncClientToHq(user.id, profile)
+    if (profile) await syncClientToHq(user, profile)
     client = await fetchClientByEmail(email)
   }
   if (!client.ok) return { error: 'delete_failed' }

@@ -203,7 +203,7 @@ export const legacyOnly = (patch: ProfilePatch) => (Object.keys(patch) as Profil
 type Rows = PromiseLike<{ data: unknown[] | null; error: unknown }>
 export type ProfilesTable = {
   update(values: Record<string, unknown>): { eq(column: string, value: string): { select(columns: string): Rows } }
-  upsert(values: Record<string, unknown>, options: { onConflict: string }): { select(columns: string): Rows }
+  insert(values: Record<string, unknown>): { select(columns: string): Rows }
 }
 export type ProfilesClient = { from(table: 'profiles'): ProfilesTable }
 
@@ -230,7 +230,7 @@ function withTimeout<T>(work: PromiseLike<T>, ms: number): Promise<T> {
 export type SaveResult = { ok: true; profile: ProfileView; created: boolean } | { ok: false; reason: SaveFailure }
 
 // Writes the patch and READS THE ROW BACK: the answer is what the database now holds, never what was sent.
-// Zero rows (RLS hides the row or it never existed): one upsert by id; zero rows again = `no_row`.
+// Zero rows (RLS hides the row or it never existed): one insert of the own row; zero rows again = `no_row`.
 // `legacy` = migration 0003 is not run: only the old columns are read back.
 export async function saveProfilePatch(
   supabase: ProfilesClient,
@@ -248,7 +248,8 @@ export async function saveProfilePatch(
     if (row) return { ok: true, profile: rowToView(row as ProfileRow, user.email ?? ''), created: false }
     if (!user.email) return { ok: false, reason: 'no_row' }
     const created = await withTimeout(
-      supabase.from('profiles').upsert({ id: user.id, email: user.email.toLowerCase(), ...values }, { onConflict: 'id' }).select(columns),
+      // A plain insert: an upsert (ON CONFLICT DO UPDATE) needs UPDATE on id and email, which migration 0004 revokes.
+      supabase.from('profiles').insert({ id: user.id, email: user.email.toLowerCase(), ...values }).select(columns),
       timeoutMs,
     )
     if (created.error) return { ok: false, reason: failureOf(created.error) }

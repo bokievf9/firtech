@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   if (!client.ok && client.error === 'not_found') {
     // HQ has not heard of this client yet (an earlier sync failed): send it now, then look again.
     const profile = await loadProfile(supabase, user)
-    if (profile) await syncClientToHq(user.id, profile)
+    if (profile) await syncClientToHq(user, profile)
     client = await fetchClientByEmail(user.email)
   }
   if (!client.ok) return reply({ ok: false, error: client.error }, client.error === 'not_found' ? 404 : 502)

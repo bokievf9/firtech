@@ -12,7 +12,7 @@ import {
   type ProfileRow,
 } from '@/lib/cabinet-profile'
 import { syncProfileToHq } from '@/lib/cabinet-profile-server'
-import { loadProfile } from '@/lib/cabinet-session'
+import { loadProfile, markHqSynced } from '@/lib/cabinet-session'
 import { checkPublicPost } from '@/lib/public-post'
 import { createClient } from '@/lib/supabase/server'
 
@@ -75,9 +75,8 @@ export async function POST(request: Request) {
   }
   const { supabase, user } = s
   after(() =>
-    syncProfileToHq(user.id, saved.profile, async (at) => {
-      const { error } = await supabase.from('profiles').update({ hq_synced_at: at }).eq('id', user.id)
-      if (error) console.warn('[cabinet] could not store hq_synced_at')
+    syncProfileToHq(user, saved.profile, async () => {
+      await markHqSynced(supabase, user.id)
     }),
   )
   return reply({ ok: true, profile: saved.profile, legacy })

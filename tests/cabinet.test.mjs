@@ -115,13 +115,15 @@ test('createClientTicket: POST body, item parsing, errors', async () => {
 })
 
 test('HQ client sync: body shape and POST', async () => {
-  const profile = { email: ' A@B.co ', name: ' Алиса ', telegram: null, locale: 'en', marketing_consent: true }
-  const body = data.clientSyncBody('uid-1', profile)
+  const profile = { email: 'victim@evil.test', name: ' Алиса ', telegram: null, locale: 'en', marketing_consent: true }
+  const user = { id: 'uid-1', email: ' A@B.co ' }
+  const body = data.clientSyncBody(user, profile)
+  // Security 2026-11-23 (P1-3): the email is the auth session's, the profile row's is ignored.
   assert.deepEqual(body, { email: 'a@b.co', name: 'Алиса', telegram: '', locale: 'en', supabaseId: 'uid-1', marketingConsent: true, recommendationsConsent: false, notifyChannel: 'email', phone: '', company: '' })
-  assert.equal(data.clientSyncBody('u', { ...profile, locale: 'de', marketing_consent: null }).locale, 'ru')
-  assert.equal(data.clientSyncBody('u', { ...profile, marketing_consent: null }).marketingConsent, false)
+  assert.equal(data.clientSyncBody(user, { ...profile, locale: 'de', marketing_consent: null }).locale, 'ru')
+  assert.equal(data.clientSyncBody(user, { ...profile, marketing_consent: null }).marketingConsent, false)
   let seen
-  const r = await hq.syncClientToHq('uid-1', profile, env, async (url, init) => {
+  const r = await hq.syncClientToHq(user, profile, env, async (url, init) => {
     seen = { url, init }
     return new Response(JSON.stringify({ ok: true }))
   })
@@ -129,7 +131,10 @@ test('HQ client sync: body shape and POST', async () => {
   assert.equal(seen.url, 'http://hq.test/admin/clients')
   assert.equal(seen.init.method, 'POST')
   assert.deepEqual(JSON.parse(seen.init.body), body)
-  assert.deepEqual(await hq.syncClientToHq('u', profile, env, reply(500, {})), { ok: false, error: 'hq_error' })
+  assert.deepEqual(await hq.syncClientToHq(user, profile, env, reply(500, {})), { ok: false, error: 'hq_error' })
+  let called = 0
+  assert.deepEqual(await hq.syncClientToHq({ id: 'u' }, profile, env, async () => { called++; return new Response('{}') }), { ok: false, error: 'not_found' }, 'no auth email, no sync')
+  assert.equal(called, 0)
 })
 
 test('referral link builder and rule', () => {

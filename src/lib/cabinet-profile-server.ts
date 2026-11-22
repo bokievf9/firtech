@@ -10,16 +10,16 @@ type Stamp = (at: string) => PromiseLike<unknown>
 // The CRM gets the saved profile: a known client through `POST /admin/clients/:id` (only changed data,
 // never the registration upsert, which overwrites name and Telegram from sign-up data), an unknown one is
 // registered. Never throws; a failure is logged and the next save or cabinet load tries again.
-export async function syncProfileToHq(userId: string, profile: ProfileView, stamp?: Stamp): Promise<boolean> {
+// The email is the AUTH user's (security 2026-11-23, P1-3), never the profile row's.
+export async function syncProfileToHq(user: { id: string; email?: string | null }, profile: ProfileView, stamp?: Stamp): Promise<boolean> {
   try {
-    const email = profile.email.toLowerCase()
+    const email = (user.email ?? '').trim().toLowerCase()
     if (!email) return false
     const known = await fetchClientByEmail(email)
     const synced = known.ok
       ? await patchClientProfile(known.data.client.id, hqProfileBody(profile))
       : known.error === 'not_found'
-        ? await syncClientToHq(userId, {
-            email,
+        ? await syncClientToHq({ id: user.id, email }, {
             name: profile.name,
             telegram: profile.telegram,
             locale: profile.locale,
@@ -73,6 +73,9 @@ export async function applyUnsubscribe(token: string | null | undefined): Promis
     console.warn(`[cabinet] unsubscribe write failed (${updated.error ? failureOf(updated.error) : 'no_row'})`)
     return { ok: false, error: 'save_failed' }
   }
-  await syncProfileToHq(parsed.userId, rowToView(row))
+  // No session here: the auth email comes from the service-role admin API, never from the row.
+  const authUser = await admin.auth.admin.getUserById(parsed.userId).catch(() => null)
+  const authEmail = authUser?.data?.user?.email ?? ''
+  if (authEmail) await syncProfileToHq({ id: parsed.userId, email: authEmail }, rowToView(row, authEmail))
   return { ok: true, field: parsed.field, already: false }
 }

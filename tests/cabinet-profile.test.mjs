@@ -54,10 +54,10 @@ function fakeClient({ rows = {}, rls = 'ok', fail = false, hang = false, legacy 
             },
           }
         },
-        upsert(values) {
+        insert(values) {
           return {
             select(cols) {
-              const early = write('upsert', values.id, values, cols)
+              const early = write('insert', values.id, values, cols)
               if (early) return early
               if (rls === 'hide') return answer([])
               rows[values.id] = { ...values, updated_at: '2026-11-22T10:00:00Z' }
@@ -121,12 +121,12 @@ test('item 10: the newsletter switch is saved and the answer is the row READ BAC
   assert.equal(back.ok && back.profile.marketing, true, 'a later save does not drop the stored switch')
 })
 
-test('missing row: one upsert creates it; a hidden row (no update policy) is a failure, never «saved»', async () => {
+test('missing row: one insert creates it (never an upsert, which needs UPDATE on email); a hidden row (no update policy) is a failure, never «saved»', async () => {
   const created = fakeClient({ rows: {} })
   const r = await profile.saveProfilePatch(created, user, { name: 'Анна' })
   assert.equal(r.ok && r.created, true)
   assert.equal(created.rows[UID].email, 'anna@example.com')
-  assert.deepEqual(created.calls.map((c) => c[0]), ['update', 'upsert'])
+  assert.deepEqual(created.calls.map((c) => c[0]), ['update', 'insert'])
   const hidden = fakeClient({ rows: { [UID]: { id: UID } }, rls: 'hide' })
   assert.deepEqual(await profile.saveProfilePatch(hidden, user, { marketing: true }), { ok: false, reason: 'no_row' })
   assert.deepEqual(hidden.rows[UID], { id: UID })
@@ -218,4 +218,32 @@ test('migrations: 0002 restores the own-row policies; 0003 adds the columns with
   assert.match(sql, /notify_channel text not null default 'email'/)
   assert.match(sql, /if not exists \(select 1 from pg_constraint where conname = 'profiles_notify_channel_check'\)/)
   assert.doesNotMatch(sql, /drop table|drop column|delete from/i)
+})
+
+test('security 2026-11-23 (P1-3): migration 0004 grants update only on the profile fields, never email or hq_synced_at', () => {
+  const sql = read('supabase/migrations/0004_profiles_column_grants.sql')
+  const body = sql.replace(/^--.*$/gm, '')
+  assert.match(body, /revoke update on public\.profiles from authenticated, anon;/)
+  assert.match(body, /revoke insert on public\.profiles from authenticated, anon;/)
+  assert.doesNotMatch(body, /grant [^;]*update on public\.profiles/i, 'no table-wide update grant')
+  const editable = /editable text\[\] := array\[([^\]]+)\]/.exec(body)
+  assert.ok(editable)
+  const cols = editable[1].match(/'([a-z_]+)'/g).map((c) => c.slice(1, -1)).sort()
+  assert.deepEqual(cols, Object.values(profile.FIELD_COLUMNS).sort(), 'exactly the columns the profile form writes')
+  for (const banned of ['email', 'id', 'hq_synced_at', 'created_at', 'updated_at']) assert.ok(!cols.includes(banned), banned)
+  assert.match(body, /grant update \(%I\) on public\.profiles to authenticated/)
+  assert.doesNotMatch(body, /grant update \([^%)]*\b(email|hq_synced_at|id)\b/)
+  assert.match(body, /email = lower\(coalesce\(auth\.jwt\(\) ->> 'email', ''\)\)/, 'an inserted row carries the account email')
+  assert.match(body, /create or replace function public\.mark_hq_synced\(\)[\s\S]*security definer[\s\S]*set hq_synced_at = now\(\) where id = auth\.uid\(\)/)
+  assert.match(body, /revoke all on function public\.mark_hq_synced\(\) from public, anon;/)
+  assert.doesNotMatch(body, /drop table|drop column|delete from/i)
+})
+
+test('security 2026-11-23 (P1-3): the site never writes hq_synced_at or email from the client session', () => {
+  assert.doesNotMatch(read('src/app/api/cabinet/profile/route.ts'), /hq_synced_at/, 'the route stamps through markHqSynced')
+  assert.match(read('src/lib/cabinet-session.ts'), /supabase\.rpc\('mark_hq_synced'\)/)
+  assert.doesNotMatch(read('src/lib/cabinet-profile.ts'), /\.upsert\(/)
+  const server = read('src/lib/cabinet-profile-server.ts')
+  assert.doesNotMatch(server, /profile\.email/, 'the HQ sync never reads the email of the profile row')
+  assert.match(server, /getUserById\(parsed\.userId\)/)
 })

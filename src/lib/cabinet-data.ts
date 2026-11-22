@@ -291,8 +291,10 @@ export function parseClientBody(body: unknown): CabinetData | null {
 }
 
 // The body of HQ's POST /clients (sent once after sign-up or the first OAuth login).
+// Security 2026-11-23 (P1-3): the email is the AUTH session's (`user.email`), never the profile row's: HQ
+// upserts by email, and the row was writable by the client. `email` here is ignored.
 export type ClientSyncProfile = {
-  email: string
+  email?: string | null
   name: string | null
   telegram: string | null
   locale: string | null
@@ -304,13 +306,14 @@ export type ClientSyncProfile = {
   phone?: string | null
   company?: string | null
 }
-export function clientSyncBody(userId: string, profile: ClientSyncProfile) {
+export type SyncUser = { id: string; email?: string | null }
+export function clientSyncBody(user: SyncUser, profile: ClientSyncProfile) {
   return {
-    email: profile.email.trim().toLowerCase(),
+    email: (user.email ?? '').trim().toLowerCase(),
     name: (profile.name ?? '').trim(),
     telegram: (profile.telegram ?? '').trim(),
     locale: profile.locale === 'en' ? 'en' : 'ru',
-    supabaseId: userId,
+    supabaseId: user.id,
     marketingConsent: profile.marketing_consent === true,
     recommendationsConsent: profile.recommendations_consent === true,
     notifyChannel: profile.notify_channel === 'telegram' || profile.notify_channel === 'both' ? profile.notify_channel : 'email',

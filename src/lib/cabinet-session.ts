@@ -72,15 +72,29 @@ export async function loadProfile(supabase: SupabaseClient, user: User): Promise
 // so the next cabinet load tries again.
 export async function ensureHqSync(supabase: SupabaseClient, user: User, profile: Profile | null) {
   if (!profile || profile.hq_synced_at) return profile
-  const result = await syncClientToHq(user.id, profile)
+  const result = await syncClientToHq(user, profile)
   if (!result.ok) {
     console.warn(`[cabinet] HQ client sync failed (${result.error})`)
     return profile
   }
-  const at = new Date().toISOString()
-  const { error } = await supabase.from('profiles').update({ hq_synced_at: at }).eq('id', user.id)
-  if (error) console.warn('[cabinet] could not store hq_synced_at')
+  const at = await markHqSynced(supabase, user.id)
   return { ...profile, hq_synced_at: at }
+}
+
+// Stamps `hq_synced_at` of the caller's own row. Since migration 0004 the column is not writable by a
+// client: `public.mark_hq_synced()` (security definer, always now()) does it. Before 0004 the function is
+// missing and the old direct update still works. Never throws; returns the time to keep in memory.
+export async function markHqSynced(supabase: SupabaseClient, userId: string): Promise<string> {
+  const at = new Date().toISOString()
+  try {
+    const rpc = await supabase.rpc('mark_hq_synced')
+    if (!rpc.error) return typeof rpc.data === 'string' ? rpc.data : at
+    const { error } = await supabase.from('profiles').update({ hq_synced_at: at }).eq('id', userId)
+    if (error) console.warn('[cabinet] could not store hq_synced_at')
+  } catch {
+    console.warn('[cabinet] could not store hq_synced_at')
+  }
+  return at
 }
 
 // After any sign-in (callback, the cabinet page, a lead sent right after an inline sign-in): the

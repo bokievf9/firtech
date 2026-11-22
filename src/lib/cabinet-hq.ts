@@ -12,6 +12,7 @@ import {
   type CabinetMilestone,
   type CabinetTicket,
   type ClientSyncProfile,
+  type SyncUser,
 } from './cabinet-data'
 import { labelTag, parseMessageItem, parseMessages, parseThreads, type ChatMessage, type ChatThread } from './cabinet-chat'
 import { parseClientDocs, signBodyForHq, type ClientDoc, type RejectMode, type SignaturePayload } from './cabinet-docs'
@@ -199,15 +200,17 @@ export async function acceptMilestone(
   }
 }
 
-// POST /clients with the body from clientSyncBody(). Non-fatal for the caller.
+// POST /clients with the body from clientSyncBody(): the email is the auth user's, never the profile's.
+// Non-fatal for the caller.
 export async function syncClientToHq(
-  userId: string,
+  user: SyncUser,
   profile: ClientSyncProfile,
   env: Env = process.env,
   fetcher: typeof fetch = fetch,
 ): Promise<CabinetResult<true>> {
+  if (!user.email?.trim()) return { ok: false, error: 'not_found' }
   if (setup(env) === 'mock') return { ok: true, data: true }
-  const res = await call('/clients', { method: 'POST', body: clientSyncBody(userId, profile) }, env, fetcher)
+  const res = await call('/clients', { method: 'POST', body: clientSyncBody(user, profile) }, env, fetcher)
   if (!res.ok) return res
   const body = res.body as { ok?: unknown } | null
   return body && body.ok === true ? { ok: true, data: true } : { ok: false, error: 'hq_error' }
