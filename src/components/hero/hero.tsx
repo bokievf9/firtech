@@ -52,7 +52,7 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
       }
       actions={
         <HeroIntro delay={0.64}>
-          {cue ? <div className="mb-6">{cue}</div> : null}
+          {cue ? <div className="mb-6 [@media(min-width:1024px)_and_(max-height:960px)]:hidden" data-hero-cue>{cue}</div> : null}
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Magnetic>
               <Link
@@ -77,7 +77,7 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
               {h.chatCta}
             </ChatOpenButton>
           </div>
-          <p className="mt-4 text-footnote">
+          <p className="mt-4 text-footnote [@media(min-width:1024px)_and_(max-height:960px)]:hidden">
             <Link
               href={`/${locale}/ai-team`}
               data-cta="hero_team"
@@ -88,7 +88,7 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
             </Link>
           </p>
           {/* Go-live trust lines (owner 2026-11-21): the guarantee and the response promise on the first screen. */}
-          <div className="mt-4 grid max-w-[46ch] gap-2 lg:max-w-[780px]" data-hero-promises>
+          <div className="mt-4 grid max-w-[46ch] gap-2 lg:max-w-[min(30rem,calc(44vw-5rem))]" data-hero-promises>
             <GuaranteeLine dict={dict} locale={locale} className="text-footnote" />
             <p className="flex items-start gap-2.5 text-footnote text-muted">
               <Clock size={18} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
