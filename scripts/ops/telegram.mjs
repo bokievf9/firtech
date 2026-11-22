@@ -19,7 +19,7 @@ export async function sendFile(name, bytes, caption) {
   const form = new FormData()
   form.set('chat_id', process.env.TELEGRAM_CHAT_ID)
   form.set('caption', caption)
-  form.set('document', new Blob([bytes], { type: 'application/json' }), name)
+  form.set('document', new Blob([bytes], { type: name.endsWith('.age') ? 'application/octet-stream' : 'application/json' }), name)
   const res = await fetch(api('sendDocument'), { method: 'POST', body: form })
   if (!res.ok) throw new Error(`sendDocument ${res.status}`)
 }

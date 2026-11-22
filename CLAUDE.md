@@ -452,7 +452,9 @@ page and session (`film.companion`, `companionKind`). The face everywhere is the
 - Cron (user `deploy`, UTC): `*/5` `scripts/ops/watch.mjs` (public + local health, SSL expiry;
   Telegram on down/up changes only; cannot report a dead server, an external monitor would) and
   daily 03:15 `scripts/ops/backup.mjs` (14 dated copies in `shared/backups`, `leads.json` (plus dated copies of `prices.json` and `golive.json`) to the
-  owner's Telegram when it changed). Log: `shared/ops.log`.
+  owner's Telegram when it changed; since 2026-11-23 (security P1-6) ONLY encrypted with `age` to `BACKUP_AGE_RECIPIENT`
+  (`age1...` public key in `shared/.env.production`, `apt install age` on the server; the private key stays with the owner),
+  without it or when age fails only a summary with a warning goes out, once per changed file). Log: `shared/ops.log`.
 - GitHub (since 2026-10-19): private repo `bokievf9/firtech`, remote `origin`, over HTTPS (the SSH
   config maps github.com to Vibely's deploy key, so SSH would use the wrong key). **Pushing to
   `main` deploys** through CI (checks, build, upload, health check, rollback), so never push `main`
