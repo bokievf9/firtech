@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { registerHooks } from 'node:module'
+import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
@@ -169,4 +170,19 @@ test('rss.xml: RU articles with title, link, description and pubDate, escaped', 
     assert.ok(xml.includes(new Date(`${a.date}T00:00:00Z`).toUTCString()), a.slug)
   }
   assert.doesNotMatch(xml, /&(?!amp;|lt;|gt;|quot;|apos;)/)
+})
+
+test('rss-en.xml: English titles and /en/blog links, RU feed stays Russian', async () => {
+  const { GET } = await import('../src/app/rss-en.xml/route.ts')
+  const xml = await (await GET()).text()
+  assert.match(xml, /<language>en<\/language>/)
+  assert.ok(xml.includes('/rss-en.xml" rel="self"'))
+  const published = articles.filter((a) => a.published)
+  assert.equal(xml.split('<item>').length - 1, published.length)
+  for (const a of published) assert.ok(xml.includes(`/en/blog/${a.slug}</link>`), a.slug)
+  const ru = await (await (await import('../src/app/rss.xml/route.ts')).GET()).text()
+  assert.match(ru, /<language>ru<\/language>/)
+  assert.doesNotMatch(ru, /\/en\/blog\//)
+  const layout = readFileSync('src/app/[locale]/layout.tsx', 'utf8')
+  assert.match(layout, /rss-en\.xml/)
 })

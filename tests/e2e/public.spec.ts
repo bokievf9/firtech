@@ -71,7 +71,7 @@ for (const locale of ['ru', 'en']) {
 }
 
 test('machine files answer 200', async ({ request }) => {
-  for (const path of ['/robots.txt', '/sitemap.xml', '/llms.txt', '/rss.xml', '/api/health', '/api/prices', '/api/office/public', '/api/status']) {
+  for (const path of ['/robots.txt', '/sitemap.xml', '/llms.txt', '/rss.xml', '/rss-en.xml', '/api/health', '/api/prices', '/api/office/public', '/api/status']) {
     const res = await request.get(path)
     expect(res.status(), path).toBe(200)
   }
