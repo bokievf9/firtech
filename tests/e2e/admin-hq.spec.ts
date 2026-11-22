@@ -175,7 +175,24 @@ test.describe('with a session', () => {
     expect(errors).toEqual([])
   })
 
-  test('Content: feed, item drawer with the player and Studio buttons, «Промпт» order, orders tab, campaigns tab', async ({ page }) => {
+  // The page's writes to HQ (through the proxy), so a test can say what a click or an open did.
+  const watchWrites = (page: import('@playwright/test').Page) => {
+    const writes: string[] = []
+    page.on('request', (r) => {
+      if (r.url().includes('/api/admin/hq/') && r.method() !== 'GET' && !r.url().includes('/api/admin/hq/ping')) writes.push(`${r.method()} ${new URL(r.url()).pathname.replace('/api/admin/hq/', '')}`)
+    })
+    return writes
+  }
+  const openMaterial = async (page: import('@playwright/test').Page, status: string, format?: string, last = false) => {
+    await open(page, '/admin/content')
+    await page.getByLabel('Status').selectOption(status)
+    if (format) await page.getByLabel('Format').first().selectOption(format)
+    const cards = page.locator('[data-feed] li button')
+    await (last ? cards.last() : cards.first()).click()
+    await expect(page.locator('[data-studio="screen"]')).toBeVisible()
+  }
+
+  test('Content: feed, one screen per material (player, text, Prompt, variant, niche), orders tab, campaigns tab', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/content')
     await expect(page.getByRole('heading', { name: 'Content', level: 1 })).toBeVisible()
@@ -185,28 +202,123 @@ test.describe('with a session', () => {
     // a status filter narrows the feed
     await page.getByLabel('Status').selectOption('pending')
     await expect(page.locator('[data-feed] li').first()).toBeVisible()
-    // a reel opens with the player; «Ещё вариант» takes the order and the toast says so
+    // a waiting reel opens as a screen (no dialog): the player, the text, Prompt, variants
     await page.getByLabel('Format').first().selectOption('clip')
-    await cards.first().click()
-    const drawer = page.getByRole('dialog')
-    await expect(drawer.locator('video')).toBeVisible()
-    await drawer.getByRole('button', { name: 'Another variant' }).click()
+    // the seeded waiting reel has an approval card; reels born from earlier orders (newest first) have none in the mock
+    await cards.last().click()
+    const screen = page.locator('[data-studio="screen"]')
+    await expect(screen).toBeVisible()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    const player = screen.locator('video[data-studio="player"]')
+    await expect(player).toBeVisible()
+    await expect.poll(() => player.evaluate((v: HTMLVideoElement) => v.readyState)).toBeGreaterThan(0)
+    await player.evaluate((v: HTMLVideoElement) => {
+      v.muted = true
+      return v.play()
+    })
+    await expect.poll(() => player.evaluate((v: HTMLVideoElement) => v.currentTime)).toBeGreaterThan(0)
+    await expect(screen.getByRole('button', { name: 'Approve' })).toBeVisible()
+    await expect(screen.getByRole('form', { name: 'Prompt' })).toBeVisible()
+    // edit the caption in place and save: a new version, the text stays
+    const caption = screen.locator('[data-studio="text"] textarea').first()
+    await caption.fill('Новая подпись от владельца про ночные заявки')
+    await screen.getByRole('button', { name: 'Save text' }).click()
+    await expect(page.getByText('Text saved, a new version is added.')).toBeVisible()
+    await expect(caption).toHaveValue('Новая подпись от владельца про ночные заявки')
+    await expect(screen.getByRole('button', { name: 'Save text' })).toHaveCount(0)
+    // «Another variant» and «For a niche» are inline; each takes its order and the toast says so
+    await screen.getByRole('button', { name: 'Another variant' }).click()
     await expect(page.getByText('Order accepted: one more variant is being prepared.')).toBeVisible()
-    // «Промпт» from any tab
-    await page.getByRole('button', { name: 'Prompt' }).click()
-    const prompt = page.getByRole('dialog', { name: 'New material for Content Maker' })
+    await expect(page.locator('[data-studio="screen"]')).toHaveCount(0)
+    await cards.last().click()
+    const nicheButton = page.getByRole('button', { name: 'Rewrite for the niche' })
+    await expect(nicheButton).toBeDisabled()
+    await page.getByLabel('Niche').fill('барбершоп')
+    await nicheButton.click()
+    await expect(page.getByText('Order accepted: rewriting for the "барбершоп" niche.')).toBeVisible()
+    // «Prompt» without a drawer: the button opens the box above the list
+    await page.getByRole('button', { name: 'Prompt', exact: true }).click()
+    const prompt = page.locator('form[data-studio="prompt"]')
     await prompt.getByLabel('What the material is about').fill('Про ночные заявки в барбершопе')
     await prompt.getByRole('button', { name: 'Send to Content Maker' }).click()
     await expect(page).toHaveURL(/tab=orders/)
     const orders = page.locator('[data-orders] li')
-    await expect(orders).toHaveCount(2)
     await expect(orders.first()).toContainText('Про ночные заявки')
     await expect(orders.first().getByRole('link', { name: 'Open in the feed' })).toBeVisible()
+    // the week calendar is its own section (not a tab of Content), nothing was taken away
     await expect(page.getByRole('tab', { name: 'Calendar' })).toHaveCount(0)
     await page.getByRole('tab', { name: 'Campaigns' }).click()
     await expect(page).toHaveURL(/tab=campaigns/)
     expect(errors).toEqual([])
   })
+
+  test('Content: opening a decided material or an older one without a card sends NO write and offers no decision', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    const writes = watchWrites(page)
+    // every status: open the first material of each, look, go back; the replay of the old failure (409 not_pending on edit)
+    for (const status of ['approved', 'published', 'rejected', 'rendering', 'draft', 'ready']) {
+      await open(page, '/admin/content')
+      await page.getByLabel('Status').selectOption(status)
+      const first = page.locator('[data-feed] li button').first()
+      if (!(await first.count())) continue
+      await first.click()
+      const screen = page.locator('[data-studio="screen"]')
+      await expect(screen).toBeVisible()
+      await page.waitForTimeout(600)
+      await expect(screen.getByRole('button', { name: /^(Approve|Reject|Revise|Save text)$/ }), status).toHaveCount(0)
+      await expect(page.getByText(/Something went wrong|E-NOTPENDI|not_pending/), status).toHaveCount(0)
+      await expect(screen.locator('[data-studio="read-only"]'), status).toBeVisible()
+    }
+    expect(writes, 'opening wrote to HQ').toEqual([])
+    expect(errors).toEqual([])
+  })
+
+  test('Content: a material without files says «Render pending» with the render state, never a fake render', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await openMaterial(page, 'rendering')
+    const screen = page.locator('[data-studio="screen"]')
+    await expect(screen.getByText('Render pending')).toBeVisible()
+    await expect(screen.locator('[data-studio="render-state"]')).toContainText('Render: ')
+    await expect(screen.locator('video')).toHaveCount(0)
+    await expect(page.getByText('demo render')).toHaveCount(0)
+    // the text of an old rejected material is read only
+    await expect(screen.locator('[data-studio="read-only"]')).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  test('Content: a PDF in the card media opens in an inline viewer', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await openMaterial(page, 'approved')
+    const screen = page.locator('[data-studio="screen"]')
+    await expect(screen.locator('[data-studio="preview"]')).toHaveAttribute('data-mode', 'pdf')
+    const frame = screen.locator('[data-studio="preview"] iframe')
+    await expect(frame).toBeVisible()
+    await expect(frame).toHaveAttribute('src', /\/api\/admin\/files\/docs\/brief\.pdf$/)
+    const res = await page.request.get('/api/admin/files/docs/brief.pdf')
+    expect(res.headers()['content-type']).toBe('application/pdf')
+    expect(res.headers()['x-frame-options']).toBe('SAMEORIGIN')
+    expect(errors).toEqual([])
+  })
+
+  test('Content: a failed action names the request and HQ code (never «Something went wrong»)', async ({ page }) => {
+    await openMaterial(page, 'pending', 'clip', true)
+    // HQ refuses the decision (the card was decided elsewhere): the toast says which request failed and why
+    await page.route('**/api/admin/hq/content/*', (route) => route.fulfill({ json: { ok: false, http: 409, error: 'not_pending', status: 'approved' } }))
+    await page.getByRole('button', { name: 'Approve', exact: true }).click()
+    await expect(page.getByText('Approve failed (409 not_pending, item approved)')).toBeVisible()
+    await expect(page.getByText(/Something went wrong|E-NOTPENDI/)).toHaveCount(0)
+  })
+
+  for (const [name, size] of Object.entries(SIZES)) {
+    test(`Content screen: no horizontal overflow ${name}`, async ({ page }) => {
+      await page.setViewportSize(size)
+      await open(page, '/admin/content')
+      await page.getByLabel('Format').first().selectOption('carousel')
+      await page.locator('[data-feed] li button').first().click()
+      await expect(page.locator('[data-studio="screen"]')).toBeVisible()
+      await noHorizontalOverflow(page)
+    })
+  }
 
   for (const [name, size] of Object.entries(SIZES)) {
     test(`no horizontal overflow ${name}`, async ({ page }) => {

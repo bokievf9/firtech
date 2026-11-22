@@ -350,9 +350,9 @@ test('proxy v3: HQ refusal reasons pass through as a short code', async () => {
   process.env.HQ_ADMIN_URL = 'http://hq.test/admin'
   globalThis.fetch = async () => new Response(JSON.stringify({ ok: false, error: 'not_started', reason: 'disabled' }), { status: 409 })
   const res = await proxy.callHqAdmin('POST', 'processes/drill', { body: { action: 'start' } })
-  assert.deepEqual(res, { ok: false, error: 'not_started', reason: 'disabled' })
+  assert.deepEqual(res, { ok: false, http: 409, error: 'not_started', reason: 'disabled' })
   globalThis.fetch = async () => new Response(JSON.stringify({ ok: false, error: 'x', reason: '<b>long text</b>' }), { status: 409 })
-  assert.deepEqual(await proxy.callHqAdmin('POST', 'processes/drill', { body: { action: 'start' } }), { ok: false, error: 'x' })
+  assert.deepEqual(await proxy.callHqAdmin('POST', 'processes/drill', { body: { action: 'start' } }), { ok: false, http: 409, error: 'x' })
 })
 
 test('file proxy: session required, paths outside the renders refused, range and type passed', async () => {
@@ -360,10 +360,14 @@ test('file proxy: session required, paths outside the renders refused, range and
   assert.equal((await get(['c', 'x.png'], { cookie: null })).status, 401)
   assert.equal((await get(['..', 'etc', 'passwd.png'])).status, 404)
   assert.equal((await get(['c', 'x.exe'])).status, 404)
-  // Development without HQ: a labelled SVG for images, 404 for videos.
+  // Development without HQ: a labelled SVG for images, a short sample clip (with Range) for videos, a one-page PDF.
   let res = await get(['c', 'slide.png'])
   assert.equal(res.headers.get('content-type'), 'image/svg+xml')
-  assert.equal((await get(['c', 'clip.mp4'])).status, 404)
+  res = await get(['c', 'clip.mp4'])
+  assert.equal(res.headers.get('content-type'), 'video/mp4')
+  assert.equal((await get(['c', 'clip.mp4'], { headers: { range: 'bytes=0-9' } })).status, 206)
+  res = await get(['c', 'brief.pdf'])
+  assert.equal(res.headers.get('content-type'), 'application/pdf')
 
   process.env.HQ_ADMIN_URL = 'http://hq.test/admin'
   process.env.HQ_ADMIN_TOKEN = 'secret-admin'

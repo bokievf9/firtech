@@ -146,7 +146,8 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
             shorts: 'Бот записывает клиентов ночью',
             dzen: 'Как бот для записи экономит администратору два часа в день.',
           },
-          files: [{ path: `content/2026-w47/clip-${i}.mp4`, type: 'mp4', w: 1080, h: 1920 }, png(`clip-${i}-cover`)],
+          // Like HQ: a reel is drawn after approval (files only once ready or published); a waiting one shows the card's media.
+          files: !full || i === 3 || i === 4 ? [{ path: `content/2026-w47/clip-${i}.mp4`, type: 'mp4', w: 1080, h: 1920 }, png(`clip-${i}-cover`)] : [],
           sourceSlug: i === 1 ? 'sajt-za-7-dnej' : null,
           approvalId: i === 0 ? 91 : null,
           publishedUrl: !full || i === 4 ? 'https://www.instagram.com/p/demo/' : null,
@@ -448,6 +449,10 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       return ok({ item: inv })
     }
 
+    // The approval card a feed row points to: the mock review has cards for the waiting reel and carousel and for one decided
+    // material per status; every other row is an «older material» (a card id nothing answers), shown read only.
+    const mockReviewId = (i: Row) =>
+      orders.some((o) => o.itemId === i.id) ? `ap_${i.id}` : i.status === 'pending' && i.kind === 'clip' ? 'ap_201' : i.status === 'pending' && i.kind === 'carousel' ? 'ap_202' : i.status === 'published' ? 'ap_199' : i.status === 'approved' ? 'ap_198' : i.status === 'rejected' ? 'ap_197' : `ap_${i.id}`
     // ---- content studio: the feed of everything and the orders (a working order is delivered on the next read)
     if (seg[0] === 'content' && seg[1] === 'feed' && method === 'GET' && seg.length === 2) {
       if (!items.size) content(currentWeek)
@@ -459,7 +464,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
         return o ? { orderId: o.id, mode: o.mode, fromItemId: o.fromItemId } : null
       }
       return ok({
-        items: all.slice(offset, offset + limit).map((i) => ({ ...i, reviewId: `ap_${i.id}`, origin: origin(i.id) })),
+        items: all.slice(offset, offset + limit).map((i) => ({ ...i, reviewId: mockReviewId(i), origin: origin(i.id) })),
         nextCursor: all.length > offset + limit ? String(offset + limit) : null,
         total: all.length,
       })

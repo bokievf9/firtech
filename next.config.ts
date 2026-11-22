@@ -52,6 +52,11 @@ const nextConfig: NextConfig = {
         source: '/api/cabinet/documents/:id/file',
         headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }],
       },
+      // Content renders (PDF previews) open in an iframe of the Content screen: same-origin framing only. The session check is in the handler.
+      {
+        source: '/api/admin/files/:path*',
+        headers: [{ key: 'X-Frame-Options', value: 'SAMEORIGIN' }],
+      },
     ]
   },
 }

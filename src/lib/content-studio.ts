@@ -1,6 +1,7 @@
 // Content Studio (HQ section «Content», 2026-11-23): view models over HQ's `GET /admin/content/feed` and
 // `GET|POST /admin/content/orders` (contract: agents/docs/admin-crm-api.md, «Content Studio»). Pure, no React.
-import { CONTENT_KINDS, CONTENT_STATUSES, parseContentItem, type ContentItem } from '@/lib/shell'
+import { renderState, type ReviewItem } from '@/lib/review'
+import { CONTENT_KINDS, CONTENT_STATUSES, fileUrl, parseContentItem, type ContentItem } from '@/lib/shell'
 
 export const STUDIO_TYPES = ['clip', 'post', 'carousel', 'story'] as const
 export type StudioType = (typeof STUDIO_TYPES)[number]
@@ -112,4 +113,124 @@ export const feedHref = (status?: string, kind?: string, cursor?: string | null)
   if (kind) q.set('kind', kind)
   if (cursor) q.set('cursor', cursor)
   return `content/feed?${q}`
+}
+
+// ---- the one-screen view of an item: what the player shows --------------------------------------------
+
+export type PreviewMedia = {
+  type: 'video' | 'image' | 'pdf' | 'html'
+  src: string
+  poster: string | null
+  w: number | null
+  h: number | null
+}
+export type RenderState = 'none' | 'rendering' | 'ready' | 'failed'
+export type StudioPreview = {
+  // `pending`: there is nothing to look at (an older material, or not rendered yet): an honest state, never a fake render.
+  mode: 'video' | 'carousel' | 'image' | 'pdf' | 'html' | 'pending'
+  media: PreviewMedia[]
+  state: RenderState
+  // The aspect ratio of the frame (w / h): 9:16 for a reel, the file's own for pictures.
+  ratio: number
+}
+
+const RENDER_STATES: readonly RenderState[] = ['none', 'rendering', 'ready', 'failed']
+
+// The preview of an item: HQ's `media[]` of its approval card when the card is known, else the files of the feed row.
+// The render state is `meta.render.state` of the card, else read from the item's status.
+export function studioPreview(item: ContentItem, review: ReviewItem | null): StudioPreview {
+  const fromReview: PreviewMedia[] = (review?.media ?? []).map((m) => ({ type: m.type, src: m.src, poster: m.poster, w: m.w, h: m.h }))
+  const fromFiles: PreviewMedia[] = item.files
+    .filter((f) => item.kind !== 'profile' || f.type === 'png')
+    .map((f) => ({ type: f.type === 'mp4' ? 'video' : 'image', src: fileUrl(f.path), poster: null, w: f.w || null, h: f.h || null }))
+  const media = fromReview.length ? fromReview : fromFiles
+  const posterOfFiles = fromFiles.find((m) => m.type === 'image')?.src ?? null
+  const video = media.find((m) => m.type === 'video')
+  if (video && !video.poster && posterOfFiles) video.poster = posterOfFiles
+  const reported = review ? renderState(review) : null
+  const state: RenderState = (RENDER_STATES as readonly string[]).includes(reported ?? '')
+    ? (reported as RenderState)
+    : item.status === 'rendering'
+      ? 'rendering'
+      : item.status === 'draft' && item.error
+        ? 'failed'
+        : media.length
+          ? 'ready'
+          : 'none'
+  const images = media.filter((m) => m.type === 'image')
+  const pdf = media.find((m) => m.type === 'pdf')
+  const html = media.find((m) => m.type === 'html')
+  if (video) return { mode: 'video', media: [video], state, ratio: 9 / 16 }
+  if (images.length > 1) return { mode: 'carousel', media: images, state, ratio: ratioOf(images[0]!) }
+  if (images.length === 1) return { mode: 'image', media: images, state, ratio: ratioOf(images[0]!) }
+  if (pdf) return { mode: 'pdf', media: [pdf], state, ratio: 3 / 4 }
+  if (html) return { mode: 'html', media: [html], state, ratio: 4 / 5 }
+  return { mode: 'pending', media: [], state: state === 'ready' ? 'none' : state, ratio: 9 / 16 }
+}
+const ratioOf = (m: PreviewMedia) => (m.w && m.h ? m.w / m.h : 4 / 5)
+
+// The sentence under «Render pending»: why there is nothing to look at and what happens next.
+export function pendingReason(item: Pick<ContentItem, 'status' | 'error'>, state: RenderState): string {
+  if (state === 'rendering') return 'The video and pictures are being rendered, this takes a few minutes.'
+  if (state === 'failed') return item.error ? `The render failed: ${item.error}` : 'The render failed. Use Re-render to try again.'
+  if (item.status === 'pending') return 'Pictures and video are rendered after approval. Until then you can read and edit the text.'
+  return 'No render is stored for this material.'
+}
+
+// ---- what the owner may do with an open material --------------------------------------------------------
+//
+// One rule (owner, 2026-11-23): opening a material writes nothing, and a button exists only when HQ allows its action
+// right now. The decision and the text come from the approval card (`status`, `actions[]`), never from the feed row's
+// status: a feed row says «pending» for a card that was decided long ago (HQ then answers 409 `not_pending`).
+// A material without a card (an older one, `reviewId: null`) is view only. Orders (Another variant, For a niche, Prompt) create
+// NEW materials and need only that the item exists; Re-render and «Mark published» follow the item's own status.
+export type StudioAccess = {
+  edit: boolean
+  approve: boolean
+  revise: boolean
+  reject: boolean
+  rerender: boolean
+  markPublished: boolean
+  reorder: boolean
+  // Shown under the header when nothing can be decided: why the screen is read only.
+  readOnly: string | null
+}
+
+export function studioAccess(item: ContentItem & { reviewId?: string | null }, review: ReviewItem | null, loading = false): StudioAccess {
+  const actions = review?.actions ?? []
+  const pending = review?.status === 'pending'
+  const has = (a: string) => (actions as readonly string[]).includes(a)
+  const decide = Boolean(review) && pending
+  const edit = Boolean(review) && has('edit') && (pending || review?.status === 'approved')
+  const numeric = /^\d+$/.test(String(item.id))
+  const material = numeric && item.kind !== 'article' && item.kind !== 'profile'
+  const rendered = item.status === 'approved' || item.status === 'ready'
+  const out: StudioAccess = {
+    edit,
+    approve: decide && has('approve'),
+    revise: decide && has('revise'),
+    reject: decide && has('reject'),
+    rerender: material && rendered && Boolean(item.reviewId),
+    markPublished: material && rendered && Boolean(item.reviewId),
+    reorder: canReorder(item),
+    readOnly: null,
+  }
+  if (loading) out.readOnly = null
+  else if (!item.reviewId) {
+    out.readOnly =
+      item.status === 'pending'
+        ? 'This material has no approval card yet (it waits inside the weekly pack or is an older one). Decide it in Approvals; here it is read only.'
+        : 'This is an older material without an approval card. It is shown as it is stored: read only.'
+  }
+  else if (!review) out.readOnly = 'The approval card of this material could not be found. It is shown read only.'
+  else if (!decide && !edit) out.readOnly = review.status === 'pending' ? null : `Decided (${review.status}). The text is read only.`
+  return out
+}
+
+// «Save text failed (409 not_pending, item approved)»: the request name, HQ's HTTP status and code, never a bare «Something went wrong».
+export function requestError(name: string, res: { error: string; http?: unknown; status?: unknown; reason?: unknown }): string {
+  const http = typeof res.http === 'number' ? `${res.http} ` : ''
+  const item = typeof res.status === 'string' && /^[a-z_]{1,20}$/.test(res.status) ? `, item ${res.status}` : ''
+  const reason = typeof res.reason === 'string' && res.reason ? `: ${res.reason.slice(0, 160)}` : ''
+  return `${name} failed (${http}${res.error}${reason}${item})`
 }

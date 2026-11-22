@@ -132,7 +132,10 @@ test('proxy: HQ errors pass through as { ok: false, error } with HTTP 200', asyn
     globalThis.fetch = async () => reply()
     const res = await call('GET', '/api/admin/hq/approvals', ['approvals'])
     assert.equal(res.status, 200)
-    assert.deepEqual(await res.json(), { ok: false, error: expected[i] })
+    // `http` is HQ's own status (409 for a refusal), added so the page can name a failed request exactly.
+    const { http, ...body } = await res.json()
+    assert.ok(http === undefined || typeof http === 'number')
+    assert.deepEqual(body, { ok: false, error: expected[i] })
   }
 })
 

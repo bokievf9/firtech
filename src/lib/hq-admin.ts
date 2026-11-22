@@ -383,12 +383,14 @@ export async function callHqAdmin(
       return {
         ...extra,
         ok: false,
+        // HQ's own HTTP status (409 for `not_pending`), so the page can name the failed request exactly.
+        http: res.status,
         error: typeof error === 'string' && error ? error.slice(0, 200) : 'hq_error',
         // Why an action did not start (e.g. a routine run: 'disabled' | 'busy'); a short code only.
         ...(typeof reason === 'string' && /^[\w-]{1,40}$/.test(reason) ? { reason } : {}),
       }
     }
-    if (!res.ok) return { ok: false, error: res.status === 404 ? 'hq_not_found' : 'hq_error' }
+    if (!res.ok) return { ok: false, http: res.status, error: res.status === 404 ? 'hq_not_found' : 'hq_error' }
     if (!data || typeof data !== 'object' || (data as { ok?: unknown }).ok !== true) {
       return { ok: false, error: 'hq_bad_response' }
     }

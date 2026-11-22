@@ -716,7 +716,7 @@ export type ContentWeek = {
 
 // A render path from HQ, relative to DATA_DIR/renders: plain segments, no dot segments, a known
 // extension. Shared with the file proxy (/api/admin/files/...).
-export const RENDER_EXT = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', mp4: 'video/mp4' } as const
+export const RENDER_EXT = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', mp4: 'video/mp4', pdf: 'application/pdf' } as const
 export function safeRenderPath(input: string | string[]): string | null {
   const parts = Array.isArray(input) ? input : input.split('/')
   if (!parts.length || parts.length > 6) return null

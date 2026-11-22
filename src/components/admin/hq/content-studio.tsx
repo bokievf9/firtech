@@ -1,29 +1,19 @@
 'use client'
 
-import { ArrowSquareOut, Sparkle } from '@phosphor-icons/react'
+import { Sparkle } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { errText, fill, hq } from '@/components/admin/control/api'
-import { CrmDrawer } from '@/components/admin/control/crm-hq-ui'
+import { fill, hq } from '@/components/admin/control/api'
 import { Chip, type Tone } from '@/components/admin/shell-crm/bits'
-import { ContentBody, ContentCard, nextStatus, type Action } from '@/components/admin/shell-crm/content'
+import { ContentCard, nextStatus, type Action } from '@/components/admin/shell-crm/content'
 import { btn, btnPrimary, Empty, inputClass, Loading, Offline, useHqView, useHub } from '@/components/admin/hub/ui'
+import { PromptBox, StudioScreen } from '@/components/admin/hq/studio-screen'
 import { CampaignsSection } from '@/components/admin/hq/campaigns-section'
 import { Pending } from '@/components/ui/pending'
+import { cn } from '@/lib/cn'
 import { admin } from '@/content/admin'
-import {
-  canReorder,
-  feedHref,
-  normalizeFeed,
-  normalizeOrders,
-  orderBody,
-  STUDIO_NICHES,
-  STUDIO_TYPES,
-  type FeedItem,
-  type OrderInput,
-  type StudioOrder,
-} from '@/lib/content-studio'
+import { feedHref, normalizeFeed, normalizeOrders, requestError, type FeedItem, type StudioOrder } from '@/lib/content-studio'
 import { CONTENT_KINDS, CONTENT_STATUSES, normalizeContentItem, type ContentItem } from '@/lib/shell'
 import { Select } from '@/components/admin/select'
 
@@ -38,150 +28,33 @@ export function ContentSection({ tab, focus }: { tab: string; focus: string | nu
   return (
     <div className="grid grid-cols-[minmax(0,1fr)]">
       <div className="flex items-center justify-end px-3 pt-3 sm:px-4">
-        <button type="button" className={btnPrimary} onClick={() => setPrompt(true)} data-studio="prompt">
+        <button type="button" className={cn(btnPrimary)} onClick={() => setPrompt((v) => !v)} aria-expanded={prompt} data-studio="prompt-toggle">
           <Sparkle size={16} weight="fill" aria-hidden="true" /> {s.prompt}
         </button>
       </div>
+      {prompt ? (
+        <div className="px-3 pt-3 sm:px-4">
+          <PromptBox
+            onSent={() => {
+              setPrompt(false)
+              router.replace('/admin/content?tab=orders')
+            }}
+          />
+        </div>
+      ) : null}
       {tab === 'campaigns' ? <CampaignsSection embedded /> : tab === 'orders' ? <OrdersTab /> : <FeedTab focus={focus} />}
-      <PromptDrawer
-        open={prompt}
-        onClose={() => setPrompt(false)}
-        onSent={() => {
-          setPrompt(false)
-          router.replace('/admin/content?tab=orders')
-        }}
-      />
     </div>
-  )
-}
-
-// Posts one order; the toast says what happened, the caller reacts to `true`.
-function useOrder() {
-  const { notify } = useHub()
-  return async (input: OrderInput, done: string) => {
-    const body = orderBody(input)
-    if (!body) return false
-    const res = await hq<{ order?: unknown }>('content/orders', body)
-    if (res.ok) {
-      notify(done)
-      return true
-    }
-    notify(fill(s.failed, { e: errText(res.error) }), 'error')
-    return false
-  }
-}
-
-function PromptDrawer({ open, onClose, onSent }: { open: boolean; onClose: () => void; onSent: () => void }) {
-  const order = useOrder()
-  const [text, setText] = useState('')
-  const [type, setType] = useState<(typeof STUDIO_TYPES)[number]>('clip')
-  const [busy, setBusy] = useState(false)
-  const ok = text.trim().length >= 3
-  return (
-    <CrmDrawer open={open} title={s.promptTitle} subtitle={s.studioTitle} onClose={onClose}>
-      <form
-        className="grid gap-3"
-        onSubmit={async (e) => {
-          e.preventDefault()
-          if (!ok || busy) return
-          setBusy(true)
-          const sent = await order({ mode: 'prompt', prompt: text, type }, s.sent)
-          setBusy(false)
-          if (sent) {
-            setText('')
-            onSent()
-          }
-        }}
-      >
-        <p className="text-sm text-muted">{s.promptHint}</p>
-        <label className="grid gap-1.5 text-sm">
-          {s.promptLabel}
-          <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5} maxLength={1000} placeholder={s.promptPlaceholder} className={inputClass} />
-        </label>
-        <label className="grid gap-1.5 text-sm">
-          {s.typeLabel}
-          <Select value={type} onChange={(e) => setType(e.target.value as (typeof STUDIO_TYPES)[number])} className={inputClass}>
-            {STUDIO_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {k.kinds[t]}
-              </option>
-            ))}
-          </Select>
-        </label>
-        <Pending type="submit" pending={busy} pendingLabel={admin.hq.loading} disabled={!ok} className={`${btnPrimary} justify-self-start`}>
-          {s.send}
-        </Pending>
-      </form>
-    </CrmDrawer>
-  )
-}
-
-// «Ещё вариант» and «Под нишу» for the open item, plus the way to Approvals.
-function StudioActions({ item, onOrdered }: { item: FeedItem; onOrdered: () => void }) {
-  const order = useOrder()
-  const [niche, setNiche] = useState('')
-  const [note, setNote] = useState('')
-  const [busy, setBusy] = useState<'variant' | 'niche' | null>(null)
-  const id = Number(item.id)
-  const send = async (input: OrderInput, done: string, kind: 'variant' | 'niche') => {
-    setBusy(kind)
-    const sent = await order(input, done)
-    setBusy(null)
-    if (sent) onOrdered()
-  }
-  return (
-    <section className="grid gap-3 border-t border-line pt-4" aria-label={s.studioTitle}>
-      <h3 className="text-sm font-medium">{s.studioTitle}</h3>
-      {item.status === 'pending' ? (
-        <Link href="/admin/approvals?tab=content" className="inline-flex items-center gap-1.5 text-sm text-accent-text underline-offset-4 hover:underline">
-          {s.toApprovals}
-          <ArrowSquareOut size={14} aria-hidden="true" />
-        </Link>
-      ) : null}
-      {canReorder(item) ? (
-        <>
-          <label className="grid gap-1.5 text-xs text-muted">
-            {s.noteLabel}
-            <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} className={inputClass} />
-          </label>
-          <div className="grid gap-1">
-            <Pending pending={busy === 'variant'} pendingLabel={admin.hq.loading} disabled={busy !== null} className={`${btn} justify-self-start`} onClick={() => void send({ mode: 'variant', fromItemId: id, note }, s.sentVariant, 'variant')}>
-              {s.another}
-            </Pending>
-            <p className="text-xs text-faint">{s.anotherHint}</p>
-          </div>
-          <div className="flex flex-wrap items-end gap-2">
-            <label className="grid min-w-40 flex-1 gap-1.5 text-xs text-muted">
-              {s.nicheLabel}
-              <input value={niche} onChange={(e) => setNiche(e.target.value)} list="studio-niches" maxLength={60} placeholder={s.nichePlaceholder} className={inputClass} />
-              <datalist id="studio-niches">
-                {STUDIO_NICHES.map((n) => (
-                  <option key={n} value={n} />
-                ))}
-              </datalist>
-            </label>
-            <Pending
-              pending={busy === 'niche'}
-              pendingLabel={admin.hq.loading}
-              disabled={busy !== null || !niche.trim()}
-              className={btn}
-              onClick={() => void send({ mode: 'niche', fromItemId: id, niche, note }, fill(s.sentNiche, { n: niche.trim() }), 'niche')}
-            >
-              {s.nicheSend}
-            </Pending>
-          </div>
-        </>
-      ) : null}
-    </section>
   )
 }
 
 function FeedTab({ focus }: { focus: string | null }) {
   const [status, setStatus] = useState('')
   const [kind, setKind] = useState('')
+  // The open material replaces the list (one screen per material): the filters hide with it.
+  const [openId, setOpenId] = useState<string | null>(focus)
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3 p-3 sm:p-4">
-      <div className="flex flex-wrap items-end gap-2">
+      <div className={cn('flex flex-wrap items-end gap-2', openId !== null && 'hidden')}>
         <label className="grid gap-1 text-xs text-muted">
           {s.filterStatus}
           <Select value={status} onChange={(e) => setStatus(e.target.value)} className={`${inputClass} w-auto`}>
@@ -205,19 +78,20 @@ function FeedTab({ focus }: { focus: string | null }) {
           </Select>
         </label>
       </div>
-      <FeedList key={`${status}|${kind}`} status={status} kind={kind} focus={focus} />
+      <FeedList key={`${status}|${kind}`} status={status} kind={kind} focus={focus} openId={openId} setOpenId={setOpenId} />
     </div>
   )
 }
 
-function FeedList({ status, kind, focus }: { status: string; kind: string; focus: string | null }) {
+const actionNames: Record<Action, string> = { approve: 'Approve', reject: 'Reject', revise: 'Revise', published: 'Mark published', rerender: 'Re-render' }
+
+function FeedList({ status, kind, focus, openId, setOpenId }: { status: string; kind: string; focus: string | null; openId: string | null; setOpenId: (id: string | null) => void }) {
   const { notify } = useHub()
   const first = useHqView(feedHref(status, kind), normalizeFeed, { visible: 30_000, hidden: 300_000 })
   const [extra, setExtra] = useState<FeedItem[]>([])
   const [cursor, setCursor] = useState<string | null | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [swapped, setSwapped] = useState<Record<string, ContentItem>>({})
-  const [openId, setOpenId] = useState<string | null>(focus)
   const nextCursor = cursor === undefined ? (first.view?.nextCursor ?? null) : cursor
   const items = [...(first.view?.items ?? []), ...extra].map((i) => (swapped[String(i.id)] ? { ...i, ...swapped[String(i.id)]! } : i))
   const open = items.find((i) => String(i.id) === openId) ?? null
@@ -235,7 +109,7 @@ function FeedList({ status, kind, focus }: { status: string; kind: string; focus
     setLoading(false)
     const page = res.ok ? normalizeFeed(res) : null
     if (!page) {
-      notify(fill(s.failed, { e: errText(res.ok ? 'hq_bad_response' : res.error) }), 'error')
+      notify(requestError('Load feed', res.ok ? { error: 'hq_bad_response' } : res), 'error')
       return
     }
     setExtra((x) => [...x, ...page.items])
@@ -253,11 +127,15 @@ function FeedList({ status, kind, focus }: { status: string; kind: string; focus
       return true
     }
     put(item)
-    notify(fill(k.failed, { e: errText(res.error) }), 'error')
+    notify(requestError(actionNames[action], res), 'error')
     return false
   }
 
   if (!first.view) return first.error ? <Offline error={first.error} onRetry={() => first.reload()} /> : <Loading />
+  // One screen per material, in place of the list (no drawer). `focus` and the back button bring the list back.
+  if (open) {
+    return <StudioScreen key={String(open.id)} item={open} onBack={() => setOpenId(null)} onAct={act} onChanged={() => first.reload()} />
+  }
   return (
     <>
       <p className="text-xs text-faint">{fill(s.total, { n: first.view.total })}</p>
@@ -277,9 +155,6 @@ function FeedList({ status, kind, focus }: { status: string; kind: string; focus
           {s.more}
         </Pending>
       ) : null}
-      <CrmDrawer open={open !== null} title={open?.title || k.title} subtitle={open ? `${k.kinds[open.kind]} · ${open.platform === 'all' ? k.allPlatforms : open.platform}` : ''} onClose={() => setOpenId(null)}>
-        {open ? <ContentBody key={String(open.id)} item={open} onAct={act} extra={<StudioActions item={open} onOrdered={() => setOpenId(null)} />} /> : null}
-      </CrmDrawer>
     </>
   )
 }

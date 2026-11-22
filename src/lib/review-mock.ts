@@ -191,6 +191,24 @@ export function createReviewMock(start = Date.now()) {
       currentVersion: 1, parentId: null, taskId: 71, error: null,
     },
     {
+      id: 'ap_198', kind: 'content_item', dept: 'marketing', createdAt: ago(60 * 30), status: 'approved',
+      title: 'Пять признаков, что вам нужен бот', summary: 'Карусель (одобрена); к ней приложен PDF-бриф',
+      media: [{ type: 'pdf', url: '/admin/files/docs/brief.pdf', poster: null, w: null, h: null, durationS: null }],
+      text: { caption: 'Сохраните, чтобы не потерять.', hashtags: ['#fir'], body: 'Слайды.' },
+      meta: { slot: day(0), platform: 'instagram', platforms: ['instagram'], format: 'carousel', itemId: 38, source: 'routine', render: { state: 'none' } },
+      versions: [ver(1, 60 * 30, { caption: 'Сохраните, чтобы не потерять.' }, '', 'worker')],
+      currentVersion: 1, parentId: null, taskId: 49, error: null,
+    },
+    {
+      id: 'ap_197', kind: 'content_item', dept: 'marketing', createdAt: ago(60 * 40), status: 'rejected',
+      title: 'Три ошибки лендинга', summary: 'Рилс (отклонён)',
+      media: [],
+      text: { caption: 'Три ошибки лендинга.', hashtags: [], body: 'Сценарий.' },
+      meta: { slot: day(-2), platform: 'instagram', platforms: ['instagram'], format: 'reel', itemId: 37, source: 'routine', render: { state: 'none' } },
+      versions: [ver(1, 60 * 40, { caption: 'Три ошибки лендинга.' }, '', 'worker')],
+      currentVersion: 1, parentId: null, taskId: 48, error: null,
+    },
+    {
       id: 'ap_199', kind: 'content_item', dept: 'marketing', createdAt: ago(60 * 26), status: 'published',
       title: 'Сайт за 10 дней', summary: 'Пост: как проходит работа над сайтом',
       media: [png('39/post.png')],
@@ -253,10 +271,12 @@ export function createReviewMock(start = Date.now()) {
         if (!['pending', 'decided', 'all'].includes(status)) return bad('invalid', { hint: 'status', allowed: ['pending', 'decided', 'all'] })
         const limit = Math.min(200, Math.max(1, Number(q.limit) || 50))
         let list = [...items].sort((a, b) => Number(b.id.slice(3)) - Number(a.id.slice(3)))
+        // Like HQ: `cursor` = the id to page below (`limit=1&cursor=n+1` reads card n alone).
+        if (/^\d+$/.test(q.cursor ?? '')) list = list.filter((i) => Number(i.id.slice(3)) < Number(q.cursor))
         if (dept !== 'all') list = list.filter((i) => i.dept === dept)
         if (status === 'pending') list = list.filter((i) => i.status === 'pending')
         if (status === 'decided') list = list.filter((i) => i.status !== 'pending')
-        return { ok: true, items: list.slice(0, limit).map(view), counts: counts(), nextCursor: null }
+        return { ok: true, items: list.slice(0, limit).map(view), counts: counts(), nextCursor: list.length > limit ? list[limit - 1]!.id.slice(3) : null }
       }
       if (method === 'POST' && seg.length === 2) {
         const it = find(seg[1]!)
