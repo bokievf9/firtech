@@ -53,13 +53,14 @@ export function markInShot(rect: { top: number; bottom: number }, viewport: numb
 
 // The page companion (inner pages): one line per kind of page, picked from the path without the
 // locale. Home has its own narration, so it gets none.
-export const companionKinds = ['product', 'service', 'solution', 'solutions', 'builder', 'cabinet', 'aiTeam', 'blog', 'howWeWork', 'other'] as const
+export const companionKinds = ['product', 'personal', 'service', 'solution', 'solutions', 'builder', 'cabinet', 'aiTeam', 'blog', 'howWeWork', 'other'] as const
 export type CompanionKind = (typeof companionKinds)[number]
 
 export function companionKind(pathname: string): CompanionKind | null {
   const rest = pathname.replace(/^\/(ru|en)(?=\/|$)/, '').replace(/\/+$/, '')
   if (rest === '' || rest === '/') return null
   if (/^\/(admin|fira-lab)(\/|$)/.test(rest)) return null
+  if (/^\/products\/personal(\/|$)/.test(rest)) return 'personal'
   if (/^\/products\/[^/]+/.test(rest)) return 'product'
   if (/^\/services\/[^/]+/.test(rest)) return 'service'
   if (/^\/solutions\/[^/]+/.test(rest)) return 'solution'
