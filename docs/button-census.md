@@ -635,3 +635,22 @@ Tag `E:aa` = `tests/e2e/admin-audit-analytics.spec.ts`; `U:aa` = `tests/hq-audit
 | Analytics | «Обновить» | reloads the week | `GET analytics` | `E:aa` (present) | untested (click) |
 | Analytics | funnel, first answer, site events, sources | numbers of the week against the previous one; the funnel and the events are those of the marketing «Цифры» tab | `GET analytics` | `E:aa`, `U:aa` (`stepRate`, `change`, `minutesLabel`, `siteRows`) | pass |
 | Analytics | failed call | «HQ не отвечает» with «Повторить», the last good numbers stay | - | `U:aa` (normalizer) | untested (browser) |
+
+## HQ, Campaigns (2026-11-23), adds to the rows above
+Tag `E:cp` = `tests/e2e/admin-campaigns.spec.ts`; `U:cp` = `tests/hq-campaigns.test.mjs`. The section is built, after Finance (no number key). Reads `GET campaigns` every 30 s; a card reads `GET campaigns/<id>`. Nothing is ever sent from here: a new mailing is a draft that waits for the owner's «Одобрить» in Approvals (tab Content), and only clients with the matching consent get the letter.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/campaigns` | menu link «Campaigns» | opens the page | - | `E:cp`, `U:hq-shell` | pass |
+| Campaigns | list | mailings newest first with status (Ждёт одобрения, Отправляется, Отправлена, Отклонена, Ошибка) and outcome counters | `GET campaigns` | `E:cp`, `U:cp` (`normalizeCampaigns`, `countRows`) | pass |
+| Campaigns | «Обновить» | reloads the list | `GET campaigns` | `E:cp` (present) | untested (click) |
+| Campaigns | «Новая рассылка» / «Закрыть форму» | opens or closes the form (with the warning about approval and consent) | - | `E:cp` | pass |
+| Campaigns / form | «Создать черновик» (empty or too long fields) | client check, nothing is sent | - | `E:cp`, `U:cp` (`formBody`) | pass |
+| Campaigns / form | «Создать черновик» (valid) | draft + Marketing task + approval; shows how many clients fit and «Одобрить в Approvals»; list reloads | `POST campaigns` (strict zod: kind, subject, text, optional segment) | `E:cp`, `U:cp` (whitelist, mock) | pass |
+| Campaigns / form | segment with nobody matching | 422 `no_recipients` shown as a sentence | `POST campaigns` | `E:cp`, `U:cp` | pass |
+| Campaigns / form | «Одобрить в Approvals» | goes to `/admin/approvals?tab=content` where the `client_campaign` card waits | - | `E:cp` | pass |
+| Campaigns | row subject | opens or closes the card of the mailing | `GET campaigns/<id>` | `E:cp` | pass |
+| Campaigns / card | journal | `clientId`, outcome, time; no addresses or texts | `GET campaigns/<id>` | `E:cp`, `U:cp` (`normalizeCampaignDetail`) | pass |
+| Campaigns / card | «Одобрить в Approvals» (only while pending) | same link as above | - | - | untested (click) |
+| Campaigns | failed call | «HQ не отвечает» with «Повторить» | - | `U:cp` (normalizer) | untested (browser) |
+

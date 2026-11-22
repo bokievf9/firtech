@@ -1,5 +1,6 @@
 import 'server-only'
 import { z } from 'zod'
+import { campaignBody } from './campaigns-hq'
 import { hqMock } from './hq-admin-mock'
 
 // Proxy to HQ's admin API (the «пульт» on /admin/office). Every call goes through the session-checked
@@ -195,6 +196,10 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // HQ «Audit log» and «Analytics»: the journal of decisions and changes, the funnel and sources (read only).
   { method: 'GET', path: /^audit$/, query: ['kind', 'actor', 'from', 'to', 'cursor', 'limit'] },
   { method: 'GET', path: /^analytics$/, query: ['week'] },
+  // HQ «Campaigns»: list, one mailing with its journal, and a new draft. The draft sends nothing: it waits for the owner's approval.
+  { method: 'GET', path: /^campaigns$/ },
+  { method: 'GET', path: /^campaigns\/\d{1,9}$/ },
+  { method: 'POST', path: /^campaigns$/, body: campaignBody },
   { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },

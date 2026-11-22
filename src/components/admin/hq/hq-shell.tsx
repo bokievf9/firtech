@@ -19,6 +19,7 @@ import {
   CheckCircle,
   UsersThree,
   Desktop,
+  EnvelopeSimple,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -49,6 +50,7 @@ const icons: Record<HqSectionId, Icon> = {
   processes: Graph,
   content: Megaphone,
   finance: Money,
+  campaigns: EnvelopeSimple,
   settings: Gear,
   audit: ClockCounterClockwise,
   analytics: ChartLineUp,
