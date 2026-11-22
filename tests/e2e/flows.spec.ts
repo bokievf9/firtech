@@ -301,15 +301,15 @@ test('chat: a reply with builderLink and cta shows the builder button, the call 
     const body = route.request().postDataJSON() as { message: string }
     sent.push(body.message)
     await route.fulfill({
-      json: calls === 1 ? { ok: true, reply: 'Здравствуйте. Я ИИ-менеджер заявок Fir Tech.', state: 'chat' } : hqAnswer,
+      json: calls === 1 ? { ok: true, reply: 'Здравствуйте. Я Фира, ИИ-ассистент Fir Tech.', state: 'chat' } : hqAnswer,
       headers: { 'x-chat-mode': 'hq' },
     })
   })
   await openHomeForChat(page)
   await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
   const dialog = page.locator('[role=dialog]')
-  await expect(dialog.getByRole('heading', { name: 'ИИ-менеджер заявок Fir Tech' })).toBeVisible()
-  await expect(dialog).toContainText('Я ИИ-менеджер заявок Fir Tech.')
+  await expect(dialog.getByRole('heading', { name: 'Фира, ИИ-ассистент Fir Tech' })).toBeVisible()
+  await expect(dialog).toContainText('Я Фира, ИИ-ассистент Fir Tech.')
   await dialog.locator('textarea').fill('У меня салон, нужна запись клиентов')
   await dialog.locator('textarea').press('Enter')
   const build = dialog.locator('[data-chat-cta=builder]')

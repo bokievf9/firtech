@@ -316,15 +316,15 @@ test('the mock marks a persona session as a demo', async () => {
   assert.equal(body.demo, true)
 })
 
-test('the receptionist is «ИИ-менеджер заявок», never a bot, in the chat copy', () => {
+test('the receptionist is Fira, never a bot, in the chat copy', () => {
   const words = (value) => (typeof value === 'string' ? [value] : value && typeof value === 'object' ? Object.values(value).flatMap(words) : [])
   for (const locale of ['ru', 'en']) {
     const copy = getDict(locale).chat
-    assert.match(copy.title, locale === 'ru' ? /^ИИ-менеджер заявок Fir Tech$/ : /^Fir Tech AI request manager$/)
+    assert.match(copy.title, locale === 'ru' ? /^Фира, ИИ-ассистент Fir Tech$/ : /^Fira, Fir Tech AI assistant$/)
     for (const text of words(copy)) {
       assert.doesNotMatch(text, /бот|\bbots?\b/i, `${locale}: ${text}`)
     }
-    assert.match(copy.greeting, locale === 'ru' ? /ИИ-менеджер заявок/ : /AI request manager/)
+    assert.match(copy.greeting, locale === 'ru' ? /Фира, ИИ-ассистент/ : /Fira/)
     assert.match(copy.handoff, locale === 'ru' ? /Передал основателю, ответит здесь или в кабинете/ : /founder/)
   }
 })

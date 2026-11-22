@@ -109,11 +109,11 @@ const ru = {
     toCabinet: 'Открыть кабинет',
   },
   chat: {
-    fab: 'Чат с ИИ-агентом',
-    title: 'ИИ-менеджер заявок Fir Tech',
+    fab: 'Чат с Фирой',
+    title: 'Фира, ИИ-ассистент Fir Tech',
     subtitle: 'Отвечает сразу, передаёт заявку команде',
     // The first message when HQ does not answer the greeting.
-    greeting: 'Здравствуйте. Я ИИ-менеджер заявок Fir Tech. Расскажите, что нужно сделать, а я подскажу, с чего начать.',
+    greeting: 'Здравствуйте. Я Фира, ИИ-ассистент Fir Tech. Расскажите, что нужно сделать, а я подскажу, с чего начать.',
     buildProject: 'Собрать проект',
     offerCall: 'Предложить время',
     telegramLast: 'Или написать в Telegram',
@@ -140,7 +140,7 @@ const ru = {
     send: 'Отправить',
     typing: 'Агент печатает',
     you: 'Вы',
-    bot: 'Агент',
+    bot: 'Фира',
     owner: 'Менеджер Fir Tech',
     tooFast: 'Секунду, ещё отвечаю',
     error: 'Менеджер сейчас недоступен. Напишите нам в Telegram или соберите проект.',
@@ -155,7 +155,7 @@ const ru = {
     toCabinet: 'Открыть кабинет',
     // Scripted receptionist for development without HQ (src/lib/chat.ts, createMockReceptionist).
     mock: {
-      greeting: 'Здравствуйте. Я ИИ-менеджер заявок Fir Tech. Три коротких вопроса, и заявка уйдёт команде. Что нужно сделать?',
+      greeting: 'Здравствуйте. Я Фира, ИИ-ассистент Fir Tech. Три коротких вопроса, и заявка уйдёт команде. Что нужно сделать?',
       what: { site: 'Сайт', bot: 'Telegram Mini App', agent: 'ИИ-агент', other: 'Другое' },
       askDeadline: 'Понял. Когда хотите запуститься?',
       deadline: { week: 'За неделю', month: 'За месяц', later: 'Не горит' },
