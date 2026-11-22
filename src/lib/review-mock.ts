@@ -353,7 +353,7 @@ export function createReviewMock(start = Date.now()) {
             }
             const platforms = body.platform ? [str(body.platform) === 'youtube' ? 'shorts' : str(body.platform)] : ((it.meta.platforms as string[] | undefined) ?? ['instagram'])
             const results = platforms.map((platform) =>
-              platform === 'shorts' ? { platform, state: 'manual', reason: 'YouTube без автопубликации в этом HQ, выложите вручную' } : { platform, state: 'queued' },
+              platform === 'shorts' ? { platform, state: 'manual', reason: 'YouTube без автопубликации в этом Shell, выложите вручную' } : { platform, state: 'queued' },
             )
             it.meta.macQueued = platforms.filter((p) => p !== 'shorts')
             return { ok: true, state: 'queued', results, item: view(it) }

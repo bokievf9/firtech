@@ -1,6 +1,6 @@
 import { CalendarView } from '@/components/admin/hq/calendar-view'
 
-export const metadata = { title: 'HQ · Calendar' }
+export const metadata = { title: 'Shell · Calendar' }
 
 // The layout above is dynamic, so «today» is read per request and the grid opens on the current week.
 export default function Page() {

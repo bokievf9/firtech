@@ -615,7 +615,7 @@ export function createHqMock(start = Date.now()) {
       case 'costs':
         return [`Расходы сегодня: $${office().costs.todayUsd.toFixed(2)}, за месяц: $${office().costs.monthUsd.toFixed(2)}.`]
       case 'builders':
-        return [`Открытых issues билдера: ${s.builderIssues}.\n#7 Добавить роут /admin в HQ`]
+        return [`Открытых issues билдера: ${s.builderIssues}.\n#7 Добавить роут /admin в Shell`]
       case 'org':
         return [departments().map((d) => `${deptTitles[d.id] ?? d.title}: ${d.headTitle}, людей ${d.workers.length + 1}`).join('\n')]
       case 'pause':
@@ -635,7 +635,7 @@ export function createHqMock(start = Date.now()) {
       case 'desk':
         state.mode = 'desk'
         state.lastPingAt = iso(now)
-        return ['Ты на месте: уведомления идут в HQ.']
+        return ['Ты на месте: уведомления идут в Shell.']
       case 'away':
         state.mode = 'away'
         return ['Ты не на месте: уведомления идут в Telegram.']
