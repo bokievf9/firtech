@@ -102,7 +102,7 @@
 3. **Где живёт**: Telegram, WhatsApp, веб-чат, личный веб-кабинет, голос, почта, рабочий стол, все равноправны, ничего не выбрано заранее (хотя бы один). Список свой, `personalChannels` в `lib/builder-ids.ts`; когда продуктовый билдер положит `lib/channels.ts`, переключить на него (TODO).
 4. **Что подключить**: Google, Outlook/Microsoft, Apple, Moodle, Notion, Telegram, WhatsApp, банковские выписки, другое.
 5. **Характер**: три ползунка (обращение, длина ответов, инициатива), каждый 0..2.
-6. **Уровень**: «Спутник» (basic), «Второй пилот» (plus), «Второе я» (max); подсказка «Подходит вам» по числу переданных дел. Цены только из `pricing.personalPlans`. TODO: когда в `main` появятся поля `subscription`, читать их, пока `personalPlans`. Строка про BYOK (свой ключ модели) без цифр, условия «в смете».
+6. **Уровень**: «Спутник» (basic), «Второй пилот» (plus), «Второе я» (max); подсказка «Подходит вам» по числу переданных дел. Цены только из `pricing.personalPlans`. TODO: когда в `main` появятся поля `subscription`, читать их, пока `personalPlans`. На каждой карточке переключатель «Наш аккаунт / Свой API-ключ» (`ByokSwitch`), цифра из `byokMonthly`, выбор в `personal.byok`.
 7. **О вас**: те же поля разведки (ниже), открыты сразу.
 8. **Ваш день с ИИ**: лента времени из ответов (`dayTimeline`: утренняя сводка, не больше шести дел по часам, вечерний итог; приветствие зависит от ползунка обращения), карточка уровня с настройкой и месяцем, «Отправить проект в работу», копия ссылки, PDF.
 
@@ -119,7 +119,7 @@
 ### brief v4 contract (для сессии HQ)
 Сайт шлёт в `POST /lead` HQ дополнительное поле `brief` (объект, до 3500 знаков, только id; `webLeadSchema` HQ не строгая и лишние ключи терпит, прочитать их в CRM можно позже). Сайтовая `leadSchema` принимает `brief` как `record`, длина проверяется. Общие: `v: 1`, `type: 'business' | 'personal'`, `discovery` (ключи как `Discovery` ниже, полные названия).
 
-`type: 'personal'`: `who`, `hand[]`, `where[]` (`telegram|whatsapp|webchat|cabinet|voice|email|desktop`), `connect[]`, `tone {formality, brevity, initiative}` (0..2), `tier` (`basic|plus|max`).
+`type: 'personal'`: `who`, `hand[]`, `where[]` (`telegram|whatsapp|webchat|cabinet|voice|email|desktop`), `connect[]`, `tone {formality, brevity, initiative}` (0..2), `tier` (`basic|plus|max`), `byok` (`boolean`, свой API-ключ модели, платёж `byokMonthly`; в ссылке ключ `b` 0|1 в чанке `m.`, старые ссылки без него читаются как «нет»).
 
 `type: 'business'`: `niche` (id ниши), `products[]`, `goals[]`, `sources[]` (где ищут клиентов), `delivery[]`, `siteNeed`, `theme`, `details {company, clients, clientTypes, sources, after, tools, owner, fears, budget, deadline, langs, has}`.
 

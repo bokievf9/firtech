@@ -33,7 +33,7 @@ import {
   approverText, baseText, channelNames, connectText, discLabels, handText, heardText, hoursText, leadsText,
   painText, personalLabels, sizeText, successText, tierText, toneUi, whoText,
 } from '../content/builder-personal'
-import { tierOf } from './builder-personal'
+import { monthlyOf, tierOf } from './builder-personal'
 import { flagshipPrice } from './flagships'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
 import { usesAxes } from './builder-style'
@@ -137,7 +137,7 @@ export function estimateDoc(
         name: pick(productCatalog[id].name, locale),
         detail: f.options.map((o) => pick(flagshipText.options[o as keyof typeof flagshipText.options].name, locale)).join(', '),
         term: '',
-        price: `${level}${formatUsd(f.plan.setup)} + ${formatUsd(f.plan.monthly)}${flagshipText.perMonth[loc]}${f.byQuote ? `, ${flagshipText.byQuote[loc]}` : ''}`,
+        price: `${level}${formatUsd(f.plan.setup)} + ${formatUsd(id === 'personal' ? monthlyOf(f.plan, build.personal?.byok) : f.plan.monthly)}${flagshipText.perMonth[loc]}${id === 'personal' && build.personal?.byok ? ` (${personalLabels.byok[loc]})` : ''}${f.byQuote ? `, ${flagshipText.byQuote[loc]}` : ''}`,
       }
     }
     return {
@@ -223,6 +223,7 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
       p.tone ? toneUi.axes.map((axis, i) => axis.options[p.tone![i] ?? 1]?.[loc]).filter(Boolean).join(', ') : undefined,
     )
     add('tier', personalLabels.tier[loc], tierText[tierOf(p)].name[loc])
+    add('byok', personalLabels.byok[loc], p.byok ? personalLabels.yes[loc] : personalLabels.no[loc])
   }
 
   const style: BriefRow[] = []

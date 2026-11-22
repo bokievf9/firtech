@@ -41,6 +41,8 @@ export type PersonalBrief = {
   connect?: PersonalConnect[]
   tone?: PersonalTone
   tier?: PersonalLevel
+  // Own API key (BYOK): the cheaper monthly fee. Chunk key `b` 0|1; absent in old links.
+  byok?: boolean
 }
 
 export type Discovery = {
@@ -79,6 +81,7 @@ export function personalJson(p: PersonalBrief | undefined): string {
   if (p.connect?.length) o.k = p.connect
   if (p.tone) o.n = p.tone
   if (p.tier) o.t = p.tier
+  if (p.byok !== undefined) o.b = p.byok ? 1 : 0
   // An empty object still means «personal path chosen».
   return JSON.stringify(o).slice(0, personalLimit)
 }
@@ -104,6 +107,7 @@ export function parsePersonalJson(text: string): PersonalBrief | undefined {
   if (Array.isArray(o.n) && o.n.length === 3 && o.n.every((x) => x === 0 || x === 1 || x === 2)) out.tone = o.n as PersonalTone
   const tier = one(o.t, personalTiers)
   if (tier) out.tier = tier
+  if (o.b === 0 || o.b === 1) out.byok = o.b === 1
   return out
 }
 
@@ -181,6 +185,9 @@ export function suggestedTier(p: PersonalBrief | undefined): PersonalLevel {
   const n = p?.hand?.length ?? 0
   return n >= 6 ? 'max' : n >= 3 ? 'plus' : 'basic'
 }
+// The monthly fee of a tier on our account or on the client's own key; both from `pricing.personalPlans`.
+export const monthlyOf = (plan: { monthly: number; byokMonthly?: number }, byok: boolean | undefined) =>
+  byok ? plan.byokMonthly ?? plan.monthly : plan.monthly
 export const tierOf = (p: PersonalBrief | undefined): PersonalLevel => p?.tier ?? suggestedTier(p)
 
 // What the personal agent hands over becomes the services the flagship price reads (`f.personal.`), so the
@@ -273,6 +280,7 @@ export function leadBriefOf(build: Build): LeadBrief | null {
     if (p.connect?.length) out.connect = p.connect
     if (p.tone) out.tone = { formality: p.tone[0], brevity: p.tone[1], initiative: p.tone[2] }
     out.tier = tierOf(p)
+    out.byok = p.byok === true
   } else {
     out.type = 'business'
     if (build.kind) out.niche = build.kind

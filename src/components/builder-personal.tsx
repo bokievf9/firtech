@@ -5,6 +5,7 @@ import {
   Microphone, Student, TelegramLogo, UserCircle, UsersThree, WhatsappLogo, Baby,
   Camera, Stethoscope, type Icon,
 } from '@phosphor-icons/react'
+import { useId } from 'react'
 import { motion } from 'motion/react'
 import type { Dict } from '@/content'
 import { pick } from '@/content/builder-catalog'
@@ -16,7 +17,7 @@ import {
   personalChannels, personalConnect, personalHand, personalTiers, personalWho, type PersonalChannel,
 } from '@/lib/builder-ids'
 import {
-  dayTimeline, defaultTone, suggestedTier, tierOf, withPersonal, type PersonalBrief,
+  dayTimeline, defaultTone, monthlyOf, suggestedTier, tierOf, withPersonal, type PersonalBrief,
 } from '@/lib/builder-personal'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
@@ -24,6 +25,7 @@ import { estimateDoc } from '@/lib/estimate-doc'
 import { formatUsd } from '@/lib/pricing'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { Check as CheckIcon, Link as LinkGlyph } from '@phosphor-icons/react'
+import { ByokSwitch } from './products/subscription-card'
 import { DiscoveryFields } from './builder-discovery'
 import { ProjectSend } from './builder-send'
 import { EstimateGate } from './estimate-gate'
@@ -80,8 +82,9 @@ function Cards({ children, cols = 'sm:grid-cols-3' }: { children: React.ReactNod
 }
 
 export function PersonalStep({
-  step, locale, build, setBuild,
+  dict, step, locale, build, setBuild,
 }: {
+  dict: Dict
   step: number
   locale: string
   build: Build
@@ -90,6 +93,7 @@ export function PersonalStep({
   const l = loc(locale)
   const p = build.personal ?? {}
   const pricing = usePricing()
+  const byokName = useId()
   const patch = (x: Partial<PersonalBrief>) => setBuild((b) => withPersonal(b, x))
   const toggle = <T extends string>(list: readonly T[] | undefined, id: T) =>
     list?.includes(id) ? list.filter((x) => x !== id) : [...(list ?? []), id]
@@ -199,6 +203,7 @@ export function PersonalStep({
   if (step === 5) {
     const suggested = suggestedTier(p)
     const picked = tierOf(p)
+    const own = p.byok === true
     return (
       <>
         <div role="radiogroup" aria-label={pick(personalSteps.titles[5]!, locale)} className="grid gap-3 md:grid-cols-3">
@@ -206,21 +211,24 @@ export function PersonalStep({
             const plan = pricing.personalPlans[id]
             const on = picked === id
             return (
-              <Choice key={id} role="radio" on={on} onClick={() => patch({ tier: id })} className="grid content-between gap-6 p-5 backdrop-blur-xl">
-                <span>
-                  {suggested === id && <span className="mb-3 inline-block rounded-full bg-accent/15 px-2.5 py-0.5 text-caption text-accent-text">{pick(tierUi.suggested, locale)}</span>}
-                  <span className="block text-title-3 font-semibold">{tierText[id].name[l]}</span>
-                  <span className="mt-2 block text-footnote leading-snug text-muted">{tierText[id].hint[l]}</span>
-                </span>
-                <span className="grid gap-1 font-mono text-callout">
-                  <span>{formatUsd(plan.setup)} <span className="text-faint">{pick(tierUi.setup, locale)}</span></span>
-                  <span>{formatUsd(plan.monthly)} <span className="text-faint">{pick(tierUi.perMonth, locale)}</span></span>
-                </span>
-              </Choice>
+              <div key={id} className="grid content-start gap-2.5" data-tier={id}>
+                <Choice role="radio" on={on} onClick={() => patch({ tier: id })} className="grid content-between gap-6 p-5 backdrop-blur-xl">
+                  <span>
+                    {suggested === id && <span className="mb-3 inline-block rounded-full bg-accent/15 px-2.5 py-0.5 text-caption text-accent-text">{pick(tierUi.suggested, locale)}</span>}
+                    <span className="block text-title-3 font-semibold">{tierText[id].name[l]}</span>
+                    <span className="mt-2 block text-footnote leading-snug text-muted">{tierText[id].hint[l]}</span>
+                  </span>
+                  <span className="grid gap-1 font-mono text-callout">
+                    <span>{formatUsd(plan.setup)} <span className="text-faint">{pick(tierUi.setup, locale)}</span></span>
+                    <span data-tier-monthly>{formatUsd(monthlyOf(plan, own))} <span className="text-faint">{pick(tierUi.perMonth, locale)}</span></span>
+                  </span>
+                </Choice>
+                <ByokSwitch copy={dict.subscription} own={own} onChange={(v) => patch({ byok: v })} name={`${byokName}-${id}`} className="" />
+              </div>
             )
           })}
         </div>
-        <p className="mt-5 max-w-[60ch] text-footnote leading-relaxed text-faint">{pick(tierUi.byok, locale)}</p>
+        <p className="mt-5 max-w-[60ch] text-footnote leading-relaxed text-faint" data-byok-note>{own ? dict.subscription.ownNote : dict.subscription.oursNote}</p>
       </>
     )
   }
@@ -298,9 +306,9 @@ export function PersonalDay({
             <p className="font-mono text-callout">
               {formatUsd(plan.setup)} <span className="text-faint">{pick(tierUi.setup, locale)}</span>
               {' + '}
-              {formatUsd(plan.monthly)} <span className="text-faint">{pick(tierUi.perMonth, locale)}</span>
+              <span data-day-monthly>{formatUsd(monthlyOf(plan, p.byok))}</span> <span className="text-faint">{pick(tierUi.perMonth, locale)}</span>
             </p>
-            <p className="text-footnote leading-relaxed text-faint">{pick(tierUi.byok, locale)}</p>
+            <p className="text-footnote leading-relaxed text-faint">{p.byok ? dict.subscription.ownNote : dict.subscription.oursNote}</p>
           </div>
           <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
           <ul className="mt-5 grid gap-2 text-footnote leading-relaxed text-faint">

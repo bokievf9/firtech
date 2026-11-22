@@ -383,7 +383,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
               >
                 {step === 0 && <ForkToggle locale={locale} personal={personal} onPick={pickFork} />}
                 {personal && step < SUMMARY && (
-                  <PersonalStep step={step} locale={locale} build={build} setBuild={setBuild} />
+                  <PersonalStep dict={dict} step={step} locale={locale} build={build} setBuild={setBuild} />
                 )}
                 {personal && step === SUMMARY && (
                   <PersonalDay

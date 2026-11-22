@@ -25,6 +25,26 @@ export type SubscriptionCardProps = {
   children?: ReactNode
 }
 
+// «Наш аккаунт / Свой API-ключ»: the segmented switch, controlled so the builder can keep the choice in its brief.
+export function ByokSwitch({ copy, own, onChange, name, className }: { copy: Dict['subscription']; own: boolean; onChange: (own: boolean) => void; name: string; className?: string }) {
+  return (
+    <div role="radiogroup" aria-label={copy.whoseKey} className={cn('grid grid-cols-2 gap-1 rounded-full bg-fill p-1', className ?? 'mt-5')}>
+      {([false, true] as const).map((value) => (
+        <label
+          key={String(value)}
+          className={cn(
+            'pressable cursor-pointer rounded-full px-3 py-1.5 text-center text-callout transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent-text',
+            own === value ? 'bg-elevated text-fg shadow-card' : 'text-muted hover:text-fg',
+          )}
+        >
+          <input type="radio" name={name} className="sr-only" checked={own === value} onChange={() => onChange(value)} data-byok={value ? 'own' : 'ours'} />
+          {value ? copy.own : copy.ours}
+        </label>
+      ))}
+    </div>
+  )
+}
+
 export function SubscriptionCard({ copy, setup, monthly, byokMonthly, from, title, notes, highlight, className, children }: SubscriptionCardProps) {
   const [own, setOwn] = useState(false)
   const name = useId()
@@ -53,20 +73,7 @@ export function SubscriptionCard({ copy, setup, monthly, byokMonthly, from, titl
         </span>{' '}
         {copy.monthly}
       </p>
-      <div role="radiogroup" aria-label={copy.whoseKey} className="mt-5 grid grid-cols-2 gap-1 rounded-full bg-fill p-1">
-        {([false, true] as const).map((value) => (
-          <label
-            key={String(value)}
-            className={cn(
-              'pressable cursor-pointer rounded-full px-3 py-1.5 text-center text-callout transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent-text',
-              own === value ? 'bg-elevated text-fg shadow-card' : 'text-muted hover:text-fg',
-            )}
-          >
-            <input type="radio" name={name} className="sr-only" checked={own === value} onChange={() => setOwn(value)} data-byok={value ? 'own' : 'ours'} />
-            {value ? copy.own : copy.ours}
-          </label>
-        ))}
-      </div>
+      <ByokSwitch copy={copy} own={own} onChange={setOwn} name={name} />
       <p className="mt-3 text-footnote text-muted" data-sub-note>
         {own ? copy.ownNote : copy.oursNote}
       </p>

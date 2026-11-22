@@ -130,10 +130,6 @@ export const tierUi = {
   setup: l('настройка', 'setup'),
   perMonth: l('в месяц', 'a month'),
   suggested: l('Подходит вам', 'Fits you'),
-  byok: l(
-    'Свой ключ ИИ-модели (BYOK) можно принести: подключим. Условия назовём в смете.',
-    'You can bring your own AI model key (BYOK) and we connect it. Terms come in the quote.',
-  ),
   // Amounts are never typed here: setup, monthly and own-key monthly come from `pricing.personalPlans` (src/lib/pricing.ts).
 }
 
@@ -170,6 +166,9 @@ export const personalLabels = {
   connect: l('Подключить', 'Connect'),
   tone: l('Характер', 'Character'),
   tier: l('Уровень', 'Tier'),
+  byok: l('Свой ключ', 'Own key'),
+  yes: l('да', 'yes'),
+  no: l('нет', 'no'),
 }
 
 // ------------------------------------------------------------------ discovery
