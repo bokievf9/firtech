@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import ru from '../../src/content/ru'
 import { watchErrors, open, openHomeForChat, fakeSessionCookie } from './helpers'
 
 // ---- builder: all 8 steps in one scenario -------------------------------------------------------
@@ -208,7 +209,7 @@ test('cabinet pages are noindex', async ({ page }) => {
 test('chat widget opens, sends and answers in mock mode, then closes', async ({ page }) => {
   const errors = watchErrors(page)
   await openHomeForChat(page)
-  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
+  await page.getByRole('button', { name: ru.chat.fab }).click()
   const dialog = page.locator('[role=dialog]')
   await expect(dialog).toContainText('Демо-режим')
   const box = dialog.locator('textarea')
@@ -267,7 +268,7 @@ test('chat: Enter sends right after opening (queued behind the greeting), Shift+
     await route.continue()
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
+  await page.getByRole('button', { name: ru.chat.fab }).click()
   const dialog = page.locator('[role=dialog]')
   const box = dialog.locator('textarea')
   await box.focus()
@@ -306,7 +307,7 @@ test('chat: a reply with builderLink and cta shows the builder button, the call 
     })
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
+  await page.getByRole('button', { name: ru.chat.fab }).click()
   const dialog = page.locator('[role=dialog]')
   await expect(dialog.getByRole('heading', { name: 'Фира, ИИ-ассистент Fir Tech' })).toBeVisible()
   await expect(dialog).toContainText('Я Фира, ИИ-ассистент Fir Tech.')
@@ -344,7 +345,7 @@ test('chat: a failed message keeps its bubble and retries', async ({ page }) => 
     await route.fulfill({ json: { ok: true, reply: body.message === '/start' ? 'Здравствуйте.' : 'Принял.', state: 'chat' } })
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
+  await page.getByRole('button', { name: ru.chat.fab }).click()
   const dialog = page.locator('[role=dialog]')
   await dialog.locator('textarea').fill('Привет')
   await dialog.locator('textarea').press('Enter')
@@ -359,7 +360,7 @@ test('chat: a demo reply shows the demo chip and the reset, and never the sign-i
     await route.fulfill({ json: { ok: true, reply: 'Здравствуйте, это салон «Лилия».', state: 'contact', demo: true } })
   })
   await openHomeForChat(page)
-  await page.getByRole('button', { name: 'Чат с ИИ-агентом' }).click()
+  await page.getByRole('button', { name: ru.chat.fab }).click()
   const dialog = page.locator('[role=dialog]')
   await expect(dialog.locator('[data-chat-demo]')).toHaveText('Демо: вымышленный салон')
   await expect(dialog.locator('[data-chat-auth]')).toHaveCount(0)
