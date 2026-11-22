@@ -582,7 +582,7 @@ test('personal: lead summary stays inside the limit, brief first, tier named, no
   // worst case: every list full, still bounded
   const full = personalMod.withDiscovery(personalMod.withPersonal(fullPersonal(), { hand: [...'mail calendar study money health languages content home docs reminders calls search'.split(' ')], connect: [...'google microsoft apple moodle notion telegram whatsapp bank other'.split(' ')], where: [...'telegram whatsapp webchat cabinet voice email desktop'.split(' ')] }), { pains: [...'calls lost slow manual noshow reports chaos time content money'.split(' ')] })
   assert.ok(leadSummary(full, ru, 'ru', defaultPricing).length <= leadLimit)
-  assert.equal(leadServiceOf(b), 'ai')
+  assert.equal(leadServiceOf(b), 'personal')
   assert.equal(estimateDoc(b, ru, 'ru', defaultPricing).onRequest[0].price.startsWith('Второй пилот: $'), true)
 })
 
@@ -654,4 +654,38 @@ test('personal byok: chunk key b encodes 0|1, old links decode without it, summa
   assert.equal(personalMod.monthlyOf(plan, true), plan.byokMonthly)
   assert.equal(personalMod.monthlyOf(plan, false), plan.monthly)
   assert.ok(estimateDoc(own, ru, 'ru', defaultPricing).onRequest[0].price.includes('$' + plan.byokMonthly))
+})
+
+test('personal lead never carries the business state of an earlier build', () => {
+  // a business build first (cafe + lead manager), then the same visitor goes «для себя»
+  let biz = withDetails(applySiteNeed(toggleProduct(presets.cafe, 'intake'), 'no'), { company: 'Кафе Рай', deadline: 'w2' })
+  biz = personalMod.withDiscovery(biz, { size: 's5' })
+  const asked = personalMod.startPersonal(biz)
+  const mixed = personalMod.withPersonal(asked, { who: 'student', hand: ['mail', 'calendar'], where: ['telegram'], tier: 'basic' })
+  // switching resets every business chunk, discovery stays
+  assert.ok(!mixed.kind && !mixed.goals && !mixed.details && !Object.keys(mixed.parts).length)
+  assert.deepEqual(mixed.products, ['personal'])
+  assert.equal(mixed.discovery.size, 's5')
+  // a link that carries both worlds (old link or a stale draft) is cleaned on decode
+  const dirty = decodeBuild(encodeBuild({ ...biz, personal: mixed.personal, options: mixed.options }))
+  assert.ok(!dirty.kind && !dirty.goals && !dirty.details && !Object.keys(dirty.parts).length && dirty.products.join() === 'personal')
+  // even an unclean build object gives a clean lead text, brief and estimate
+  const unclean = { ...biz, personal: mixed.personal, options: mixed.options }
+  for (const locale of ['ru', 'en']) {
+    const dict = locale === 'ru' ? ru : en
+    const text = leadSummary(unclean, dict, locale, defaultPricing)
+    assert.ok(!/кафе|ИИ-менеджер заявок|cafe|lead manager|Кафе Рай|Сайт|Website/i.test(text), text)
+    const doc = estimateDoc(unclean, dict, locale, defaultPricing)
+    assert.ok(doc.kind === null && doc.products.length === 0 && !doc.parts.length && !doc.extras.length)
+    const f = leadEstimateFields(unclean, dict, locale, defaultPricing)
+    assert.ok(!/кафе|cafe/i.test(f.estimate + (f.message ?? '')))
+  }
+  const brief = personalMod.leadBriefOf(unclean)
+  assert.equal(brief.type, 'personal')
+  for (const key of ['niche', 'products', 'goals', 'sources', 'delivery', 'siteNeed', 'theme', 'details']) assert.ok(!(key in brief), key)
+  assert.equal(leadServiceOf(unclean), 'personal')
+  assert.ok(leadSchema.safeParse({ name: 'A', contact: 'a@b.cc', service: 'personal' }).success)
+  // and back to business: personal chunks are gone
+  const back = personalMod.stopPersonal(mixed)
+  assert.ok(!back.personal && !back.products && !back.options && back.discovery.size === 's5')
 })

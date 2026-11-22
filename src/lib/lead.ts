@@ -5,7 +5,7 @@ export const leadSchema = z.object({
   name: z.string().trim().min(1).max(80),
   contact: z.string().trim().min(3).max(120),
   service: z
-    .union([z.enum(serviceSlugs), z.enum(extraSlugs), z.literal('bundle'), z.literal('unknown')])
+    .union([z.enum(serviceSlugs), z.enum(extraSlugs), z.literal('bundle'), z.literal('personal'), z.literal('unknown')])
     .default('unknown'),
   budget: z.string().trim().max(40).optional().default(''),
   message: z.string().trim().max(2000).optional().default(''),
@@ -46,6 +46,7 @@ export const serviceNames: Record<Lead['service'], string> = {
   apps: 'Приложение',
   automation: 'Автоматизация / ИИ',
   ai: 'ИИ-ассистент',
+  personal: 'Личный ИИ-ассистент (для себя)',
   support: 'Поддержка по подписке',
   payments: 'Онлайн-оплата',
   seo: 'Карты, SEO и аналитика',

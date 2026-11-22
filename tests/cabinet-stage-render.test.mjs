@@ -65,7 +65,6 @@ const { NextActionBlock } = await import('../src/components/cabinet/next-action.
 const { DocumentsPanel } = await import('../src/components/cabinet/documents-panel.tsx')
 const { SignaturePad } = await import('../src/components/cabinet/signature-pad.tsx')
 const { MessagesPanel } = await import('../src/components/cabinet/messages-panel.tsx')
-const { AgentPanel } = await import('../src/components/cabinet/agent-panel.tsx')
 const { MaterialsPanel } = await import('../src/components/cabinet/materials-panel.tsx')
 const { ProfilePanel } = await import('../src/components/cabinet/profile-panel.tsx')
 
@@ -79,8 +78,6 @@ async function load() {
   const extras = {
     docs: (await hq.fetchClientDocuments(1, dev)).data,
     threads: (await hq.fetchThreads(1, dev)).data,
-    agents: (await hq.fetchClientAgents(1, dev)).data,
-    conversations: (await hq.fetchAgentConversations(1, 'pg-1', dev)).data,
     v3: true,
   }
   return { data, extras, view: buildCabinetView(data, extras) }
@@ -184,7 +181,7 @@ test('Главная: recent documents and the latest threads with unread badges
   assert.match(html, /\?tab=messages&amp;ref=/)
   assert.match(text(html), /Готово, посмотрите/)
   assert.equal(view.recentThreads.length, 3)
-  assert.equal(extras.threads.length, 5)
+  assert.equal(extras.threads.length, 4)
 })
 
 test('Документы: states and order, those waiting for the client first, the badge count', async () => {
@@ -216,37 +213,14 @@ test('Подпись: the pad has a canvas for pointers, a prefilled name, the c
 test('Сообщения: threads of every kind with unread badges, no support button while a support thread exists', async () => {
   const { extras } = await load()
   const html = h(MessagesPanel, { dict: ru, locale: 'ru', initial: extras.threads, tickets: [] })
-  assert.equal((html.match(/data-thread-item=/g) ?? []).length, 5)
-  for (const kind of ['Заявка', 'Проект', 'Агент', 'Поддержка']) assert.match(text(html), new RegExp(kind), kind)
+  assert.equal((html.match(/data-thread-item=/g) ?? []).length, 4)
+  for (const kind of ['Заявка', 'Проект', 'Поддержка']) assert.match(text(html), new RegExp(kind), kind)
   assert.match(html, /aria-label="Новых: 2"/)
   assert.equal(html.includes('data-support-cta'), false)
   const noSupport = h(MessagesPanel, { dict: ru, locale: 'ru', initial: extras.threads.filter((t) => t.kind !== 'support'), tickets: [] })
   assert.match(noSupport, /data-support-cta/)
   assert.match(text(h(MessagesPanel, { dict: ru, locale: 'ru', initial: [], tickets: [] })), /Диалогов пока нет/)
   assert.match(text(html), /Обновляется сама/)
-})
-
-test('Ваш агент: chat, settings, masked Telegram token field, usage and conversations', async () => {
-  const { view, extras } = await load()
-  const html = h(AgentPanel, { dict: ru, locale: 'ru', agent: view.agent, conversations: extras.conversations, thread: view.agentThread })
-  const flat = text(html)
-  assert.match(flat, /Ваш агент: Мила/)
-  assert.match(flat, /Работает/)
-  assert.match(html, /data-thread-kind="agent"/)
-  assert.match(html, /data-agent-settings/)
-  assert.match(html, /<input[^>]*type="password"[^>]*data-bot-token|<input[^>]*data-bot-token[^>]*type="password"/)
-  assert.match(html, /autoComplete="off"|autocomplete="off"/i)
-  assert.match(flat, /Подключить Telegram/)
-  assert.match(flat, /Не подключён/)
-  assert.match(flat, /из 200/)
-  assert.equal((html.match(/data-conversations/g) ?? []).length, 1)
-  assert.match(flat, /Виджет, 6 сообщ\./)
-  assert.match(flat, /Собрано контактов: 2/)
-  assert.doesNotMatch(flat, /За месяц/, 'HQ reports only today')
-  assert.doesNotMatch(html, /AAH/, 'no token anywhere')
-  const noThread = text(h(AgentPanel, { dict: en, locale: 'en', agent: view.agent, conversations: [], thread: null }))
-  assert.match(noThread, /No conversations yet/)
-  assert.match(noThread, /opens as soon as we connect it/)
 })
 
 test('Материалы: labels, upload form into the project thread, a note without any thread', async () => {

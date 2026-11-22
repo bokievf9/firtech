@@ -67,9 +67,10 @@ export function ProjectSend({
   const brief = leadBriefOf(build)
   const link = estimateDoc(build, dict, locale, pricing).link
 
+  const mode = build.personal ? 'personal' : 'business'
   const keepDraft = useCallback(() => {
-    saveDraft(draftStorage(window), 'lead', { estimate: summary, service })
-  }, [summary, service])
+    saveDraft(draftStorage(window), 'lead', { estimate: summary, service, mode })
+  }, [summary, service, mode])
 
   const send = useCallback(
     async (who: CabinetUserState) => {
