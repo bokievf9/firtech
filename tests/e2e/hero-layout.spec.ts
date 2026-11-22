@@ -20,7 +20,7 @@ for (const size of sizes) {
       const card = [...document.querySelectorAll<HTMLElement>('.hero-card')].find((e) => e.dataset.active === 'true')
       return {
         card: r(card),
-        parts: ['[data-hero-promises]', '[data-hero-rail]'].map((s) => r(document.querySelector(s))),
+        parts: ['[data-hero-promises]', '[data-hero-rail] > div'].map((s) => r(document.querySelector(s))),
       }
     })
     expect(boxes.card).not.toBeNull()
