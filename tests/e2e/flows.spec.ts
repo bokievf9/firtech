@@ -87,8 +87,17 @@ test('builder: the PDF button asks for a sign-in before the estimate (cabinet on
   await expect(page.locator('[data-lead-auth]')).toBeVisible()
 })
 
-test('estimate page lists the build as rows and offers print', async ({ page }) => {
-  await open(page, '/ru/builder/estimate?b=websites.landing.telegram~bots.booking.payments~k.cafe')
+const ESTIMATE = '/ru/builder/estimate?b=websites.landing.telegram~bots.booking.payments~k.cafe'
+
+test('estimate link, signed out: the sign-in step instead of the sheet', async ({ page }) => {
+  await open(page, ESTIMATE)
+  await expect(page.locator('[data-estimate-gate] [data-lead-auth]')).toBeVisible()
+  await expect(page.locator('table tbody tr')).toHaveCount(0)
+})
+
+test('estimate page, signed in, lists the build as rows and offers print', async ({ page, context, baseURL }) => {
+  await context.addCookies([{ ...fakeSessionCookie(), url: baseURL! }])
+  await open(page, ESTIMATE)
   const rows = page.locator('table tbody tr')
   await expect(rows.first()).toBeVisible()
   expect(await rows.count()).toBeGreaterThanOrEqual(2)

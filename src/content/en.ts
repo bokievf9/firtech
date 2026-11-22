@@ -698,6 +698,8 @@ const en: Dict = {
       emptyText:
         'The link is empty or out of date. Build your project, it takes a couple of minutes, and download the estimate from there.',
       emptyCta: 'Build a project',
+      gateTitle: 'Sign in to open the estimate',
+      gateText: 'Sign in or create an account: after that this same link opens the estimate.',
     },
     preview: {
       headline: 'Everything your customers need',
