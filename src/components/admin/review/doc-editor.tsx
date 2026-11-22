@@ -6,11 +6,10 @@ import {
   CaretDown,
   CaretUp,
   Columns,
-  Eye,
+  Code,
   LinkSimple,
   ListBullets,
   MagnifyingGlass,
-  PencilSimple,
   Table,
   TextB,
   TextH,
@@ -27,7 +26,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { btn, btnPrimary, useConfirm } from '@/components/admin/hub/ui'
-import { Markdown } from '@/components/admin/shell-crm/markdown'
+import { RichEditor, type RichHandle } from './rich-editor'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { diffStats, sideBySide, wordDiff, type DiffOp } from '@/lib/diff'
@@ -200,7 +199,10 @@ export function DocEditor({
   const [value, setValue] = useState(initial)
   const [saved, setSaved] = useState(initial)
   const [busy, setBusy] = useState(false)
-  const [mode, setMode] = useState<'edit' | 'preview' | 'compare'>('edit')
+  const [mode, setMode] = useState<'edit' | 'compare'>('edit')
+  // The rendered document is the default; the markdown source is one button away.
+  const [source, setSource] = useState(false)
+  const [linkBar, setLinkBar] = useState<{ url: string } | null>(null)
   const [find, setFind] = useState<{ q: string; r: string; cs: boolean } | null>(null)
   const [cursor, setCursor] = useState<number | null>(null)
   const [findNote, setFindNote] = useState('')
@@ -219,6 +221,8 @@ export function DocEditor({
   const [flagOn, setFlagOn] = useState(flagged !== null)
   const holes = useMemo(() => (flagOn ? findPlaceholders(value) : []), [flagOn, value])
   const ta = useRef<HTMLTextAreaElement>(null)
+  const rich = useRef<RichHandle>(null)
+  const linkInput = useRef<HTMLInputElement>(null)
   const scroller = useRef<HTMLDivElement>(null)
   const findInput = useRef<HTMLInputElement>(null)
   const { ask, dialog } = useConfirm()
@@ -254,7 +258,7 @@ export function DocEditor({
     if (!el) return
     el.style.height = 'auto'
     el.style.height = `${el.scrollHeight}px`
-  }, [value, mode])
+  }, [value, mode, source])
 
   const matches = useMemo(() => (find ? findMatches(value, find.q, find.cs) : []), [find, value])
   const current = cursor !== null && matches.includes(cursor) ? cursor : null
@@ -291,18 +295,48 @@ export function DocEditor({
     requestAnimationFrame(() => ta.current?.setSelectionRange(next.start, next.end))
   }, [])
 
+  const openLink = useCallback(() => {
+    const picked = rich.current?.saveSelection() ?? ''
+    setLinkBar({ url: /^https?:\/\//.test(picked) ? picked : 'https://' })
+    requestAnimationFrame(() => {
+      linkInput.current?.focus()
+      linkInput.current?.select()
+    })
+  }, [])
+
   const format = (kind: FormatKind) => {
+    if (mode !== 'edit') return
+    if (!source) {
+      if (kind === 'link') return openLink()
+      return rich.current?.format(kind)
+    }
     const el = ta.current
-    if (!el || mode !== 'edit') return
+    if (!el) return
     commit(applyFormat(el.value, el.selectionStart, el.selectionEnd, kind))
+  }
+
+  const toggleSource = () => {
+    setMode('edit')
+    setLinkBar(null)
+    if (!source) setSource(true)
+    else {
+      // Back to the document: the search marks live in the source view only.
+      setFind(null)
+      setCursor(null)
+      setSource(false)
+    }
+    requestAnimationFrame(() => (source ? rich.current?.focus() : ta.current?.focus()))
   }
 
   const openFind = useCallback(() => {
     const sel =
-      mode === 'edit' && ta.current
+      mode === 'edit' && source && ta.current
         ? ta.current.value.slice(ta.current.selectionStart, ta.current.selectionEnd)
         : ''
-    setMode((m) => (m === 'edit' ? m : 'edit'))
+    // Find and replace work on the markdown text, so they open its source view.
+    setMode('edit')
+    setSource(true)
+    setLinkBar(null)
     setFind((f) => ({
       q: sel && !sel.includes('\n') ? sel : (f?.q ?? ''),
       r: f?.r ?? '',
@@ -313,12 +347,12 @@ export function DocEditor({
       findInput.current?.focus()
       findInput.current?.select()
     })
-  }, [mode])
+  }, [mode, source])
 
   const jump = useCallback(
     (dir: 1 | -1) => {
       if (!find) return
-      const list = findMatches(ta.current?.value ?? '', find.q, find.cs)
+      const list = findMatches(value, find.q, find.cs)
       const from =
         current !== null ? current + (dir === 1 ? 1 : 0) : (ta.current?.selectionStart ?? 0)
       const next = stepMatch(list, from, dir)
@@ -326,7 +360,7 @@ export function DocEditor({
       setFindNote('')
       if (next !== null) scrollToMatch()
     },
-    [find, current, scrollToMatch],
+    [find, current, scrollToMatch, value],
   )
 
   const replaceOne = () => {
@@ -386,9 +420,9 @@ export function DocEditor({
   }, [dirty, ask, onClose])
 
   // Keyboard: captured at the window so the review page and the hub never see these keys while the editor is open.
-  const handlers = useRef({ save, requestClose, openFind, jump, format, mode, find })
+  const handlers = useRef({ save, requestClose, openFind, jump, format, mode, find, linkBar })
   useEffect(() => {
-    handlers.current = { save, requestClose, openFind, jump, format, mode, find }
+    handlers.current = { save, requestClose, openFind, jump, format, mode, find, linkBar }
   })
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -415,7 +449,10 @@ export function DocEditor({
         case 'link':
           return h.format(cmd)
         case 'close':
-          if (h.find) {
+          if (h.linkBar) {
+            setLinkBar(null)
+            rich.current?.focus()
+          } else if (h.find) {
             setFind(null)
             setCursor(null)
             ta.current?.focus()
@@ -429,14 +466,8 @@ export function DocEditor({
 
   // Focus the page on open (on the first unfilled placeholder after a refusal), and keep the page behind from scrolling.
   useEffect(() => {
-    ta.current?.focus()
-    if (flagged !== null) {
-      const first = findPlaceholders(ta.current?.value ?? '')[0]
-      if (first) {
-        ta.current?.setSelectionRange(first.start, first.end)
-        requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-placeholder="0"]')?.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior }))
-      }
-    }
+    rich.current?.focus()
+    if (flagged !== null) rich.current?.jumpToPlaceholder(0)
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
@@ -548,16 +579,13 @@ export function DocEditor({
       <button
         type="button"
         className={toolbarButton}
-        aria-label={mode === 'preview' ? t.edit : t.preview}
-        title={mode === 'preview' ? t.edit : t.preview}
-        aria-pressed={mode === 'preview'}
-        onClick={() => setMode(mode === 'preview' ? 'edit' : 'preview')}
+        aria-label={t.source}
+        title={t.source}
+        aria-pressed={source}
+        data-source-toggle
+        onClick={toggleSource}
       >
-        {mode === 'preview' ? (
-          <PencilSimple size={18} aria-hidden="true" />
-        ) : (
-          <Eye size={18} aria-hidden="true" />
-        )}
+        <Code size={18} aria-hidden="true" />
       </button>
       <button
         type="button"
@@ -752,6 +780,40 @@ export function DocEditor({
         </div>
       ) : null}
 
+      {linkBar && !source ? (
+        <form
+          role="group"
+          aria-label={t.link}
+          className="border-b border-line bg-bg px-2 py-2 sm:px-4"
+          onSubmit={(e) => {
+            e.preventDefault()
+            const url = linkBar.url.trim()
+            if (/^(https?:\/\/|mailto:|tel:|\/|#)\S+/i.test(url)) rich.current?.applyLink(url)
+            setLinkBar(null)
+          }}
+        >
+          <div className="mx-auto flex max-w-[1000px] items-center gap-2">
+            <label className="sr-only" htmlFor="doc-link">
+              {t.linkUrl}
+            </label>
+            <input
+              id="doc-link"
+              ref={linkInput}
+              value={linkBar.url}
+              inputMode="url"
+              onChange={(e) => setLinkBar({ url: e.target.value })}
+              className="ym-disable-keys min-h-10 min-w-0 flex-1 rounded-xl border border-line-strong bg-field px-3 text-base outline-none focus:border-accent md:text-sm"
+            />
+            <button type="submit" className={btn}>
+              {t.linkApply}
+            </button>
+            <button type="button" className={toolbarButton} aria-label={t.closeFind} title={t.closeFind} onClick={() => { setLinkBar(null); rich.current?.focus() }}>
+              <X size={16} aria-hidden="true" />
+            </button>
+          </div>
+        </form>
+      ) : null}
+
       {offer ? (
         <div
           role="status"
@@ -813,15 +875,8 @@ export function DocEditor({
           </div>
         ) : (
           <div className="mx-auto w-full max-w-[760px] rounded-2xl border border-line bg-surface shadow-card">
-            {mode === 'preview' ? (
-              <div className="px-5 py-8 sm:px-14 sm:py-12 [&_li]:text-[17px] [&_li]:leading-[1.75] [&_ol]:text-[17px] [&_p]:text-[17px] [&_p]:leading-[1.75] [&_td]:text-[16px] [&_ul]:text-[17px]">
-                <Markdown text={value} />
-              </div>
-            ) : (
-              <div
-                className="relative px-5 py-8 sm:px-14 sm:py-12"
-                style={{ minHeight: 'min(60dvh, 32rem)' }}
-              >
+            <div className="px-5 py-8 sm:px-14 sm:py-12" style={{ minHeight: 'min(60dvh, 32rem)' }}>
+              {source ? (
                 <div className="relative">
                   {!find && holes.length ? <PlaceholderMirror text={value} items={holes} /> : null}
                   {find ? (
@@ -835,7 +890,8 @@ export function DocEditor({
                   <textarea
                     ref={ta}
                     value={value}
-                    aria-label={t.page}
+                    aria-label={t.sourceLabel}
+                    data-source
                     spellCheck
                     lang="ru"
                     onChange={(e) => setValue(e.target.value)}
@@ -846,12 +902,14 @@ export function DocEditor({
                         document.execCommand('insertText', false, '  ')
                       }
                     }}
-                    className="ym-disable-keys relative block w-full resize-none overflow-hidden whitespace-pre-wrap break-words bg-transparent text-fg outline-none placeholder:text-faint"
-                    style={{ ...pageText, minHeight: '24rem' }}
+                    className="ym-disable-keys relative block w-full resize-none overflow-hidden whitespace-pre-wrap break-words bg-transparent font-mono text-fg outline-none placeholder:text-faint"
+                    style={{ ...pageText, fontFamily: 'var(--font-mono)', fontSize: 14.5, lineHeight: 1.7, minHeight: '24rem' }}
                   />
                 </div>
-              </div>
-            )}
+              ) : (
+                <RichEditor ref={rich} value={value} onChange={setValue} label={t.page} />
+              )}
+            </div>
           </div>
         )}
         {flagOn ? (
@@ -865,6 +923,7 @@ export function DocEditor({
                       type="button"
                       onClick={() => {
                         setMode('edit')
+                        if (!source) return rich.current?.jumpToPlaceholder(i)
                         requestAnimationFrame(() => {
                           ta.current?.focus()
                           ta.current?.setSelectionRange(h.start, h.end)

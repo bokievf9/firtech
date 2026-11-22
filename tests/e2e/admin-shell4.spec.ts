@@ -17,9 +17,9 @@ test.describe('with a session', () => {
     const dialog = page.getByRole('dialog', { name: 'Document editor' })
     await expect(dialog).toBeVisible()
     const page_ = dialog.getByRole('textbox', { name: 'Document text' })
-    await expect(page_).toHaveValue(/Здравствуйте, Нигина/)
+    await expect(page_).toContainText(/Здравствуйте, Нигина/)
     // The page column is at most 760 px and the type is Onest-sized.
-    const width = await page_.evaluate((el) => el.parentElement!.parentElement!.parentElement!.getBoundingClientRect().width)
+    const width = await page_.evaluate((el) => el.parentElement!.parentElement!.getBoundingClientRect().width)
     expect(width).toBeLessThanOrEqual(762)
 
     // Type at the end, then format a selection with the toolbar.
@@ -28,7 +28,7 @@ test.describe('with a session', () => {
     // The mock keeps its state between attempts, so the typed text carries a stamp.
     const stamp = `s${Date.now()}`
     await page.keyboard.type(` Оплата по этапам ${stamp}.`)
-    await expect(page_).toHaveValue(new RegExp(`Оплата по этапам ${stamp}\\.$`))
+    await expect(page_).toContainText(new RegExp(`Оплата по этапам ${stamp}\\.`))
     await expect(dialog.getByText(/Unsaved edits|Draft on this device/)).toBeVisible()
 
     // ⌘F: find and replace "5-7 дней" with "7-10 дней".
@@ -39,7 +39,8 @@ test.describe('with a session', () => {
     await expect(dialog.getByRole('status').filter({ hasText: /^(1 of 1|1)$/ })).toBeVisible()
     await dialog.getByRole('textbox', { name: 'Replace with' }).fill('после аванса')
     await dialog.getByRole('button', { name: 'Replace', exact: true }).click()
-    await expect(page_).toHaveValue(/Оплата по этапам после аванса\.$/)
+    // Find works on the markdown text, so it opened the source view.
+    await expect(dialog.getByRole('textbox', { name: 'Markdown source' })).toHaveValue(/Оплата по этапам после аванса\.$/)
     await page.keyboard.press('Escape')
     await expect(find).toBeHidden()
 
@@ -164,17 +165,17 @@ test.describe('with a session', () => {
     const row = (text: string) => page.getByRole('listitem').filter({ hasText: text })
     // A pending invoice draft.
     await row('Sadaf Clinic').getByRole('button', { name: 'Edit' }).click()
-    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toHaveValue(/Счёт FT-2026-007/)
+    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toContainText(/Счёт FT-2026-007/)
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
     // An approved contract the client has not signed.
     await row('Договор на разработку сайта').getByRole('button', { name: 'Edit' }).click()
-    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toHaveValue(/Договор на разработку сайта/)
+    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toContainText(/Договор на разработку сайта/)
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
     // A КП of a presales pack.
     await row('КП на Telegram-бота').getByRole('button', { name: 'Edit' }).click()
-    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toHaveValue(/Коммерческое предложение/)
+    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toContainText(/Коммерческое предложение/)
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
     // An issued invoice cannot be edited: the button is there, disabled, with the reason.
@@ -190,13 +191,76 @@ test.describe('with a session', () => {
     const banner = dialog.locator('[data-placeholder-banner]')
     await expect(banner).toContainText('Cannot approve')
     await expect(banner).toContainText('[сумма этапа]')
-    await expect(dialog.locator('mark[data-placeholder]')).toHaveCount(1)
+    await expect(dialog.locator('mark[data-ph]')).toHaveCount(1)
+    // The chip selects the placeholder in the rendered page.
+    await banner.getByRole('button', { name: '[сумма этапа]' }).click()
+    expect(await page.evaluate(() => window.getSelection()?.toString())).toBe('[сумма этапа]')
     // Filling the placeholder clears the marks and the list.
     const box = dialog.getByRole('textbox', { name: 'Document text' })
     await box.fill('Фаррух, сайт автосервиса выйдет от $650. Счёт за этап 1: $325.')
-    await expect(dialog.locator('mark[data-placeholder]')).toHaveCount(0)
+    await expect(dialog.locator('mark[data-ph]')).toHaveCount(0)
     await expect(banner).toContainText('All placeholders are filled')
   })
+
+  test('editor: the rendered page is the default, edits show in the markdown source and come back', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/approvals?id=ap_209')
+    await page.keyboard.press('e')
+    const dialog = page.getByRole('dialog', { name: 'Document editor' })
+    const rich = dialog.getByRole('textbox', { name: 'Document text' })
+    await expect(rich).toBeVisible()
+    // Rendered: a real heading and bold, no markdown marks on the page.
+    await expect(rich.getByRole('heading', { name: 'Коммерческое предложение' })).toBeVisible()
+    await expect(rich.locator('strong')).toContainText('$600')
+    await expect(rich).not.toContainText('##')
+    // Edit in the rendered view: bold a typed word with the toolbar.
+    await rich.click()
+    await page.keyboard.press('Control+End')
+    await page.keyboard.type(' Новое слово')
+    for (let i = 0; i < 5; i++) await page.keyboard.press('Shift+ArrowLeft')
+    await dialog.getByRole('toolbar', { name: 'Formatting' }).first().getByRole('button', { name: /^Bold/ }).click()
+    await expect(rich.locator('b, strong').last()).toContainText('слово')
+    // Source: the same text as markdown, the untouched heading unchanged.
+    await dialog.getByRole('button', { name: 'Markdown source' }).click()
+    const source = dialog.getByRole('textbox', { name: 'Markdown source' })
+    await expect(source).toHaveValue(/^## Коммерческое предложение\n\nTelegram-бот/)
+    await expect(source).toHaveValue(/\*\*\$600\*\* в два этапа\. Новое \*\*слово\*\*$/)
+    // Edit the source, go back: the rendered page follows.
+    await source.click()
+    await page.keyboard.press('Control+Home')
+    await page.keyboard.type('Привет.\n\n')
+    await dialog.getByRole('button', { name: 'Markdown source' }).click()
+    await expect(rich.getByText('Привет.')).toBeVisible()
+    // Still the same unsaved text: save works on the markdown.
+    await dialog.getByRole('button', { name: 'Save as a version' }).click()
+    await expect(dialog.getByText(/Saved/).first()).toBeVisible()
+    expect(errors).toEqual([])
+  })
+
+  for (const [label, size] of Object.entries(SIZES)) {
+    test(`editor: rendered and source views do not overflow, ${label} (EDITOR_SHOTS saves screenshots)`, async ({ page }) => {
+      await page.setViewportSize(size)
+      await open(page, '/admin/approvals?id=ap_209')
+      await page.keyboard.press('e')
+      const dialog = page.getByRole('dialog', { name: 'Document editor' })
+      const rich = dialog.getByRole('textbox', { name: 'Document text' })
+      await expect(rich).toBeVisible()
+      await rich.click()
+      await page.keyboard.press('Control+End')
+      await page.keyboard.insertText(' Срок [срок], сумма [сумма этапа]. Очень-длинное-слово-без-пробелов-для-проверки-переноса-строки-в-колонке-документа-на-телефоне')
+      await page.keyboard.press('Enter')
+      // A table at the caret, a heading and a list, to stress the page.
+      await dialog.getByRole('button', { name: 'Table row (for the estimate)' }).last().click()
+      await expect(rich.locator('table')).toHaveCount(1)
+      const shots = process.env.EDITOR_SHOTS
+      await noHorizontalOverflow(page, 'rendered')
+      if (shots) await page.screenshot({ path: `${shots}/rendered-${size.width}.png` })
+      await dialog.getByRole('button', { name: 'Markdown source' }).click()
+      await expect(dialog.getByRole('textbox', { name: 'Markdown source' })).toHaveValue(/\| Этап \| Что входит \| Сумма \|/)
+      await noHorizontalOverflow(page, 'source')
+      if (shots) await page.screenshot({ path: `${shots}/source-${size.width}.png` })
+    })
+  }
 
   test('review: E on a КП pack opens its first document, the stage has «Править» for each document', async ({ page }) => {
     await open(page, '/admin/approvals?id=ap_209')
@@ -204,11 +268,11 @@ test.describe('with a session', () => {
     await page.getByRole('button', { name: 'Edit', exact: true }).first().click()
     const dialog = page.getByRole('dialog', { name: 'Document editor' })
     await expect(dialog).toBeVisible()
-    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toHaveValue(/Смета/)
+    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toContainText(/Смета/)
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()
     await page.keyboard.press('e')
-    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toHaveValue(/Коммерческое предложение/)
+    await expect(dialog.getByRole('textbox', { name: 'Document text' })).toContainText(/Коммерческое предложение/)
   })
 
   test('phone: the editor has its toolbar at the bottom and Поручения fits the screen', async ({ page }) => {
