@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/pay-how'
     description: t.metaDescription,
     alternates: {
       canonical: `/${locale}/pay-how`,
-      languages: { ru: '/ru/pay-how', en: '/en/pay-how' },
+      languages: { ru: '/ru/pay-how', en: '/en/pay-how', 'x-default': '/ru/pay-how' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: { ...shareBase(locale).openGraph, title: t.metaTitle, description: t.metaDescription, url: `/${locale}/pay-how` },

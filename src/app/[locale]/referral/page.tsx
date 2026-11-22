@@ -31,7 +31,7 @@ export async function generateMetadata({
     description,
     alternates: {
       canonical: `/${locale}/referral`,
-      languages: { ru: '/ru/referral', en: '/en/referral' },
+      languages: { ru: '/ru/referral', en: '/en/referral', 'x-default': '/ru/referral' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: { ...shareBase(locale).openGraph, title, description, url: `/${locale}/referral` },

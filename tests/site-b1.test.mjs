@@ -134,6 +134,10 @@ test('404: links resolve, search finds pages, texts in both languages', () => {
   assert.ok(searchPages(notFoundText.en.pages, 'mini app').some((p) => p.path === '/products/miniapp'))
   assert.equal(notFoundText.ru.pages.length, notFoundText.en.pages.length)
   // The 404 pages exist and use the shared view.
-  for (const file of ['../src/app/[locale]/not-found.tsx', '../src/app/global-not-found.tsx'])
-    assert.match(readFileSync(new URL(file, import.meta.url), 'utf8'), /<NotFoundView/)
+  for (const [file, view] of [
+    ['../src/app/[locale]/not-found.tsx', /<LocaleNotFound/],
+    ['../src/components/not-found/locale-not-found.tsx', /<NotFoundView/],
+    ['../src/app/global-not-found.tsx', /<NotFoundView/],
+  ])
+    assert.match(readFileSync(new URL(file, import.meta.url), 'utf8'), view)
 })

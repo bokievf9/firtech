@@ -14,7 +14,7 @@ export async function generateMetadata({
     robots: { index: false, follow: true },
     alternates: {
       canonical: `/${locale}/builder/estimate`,
-      languages: { ru: '/ru/builder/estimate', en: '/en/builder/estimate' },
+      languages: { ru: '/ru/builder/estimate', en: '/en/builder/estimate', 'x-default': '/ru/builder/estimate' },
     },
   }
 }

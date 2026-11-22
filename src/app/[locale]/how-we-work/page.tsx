@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/how-we-w
     description: t.metaDescription,
     alternates: {
       canonical: `/${locale}/how-we-work`,
-      languages: { ru: '/ru/how-we-work', en: '/en/how-we-work' },
+      languages: { ru: '/ru/how-we-work', en: '/en/how-we-work', 'x-default': '/ru/how-we-work' },
     },
     twitter: shareBase(locale).twitter,
     openGraph: {

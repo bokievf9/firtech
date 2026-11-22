@@ -59,7 +59,7 @@ export async function generateMetadata({
     description: page.metaDescription,
     alternates: {
       canonical: `/${locale}/services/${slug}`,
-      languages: { ru: `/ru/services/${slug}`, en: `/en/services/${slug}` },
+      languages: { ru: `/ru/services/${slug}`, en: `/en/services/${slug}`, 'x-default': `/ru/services/${slug}` },
     },
     twitter: shareBase(locale).twitter,
     openGraph: {

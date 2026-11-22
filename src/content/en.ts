@@ -730,7 +730,7 @@ const en: Dict = {
     },
   },
   solutions: {
-    metaTitle: 'Solutions for small business: cafes, salons, shops, delivery, services',
+    metaTitle: 'Solutions for small business: cafes, salons, shops, services',
     metaDescription:
       'Ready starting sets for your business: website, AI booking assistant, online booking, online store, Mini App and CRM. Contents, price and timing on one page.',
     eyebrow: 'Solutions',
@@ -768,7 +768,7 @@ const en: Dict = {
     othersTitle: 'Other solutions',
     items: {
       cafe: {
-        metaTitle: 'Website, table booking and orders in Telegram for a cafe or restaurant',
+        metaTitle: 'Website, table booking and Telegram orders for a cafe',
         metaDescription:
           'A website with the menu, table bookings and paid Telegram orders, and a place on maps. Contents, price and timing of the starting set for a cafe or restaurant.',
         title: 'Website, booking and orders in Telegram for a cafe or restaurant',
@@ -1444,7 +1444,7 @@ const en: Dict = {
     footerLink: 'Privacy policy',
   },
   terms: {
-    metaTitle: 'Terms of service | Fir Tech',
+    metaTitle: 'Terms of service: scope, payment, guarantee | Fir Tech',
     metaDescription:
       'The terms Fir Tech works on: how we agree an estimate, take payment, hand over the work and answer for the result. The document is under legal review.',
     eyebrow: 'Document',
@@ -3356,7 +3356,7 @@ const en: Dict = {
         ],
       },
       receptionist: {
-        metaTitle: 'AI lead manager: a reply within a minute, then handover | Fir Tech',
+        metaTitle: 'AI lead manager: a reply in a minute, then handover | Fir Tech',
         metaDescription:
           'The AI lead manager answers clients in Telegram and on your site, asks the right questions and hands you a ready request. Price, payment stages and FAQ.',
         result: 'No request waits until morning for an answer',

@@ -117,7 +117,7 @@ export const websiteOrBot: Article = {
     ],
   },
   en: {
-    title: 'Website or Telegram agent: what should your business choose',
+    title: 'Website or Telegram agent: which one to choose',
     description:
       'When a business needs a website, when a Telegram agent is enough and when it is better to have both. Examples for a cafe, a salon and a shop, with prices.',
     blocks: [
