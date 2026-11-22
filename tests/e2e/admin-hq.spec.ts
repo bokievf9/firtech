@@ -110,6 +110,13 @@ test.describe('with a session', () => {
     await modes.getByRole('radio', { name: /^Автопилот/ }).click()
     await expect(modes.getByRole('radio', { name: /^Автопилот/ })).toHaveAttribute('aria-checked', 'true')
     await expect(page.locator('[data-group="autopilot"] [data-status="saved"]')).toBeVisible()
+    // Support has its own row: policy by default, ask_me saves alone and leaves the lead manager as it was
+    const support = page.getByRole('radiogroup', { name: 'Support mode' })
+    await expect(support.getByRole('radio', { name: 'Зови меня по политике' })).toHaveAttribute('aria-checked', 'true')
+    await support.getByRole('radio', { name: 'Зови меня при любом сомнении' }).click()
+    await expect(support.getByRole('radio', { name: 'Зови меня при любом сомнении' })).toHaveAttribute('aria-checked', 'true')
+    await expect(page.locator('[data-autopilot-row="support"] [data-status="saved"]')).toBeVisible()
+    await expect(modes.getByRole('radio', { name: /^Автопилот/ })).toHaveAttribute('aria-checked', 'true')
     // A time field saves on blur and shows «Saved»
     const summary = page.locator('[data-field="schedule.summaryTime"] input')
     await summary.fill('09:30')
@@ -146,6 +153,21 @@ test.describe('with a session', () => {
     await page.reload()
     await expect(page.locator('[data-field="schedule.summaryTime"] input')).toHaveValue('09:30')
     await expect(page.locator('[data-journal]')).toContainText('schedule.summaryTime: 08:00 -> 09:30')
+    await expect(page.getByRole('radiogroup', { name: 'Lead manager mode' }).getByRole('radio', { name: /^Автопилот/ })).toHaveAttribute('aria-checked', 'true')
+    await expect(page.getByRole('radiogroup', { name: 'Support mode' }).getByRole('radio', { name: 'Зови меня при любом сомнении' })).toHaveAttribute('aria-checked', 'true')
+    expect(errors).toEqual([])
+  })
+
+  test('Chats: each chat carries the Autopilot chip of its kind and the header chip links to Settings', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/chats')
+    const list = page.getByRole('complementary', { name: 'Чаты' })
+    await expect(list.locator('[data-autopilot-chip]').first()).toContainText('Autopilot: Policy')
+    await list.getByRole('button').first().click()
+    const head = page.getByRole('region', { name: 'Переписка' }).locator('a[data-autopilot-chip]')
+    await expect(head).toContainText('Autopilot:')
+    await expect(head).toHaveAttribute('href', '/admin/settings')
+    await expect(head).toHaveAttribute('title', /mode in Settings/)
     expect(errors).toEqual([])
   })
 

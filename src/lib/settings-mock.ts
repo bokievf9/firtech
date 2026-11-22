@@ -24,7 +24,7 @@ export function createSettingsMock() {
     kp: { validDays: 14, defaultLang: 'ru' },
     playground: { draftMsgsPerDay: 50, liveMsgsPerDay: 500 },
     service: { tgApprovalCards: false, tgGroupReports: false },
-    autopilot: { leadManager: 'policy' },
+    autopilot: { leadManager: 'policy', support: 'policy' },
   }
   const usage = { deptMonthUsd: { marketing: 4.2, sales: 1.1, support: 0, production: 0, backoffice: 0, director: 0.6 }, clientLlmToday: 41, monthStartedAt: '2026-10-31T19:00:00.000Z' }
   const restart = new Set<string>()
@@ -107,7 +107,7 @@ export function createSettingsMock() {
       group('service', { tgApprovalCards: (v) => typeof v === 'boolean', tgGroupReports: (v) => typeof v === 'boolean' }, s.service, body.service)
       for (const o of out) if (o.key.startsWith('service.') && !o.same) restart.add(o.key)
     }
-    if (body.autopilot !== undefined) group('autopilot', { leadManager: (v) => (AUTOPILOT_MODES as readonly string[]).includes(v as string) }, s.autopilot, body.autopilot)
+    if (body.autopilot !== undefined) group('autopilot', { leadManager: (v) => (AUTOPILOT_MODES as readonly string[]).includes(v as string), support: (v) => (AUTOPILOT_MODES as readonly string[]).includes(v as string) }, s.autopilot, body.autopilot)
     return invalid.length ? { invalid } : out
   }
 

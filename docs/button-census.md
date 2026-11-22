@@ -567,6 +567,8 @@ Tag `E:processes` = `tests/e2e/admin-processes.spec.ts`; `U:processes` = `tests/
 | Page | Element | What it does | Calls | Verified by | Status |
 |---|---|---|---|---|---|
 | `/admin/settings` Autopilot | three radios «Зови меня при любом сомнении» / «Зови меня по политике» / «Автопилот: ...» | sets `autopilot.leadManager` (`ask_me` / `policy` / `autopilot`), applies at once | `PATCH settings` | `E:hq`, `U:settings-hq` | pass |
+| `/admin/settings` Autopilot, Support row | the same three radios in the «Support» row | sets `autopilot.support` (client questions in the cabinet, Telegram and the site chat), saves alone | `PATCH settings` | `E:hq`, `U:settings-hq` | pass |
+| `/admin/chats` Autopilot chip | small chip «Autopilot: Policy / Autopilot / Ask me» on each row and in the thread header (lead threads = lead manager mode, support and project threads = support mode); the header chip links to `/admin/settings`; hidden when Settings cannot be read | none (one `GET settings` per page) | `E:hq`, `U:chats` | pass |
 | Schedule | time fields (morning summary, approvals batch, digest time, quiet from/until, call windows) | save on blur or Enter, `HH:mm` checked first | `PATCH settings` | `E:hq` (summary), `U:settings-hq` | pass |
 | Schedule | weekly digest day, default document language (selects) | save on change | `PATCH settings` | `U:settings-hq` | pass (logic), manual (UI) |
 | Schedule | «Quiet hours» switch | on writes `{from,to}`, off writes `null`; the two times are disabled while off | `PATCH settings` | `U:settings-hq` (builder) | pass (logic), manual (UI) |

@@ -86,7 +86,7 @@ export const ENDPOINTS: readonly Endpoint[] = [
 ]
 
 // HQ «Settings» (2026-11-23): the one settings object; HQ takes PATCH here (`agents/docs/admin-crm-api.md` «Настройки»). The body mirrors
-// HQ's strict schema (any subset of the groups, nothing else), including the lead manager's `autopilot` mode.
+// HQ's strict schema (any subset of the groups, nothing else), including the `autopilot` modes (lead manager and support).
 const settingsTime = z.string().regex(/^([01]?\d|2[0-3]):[0-5]\d$/)
 const settingsFlags = (keys: readonly string[]) => z.object(Object.fromEntries(keys.map((k) => [k, z.boolean().optional()]))).strict()
 const settingsZone = z.string().min(1).max(64)
@@ -100,7 +100,7 @@ export const SETTINGS_BODY = z
     kp: z.object({ validDays: z.number().int().min(1).max(90), defaultLang: z.enum(['ru', 'en']) }).partial().strict(),
     playground: z.object({ draftMsgsPerDay: z.number().int().min(1).max(2000), liveMsgsPerDay: z.number().int().min(1).max(2000) }).partial().strict(),
     service: z.object({ tgApprovalCards: z.boolean(), tgGroupReports: z.boolean() }).partial().strict(),
-    autopilot: z.object({ leadManager: z.enum(['ask_me', 'policy', 'autopilot']) }).partial().strict(),
+    autopilot: z.object({ leadManager: z.enum(['ask_me', 'policy', 'autopilot']), support: z.enum(['ask_me', 'policy', 'autopilot']) }).partial().strict(),
   })
   .partial()
   .strict()

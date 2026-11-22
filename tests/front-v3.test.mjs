@@ -96,7 +96,7 @@ test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minu
     assert.match(dict.sla.line, /5/)
     assert.ok(dict.guarantee.line)
   }
-  assert.equal(ru.hero.lines[0], 'ИИ-агенты и автоматизация')
+  assert.equal(ru.hero.lines[0], 'ИИ берёт рутину на себя,')
   assert.equal(ru.nav.cta, 'Собрать проект')
   assert.equal(ru.hero.chatCta, 'Спросить агента')
   assert.equal(ru.nav.ask, 'Спросить агента')

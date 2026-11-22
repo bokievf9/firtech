@@ -26,7 +26,7 @@ export type Settings = {
   kp: { validDays: number; defaultLang: 'ru' | 'en' }
   playground: { draftMsgsPerDay: number; liveMsgsPerDay: number }
   service: { tgApprovalCards: boolean; tgGroupReports: boolean }
-  autopilot: { leadManager: AutopilotMode }
+  autopilot: { leadManager: AutopilotMode; support: AutopilotMode }
 }
 export type SettingsView = {
   settings: Settings
@@ -54,7 +54,8 @@ export function normalizeSettings(body: unknown): SettingsView | null {
   const kp = rec(s.kp)
   const pg = rec(s.playground)
   const sv = rec(s.service)
-  const ap = str(rec(s.autopilot).leadManager)
+  const apRec = rec(s.autopilot)
+  const apMode = (v: unknown): AutopilotMode => (typeof v === 'string' && (AUTOPILOT_MODES as readonly string[]).includes(v) ? (v as AutopilotMode) : 'policy')
   const us = rec(b.usage)
   const kinds: TrustKind[] = []
   for (const raw of arr(tr.kinds, 100)) {
@@ -77,7 +78,7 @@ export function normalizeSettings(body: unknown): SettingsView | null {
       kp: { validDays: num(kp.validDays, 14), defaultLang: kp.defaultLang === 'en' ? 'en' : 'ru' },
       playground: { draftMsgsPerDay: num(pg.draftMsgsPerDay, 50), liveMsgsPerDay: num(pg.liveMsgsPerDay, 500) },
       service: { tgApprovalCards: bool(sv.tgApprovalCards), tgGroupReports: bool(sv.tgGroupReports) },
-      autopilot: { leadManager: (AUTOPILOT_MODES as readonly string[]).includes(ap) ? (ap as AutopilotMode) : 'policy' },
+      autopilot: { leadManager: apMode(apRec.leadManager), support: apMode(apRec.support) },
     },
     usage: { deptMonthUsd: money(us.deptMonthUsd, BUDGET_DEPTS), clientLlmToday: num(us.clientLlmToday), monthStartedAt: typeof us.monthStartedAt === 'string' ? us.monthStartedAt : null },
     restartRequired: bool(b.restartRequired),
