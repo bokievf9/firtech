@@ -165,7 +165,7 @@ test.describe('with a session', () => {
     const list = page.getByRole('complementary', { name: 'Chats' })
     await expect(list.locator('[data-autopilot-chip]').first()).toContainText(/Autopilot: (Policy|Autopilot|Ask me)/)
     await list.getByRole('button').first().click()
-    const head = page.getByRole('region', { name: 'Chatting' }).locator('a[data-autopilot-chip]')
+    const head = page.getByRole('region', { name: 'Conversation' }).locator('a[data-autopilot-chip]')
     await expect(head).toContainText('Autopilot:')
     await expect(head).toHaveAttribute('href', '/admin/settings')
     await expect(head).toHaveAttribute('title', /mode in Settings/)
