@@ -131,7 +131,7 @@ test.describe('Пульт', () => {
       // HQ failures come back as 200 {ok:false,error} (the proxy contract), so the page keeps its data.
       return route.fulfill({ json: { ok: false, error: 'hq_timeout' } })
     })
-    await page.goto('/admin/review')
+    await page.goto('/admin/approvals')
     const main = page.locator('main').first()
     await shot(page, page.locator('body'), 'pult-loading')
     const alert = main.getByRole('alert')

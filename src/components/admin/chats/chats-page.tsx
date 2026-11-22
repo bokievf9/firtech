@@ -351,8 +351,8 @@ function ChatsPageInner() {
                   {choices.length > 1 || replyTo ? (
                     <div className="mx-auto mb-2 flex max-w-2xl flex-wrap items-center gap-2 text-sm">
                       {choices.length > 1 ? (
-                        <label className="flex items-center gap-2">
-                          <span className={cn('text-xs', pickerHot ? 'text-warn' : 'text-faint')}>Ответить в тред</span>
+                        <label className="flex min-w-0 max-w-full items-center gap-2">
+                          <span className={cn('shrink-0 text-xs', pickerHot ? 'text-warn' : 'text-faint')}>Ответить в тред</span>
                           <select
                             ref={picker}
                             value={chosen ?? ''}
@@ -360,7 +360,7 @@ function ChatsPageInner() {
                               setPickedThread((p) => ({ ...p, [thread.id]: e.target.value }))
                               setPickerHot(false)
                             }}
-                            className={cn(inputClass, 'min-h-9 w-auto py-1', pickerHot && 'border-warn ring-1 ring-warn')}
+                            className={cn(inputClass, 'min-h-9 w-auto min-w-0 max-w-full py-1', pickerHot && 'border-warn ring-1 ring-warn')}
                           >
                             {choices.map((c) => (
                               <option key={c.id} value={c.id}>{c.label || choiceLabel(c.id)}</option>

@@ -65,4 +65,40 @@ test.describe('with a session', () => {
     await open(page, '/admin/approvals')
     await noHorizontalOverflow(page, '/admin/approvals')
   })
+
+  test('one section: the reader opens inside the Shell frame, the old review link redirects, the counts agree', async ({ page }) => {
+    const errors = watchErrors(page, noise)
+    await open(page, '/admin/review?id=ap_203')
+    await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_203$/)
+    const shell = page.locator('[data-hq-shell]')
+    await expect(shell.getByRole('navigation', { name: 'Sections' }).first()).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Назад в офис' })).toHaveCount(0)
+    await expect(page.locator('[data-approvals-reader]')).toBeVisible()
+    // digits belong to the Shell: a department is clicked, not keyed
+    await page.keyboard.press('j')
+    await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_/)
+    // «К списку» returns to the tabs of the item
+    await page.getByRole('button', { name: 'К списку Approvals' }).click()
+    await expect(page.getByRole('navigation', { name: 'Разделы Approvals' })).toBeVisible()
+    // the menu badge, the Approvals tabs and the Inbox tab show one number
+    const sum = async () => {
+      const nav = page.getByRole('navigation', { name: 'Разделы Approvals' })
+      let n = 0
+      for (const name of ['Documents', 'Replies', 'Content', 'Money']) n += Number((await nav.getByRole('button', { name }).locator('span').textContent()) ?? 0)
+      return n
+    }
+    const badge = Number(await page.locator('[data-badge=approvals]').first().textContent())
+    expect(badge).toBe(await sum())
+    await open(page, '/admin/inbox?tab=approvals')
+    await expect(page.locator('[data-inbox-total]')).toHaveText(String(badge))
+    expect(errors).toEqual([])
+  })
+
+  test('reader: no horizontal overflow at 390 and 1440', async ({ page }) => {
+    for (const size of [SIZES.mobile, { width: 1440, height: 900 }]) {
+      await page.setViewportSize(size)
+      await open(page, '/admin/approvals?id=ap_201')
+      await noHorizontalOverflow(page, `reader ${size.width}`)
+    }
+  })
 })

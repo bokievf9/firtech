@@ -180,7 +180,7 @@ for (const width of (process.env.WIDTHS ?? '390,768').split(',').map(Number)) {
         expect(found, 'overflow').toEqual([])
       })
 
-      for (const url of ['/admin/review', '/admin/chats', '/admin/golive']) {
+      for (const url of ['/admin/approvals', '/admin/approvals?id=ap_201', '/admin/chats', '/admin/golive']) {
         test(`page ${url}`, async ({ page }) => {
           await open(page, url)
           await page.waitForTimeout(1500)
@@ -201,7 +201,7 @@ for (const width of (process.env.WIDTHS ?? '390,768').split(',').map(Number)) {
       }
 
       test('review: document editor', async ({ page }) => {
-        await open(page, '/admin/review')
+        await open(page, '/admin/approvals?id=ap_204')
         await page.waitForTimeout(1500)
         await page.getByRole('list', { name: 'Очередь' }).getByRole('button').first().click({ timeout: 2000 }).catch(() => {})
         await page.keyboard.press('e')

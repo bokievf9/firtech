@@ -11,7 +11,7 @@ test.describe('with a session', () => {
 
   test('review: E opens the full-screen editor, type, find and replace, save as a version, compare with v1', async ({ page }) => {
     const errors = watchErrors(page, noise)
-    await open(page, '/admin/review')
+    await open(page, '/admin/approvals?id=ap_201')
     await page.getByRole('list', { name: 'Очередь' }).getByRole('button', { name: /Ответ Нигине/ }).click()
     await page.keyboard.press('e')
     const dialog = page.getByRole('dialog', { name: 'Редактор документа' })
@@ -59,7 +59,7 @@ test.describe('with a session', () => {
   })
 
   test('review editor: Esc with unsaved changes asks first, ⌘Enter saves and closes', async ({ page }) => {
-    await open(page, '/admin/review')
+    await open(page, '/admin/approvals?id=ap_201')
     await page.getByRole('list', { name: 'Очередь' }).getByRole('button', { name: /Цена для Фарруха/ }).click()
     await page.keyboard.press('e')
     const dialog = page.getByRole('dialog', { name: 'Редактор документа' })
@@ -78,7 +78,7 @@ test.describe('with a session', () => {
   })
 
   test('review: the sales item shows «Разбор заявки» with answers, estimate links and stages', async ({ page }) => {
-    await open(page, '/admin/review')
+    await open(page, '/admin/approvals?id=ap_201')
     await page.getByRole('list', { name: 'Очередь' }).getByRole('button', { name: /Ответ Нигине/ }).click()
     const block = page.getByRole('region', { name: 'Разбор заявки' })
     await expect(block).toBeVisible()
@@ -203,7 +203,7 @@ test.describe('with a session', () => {
   })
 
   test('review: E on a КП pack opens its first document, the stage has «Править» for each document', async ({ page }) => {
-    await open(page, '/admin/review?id=ap_209')
+    await open(page, '/admin/approvals?id=ap_209')
     await expect(page.getByRole('button', { name: 'Править КП' })).toBeVisible()
     await page.getByRole('button', { name: 'Править', exact: true }).first().click()
     const dialog = page.getByRole('dialog', { name: 'Редактор документа' })
@@ -230,7 +230,7 @@ test.describe('with a session', () => {
 
   test('phone: the editor has its toolbar at the bottom and Поручения fits the screen', async ({ page }) => {
     await page.setViewportSize(SIZES.mobile)
-    await open(page, '/admin/review')
+    await open(page, '/admin/approvals?id=ap_201')
     await page.getByRole('navigation', { name: 'Отделы' }).getByRole('button', { name: /^Продажи/ }).click()
     await page.getByRole('button', { name: /^Править/ }).first().click()
     const dialog = page.getByRole('dialog', { name: 'Редактор документа' })

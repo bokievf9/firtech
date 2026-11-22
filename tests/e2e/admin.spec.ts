@@ -207,16 +207,16 @@ test.describe('with a session', () => {
     const errors = watchErrors(page, [/WebGL|GPU stall|swiftshader/i])
     await page.setViewportSize(SIZES.mobile)
     await open(page, '/admin/golive')
-    await expect(page.getByRole('link', { name: 'Назад в офис' })).toBeVisible()
+    await expect(page.locator('[data-hq-shell]')).toBeVisible()
     await noHorizontalOverflow(page)
     expect(errors).toEqual([])
   })
 
-  test('keys 9 and 0 open the review centre and the chats', async ({ page }) => {
+  test('keys 9 and 0 open Approvals and the chats', async ({ page }) => {
     await open(page, '/admin/office')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
     await page.keyboard.press('9')
-    await expect(page).toHaveURL(/\/admin\/review$/)
+    await expect(page).toHaveURL(/\/admin\/approvals$/)
     await open(page, '/admin/office')
     await expect(page.getByRole('radio', { name: 'На месте', exact: true })).toBeVisible()
     await page.keyboard.press('0')
@@ -225,10 +225,12 @@ test.describe('with a session', () => {
 
   test('review centre: rail with counts, queue, J/K step, the revise composer and the trend link dialog', async ({ page }) => {
     const errors = watchErrors(page, [/WebGL|GPU stall|swiftshader|Failed to load resource/i])
-    await open(page, '/admin/review')
-    await expect(page.getByRole('heading', { name: 'Ревью', level: 1 })).toBeVisible()
+    await open(page, '/admin/review?id=ap_201')
+    // the old link redirects into Approvals and keeps the item
+    await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_201$/)
+    await expect(page.getByRole('heading', { name: 'Approvals', level: 1 })).toBeVisible()
     const rail = page.getByRole('navigation', { name: 'Отделы' })
-    await expect(rail.getByRole('button', { name: /^Директор/ })).toHaveAttribute('aria-pressed', 'true')
+    await expect(rail.getByRole('button', { name: /^Все/ })).toHaveAttribute('aria-pressed', 'true')
     // The rail has seven entries, each with a count.
     await expect(rail.getByRole('button')).toHaveCount(7)
     await expect(rail.getByRole('button', { name: /^Маркетинг \d+/ })).toBeVisible()
@@ -237,13 +239,13 @@ test.describe('with a session', () => {
 
     // J and K step through the queue; the position counter follows.
     const position = page.getByText(/^\d+ \/ \d+$/)
-    await expect(position).toHaveText(/^1 \/ \d+$/)
-    const total = Number((await position.textContent())!.split('/')[1])
-    expect(total).toBeGreaterThan(1)
+    await expect(position).toHaveText(/^\d+ \/ \d+$/)
+    const [at, all] = (await position.textContent())!.split('/').map(Number) as [number, number]
+    expect(all).toBeGreaterThan(1)
     await page.keyboard.press('j')
-    await expect(position).toHaveText(new RegExp(`^2 / ${total}$`))
+    await expect(position).toHaveText(new RegExp(`^${at + 1} / ${all}$`))
     await page.keyboard.press('k')
-    await expect(position).toHaveText(new RegExp(`^1 / ${total}$`))
+    await expect(position).toHaveText(new RegExp(`^${at} / ${all}$`))
 
     // Another department narrows the queue; the first key goes back to «Все».
     await rail.getByRole('button', { name: /^Маркетинг/ }).click()
@@ -257,7 +259,7 @@ test.describe('with a session', () => {
     await note.fill('хук короче')
     await page.keyboard.press('Escape')
     await expect(note).toBeHidden()
-    await expect(page).toHaveURL(/\/admin\/review$/)
+    await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_/)
 
     // «Скинуть ссылку»: the dialog opens with a URL field, rejects junk and closes with Esc.
     await page.getByRole('button', { name: 'Скинуть ссылку' }).click()
