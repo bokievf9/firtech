@@ -8,7 +8,7 @@ import { passwordConfig } from '@/lib/admin-password'
 export const dynamic = 'force-dynamic'
 
 export default async function AdminLoginPage() {
-  if (await hasAdminSession()) redirect('/admin/inbox')
+  if (await hasAdminSession()) redirect('/admin/dashboard')
   // Only whether a valid ADMIN_PASSWORD_HASH exists reaches the page, never the value.
   const configured = passwordConfig().ok
   return (

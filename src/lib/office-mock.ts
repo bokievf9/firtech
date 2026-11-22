@@ -121,8 +121,8 @@ export function officeMock(now = Date.now()): OfficeData {
     health: { firtech: { ok: true, pct24h: 100 }, omniroute: { ok: true }, incidentsToday: 0 },
     funnel: { leadsWeek: 2, prospects: { new: 90, proposed: 10, sent: 0, replied: 0 } },
     products: [
-      { id: 'dono', title: 'Dono', status: 'working' },
-      { id: 'polly', title: 'Polly', status: 'idle' },
+      { id: 'dono', title: 'Founder case: Dono', status: 'working' },
+      { id: 'polly', title: 'Founder case: Polly', status: 'idle' },
     ],
     visitorsActive: mockVisitors(now).length,
     scene: mockScene(now),

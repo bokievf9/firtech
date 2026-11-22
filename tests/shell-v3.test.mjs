@@ -527,3 +527,17 @@ test('markdown-lite: blocks, tables, code and no raw HTML', async () => {
   assert.equal(JSON.stringify(b[6]).includes('javascript'), false, 'link targets are dropped')
 })
 
+
+test('palette: matchTasks filters the open tasks by words, #id and assignee, newest first, capped', () => {
+  const tasks = [
+    { id: 42, title: 'Договор-шаблон для сайтов', assigneeTitle: 'Lina', status: 'review' },
+    { id: 7, title: 'Отчёт по лидам', assigneeTitle: 'Analyst', status: 'running' },
+    { id: 9, title: 'Договор с клиентом', assigneeTitle: null, status: 'running' },
+  ]
+  assert.deepEqual(p.matchTasks(tasks, 'договор').map((t) => t.id), [42, 9])
+  assert.deepEqual(p.matchTasks(tasks, '#7').map((t) => t.id), [7])
+  assert.deepEqual(p.matchTasks(tasks, 'lina договор').map((t) => t.id), [42])
+  assert.deepEqual(p.matchTasks(tasks, 'отчет').map((t) => t.id), [7])
+  assert.deepEqual(p.matchTasks(tasks, '   '), [])
+  assert.equal(p.matchTasks(tasks, 'о', 1).length, 1)
+})

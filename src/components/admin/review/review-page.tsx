@@ -37,7 +37,7 @@ import {
   type ReviewItem,
   type ReviewView,
 } from '@/lib/review'
-import { editableTargets, targetBase, targetOf, versionSavePayload, withDocText, type PackDoc } from '@/lib/doc-editor'
+import { editableTargets, placeholderList, placeholderReason, targetBase, targetOf, versionSavePayload, withDocText, type PackDoc } from '@/lib/doc-editor'
 import { CallDialog, ResultsDialog, ScheduleDialog } from './dialogs'
 import { DocEditor } from './doc-editor'
 import { Details } from './details'
@@ -64,7 +64,7 @@ const useDesktop = () => useSyncExternalStore(subscribeDesktop, () => window.mat
 type Ui = { id: string | null; editing: boolean; values: Partial<Record<FieldKey, string>>; reviseOpen: boolean; note: string; viewVersion: number | null }
 const blankUi: Ui = { id: null, editing: false, values: {}, reviseOpen: false, note: '', viewVersion: null }
 type Modal = { type: 'schedule' | 'call' | 'trend' } | { type: 'results'; title: string; message: string | null; results: PublishResult[] } | null
-type Answer = { item?: unknown; results?: unknown; state?: string; via?: string; callAt?: string; message?: unknown }
+type Answer = { item?: unknown; results?: unknown; state?: string; via?: string; callAt?: string; message?: unknown; placeholders?: unknown }
 
 function Thumb({ item }: { item: ReviewItem }) {
   const m = item.media[0]
@@ -101,6 +101,8 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
   const [exiting, setExiting] = useState<ReviewItem | null>(null)
   // The full-screen editor: the id of the text document being written (key E on documents).
   const [docEditing, setDocEditing] = useState<string | null>(null)
+  // The placeholders HQ named when it refused an approval: the editor opens on them.
+  const [flagged, setFlagged] = useState<string[] | null>(null)
 
   const items = useMemo(() => data.view?.items ?? [], [data.view])
   const counts: Counts | null = data.view?.counts ?? null
@@ -150,6 +152,17 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
     if (o.leave) {
       setExiting(null)
       setSel(it.id)
+    }
+    if (res.error === 'placeholder' && body.action === 'approve') {
+      const targets = editableTargets(it)
+      const hit = targets.find((x) => placeholderList(x.value).length) ?? targets[0]
+      const named = Array.isArray(res.placeholders) ? res.placeholders.filter((x): x is string => typeof x === 'string') : []
+      notify(placeholderReason(named.length ? named : hit ? placeholderList(hit.value) : []), 'error')
+      if (hit) {
+        setFlagged(named.length ? named : placeholderList(hit.value))
+        setDocEditing(hit.storageId)
+      }
+      return false
     }
     const results = normalizeResults(res.results)
     if (results.length) setModal({ type: 'results', title: 'Could not publish', message: reviewError(res, errText), results })
@@ -555,7 +568,8 @@ function ReviewPageInner({ initialId = null, onBack, onSelect }: { initialId?: s
             baseText={targetBase(target)}
             storageId={target.storageId}
             onSave={(text) => saveDoc(current, text, target.doc)}
-            onClose={() => setDocEditing(null)}
+            onClose={() => { setDocEditing(null); setFlagged(null) }}
+            flagged={flagged}
           />
         ) : null
       })()}

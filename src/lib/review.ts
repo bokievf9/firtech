@@ -572,7 +572,7 @@ const ERROR_TEXT: Record<string, string> = {
   not_pending: 'The material is no longer waiting for a decision',
   not_applicable: 'This action is not available now',
   not_applied: 'The text did not change',
-  placeholder: 'The text still has places in square brackets, fill them in edit mode',
+  placeholder: 'The text still has unfilled placeholders in square brackets, fill them in edit mode',
   not_ready: 'The material is not ready to publish yet',
   not_configured: 'Auto-publishing is not set up for this platform',
   publish_failed: 'Publishing failed, you can press again',
@@ -587,6 +587,6 @@ const ERROR_TEXT: Record<string, string> = {
 // A short Russian sentence for a failed call: HQ's code, plus what it said (reason, placeholders).
 export function reviewError(res: { error: string; reason?: string; message?: unknown; placeholders?: unknown }, fallback: (code: string) => string): string {
   const base = ERROR_TEXT[res.error] ?? fallback(res.error)
-  const extra = Array.isArray(res.placeholders) ? ` (${res.placeholders.slice(0, 4).join(' ')})` : typeof res.reason === 'string' ? `. ${res.reason}` : typeof res.message === 'string' && res.message ? `. ${res.message}` : ''
+  const extra = Array.isArray(res.placeholders) ? `: ${res.placeholders.slice(0, 8).join(', ')}` : typeof res.reason === 'string' ? `. ${res.reason}` : typeof res.message === 'string' && res.message ? `. ${res.message}` : ''
   return `${base}${extra}`
 }

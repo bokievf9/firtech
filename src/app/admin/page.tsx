@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 
-// /admin opens HQ (the Inbox); a visitor without a session goes on to the login screen from there.
-// The pixel office lives on /admin/office.
+// /admin opens the Dashboard, the home of the Shell; a visitor without a session goes on to the login screen from there.
+// The Inbox is /admin/inbox, the pixel office /admin/office.
 export default function AdminIndexPage() {
-  redirect('/admin/inbox')
+  redirect('/admin/dashboard')
 }

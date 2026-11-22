@@ -163,9 +163,9 @@ test('autopilot chip: lead threads use the lead manager, support and project thr
   assert.equal(c.chatAutopilotKind({ leadId: null, ticketId: 2 }), 'support')
   assert.equal(c.chatAutopilotKind({ leadId: 1, ticketId: null }, 'project-9'), 'support')
   const st = { autopilot: { leadManager: 'autopilot', support: 'ask_me' } }
-  assert.equal(c.autopilotChip(st, 'leadManager').text, 'Autopilot: Autopilot')
-  assert.equal(c.autopilotChip(st, 'support').text, 'Autopilot: Ask me')
-  assert.equal(c.autopilotChip({ autopilot: { leadManager: 'policy' } }, 'leadManager').text, 'Autopilot: Policy')
+  assert.equal(c.autopilotChip(st, 'leadManager').text, 'Mode: Autopilot')
+  assert.equal(c.autopilotChip(st, 'support').text, 'Mode: Ask me')
+  assert.equal(c.autopilotChip({ autopilot: { leadManager: 'policy' } }, 'leadManager').text, 'Mode: By policy')
   assert.match(c.autopilotChip(st, 'support').title, /Support mode in Settings/)
   assert.equal(c.autopilotChip(null, 'support'), null)
   assert.equal(c.autopilotChip({ autopilot: { support: 'bogus' } }, 'support'), null)

@@ -33,7 +33,7 @@ const serviceNames: Record<string, string> = Object.fromEntries(
 )
 const stageTemplateNames: Record<StageTemplateId, string> = {
   site: 'Website',
-  bot: 'Bot',
+  bot: 'AI agents in Telegram',
   automation: 'Automation',
   app: 'App and Mini App',
   small: 'Small project',
@@ -51,8 +51,8 @@ const planNames: Record<string, string> = {
   max: 'Personal AI, Second self',
   company: 'AI for your company, price "from"',
   agent: 'One AI agent (team: sum of agents with a discount)',
-  dono: 'Dono (withdrawn from sale, needs Shell)',
-  polly: 'Polly (withdrawn from sale, needs Shell)',
+  dono: 'Founder case plan A (not sold)',
+  polly: 'Founder case plan B (not sold)',
   content: 'Content on autopilot',
 }
 const stageTitleRu: Record<string, string> = {}

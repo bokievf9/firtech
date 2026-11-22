@@ -181,6 +181,23 @@ test.describe('with a session', () => {
     await expect(row('FT-2026-001').getByRole('button', { name: 'Edit' })).toBeDisabled()
   })
 
+  test('review: approving a text with an unfilled placeholder opens the editor on it, with the reason', async ({ page }) => {
+    await open(page, '/admin/approvals?id=ap_205')
+    await expect(page.getByRole('list', { name: 'Queue' })).toBeVisible()
+    await page.keyboard.press('a')
+    const dialog = page.getByRole('dialog', { name: 'Document editor' })
+    await expect(dialog).toBeVisible()
+    const banner = dialog.locator('[data-placeholder-banner]')
+    await expect(banner).toContainText('Cannot approve')
+    await expect(banner).toContainText('[сумма этапа]')
+    await expect(dialog.locator('mark[data-placeholder]')).toHaveCount(1)
+    // Filling the placeholder clears the marks and the list.
+    const box = dialog.getByRole('textbox', { name: 'Document text' })
+    await box.fill('Фаррух, сайт автосервиса выйдет от $650. Счёт за этап 1: $325.')
+    await expect(dialog.locator('mark[data-placeholder]')).toHaveCount(0)
+    await expect(banner).toContainText('All placeholders are filled')
+  })
+
   test('review: E on a КП pack opens its first document, the stage has «Править» for each document', async ({ page }) => {
     await open(page, '/admin/approvals?id=ap_209')
     await expect(page.getByRole('button', { name: 'Edit quote' })).toBeVisible()

@@ -273,6 +273,12 @@ export function createReviewMock(start = Date.now()) {
         if (['approve', 'reject'].includes(action) && it.status !== 'pending') return bad('already_decided', { status: it.status })
         if (['edit', 'revise', 'send'].includes(action) && it.status !== 'pending' && !(action === 'edit' && it.meta.editApproved === true && it.status === 'approved')) return bad('not_pending', { status: it.status })
         if (!allowed.includes(action)) return bad('not_applicable', { status: it.status, actions: allowed })
+        if (action === 'approve') {
+          // Like HQ: a template left in the text («[срок]») keeps the approval pending.
+          const bodies = [str(it.text.draft), ...((it.text.documents as Row[] | undefined) ?? []).map((d) => str(d.body))]
+          const open = [...new Set(bodies.flatMap((b) => [...b.matchAll(/\[[^\]\n]{2,60}\](?!\()/g)].map((m) => m[0])))].slice(0, 5)
+          if (open.length) return bad('placeholder', { reason: 'Править: в тексте остался шаблон', placeholders: open })
+        }
         switch (action) {
           case 'approve':
             it.status = 'approved'

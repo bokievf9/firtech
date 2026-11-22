@@ -39,7 +39,9 @@ import {
   draftRestorable,
   editorCommand,
   findMatches,
+  findPlaceholders,
   parseDraft,
+  placeholderReason,
   readMinutes,
   replaceAll,
   replaceAt,
@@ -48,6 +50,7 @@ import {
   wordCount,
   type Edit,
   type FormatKind,
+  type Placeholder,
 } from '@/lib/doc-editor'
 
 const t = admin.editor
@@ -73,6 +76,8 @@ export type DocEditorProps = {
   onSave: (text: string) => Promise<boolean>
   onClose: () => void
   maxLength?: number
+  // Opened after HQ refused an approval (409 `placeholder`): the unfilled templates it named, marked in the text.
+  flagged?: string[] | null
 }
 
 // The page's type: Onest, 17 px, a comfortable line. The textarea and the search mirror share it exactly.
@@ -157,6 +162,28 @@ function Mirror({
   )
 }
 
+// Unfilled placeholders marked in amber under the transparent textarea.
+function PlaceholderMirror({ text, items }: { text: string; items: Placeholder[] }) {
+  const parts: React.ReactNode[] = []
+  let at = 0
+  items.forEach((p, i) => {
+    parts.push(text.slice(at, p.start))
+    parts.push(
+      <mark key={p.start} data-placeholder={i} className="rounded-sm bg-warn/35 text-transparent underline decoration-warn decoration-wavy">
+        {text.slice(p.start, p.end)}
+      </mark>,
+    )
+    at = p.end
+  })
+  parts.push(text.slice(at))
+  return (
+    <div aria-hidden="true" style={pageText} className="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words text-transparent">
+      {parts}
+      {'\n'}
+    </div>
+  )
+}
+
 // A Word-like full-screen editor over markdown text: a page column, a formatting toolbar (at the
 // bottom on phones), find and replace, a word-level comparison with v1 and a local draft kept every 5 s.
 export function DocEditor({
@@ -168,6 +195,7 @@ export function DocEditor({
   onSave,
   onClose,
   maxLength = DOC_MAX,
+  flagged = null,
 }: DocEditorProps) {
   const [value, setValue] = useState(initial)
   const [saved, setSaved] = useState(initial)
@@ -187,6 +215,9 @@ export function DocEditor({
     }
   })
   const [error, setError] = useState<string | null>(null)
+  // After a refused approval the unfilled placeholders stay marked until the text has none (or the owner dismisses it).
+  const [flagOn, setFlagOn] = useState(flagged !== null)
+  const holes = useMemo(() => (flagOn ? findPlaceholders(value) : []), [flagOn, value])
   const ta = useRef<HTMLTextAreaElement>(null)
   const scroller = useRef<HTMLDivElement>(null)
   const findInput = useRef<HTMLInputElement>(null)
@@ -396,14 +427,23 @@ export function DocEditor({
     return () => window.removeEventListener('keydown', onKey, true)
   }, [])
 
-  // Focus the page on open, and keep the page behind from scrolling.
+  // Focus the page on open (on the first unfilled placeholder after a refusal), and keep the page behind from scrolling.
   useEffect(() => {
     ta.current?.focus()
+    if (flagged !== null) {
+      const first = findPlaceholders(ta.current?.value ?? '')[0]
+      if (first) {
+        ta.current?.setSelectionRange(first.start, first.end)
+        requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-placeholder="0"]')?.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior }))
+      }
+    }
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
       document.body.style.overflow = prev
     }
+    // Mount-only: the first placeholder is selected once, when the editor opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const ops = useMemo(
@@ -783,6 +823,7 @@ export function DocEditor({
                 style={{ minHeight: 'min(60dvh, 32rem)' }}
               >
                 <div className="relative">
+                  {!find && holes.length ? <PlaceholderMirror text={value} items={holes} /> : null}
                   {find ? (
                     <Mirror
                       text={value}
@@ -813,6 +854,36 @@ export function DocEditor({
             )}
           </div>
         )}
+        {flagOn ? (
+          <div role="alert" data-placeholder-banner className="mx-auto mb-3 max-w-[760px] rounded-xl border border-warn/60 bg-warn/10 p-3 text-sm">
+            <p className="font-medium">{!holes.length ? 'All placeholders are filled. Save as a version, then approve again.' : placeholderReason(holes.map((h) => h.text).filter((x, i, a) => a.indexOf(x) === i))}</p>
+            {holes.length ? (
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {holes.map((h, i) => (
+                  <li key={h.start}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMode('edit')
+                        requestAnimationFrame(() => {
+                          ta.current?.focus()
+                          ta.current?.setSelectionRange(h.start, h.end)
+                          document.querySelector<HTMLElement>(`[data-placeholder="${i}"]`)?.scrollIntoView({ block: 'center', behavior: 'instant' as ScrollBehavior })
+                        })
+                      }}
+                      className="rounded-lg border border-warn/60 px-2 py-1 font-mono text-xs hover:bg-warn/20"
+                    >
+                      {h.text}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <button type="button" onClick={() => setFlagOn(false)} className="mt-2 text-xs text-muted underline">
+              Dismiss
+            </button>
+          </div>
+        ) : null}
         {error ? (
           <p
             role="alert"

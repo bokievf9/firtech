@@ -34,7 +34,7 @@ export function LoginForm({ configured }: { configured: boolean }) {
       })
       const body = (await response.json().catch(() => null)) as { ok?: boolean; error?: unknown } | null
       if (response.ok && body?.ok) {
-        router.replace('/admin/inbox')
+        router.replace('/admin/dashboard')
         router.refresh()
         return
       }

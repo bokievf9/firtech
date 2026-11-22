@@ -263,14 +263,26 @@ test('limits per IP: parallel requests cannot pass the limit', async () => {
   assert.equal(results.filter((r) => r.error === 'too_many').length, 12 - auth.LOGIN_FREE_TRIES)
 })
 
-test('limits for everyone: thirty wrong attempts an hour close the login for all IPs', async () => {
+test('limits for everyone: thirty wrong attempts an hour only slow the login, the owner still gets in', async () => {
+  assert.ok(auth.GLOBAL_SLOW_MS >= 3000 && auth.GLOBAL_SLOW_MS <= 5000)
   const now = Date.now()
   for (let i = 0; i < auth.LOGIN_MAX_PER_HOUR_ALL; i++)
     assert.equal((await auth.loginWithPassword('nope-nope-nope', fast(`10.1.${i}.1`, { now }))).error, 'wrong')
-  const owner = await auth.loginWithPassword(PASSWORD, fast('10.2.0.1', { now: now + 1000 }))
-  assert.equal(owner.error, 'too_many')
-  assert.ok(owner.retryAfter > 3000)
-  assert.equal((await auth.loginWithPassword(PASSWORD, fast('10.2.0.1', { now: now + 60 * 60_000 + 1 }))).ok, true)
+  // Past the ceiling: a wrong password is still "wrong" (not "too_many") and waits the extra pause.
+  const t0 = Date.now()
+  const wrong = await auth.loginWithPassword('nope-nope-nope', fast('10.2.0.2', { now: now + 500, slowMs: 120 }))
+  assert.equal(wrong.error, 'wrong')
+  assert.ok(Date.now() - t0 >= 110, 'extra delay applied')
+  // The owner's right password passes, also slowed; it does not matter that thirty strangers failed.
+  const t1 = Date.now()
+  const owner = await auth.loginWithPassword(PASSWORD, fast('10.2.0.1', { now: now + 1000, slowMs: 120 }))
+  assert.equal(owner.ok, true)
+  assert.ok(Date.now() - t1 >= 110, 'extra delay applied to a right password too')
+  // Per-IP limits still hold during the ceiling: one IP cannot go past ten an hour.
+  const same = []
+  for (let i = 0; i < auth.LOGIN_MAX_PER_HOUR + 1; i++)
+    same.push((await auth.loginWithPassword('nope-nope-nope', fast('10.9.9.9', { now: now + 2000 + i * auth.LOGIN_MIN_GAP_MS, slowMs: 0 }))).error)
+  assert.equal(same.at(-1), 'too_many')
 })
 
 test('fingerprint: a new password hash ends the old sessions; old sessions without it stay', async () => {

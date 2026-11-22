@@ -12,10 +12,11 @@ test('HQ refuses a visitor without a session', async ({ page }) => {
 test.describe('with a session', () => {
   test.beforeEach(async ({ context, baseURL }) => adminContext(context, baseURL!))
 
-  test('/admin opens the Inbox with the menu, the Office link and tabs', async ({ page }) => {
+  test('/admin opens the Dashboard; the Inbox has the menu, the Office link and tabs', async ({ page }) => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin')
-    await expect(page).toHaveURL(/\/admin\/inbox/)
+    await expect(page).toHaveURL(/\/admin\/dashboard/)
+    await open(page, '/admin/inbox')
     const menu = page.getByRole('navigation', { name: 'Sections' }).first()
     for (const name of ['Inbox', 'Clients', 'Projects', 'Documents', 'Agents']) await expect(page.getByRole('link', { name: new RegExp(`^${name}`) }).first()).toBeVisible()
     await expect(menu).toBeVisible()
@@ -36,8 +37,10 @@ test.describe('with a session', () => {
     await expect(page.getByRole('heading', { name: 'Finance', level: 1 })).toBeVisible()
     await open(page, '/admin/documents')
     await expect(page.getByRole('heading', { name: 'Documents', level: 1 })).toBeVisible()
-    await page.keyboard.press('1')
+    await page.keyboard.press('2')
     await expect(page).toHaveURL(/\/admin\/inbox/)
+    await page.keyboard.press('1')
+    await expect(page).toHaveURL(/\/admin\/dashboard/)
     expect(errors).toEqual([])
   })
 
@@ -163,10 +166,10 @@ test.describe('with a session', () => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/chats')
     const list = page.getByRole('complementary', { name: 'Chats' })
-    await expect(list.locator('[data-autopilot-chip]').first()).toContainText(/Autopilot: (Policy|Autopilot|Ask me)/)
+    await expect(list.locator('[data-autopilot-chip]').first()).toContainText(/Mode: (By policy|Autopilot|Ask me)/)
     await list.getByRole('button').first().click()
     const head = page.getByRole('region', { name: 'Conversation' }).locator('a[data-autopilot-chip]')
-    await expect(head).toContainText('Autopilot:')
+    await expect(head).toContainText('Mode:')
     await expect(head).toHaveAttribute('href', '/admin/settings')
     await expect(head).toHaveAttribute('title', /mode in Settings/)
     expect(errors).toEqual([])

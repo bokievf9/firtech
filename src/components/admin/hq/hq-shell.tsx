@@ -18,6 +18,7 @@ import {
   Megaphone,
   MagnifyingGlass,
   Tray,
+  SquaresFour,
   CheckCircle,
   UsersThree,
   Desktop,
@@ -45,6 +46,7 @@ const t = admin.hq
 const p = admin.hub.palette
 
 const icons: Record<HqSectionId, Icon> = {
+  dashboard: SquaresFour,
   inbox: Tray,
   approvals: CheckCircle,
   tasks: ListChecks,
@@ -202,7 +204,7 @@ export function HqShell({ children }: { children: React.ReactNode }) {
     <HubContext.Provider value={api}>
       <div className="fixed inset-0 flex flex-col bg-bg" data-hq-shell>
         <header className="relative z-40 flex min-h-14 items-center gap-1.5 border-b border-line bg-bg/95 px-3 py-1.5 backdrop-blur sm:gap-3 sm:px-4">
-          <Link href="/admin/inbox" className="flex shrink-0 items-center gap-2.5" aria-label={t.title}>
+          <Link href="/admin/dashboard" className="flex shrink-0 items-center gap-2.5" aria-label={t.title}>
             <Logo className="text-[16px]" />
             <span className="hidden rounded-full border border-line px-2.5 py-0.5 font-mono text-xs text-muted sm:inline">{t.title}</span>
           </Link>

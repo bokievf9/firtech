@@ -228,7 +228,7 @@ export const messageThreads = (messages: Pick<ChatMessage, 'thread'>[]): string[
 // Threads of kind `lead` are the lead manager's, `support` and `project-<id>` are Support's.
 export type AutopilotKind = 'leadManager' | 'support'
 export type AutopilotModeName = 'ask_me' | 'policy' | 'autopilot'
-export const AUTOPILOT_CHIP_MODES: Record<AutopilotModeName, string> = { ask_me: 'Ask me', policy: 'Policy', autopilot: 'Autopilot' }
+export const AUTOPILOT_CHIP_MODES: Record<AutopilotModeName, string> = { ask_me: 'Ask me', policy: 'By policy', autopilot: 'Autopilot' }
 
 export const autopilotKindOf = (threadName: string | null): AutopilotKind => (threadName === 'support' || (threadName !== null && threadName.startsWith('project-')) ? 'support' : 'leadManager')
 
@@ -245,7 +245,7 @@ export function autopilotChip(settings: { autopilot?: Partial<Record<AutopilotKi
   const who = kind === 'support' ? 'Support' : 'Lead manager'
   return {
     mode: raw,
-    text: `Autopilot: ${AUTOPILOT_CHIP_MODES[raw]}`,
+    text: `Mode: ${AUTOPILOT_CHIP_MODES[raw]}`,
     title: `${who} mode in Settings: ${AUTOPILOT_CHIP_MODES[raw]}. It decides how much the agent answers alone in this kind of chat. Click to change it.`,
   }
 }

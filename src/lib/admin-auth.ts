@@ -15,12 +15,16 @@ export const SESSION_COOKIE = 'firtech_admin'
 // Limits on login attempts. Every attempt counts as wrong until the password is confirmed, so
 // parallel requests cannot slip past the limits. Per IP (hashed) in the last hour: the first five
 // go straight through, then one a minute, and after ten the IP waits until the oldest one is an
-// hour old. Across all IPs thirty wrong attempts an hour close the login for everyone until the
-// hour clears. A right password forgets the attempts of that IP.
+// hour old. Across all IPs thirty wrong attempts an hour only SLOW the login (every further answer,
+// right or wrong, waits GLOBAL_SLOW_MS more); it never closes it, so many IPs cannot lock the owner
+// out. A right password forgets the attempts of that IP.
 export const LOGIN_FREE_TRIES = 5
 export const LOGIN_MIN_GAP_MS = 60_000
 export const LOGIN_MAX_PER_HOUR = 10
 export const LOGIN_MAX_PER_HOUR_ALL = 30
+// Extra pause on every answer while the all-IP ceiling is exceeded (the same for a right and a wrong
+// password, so the pause tells nothing).
+export const GLOBAL_SLOW_MS = 4000
 // Fixed pause before a "wrong password" answer.
 export const WRONG_DELAY_MS = 800
 // Largest login body read at all (the password itself is capped at 256 characters).
@@ -93,17 +97,15 @@ export function createSession(now = Date.now(), fp?: string) {
   })
 }
 
-type Reserve = { ok: true; id: string } | { ok: false; retryAfter: number }
+type Reserve = { ok: true; id: string; slow: boolean } | { ok: false; retryAfter: number }
 
 // Checks the limits and books this attempt as wrong in the same step.
 function reserveAttempt(ip: string, now: number): Promise<Reserve> {
   return serialize((db): Reserve => {
     db.attempts = db.attempts.filter((a) => a.at > now - HOUR_MS)
     const mine = db.attempts.filter((a) => a.ip === ip)
-    if (db.attempts.length >= LOGIN_MAX_PER_HOUR_ALL) {
-      const oldest = db.attempts[db.attempts.length - LOGIN_MAX_PER_HOUR_ALL]?.at ?? now
-      return { ok: false, retryAfter: retryAfter(oldest + HOUR_MS, now) }
-    }
+    // The all-IP ceiling only slows the answer down; the per-IP limits below still apply.
+    const slow = db.attempts.length >= LOGIN_MAX_PER_HOUR_ALL
     if (mine.length >= LOGIN_MAX_PER_HOUR) {
       const oldest = mine[mine.length - LOGIN_MAX_PER_HOUR]?.at ?? now
       return { ok: false, retryAfter: retryAfter(oldest + HOUR_MS, now) }
@@ -114,7 +116,7 @@ function reserveAttempt(ip: string, now: number): Promise<Reserve> {
     }
     const id = randomBytes(8).toString('hex')
     db.attempts.push({ id, at: now, ip })
-    return { ok: true, id }
+    return { ok: true, id, slow }
   })
 }
 
@@ -128,6 +130,8 @@ type LoginOptions = {
   ip?: string
   now?: number
   delayMs?: number
+  // Extra pause while the all-IP ceiling is exceeded (tests shorten it).
+  slowMs?: number
   env?: Record<string, string | undefined>
 }
 
@@ -135,7 +139,7 @@ type LoginOptions = {
 // hash is logged or stored.
 export async function loginWithPassword(
   password: unknown,
-  { ip = '', now = Date.now(), delayMs = WRONG_DELAY_MS, env = process.env }: LoginOptions = {},
+  { ip = '', now = Date.now(), delayMs = WRONG_DELAY_MS, slowMs = GLOBAL_SLOW_MS, env = process.env }: LoginOptions = {},
 ): Promise<LoginResult> {
   const config = passwordConfig(env)
   if (!config.ok) return { ok: false, error: 'not_configured' }
@@ -143,6 +147,7 @@ export async function loginWithPassword(
   const reserved = await reserveAttempt(who, now)
   if (!reserved.ok) return { ok: false, error: 'too_many', retryAfter: reserved.retryAfter }
   const right = await verifyPassword(password, config.hash)
+  if (reserved.slow) await sleep(slowMs)
   if (!right) {
     await sleep(delayMs)
     return { ok: false, error: 'wrong' }

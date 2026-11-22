@@ -1,6 +1,7 @@
 import { officeMock } from './office-mock'
 import { createPultMock } from './shell-mock'
 import { createReviewMock } from './review-mock'
+import { dashboardMock } from './shell-dashboard-mock'
 import {
   effectivePresence,
   sameId,
@@ -667,6 +668,18 @@ export function createHqMock(start = Date.now()) {
   return function handle(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, query: Query = {}, body: Json = {}, now = Date.now()): MockReply {
     advance(now)
     const seg = path.split('/').filter(Boolean)
+    if (method === 'GET' && seg.length === 1 && seg[0] === 'dashboard') {
+      const range = query.range ?? '7d'
+      if (!['today', '7d', '30d'].includes(range)) return { ok: false, error: 'invalid' }
+      const rows = (r: unknown): Record<string, unknown>[] => ((r as { items?: Record<string, unknown>[] } | null)?.items ?? [])
+      return dashboardMock(range, now, {
+        reviewItems: rows(review('GET', ['review'], { status: 'pending', limit: '200' }, {}, now)),
+        invoices: rows(pult('GET', ['crm', 'invoices'], { limit: '200' }, {}, now)),
+        leads: rows(pult('GET', ['crm', 'leads'], { limit: '200' }, {}, now)),
+        projects: rows(pult('GET', ['crm', 'projects'], { limit: '200' }, {}, now)),
+        tickets: rows(crm('GET', ['crm', 'tickets'], { limit: '200' }, {}, now)),
+      }) as MockReply
+    }
     const v3 = pult(method, seg, query, body, now)
     if (v3) return v3 as MockReply
     if (method === 'PATCH' || method === 'DELETE') return { ok: false, error: 'not_found' }
