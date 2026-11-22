@@ -236,7 +236,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 - Analytics: Yandex Metrika (`src/components/yandex-metrika.tsx`) only when `NEXT_PUBLIC_YM_ID` is
   set; the privacy page shows its analytics section only then. On since 2026-10-18 with counter
   113665084 (public id, kept in `.env.local`; `scripts/deploy/manual.sh` and the CI variable pass
-  it at build time). Tag options: Webvisor, click map, link tracking, accurate bounce, `ssr`;
+  it at build time). Tag options (security 2026-11-23, P1-7): Webvisor OFF, `defer` + one hand-sent hit without the query (`metrikaInitScript`, `hitUrl`), click map, link tracking, accurate bounce, `ssr`; never loaded on `/cabinet*`, `/pay`, `/pay/*`, `/demo*` or any `unsubscribe` path (`metrikaAllowed`, a client move there sets `disableYaCounter<id>`);
   inputs carry `ym-disable-keys` so typed text is never recorded. Goals via `track()` in
   `src/lib/analytics.ts` (the `Goal` union is the list to mirror in Metrika as "JavaScript event"
   goals, identifier = goal name); `t.me` links are counted by one listener (give new ones a

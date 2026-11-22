@@ -1389,7 +1389,7 @@ const en: Dict = {
         id: 'analytics',
         title: 'Analytics',
         text: [
-          'We use Yandex Metrica to see which pages help and which do not. Metrica sets cookies and collects anonymised visit data: pages opened, transitions, clicks and scrolling, device and browser type, approximate region. Metrica also records actions on the page (Webvisor), but not what you type into form fields. This data does not tell us who you are.',
+          'We use Yandex Metrica to see which pages help and which do not. Metrica sets cookies and collects anonymised visit data: pages opened, transitions, clicks and scrolling, device and browser type, approximate region. Session recording (Webvisor) is off, addresses are sent without their query part, and Metrica is not loaded in the personal account, on payment, demo and unsubscribe pages. This data does not tell us who you are.',
           'You can turn this off in your browser settings (block cookies or turn on tracking protection) or with the Yandex add-on that blocks Metrica on all sites.',
         ],
         list: [],

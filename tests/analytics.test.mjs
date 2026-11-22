@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { afterEach, test } from 'node:test'
-import { track, trackHit, ymId } from '../src/lib/analytics.ts'
+import { readFileSync } from 'node:fs'
+import { hitUrl, metrikaAllowed, metrikaInitScript, track, trackHit, ymId } from '../src/lib/analytics.ts'
 
 const savedId = process.env.NEXT_PUBLIC_YM_ID
 
@@ -56,4 +57,37 @@ test('ymId: digits only, anything else disables analytics', () => {
     process.env.NEXT_PUBLIC_YM_ID = bad
     assert.equal(ymId(), null)
   }
+})
+
+test('security 2026-11-23 (P1-7): Metrika is off on the cabinet, payment, demo and unsubscribe pages', () => {
+  for (const p of ['/ru/cabinet', '/en/cabinet/login', '/ru/cabinet?tab=documents', '/ru/cabinet/unsubscribe', '/en/pay/INV-12', '/ru/pay', '/ru/demo/abc123', '/en/demo', '/agent/x1', '/admin/office', '/ru/news/unsubscribe', '/unsubscribe', '/RU/Cabinet']) {
+    assert.equal(metrikaAllowed(p), false, p)
+  }
+  for (const p of ['/', '/ru', '/en/builder', '/ru/pay-how', '/ru/blog/kak-vybrat', '/ru/products/admin', '/en/demo-salon', '/ru/solutions/salon']) {
+    assert.equal(metrikaAllowed(p), true, p)
+  }
+})
+
+test('security 2026-11-23 (P1-7): hits carry no query or hash, webvisor is off, the first hit is sent by hand', () => {
+  assert.equal(hitUrl('https://firtech.pro/ru/pay/7?k=secret#x'), 'https://firtech.pro/ru/pay/7')
+  assert.equal(hitUrl('javascript:alert(1)'), '')
+  assert.equal(hitUrl('nonsense'), '')
+  process.env.NEXT_PUBLIC_YM_ID = '12345'
+  const calls = fakeYm()
+  trackHit('https://firtech.pro/ru/builder?b=abc&ref=x', 'https://firtech.pro/ru/cabinet/unsubscribe?token=t')
+  trackHit('/ru/blog?utm=1')
+  assert.deepEqual(calls, [
+    [12345, 'hit', 'https://firtech.pro/ru/builder', { referer: 'https://firtech.pro/ru/cabinet/unsubscribe' }],
+    [12345, 'hit', '/ru/blog'],
+  ])
+  const script = metrikaInitScript(12345)
+  assert.match(script, /webvisor:false/)
+  assert.doesNotMatch(script, /webvisor:true/)
+  assert.match(script, /defer:true/)
+  assert.match(script, /ym\(12345,"hit",location\.origin\+location\.pathname/)
+  assert.doesNotMatch(script, /location\.href/)
+  const component = readFileSync('src/components/yandex-metrika.tsx', 'utf8')
+  assert.match(component, /if \(!id \|\| !allowed\) return null/)
+  assert.match(component, /disableYaCounter\$\{id\}/)
+  assert.doesNotMatch(component, /webvisor:true/)
 })

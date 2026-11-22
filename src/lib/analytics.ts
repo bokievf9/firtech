@@ -52,11 +52,45 @@ export function track<G extends Goal>(goal: G, ...[params]: GoalParams[G]) {
   }
 }
 
-// Page view after a client-side navigation (the first view is counted by "init").
-export function trackHit(url: string, referer?: string) {
+// Security 2026-11-23 (P1-7): Metrika never sees the private parts of the site. Not loaded (and switched
+// off through `disableYaCounter<id>` after a client-side move) on the cabinet, payment pages, demos and
+// unsubscribe links; webvisor is off; every hit is sent without query or hash (?k= of an invoice, the
+// unsubscribe ?token=, the demo key, ?lead= never leave the site).
+const privateSections = new Set(['cabinet', 'pay', 'demo', 'agent', 'admin'])
+
+export function metrikaAllowed(pathname: string | null | undefined): boolean {
+  const parts = String(pathname ?? '').split(/[?#]/)[0]!.split('/').filter(Boolean).map((p) => p.toLowerCase())
+  const rest = parts[0] === 'ru' || parts[0] === 'en' ? parts.slice(1) : parts
+  if (rest.length > 0 && privateSections.has(rest[0]!)) return false
+  return !parts.some((p) => p.includes('unsubscribe'))
+}
+
+// origin + path only. Anything that does not parse becomes '' (no hit).
+export function hitUrl(href: string | null | undefined): string {
+  try {
+    const u = new URL(String(href ?? ''))
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return ''
+    return `${u.origin}${u.pathname}`
+  } catch {
+    return ''
+  }
+}
+
+// The official tag with `defer: true` (no automatic hit with the full address) and one hit sent by hand
+// without the query; webvisor off.
+export function metrikaInitScript(id: number): string {
+  const n = Math.trunc(Number(id))
+  return `(function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};m[i].l=1*new Date();for(var j=0;j<document.scripts.length;j++){if(document.scripts[j].src===r){return;}}k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})(window,document,"script","https://mc.yandex.ru/metrika/tag.js?id=${n}","ym");ym(${n},"init",{defer:true,clickmap:true,trackLinks:true,accurateTrackBounce:true,webvisor:false,trackHash:false,ssr:true});var fr=(document.referrer||"").split(/[?#]/)[0];ym(${n},"hit",location.origin+location.pathname,fr?{referer:fr}:{});`
+}
+
+// Page view after a client-side navigation (the first view is sent by the init script).
+export function trackHit(rawUrl: string, rawReferer?: string) {
   const id = ymId()
   const ym = getYm()
   if (!id || !ym) return
+  const url = /^https?:/i.test(rawUrl) ? hitUrl(rawUrl) : rawUrl.split(/[?#]/)[0]!
+  const referer = rawReferer ? (/^https?:/i.test(rawReferer) ? hitUrl(rawReferer) : rawReferer.split(/[?#]/)[0]) : ''
+  if (!url) return
   try {
     if (referer) ym(id, 'hit', url, { referer })
     else ym(id, 'hit', url)
