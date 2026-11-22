@@ -215,3 +215,33 @@ chat widget still shows the flat A), exporting `Rig` for Remotion, `drei` (pinne
 not imported yet), the owner's pick among D to H. Known rough edges: D has a visible collar line where
 the flame head meets the body and its glow touches the top edge when it hops; the lid patch is flat
 colour, so on E it shows as a slightly lighter shape; the SVG fallbacks are simpler than the 3D.
+
+## Round five (2026-11-23): the standing turtle, four details on one rig
+Owner's verdict on round four: standing, bipedal, cartoon-cute, soft limbs without joints, chill but a
+responsible know-it-all, clear eyes and brows, a MEDIUM shell. One rig (`fira-scene5.tsx`, `fira-kit5.ts`,
+pure parts in `src/lib/fira/turtle5.ts`), four variants that differ only by the signature detail
+(`detail5` flags): R round glasses (lens highlight flashes while `thinking`, the hand adjusts them on
+`listening`), S headphones on the neck (on `listening` one cup rides up to the ear with the hand), T shell
+segments that glow like mood lamps (emotion plus the page context of `contexts.ts` tint one to three
+of eleven scutes; the shell shader keeps an array of segment colours), U glasses plus headphones.
+All four carry the logo's lime dot as a glowing pearl on the crown of the shell.
+- Proportions (units, feet on y = 0): head ball 1.1 (r 0.55), body pear 1.36 high and 1.1 wide, shell
+  ellipsoid 1.24 high and 1.4 wide sitting 0.5 behind the body and tilted back 0.5 rad. Head : body :
+  shell heights = 1.1 : 1.36 : 1.24 (about 0.8 : 1 : 0.9), shell width 1.27 times the body, total height
+  2.7, head 41% of it. `ratios5()` and the tests pin these ranges.
+- Soft limbs: arms are a shoulder bulb plus a tapered capsule plus a mitten, legs a capsule plus a flat
+  foot, all in the same matte clay as the body and overlapping it, so no seam shows; the arm reaches a
+  target point in body space (wave, point, head, lens, cup) by aiming and stretching, hand un-stretched.
+- Face: the round-three glyph (eyes, brows, mouth); eye half size 0.06 (one eye is 12 to 16% of the head,
+  tested under 17%), brows tuned in `targets5` (sorry worried, thinking stern, surprised high); idle has
+  half lids and a slight smile for the chill know-it-all look. Same ten emotions, same `mouth` lip-sync hook.
+- Visible lamps: from the default three-quarter view only segments 2, 7 and 8 (and slivers of 0 and 3)
+  face the camera, so the emotion tables spend 2 and 7 and the page context spends 8.
+- SVG fallback per variant: `fira-fallback5.tsx`, front view, same eyes from the same targets, every part
+  has `data-part` so tests see which detail is drawn.
+- Lab: round five is the default at `/[locale]/fira-lab` (`?round=4` the round-four turtles, `?round=3`
+  the faces). Views: overview R S T U with a caption under each, `?solo=r`, `?row=r`, `?sheet=1`, emotion
+  row, page context, talk, spin, size; `?cap=1&clock=1` for stills. Still noindex, not in the sitemap.
+- Budget: Fira code raised from 260 to 340 KB (now about 305 KB); round five itself is about 50 KB.
+- Rough edges: the thinking pose is a straight arm to the head (no elbow), the pearl halo is pale on the
+  light theme, the lamps of T are only partly visible in the default view (spin shows all).
