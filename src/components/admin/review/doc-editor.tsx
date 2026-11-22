@@ -442,6 +442,8 @@ export function DocEditor({
     return () => {
       document.body.style.overflow = prev
     }
+    // Mount-only: the first placeholder is selected once, when the editor opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const ops = useMemo(
