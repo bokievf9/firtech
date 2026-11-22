@@ -16,6 +16,7 @@ import type { AuthErrorKey } from '@/lib/cabinet-auth'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { ConsentText } from '../consent-text'
+import { CodeForm } from './code-form'
 import { OAuthButton } from './oauth-button'
 import { Field, FormMessage, fill, inputClass } from './ui'
 
@@ -90,9 +91,9 @@ export function AuthForms({
         <h2 className="font-display text-xl font-semibold tracking-tight">{t.forgotTitle}</h2>
         <p className="mt-2 text-sm leading-relaxed text-muted">{t.forgotText}</p>
         {forgotState.notice === 'reset_sent' ? (
-          <div className="mt-6 grid gap-2">
+          <div className="mt-6 grid gap-3">
             <FormMessage kind="ok">{fill(t.forgotSent, { email: forgotState.email ?? '' })}</FormMessage>
-            <p className="text-[13px] leading-relaxed text-faint">{t.mailLimit}</p>
+            <CodeForm dict={dict} locale={locale} email={forgotState.email ?? ''} kind="recovery" next={back} />
           </div>
         ) : (
           <form action={forgotFormAction} onSubmit={() => clearVerifierCookies()} className="mt-6 grid gap-5">
@@ -231,9 +232,16 @@ export function AuthForms({
         </form>
       ) : upState.notice === 'check_email' ? (
         <div role="tabpanel" id={id('panel-up')} aria-labelledby={id('tab-up')} className="grid gap-3">
-          <h2 className="font-display text-xl font-semibold tracking-tight">{t.checkEmailTitle}</h2>
-          <FormMessage kind="ok">{fill(t.checkEmailText, { email: upState.email ?? '' })}</FormMessage>
-          <ResendBox dict={dict} locale={locale} email={upState.email ?? ''} next={back} />
+          <CodeForm
+            dict={dict}
+            locale={locale}
+            email={upState.email ?? ''}
+            kind="signup"
+            next={back}
+            stay={compact}
+            onSignedIn={onSignedIn}
+          />
+          <p className="text-[13px] leading-relaxed text-faint">{t.codeLinkFallback}</p>
         </div>
       ) : (
         <form

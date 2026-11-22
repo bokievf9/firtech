@@ -87,6 +87,7 @@ const state = {
   legacy: process.env.FAKE_SUPABASE_LEGACY === '1',
   rls: process.env.FAKE_SUPABASE_RLS === 'deny' ? 'deny' : 'ok',
   delayMs: 0,
+  authCalls: [],
 }
 
 const columns = () => (state.legacy ? BASE_COLUMNS : [...BASE_COLUMNS, ...NEW_COLUMNS])
@@ -190,6 +191,27 @@ async function handleAuth(req, res, url) {
     }
     return send(res, 200, fakeSession())
   }
+  // Code sign-in (2026-11-22): sign-up, resend and recover always answer; the code 123456 verifies, any other is the
+  // `otp_expired` error Supabase gives for a wrong or an old code. `/__fake/auth` records the calls.
+  if (path === '/signup' && req.method === 'POST') {
+    const body = (await readBody(req)) ?? {}
+    state.authCalls.push({ path, email: body.email })
+    if (body.email === 'exists@example.com') return send(res, 200, { ...fakeUser(), email: body.email, identities: [] })
+    const user = { ...fakeUser(), email: body.email, email_confirmed_at: null }
+    return send(res, 200, user)
+  }
+  if ((path === '/resend' || path === '/recover') && req.method === 'POST') {
+    const body = (await readBody(req)) ?? {}
+    state.authCalls.push({ path, email: body.email, type: body.type })
+    return send(res, 200, {})
+  }
+  if (path === '/verify' && req.method === 'POST') {
+    const body = (await readBody(req)) ?? {}
+    state.authCalls.push({ path, email: body.email, type: body.type, token: body.token })
+    if (body.token === '123456') return send(res, 200, fakeSession())
+    if (body.token === '999999') return send(res, 429, { code: 'over_request_rate_limit', msg: 'Too many requests' })
+    return send(res, 403, { code: 'otp_expired', msg: 'Token has expired or is invalid' })
+  }
   if (path === '/logout') {
     res.writeHead(204)
     return res.end()
@@ -207,6 +229,7 @@ export function startFakeSupabase(port = Number(process.env.FAKE_SUPABASE_PORT ?
         state.legacy = process.env.FAKE_SUPABASE_LEGACY === '1'
         state.rls = 'ok'
         state.delayMs = 0
+        state.authCalls = []
         return send(res, 200, { ok: true })
       }
       if (url.pathname === '/__fake/mode') {
@@ -216,6 +239,7 @@ export function startFakeSupabase(port = Number(process.env.FAKE_SUPABASE_PORT ?
         if (typeof body.delayMs === 'number') state.delayMs = body.delayMs
         return send(res, 200, { ok: true })
       }
+      if (url.pathname === '/__fake/auth') return send(res, 200, state.authCalls)
       if (url.pathname === '/__fake/profile') return send(res, 200, state.rows[FAKE_USER.id] ?? null)
       if (url.pathname === '/health') return send(res, 200, { ok: true })
       if (url.pathname.startsWith('/auth/v1')) return await handleAuth(req, res, url)

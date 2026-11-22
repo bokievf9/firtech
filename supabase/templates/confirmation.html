@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="color-scheme" content="light only">
+<title>Подтвердите почту | Fir Tech</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4ef;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:#f3f4ef;">Ваш код подтверждения Fir Tech: {{ .Token }}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4ef;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background:#ffffff;border:1px solid #e1e3d9;border-radius:16px;">
+<tr><td style="background:#14171a;border-radius:16px 16px 0 0;padding:22px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:-0.5px;color:#d7f55a;">fir<span style="color:#ffffff;">.tech</span></td></tr>
+<tr><td style="padding:32px 32px 8px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#14171a;">
+<h1 style="margin:0 0 12px 0;font-size:26px;line-height:1.2;font-weight:700;color:#14171a;">Подтвердите почту</h1>
+<p style="margin:0;font-size:16px;line-height:1.6;color:#3a3f45;">Здравствуйте! Вы создаёте личный кабинет Fir Tech на адрес {{ .Email }}. Введите этот код на сайте, и аккаунт будет готов.</p>
+</td></tr>
+<tr><td align="center" style="padding:20px 32px 4px 32px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="width:100%;"><tr><td align="center" style="background:#f3f4ef;border:1px solid #d9dccf;border-radius:12px;padding:20px 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:40px;line-height:1;font-weight:700;letter-spacing:10px;color:#14171a;font-family:'SFMono-Regular',Menlo,Consolas,'Courier New',monospace;">{{ .Token }}</td></tr></table>
+</td></tr>
+<tr><td align="center" style="padding:6px 32px 0 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;color:#6b7078;">Код действует 50 минут.</td></tr>
+<tr><td align="center" style="padding:22px 32px 4px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;color:#3a3f45;">или нажмите кнопку</td></tr>
+<tr><td align="center" style="padding:8px 32px 8px 32px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" bgcolor="#14171a" style="background:#14171a;border-radius:999px;"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 30px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:600;color:#ffffff;text-decoration:none;">Подтвердить почту</a></td></tr></table>
+</td></tr>
+<tr><td style="padding:18px 32px 0 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6b7078;">Если вы не создавали аккаунт, просто проигнорируйте письмо.<br><span style="color:#8a8f96;">Confirm your email: enter the code above on the site, or press the button. The code works for 50 minutes. If you did not sign up, ignore this email.</span></td></tr>
+<tr><td style="padding:28px 32px 0 32px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid #e1e3d9;font-size:0;line-height:0;height:1px;">&nbsp;</td></tr></table></td></tr>
+<tr><td style="padding:24px 32px 4px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#14171a;">
+<p style="margin:0 0 14px 0;font-size:18px;font-weight:700;color:#14171a;">Что даёт личный кабинет</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3a3f45;">
+<tr><td width="22" valign="top" style="padding:0 0 8px 0;color:#5f8a00;font-weight:700;">&#8226;</td><td style="padding:0 0 8px 0;"><strong style="color:#14171a;">Документы:</strong> коммерческое предложение, договор и акты в одном месте, подпись прямо на сайте.</td></tr>
+<tr><td width="22" valign="top" style="padding:0 0 8px 0;color:#5f8a00;font-weight:700;">&#8226;</td><td style="padding:0 0 8px 0;"><strong style="color:#14171a;">Этапы:</strong> на каком шаге проект и что нужно от вас сейчас.</td></tr>
+<tr><td width="22" valign="top" style="padding:0 0 8px 0;color:#5f8a00;font-weight:700;">&#8226;</td><td style="padding:0 0 8px 0;"><strong style="color:#14171a;">Чат с ИИ-менеджером:</strong> отвечает сразу и передаёт вопрос человеку, если нужно.</td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:14px 32px 0 32px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#f3f4ef;border-radius:12px;padding:20px 22px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+<p style="margin:0 0 6px 0;font-size:17px;font-weight:700;color:#14171a;">Соберите проект за 5 минут</p>
+<p style="margin:0 0 14px 0;font-size:14px;line-height:1.55;color:#3a3f45;">Выберите, что нужно: сайт, ИИ-агента для Telegram, приложение или автоматизацию. Цена и сроки видны сразу, без ожидания звонка.</p>
+<a href="https://firtech.pro/ru/builder" style="font-size:15px;font-weight:600;color:#14171a;text-decoration:underline;">Собрать проект &rarr;</a>
+</td></tr></table>
+</td></tr>
+<tr><td style="padding:16px 32px 0 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#3a3f45;">Вопрос по услугам? ИИ-менеджер ждёт вас в чате на <a href="https://firtech.pro/ru" style="color:#14171a;font-weight:600;">firtech.pro</a> и отвечает круглосуточно.</td></tr>
+<tr><td style="padding:28px 32px 32px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.7;color:#6b7078;">С уважением, команда Fir Tech<br><a href="mailto:hello@firtech.pro" style="color:#3a3f45;">hello@firtech.pro</a> &middot; <a href="https://firtech.pro/ru/privacy" style="color:#3a3f45;">Политика конфиденциальности</a><br><span style="color:#8a8f96;">You are getting this email because someone used {{ .Email }} at firtech.pro. Support in English: hello@firtech.pro.</span></td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

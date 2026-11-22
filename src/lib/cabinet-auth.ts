@@ -15,6 +15,8 @@ export const authErrorKeys = [
   'invalid_input',
   'callback',
   'link_expired',
+  'code_invalid',
+  'code_format',
   'other_browser',
   'confirmed_login',
   'session_expired',
@@ -43,6 +45,20 @@ export const signUpSchema = z.object({
   marketing: z.boolean(),
 })
 export const forgotSchema = z.object({ email })
+// The 6-digit code from the email (Supabase `mailer_otp_length`). Spaces and dashes from a paste are dropped.
+export const codeKinds = ['signup', 'recovery'] as const
+export type CodeKind = (typeof codeKinds)[number]
+export const isCodeKind = (v: unknown): v is CodeKind => typeof v === 'string' && (codeKinds as readonly string[]).includes(v)
+export const normalizeCode = (raw: unknown) => String(raw ?? '').replace(/[\s-]/g, '')
+export const verifySchema = z.object({ email, token: z.string().regex(/^\d{6}$/), kind: z.enum(codeKinds) })
+
+// verifyOtp errors. Supabase answers `otp_expired` for a wrong code and for an expired one alike
+// (the code lives 3000 s), so both read «неверный или устарел»; too many tries is the rate limit.
+export function verifyErrorKey(error: { code?: string; status?: number; message?: string; name?: string } | null | undefined): AuthErrorKey {
+  const code = error?.code ?? ''
+  if (code === 'otp_expired' || code === 'otp_disabled' || (error?.status === 403 && !code)) return 'code_invalid'
+  return authErrorKey(error)
+}
 export const resetSchema = z.object({ password })
 
 // Which field failed, mapped to the message key the form shows.
