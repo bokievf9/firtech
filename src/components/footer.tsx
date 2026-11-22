@@ -2,7 +2,7 @@ import { ArrowRight, ArrowUp, ChatCircleDots, InstagramLogo, TelegramLogo } from
 import Link from 'next/link'
 import { CabinetNavLabel } from './cabinet/cabinet-nav-label'
 import type { Dict } from '@/content'
-import { buttonStyles, cn } from '@/lib/cn'
+import { buttonClass, cn } from '@/lib/cn'
 import { footerColumns, type FooterLink } from '@/lib/home'
 import type { Locale } from '@/lib/i18n'
 import { instagramUrl, telegramHandle, telegramUrl } from '@/lib/site'
@@ -46,7 +46,7 @@ export function Footer({
   }
 
   return (
-    <footer className="print-hidden relative overflow-hidden border-t border-line">
+    <footer className="print-hidden relative overflow-hidden border-t border-t-hairline border-line">
       <div className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-4 pt-20 pb-16 md:flex-row md:items-end md:justify-between md:px-8 md:pt-28">
         <p className="max-w-[16ch] font-display text-title font-semibold">{f.ctaTitle}</p>
         <div className="flex flex-col items-start gap-4 md:items-end">
@@ -55,7 +55,7 @@ export function Footer({
               <Link
                 href={`/${locale}/builder`}
                 data-cta="footer_build"
-                className={cn(buttonStyles.primary, 'group px-8 py-4 text-base')}
+                className={cn(buttonClass('primary', 'lg'), 'group')}
               >
                 {dict.nav.cta}
                 <ArrowRight size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
@@ -64,7 +64,7 @@ export function Footer({
             <ChatOpenButton
               source="footer"
               fallbackHref={`/${locale}#demo`}
-              className={cn(buttonStyles.secondary, 'px-8 py-4 text-base')}
+              className={buttonClass('secondary', 'lg')}
             >
               <ChatCircleDots size={18} weight="fill" aria-hidden="true" className="text-accent-text" />
               {dict.nav.ask}
@@ -76,7 +76,7 @@ export function Footer({
               data-place="footer-cta"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
+              className="inline-flex items-center gap-1.5 text-footnote text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-fg"
             >
               <TelegramLogo size={14} weight="fill" aria-hidden="true" />
               {f.telegramLink}
@@ -85,18 +85,18 @@ export function Footer({
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-12 border-t border-line px-4 py-16 md:grid-cols-12 md:px-8">
+      <div className="mx-auto grid max-w-7xl gap-12 border-t border-t-hairline border-line px-4 py-16 md:grid-cols-12 md:px-8">
         <div className="md:col-span-12 lg:col-span-3">
           <Logo />
-          <p className="mt-5 max-w-[34ch] text-sm leading-relaxed text-muted">{f.tagline}</p>
-          <p className="mt-8 text-sm font-medium">{f.social}</p>
+          <p className="mt-5 max-w-[34ch] text-footnote text-muted">{f.tagline}</p>
+          <p className="mt-8 text-footnote font-semibold">{f.social}</p>
           <div className="mt-3 flex gap-2">
             <a
               href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
-              className="grid size-10 place-items-center rounded-full border border-line-strong text-muted transition-colors hover:border-fg/40 hover:text-fg"
+              className="pressable grid size-10 place-items-center rounded-full bg-fill text-muted hover:bg-fill-strong hover:text-fg"
             >
               <InstagramLogo size={18} />
             </a>
@@ -107,7 +107,7 @@ export function Footer({
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`Telegram ${telegramHandle ?? ''}`}
-                className="grid size-10 place-items-center rounded-full border border-line-strong text-muted transition-colors hover:border-fg/40 hover:text-fg"
+                className="pressable grid size-10 place-items-center rounded-full bg-fill text-muted hover:bg-fill-strong hover:text-fg"
               >
                 <TelegramLogo size={18} />
               </a>
@@ -123,8 +123,8 @@ export function Footer({
               col.id === 'products' && 'lg:col-span-3',
             )}
           >
-            <p className="text-sm font-medium">{titles[col.id]}</p>
-            <ul className="mt-4 grid gap-2.5 text-sm text-muted">
+            <p className="text-footnote font-semibold">{titles[col.id]}</p>
+            <ul className="mt-4 grid gap-2.5 text-footnote text-muted">
               {col.links.map((link) => (
                 <li key={link.href}>
                   <Link href={link.href} className="transition-colors hover:text-fg">
@@ -137,7 +137,7 @@ export function Footer({
         ))}
       </div>
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-line px-4 py-6 text-[13px] text-faint sm:flex-row sm:items-center sm:justify-between md:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-t-hairline border-line px-4 py-6 text-caption text-faint sm:flex-row sm:items-center sm:justify-between md:px-8">
         <p>
           © {new Date().getFullYear()} Fir Tech. {f.rights}
         </p>

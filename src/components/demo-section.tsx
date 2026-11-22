@@ -4,7 +4,7 @@ import { allArticles } from '@/lib/blog-hq'
 import type { Locale } from '@/lib/i18n'
 import { productBuilderHref } from '@/lib/products'
 import { DemoTabs, type DemoArticle, type DemoTabId } from './demo/demo-tabs'
-import { Reveal } from './reveal'
+import { SectionHeader } from './ui/section'
 
 // «Попробуйте сейчас» (#demo, owner 2026-11-22): tabs per product, each with a demo that works on our
 // own agents. The articles for the «Контент на автопилоте» tab are the three newest published ones
@@ -41,17 +41,13 @@ export async function DemoSection({ dict, locale }: { dict: Dict; locale: Locale
     implementation: productBuilderHref(locale, 'implementation'),
   }
   return (
-    <section id="demo" className="relative isolate overflow-hidden py-section">
+    <section id="demo" className="relative isolate scroll-mt-24 overflow-hidden py-section">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_60%_at_75%_30%,var(--demo-glow),transparent_70%)]"
       />
       <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <Reveal>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{d.eyebrow}</p>
-          <h2 className="mt-4 font-display text-title font-semibold">{d.title}</h2>
-          <p className="mt-5 max-w-[56ch] text-lead text-muted">{d.sub}</p>
-        </Reveal>
+        <SectionHeader eyebrow={d.eyebrow} title={d.title} lead={d.sub} />
         <div className="mt-10">
           <DemoTabs dict={dict} locale={locale} articles={articles} names={names} buildHrefs={buildHrefs} />
         </div>

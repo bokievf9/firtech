@@ -275,7 +275,9 @@ test('demo: tabs per product, the chat persona is validated and forwarded, the b
   assert.match(demo, /DemoBuilt[^>]*product="miniapp"/)
   assert.match(demo, /DemoAssistant/)
   for (const [, dict] of dicts) assert.ok(dict.demoSection.exampleBadge && dict.demoSection.personal.prompts.length === 5 && dict.demoSection.automation.intro && dict.demoSection.miniapp.intro)
-  assert.match(demo, /role="tablist"/)
+  // v4: the tablist is the shared TabList primitive (roles and keys live in components/ui/tabs.tsx).
+  assert.match(demo, /<TabList/)
+  for (const needle of ['role="tablist"', 'role="tab"', 'aria-selected', 'ArrowRight', 'Home', 'End']) assert.ok(read('src/components/ui/tabs.tsx').includes(needle), needle)
   assert.doesNotMatch(read('src/components/demo-section.tsx') + demo + read('src/components/demo/demo-booking.tsx'), /t\.me\//)
   assert.equal(ru.demoSection.title, 'Попробуйте сейчас')
   assert.deepEqual([...personas], ['salon', 'clinic', 'shop', 'cafe', 'service', 'courses', 'personal'])

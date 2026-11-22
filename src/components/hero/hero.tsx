@@ -10,6 +10,7 @@ import { HeroIntro } from '../hero-intro'
 import { KineticHeadline } from '../kinetic-headline'
 import { GuaranteeLine } from '../guarantee-line'
 import { Magnetic } from '../magnetic'
+import { Badge } from '../ui/badge'
 import { HeroSequence } from './hero-sequence'
 
 // Home hero, stage B1 («сайт из будущего»): a huge kinetic headline over a 3D product stage, and a
@@ -34,10 +35,7 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
       intro={
         <>
           <HeroIntro delay={0}>
-            <p className="mb-6 flex items-center gap-2.5 font-mono text-xs tracking-[0.16em] text-muted uppercase">
-              <span className="size-2 rounded-full bg-accent" aria-hidden="true" />
-              {h.eyebrow}
-            </p>
+            <p className="mb-5 text-callout font-medium text-accent-text">{h.eyebrow}</p>
           </HeroIntro>
           <KineticHeadline
             title={h.title}
@@ -73,13 +71,13 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
             <ChatOpenButton
               source="hero"
               fallbackHref="#demo"
-              className={cn(buttonStyles.secondary, 'glass')}
+              className={buttonStyles.glass}
             >
               <ChatCircleDots size={18} weight="fill" aria-hidden="true" className="text-accent-text" />
               {h.chatCta}
             </ChatOpenButton>
           </div>
-          <p className="mt-4 text-[13px]">
+          <p className="mt-4 text-footnote">
             <Link
               href={`/${locale}/ai-team`}
               data-cta="hero_team"
@@ -91,17 +89,16 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
           </p>
           {/* Go-live trust lines (owner 2026-11-21): the guarantee and the response promise on the first screen. */}
           <div className="mt-4 grid max-w-[46ch] gap-2 lg:max-w-[780px]" data-hero-promises>
-            <GuaranteeLine dict={dict} locale={locale} className="text-[13px]" />
-            <p className="flex items-start gap-2.5 text-[13px] leading-relaxed text-muted">
+            <GuaranteeLine dict={dict} locale={locale} className="text-footnote" />
+            <p className="flex items-start gap-2.5 text-footnote text-muted">
               <Clock size={18} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
               <span>{dict.sla.line}</span>
             </p>
           </div>
-          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px] text-faint lg:hidden">
+          <ul className="mt-4 flex flex-wrap gap-2 lg:hidden">
             {h.trust.map((item) => (
-              <li key={item} className="flex items-center gap-2">
-                <span className="size-1 rounded-full bg-accent/70" aria-hidden="true" />
-                {item}
+              <li key={item}>
+                <Badge>{item}</Badge>
               </li>
             ))}
           </ul>

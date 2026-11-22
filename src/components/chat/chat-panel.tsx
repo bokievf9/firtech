@@ -25,6 +25,7 @@ import { useCabinetUser } from '../cabinet/use-cabinet-user'
 import { ChatAvatar, type ChatAvatarComponent } from './chat-avatar'
 import { ChatSlots } from './chat-slots'
 import { storedRef } from '@/lib/referral'
+import { fade, spring } from '@/lib/motion'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 type Message = {
@@ -347,12 +348,12 @@ export default function ChatPanel({
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
-          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.97 }}
-          transition={{ type: 'spring', stiffness: 380, damping: 34, mass: 0.8 }}
+          initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96, filter: 'blur(6px)' }}
+          animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+          exit={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96, filter: 'blur(6px)' }}
+          transition={reduce ? fade : spring.sheet}
           style={{ transformOrigin: '100% 100%' }}
-          className="print-hidden glass bg-glass-strong fixed inset-x-2 top-[max(0.5rem,env(safe-area-inset-top))] bottom-2 z-50 flex flex-col overflow-hidden rounded-panel sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:h-[min(600px,calc(100dvh-3rem))] sm:w-[400px]"
+          className="print-hidden material-chrome fixed inset-x-2 top-[max(0.5rem,env(safe-area-inset-top))] bottom-2 z-50 flex flex-col overflow-hidden rounded-panel sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:h-[min(600px,calc(100dvh-3rem))] sm:w-[400px]"
         >
           <header className="flex items-center gap-3 px-5 pt-4 pb-3">
             <span className="relative grid size-10 shrink-0 place-items-center rounded-full bg-pine">
@@ -574,7 +575,7 @@ export default function ChatPanel({
             ) : null}
           </ol>
 
-          <form onSubmit={submit} className="border-t border-glass-line p-3">
+          <form onSubmit={submit} className="border-t border-t-hairline border-glass-line p-3">
             {hint ? (
               <p role="status" className="px-2 pb-2 text-xs text-faint">
                 {hint}

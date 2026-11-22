@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useId, useState } from 'react'
 import { cn } from '@/lib/cn'
 import { RiseText } from './rise-text'
+import { fade, spring } from '@/lib/motion'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
 export function Faq({
@@ -44,7 +45,7 @@ export function FaqList({ items, compact = false }: { items: { q: string; a: str
         const isOpen = open === i
         const panel = `${base}-${i}`
         return (
-          <div key={item.q} className="border-b border-line first:border-t">
+          <div key={item.q} className="border-b border-b-hairline border-line first:border-t">
             <h3>
               <button
                 type="button"
@@ -52,18 +53,17 @@ export function FaqList({ items, compact = false }: { items: { q: string; a: str
                 aria-controls={panel}
                 onClick={() => setOpen(isOpen ? null : i)}
                 className={cn(
-                  'flex w-full items-center justify-between gap-6 text-left font-medium',
-                  compact ? 'py-4 text-base md:text-lg' : 'py-6 text-lg md:text-xl',
+                  'group flex w-full items-center justify-between gap-6 text-left font-medium',
+                  compact ? 'py-4 text-headline' : 'py-6 text-title-3',
                 )}
               >
                 {item.q}
-                <Plus
-                  size={18}
-                  className={cn(
-                    'shrink-0 text-accent-text transition-transform duration-300 ease-out-expo',
-                    isOpen && 'rotate-45',
-                  )}
-                />
+                <span
+                  aria-hidden="true"
+                  className="grid size-8 shrink-0 place-items-center rounded-full bg-fill text-accent-text transition-colors group-hover:bg-fill-strong"
+                >
+                  <Plus size={16} className={cn('transition-transform duration-200 ease-out-quint', isOpen && 'rotate-45')} />
+                </span>
               </button>
             </h3>
             <AnimatePresence initial={false}>
@@ -73,10 +73,10 @@ export function FaqList({ items, compact = false }: { items: { q: string; a: str
                   initial={reduce ? false : { height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={reduce ? undefined : { height: 0, opacity: 0 }}
-                  transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                  transition={reduce ? fade : spring.ui}
                   className="overflow-hidden"
                 >
-                  <p className={cn('max-w-[62ch] leading-relaxed text-muted', compact ? 'pb-5 text-[15px]' : 'pb-7')}>
+                  <p className={cn('max-w-[62ch] text-muted', compact ? 'pb-5 text-callout' : 'pb-7 text-body')}>
                     {item.a}
                   </p>
                 </motion.div>

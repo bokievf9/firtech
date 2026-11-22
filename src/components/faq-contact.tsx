@@ -13,11 +13,11 @@ import { Reveal } from './reveal'
 export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
   const t = dict.askStrip
   return (
-    <section id="faq" className="relative mx-auto max-w-7xl scroll-mt-20 px-4 py-section md:px-8">
+    <section id="faq" className="relative mx-auto max-w-7xl scroll-mt-24 px-4 py-section md:px-8">
       <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
         <Reveal className="lg:col-span-4">
           <h2 className="font-display text-title font-semibold">{dict.faq.title}</h2>
-          <ul className="mt-6 grid gap-2 text-sm">
+          <ul className="mt-6 grid gap-2 text-callout">
             {(['pay-how', 'compare', 'referral', 'audit'] as const).map((page) => (
               <li key={page}>
                 <Link
@@ -38,10 +38,10 @@ export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
       <Reveal className="mt-14">
         <div
           data-ask-strip
-          className="flex flex-col gap-5 rounded-card border border-line bg-surface p-6 sm:flex-row sm:items-center sm:justify-between md:p-8"
+          className="flex flex-col gap-5 rounded-card border border-hairline border-line bg-elevated p-card shadow-card sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <p className="font-display text-2xl font-semibold tracking-tight">{t.title}</p>
+            <p className="font-display text-title-3 font-semibold">{t.title}</p>
             <p className="mt-2 text-muted">{t.text}</p>
           </div>
           <ChatOpenButton source="faq" fallbackHref={`/${locale}#demo`} className={cn(buttonStyles.primary, 'shrink-0')}>

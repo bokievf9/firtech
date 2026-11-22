@@ -8,6 +8,9 @@
   The @theme block holds the light values; `:root[data-theme='dark']` below redefines them.
   Shape rule: interactive controls (buttons, pills, chips) are full pills, surfaces are 20px
   (rounded-card), inputs are 12px (rounded-xl). Keep to it everywhere.
+  Design system v4 (2026-11-22, Apple rules + glass): docs/design-system-v4.md holds the token table,
+  the material rules (which surface is glass, blur and opacity per theme, fallbacks, contrast tests),
+  the type scale with its optical sizes and the motion rules. Primitives: src/components/ui/.
 */
 @theme static {
   --color-bg: #ffffff;
@@ -80,13 +83,31 @@
   --color-dept-company-soft: #e1e6ec;
   --color-dept-company-text: #3c4859;
 
-/* Glass surfaces (header, live window, chat): see .glass below. */
-  --color-glass: rgb(255 255 255 / 0.74);
-  --color-glass-strong: rgb(255 255 255 / 0.94);
+  /*
+    Materials (v4): translucent layers over the page, light to heavy. The alpha of each one is chosen
+    so text keeps AA contrast even when the lime fill or a block of text sits right under the glass
+    (tests/site-theme.test.mjs composites them over every backdrop). Which text a material may carry:
+    thin = fg only (chips, the live dot plate); regular = fg, muted, accent-text (header, cards, chat
+    bubbles); thick and chrome = every text token (sheets, dialogs, chat panel, the scrolled header).
+    `glass` = regular and `glass-strong` = chrome are the old names, kept for the components that use them.
+  */
+  --color-material-thin: rgb(255 255 255 / 0.6);
+  --color-material-regular: rgb(255 255 255 / 0.72);
+  --color-material-thick: rgb(255 255 255 / 0.82);
+  --color-material-chrome: rgb(255 255 255 / 0.86);
+  --color-glass: rgb(255 255 255 / 0.72);
+  --color-glass-strong: rgb(255 255 255 / 0.86);
   --color-glass-line: rgb(14 18 15 / 0.09);
   --color-glass-highlight: rgb(255 255 255 / 0.9);
+  /* Control fills (segmented controls, quiet buttons, icon buttons): the text colour at low strength. */
+  --color-fill: rgb(14 18 15 / 0.05);
+  --color-fill-strong: rgb(14 18 15 / 0.09);
 
-  /* Radii: pills for controls, 12px inputs (rounded-xl), 20px cards, 28px windows and sheets. */
+  /*
+    Radii: pills for controls, 12px inputs (rounded-xl), 14px media wells inside a card (rounded-tile),
+    20px cards, 28px windows and sheets. Nested corners are concentric: inner = outer - padding.
+  */
+  --radius-tile: 14px;
   --radius-card: 20px;
   --radius-panel: 28px;
 
@@ -109,14 +130,46 @@
   --text-lead--line-height: 1.55;
   --text-micro: 0.6875rem;
   --text-micro--line-height: 1.3;
+  /*
+    v4 scale with optical sizes (Apple's text styles, tuned for Onest and Geologica). Neither face has
+    an opsz axis, so the optical size is the tracking and leading table itself: tight and negative at
+    size, open and slightly positive when small. Each step sets its own line height and tracking, so a
+    bare text-<step> is already right; never add a fixed tracking on top.
+  */
+  --text-title-2: clamp(1.5rem, 1.2rem + 1.1vw, 2.125rem);
+  --text-title-2--line-height: 1.12;
+  --text-title-2--letter-spacing: -0.026em;
+  --text-title-3: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --text-title-3--line-height: 1.2;
+  --text-title-3--letter-spacing: -0.02em;
+  --text-headline: 1.0625rem;
+  --text-headline--line-height: 1.35;
+  --text-headline--letter-spacing: -0.012em;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.55;
+  --text-body--letter-spacing: -0.006em;
+  --text-callout: 0.9375rem;
+  --text-callout--line-height: 1.45;
+  --text-callout--letter-spacing: -0.003em;
+  --text-footnote: 0.8125rem;
+  --text-footnote--line-height: 1.4;
+  --text-footnote--letter-spacing: 0.002em;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.35;
+  --text-caption--letter-spacing: 0.01em;
 
   /* Section rhythm: py-section between home page sections, gap-gutter inside grids. */
   --spacing-section: clamp(5rem, 3.2rem + 6vw, 9rem);
   --spacing-gutter: clamp(1rem, 0.6rem + 1.2vw, 1.75rem);
+  /* Inner padding of a card (p-card) and of a sheet or dialog (p-sheet). */
+  --spacing-card: clamp(1.25rem, 1rem + 0.8vw, 1.75rem);
+  --spacing-sheet: clamp(1.25rem, 1rem + 1.2vw, 2rem);
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+  /* iOS sheet curve, for CSS-only sheets and the scrim (springs live in src/lib/motion.ts). */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /*
@@ -211,8 +264,14 @@
   --color-dept-company-text: #bcc5d3;
 
   --color-tg: #5cc4f5;
-  --color-glass: rgb(16 20 17 / 0.62);
-  --color-glass-strong: rgb(16 20 17 / 0.86);
+  --color-material-thin: rgb(16 20 17 / 0.6);
+  --color-material-regular: rgb(16 20 17 / 0.82);
+  --color-material-thick: rgb(16 20 17 / 0.88);
+  --color-material-chrome: rgb(16 20 17 / 0.9);
+  --color-glass: rgb(16 20 17 / 0.82);
+  --color-glass-strong: rgb(16 20 17 / 0.9);
+  --color-fill: rgb(232 240 230 / 0.06);
+  --color-fill-strong: rgb(232 240 230 / 0.11);
   --color-glass-line: rgb(232 240 230 / 0.1);
   --color-glass-highlight: rgb(255 255 255 / 0.07);
 
@@ -336,6 +395,27 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    font-optical-sizing: auto;
+    font-kerning: normal;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* No double-tap zoom delay on controls (feedback must start on press). */
+  a,
+  button,
+  [role='button'],
+  [role='tab'],
+  summary,
+  label {
+    touch-action: manipulation;
+  }
+
+  h1,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
 
   ::selection {
@@ -726,27 +806,144 @@
   transparency.
 */
 @layer components {
-.glass {
-  background: var(--color-glass);
+/*
+  Materials (v4, docs/design-system-v4.md «Стекло»). A web approximation of Apple's materials, not
+  Apple's Liquid Glass: a tinted translucent fill, a real backdrop blur with extra saturation, a
+  hairline edge and a top highlight where light catches the edge. Bigger surfaces read thicker
+  (more blur, deeper shadow). Never stack one light material on another; put colour on a solid
+  layer. `.glass` is the regular material (old name, kept).
+*/
+.glass,
+.material-regular,
+.material-thin,
+.material-thick,
+.material-chrome {
+  --material-fill: var(--color-material-regular);
+  --material-blur: 20px;
+  background: var(--material-fill);
   border: 1px solid var(--color-glass-line);
   box-shadow: var(--shadow-glass);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--material-blur)) saturate(180%);
+  backdrop-filter: blur(var(--material-blur)) saturate(180%);
+}
+.material-thin {
+  --material-fill: var(--color-material-thin);
+  --material-blur: 12px;
+  box-shadow: inset 0 1px 0 var(--color-glass-highlight);
+}
+.material-thick {
+  --material-fill: var(--color-material-thick);
+  --material-blur: 28px;
+}
+.material-chrome {
+  --material-fill: var(--color-material-chrome);
+  --material-blur: 32px;
+  box-shadow: var(--shadow-dialog), inset 0 1px 0 var(--color-glass-highlight);
+}
+/* `bg-glass-strong` on a .glass element must win over the material fill. */
+.glass.bg-glass-strong {
+  --material-fill: var(--color-glass-strong);
 }
 
+/* No backdrop-filter: the material turns into its solid twin (chrome strength), still readable. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .glass {
-    background: var(--color-glass-strong);
+  .glass,
+  .material-thin,
+  .material-regular,
+  .material-thick,
+  .material-chrome {
+    --material-fill: var(--color-glass-strong);
   }
 }
 
+/* The visitor asks for less transparency: solid surfaces, no blur. */
 @media (prefers-reduced-transparency: reduce) {
-  .glass {
-    background: var(--color-surface);
+  .glass,
+  .material-thin,
+  .material-regular,
+  .material-thick,
+  .material-chrome {
+    --material-fill: var(--color-elevated);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
 }
+
+/* More contrast: solid fill and a defined edge. */
+@media (prefers-contrast: more) {
+  .glass,
+  .material-thin,
+  .material-regular,
+  .material-thick,
+  .material-chrome {
+    --material-fill: var(--color-elevated);
+    border-color: var(--color-line-strong);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/*
+  Scroll edge: under floating chrome (the header) a soft fade instead of a hard divider line,
+  drawn only while content actually scrolls under it.
+*/
+.scroll-edge::after {
+  content: '';
+  position: absolute;
+  inset: 100% 0 auto;
+  height: 18px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--color-bg), transparent);
+  opacity: 0;
+  transition: opacity 200ms var(--ease-out-quint);
+}
+.scroll-edge[data-edge='on']::after {
+  opacity: 0.85;
+}
+
+/*
+  Pressable: instant feedback on press (pointer-down), released quickly. Hover lifts only on devices
+  with a real hover. Buttons, cards with a link, chips.
+*/
+.pressable {
+  transition-property: transform, background-color, border-color, color, box-shadow, opacity;
+  transition-duration: 160ms;
+  transition-timing-function: var(--ease-out-quint);
+}
+.pressable:active {
+  transform: scale(0.97);
+  transition-duration: 80ms;
+}
+@media (hover: hover) and (pointer: fine) {
+  .lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card-hover);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pressable:active,
+  .lift:hover {
+    transform: none;
+  }
+}
+}
+
+/*
+  Hairline borders (v4): one device pixel on retina screens (0.5px), 1px elsewhere. Unlayered on
+  purpose, so they win over Tailwind's `border` / `border-t` width utilities they are paired with:
+  `border border-hairline` (all sides), `border-t border-t-hairline`, `border-b border-b-hairline`.
+  They set the width only; the colour stays a utility (border-line, border-glass-line).
+*/
+@media (min-resolution: 2dppx) {
+  .border-hairline {
+    border-width: 0.5px;
+  }
+  .border-t-hairline {
+    border-top-width: 0.5px;
+  }
+  .border-b-hairline {
+    border-bottom-width: 0.5px;
+  }
 }
 
 /* Hairline that fades out at both ends: separators inside glass. */

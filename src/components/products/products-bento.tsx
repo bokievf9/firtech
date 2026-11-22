@@ -1,7 +1,7 @@
 import { ArrowRight, ArrowUpRight, Check } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
-import { buttonStyles, cn } from '@/lib/cn'
+import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
@@ -10,6 +10,8 @@ import { serviceSlugs } from '@/lib/site'
 import { Ladder } from '../ladder'
 import { Reveal } from '../reveal'
 import { SpotlightCard } from '../spotlight-card'
+import { Badge } from '../ui/badge'
+import { SectionHeader } from '../ui/section'
 import { ProductDemo } from './product-demo'
 import { ProductPriceTag } from './product-price'
 import { productIcons } from './product-icons'
@@ -34,15 +36,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
     <section id="products" className="relative mx-auto max-w-7xl px-4 py-section md:px-8">
       {/* Old links to /#services land here. */}
       <span id="services" className="absolute -top-24" aria-hidden="true" />
-      <div className="grid items-end gap-6 lg:grid-cols-12">
-        <Reveal className="lg:col-span-7">
-          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h2 className="mt-4 font-display text-title font-semibold">{t.title}</h2>
-        </Reveal>
-        <Reveal delay={0.1} className="lg:col-span-5">
-          <p className="max-w-[48ch] text-lead text-muted">{t.sub}</p>
-        </Reveal>
-      </div>
+      <SectionHeader title={t.title} lead={t.sub} />
 
       <ul className="mt-14 grid gap-gutter md:grid-cols-2 lg:grid-cols-12">
         {productIds.map((id, i) => (
@@ -55,9 +49,9 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
       </ul>
 
       <Reveal className="mt-gutter">
-        <div className="grid gap-6 rounded-card border border-line p-6 md:p-8 lg:grid-cols-12 lg:items-center">
+        <div className="grid gap-6 rounded-card border border-hairline border-line p-card lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-4">
-            <p className="font-display text-2xl font-semibold tracking-tight">{t.classicTitle}</p>
+            <p className="font-display text-title-3 font-semibold">{t.classicTitle}</p>
             <p className="mt-2 text-muted">{t.classicSub}</p>
           </div>
           <ul className="grid gap-3 sm:grid-cols-2 lg:col-span-8 xl:grid-cols-4">
@@ -65,7 +59,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
               <li key={slug}>
                 <Link
                   href={`/${locale}/services/${slug}`}
-                  className="group flex h-full items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3 transition-colors hover:border-line-strong"
+                  className="pressable group flex h-full items-center justify-between gap-3 rounded-xl border border-hairline border-line bg-surface px-4 py-3 hover:border-line-strong"
                 >
                   <span>
                     <span className="block font-medium">{dict.services.items[slug].name}</span>
@@ -86,11 +80,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
       </Reveal>
 
       <div id="levels" className="mt-section scroll-mt-24">
-        <Reveal>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{dict.ladder.eyebrow}</p>
-          <h2 className="mt-4 max-w-[22ch] font-display text-title font-semibold">{dict.ladder.title}</h2>
-          <p className="mt-5 max-w-[56ch] text-lead text-muted">{dict.ladder.sub}</p>
-        </Reveal>
+        <SectionHeader title={dict.ladder.title} lead={dict.ladder.sub} />
         <div className="mt-10">
           <Ladder locale={locale} dict={dict} />
         </div>
@@ -99,10 +89,10 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
       <Reveal className="mt-gutter">
         <div
           data-departments-strip
-          className="flex flex-col gap-5 rounded-card border border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-6 md:p-8 lg:flex-row lg:items-center lg:justify-between"
+          className="flex flex-col gap-5 rounded-card border border-hairline border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-card lg:flex-row lg:items-center lg:justify-between"
         >
           <div>
-            <p className="font-display text-2xl font-semibold tracking-tight">{dict.ladder.strip.title}</p>
+            <p className="font-display text-title-3 font-semibold">{dict.ladder.strip.title}</p>
             <p className="mt-2 max-w-[60ch] text-muted">{dict.ladder.strip.text}</p>
           </div>
           <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
@@ -137,7 +127,7 @@ function ProductCard({
   return (
     <SpotlightCard
       className={cn(
-        'group h-full rounded-card border transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1',
+        'group h-full rounded-card border border-hairline transition-[border-color,transform,box-shadow] duration-300 ease-out-quint [@media(hover:hover)]:hover:-translate-y-1 [@media(hover:hover)]:hover:shadow-card-hover',
         flagship
           ? 'border-accent-text/40 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_60%)] hover:border-accent-text'
           : 'border-line bg-surface hover:border-line-strong',
@@ -149,28 +139,26 @@ function ProductCard({
       >
         <div
           className={cn(
-            'dot-grid relative m-2 mb-0 grid min-h-[13.5rem] place-items-center overflow-hidden rounded-[14px] border border-line bg-bg/60 px-5 py-6',
+            'dot-grid relative m-1.5 mb-0 grid min-h-[13.5rem] place-items-center overflow-hidden rounded-tile border border-hairline border-line bg-bg/60 px-5 py-6',
             wide && 'lg:order-2 lg:mb-2 lg:min-h-0',
           )}
         >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_60%_at_50%_0%,var(--hero-glow),transparent)]" />
           <ProductDemo id={id} copy={t.demo} className="relative w-full max-w-[20rem]" />
-          <span className="absolute right-3 bottom-2 font-mono text-[10px] text-faint">{t.concept}</span>
+          <span className="absolute right-3 bottom-2 text-caption text-faint">{t.concept}</span>
         </div>
 
-        <div className="flex flex-1 flex-col gap-5 p-6 md:p-7">
+        <div className="flex flex-1 flex-col gap-5 p-card">
           <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
             <div className="flex min-w-[14rem] flex-1 items-center gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-line-strong text-accent-text">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-pine text-accent-text">
                 <Glyph size={20} aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 {flagship && (
-                  <p className="font-mono text-[11px]">
-                    <span className="rounded-full bg-accent/15 px-2 py-0.5 text-accent-text">{t.flagship}</span>
-                  </p>
+                  <Badge tone="accent" className="mb-1">{t.flagship}</Badge>
                 )}
-                <h3 id={`${productAnchor(id)}-name`} className="text-xl font-semibold tracking-tight break-words md:text-2xl">
+                <h3 id={`${productAnchor(id)}-name`} className="text-title-3 font-semibold break-words">
                   {item.name}
                 </h3>
               </div>
@@ -178,10 +166,10 @@ function ProductCard({
             <ProductPriceTag id={id} copy={t} className="shrink-0 sm:text-right" />
           </div>
 
-          <p className="text-lg leading-snug">{item.benefit}</p>
+          <p className="text-headline font-normal">{item.benefit}</p>
           {/* Scene four of the home film: Fira introduces each member of the team in one line. */}
           <p data-film-intro={id} className="-mt-2 flex gap-2 text-sm leading-snug text-muted">
-            <span className="shrink-0 font-mono text-[11px] leading-5 text-accent-text">{dict.film.team.label}</span>
+            <span className="shrink-0 text-caption leading-5 font-semibold text-accent-text">{dict.film.team.label}</span>
             <span>{dict.film.team[id]}</span>
           </p>
 
@@ -209,7 +197,7 @@ function ProductCard({
             <Link
               href={productBuilderHref(locale, id)}
               data-cta={`product_${id}`}
-              className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-ink transition-[background-color,transform] duration-300 ease-out-expo hover:bg-accent-strong active:scale-[0.98]"
+              className={buttonClass('primary', 'sm')}
             >
               {t.build}
               <ArrowRight size={14} aria-hidden="true" />
@@ -217,7 +205,7 @@ function ProductCard({
             <Link
               href={`/${locale}${productPath(id)}`}
               data-cta={`product_more_${id}`}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line-strong px-4 py-2 text-sm font-medium transition-[border-color,background-color,transform] duration-300 ease-out-expo hover:border-fg/40 hover:bg-fg/5 active:scale-[0.98]"
+              className={buttonClass('secondary', 'sm')}
             >
               {t.more}
               <ArrowUpRight size={14} aria-hidden="true" />

@@ -77,6 +77,63 @@ for (const [name, set] of [
   })
 }
 
+// Design system v4 materials (docs/design-system-v4.md «Стекло»): a translucent layer is only as readable as
+// what shows through it. Each material is composited over every backdrop it can float over: the page
+// layers, the pine wash, the lime fill (a button or a highlighted card under the header) and «busy»
+// content (blurred text: fg over bg at 35% coverage). Which text tokens a material may carry is part of
+// the system: thin = fg only, regular = fg, muted, accent-text, thick and chrome = every text token.
+function rgba(value) {
+  const m = value.match(/^rgb\(\s*(\d+)\s+(\d+)\s+(\d+)\s*\/\s*([\d.]+)\s*\)$/)
+  assert.ok(m, `${value} is rgb(r g b / a)`)
+  return { c: [Number(m[1]), Number(m[2]), Number(m[3])], a: Number(m[4]) }
+}
+const hex = (c) => `#${c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('')}`
+const over = (top, a, bottom) => top.map((v, i) => v * a + bottom[i] * (1 - a))
+const materialText = {
+  thin: ['fg'],
+  regular: ['fg', 'muted', 'accent-text'],
+  thick: ['fg', 'muted', 'faint', 'accent-text'],
+  chrome: ['fg', 'muted', 'faint', 'accent-text'],
+}
+
+for (const [name, set] of [
+  ['light', light],
+  ['dark', dark],
+]) {
+  test(`${name} theme: glass materials keep AA text over every backdrop, the lime fill included`, () => {
+    const backdrops = {
+      bg: rgb(set.bg),
+      surface: rgb(set.surface),
+      'surface-2': rgb(set['surface-2']),
+      pine: rgb(set.pine),
+      accent: rgb(set.accent),
+      busy: over(rgb(set.fg), 0.35, rgb(set.bg)),
+    }
+    for (const [material, allowed] of Object.entries(materialText)) {
+      const { c, a } = rgba(set[`material-${material}`])
+      for (const [where, back] of Object.entries(backdrops)) {
+        const surface = hex(over(c, a, back))
+        for (const t of allowed) {
+          const ratio = contrast(set[t], surface)
+          assert.ok(ratio >= 4.5, `${name}: ${t} on ${material} glass over ${where} is ${ratio.toFixed(2)}, needs 4.5`)
+        }
+      }
+    }
+  })
+
+  test(`${name} theme: the old glass names are the regular and chrome materials`, () => {
+    assert.equal(set.glass, set['material-regular'])
+    assert.equal(set['glass-strong'], set['material-chrome'])
+  })
+}
+
+test('glass falls back to a solid surface without backdrop-filter, with reduced transparency and with more contrast', () => {
+  assert.match(css, /@supports not \(\(backdrop-filter: blur\(1px\)\)/)
+  assert.match(css, /@media \(prefers-reduced-transparency: reduce\)\s*\{\s*\.glass,/)
+  assert.match(css, /@media \(prefers-contrast: more\)\s*\{\s*\.glass,/)
+  for (const m of ['thin', 'regular', 'thick', 'chrome']) assert.match(css, new RegExp(`\\.material-${m}`))
+})
+
 test('light theme is a white page, lime stays a fill', () => {
   assert.equal(light.bg.toLowerCase(), '#ffffff')
   // Lime on white fails for text, so it must never be the text token.

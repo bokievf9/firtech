@@ -42,7 +42,7 @@ export function ThemeSwitch({ copy, className }: { copy: ThemeSwitchCopy; classN
       title={label}
       data-theme-switch
       className={cn(
-        'inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-line text-muted transition-colors hover:border-line-strong hover:text-fg',
+        'pressable inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-fill text-muted hover:bg-fill-strong hover:text-fg',
         className,
       )}
     >

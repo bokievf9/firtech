@@ -374,8 +374,10 @@ test('home demo tab, signed out: the scripted example, «Пример», the sig
   const demo = page.locator('[data-demo-chat]')
   await expect(demo.locator('[data-demo-example]')).toHaveText('Пример')
   await expect(demo.locator('[data-demo-gate]')).toBeVisible()
-  await expect(demo.getByPlaceholder('Войдите, чтобы написать агенту')).toBeDisabled()
-  await expect(demo.getByRole('textbox')).toBeDisabled()
+  // v4: the frame ends in a lock plate (no input at all): the demo is visibly for signed-in clients.
+  await expect(demo.locator('[data-demo-lock]')).toContainText('Войдите, чтобы попробовать на своих данных')
+  await expect(demo.getByRole('textbox')).toHaveCount(0)
+  await expect(demo.locator('[data-demo-signup]')).toHaveAttribute('href', /tab=signup/)
   await demo.getByRole('button', { name: 'Есть окно на субботу?' }).click()
   await expect(demo.getByText('В субботу свободно 11:00 и 14:30')).toBeVisible()
   await demo.locator('[data-demo-login]').click()

@@ -161,6 +161,7 @@ Legend of `E:` tags (file : test title):
 | pricing | «Открыть конструктор» | builder | `/{locale}/builder` | none | untested |
 | pricing (home) | «Собрать проект» (builder teaser); the estimator block is removed from the home page | builder | `/builder` | none | untested |
 | demo | 7 tabs (receptionist, admin, automation, content, Mini App, assistant, department); automation, Mini App and assistant are «Пример» | tab panels | none | `U:front-v3` | untested (click) |
+| demo, signed out (v4 lock plate, receptionist and «Персональный ИИ» tabs) | «Войти» (`data-demo-login`), «Регистрация по коду» (`data-demo-signup`, same link + `tab=signup`) | sign-in / sign-up, back to the tab | `/{locale}/cabinet/login?next=...` | `E:flows` (login href) | pass (login), untested (sign-up click) |
 | chat button | hides on scroll down, back on scroll up or after 1.5 s; on `/builder` and `/cabinet` hidden until the last step or 8 s idle | opens the chat | none | `U:front-v3` | screenshots 390 px |
 | product pages | «Частые вопросы» removed | - | - | `U:products-pages` | pass |
 | product pages (2026-11-22, blocks in the order of `content/product-pages.ts`) | hero «Собрать проект» / «Спросить агента»; demo block (admin booking, receptionist live chat, assistant); «Все условия в оферте», «Условия гарантии»; ИИ-отдел «Все ступени по направлениям» | builder with `p.<id>`, chat, demo state, terms, `/ai-team#levels` | `/{locale}/builder?b=`, `/{locale}/terms` | `U:products-pages` (config, copy, hrefs in source) | untested (click) |

@@ -1,8 +1,14 @@
 'use client'
 
+import { LockSimple } from '@phosphor-icons/react'
 import Link from 'next/link'
 import type { Dict } from '@/content'
-import { buttonStyles, cn } from '@/lib/cn'
+import { buttonClass, buttonStyles, cn } from '@/lib/cn'
+
+// The same login link with the sign-up tab open (the login page reads `?tab=signup`).
+function signupHref(href: string) {
+  return href.includes('?') ? `${href}&tab=signup` : `${href}?tab=signup`
+}
 import { inputClass } from '@/components/cabinet/ui'
 
 type Gate = Dict['demoGate']
@@ -10,7 +16,36 @@ type Gate = Dict['demoGate']
 // A signed-out visitor sees the scripted example and, where the input would be, the prompt with «Войти»
 // (owner 2026-11-23: the demo is for signed-in clients only, so we know who spends what). `locked` = the
 // sign-in state is still being read: the same bar without the button.
-export function DemoGateBar({ gate, href, locked = false }: { gate: Gate; href: string; locked?: boolean }) {
+// `plate` (home demo, v4 «демо видно запертым»): instead of a disabled input the frame ends in a lock plate
+// that says plainly the demo is for signed-in clients, with «Войти» and «Регистрация по коду»; the lines
+// above it are labelled as a scripted example, so nothing looks like a live chat.
+export function DemoGateBar({ gate, href, locked = false, variant = 'bar' }: { gate: Gate; href: string; locked?: boolean; variant?: 'bar' | 'plate' }) {
+  if (variant === 'plate')
+    return (
+      <div
+        data-demo-gate={locked ? 'checking' : 'out'}
+        data-demo-lock
+        className="flex flex-col gap-3 rounded-[1.25rem] border border-hairline border-accent-text/30 bg-[linear-gradient(160deg,var(--color-pine),transparent_90%)] p-4 sm:flex-row sm:items-center"
+      >
+        <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-elevated text-accent-text shadow-card">
+          <LockSimple size={18} weight="bold" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-headline font-semibold">{locked ? gate.checking : gate.lockTitle}</p>
+          {!locked && <p className="mt-0.5 text-footnote text-muted">{gate.lockText}</p>}
+        </div>
+        {!locked && (
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Link href={href} data-demo-login className={buttonClass('primary', 'sm')}>
+              {gate.login}
+            </Link>
+            <Link href={signupHref(href)} data-demo-signup className={buttonClass('secondary', 'sm')}>
+              {gate.signup}
+            </Link>
+          </div>
+        )}
+      </div>
+    )
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center" data-demo-gate={locked ? 'checking' : 'out'}>
       <input

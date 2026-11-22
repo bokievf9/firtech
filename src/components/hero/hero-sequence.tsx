@@ -236,7 +236,7 @@ export function HeroSequence({
                 <motion.div className="absolute inset-0 origin-left bg-accent/70" style={{ scaleX: rail }} />
               )}
             </div>
-            <p className="flex items-center gap-2 font-mono text-[11px] tracking-[0.14em] text-faint uppercase">
+            <p className="flex items-center gap-2 text-footnote text-faint">
               <ArrowDown size={12} aria-hidden="true" className="hero-nudge" />
               {copy.hint}
             </p>
@@ -372,18 +372,18 @@ function StageCard({
     >
       <div
         className={cn(
-          'hero-card relative overflow-hidden rounded-panel border bg-[image:var(--hero-card-bg)] p-5 shadow-float backdrop-blur-md transition-[border-color] duration-500 sm:p-6',
-          active ? 'border-accent-text/35' : 'border-line',
+          'hero-card material-thick relative overflow-hidden rounded-panel p-5 transition-[border-color] duration-500 sm:p-6',
+          active && 'border-accent-text/35',
         )}
         data-active={active}
       >
         <div className="flex items-center gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-line-strong bg-bg/60 text-accent-text">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-pine text-accent-text">
             <Glyph size={20} aria-hidden="true" />
           </span>
           <div className="min-w-0">
-            <p className="truncate font-medium">{product.name}</p>
-            <p className="font-mono text-[11px] text-faint">
+            <p className="truncate text-headline font-semibold">{product.name}</p>
+            <p className="text-caption text-faint">
               {concept}
             </p>
           </div>

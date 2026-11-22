@@ -5,19 +5,39 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Buttons (design system v4, docs/design-system-v4.md «Кнопки»): pills, one line, feedback on press
+// (`.pressable` in globals.css: scale 0.97 in 80 ms, released in 160 ms), hover only with a real pointer.
+// `buttonStyles.*` stays for the 140 call sites; new code uses `buttonClass(variant, size)` or
+// <Button>/<ButtonLink> from components/ui/button.tsx.
 const buttonBase =
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium transition-[background-color,color,border-color,transform] duration-300 ease-out-expo active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60'
+  'pressable inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium select-none disabled:pointer-events-none disabled:opacity-50 aria-disabled:opacity-60'
+
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'glass'
+export type ButtonSize = 'sm' | 'md' | 'lg'
+
+const variants: Record<ButtonVariant, string> = {
+  primary: 'bg-accent text-accent-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.35)] hover:bg-accent-strong',
+  secondary: 'border border-line-strong text-fg hover:border-fg/35 hover:bg-fill',
+  ghost: 'text-fg hover:bg-fill-strong',
+  glass: 'glass text-fg hover:border-line-strong',
+}
+
+const sizes: Record<ButtonSize, string> = {
+  sm: 'h-9 px-4 text-sm',
+  md: 'h-12 px-6 text-[15px] tracking-[-0.005em]',
+  lg: 'h-14 px-8 text-base tracking-[-0.01em]',
+}
+
+export function buttonClass(variant: ButtonVariant = 'primary', size: ButtonSize = 'md') {
+  return cn(buttonBase, variants[variant], sizes[size])
+}
 
 export const buttonStyles = {
-  primary: cn(
-    buttonBase,
-    'bg-accent px-6 py-3.5 text-[15px] text-accent-ink hover:bg-accent-strong',
-  ),
-  secondary: cn(
-    buttonBase,
-    'border border-line-strong px-6 py-3.5 text-[15px] text-fg hover:border-fg/40 hover:bg-fg/5',
-  ),
-  small: cn(buttonBase, 'bg-accent px-4 py-2 text-sm text-accent-ink hover:bg-accent-strong'),
+  primary: buttonClass('primary', 'md'),
+  secondary: buttonClass('secondary', 'md'),
+  ghost: buttonClass('ghost', 'md'),
+  glass: buttonClass('glass', 'md'),
+  small: buttonClass('primary', 'sm'),
 }
 
 // Long-form path to an anchor on the home page, so links work from service pages too.

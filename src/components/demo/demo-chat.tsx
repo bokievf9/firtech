@@ -177,8 +177,8 @@ export function DemoChat({ copy, gate, badge, locale }: { copy: Copy; gate: Dict
       </div>
 
       <div className="lg:col-span-7">
-        <div className={cn('glass flex flex-col overflow-hidden rounded-panel', scriptMode ? 'h-[32rem] lg:h-[26rem]' : 'h-[26rem]')} data-demo-chat>
-          <div className="flex items-center justify-between gap-2 border-b border-glass-line px-4 py-2.5">
+        <div className={cn('material-thick flex flex-col overflow-hidden rounded-panel', scriptMode ? 'h-[36rem] lg:h-[31rem]' : 'h-[26rem]')} data-demo-chat>
+          <div className="flex items-center justify-between gap-2 border-b border-b-hairline border-glass-line px-4 py-2.5">
             <span
               data-chat-demo
               className="inline-flex items-center rounded-full border border-accent-text/40 bg-accent/10 px-3 py-1 text-xs text-fg"
@@ -199,7 +199,8 @@ export function DemoChat({ copy, gate, badge, locale }: { copy: Copy; gate: Dict
               {copy.reset}
             </button>
           </div>
-          <ol ref={listRef} aria-live="polite" className="grid flex-1 content-start gap-2.5 overflow-y-auto p-4">
+          {scriptMode && <p className="px-4 pt-3 text-caption text-faint">{gate.scripted}</p>}
+          <ol ref={listRef} aria-live="polite" className={cn('grid flex-1 content-start gap-2.5 overflow-y-auto p-4', scriptMode && 'opacity-80')}>
             {messages.length === 0 && scriptMode && script && (
               <li className="chat-in max-w-[88%] rounded-[18px] rounded-bl-md bg-surface-2 px-4 py-2.5 text-[15px] leading-snug">
                 {script.greeting.replace('{company}', copy.niches[niche])}
@@ -259,9 +260,9 @@ export function DemoChat({ copy, gate, badge, locale }: { copy: Copy; gate: Dict
               </button>
             ))}
           </div>
-          <div className="border-t border-glass-line p-3">
+          <div className="border-t border-t-hairline border-glass-line p-3">
             {scriptMode ? (
-              <DemoGateBar gate={gate} href={demoLoginHref(locale, demoTabNext(locale, 'receptionist'))} locked={me.status === 'loading'} />
+              <DemoGateBar variant="plate" gate={gate} href={demoLoginHref(locale, demoTabNext(locale, 'receptionist'))} locked={me.status === 'loading'} />
             ) : limitHit ? (
               <DemoLimitPlate gate={gate} locale={locale} />
             ) : (

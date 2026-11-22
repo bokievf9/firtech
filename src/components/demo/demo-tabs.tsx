@@ -2,10 +2,11 @@
 
 import { ArrowRight, ArrowUpRight } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ChatOpenButton } from '../chat/chat-open-button'
+import { TabList } from '../ui/tabs'
 import { DemoAssistant } from './demo-assistant'
 import { DemoBooking } from './demo-booking'
 import { DemoBuilt } from './demo-built'
@@ -38,7 +39,6 @@ export function DemoTabs({
   const t = dict.demoSection
   const base = useId()
   const [active, setActive] = useState<DemoTabId>('receptionist')
-  const tabs = useRef<Record<string, HTMLButtonElement | null>>({})
 
   // Back from the sign-in page (`/<locale>?demo=<tab>#demo`): the same tab opens again.
   useEffect(() => {
@@ -48,47 +48,16 @@ export function DemoTabs({
     if (id) setActive(id)
   }, [])
 
-  function onKey(e: React.KeyboardEvent, index: number) {
-    const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
-    if (!dir && e.key !== 'Home' && e.key !== 'End') return
-    e.preventDefault()
-    const next = e.key === 'Home' ? 0 : e.key === 'End' ? demoTabIds.length - 1 : (index + dir + demoTabIds.length) % demoTabIds.length
-    const id = demoTabIds[next]!
-    setActive(id)
-    tabs.current[id]?.focus()
-  }
-
   return (
     <div>
-      <div
-        role="tablist"
-        aria-label={t.tabsLabel}
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:flex-wrap md:overflow-visible md:px-0"
-      >
-        {demoTabIds.map((id, i) => (
-          <button
-            key={id}
-            ref={(el) => {
-              tabs.current[id] = el
-            }}
-            type="button"
-            role="tab"
-            id={`${base}-tab-${id}`}
-            aria-selected={active === id}
-            aria-controls={`${base}-panel-${id}`}
-            tabIndex={active === id ? 0 : -1}
-            data-demo-tab={id}
-            onClick={() => setActive(id)}
-            onKeyDown={(e) => onKey(e, i)}
-            className={cn(
-              'shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-[border-color,background-color] duration-200',
-              active === id ? 'border-accent-text bg-accent/10 text-fg' : 'border-line-strong text-muted hover:border-fg/40 hover:text-fg',
-            )}
-          >
-            {names[id]}
-          </button>
-        ))}
-      </div>
+      <TabList
+        base={base}
+        label={t.tabsLabel}
+        value={active}
+        onChange={setActive}
+        items={demoTabIds.map((id) => ({ id, label: names[id] }))}
+        itemProps={(id) => ({ 'data-demo-tab': id })}
+      />
 
       <div className="mt-8">
         <div role="tabpanel" id={`${base}-panel-receptionist`} aria-labelledby={`${base}-tab-receptionist`} hidden={active !== 'receptionist'}>
@@ -118,7 +87,7 @@ export function DemoTabs({
                     <li key={a.slug}>
                       <Link
                         href={`/${locale}/blog/${a.slug}`}
-                        className="group flex h-full flex-col rounded-card border border-line bg-surface p-5 transition-colors hover:border-line-strong md:p-6"
+                        className="pressable lift group flex h-full flex-col rounded-card border border-hairline border-line bg-surface p-card hover:border-line-strong"
                       >
                         <time dateTime={a.date} className="font-mono text-xs text-faint">
                           {a.dateLabel}

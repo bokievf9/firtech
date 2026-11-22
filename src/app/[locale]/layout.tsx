@@ -8,6 +8,7 @@ import { MotionProvider } from '@/components/motion-provider'
 import { PricingProvider } from '@/components/pricing-provider'
 import { ThemeInit } from '@/components/theme-init'
 import { RefLinks } from '@/components/ref-links'
+import { Toaster } from '@/components/ui/toast'
 import { YandexMetrika } from '@/components/yandex-metrika'
 import { getDict } from '@/content'
 import { isLocale, locales } from '@/lib/i18n'
@@ -92,6 +93,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
             <Footer locale={locale} dict={dict} cabinet={cabinet} />
             <MobileCta locale={locale} label={dict.nav.cta} />
             <ChatWidget locale={locale} dict={dict} contactHref={`/${locale}/builder`} />
+            <Toaster closeLabel={dict.nav.close} />
           </MotionProvider>
         </PricingProvider>
         <RefLinks />

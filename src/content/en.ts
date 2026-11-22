@@ -33,7 +33,7 @@ const en: Dict = {
     // The h1 in two lines; the second one is the accent.
     lines: ['AI takes the routine,', 'you stay in charge'],
     eyebrow: 'Fir Tech, AI agent studio',
-    sub: 'Personal AI runs your day, an AI company runs the routine by department. Fira and her agents prepare, you approve in Telegram. Price and timeline are fixed before we start.',
+    sub: 'Personal AI runs your day, an AI company runs the routine by department. Fira and her agents prepare, you approve wherever suits you. Price and timeline are fixed before we start.',
     sequence: {
       label: 'Product',
       hint: 'Scroll: the products in turn',
@@ -1628,6 +1628,9 @@ const en: Dict = {
     checking: 'Checking sign-in...',
     write: 'Write a message',
     send: 'Send',
+    lockTitle: 'Sign in to try it on your own data',
+    lockText: 'Above is a scripted example. Once you sign in, the agent answers for real.',
+    signup: 'Sign up with a code',
   },
   demoPage: {
     metaTitle: 'Demo of your agent',

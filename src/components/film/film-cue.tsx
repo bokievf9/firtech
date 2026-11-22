@@ -19,8 +19,8 @@ export function FiraMark({ scene, size = 'md', className }: { scene: FilmScene; 
 
 export function FilmLine({ name, line, className }: { name: string; line: string; className?: string }) {
   return (
-    <p data-film-line className={cn('film-line glass relative max-w-[48ch] rounded-2xl rounded-bl-md px-4 py-3 text-[15px] leading-snug text-fg', className)}>
-      <span className="mb-1 block font-mono text-[10px] tracking-[0.16em] text-accent-text uppercase">{name}</span>
+    <p data-film-line className={cn('film-line glass relative max-w-[48ch] rounded-[1.25rem] rounded-bl-md px-4 py-3 text-callout text-fg', className)}>
+      <span className="mb-0.5 block text-caption font-semibold text-accent-text">{name}</span>
       {line}
     </p>
   )

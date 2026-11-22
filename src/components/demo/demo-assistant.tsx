@@ -99,8 +99,8 @@ export function DemoAssistant({
         {scriptMode && <p className="mt-6 inline-flex rounded-full bg-accent/15 px-3 py-1 text-xs text-accent-text">{badge}</p>}
       </div>
       <div className="lg:col-span-7">
-        <div className={cn('glass flex flex-col overflow-hidden rounded-panel', scriptMode ? 'h-[32rem] lg:h-[26rem]' : 'h-[26rem]')} data-demo-assistant>
-          <div className="flex items-center gap-3 border-b border-glass-line px-4 py-3">
+        <div className={cn('material-thick flex flex-col overflow-hidden rounded-panel', scriptMode ? 'h-[38rem] lg:h-[32rem]' : 'h-[26rem]')} data-demo-assistant>
+          <div className="flex items-center gap-3 border-b border-b-hairline border-glass-line px-4 py-3">
             <span className="grid size-9 place-items-center rounded-full bg-pine font-brand text-xs text-accent-text">ft</span>
             <div>
               <p className="text-sm font-medium">{copy.name}</p>
@@ -131,7 +131,7 @@ export function DemoAssistant({
               </li>
             )}
           </ol>
-          <div className="grid gap-3 border-t border-glass-line p-4">
+          <div className="grid gap-3 border-t border-t-hairline border-glass-line p-4">
             {scriptMode ? (
               <>
                 <div className="flex flex-wrap items-center gap-2">
@@ -160,7 +160,7 @@ export function DemoAssistant({
                     </>
                   )}
                 </div>
-                <DemoGateBar gate={gate} href={demoLoginHref(locale, demoTabNext(locale, 'personal'))} locked={me.status === 'loading'} />
+                <DemoGateBar variant="plate" gate={gate} href={demoLoginHref(locale, demoTabNext(locale, 'personal'))} locked={me.status === 'loading'} />
               </>
             ) : limitHit ? (
               <DemoLimitPlate gate={gate} locale={locale} />

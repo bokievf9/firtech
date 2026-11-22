@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { buttonStyles, cn } from '@/lib/cn'
+import { spring } from '@/lib/motion'
 
 // Phone-only bar with the main action, shown once the hero is scrolled away and hidden again
 // while the contact form itself is on screen (no point pointing at what you are looking at).
@@ -46,8 +47,8 @@ export function MobileCta({
           initial={{ y: 96, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 96, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-          className="print-hidden fixed inset-x-3 bottom-3 z-40 flex gap-2 rounded-full border border-line-strong bg-bg/85 p-1.5 backdrop-blur-xl sm:hidden"
+          transition={spring.sheet}
+          className="print-hidden material-thick fixed inset-x-3 bottom-3 z-40 flex gap-2 rounded-full p-1.5 sm:hidden"
           style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         >
           <Link

@@ -194,7 +194,7 @@ export function ChatWidget({
           className={`companion-say print-hidden glass fixed right-3 bottom-[9.5rem] z-30 flex max-w-[min(20rem,calc(100vw-1.5rem))] items-start gap-1 rounded-2xl rounded-br-md py-2 pr-1.5 pl-4 text-[14px] leading-snug text-fg sm:right-6 sm:bottom-[5.75rem] ${saying ? '' : 'pointer-events-none'}`}
         >
           <button type="button" tabIndex={saying ? 0 : -1} onClick={() => show('companion')} data-cta="companion_line" className="py-1 text-left">
-            <span className="mb-0.5 block font-mono text-[10px] tracking-[0.16em] text-accent-text uppercase">{dict.film.name}</span>
+            <span className="mb-0.5 block text-caption font-semibold text-accent-text">{dict.film.name}</span>
             {line}
           </button>
           <button
