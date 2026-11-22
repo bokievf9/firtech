@@ -18,13 +18,13 @@ export type PriceField = {
 
 export type HistoryEntry = { at: string; path: string; from: number; to: number; by: string }
 export const groupTitles: Record<PriceGroup, string> = {
-  start: 'Старт-цены',
-  kinds: 'Сборка по видам',
-  options: 'Опции',
-  extras: 'Допы',
-  plans: 'Подписки',
-  discounts: 'Скидки и реферал',
-  stages: 'Этапы оплаты',
+  start: 'Starting prices',
+  kinds: 'Build by kind',
+  options: 'Options',
+  extras: 'Extras',
+  plans: 'Subscriptions',
+  discounts: 'Discounts and referral',
+  stages: 'Payment stages',
 }
 
 export function getAt(obj: unknown, path: string): unknown {

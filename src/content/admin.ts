@@ -1413,6 +1413,7 @@ export const admin = {
         not_a_number: 'a number is needed',
         unknown_path: 'there is no such price',
         stage_sum: 'stage shares must add up to 100',
+        byok_above_monthly: 'the monthly fee with your own API key cannot be above the normal monthly fee',
         bad_request: 'invalid request',
         unauthorized: 'session expired, sign in again',
         bad_origin: 'request from another page',
@@ -1441,7 +1442,7 @@ export const admin = {
       who: { owner: 'owner' },
       updated: 'Last edit {t}',
       neverUpdated: 'No edits yet, the default prices apply',
-      hqNote: 'Shell reads /api/prices every 6 hours: agents will not see new prices at once.',
+      hqNote: 'After a save the agents are told to reload the prices at once; if the agent server is unreachable they pick them up within 15 minutes.',
     },
     company: {
       routines: 'Routines',
