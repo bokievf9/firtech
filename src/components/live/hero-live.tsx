@@ -39,7 +39,7 @@ export function HeroLive({ locale, copy }: { locale: Locale; copy: Dict['hero'][
         ) : null}
       </div>
       <div className="relative min-h-[300px] bg-[#0b1030] min-[1580px]:min-h-[450px] min-[1880px]:min-h-[600px]">
-        {data ? <LiveOffice data={data} copy={copy} /> : <OfficeSkeleton />}
+        {data ? <LiveOffice data={data} copy={copy} locale={locale} /> : <OfficeSkeleton />}
         {/* Soft edges so the scene sits in the glass instead of being cut by it. */}
         <div
           aria-hidden="true"

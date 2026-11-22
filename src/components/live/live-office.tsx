@@ -1,5 +1,7 @@
 'use client'
 
+import { roleTitle } from '@/lib/role-titles'
+import type { Locale } from '@/lib/i18n'
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import type { AgentStatus, OfficeData } from '@/lib/office-view'
 import { publicToScene, type PublicOffice } from '@/lib/office-public'
@@ -16,7 +18,6 @@ import { createScene, type HitTarget, type Scene, sameHit } from '../pixel-offic
 export type LiveOfficeCopy = {
   canvas: string
   status: Record<string, string>
-  titles: Record<string, string>
 }
 
 // Dev preview of the quiet-hours office: everybody who is up goes to "sleeping", the queue is empty.
@@ -58,7 +59,15 @@ const fill = (s: string, vars: Record<string, string | number>) =>
 
 type Hover = { target: Extract<HitTarget, { kind: 'agent' }>; left: number; top: number }
 
-export default function LiveOffice({ data, copy }: { data: PublicOffice; copy: LiveOfficeCopy }) {
+export default function LiveOffice({
+  data,
+  copy,
+  locale,
+}: {
+  data: PublicOffice
+  copy: LiveOfficeCopy
+  locale: Locale
+}) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const sceneRef = useRef<Scene | null>(null)
@@ -134,7 +143,7 @@ export default function LiveOffice({ data, copy }: { data: PublicOffice; copy: L
   }, [force])
 
   const people = useMemo(() => officePeople(scene), [scene])
-  const titleOf = (id: string, fallback: string) => copy.titles[id] ?? fallback
+  const titleOf = (id: string, fallback: string) => roleTitle(id, fallback, locale)
   const label = fill(copy.canvas, {
     n: people.length,
     working: people.filter((p) => p.status === 'working').length,
