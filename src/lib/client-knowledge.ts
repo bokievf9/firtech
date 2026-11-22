@@ -2,7 +2,7 @@
 // `GET /admin/clients/:id/knowledge` (never carries page texts), the address check and the error codes of
 // `POST .../knowledge/import` (contract `agents/docs/admin-crm-api.md` «Знания клиента»).
 
-export const KNOWLEDGE_STATES = ['none', 'queued', 'running', 'done', 'failed'] as const
+export const KNOWLEDGE_STATES = ['none', 'pending', 'queued', 'running', 'done', 'failed'] as const
 export type KnowledgeState = (typeof KNOWLEDGE_STATES)[number]
 
 export type KnowledgeJob = {
@@ -25,6 +25,8 @@ export type ClientKnowledge = {
   site: string
   instagram: string
   state: KnowledgeState
+  // Own-site import held back until the client has a confirmed account (HQ `ck_pending`); null otherwise.
+  pending: { url: string; since: string | null } | null
   job: KnowledgeJob | null
   pages: number
   chunks: number
@@ -60,6 +62,12 @@ function jobOf(v: unknown): KnowledgeJob | null {
   }
 }
 
+function pendingOf(v: unknown): ClientKnowledge['pending'] {
+  const p = rec(v)
+  const url = str(p.url, 2048)
+  return url ? { url, since: when(p.since) } : null
+}
+
 export function normalizeClientKnowledge(body: unknown): ClientKnowledge | null {
   const b = rec(body)
   if (b.ok !== true) return null
@@ -67,6 +75,7 @@ export function normalizeClientKnowledge(body: unknown): ClientKnowledge | null 
     site: str(b.site, 2048),
     instagram: str(b.instagram, 120),
     state: stateOf(b.state),
+    pending: pendingOf(b.pending),
     job: jobOf(b.job),
     pages: num(b.pages),
     chunks: num(b.chunks),

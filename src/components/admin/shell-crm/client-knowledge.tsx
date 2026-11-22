@@ -19,7 +19,7 @@ import { Chip, shortTime, type Tone } from './bits'
 import { Empty, Loading, Offline, useHub } from '../hub/ui'
 
 const k = admin.pult.clients.knowledge
-const tone: Record<KnowledgeState, Tone> = { none: 'dim', queued: 'warn', running: 'warn', done: 'accent', failed: 'bad' }
+const tone: Record<KnowledgeState, Tone> = { none: 'dim', pending: 'warn', queued: 'warn', running: 'warn', done: 'accent', failed: 'bad' }
 
 // One client's knowledge: loads once, then asks again every 3 s while a crawl is running or queued and
 // stops otherwise; a hidden tab pauses it and a return to the tab asks at once.
@@ -106,6 +106,13 @@ export function ClientKnowledgePanel({ clientId }: { clientId: string }) {
         </span>
       </div>
       <p className="text-xs text-muted">{k.hint}</p>
+      {data.pending && data.state === 'pending' ? (
+        <p className="grid gap-0.5 rounded-xl border border-warn px-3 py-2 text-xs" data-knowledge-pending>
+          <span className="font-medium text-warn">{k.pendingBadge}</span>
+          <span className="break-all text-muted">{data.pending.url}</span>
+          <span className="text-faint">{k.pendingHint}</span>
+        </p>
+      ) : null}
 
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {(
@@ -188,7 +195,7 @@ export function ClientKnowledgePanel({ clientId }: { clientId: string }) {
         <p className="text-xs text-faint">{k.addressHint}</p>
         <div className="flex flex-wrap items-center gap-2">
           <Pending type="submit" pending={pending || busy} pendingLabel={k.importing} className={btnPrimary} data-import>
-            {data.state === 'done' || data.state === 'failed' ? k.reimport : k.import}
+            {data.state === 'done' || data.state === 'failed' ? k.reimport : data.state === 'pending' ? k.importAnyway : k.import}
           </Pending>
         </div>
         <p id="client-knowledge-problem" role="alert" data-knowledge-problem className="text-xs text-danger empty:hidden">

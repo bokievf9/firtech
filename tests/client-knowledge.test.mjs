@@ -61,3 +61,11 @@ test('the tab polls every 3 s only while busy, pauses on a hidden tab, opens lin
   assert.match(ui, /document\.hidden/)
   assert.doesNotMatch(ui, /target=/)
 })
+
+test('pending state: badge data from HQ, empty when absent', () => {
+  const v = m.normalizeClientKnowledge({ ok: true, state: 'pending', pending: { url: 'https://p.example', since: '2026-11-23T10:00:00Z' } })
+  assert.equal(v.state, 'pending')
+  assert.deepEqual(v.pending, { url: 'https://p.example', since: '2026-11-23T10:00:00Z' })
+  assert.equal(m.normalizeClientKnowledge({ ok: true, state: 'none', pending: null }).pending, null)
+  assert.equal(m.normalizeClientKnowledge({ ok: true, state: 'done' }).pending, null)
+})

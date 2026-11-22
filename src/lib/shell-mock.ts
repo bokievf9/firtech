@@ -270,7 +270,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   const agentsMock = createAgentsMock(start)
   const settingsMock = createSettingsMock()
   const knowledgeMock = createKnowledgeMock(start)
-  const clientKnowledgeMock = createClientKnowledgeMock()
+  const clientKnowledgeMock = createClientKnowledgeMock({ pending: process.env.HQ_MOCK_KNOWLEDGE_PENDING === '1' })
   const campaignsMock = createCampaignsMock()
 
   return function handle(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', seg: string[], query: Json, body: Json, now: number): Reply | null {

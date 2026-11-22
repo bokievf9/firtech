@@ -6,8 +6,9 @@ type Page = { url: string; title: string; chars: number; fetchedAt: string }
 
 export const MOCK_KNOWLEDGE_READS_TO_FINISH = 3
 
-export function createClientKnowledgeMock() {
-  let state: 'none' | 'running' | 'done' | 'failed' = 'none'
+export function createClientKnowledgeMock(opts: { pending?: boolean } = {}) {
+  let pendingUrl: string | null = opts.pending ? 'https://alice-studio.example' : null
+  let state: 'none' | 'pending' | 'running' | 'done' | 'failed' = pendingUrl ? 'pending' : 'none'
   let reads = 0
   let site = 'https://alice-studio.example'
   let job: Rec | null = null
@@ -40,7 +41,7 @@ export function createClientKnowledgeMock() {
           job = { ...job, state: 'done', pages: items.length, chunks: items.length * 4, chars: items.reduce((n, p) => n + p.chars, 0), finishedAt: at }
         }
       }
-      return { ok: true, site, instagram: '@alice.studio', instagramImported: false, state, job, pages: items.length, chunks: items.length * 4, lastAt, errors, items }
+      return { ok: true, site, instagram: '@alice.studio', instagramImported: false, state, pending: pendingUrl ? { url: pendingUrl, since: at } : null, job, pages: items.length, chunks: items.length * 4, lastAt, errors, items }
     }
     if (method === 'POST' && seg[3] === 'import' && seg.length === 4) {
       const url = typeof body.url === 'string' && body.url ? body.url : site
@@ -48,6 +49,7 @@ export function createClientKnowledgeMock() {
       if (state === 'running') return { ok: true, jobId: String(job?.id ?? 'j_1'), state: 'running', already: true }
       if (!site) site = url
       state = 'running'
+      pendingUrl = null
       reads = 0
       job = { id: `j_${now}`, url, origin: 'manual', state: 'running', pages: 0, chunks: 0, chars: 0, errors: 0, skipped: 0, truncated: false, error: '', startedAt: at, finishedAt: null }
       return { ok: true, jobId: String(job.id), state: 'running', already: false }
