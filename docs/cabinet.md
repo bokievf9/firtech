@@ -287,3 +287,20 @@ Without `HQ_ADMIN_URL` and `HQ_ADMIN_TOKEN` (development) `cabinet-hq.ts` answer
 Над тредом «Поддержка» в «Сообщениях» полоса с кнопкой «Вопрос решён» (`ResolveBar` в `components/cabinet/messages-panel.tsx`): она закрывает самое новое незакрытое обращение клиента (из `tickets` ответа HQ; после отправки сообщения в тред берётся `ticketId` из ответа `POST /threads/:tid/messages`). Браузер шлёт `POST /api/cabinet/tickets/<id>/close` (сессия, Origin), сайт вызывает HQ `POST /admin/clients/:id/tickets/:ticketId/close` (`closeClientTicket` в `lib/cabinet-hq.ts`). HQ закрывает только обращение самого клиента (чужое или несуществующее: 404), повтор безопасен (`already: true`), ответ `{ ok, already, item: { status: 'closed', ... } }`. Полоса пропадает, статус `closed` («Вопрос решён») знает `parseTicket` и список обращений `TicketsPanel` (запасной вид без треда поддержки, там та же кнопка). Правил «переоткрытия» в контракте нет: новое сообщение клиента всегда создаёт НОВОЕ обращение, закрытое остаётся закрытым, и полоса возвращается с новым `ticketId`. Тест: `tests/e2e/hq-contracts.spec.ts` («support thread»), мок HQ помнит закрытые обращения.
 
 **Заголовок демо.** Сервер сайта шлёт `x-chat-token` (`HQ_CHAT_TOKEN`, `chatTokenHeader` в `lib/demo-gate.ts`) вместе с `clientId`/`clientEmail` в `POST /agent/:id/chat` (`/api/demo-agent`, `/api/agent-demo`); токен только на сервере.
+
+## Письма и код (2026-11-22, пункт 12 ревью)
+- Подтверждение почты и сброс пароля идут кодом из письма: после регистрации (и после «Забыли пароль?») форма показывает
+  «Введите код из письма» (`components/cabinet/code-form.tsx`: 6 цифр, автофокус, вставка целиком, отправка на шестой цифре,
+  «ещё раз» через 60 с). Серверное действие `verifyCodeAction` зовёт `supabase.auth.verifyOtp({ email, token, type })`
+  с `type: 'signup'` или `'recovery'`; после `signup` сессия и переход в кабинет (или `signed_in` рядом с формой заявки),
+  после `recovery` переход на `/cabinet/reset`. Входа без пароля («magic link») в кабинете нет, поэтому `type: 'email'` не используется.
+- Ошибки: Supabase отвечает `otp_expired` и на неверный, и на просроченный код (`mailer_otp_exp` = 3000 с), текст
+  `code_invalid` говорит об обоих; не 6 цифр: `code_format`; много попыток: `rate_limit`. Тексты RU/EN в `cabinet.auth`.
+- Ссылка в том же письме (`{{ .ConfirmationURL }}`) остаётся запасным путём: callback не менялся.
+- Шаблоны: `supabase/templates/{confirmation,magic_link,recovery,email_change}.html` и `subjects.json`
+  (RU, короткая EN-строка внизу; таблицы, инлайновые стили, без картинок, ширина 600).
+- Загрузка в проект (запускает главное окно или владелец; токен только из окружения, в вывод не попадает):
+  `SUPABASE_ACCESS_TOKEN=... node scripts/supabase-auth-templates.mjs` (`--dry-run` печатает длины, `--ref` другой проект).
+  Меняет в Auth проекта `mailer_templates_*_content` и `mailer_subjects_*`, остальное не трогает.
+- Тесты: `tests/cabinet-auth.test.mjs` (схема, ошибки, письма), e2e `tests/e2e/auth-code.spec.ts` (заглушка
+  `tests/e2e/fake-supabase.mjs`: код 123456 верный, 999999 лимит, любой другой `otp_expired`).

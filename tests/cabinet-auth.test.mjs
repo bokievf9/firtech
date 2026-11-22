@@ -257,3 +257,52 @@ test('auth 5xx (2026-11-22): a dead fetch is «network», a 500 about mail is «
     assert.match(dict.cabinet.auth.errors.server_error, /AUTH-5XX/)
   }
 })
+
+test('code confirmation: schema, normalising a paste, verifyOtp error mapping, both dictionaries', () => {
+  assert.equal(auth.normalizeCode(' 123 456 '), '123456')
+  assert.equal(auth.normalizeCode('12-34-56'), '123456')
+  assert.ok(auth.verifySchema.safeParse({ email: 'a@b.co', token: '123456', kind: 'signup' }).success)
+  assert.ok(auth.verifySchema.safeParse({ email: 'a@b.co', token: '123456', kind: 'recovery' }).success)
+  for (const token of ['12345', '1234567', 'abcdef', '']) assert.ok(!auth.verifySchema.safeParse({ email: 'a@b.co', token, kind: 'signup' }).success, token)
+  assert.ok(!auth.verifySchema.safeParse({ email: 'a@b.co', token: '123456', kind: 'magiclink' }).success)
+  assert.equal(auth.verifyErrorKey({ code: 'otp_expired', status: 403 }), 'code_invalid')
+  assert.equal(auth.verifyErrorKey({ status: 403 }), 'code_invalid')
+  assert.equal(auth.verifyErrorKey({ code: 'over_request_rate_limit', status: 429 }), 'rate_limit')
+  assert.equal(auth.verifyErrorKey({ status: 0, name: 'AuthRetryableFetchError' }), 'network')
+  for (const d of [ru, en]) {
+    const a = d.cabinet.auth
+    for (const k of ['codeTitle', 'codeText', 'codeLabel', 'codeHint', 'codeSubmit', 'codeChecking', 'codeMailNote', 'codeResend', 'codeResendIn', 'codeLinkFallback'])
+      assert.ok(a[k], k)
+    assert.match(a.codeText, /\{email\}/)
+    assert.match(a.codeResendIn, /\{seconds\}/)
+    for (const k of ['code_invalid', 'code_format', 'rate_limit']) assert.ok(a.errors[k], k)
+  }
+  const actions = readFileSync('src/app/[locale]/cabinet/actions.ts', 'utf8')
+  assert.match(actions, /export async function verifyCodeAction/)
+  assert.match(actions, /auth\.verifyOtp\(\{ email, token, type \}\)/)
+  assert.match(actions, /redirect\(`\/\$\{locale\}\/cabinet\/reset`\)/)
+  // The link in the letter stays: the callback still exchanges the code / token_hash.
+  assert.match(readFileSync('src/app/[locale]/cabinet/auth/callback/route.ts', 'utf8'), /token_hash/)
+  const forms = readFileSync('src/components/cabinet/auth-forms.tsx', 'utf8')
+  assert.match(forms, /kind="signup"/)
+  assert.match(forms, /kind="recovery"/)
+})
+
+test('email templates: four letters, code and link variables, no forbidden words', () => {
+  const need = {
+    confirmation: ['{{ .Token }}', '{{ .ConfirmationURL }}'],
+    magic_link: ['{{ .Token }}', '{{ .ConfirmationURL }}'],
+    recovery: ['{{ .Token }}', '{{ .ConfirmationURL }}'],
+    email_change: ['{{ .Token }}', '{{ .ConfirmationURL }}', '{{ .NewEmail }}'],
+  }
+  for (const [name, vars] of Object.entries(need)) {
+    const html = readFileSync(`supabase/templates/${name}.html`, 'utf8')
+    for (const v of vars) assert.ok(html.includes(v), `${name} ${v}`)
+    assert.match(html, /https:\/\/firtech\.pro\/ru\/builder/, name)
+    assert.match(html, /hello@firtech\.pro/, name)
+    assert.doesNotMatch(html, /<img/i, `${name}: no remote images`)
+    assert.doesNotMatch(html, /(^|[^а-яё])бот|приёмщик|калькулятор|конструктор/i, `${name}: forbidden words`)
+  }
+  const subjects = JSON.parse(readFileSync('supabase/templates/subjects.json', 'utf8'))
+  for (const k of Object.keys(need)) assert.ok(typeof subjects[k] === 'string' && subjects[k].length > 5, k)
+})

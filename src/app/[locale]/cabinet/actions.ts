@@ -9,6 +9,10 @@ import {
   authLogFields,
   callbackUrl,
   forgotSchema,
+  isCodeKind,
+  normalizeCode,
+  verifyErrorKey,
+  verifySchema,
   resetSchema,
   safeNextPath,
   signInSchema,
@@ -105,17 +109,44 @@ export async function resendAction(_: FormState, form: FormData): Promise<FormSt
   if (!parsed.success) return { error: 'invalid_email' }
   const supabase = await createClient()
   if (!supabase) return { error: 'unavailable' }
-  const { error } = await supabase.auth.resend({
-    type: 'signup',
-    email: parsed.data.email,
-    options: { emailRedirectTo: callbackUrl(appOrigin(await headers()), locale, nextOf(form, locale), 'signup') },
-  })
+  // `kind=recovery`: the reset code again (a new reset request); default: the sign-up confirmation.
+  const recovery = form.get('kind') === 'recovery'
+  const { error } = recovery
+    ? await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+        redirectTo: callbackUrl(appOrigin(await headers()), locale, `/${locale}/cabinet/reset`, 'reset'),
+      })
+    : await supabase.auth.resend({
+        type: 'signup',
+        email: parsed.data.email,
+        options: { emailRedirectTo: callbackUrl(appOrigin(await headers()), locale, nextOf(form, locale), 'signup') },
+      })
   if (error) {
     logAuth('resend', error)
     const key = authErrorKey(error)
     return { error: key === 'rate_limit' ? 'email_rate_limit' : key, email: parsed.data.email, canResend: true }
   }
   return { notice: 'resent', email: parsed.data.email, canResend: true }
+}
+
+// The 6-digit code from the email (owner 2026-11-22: «подтверждение кодом»). The link in the same letter
+// stays as the fallback through the callback. `signup`: the session opens and the visitor goes on (cabinet,
+// or the lead form when `stay=1`); `recovery`: the session opens and the new-password form follows.
+export async function verifyCodeAction(_: FormState, form: FormData): Promise<FormState> {
+  const locale = localeOf(form)
+  const kind = isCodeKind(form.get('kind')) ? String(form.get('kind')) : 'signup'
+  const parsed = verifySchema.safeParse({ email: form.get('email') ?? '', token: normalizeCode(form.get('token')), kind })
+  if (!parsed.success) return { error: parsed.error.issues[0]?.path[0] === 'email' ? 'invalid_email' : 'code_format', email: String(form.get('email') ?? '') }
+  const supabase = await createClient()
+  if (!supabase) return { error: 'unavailable' }
+  const { email, token, kind: type } = parsed.data
+  const { data, error } = await supabase.auth.verifyOtp({ email, token, type })
+  if (error || !data.session) {
+    if (error) logAuth('verify_code', error)
+    return { error: error ? verifyErrorKey(error) : 'code_invalid', email }
+  }
+  if (type === 'recovery') redirect(`/${locale}/cabinet/reset`)
+  if (stays(form)) return { notice: 'signed_in', email }
+  redirect(nextOf(form, locale))
 }
 
 export async function forgotAction(_: FormState, form: FormData): Promise<FormState> {
@@ -133,7 +164,7 @@ export async function forgotAction(_: FormState, form: FormData): Promise<FormSt
     if (key === 'rate_limit' || key === 'email_rate_limit' || key === 'email_unavailable')
       return { error: key === 'rate_limit' ? 'email_rate_limit' : key, email: parsed.data.email }
   }
-  // Same answer whether or not the address has an account.
+  // Same answer whether or not the address has an account; the code form follows.
   return { notice: 'reset_sent', email: parsed.data.email }
 }
 
