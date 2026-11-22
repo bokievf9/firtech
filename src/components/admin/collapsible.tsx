@@ -2,6 +2,13 @@
 
 import { CaretDown } from '@phosphor-icons/react'
 import { useId, useState } from 'react'
+
+// True on screens at least `min` px wide, read once when the component first renders. For panels that are
+// client-rendered after a fetch (never in server HTML), so it cannot mismatch: open on desktop, folded on a phone.
+export function useWideDefault(min = 1024): boolean {
+  const [wide] = useState(() => typeof window !== 'undefined' && window.matchMedia(`(min-width: ${min}px)`).matches)
+  return wide
+}
 import { cn } from '@/components/admin/kit'
 
 // The one disclosure of the Shell (v4): a full-width button row (44 px hit area, `aria-expanded`,

@@ -4,6 +4,7 @@ import { ArrowsClockwise, CheckCircle, Flask, Hourglass, WarningCircle, XCircle 
 import { useState } from 'react'
 import { errText, fill, hq } from '@/components/admin/control/api'
 import { Loading, Offline, useConfirm, useHqView, useHub, btn, btnDanger, btnPrimary } from '@/components/admin/hub/ui'
+import { Collapsible, useWideDefault } from '@/components/admin/collapsible'
 import { Pending } from '@/components/ui/pending'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
@@ -31,51 +32,75 @@ function Health({ health, className }: { health: StepHealth; className?: string 
   )
 }
 
-function Step({ step, now }: { step: ProcessStep; now: number }) {
+// A step is a record, so a chain is a table: step, health, last success, failures, stuck, last failure.
+// On a phone every row folds into a card, the cell labels come from `data-label`.
+const cell = 'px-3 py-2 align-top max-sm:flex max-sm:justify-between max-sm:gap-3 max-sm:px-0 max-sm:py-0.5 max-sm:text-xs max-sm:before:text-faint max-sm:before:content-[attr(data-label)]'
+
+function StepRow({ step, now }: { step: ProcessStep; now: number }) {
   return (
-    <li className="rounded-xl border border-line bg-surface p-3" data-step={step.id} data-health={step.health}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-medium">{step.title}</h3>
+    <tr className="border-t border-line first:border-t-0 max-sm:block max-sm:rounded-xl max-sm:border max-sm:p-3" data-step={step.id} data-health={step.health}>
+      <td className="px-3 py-2 align-top max-sm:block max-sm:p-0 max-sm:pb-1.5">
+        <p className="text-sm font-medium">{step.title}</p>
+        {step.hint ? <p className="mt-0.5 text-xs font-normal text-muted">{step.hint}</p> : null}
+        {step.lastFailure ? (
+          <p className="mt-1 text-xs font-normal text-muted">
+            <span className="text-faint">{p.lastFailure}: </span>
+            {step.lastFailure.text}
+            {step.lastFailure.at ? ` (${sinceText(step.lastFailure.at, now)})` : ''}
+          </p>
+        ) : null}
+      </td>
+      <td className={cell} data-label={p.healthCol}>
         <Health health={step.health} />
-      </div>
-      {step.hint ? <p className="mt-0.5 text-xs text-muted">{step.hint}</p> : null}
-      <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
-        <div>
-          <dt className="text-faint">{p.lastOk}</dt>
-          <dd className="mt-0.5">{sinceText(step.lastOkAt, now)}</dd>
-        </div>
-        <div>
-          <dt className="text-faint">{p.failures}</dt>
-          <dd className={cn('mt-0.5', step.failures7d > 0 && 'text-danger')}>{step.failures7d}</dd>
-        </div>
-        <div>
-          <dt className="text-faint">{p.stuck}</dt>
-          <dd className={cn('mt-0.5', step.stuck > 0 && 'text-warn')}>{step.stuck}</dd>
-        </div>
-      </dl>
-      {step.lastFailure ? (
-        <p className="mt-2 border-t border-line pt-2 text-xs text-muted">
-          <span className="text-faint">{p.lastFailure}: </span>
-          {step.lastFailure.text}
-          {step.lastFailure.at ? ` (${sinceText(step.lastFailure.at, now)})` : ''}
-        </p>
-      ) : null}
-    </li>
+      </td>
+      <td className={cn(cell, 'text-xs')} data-label={p.lastOk}>
+        {sinceText(step.lastOkAt, now)}
+      </td>
+      <td className={cn(cell, 'text-xs tabular-nums', step.failures7d > 0 && 'text-danger')} data-label={p.failures}>
+        {step.failures7d}
+      </td>
+      <td className={cn(cell, 'text-xs tabular-nums', step.stuck > 0 && 'text-warn')} data-label={p.stuck}>
+        {step.stuck}
+      </td>
+    </tr>
   )
 }
 
 function Chain({ chain, now }: { chain: ProcessChain; now: number }) {
+  const wide = useWideDefault()
+  const bad = chain.steps.filter((s) => s.health === 'fail' || s.health === 'warn').length
   return (
-    <section aria-label={chain.title} data-chain={chain.id} data-health={chain.health}>
-      <div className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h2 className="font-brand text-base">{chain.title}</h2>
-        <Health health={chain.health} />
-      </div>
-      <ol className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        {chain.steps.map((s) => (
-          <Step key={s.id} step={s} now={now} />
-        ))}
-      </ol>
+    <section aria-label={chain.title} data-chain={chain.id} data-health={chain.health} className="rounded-card border border-line bg-surface">
+      <Collapsible
+        as="h2"
+        title={chain.title}
+        defaultOpen={wide || chain.health !== 'ok'}
+        summary={
+          <span className="inline-flex items-center gap-2">
+            {bad ? <span className="text-warn">{fill(p.needAttention, { n: bad })}</span> : null}
+            <Health health={chain.health} />
+          </span>
+        }
+        className="px-2"
+        headClassName="font-medium"
+      >
+        <table className="mb-2 w-full text-left max-sm:block">
+          <thead className="max-sm:hidden">
+            <tr className="text-xs font-normal text-faint">
+              <th scope="col" className="px-3 py-1 font-normal">{p.step}</th>
+              <th scope="col" className="px-3 py-1 font-normal">{p.healthCol}</th>
+              <th scope="col" className="px-3 py-1 font-normal">{p.lastOk}</th>
+              <th scope="col" className="px-3 py-1 font-normal">{p.failures}</th>
+              <th scope="col" className="px-3 py-1 font-normal">{p.stuck}</th>
+            </tr>
+          </thead>
+          <tbody className="max-sm:grid max-sm:gap-2">
+            {chain.steps.map((st) => (
+              <StepRow key={st.id} step={st} now={now} />
+            ))}
+          </tbody>
+        </table>
+      </Collapsible>
     </section>
   )
 }

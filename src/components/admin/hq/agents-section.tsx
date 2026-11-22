@@ -4,6 +4,7 @@ import { ArrowLeft, ClockCounterClockwise, PencilSimple, X } from '@phosphor-ico
 import { deptLabel } from '@/lib/admin-labels'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { Collapsible, useWideDefault } from '@/components/admin/collapsible'
 import { PageHeader } from '@/components/admin/hq/page-header'
 import { errText, hq } from '@/components/admin/control/api'
 import { Loading, Offline, btn, btnPrimary, inputClass, useConfirm, useHqView, useHub } from '@/components/admin/hub/ui'
@@ -80,12 +81,13 @@ function AgentLink({ agent: a, active }: { agent: AgentRow; active: boolean }) {
   )
 }
 
-function Block({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
+// A block of the agent card: an accordion row. Desktop opens all of them; a phone opens only the first (`open`).
+function Block({ title, children, id, open }: { title: string; children: React.ReactNode; id?: string; open?: boolean }) {
+  const wide = useWideDefault()
   return (
-    <section className="rounded-card border border-line bg-surface p-4" data-block={id}>
-      <h3 className="text-sm font-medium">{title}</h3>
-      <div className="mt-2 text-sm">{children}</div>
-    </section>
+    <Collapsible as="h3" title={title} defaultOpen={wide || Boolean(open)} data-block={id} className="rounded-card border border-line bg-surface px-3">
+      <div className="px-1 pt-1 pb-3 text-sm">{children}</div>
+    </Collapsible>
   )
 }
 
@@ -135,7 +137,7 @@ function AgentCardView({ id, onChanged }: { id: string; onChanged: () => void })
         </button>
       </header>
 
-      <Block title={t.sections.instructions} id="instructions">
+      <Block title={t.sections.instructions} id="instructions" open>
         <div className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted">
           <span>{card.instructions.version ? fill(t.version, { n: card.instructions.version }) : t.noVersions}</span>
           <span className="font-mono tabular-nums">{fill(t.chars, { n: card.instructions.chars, max: card.instructions.maxChars })}</span>
