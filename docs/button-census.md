@@ -614,3 +614,24 @@ Tag `E:tc` = `tests/e2e/admin-tasks-calendar.spec.ts`; `U:tc` = `tests/hq-tasks-
 | Calendar / month | day number | opens that week | - | - | untested (click) |
 | Calendar / month | «ещё N» | opens that week when a day has more than three items | - | - | untested (click) |
 | Calendar | failed call | «HQ не отвечает» with «Повторить», the last good grid stays | - | `U:tc` (normalizer) | untested (browser) |
+
+## HQ, Audit log and Analytics (2026-11-23), adds to the rows above
+Tag `E:aa` = `tests/e2e/admin-audit-analytics.spec.ts`; `U:aa` = `tests/hq-audit-analytics.test.mjs`. Both sections are built, read only, last in the menu (after Settings, no number key). Audit log reads `GET audit?kind&actor&from&to&limit` every 60 s; Analytics reads `GET analytics?week=` every 60 s.
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/audit` | menu link «Audit log» | opens the page | - | `E:aa`, `U:hq-shell` | pass |
+| Audit log | select «Вид» | one kind: Решения, Настройки, Инструкции, Доверие, Действия владельца (with counts) | `GET audit?kind=` | `E:aa`, `U:aa` (`auditPath`) | pass |
+| Audit log | select «Кто» | one actor (owner, system, an agent id from the list HQ sends) | `GET audit?actor=` | `E:aa` | pass |
+| Audit log | dates «С» / «По» | inclusive date range in the company's time zone | `GET audit?from=&to=` | `E:aa` | pass |
+| Audit log | «Сбросить фильтры» (only with a filter on) | clears the four filters | - | `E:aa` | pass |
+| Audit log | «Обновить» | reloads the first page | `GET audit` | `E:aa` (present) | untested (click) |
+| Audit log | «Показать ещё» (only with a next page) | appends the next page by cursor, no repeats | `GET audit?cursor=` | `E:aa`, `U:aa` (`appendEntries`) | pass |
+| Audit log | action link of a row | instruction to the agent card, setting and trust to Settings, decision to Approvals | - | `E:aa` (instruction), `U:aa` (`auditHref`) | pass (instruction), untested (others in browser) |
+| Audit log | failed call | «HQ не отвечает» with «Повторить»; a failed «ещё» shows the same note under the list | - | `U:aa` (normalizer) | untested (browser) |
+| `/admin/analytics` | menu link «Analytics» | opens the page | - | `E:aa`, `U:hq-shell` | pass |
+| Analytics | «Прошлая неделя», «Следующая неделя» | move the page by one ISO week | `GET analytics?week=` | `E:aa` (back), `U:aa` (`shiftIsoWeek`) | pass (back), untested (forward) |
+| Analytics | «Текущая» | back to the current week (disabled there) | `GET analytics` | `E:aa` | pass |
+| Analytics | «Обновить» | reloads the week | `GET analytics` | `E:aa` (present) | untested (click) |
+| Analytics | funnel, first answer, site events, sources | numbers of the week against the previous one; the funnel and the events are those of the marketing «Цифры» tab | `GET analytics` | `E:aa`, `U:aa` (`stepRate`, `change`, `minutesLabel`, `siteRows`) | pass |
+| Analytics | failed call | «HQ не отвечает» with «Повторить», the last good numbers stay | - | `U:aa` (normalizer) | untested (browser) |

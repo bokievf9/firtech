@@ -5,6 +5,8 @@ import {
   ChatCircleText,
   FileText,
   FolderSimple,
+  ChartLineUp,
+  ClockCounterClockwise,
   Gear,
   Graph,
   type Icon,
@@ -48,6 +50,8 @@ const icons: Record<HqSectionId, Icon> = {
   content: Megaphone,
   finance: Money,
   settings: Gear,
+  audit: ClockCounterClockwise,
+  analytics: ChartLineUp,
 }
 
 function useNow(step = 15_000) {

@@ -191,6 +191,9 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^processes$/ },
   // HQ «Calendar»: calls, milestones, routine runs and planned content of a date range (read only).
   { method: 'GET', path: /^calendar$/, query: ['from', 'to'] },
+  // HQ «Audit log» and «Analytics»: the journal of decisions and changes, the funnel and sources (read only).
+  { method: 'GET', path: /^audit$/, query: ['kind', 'actor', 'from', 'to', 'cursor', 'limit'] },
+  { method: 'GET', path: /^analytics$/, query: ['week'] },
   { method: 'POST', path: /^processes\/drill$/, body: z.object({ action: z.enum(['start', 'clear']) }).strict() },
   { method: 'GET', path: /^company$/ },
   { method: 'GET', path: /^company\/playbooks\/[a-z][a-z0-9-]{0,63}$/ },
