@@ -22,7 +22,7 @@ import {
   type Milestone,
   type ProjectDetail,
   type ProjectStatus,
-} from '@/lib/pult'
+} from '@/lib/shell'
 import { Chip, shortDate } from './bits'
 import { Kanban } from './kanban'
 import { btn, Empty, inputClass, Loading, Offline, useHqView, useHub } from '../hub/ui'

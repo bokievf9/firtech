@@ -27,7 +27,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { btn, btnPrimary, useConfirm } from '@/components/admin/hub/ui'
-import { Markdown } from '@/components/admin/pult/markdown'
+import { Markdown } from '@/components/admin/shell-crm/markdown'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { diffStats, sideBySide, wordDiff, type DiffOp } from '@/lib/diff'

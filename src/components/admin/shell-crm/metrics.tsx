@@ -6,7 +6,7 @@ import { fill } from '@/components/admin/control/api'
 import { Sparkline } from '@/components/admin/sparkline'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { daySeries, delta, eventSeries, funnelShares, isoWeek, normalizeMetrics, shiftWeek, SITE_EVENTS } from '@/lib/pult'
+import { daySeries, delta, eventSeries, funnelShares, isoWeek, normalizeMetrics, shiftWeek, SITE_EVENTS } from '@/lib/shell'
 import { DayBars, usd } from './bits'
 import { Loading, Offline, useHqView, useHub } from '../hub/ui'
 

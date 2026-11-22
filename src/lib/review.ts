@@ -1,6 +1,6 @@
-import { breakdownSource, fileUrl, safeRenderPath, safeUrl } from './pult'
+import { breakdownSource, fileUrl, safeRenderPath, safeUrl } from './shell'
 
-// Ревью-центр (contract «Ревью-центр», 2026-11-21, docs/pult.md): view models of GET /admin/review,
+// Ревью-центр (contract «Ревью-центр», 2026-11-21, docs/shell.md): view models of GET /admin/review,
 // GET /admin/trends and the decisions of POST /admin/review/:id. Pure: no I/O, no React. Nothing
 // from HQ is trusted: unknown fields are dropped, missing ones get defaults, media paths must stay
 // inside the renders folder, links must be http(s).

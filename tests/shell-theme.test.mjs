@@ -5,7 +5,7 @@ import path from 'node:path'
 import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
 
-// Owner panel colours (docs/pult.md, «Темы и цвета отделов»): department tokens exist in both theme
+// Owner panel colours (docs/shell.md, «Темы и цвета отделов»): department tokens exist in both theme
 // blocks of globals.css, text tokens pass AA on every surface, the helper names them, and the admin
 // components keep to tokens (no prefers-color-scheme, no raw white/black).
 const src = pathToFileURL(path.resolve('src') + '/').href
@@ -23,8 +23,8 @@ registerHooks({
   },
 })
 
-const { deptTheme, deptOf } = await import('../src/lib/pult-theme.ts')
-const { PANELS } = await import('../src/lib/pult.ts')
+const { deptTheme, deptOf } = await import('../src/lib/shell-theme.ts')
+const { PANELS } = await import('../src/lib/shell.ts')
 
 const css = readFileSync('src/app/globals.css', 'utf8')
 const blockOf = (start) => {

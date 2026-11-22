@@ -30,7 +30,7 @@ import {
   type BatchAction,
 } from '@/lib/approvals'
 import { cn } from '@/lib/cn'
-import { deptTheme } from '@/lib/pult-theme'
+import { deptTheme } from '@/lib/shell-theme'
 import {
   dropCount,
   editPayload,

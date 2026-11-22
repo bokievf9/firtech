@@ -6,7 +6,7 @@ import { errText, fill, hq } from '@/components/admin/control/api'
 import { Search } from '@/components/admin/control/crm-hq-ui'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { INVOICE_STATUSES, isOverdue, matchesQuery, normalizeInvoiceItem, normalizeInvoices, type Invoice } from '@/lib/pult'
+import { INVOICE_STATUSES, isOverdue, matchesQuery, normalizeInvoiceItem, normalizeInvoices, type Invoice } from '@/lib/shell'
 import { InvoiceChip, shortDate, shortTime, TxLink, usd } from './bits'
 import { CopyButton, Empty, Loading, Offline, Pills, useConfirm, useHqView, useHub } from '../hub/ui'
 

@@ -4,7 +4,7 @@ import path from 'node:path'
 import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
 
-// Чаты с клиентами (docs/pult.md): normalizing, sorting, unread, merging a poll into the open thread.
+// Чаты с клиентами (docs/shell.md): normalizing, sorting, unread, merging a poll into the open thread.
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
   resolve(specifier, context, next) {

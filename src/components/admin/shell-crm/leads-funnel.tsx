@@ -23,7 +23,7 @@ import {
   stageMove,
   type Lead,
   type LeadStage,
-} from '@/lib/pult'
+} from '@/lib/shell'
 import { Kanban } from './kanban'
 import { LeadBreakdown } from './lead-breakdown'
 import { btn, btnPrimary, CopyButton, Empty, inputClass, Loading, Offline, Pills, useHqView, useHub } from '../hub/ui'

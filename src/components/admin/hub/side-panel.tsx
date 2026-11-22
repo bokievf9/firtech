@@ -5,8 +5,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef } from 'react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import type { PanelId } from '@/lib/pult'
-import { deptTheme } from '@/lib/pult-theme'
+import type { PanelId } from '@/lib/shell'
+import { deptTheme } from '@/lib/shell-theme'
 
 const h = admin.hub
 

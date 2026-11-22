@@ -1,4 +1,4 @@
-import { safeUrl } from './pult'
+import { safeUrl } from './shell'
 
 // Чаты с клиентами (contract «Ревью-центр», 2026-11-21): GET /admin/chats, GET /admin/chats/:id and
 // POST /admin/chats/:id/reply. Pure view models: sorting, unread, the open thread's messages and

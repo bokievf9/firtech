@@ -145,7 +145,6 @@ test('Tasks and Calendar are built sections with their own pages', () => {
   for (const id of ['tasks', 'calendar']) {
     const s = shell.sectionById(id)
     assert.equal(s.state, 'ready')
-    assert.equal(shell.isSoonSection(id), false)
     assert.match(read(`src/app/admin/(hq)/${id}/page.tsx`), /export default/)
   }
   assert.match(read('src/components/admin/hq/tasks-section.tsx'), /Assignments/)

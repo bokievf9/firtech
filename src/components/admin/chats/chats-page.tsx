@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btnPrimary, inputClass, modalOpen, Offline, typingIn, useHqView } from '@/components/admin/hub/ui'
-import { Chip } from '@/components/admin/pult/bits'
+import { Chip } from '@/components/admin/shell-crm/bits'
 import { cn } from '@/lib/cn'
 import {
   canReplyTo,

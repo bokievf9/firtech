@@ -4,7 +4,7 @@ import path from 'node:path'
 import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
 
-// Approvals (docs/pult.md «Approvals»): tabs over the review queue, batch plans, version restore.
+// Approvals (docs/shell.md «Approvals»): tabs over the review queue, batch plans, version restore.
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
   resolve(specifier, context, next) {

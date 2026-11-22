@@ -89,17 +89,17 @@ Legend of `E:` tags (file : test title):
 | `E:keys-9-0` | admin.spec : «keys 9 and 0 open the review centre and the chats» |
 | `E:review` | admin.spec : «review centre: rail with counts, queue, J/K step, the revise composer and the trend link dialog» |
 | `E:chats` | admin.spec : «chats: a thread opens, the reply box sends with Enter and the answer joins the thread» |
-| `E:editor` | admin-pult4.spec : «review: E opens the full-screen editor, type, find and replace, save as a version, compare with v1» |
-| `E:editor-esc` | admin-pult4.spec : «review editor: Esc with unsaved changes asks first, ⌘Enter saves and closes» |
-| `E:editor-phone` | admin-pult4.spec : «phone: the editor has its toolbar at the bottom and Поручения fits the screen» |
-| `E:pack-editor` | admin-pult4.spec : «review: E on a КП pack opens its first document, the stage has «Править» for each document» |
-| `E:doc-rows` | admin-pult4.spec : «back office: every document row opens the full-screen editor, pending or approved, a КП too» (an issued invoice has the button disabled) |
-| `E:doc-director` | admin-pult4.spec : «Director: the «Документы» tab lists documents by client with «Править»; approvals are part of Поручения» |
-| `E:breakdown` | admin-pult4.spec : «review: the sales item shows «Разбор заявки» with answers, estimate links and stages» |
-| `E:breakdown-lead` | admin-pult4.spec : «sales: the lead drawer shows «Разбор заявки» (old link and no link too)» |
-| `E:orders` | admin-pult4.spec : «Поручения: the composer makes a task and the timeline shows it; N focuses the composer» (also «Напомнить» / «Отменить» with the confirm) |
-| `E:orders-cmd` | admin-pult4.spec : «Поручения: a slash opens the command list, Tab completes, Esc closes the list only» |
-| `E:palette-orders` | admin-pult4.spec : «⌘K: a Director command answers inside the Поручения timeline, not in a toast» |
+| `E:editor` | admin-shell4.spec : «review: E opens the full-screen editor, type, find and replace, save as a version, compare with v1» |
+| `E:editor-esc` | admin-shell4.spec : «review editor: Esc with unsaved changes asks first, ⌘Enter saves and closes» |
+| `E:editor-phone` | admin-shell4.spec : «phone: the editor has its toolbar at the bottom and Поручения fits the screen» |
+| `E:pack-editor` | admin-shell4.spec : «review: E on a КП pack opens its first document, the stage has «Править» for each document» |
+| `E:doc-rows` | admin-shell4.spec : «back office: every document row opens the full-screen editor, pending or approved, a КП too» (an issued invoice has the button disabled) |
+| `E:doc-director` | admin-shell4.spec : «Director: the «Документы» tab lists documents by client with «Править»; approvals are part of Поручения» |
+| `E:breakdown` | admin-shell4.spec : «review: the sales item shows «Разбор заявки» with answers, estimate links and stages» |
+| `E:breakdown-lead` | admin-shell4.spec : «sales: the lead drawer shows «Разбор заявки» (old link and no link too)» |
+| `E:orders` | admin-shell4.spec : «Поручения: the composer makes a task and the timeline shows it; N focuses the composer» (also «Напомнить» / «Отменить» with the confirm) |
+| `E:orders-cmd` | admin-shell4.spec : «Поручения: a slash opens the command list, Tab completes, Esc closes the list only» |
+| `E:palette-orders` | admin-shell4.spec : «⌘K: a Director command answers inside the Поручения timeline, not in a toast» |
 | `E:cab-email` | flows.spec : «cabinet login: ?email= prefills the email field (HQ links to bot-lead clients), junk is ignored» |
 | `E:prices` | admin.spec : «Company / Цены: edit one price in the panel, see it saved, reset it through the API» (throwaway data dir) |
 | `E:accept-pult` | admin.spec : «Production: the project drawer accepts a paid, delivered stage for the client» |
@@ -328,7 +328,7 @@ Legend of `E:` tags (file : test title):
 | hub | keys 1-7 | open the 7 panels (1 Director ... 7 Company), Esc closes | - | `E:keys` | pass |
 | hub | keys 9 and 0, chips «Approvals N» and «Чаты N» | open `/admin/approvals`, `/admin/chats` | - | `E:keys-9-0` | pass (keys), untested (chips) |
 | hub | key 8 and the go-live chip | `/admin/golive` | - | `E:keys` | pass |
-| hub | theme button | admin light/dark | localStorage | `E:adm-theme`, `U:pult-theme` | pass |
+| hub | theme button | admin light/dark | localStorage | `E:adm-theme`, `U:shell-theme` | pass |
 | hub | «Ещё» menu: «Скачать заявки в CSV» | `GET /api/admin/export` | `/api/admin/export` | `E:csv` | pass |
 | hub | «Ещё»: «Выйти» | ends this session | `POST /api/admin/logout` | `E:logout` | pass |
 | hub | «Ещё»: «Выйти на всех устройствах» | revokes all sessions | `/api/admin/logout` (all) | `U:admin` | untested (browser; would end the shared test session) |

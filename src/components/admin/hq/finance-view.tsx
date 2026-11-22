@@ -4,12 +4,12 @@ import { ArrowsClockwise, CaretLeft, CaretRight } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { fill } from '@/components/admin/control/api'
 import { Empty, Loading, Offline, btn, useHqView, useHub } from '@/components/admin/hub/ui'
-import { shortDate, TxLink, usd } from '@/components/admin/pult/bits'
+import { shortDate, TxLink, usd } from '@/components/admin/shell-crm/bits'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { normalizeAgentList } from '@/lib/agents-hq'
 import { costsView, isMonthKey, monthKey, paymentsView, shiftMonth, type CostState } from '@/lib/finance'
-import { normalizeCompany, normalizeInvoices } from '@/lib/pult'
+import { normalizeCompany, normalizeInvoices } from '@/lib/shell'
 
 const f = admin.hq.finance
 const DEPT_LABEL: Record<string, string> = { hq: 'Director', marketing: 'Marketing', sales: 'Sales', support: 'Support', production: 'Production', backoffice: 'Back office' }

@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { RateButtons } from '@/components/admin/hq/rate-buttons'
 import { isReplyKind } from '@/lib/quality-hq'
 import { btn, btnPrimary, inputClass } from '@/components/admin/hub/ui'
-import { Chip } from '@/components/admin/pult/bits'
-import { LeadBreakdown } from '@/components/admin/pult/lead-breakdown'
+import { Chip } from '@/components/admin/shell-crm/bits'
+import { LeadBreakdown } from '@/components/admin/shell-crm/lead-breakdown'
 import { cn } from '@/lib/cn'
 import {
   comparePair,

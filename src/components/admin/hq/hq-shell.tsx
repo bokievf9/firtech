@@ -87,7 +87,6 @@ function NavItem({ s, active, index, badge, onGo }: { s: HqSection; active: bool
     >
       <Ico size={18} weight={active ? 'fill' : 'regular'} aria-hidden="true" className={active ? 'text-accent-text' : ''} />
       <span className="min-w-0 flex-1">{s.label}</span>
-      {s.state === 'soon' ? <span className="rounded-full border border-line px-1.5 py-px text-[10px] text-faint">{t.soon}</span> : null}
       {badge ? (
         <span data-badge={s.id} aria-label={`${badge}`} className="rounded-full bg-accent px-1.5 py-px font-mono text-[10px] tabular-nums text-accent-ink">{badge}</span>
       ) : null}
@@ -175,7 +174,7 @@ export function HqShell({ children }: { children: React.ReactNode }) {
       id: `section:${s.id}`,
       group: p.groups.panels,
       title: s.label,
-      hint: i < 9 ? String(i + 1) : (s.state === 'soon' ? t.soon : ''),
+      hint: i < 9 ? String(i + 1) : '',
       dept: 'director',
       keywords: t.sectionHints[s.id],
       run: () => router.push(s.href),

@@ -128,7 +128,7 @@ export const CRM_ENDPOINTS: readonly Endpoint[] = [
   },
   { method: 'POST', path: /^crm\/tickets\/\d{1,12}$/, body: crmWrite(['open', 'answered']) },
 ]
-// «Пульт» v3 (contract pult-v3, docs/pult.md): the hub, the leads funnel with its actions, client 360,
+// «Пульт» v3 (contract pult-v3, docs/shell.md): the hub, the leads funnel with its actions, client 360,
 // project details and actions, invoices, content, weekly metrics and the company. Each write has its
 // own body schema; anything else is a 400 before HQ sees it.
 const leadStage = z.enum(['new', 'qualified', 'proposal', 'contract', 'paid', 'project', 'lost'])

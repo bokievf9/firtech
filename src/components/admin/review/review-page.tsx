@@ -8,8 +8,8 @@ import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btn, btnDanger, btnPrimary, modalOpen, Offline, typingIn, useConfirm } from '@/components/admin/hub/ui'
 import { useHqView } from '@/components/admin/hub/ui'
 import { cn } from '@/lib/cn'
-import { deptTheme } from '@/lib/pult-theme'
-import type { PanelId } from '@/lib/pult'
+import { deptTheme } from '@/lib/shell-theme'
+import type { PanelId } from '@/lib/shell'
 import {
   actionButtons,
   dropCount,

@@ -1,6 +1,6 @@
-import { PANELS, type PanelId } from '@/lib/pult'
+import { PANELS, type PanelId } from '@/lib/shell'
 
-// Department colours of the owner panel (docs/pult.md, «Темы и цвета отделов»). The hues live in
+// Department colours of the owner panel (docs/shell.md, «Темы и цвета отделов»). The hues live in
 // globals.css as --color-dept-<id>, -soft and -text (both theme blocks). This file only names them:
 // class strings are written out in full so Tailwind finds them.
 export type DeptTheme = {

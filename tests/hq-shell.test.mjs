@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { test } from 'node:test'
 
-// HQ phase 1 (docs/pult.md «HQ»): section list, tabs, links from old panels, no «Пульт» in admin texts.
+// HQ phase 1 (docs/shell.md «HQ»): section list, tabs, links from old panels, no «Пульт» in admin texts.
 const s = await import('../src/lib/hq-shell.ts')
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
@@ -20,7 +20,6 @@ test('sections: seventeen English names in four groups, all built, keys 1-9', ()
   assert.equal(s.sectionForKey('9').id, 'finance')
   assert.equal(s.sectionForKey('0'), null)
   assert.equal(s.sectionForKey('10'), null)
-  for (const x of s.HQ_SECTIONS.filter((x) => x.state === 'soon')) assert.ok(x.legacy.startsWith('/admin/office?panel='), x.id)
 })
 
 test('no duplicate tabs: payments only in Finance, campaigns inside Content, no calendar tab', () => {
@@ -48,9 +47,10 @@ test('hqHref sends built panels to HQ and the rest to the office', () => {
   assert.equal(s.hqHref('marketing'), '/admin/office?panel=marketing')
 })
 
-test('pages exist, the old office stays, /admin opens HQ, no «Пульт» in admin texts', () => {
-  for (const p of ['inbox', 'approvals', 'chats', 'review', 'golive', 'clients', 'projects', 'tasks', 'calendar', 'documents', 'agents', 'processes', 'content', 'finance', 'settings', 'audit', 'analytics', 'knowledge', 'quality', '[section]']) assert.ok(existsSync(new URL(`../src/app/admin/(hq)/${p}/page.tsx`, import.meta.url)), p)
+test('pages exist (no placeholder [section] page), the old office stays, /admin opens HQ, no «Пульт» in admin texts', () => {
+  for (const p of ['inbox', 'approvals', 'chats', 'review', 'golive', 'clients', 'projects', 'tasks', 'calendar', 'documents', 'agents', 'processes', 'content', 'finance', 'settings', 'audit', 'analytics', 'knowledge', 'quality']) assert.ok(existsSync(new URL(`../src/app/admin/(hq)/${p}/page.tsx`, import.meta.url)), p)
   assert.ok(existsSync(new URL('../src/app/admin/office/page.tsx', import.meta.url)))
+  assert.equal(existsSync(new URL('../src/app/admin/(hq)/[section]/page.tsx', import.meta.url)), false)
   assert.match(read('src/app/admin/page.tsx'), /redirect\('\/admin\/inbox'\)/)
   const text = read('src/content/admin.ts').split('\n').filter((l) => !l.trim().startsWith('//')).join('\n')
   assert.doesNotMatch(text, /[Пп]ульт/)
@@ -60,7 +60,7 @@ test('pages exist, the old office stays, /admin opens HQ, no «Пульт» in a
 test('the workplace is called Shell: no «HQ» in visible admin copy', () => {
   const code = (f) => read(f).split('\n').filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l)).join('\n')
   for (const f of ['src/content/admin.ts', 'src/content/golive.ts', 'src/lib/doc-editor.ts', 'src/lib/pricing-edit.ts']) assert.doesNotMatch(code(f), /\bHQ\b/, f)
-  for (const p of ['inbox', 'clients', 'settings', 'agents', '[section]']) {
+  for (const p of ['inbox', 'clients', 'settings', 'agents']) {
     const t = read(`src/app/admin/(hq)/${p}/page.tsx`)
     assert.match(t, /Shell · /, p)
     assert.doesNotMatch(t, /HQ ·/, p)

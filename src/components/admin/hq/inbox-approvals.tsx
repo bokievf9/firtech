@@ -6,7 +6,7 @@ import { useMemo } from 'react'
 import { errText } from '@/components/admin/control/api'
 import { Empty, Loading, Offline, useHqView } from '@/components/admin/hub/ui'
 import { approvalsHrefFor, approvalsSummary, TAB_LABEL, tabOf } from '@/lib/approvals'
-import { deptTheme } from '@/lib/pult-theme'
+import { deptTheme } from '@/lib/shell-theme'
 import { isPending, normalizeReview } from '@/lib/review'
 import { cn } from '@/lib/cn'
 

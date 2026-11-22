@@ -2,7 +2,7 @@
 // (the Invoices tab is the existing back-office panel), costs from `GET agents` (month spend and limits per department and
 // agent) and `GET company` (today and the last 30 days). No client text is read here. No I/O, no React.
 import type { AgentList } from './agents-hq'
-import type { Company, Invoice } from './pult'
+import type { Company, Invoice } from './shell'
 
 export const monthKey = (iso: string): string => iso.slice(0, 7)
 export const isMonthKey = (v: unknown): v is string => typeof v === 'string' && /^\d{4}-(0[1-9]|1[0-2])$/.test(v)

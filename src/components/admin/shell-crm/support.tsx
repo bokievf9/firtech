@@ -8,7 +8,7 @@ import { admin } from '@/content/admin'
 import { ticketCommandArg } from '@/lib/admin-crm-hq'
 import { cn } from '@/lib/cn'
 import { plainBotText } from '@/lib/hq-admin-view'
-import { matchesQuery, normalizeClientRows, normalizeSupportTickets, pickTicketClient, slaLeft, slaText, ticketClientQuery, type SupportTicket } from '@/lib/pult'
+import { matchesQuery, normalizeClientRows, normalizeSupportTickets, pickTicketClient, slaLeft, slaText, ticketClientQuery, type SupportTicket } from '@/lib/shell'
 import { Chip, shortTime } from './bits'
 import { btn, btnPrimary, Empty, inputClass, Loading, Offline, Pills, useHqView, useHub } from '../hub/ui'
 

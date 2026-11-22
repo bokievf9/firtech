@@ -2,7 +2,7 @@
 
 import { CaretLeft, CaretRight, FileText, FilmSlate, Pause, PencilSimpleLine, Play, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react'
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react'
-import { Markdown } from '@/components/admin/pult/markdown'
+import { Markdown } from '@/components/admin/shell-crm/markdown'
 import { cn } from '@/lib/cn'
 import { editableTargets, type PackDoc } from '@/lib/doc-editor'
 import { documentText, emptyMediaReason, renderState, renderStateText, type ReviewItem, type ReviewMedia } from '@/lib/review'

@@ -133,7 +133,7 @@ registerHooks({
 })
 
 test('breakdownSource: the Sales drawer and the review centre build the same input, with the fallbacks', async () => {
-  const { breakdownSource, firstBuilderLink, leadRow } = await import('../src/lib/pult.ts')
+  const { breakdownSource, firstBuilderLink, leadRow } = await import('../src/lib/shell.ts')
   const { leadBreakdownInput } = await import('../src/lib/review.ts')
   const link = `https://firtech.pro/ru/builder?b=${full}`
   // HQ's own fields win

@@ -21,7 +21,7 @@ registerHooks({
 })
 
 const o = await import('../src/lib/orders.ts')
-const p = await import('../src/lib/pult.ts')
+const p = await import('../src/lib/shell.ts')
 const proxy = await import('../src/lib/hq-admin.ts')
 const { createHqMock } = await import('../src/lib/hq-admin-mock.ts')
 

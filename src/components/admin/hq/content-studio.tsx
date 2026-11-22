@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { errText, fill, hq } from '@/components/admin/control/api'
 import { CrmDrawer } from '@/components/admin/control/crm-hq-ui'
-import { Chip, type Tone } from '@/components/admin/pult/bits'
-import { ContentBody, ContentCard, nextStatus, type Action } from '@/components/admin/pult/content'
+import { Chip, type Tone } from '@/components/admin/shell-crm/bits'
+import { ContentBody, ContentCard, nextStatus, type Action } from '@/components/admin/shell-crm/content'
 import { btn, btnPrimary, Empty, inputClass, Loading, Offline, useHqView, useHub } from '@/components/admin/hub/ui'
 import { CampaignsSection } from '@/components/admin/hq/campaigns-section'
 import { Pending } from '@/components/ui/pending'
@@ -24,7 +24,7 @@ import {
   type OrderInput,
   type StudioOrder,
 } from '@/lib/content-studio'
-import { CONTENT_KINDS, CONTENT_STATUSES, normalizeContentItem, type ContentItem } from '@/lib/pult'
+import { CONTENT_KINDS, CONTENT_STATUSES, normalizeContentItem, type ContentItem } from '@/lib/shell'
 
 const k = admin.pult.content
 const s = k.studio

@@ -29,7 +29,7 @@ const data = await import('../src/lib/cabinet-data.ts')
 const hq = await import('../src/lib/cabinet-hq.ts')
 const { stageTrackLabel } = await import('../src/lib/payment-stages.ts')
 const { resolveEndpoint } = await import('../src/lib/hq-admin.ts')
-const pult = await import('../src/lib/pult.ts')
+const pult = await import('../src/lib/shell.ts')
 const { hqMock } = await import('../src/lib/hq-admin-mock.ts')
 
 const env = { HQ_ADMIN_URL: 'http://hq.test/admin', HQ_ADMIN_TOKEN: 'secret-token', NODE_ENV: 'production' }

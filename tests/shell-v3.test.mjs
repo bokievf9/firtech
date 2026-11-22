@@ -7,7 +7,7 @@ import path from 'node:path'
 import { after, beforeEach, test } from 'node:test'
 import { pathToFileURL } from 'node:url'
 
-// Пульт v3 (docs/pult.md): view models of the hub and the CRM panels, the proxy whitelist for the
+// Пульт v3 (docs/shell.md): view models of the hub and the CRM panels, the proxy whitelist for the
 // new contract, the render file proxy and the dev mock.
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
@@ -29,7 +29,7 @@ registerHooks({
 const root = await mkdtemp(path.join(tmpdir(), 'firtech-pult-v3-test-'))
 after(() => rm(root, { recursive: true, force: true }))
 
-const p = await import('../src/lib/pult.ts')
+const p = await import('../src/lib/shell.ts')
 const auth = await import('../src/lib/admin-auth.ts')
 const proxy = await import('../src/lib/hq-admin.ts')
 const files = await import('../src/lib/hq-files.ts')

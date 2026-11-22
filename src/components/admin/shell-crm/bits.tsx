@@ -3,7 +3,7 @@
 import { ArrowSquareOut } from '@phosphor-icons/react'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
-import { txExplorerUrl, type Invoice } from '@/lib/pult'
+import { txExplorerUrl, type Invoice } from '@/lib/shell'
 
 const i = admin.pult.invoices
 

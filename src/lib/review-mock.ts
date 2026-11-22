@@ -1,4 +1,4 @@
-import { mockBuilderUrl, MOCK_ESTIMATES, MOCK_MESSAGES } from './pult-mock'
+import { mockBuilderUrl, MOCK_ESTIMATES, MOCK_MESSAGES } from './shell-mock'
 import { REVIEW_DEPT_IDS, TREND_STATUSES, trendUrlProblem } from './review'
 
 // Dev stand-in for HQ's review centre, chats and trend links (contract «Ревью-центр», 2026-11-21).

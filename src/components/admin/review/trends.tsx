@@ -4,7 +4,7 @@ import { LinkSimple } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { errText, hq } from '@/components/admin/control/api'
 import { btn, btnPrimary, inputClass, useHqView } from '@/components/admin/hub/ui'
-import { Chip, type Tone } from '@/components/admin/pult/bits'
+import { Chip, type Tone } from '@/components/admin/shell-crm/bits'
 import { normalizeTrends, TREND_LABELS, trendUrlProblem, type TrendStatus } from '@/lib/review'
 import { Dialog } from './dialogs'
 

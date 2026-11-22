@@ -6,7 +6,7 @@ import { CrmDrawer, Search } from '@/components/admin/control/crm-hq-ui'
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { formatDuration, minutesSince } from '@/lib/office-view'
-import { clientPath, isOverdue, matchesQuery, normalizeClient360, normalizeClientRows, type Client360 } from '@/lib/pult'
+import { clientPath, isOverdue, matchesQuery, normalizeClient360, normalizeClientRows, type Client360 } from '@/lib/shell'
 import { Chip, InvoiceChip, shortDate, shortTime, TxLink, usd } from './bits'
 import { CopyButton, Empty, Loading, Offline, Pills, useHqView, useHub } from '../hub/ui'
 

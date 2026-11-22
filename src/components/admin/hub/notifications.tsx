@@ -4,7 +4,7 @@ import { ArrowRight, type Icon, Info, Lifebuoy, Megaphone, SealCheck, UserPlus, 
 import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { formatDuration, minutesSince } from '@/lib/office-view'
-import type { HubInboxItem, HubInboxKind, PanelLink } from '@/lib/pult'
+import type { HubInboxItem, HubInboxKind, PanelLink } from '@/lib/shell'
 import { Empty } from './ui'
 
 const h = admin.hub

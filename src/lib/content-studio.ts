@@ -1,6 +1,6 @@
 // Content Studio (HQ section «Content», 2026-11-23): view models over HQ's `GET /admin/content/feed` and
 // `GET|POST /admin/content/orders` (contract: agents/docs/admin-crm-api.md, «Content Studio»). Pure, no React.
-import { CONTENT_KINDS, CONTENT_STATUSES, parseContentItem, type ContentItem } from '@/lib/pult'
+import { CONTENT_KINDS, CONTENT_STATUSES, parseContentItem, type ContentItem } from '@/lib/shell'
 
 export const STUDIO_TYPES = ['clip', 'post', 'carousel', 'story'] as const
 export type StudioType = (typeof STUDIO_TYPES)[number]

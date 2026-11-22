@@ -53,9 +53,9 @@ import {
   type HubDept,
   type PanelId,
   type PanelLink,
-} from '@/lib/pult'
-import { loadedContent } from '@/components/admin/pult/content'
-import { deptTheme } from '@/lib/pult-theme'
+} from '@/lib/shell'
+import { loadedContent } from '@/components/admin/shell-crm/content'
+import { deptTheme } from '@/lib/shell-theme'
 import { normalizeChats } from '@/lib/chats'
 import { normalizeReview, pendingTotal } from '@/lib/review'
 import { goliveText } from '@/content/golive'

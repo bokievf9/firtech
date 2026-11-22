@@ -4,7 +4,7 @@ import path from 'node:path'
 import { test } from 'node:test'
 import { pathToFileURL } from 'node:url'
 
-// Ревью-центр (docs/pult.md): view models, keyboard map, proxy whitelist, error pass-through, mock.
+// Ревью-центр (docs/shell.md): view models, keyboard map, proxy whitelist, error pass-through, mock.
 const src = pathToFileURL(path.resolve('src') + '/').href
 registerHooks({
   resolve(specifier, context, next) {

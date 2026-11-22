@@ -7,8 +7,8 @@ import { hq } from '@/components/admin/control/api'
 import { admin } from '@/content/admin'
 import { normalizeProjects } from '@/lib/admin-crm-hq'
 import { cn } from '@/lib/cn'
-import { deptTheme } from '@/lib/pult-theme'
-import { normalizeInvoices, normalizeLeads, searchPalette, type PaletteEntry } from '@/lib/pult'
+import { deptTheme } from '@/lib/shell-theme'
+import { normalizeInvoices, normalizeLeads, searchPalette, type PaletteEntry } from '@/lib/shell'
 
 const p = admin.hub.palette
 

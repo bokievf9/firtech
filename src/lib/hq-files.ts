@@ -1,6 +1,6 @@
 import 'server-only'
 import { DEFAULT_HQ_ADMIN_URL } from './hq-admin'
-import { renderType, safeRenderPath } from './pult'
+import { renderType, safeRenderPath } from './shell'
 
 // Content renders (PNG slides, MP4 clips) for the пульт: the browser asks /api/admin/files/<path>,
 // this streams HQ's GET /admin/files/<path> with the admin token. Only paths inside the renders

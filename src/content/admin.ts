@@ -317,7 +317,7 @@ export const admin = {
     },
   },
   // Пульт v3 (2026-11-20): the office is the hub, departments open as panels over it.
-  // HQ, phase 1 (2026-11-23, docs/pult.md «HQ»): the CRM workplace of /admin. Section names are English.
+  // HQ, phase 1 (2026-11-23, docs/shell.md «HQ»): the CRM workplace of /admin. Section names are English.
   hq: {
     title: 'Shell',
     menu: 'Sections',
@@ -325,10 +325,6 @@ export const admin = {
     office: 'Office',
     officeHint: 'Pixel office, opens in a new window',
     search: 'Search',
-    soon: 'Soon',
-    soonTitle: 'This section is coming',
-    soonText: 'It is not built yet. Until then it lives on the old screen.',
-    openOld: 'Open the old screen',
     openChats: 'Open chats',
     back: 'Back',
     loading: 'Loading',

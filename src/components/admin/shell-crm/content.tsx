@@ -21,7 +21,7 @@ import {
   type KitSection,
   type ProfileKit,
   YOUTUBE_BANNER,
-} from '@/lib/pult'
+} from '@/lib/shell'
 import { Chip, type Tone } from './bits'
 import { btn, btnDanger, btnPrimary, CopyButton, Empty, inputClass, Loading, Offline, useHqView, useHub } from '../hub/ui'
 

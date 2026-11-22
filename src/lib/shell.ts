@@ -12,7 +12,7 @@ import { SITE_EVENTS, type SiteEventName } from './site-events'
 
 // Пульт v3 (2026-11-20): view models of the office hub and the CRM panels with actions, fed by HQ's
 // /admin/hub, /admin/crm/*, /admin/content, /admin/metrics/week and /admin/company (contract
-// pult-v3, docs/pult.md). Pure: no I/O, no React. Nothing from HQ is trusted: unknown fields are
+// pult-v3, docs/shell.md). Pure: no I/O, no React. Nothing from HQ is trusted: unknown fields are
 // dropped, missing ones get defaults, URLs must be http(s), file paths must stay inside the renders.
 
 type Rec = Record<string, unknown>

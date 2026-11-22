@@ -3,7 +3,7 @@ import { createAgentsMock } from './agents-mock'
 import { createKnowledgeMock } from './knowledge-mock'
 import { createCampaignsMock } from './campaigns-mock'
 import { createSettingsMock } from './settings-mock'
-import { HUB_DEPTS, isoWeek, shiftWeek, weekDates } from './pult'
+import { HUB_DEPTS, isoWeek, shiftWeek, weekDates } from './shell'
 
 // Development stand-in for the пульт v3 part of HQ's admin API (hub, leads funnel, client 360,
 // project details, invoices, content, metrics, company), in the contract's shapes. In memory, so

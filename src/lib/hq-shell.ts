@@ -27,8 +27,8 @@ export type HqSection = {
   id: HqSectionId
   group: HqGroupId
   label: string
-  // 'ready' = a page of its own under /admin; 'link' = an existing full-screen page; 'soon' = placeholder.
-  state: 'ready' | 'link' | 'soon'
+  // 'ready' = a page of its own under /admin; 'link' = an existing full-screen page.
+  state: 'ready' | 'link'
   // Where the section lives: /admin/<id> for ready and soon, the existing page for 'link'.
   href: string
   // The old screen a «soon» section sends to (the pixel hub panel that holds it today).
@@ -64,9 +64,6 @@ export const HQ_GROUPS: readonly { id: HqGroupId; label: string }[] = [
   { id: 'company', label: 'Company' },
   { id: 'control', label: 'Control' },
 ] as const
-
-export const isSoonSection = (v: unknown): v is HqSectionId =>
-  HQ_SECTIONS.some((s) => s.id === v && s.state === 'soon')
 
 export const sectionById = (id: string) => HQ_SECTIONS.find((s) => s.id === id)
 

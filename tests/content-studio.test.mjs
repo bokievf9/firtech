@@ -117,7 +117,6 @@ test('Content is a built HQ section with the three tabs and a page; no empty cat
   assert.deepEqual(shell.HQ_TABS.content, ['feed', 'orders', 'campaigns'])
   assert.equal(shell.sectionTab('content', 'orders'), 'orders')
   assert.equal(shell.sectionTab('content', 'x'), 'feed')
-  assert.equal(shell.isSoonSection('content'), false)
   assert.ok(existsSync(new URL('../src/app/admin/(hq)/content/page.tsx', import.meta.url)))
   for (const f of ['src/components/admin/hq/content-studio.tsx', 'src/lib/content-studio.ts']) {
     const t = read(f)
