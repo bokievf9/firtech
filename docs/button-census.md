@@ -326,7 +326,7 @@ Legend of `E:` tags (file : test title):
 | hub | ⌘K / Ctrl+K | command palette with HQ search | `GET /api/admin/hq/...` | `E:palette`, `U:pult-v3` | pass |
 | hub | ⌘K Director commands «Отчёт» (`status`), «Выпустить одобрения» (`approve`), «Расходы» (`costs`), «Учения» (`drill`), «Пакет недели» (`say`) | open Поручения and write the owner's line and HQ's answer into its timeline (no toast) | `POST command`, `POST say` | `E:palette-orders` («Отчёт»), `U:orders` | pass («Отчёт»), untested (other four) |
 | hub | keys 1-7 | open the 7 panels (1 Director ... 7 Company), Esc closes | - | `E:keys` | pass |
-| hub | keys 9 and 0, chips «Ревью N» and «Чаты N» | open `/admin/review`, `/admin/chats` | - | `E:keys-9-0` | pass (keys), untested (chips) |
+| hub | keys 9 and 0, chips «Approvals N» and «Чаты N» | open `/admin/approvals`, `/admin/chats` | - | `E:keys-9-0` | pass (keys), untested (chips) |
 | hub | key 8 and the go-live chip | `/admin/golive` | - | `E:keys` | pass |
 | hub | theme button | admin light/dark | localStorage | `E:adm-theme`, `U:pult-theme` | pass |
 | hub | «Ещё» menu: «Скачать заявки в CSV» | `GET /api/admin/export` | `/api/admin/export` | `E:csv` | pass |
@@ -391,7 +391,9 @@ the whitelist proxy `/api/admin/hq/[...path]` (`U:hq-admin` and `U:pult-v3` cove
 | API guard | 401 without session, 403 bad Origin, 400 unknown action | `/api/admin/golive` | `E:golive`, `U:golive` | pass |
 | top-bar chip | countdown text | - | `U:golive` (`chipText`) | pass |
 
-## 14. Review centre `/admin/review`, editor, chats `/admin/chats`
+## 14. Reader and editor inside Approvals `/admin/approvals?id=`, chats `/admin/chats`
+
+Since 2026-11-23 (branch `shell-approvals`) `/admin/review` is a server redirect to `/admin/approvals` (`?id=` kept); the reader below is the item view of the Approvals section inside the Shell frame (menu on the left, no own header or «Офис» link; «К списку Approvals» and Esc go back; the digit keys belong to the Shell, so the department rail is clicked only). Inbox > Approvals is a read-only list with links into Approvals (`E:ap`). The `E:review` marks below now run on `/admin/approvals?id=ap_201`. Rows saying `review:` mean this reader.
 
 | Element | What it does | Calls | Verified by | Status |
 |---|---|---|---|---|
