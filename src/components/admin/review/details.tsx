@@ -2,6 +2,8 @@
 
 import { ArrowSquareOut, Warning } from '@phosphor-icons/react'
 import Link from 'next/link'
+import { RateButtons } from '@/components/admin/hq/rate-buttons'
+import { isReplyKind } from '@/lib/quality-hq'
 import { btn, btnPrimary, inputClass } from '@/components/admin/hub/ui'
 import { Chip } from '@/components/admin/pult/bits'
 import { LeadBreakdown } from '@/components/admin/pult/lead-breakdown'
@@ -90,6 +92,8 @@ export function Details(p: DetailsProps) {
           )}
         </p>
       ) : null}
+
+      {isReplyKind(item.kind) ? <RateButtons messageId={item.id} thread="review" /> : null}
 
       {item.versions.length > 1 ? (
         <section aria-label="Версии" className="grid gap-2">

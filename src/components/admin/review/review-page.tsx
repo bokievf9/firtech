@@ -46,6 +46,7 @@ import { DocEditor } from './doc-editor'
 import { Details } from './details'
 import { MediaStage, type StageHandle } from './stage'
 import { TrendDialog, TrendList, useTrends } from './trends'
+import { RatingsProvider } from '@/components/admin/hq/rate-buttons'
 
 const RAIL_LABEL: Record<RailId, string> = { all: 'Все', marketing: 'Маркетинг', sales: 'Продажи', support: 'Поддержка', production: 'Производство', backoffice: 'Бэк-офис', director: 'Директор' }
 const KIND_LABEL: Record<string, string> = {
@@ -77,7 +78,7 @@ function Thumb({ item }: { item: ReviewItem }) {
 }
 
 // `initialId` comes from `?id=ap_203` (a link from a trend or the director panel): that item opens in the full list.
-export function ReviewPage({ initialId = null }: { initialId?: string | null }) {
+function ReviewPageInner({ initialId = null }: { initialId?: string | null }) {
   const router = useRouter()
   const desktop = useDesktop()
   const [toast, setToast] = useState<ToastMessage | null>(null)
@@ -563,5 +564,14 @@ export function ReviewPage({ initialId = null }: { initialId?: string | null }) 
       {confirmDialog}
       <Toast message={toast} onClose={closeToast} />
     </MotionConfig>
+  )
+}
+
+
+export function ReviewPage({ initialId = null }: { initialId?: string | null }) {
+  return (
+    <RatingsProvider>
+      <ReviewPageInner initialId={initialId} />
+    </RatingsProvider>
   )
 }

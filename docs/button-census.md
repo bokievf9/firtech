@@ -681,3 +681,15 @@ Tag `E:cp` = `tests/e2e/admin-campaigns.spec.ts`; `U:cp` = `tests/hq-campaigns.t
 | Campaigns / card | «Одобрить в Approvals» (only while pending) | same link as above | - | - | untested (click) |
 | Campaigns | failed call | «HQ не отвечает» with «Повторить» | - | `U:cp` (normalizer) | untested (browser) |
 
+
+## Rating of agent replies (2026-11-23, branch `hq-rate`), adds to the Quality rows above
+`E:kq` = `tests/e2e/admin-knowledge-quality.spec.ts`, `E:ap` = `tests/e2e/admin-approvals.spec.ts`; `U:kq`. One list `GET quality/ratings?limit=200` per page (`RatingsProvider`, 60 s) shows the current mark of every reply; a repeat rating replaces the earlier one (HQ keeps one per messageId + thread).
+
+| Page | Element | What it does | Calls | Verified by | Status |
+|---|---|---|---|---|---|
+| `/admin/chats` | «Хорошо» under an HQ reply (`aria-pressed`) | rates the reply 1 at once | `POST quality/rate` | `E:kq` | pass |
+| `/admin/chats` | «Плохо» under an HQ reply, optional note, «Отправить», «Отмена» | opens a short note field; sends -1 (a note becomes a lesson); «Отмена» only closes it | `POST quality/rate` | `E:kq` (send), untested («Отмена») | pass |
+| `/admin/chats` | failed rating | error note with «Повторить» of the same rating | - | - | untested (browser) |
+| `/admin/approvals` Replies | «Хорошо» / «Плохо» in an open reply card | same thumbs (messageId = card id, thread `review`) | `POST quality/rate` | `E:ap` | pass |
+| `/admin/review` | «Хорошо» / «Плохо» in the details of a reply (lead_reply, lead_price, support_answer, support_money) | same thumbs | `POST quality/rate` | `U:kq` (`isReplyKind`) | untested (browser) |
+| Quality / Оценки | list «Оценки» | the real ratings from HQ (value, id, thread, time, note); «HQ не отвечает» with «Повторить» on failure; the form «Оценить по id» stays | `GET quality/ratings` | `E:kq`, `U:kq` | pass |

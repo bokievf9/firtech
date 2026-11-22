@@ -31,7 +31,8 @@ export function createKnowledgeMock(start = Date.now()) {
     { id: 'l_3', question: 'Когда будет готово?', bad: 'Через три дня.', good: 'Срок зависит от состава проекта, точный срок будет в смете.', tag: 'timing', source: 'rating', at: ago(60 * 40) },
   ]
   let lessonSeq = 3
-  const ratings: { messageId: string; thread: string; value: number }[] = []
+  let ratingSeq = 0
+  const ratings: { id: string; messageId: string; thread: string; value: number; note: string; at: string }[] = []
 
   const bad = (error: string, extra: Rec = {}): Reply => ({ ok: false, error, ...extra })
   const meta = (d: Doc) => ({ id: d.id, title: d.title, tier: d.tier, source: d.source, updatedAt: d.updatedAt, chars: d.text.length })
@@ -96,14 +97,22 @@ export function createKnowledgeMock(start = Date.now()) {
       if (seg[1] === 'rate' && seg.length === 2 && method === 'POST') {
         if (body.value !== 1 && body.value !== -1) return bad('invalid')
         if (typeof body.messageId !== 'string' || typeof body.thread !== 'string') return bad('invalid')
-        ratings.push({ messageId: body.messageId, thread: body.thread, value: body.value })
+        const note = typeof body.note === 'string' ? body.note.trim() : ''
+        const prev = ratings.findIndex((r) => r.messageId === body.messageId && r.thread === body.thread)
+        if (prev >= 0) ratings.splice(prev, 1)
+        const ratingId = `r_${++ratingSeq}`
+        ratings.unshift({ id: ratingId, messageId: body.messageId, thread: body.thread, value: body.value, note, at: iso(now) })
         // A thumb down with a note becomes a lesson.
         if (body.value === -1 && typeof body.note === 'string' && body.note.trim()) {
           const id = `l_${++lessonSeq}`
           lessons.unshift({ id, question: `Сообщение ${body.messageId}`, bad: '(ответ агента)', good: body.note.trim(), tag: 'rating', source: 'rating', at: iso(now) })
-          return { ok: true, lessonId: id }
+          return { ok: true, id: ratingId, lessonId: id }
         }
-        return { ok: true }
+        return { ok: true, id: ratingId }
+      }
+      if (seg[1] === 'ratings' && seg.length === 2 && method === 'GET') {
+        const limit = Math.min(Math.max(Number(query.limit) || 50, 1), 500)
+        return { ok: true, items: ratings.slice(0, limit) }
       }
       if (seg[1] === 'eval' && seg.length === 2 && method === 'GET') {
         return { ok: true, last: { at: ago(60 * 9), runtime: 'fira', lead: { passed: 18, total: 20 }, red: { passed: 14, total: 15 }, handoffRate: 0.93, toolRate: 0.88 } }

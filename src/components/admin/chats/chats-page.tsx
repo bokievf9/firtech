@@ -38,6 +38,7 @@ import {
   type ChatThreadView,
   type ThreadChoice,
 } from '@/lib/chats'
+import { RateButtons, RatingsProvider } from '@/components/admin/hq/rate-buttons'
 
 const desktopQuery = '(min-width: 1024px)'
 const subscribeDesktop = (cb: () => void) => {
@@ -67,7 +68,7 @@ function ChannelChips({ channels }: { channels: Channel[] }) {
   )
 }
 
-export function ChatsPage() {
+function ChatsPageInner() {
   const router = useRouter()
   const desktop = useDesktop()
   const [toast, setToast] = useState<ToastMessage | null>(null)
@@ -344,6 +345,7 @@ export function ChatsPage() {
                                 </button>
                               ) : null}
                             </span>
+                            {m.from === 'hq' ? <RateButtons messageId={m.id} thread={m.thread ?? thread.id} className="mt-1 max-w-[85%]" /> : null}
                           </li>
                         )
                       })}
@@ -421,5 +423,14 @@ export function ChatsPage() {
       </div>
       <Toast message={toast} onClose={closeToast} />
     </div>
+  )
+}
+
+
+export function ChatsPage() {
+  return (
+    <RatingsProvider>
+      <ChatsPageInner />
+    </RatingsProvider>
   )
 }
