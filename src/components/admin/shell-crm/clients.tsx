@@ -7,6 +7,8 @@ import { admin } from '@/content/admin'
 import { cn } from '@/lib/cn'
 import { formatDuration, minutesSince } from '@/lib/office-view'
 import { clientPath, isOverdue, matchesQuery, normalizeClient360, normalizeClientRows, type Client360 } from '@/lib/shell'
+import { knowledgeClientId } from '@/lib/client-knowledge'
+import { ClientKnowledgePanel } from './client-knowledge'
 import { Chip, InvoiceChip, shortDate, shortTime, TxLink, usd } from './bits'
 import { CopyButton, Empty, Loading, Offline, Pills, useHqView, useHub } from '../hub/ui'
 
@@ -61,7 +63,7 @@ export function ClientsTab({ focus }: { focus: string | null }) {
   )
 }
 
-const TABS = ['projects', 'invoices', 'documents', 'tickets', 'referrals', 'touches'] as const
+const TABS = ['projects', 'invoices', 'documents', 'tickets', 'referrals', 'touches', 'knowledge'] as const
 type Tab = (typeof TABS)[number]
 
 export function Client360Drawer({ id, onClose }: { id: string | null; onClose: () => void }) {
@@ -83,13 +85,14 @@ export function Client360Drawer({ id, onClose }: { id: string | null; onClose: (
 function Client360Body({ data }: { data: Client360 }) {
   const { now, open } = useHub()
   const [tab, setTab] = useState<Tab>('projects')
-  const count: Record<Tab, number> = {
+  const count: Record<Tab, number | undefined> = {
     projects: data.projects.length,
     invoices: data.invoices.length,
     documents: data.documents.length,
     tickets: data.tickets.length,
     referrals: data.referrals.length,
     touches: data.touches.length,
+    knowledge: undefined,
   }
   return (
     <>
@@ -200,6 +203,11 @@ function Client360Body({ data }: { data: Client360 }) {
           ) : (
             <Empty>{c.none}</Empty>
           ))}
+        {tab === 'knowledge' &&
+          (() => {
+            const knowledgeId = knowledgeClientId(data.client.id, data.client.cabinet)
+            return knowledgeId ? <ClientKnowledgePanel key={knowledgeId} clientId={knowledgeId} /> : <Empty>{c.knowledge.noCabinet}</Empty>
+          })()}
       </div>
     </>
   )

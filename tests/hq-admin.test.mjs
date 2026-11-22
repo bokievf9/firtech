@@ -442,3 +442,31 @@ test('proxy whitelist: agents list, card, version, edit and rollback only', asyn
   assert.equal(resolveEndpoint('POST', ['agents', 'seo'], none, {}).ok, false)
   assert.equal(resolveEndpoint('GET', ['agents', 'Bad_Id'], none, undefined).ok, false)
 })
+
+test('client knowledge: GET state and POST import are whitelisted, the body is strict, the mock imports in a few reads', async () => {
+  const { resolveEndpoint } = proxy
+  const none = new URLSearchParams()
+  assert.equal(resolveEndpoint('GET', ['clients', '1', 'knowledge'], none, undefined).ok, true)
+  assert.equal(resolveEndpoint('GET', ['clients', 'abc', 'knowledge'], none, undefined).ok, false)
+  assert.equal(resolveEndpoint('POST', ['clients', '1', 'knowledge', 'import'], none, {}).ok, true)
+  assert.equal(resolveEndpoint('POST', ['clients', '1', 'knowledge', 'import'], none, { url: 'https://a.example', maxPages: 30 }).ok, true)
+  for (const body of [{ maxPages: 0 }, { maxPages: 31 }, { maxPages: 1.5 }, { url: '' }, { url: 'https://a.example', extra: 1 }, { url: 5 }]) {
+    assert.equal(resolveEndpoint('POST', ['clients', '1', 'knowledge', 'import'], none, body).ok, false, JSON.stringify(body))
+  }
+  assert.equal(resolveEndpoint('DELETE', ['clients', '1', 'knowledge'], none, {}).ok, false)
+  assert.equal(resolveEndpoint('POST', ['clients', '1', 'knowledge'], none, {}).ok, false)
+
+  const call = (m, p, body) => proxy.callHqAdmin(m, p, { body })
+  const before = await call('GET', 'clients/1/knowledge')
+  assert.equal(before.state, 'none')
+  assert.equal((await call('POST', 'clients/1/knowledge/import', { url: 'ftp://x' })).error, 'invalid_url')
+  assert.equal((await call('POST', 'clients/1/knowledge/import', { url: 'http://127.0.0.1/' })).error, 'invalid_url')
+  assert.equal((await call('GET', 'clients/2/knowledge')).error, 'not_found')
+  const started = await call('POST', 'clients/1/knowledge/import', {})
+  assert.deepEqual([started.ok, started.state, started.already], [true, 'running', false])
+  assert.equal((await call('POST', 'clients/1/knowledge/import', {})).already, true)
+  let last
+  for (let i = 0; i < 4; i++) last = await call('GET', 'clients/1/knowledge')
+  assert.equal(last.state, 'done')
+  assert.equal(last.pages, last.items.length)
+})

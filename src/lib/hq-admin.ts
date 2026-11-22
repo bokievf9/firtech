@@ -34,6 +34,10 @@ export const KNOWLEDGE_PATCH = z
   .object({ title: knowledgeTitle.optional(), text: knowledgeText.optional(), tier: knowledgeTier.optional() })
   .strict()
   .refine((b) => Object.keys(b).length > 0, 'nothing to change')
+// Import of a client's site: both fields optional (no url = the site from the lead's brief), maxPages 1..30, nothing else.
+export const CLIENT_KNOWLEDGE_IMPORT = z
+  .object({ url: z.string().trim().min(1).max(2048).optional(), maxPages: z.number().int().min(1).max(30).optional() })
+  .strict()
 export const QUALITY_RATE = z
   .object({
     messageId: z.string().regex(/^[\w:.-]{1,64}$/),
@@ -288,6 +292,9 @@ export const REVIEW_ENDPOINTS: readonly Endpoint[] = [
   { method: 'POST', path: /^chats\/[\w-]{1,64}\/unread$/, body: empty },
   // A cabinet client's threads (lead, project, support, agent) for the reply picker; read only.
   { method: 'GET', path: /^clients\/\d{1,12}\/threads$/ },
+  // Client knowledge (2026-11-23): the client's own site as knowledge of their agent. Read the state, start an import; no page texts.
+  { method: 'GET', path: /^clients\/\d{1,12}\/knowledge$/ },
+  { method: 'POST', path: /^clients\/\d{1,12}\/knowledge\/import$/, body: CLIENT_KNOWLEDGE_IMPORT },
   { method: 'GET', path: /^trends$/, query: ['limit', 'cursor'] },
   { method: 'POST', path: /^trends$/, body: z.object({ url: z.string().trim().min(1).max(600), note: z.string().max(500).optional() }).strict() },
 ]

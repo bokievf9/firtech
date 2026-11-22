@@ -391,3 +391,11 @@ Settings, блок «Цены» внизу страницы (⌘K «Settings»).
 - Состояния: `Empty` (иконка + фраза), `Loading` (строки-скелеты по форме списка), `Offline`, подтверждение (`useConfirm`) на `material-chrome`, `Toast` на `material-thick` со spring снизу.
 - Поведение, горячие клавиши (1-9, ⌘K, Esc), aria и `data-*` для e2e не менялись.
 
+
+## Знания клиента (2026-11-23, ветка `shell-clientknow`)
+Вкладка «Knowledge» в карточке клиента (`shell-crm/client-knowledge.tsx`, вид-модель `lib/client-knowledge.ts`, мок `lib/client-knowledge-mock.ts`). Контракт HQ: `agents/docs/admin-crm-api.md` «Знания клиента».
+- Прокси: `GET clients/:id/knowledge` и `POST clients/:id/knowledge/import` (тело строго `{url?, maxPages? 1..30}`), только числовой id. Клиент без кабинета (`c:<имя>`) вкладку видит с пояснением, запросов не шлёт.
+- Видно: состояние словами (none, queued, running, done, failed), счётчики (страницы, чанки, ошибки, время последнего импорта), сводка последней задачи, список страниц (заголовок, адрес ссылкой в той же вкладке, знаки, время), без текстов страниц.
+- Поле адреса заполнено `site`; проверка http/https до запроса (`checkAddress`), ответы `invalid_url`, `invalid`, `not_found`, `rate_limited` переведены в фразы. Кнопка «Import site» с состоянием ожидания, пока задача идёт, поле и кнопка заблокированы.
+- Опрос раз в 3 с только пока `running` или `queued`, на скрытой вкладке пауза, при возврате сразу запрос. Мок: импорт становится `done` после трёх чтений; адрес с `fail` даёт `failed`.
+- Тесты: `tests/client-knowledge.test.mjs`, блок в `tests/hq-admin.test.mjs`, e2e `tests/e2e/admin-client-knowledge.spec.ts` (`KNOWLEDGE_SHOTS=<dir>` сохраняет скрины).
