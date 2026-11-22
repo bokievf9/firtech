@@ -42,7 +42,6 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
       build: decodeBuild(new URLSearchParams(window.location.search).get('b')),
       date: formatDocDate(new Date(), locale),
     })
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from the URL
     setReturnPath(estimateReturnPath(window.location.pathname, window.location.search, window.location.hash))
   }, [locale])
 
