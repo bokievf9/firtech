@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Dict } from '@/content'
 import { agentBuilderHref, agentCopy, agentPath, popularAgentIds } from '@/lib/ai-teams'
 import { agentChannelIds } from '@/lib/agent-ids'
-import { channelName } from '@/lib/channels'
+import { channelName, publicChannels } from '@/lib/channels'
 import { buttonClass, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { personalBuilderHref } from '@/lib/personal-page'
@@ -43,7 +43,7 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
     <div className="mt-auto pt-1">
       <p className="text-caption text-faint">{t.channels}</p>
       <ul className="mt-1.5 flex flex-wrap gap-1.5">
-        {agentChannelIds.map((c) => (
+        {publicChannels(agentChannelIds).map((c) => (
           <li key={c} className="rounded-full border border-hairline border-glass-line px-2.5 py-1 text-caption text-muted">
             {channelName(c, locale)}
           </li>

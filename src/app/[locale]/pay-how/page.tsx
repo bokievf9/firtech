@@ -10,8 +10,8 @@ import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
 import { telegramHandle, telegramUrl } from '@/lib/site'
 
-// «Как оплатить»: a first-time guide to paying in USDT (go-live copy, owner 2026-11-21). Words only:
-// no amounts, no fees of ours. Linked from the pay page, the terms, the FAQ, the cabinet and the footer.
+// «Как оплатить»: how payment works: estimate and invoice, card or invoice, stages, guarantee first (owner 2026-11-24, no crypto).
+// Words only: no amounts, no fees of ours. Linked from the pay page, the terms, the FAQ, the cabinet and the footer.
 
 export async function generateMetadata({ params }: PageProps<'/[locale]/pay-how'>): Promise<Metadata> {
   const { locale } = await params
@@ -43,6 +43,7 @@ export default async function PayHowPage({ params }: PageProps<'/[locale]/pay-ho
             {t.title}
           </h1>
           <p className="mt-6 max-w-[60ch] text-lg leading-relaxed text-muted md:text-xl">{t.sub}</p>
+          <p data-guarantee-banner className="mt-6 max-w-[60ch] rounded-card border border-accent-text/30 px-4 py-3 text-callout font-medium">{t.banner}</p>
         </HeroIntro>
       </section>
 
@@ -71,7 +72,8 @@ export default async function PayHowPage({ params }: PageProps<'/[locale]/pay-ho
             </li>
           ))}
         </ol>
-        <p className="mt-6">
+        <p data-entity-note className="mt-6 max-w-[60ch] text-callout text-muted">{t.entityNote}</p>
+        <p className="mt-4">
           <Link
             href={`/${locale}/terms#terms-payment`}
             className="text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"

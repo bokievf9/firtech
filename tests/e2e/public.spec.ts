@@ -178,12 +178,13 @@ test('AI team: a department page lists its agents and an agent page opens the bu
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 })
 
-test('pay-how: the three steps of paying in USDT are on the page and no local currency is quoted', async ({ page }) => {
+test('pay-how: guarantee banner first, card or invoice, no crypto words on the page', async ({ page }) => {
   await open(page, '/ru/pay-how')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.locator('main')).toContainText('USDT')
-  await expect(page.locator('main')).toContainText('TRC20')
-  await expect(page.locator('main')).toContainText('TON')
+  await expect(page.locator('[data-guarantee-banner]')).toBeVisible()
+  await expect(page.locator('main')).toContainText('картой или по счёту')
+  await expect(page.locator('main')).not.toContainText(/USDT|TRC20|крипт/i)
+  await expect(page.locator('[data-entity-note]')).toContainText('после регистрации юрлица')
 })
 
 test('bare paths of known pages redirect to a language (contracts link /terms and /privacy)', async ({ request }) => {
