@@ -50,6 +50,7 @@ export function Header({
 
   const links = [
     { href: homeAnchor(locale, 'products'), label: dict.nav.products },
+    { href: `/${locale}/ai-team#agents`, label: dict.nav.agents },
     { href: `/${locale}/ai-team`, label: dict.nav.aiTeams },
     { href: `/${locale}/solutions`, label: dict.nav.solutions },
     { href: homeAnchor(locale, 'demo'), label: dict.nav.demo },

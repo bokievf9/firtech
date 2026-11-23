@@ -1,14 +1,15 @@
 'use client'
 
 import {
-  Briefcase, Browser, ChatCircleDots, EnvelopeSimple, GraduationCap, Laptop,
+  Briefcase, Browser, Robot, ChatCircleDots, EnvelopeSimple, GraduationCap, Laptop,
   Microphone, Student, TelegramLogo, UserCircle, UsersThree, WhatsappLogo, Baby,
   Camera, Stethoscope, Code, Flask, Scales, Armchair, Airplane, Barbell, type Icon,
 } from '@phosphor-icons/react'
 import { useId, useState } from 'react'
 import { motion } from 'motion/react'
 import type { Dict } from '@/content'
-import { pick } from '@/content/builder-catalog'
+import { pick, type L } from '@/content/builder-catalog'
+import { agentUi } from '@/content/builder-agent'
 import {
   channelNames, dayUi, forkUi, handText, personalSteps, tierText, tierUi, toneUi, whoTextAll,
 } from '@/content/builder-personal'
@@ -49,34 +50,39 @@ const channelIcons: Record<PersonalChannel, Icon> = {
   email: EnvelopeSimple, desktop: Laptop,
 }
 
-// Step 1 of both paths: who the build is for. Plain buttons with aria-pressed (the niche cards keep role radio).
-export function ForkToggle({ locale, personal, onPick }: { locale: string; personal: boolean; onPick: (personal: boolean) => void }) {
-  const options = [
-    { on: !personal, id: false, name: forkUi.business, hint: forkUi.businessHint, Glyph: Briefcase },
-    { on: personal, id: true, name: forkUi.personal, hint: forkUi.personalHint, Glyph: UserCircle },
+// Step 1 of every path: what we build. Plain buttons with aria-pressed (the niche cards keep role radio).
+export type ForkMode = 'business' | 'personal' | 'agent'
+export function ForkToggle({ locale, mode, onPick }: { locale: string; mode: ForkMode; onPick: (mode: ForkMode) => void }) {
+  const options: { id: ForkMode; name: L<string>; hint: L<string>; Glyph: Icon }[] = [
+    { id: 'business', name: forkUi.business, hint: forkUi.businessHint, Glyph: Briefcase },
+    { id: 'agent', name: agentUi.fork, hint: agentUi.forkHint, Glyph: Robot },
+    { id: 'personal', name: forkUi.personal, hint: forkUi.personalHint, Glyph: UserCircle },
   ]
   return (
-    <div data-fork className="mb-10 grid gap-2.5 sm:grid-cols-2" role="group" aria-label={pick(forkUi.label, locale)}>
-      {options.map(({ on, id, name, hint, Glyph }) => (
-        <button
-          key={String(id)}
-          type="button"
-          aria-pressed={on}
-          onClick={() => !on && onPick(id)}
-          className={cn(
-            'pressable flex items-center gap-4 rounded-card border border-hairline p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text',
-            on ? 'border-accent-text/70 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_68%)]' : 'border-line bg-surface hover:border-line-strong',
-          )}
-        >
-          <span className={cn('grid size-11 shrink-0 place-items-center rounded-full border', on ? 'border-accent-text bg-accent/15 text-accent-text' : 'border-line-strong text-muted')}>
-            <Glyph size={22} weight="light" />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-body font-medium">{pick(name, locale)}</span>
-            <span className="block text-footnote leading-snug text-faint">{pick(hint, locale)}</span>
-          </span>
-        </button>
-      ))}
+    <div data-fork className="mb-10 grid gap-2.5 sm:grid-cols-3" role="group" aria-label={pick(forkUi.label, locale)}>
+      {options.map(({ id, name, hint, Glyph }) => {
+        const on = mode === id
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-pressed={on}
+            onClick={() => !on && onPick(id)}
+            className={cn(
+              'pressable flex items-center gap-4 rounded-card border border-hairline p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text',
+              on ? 'border-accent-text/70 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_68%)]' : 'border-line bg-surface hover:border-line-strong',
+            )}
+          >
+            <span className={cn('grid size-11 shrink-0 place-items-center rounded-full border', on ? 'border-accent-text bg-accent/15 text-accent-text' : 'border-line-strong text-muted')}>
+              <Glyph size={22} weight="light" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-body font-medium">{pick(name, locale)}</span>
+              <span className="block text-footnote leading-snug text-faint">{pick(hint, locale)}</span>
+            </span>
+          </button>
+        )
+      })}
     </div>
   )
 }

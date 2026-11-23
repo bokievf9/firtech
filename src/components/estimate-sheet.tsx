@@ -23,6 +23,7 @@ import type { Locale } from '@/lib/i18n'
 import { LeadAuthStep } from './cabinet/lead-auth'
 import { useCabinetUser } from './cabinet/use-cabinet-user'
 import { Logo } from './logo'
+import { agentUi } from '@/content/builder-agent'
 import { usePricing } from './pricing-provider'
 
 const ease = [0.16, 1, 0.3, 1] as const
@@ -194,6 +195,19 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
             {doc.onRequest.map((row) => (
               <Row key={row.id} row={row} />
             ))}
+            {doc.agents && (
+              <tr className="break-inside-avoid">
+                <td
+                  colSpan={4}
+                  className="pt-5 pb-1 text-[11px] tracking-[0.08em] text-[#5b6459] uppercase"
+                >
+                  {agentUi.labels.agents[locale === 'ru' ? 'ru' : 'en']}
+                </td>
+              </tr>
+            )}
+            {doc.agents?.rows.map((row) => (
+              <Row key={row.id} row={row} />
+            ))}
           </tbody>
         </table>
 
@@ -209,6 +223,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
             <dd className="font-mono text-xl font-semibold whitespace-nowrap">{doc.total}</dd>
           </div>
           {doc.monthly && <Sum label={t.support} value={`+ ${doc.monthly}`} muted />}
+          {doc.agents && <Sum label={agentUi.labels.monthly[locale === 'ru' ? 'ru' : 'en']} value={`+ ${doc.agents.monthly}`} muted />}
         </dl>
 
         {doc.stages.length > 0 && (
@@ -251,13 +266,13 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
         )}
 
         {(doc.brief.goals.length > 0 ||
-          (state.build.personal && doc.brief.setup.length > 0) ||
+          ((state.build.personal || state.build.agentBrief) && doc.brief.setup.length > 0) ||
           doc.brief.style.length > 0 ||
           doc.brief.details.length > 0) && (
           <div className="mt-9 grid gap-x-10 gap-y-7 sm:grid-cols-2 print:grid-cols-2">
-            {state.build.personal && doc.brief.setup.length > 0 && (
+            {(state.build.personal || state.build.agentBrief) && doc.brief.setup.length > 0 && (
               <div className="sm:col-span-2 print:col-span-2">
-                <BriefBlock title={locale === 'ru' ? 'Личный ассистент' : 'Personal assistant'} rows={doc.brief.setup} />
+                <BriefBlock title={state.build.agentBrief ? agentUi.labels.sheet[locale === 'ru' ? 'ru' : 'en'] : locale === 'ru' ? 'Личный ассистент' : 'Personal assistant'} rows={doc.brief.setup} />
               </div>
             )}
             {doc.brief.goals.length > 0 && (

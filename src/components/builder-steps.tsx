@@ -18,6 +18,7 @@ import {
   MagnifyingGlass,
   MapPin,
   Megaphone,
+  Robot,
   Buildings,
   UserCircle,
   Signpost,
@@ -33,6 +34,10 @@ import {
 import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { agentUi } from '@/content/builder-agent'
+import { agentChannelIds } from '@/lib/agent-ids'
+import { channelName } from '@/lib/channels'
+import { agentSubscriptionOf } from '@/lib/pricing'
 import type { Dict } from '@/content'
 import {
   builderUi,
@@ -290,12 +295,15 @@ export function ProductsStep({
   build,
   onToggle,
   onSiteNeed,
+  onAgent,
   setBuild,
 }: {
   locale: string
   build: Build
   onToggle: (id: ProductId) => void
   onSiteNeed: (need: SiteNeed) => void
+  // The «Один агент» card (builder v6): opens the agent path.
+  onAgent?: () => void
   setBuild?: (update: (b: Build) => Build) => void
 }) {
   const ui = builderUi
@@ -320,14 +328,40 @@ export function ProductsStep({
       : []),
     { id: 'rest', title: usual.length ? pick(ui.productsMore, locale) : '', ids: rest },
   ]
+  const agentSub = agentSubscriptionOf(pricing)
   return (
     <div className="grid gap-10">
-      {sections.map((section) => (
+      {sections.map((section, sectionIndex) => (
         <section key={section.id}>
           {section.title && (
             <h3 className="mb-4 text-caption text-faint font-medium">{section.title}</h3>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
+            {sectionIndex === 0 && onAgent && (
+              <button
+                type="button"
+                data-product-card="agent"
+                onClick={onAgent}
+                className="pressable group relative flex gap-4 rounded-card border border-hairline border-line bg-surface p-5 text-left hover:border-line-strong hover:bg-surface-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text"
+              >
+                <span className="grid size-11 shrink-0 place-items-center rounded-full border border-line-strong text-accent-text">
+                  <Robot size={20} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-baseline justify-between gap-x-3">
+                    <span className="text-body font-medium">{pick(agentUi.card.name, locale)}</span>
+                    <span className="font-mono text-caption text-accent-text">
+                      {pick(agentUi.card.from, locale)} {formatUsd(agentSub.setup)} + {formatUsd(agentSub.monthly)}
+                      {pick(agentUi.card.perMonth, locale)}
+                    </span>
+                  </span>
+                  <span className="mt-1 block text-callout leading-snug text-muted">{pick(agentUi.card.hint, locale)}</span>
+                  <span className="mt-2 block text-footnote leading-snug text-faint">
+                    {pick(agentUi.card.worksIn, locale)}: {agentChannelIds.map((id) => channelName(id, locale)).join(', ')}
+                  </span>
+                </span>
+              </button>
+            )}
             {section.ids.map((id) => {
               const entry = productCatalog[id]
               const Glyph = productIcons[id]

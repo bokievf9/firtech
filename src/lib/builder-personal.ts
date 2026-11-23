@@ -31,6 +31,7 @@ import {
 import { personalServices, type FlagshipProduct } from './builder-ids'
 import type { PersonalLevel } from './pricing'
 import { capabilitiesBrief, withCatalog } from './builder-capabilities'
+import { agentOnly } from './builder-agent'
 
 // «Сборка проекта» v4: the personal path and the discovery fields (owner review 2026-11-22). Pure and tested
 // (tests/builder-v2.test.mjs). The personal brief rides in the link as `m.<base64url JSON>`, the discovery
@@ -284,9 +285,22 @@ export type LeadBrief = Record<string, unknown>
 // short keys, at most `leadBriefLimit` characters. HQ's `webLeadSchema` is not strict, so it ignores or reads it.
 export const leadBriefLimit = 3500
 export function leadBriefOf(source: Build): LeadBrief | null {
-  const build = personalOnly(source)
+  const build = agentOnly(personalOnly(source))
   const out: LeadBrief = { v: 1 }
-  if (build.personal) {
+  if (build.agentBrief) {
+    // The agent path (builder v6): the agent id (the first one), all agent ids, the channels, what to connect, the volume and options.
+    out.type = 'agent'
+    if (build.agents?.length) {
+      out.agent = build.agents[0]
+      out.agents = build.agents
+    }
+    const a = build.agentBrief
+    if (a.channels?.length) out.channels = a.channels
+    if (a.connect?.length) out.connect = a.connect
+    if (a.volume) out.volume = a.volume
+    if (a.knowledge) out.knowledge = true
+    if (a.training) out.training = true
+  } else if (build.personal) {
     out.type = 'personal'
     const p = build.personal
     if (p.who) out.who = p.who
@@ -298,6 +312,7 @@ export function leadBriefOf(source: Build): LeadBrief | null {
     out.byok = p.byok === true
   } else {
     out.type = 'business'
+    if (build.agents?.length) out.agents = build.agents
     if (build.kind) out.niche = build.kind
     if (build.products?.length) out.products = build.products
     if (build.goals?.length) out.goals = build.goals

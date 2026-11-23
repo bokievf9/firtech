@@ -17,6 +17,8 @@ import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
 import { ProjectSend } from './builder-send'
 import { Panel } from './builder-ui'
+import { AgentLines } from './builder-agent'
+import { agentUi } from '@/content/builder-agent'
 
 // The last screen: the quote, the brief and the mockup side by side, then the actions.
 export function SummaryStep({
@@ -29,6 +31,7 @@ export function SummaryStep({
   focusSend,
   onCopy,
   onEdit,
+  setBuild,
 }: {
   dict: Dict
   locale: string
@@ -39,6 +42,7 @@ export function SummaryStep({
   focusSend: boolean
   onCopy: () => void
   onEdit: (step: number) => void
+  setBuild: (update: (b: Build) => Build) => void
 }) {
   const t = dict.builder
   const pricing = usePricing()
@@ -117,6 +121,10 @@ export function SummaryStep({
           </Panel>
         )}
 
+        <Panel title={agentUi.lines.title[locale === 'ru' ? 'ru' : 'en']}>
+          <AgentLines dict={dict} locale={locale} build={build} setBuild={setBuild} />
+        </Panel>
+
         {brief.setup.length > 0 && (
           <Panel title={pick(faceUi.partsTitle, locale)} action={edit(3)}>
             <Rows rows={brief.setup} empty={t.nothingYet} />
@@ -174,6 +182,15 @@ export function SummaryStep({
                 <span className="shrink-0 font-mono text-callout">{row.price}</span>
               </li>
             ))}
+            {doc.agents?.rows.map((row) => (
+              <li key={row.id} data-agent-row className="flex items-start justify-between gap-4 py-4">
+                <span className="min-w-0">
+                  <span className="block font-medium">{row.name}</span>
+                  {row.detail && <span className="mt-1 block text-callout text-muted">{row.detail}</span>}
+                </span>
+                <span className="shrink-0 font-mono text-callout">{row.price}</span>
+              </li>
+            ))}
             {doc.onRequest.map((row) => (
               <li key={row.id} className="flex items-start justify-between gap-4 py-4">
                 <span className="min-w-0">
@@ -189,6 +206,12 @@ export function SummaryStep({
                 <span className="shrink-0 font-mono text-callout">{doc.monthly}</span>
               </li>
             )}
+            {doc.agents && (
+              <li className="flex items-start justify-between gap-4 py-4">
+                <span className="font-medium">{agentUi.labels.monthly[locale === 'ru' ? 'ru' : 'en']}</span>
+                <span className="shrink-0 font-mono text-callout" data-agent-monthly>{doc.agents.monthly}</span>
+              </li>
+            )}
           </ul>
           <dl className="mt-5 grid gap-2 text-callout">
             {q.discount && (
@@ -196,7 +219,7 @@ export function SummaryStep({
                 <Row label={t.subtotal} value={doc.subtotal} className="text-muted" />
                 <Row
                   label={t.discount}
-                  value={`-${Math.round(pricing.bundleDiscount)}%`}
+                  value={doc.discount ?? `-${Math.round(pricing.bundleDiscount)}%`}
                   className="text-accent-text"
                 />
               </>

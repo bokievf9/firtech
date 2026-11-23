@@ -19,6 +19,7 @@ import {
   agentOffer,
   agentPath,
   agentsOfDept,
+  agentBuilderHref,
   aiTeamBuilderHref,
   aiTeamPath,
   isAgentId,
@@ -103,14 +104,24 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
           <h1 className="mt-3 max-w-[22ch] font-display text-title text-balance">{page.headline}</h1>
           <p className="mt-6 max-w-[48ch] text-lead text-muted">{page.promise}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link href={aiTeamBuilderHref(locale, offer.dept)} data-cta={`agent_${id}_build`} className={buttonClass('primary', 'lg')}>
-              {t.ctaBuild}
+            <Link href={agentBuilderHref(locale, id)} data-cta={`agent_${id}_build`} className={buttonClass('primary', 'lg')}>
+              {t.ctaBuildAgent}
               <ArrowRight size={18} aria-hidden="true" />
             </Link>
             <ChatOpenButton source={agentSource(id)} fallbackHref={`/${locale}#demo`} className={buttonClass('secondary', 'lg')}>
               {t.ctaChat}
             </ChatOpenButton>
           </div>
+          <p className="mt-5">
+            <Link
+              href={aiTeamBuilderHref(locale, offer.dept)}
+              data-cta={`agent_${id}_team_build`}
+              className="inline-flex items-center gap-1.5 text-callout font-medium text-accent-text hover:underline"
+            >
+              {t.ctaBuildTeam}
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </p>
         </HeroIntro>
         <Reveal className="lg:col-span-5" delay={0.2}>
           {offer.standalone ? (
@@ -216,8 +227,8 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
               <p className="mt-2 max-w-[52ch] text-callout text-muted">{ta.page.finalText}</p>
             </div>
             <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-              <Link href={aiTeamBuilderHref(locale, offer.dept)} data-cta={`agent_${id}_final`} className={buttonClass('primary', 'md')}>
-                {t.ctaBuild}
+              <Link href={agentBuilderHref(locale, id)} data-cta={`agent_${id}_final`} className={buttonClass('primary', 'md')}>
+                {t.ctaBuildAgent}
               </Link>
               <ChatOpenButton source={`aiteam_${id}`.slice(0, 40)} fallbackHref={`/${locale}#demo`} className={buttonClass('secondary', 'md')}>
                 {t.ctaChat}

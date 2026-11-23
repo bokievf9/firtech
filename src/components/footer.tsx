@@ -28,6 +28,7 @@ export function Footer({
   const columns = footerColumns(locale)
   const titles = {
     products: f.products,
+    agents: f.agents,
     services: f.services,
     solutions: dict.solutions.nav,
     company: f.company,
@@ -36,6 +37,8 @@ export function Footer({
     switch (link.kind) {
       case 'product':
         return dict.products.items[link.id].name
+      case 'agent':
+        return dict.aiTeams.agents.items[link.id].title
       case 'service':
         return dict.services.items[link.id].name
       case 'solution':
@@ -84,7 +87,7 @@ export function Footer({
       </div>
 
       <div className="mx-auto grid max-w-7xl gap-12 border-t border-t-hairline border-line px-4 py-16 md:grid-cols-12 md:px-8">
-        <div className="md:col-span-12 lg:col-span-3">
+        <div className="md:col-span-12 lg:col-span-2">
           <Logo />
           <p className="mt-5 max-w-[34ch] text-footnote text-muted">{f.tagline}</p>
           <p className="mt-8 text-footnote font-semibold">{f.social}</p>
@@ -114,7 +117,6 @@ export function Footer({
             aria-label={titles[col.id]}
             className={cn(
               'md:col-span-6 lg:col-span-2',
-              col.id === 'products' && 'lg:col-span-3',
             )}
           >
             <p className="text-footnote font-semibold">{titles[col.id]}</p>
