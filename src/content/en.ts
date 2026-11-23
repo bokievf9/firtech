@@ -147,6 +147,26 @@ const en: Dict = {
     sendAs: 'Send the request as {email}',
     leadInCabinet: 'Your request is in the cabinet: you can follow what happens next there.',
     toCabinet: 'Open the cabinet',
+    // Fira live (chat 2.0): thinking, errors, page hints, suggestions per page, link cards.
+    thinking: 'Fira is thinking',
+    expand: 'Expand the chat',
+    shrink: 'Shrink the chat',
+    suggestLabel: 'You can ask',
+    cardKinds: { page: 'Page', builder: 'Project builder', agent: 'Agent', article: 'Article' },
+    hints: {
+      builder: 'Not sure where to start the build? Ask me, I will point the way.',
+      product: 'Wondering if this fits you? Ask, I will answer to the point.',
+      pricing: 'If anything about price or payment is unclear, ask me.',
+      article: 'I can tell you briefly what in this article matters for you.',
+    },
+    suggest: {
+      home: ['What do you do?', 'How much does it cost?', 'Where do I start?'],
+      builder: ['What should I pick for my business?', 'How long does a launch take?', 'How does payment work?'],
+      product: ['Is this right for me?', 'How much does it cost?', 'How fast can you launch?'],
+      pricing: ['How does payment by stages work?', 'Is there a guarantee?', 'Can I get a discount?'],
+      article: ['In short: what matters here?', 'How do I apply this to my case?'],
+      other: ['What do you do?', 'Where do I start?'],
+    },
     mock: {
       greeting: 'Hello. I’m Fira, Fir Tech’s AI assistant. Three short questions and your request goes to the team. What do you need?',
       what: { site: 'Website', bot: 'Telegram Mini App', agent: 'AI agent', other: 'Something else' },

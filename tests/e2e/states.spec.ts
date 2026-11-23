@@ -21,7 +21,7 @@ const signedIn = (page: Page) =>
 
 test('chat: a 500 and a dropped connection show the reason and «Повторить»; the retry sends the same text', async ({ page }) => {
   let calls = 0
-  await page.route('**/api/chat', async (route) => {
+  await page.route('**/api/chat*', async (route) => {
     calls++
     const body = route.request().postDataJSON() as { message: string }
     if (body.message === 'Привет') {

@@ -7,7 +7,7 @@ import type { Dict } from '@/content'
 import { accessoriesFor } from '@/lib/fira/contexts'
 import { firaFace } from '@/lib/fira/face'
 import {
-  GUIDE_MENU_EVENT, GUIDE_POINT_EVENT, GUIDE_TOUR_EVENT, VOICE_KEY, bubbleMs, guideEmotion, pageContextFor, speechLang, voiceFromStorage,
+  GUIDE_MENU_EVENT, GUIDE_POINT_EVENT, GUIDE_TOUR_EVENT, VOICE_KEY, bubbleMs, guideEmotion, pageContextFor, speechLang, splitWords, voiceFromStorage, wordsShown,
 } from '@/lib/fira/guide'
 import type { Emotion } from '@/lib/fira/pose'
 import { homeStops, isExtra, pickStops } from '@/lib/fira/tour'
@@ -16,6 +16,7 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { FiraFallback7 } from './fira-fallback7'
 import { FiraTurtle7 } from './fira-turtle7'
 import { FiraTyped } from './fira-typed'
+import { useFiraLive } from './fira-live-store'
 
 // Fira as the guide of the whole site (owner 2026-11-23): the chat launcher IS her. She is docked bottom right,
 // says one short line per page (word by word, dismissible, once per page and session), opens a small menu
@@ -99,6 +100,7 @@ export function FiraGuide({
   onTour: (on: boolean) => void
 }) {
   const g: Copy = dict.firaGuide
+  const live = useFiraLive()
   const reduce = useReducedMotion()
   const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(wideQuery).matches, () => false)
   const home = isHomePath(pathname)
@@ -330,7 +332,9 @@ export function FiraGuide({
       ? { kind: 'note' as const, text: noteHere.text, key: `note:${noteHere.id}` }
       : saying && visible && !chatOpen && !menu && line
         ? { kind: 'line' as const, text: line, key: `line:${pathname}` }
-        : null
+        : live.bubble && !chatOpen && !menu && visible
+          ? { kind: 'live' as const, text: live.bubble.text, key: live.bubble.dots ? 'live:dots' : 'live:text' }
+          : null
   const open = bubble !== null
 
   // ---- voice (Web Speech API, page language; off by default, remembered)
@@ -363,7 +367,7 @@ export function FiraGuide({
       spokenKey.current = ''
       return
     }
-    if (voice && spokenKey.current !== bubbleKey) {
+    if (voice && bubbleText && spokenKey.current !== bubbleKey) {
       spokenKey.current = bubbleKey
       speak(bubbleText)
     }
@@ -382,7 +386,9 @@ export function FiraGuide({
   }
 
   // ---- her look
-  const emotion = guideEmotion({ tour: Boolean(tour), pointing, chatOpen, menu, notFound, saying: open })
+  const base = guideEmotion({ tour: Boolean(tour), pointing, chatOpen, menu, notFound, saying: open })
+  // The shared state (lib/fira/live.ts) wins while it is not idle: thinking, talking, happy, sorry, sleep...
+  const emotion: Emotion = live.state !== 'idle' ? live.state : base
   const context = chatOpen ? 'chat' : notFound ? '' : pageContextFor(pathname)
   const acc = accessoriesFor(context)
   const hidden = chatOpen ? 'pointer-events-none translate-y-3 opacity-0' : visible || tour ? 'opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
@@ -401,7 +407,19 @@ export function FiraGuide({
           <div className="min-w-0 flex-1 py-1">
             <span className="mb-0.5 block text-caption font-semibold text-accent-text">{dict.film.name}</span>
             {bubble ? (
-              bubble.kind === 'line' ? (
+              bubble.kind === 'live' ? (
+                <span data-fira-live-text aria-live="polite" className="block">
+                  {live.bubble?.dots ? (
+                    <span className="inline-flex items-center gap-1 py-1" aria-label={dict.chat.thinking}>
+                      <span className="typing-dot" />
+                      <span className="typing-dot" />
+                      <span className="typing-dot" />
+                    </span>
+                  ) : (
+                    wordsShown(splitWords(bubble.text), live.bubble?.wordsShown ?? 0)
+                  )}
+                </span>
+              ) : bubble.kind === 'line' ? (
                 <button type="button" onClick={onAsk} data-cta="companion_line" className="block text-left">
                   <FiraTyped key={bubble.key} text={bubble.text} />
                 </button>

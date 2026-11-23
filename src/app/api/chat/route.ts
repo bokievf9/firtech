@@ -8,6 +8,7 @@ import { askReceptionist, chatLimited, chatMode } from '@/lib/chat-hq'
 import { leadGate } from '@/lib/lead-identity'
 import { peekLeadUser } from '@/lib/lead-session'
 import { cabinetEnabled } from '@/lib/supabase/config'
+import { cardsFor, chunkText, sseLine } from '@/lib/fira/live'
 
 // Public chat with the AI receptionist (widget: src/components/chat/). Validates and strips the
 // message, limits each IP to 30 messages an hour, and forwards to HQ (or the dev mock). The
@@ -53,6 +54,34 @@ async function handle(request: NextRequest) {
     if (answer.error !== 'demo_limit') console.error(`[chat] receptionist unavailable: ${answer.error}`)
     return apiError(answer.error, answer.error === 'auth_required' ? 401 : answer.error === 'rate_limited' || answer.error === 'demo_limit' ? 429 : answer.error === 'hq_timeout' ? 504 : 502, {
       'x-chat-mode': chatMode(process.env),
+    })
+  }
+  // `?stream=1` (Fira chat 2.0): the same answer as text/event-stream. Everything above (Origin check, rate limit, sign-in
+  // gate, demo gate, errors) is the unchanged JSON path; only a good answer is streamed. HQ answers in one piece today,
+  // so the chunks are cut here (the widget paces the words); TODO(agents): pass HQ's own stream through when it has one.
+  if (new URL(request.url).searchParams.get('stream') === '1') {
+    const { reply, ...meta } = answer
+    const cards = cardsFor(answer, parsed.data.locale, parsed.data.page)
+    const chunks = chunkText(reply)
+    const enc = new TextEncoder()
+    const body = new ReadableStream<Uint8Array>({
+      async start(controller) {
+        for (const t of chunks) {
+          controller.enqueue(enc.encode(sseLine({ t })))
+          await new Promise((r) => setTimeout(r, 0))
+        }
+        controller.enqueue(enc.encode(sseLine({ done: true, cards, meta })))
+        controller.close()
+      },
+    })
+    return new Response(body, {
+      status: 200,
+      headers: {
+        'content-type': 'text/event-stream; charset=utf-8',
+        'cache-control': 'no-store, no-transform',
+        'x-accel-buffering': 'no',
+        'x-chat-mode': chatMode(process.env),
+      },
     })
   }
   return NextResponse.json(answer, {

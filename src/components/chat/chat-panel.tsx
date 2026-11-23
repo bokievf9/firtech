@@ -1,6 +1,8 @@
 'use client'
 
-import { ArrowClockwise, ArrowRight, CalendarBlank, PaperPlaneRight, X } from '@phosphor-icons/react'
+import { ArrowClockwise, ArrowRight, ArrowsIn, ArrowsOut, CalendarBlank, Hammer, PaperPlaneRight, X } from '@phosphor-icons/react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { track } from '@/lib/analytics'
@@ -22,7 +24,10 @@ import { draftReturnPath } from '@/lib/lead-draft'
 import { AuthForms } from '../cabinet/auth-forms'
 import { fill } from '../cabinet/ui'
 import { useCabinetUser } from '../cabinet/use-cabinet-user'
-import { ChatAvatar, type ChatAvatarComponent } from './chat-avatar'
+import { FiraStage } from '../fira/fira-stage'
+import { useFiraLive, useFiraStore } from '../fira/fira-live-store'
+import { cardsFor, pageSlug, parseSse, suggestGroupFor, type FiraCard } from '@/lib/fira/live'
+import { splitWords, wordsShown } from '@/lib/fira/guide'
 import { ChatSlots } from './chat-slots'
 import { storedRef } from '@/lib/referral'
 import { fade, spring } from '@/lib/motion'
@@ -38,6 +43,8 @@ type Message = {
   cabinet?: boolean
   // «Собрать проект» / «Предложить время» / Telegram under a receptionist reply.
   actions?: ChatAction[]
+  // Link cards under the reply (page, builder, agent, article).
+  cards?: FiraCard[]
   // The founder took over: a calm line under the reply.
   handoff?: boolean
   // The visitor's message that did not reach the receptionist: «Повторить» sends it again.
@@ -96,7 +103,6 @@ export default function ChatPanel({
   locale,
   dict,
   contactHref,
-  avatar: Avatar = ChatAvatar,
   persona,
 }: {
   open: boolean
@@ -104,14 +110,16 @@ export default function ChatPanel({
   locale: Locale
   dict: Dict
   contactHref: string
-  // The header avatar slot: the flat Fira now, a 3D one later.
-  avatar?: ChatAvatarComponent
   // Set when the chat is opened as a demo of a niche (salon, clinic, shop).
   persona?: Persona
 }) {
   const copy = dict.chat
   const { state: me, refresh } = useCabinetUser()
   const reduce = useReducedMotion()
+  const store = useFiraStore()
+  const live = useFiraLive()
+  const pathname = usePathname()
+  const [wide, setWide] = useState(false)
   const titleId = useId()
   const dialogRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -158,10 +166,13 @@ export default function ChatPanel({
       }
       let mock = chatRef.current.mock
       let answer: ChatResponse
+      let cards: FiraCard[] = []
       let status = 0
       let failure: ErrorInfo | null = null
+      // Fira: thinking (three dots) from the send until the first word; the greeting is committed at once.
+      if (shown !== null) store.dots(true)
       try {
-        const res = await fetch('/api/chat', {
+        const res = await fetch(shown !== null ? '/api/chat?stream=1' : '/api/chat', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
@@ -177,16 +188,56 @@ export default function ChatPanel({
         })
         status = res.status
         mock = res.headers.get('x-chat-mode') === 'mock'
-        const body: unknown = await res.json().catch(() => null)
-        answer = (body ?? { ok: false, error: 'bad_response' }) as ChatResponse
-        if (!answer.ok || !res.ok) {
-          answer = { ok: false, error: codeFromBody(body) ?? 'unknown' }
-          failure = describeError({ code: codeFromBody(body), status: res.status, locale })
+        if (res.ok && res.body && (res.headers.get('content-type') ?? '').includes('text/event-stream')) {
+          // The stream: words feed Fira's bubble as they arrive; the final event carries cards and the rest of the reply.
+          let got = ''
+          let finish: { cards: FiraCard[]; meta?: Record<string, unknown> } | null = null
+          const reader = res.body.getReader()
+          const decoder = new TextDecoder()
+          async function* chunks(): AsyncGenerator<string> {
+            let buf = ''
+            for (;;) {
+              const { done, value } = await reader.read()
+              if (done) break
+              buf += decoder.decode(value, { stream: true })
+              const parsed = parseSse(buf)
+              buf = parsed.rest
+              for (const ev of parsed.events) {
+                if ('t' in ev) {
+                  got += ev.t
+                  yield ev.t
+                } else finish = { cards: ev.cards, meta: ev.meta }
+              }
+            }
+          }
+          await store.say('', { stream: chunks() })
+          const end = finish as { cards: FiraCard[]; meta?: Record<string, unknown> } | null
+          if (end && got) {
+            answer = { ...(end.meta ?? {}), ok: true, reply: got } as ChatResponse
+            cards = end.cards
+          } else {
+            answer = { ok: false, error: 'bad_response' }
+            failure = describeError({ code: 'bad_response', status: res.status, locale })
+          }
+        } else {
+          const body: unknown = await res.json().catch(() => null)
+          answer = (body ?? { ok: false, error: 'bad_response' }) as ChatResponse
+          if (!answer.ok || !res.ok) {
+            answer = { ok: false, error: codeFromBody(body) ?? 'unknown' }
+            failure = describeError({ code: codeFromBody(body), status: res.status, locale })
+          } else if (shown !== null) {
+            // An old or plain JSON answer: the same line, word by word (FiraTyped timing).
+              await store.say(answer.reply)
+            cards = cardsFor(answer, locale, window.location.pathname)
+          }
         }
       } catch (thrown) {
         answer = { ok: false, error: 'network' }
         failure = describeError({ thrown, locale })
       }
+      if (!answer.ok) {
+        if (shown !== null) store.fail()
+      } else if (cards.length) store.point('chat-card')
       busy.current = false
       setPending(false)
       setChat((c) => {
@@ -207,6 +258,7 @@ export default function ChatPanel({
                 text: answer.reply,
                 buttons: answer.buttons,
                 ...(actions.length ? { actions } : {}),
+                ...(cards.length ? { cards } : {}),
                 ...(answer.handoff ? { handoff: true } : {}),
               },
               ...(answer.leadCreated ? [{ id: uuid(), from: 'sys' as const, text: copy.leadInCabinet, cabinet: true }] : []),
@@ -233,7 +285,7 @@ export default function ChatPanel({
         track('chat_state', { state: answer.state })
       return true
     },
-    [copy.greeting, copy.leadInCabinet, copy.tooFast, locale, persona],
+    [copy.greeting, copy.leadInCabinet, copy.tooFast, locale, persona, store],
   )
 
   // The greeting: the first open of a session asks HQ (or the mock) to start.
@@ -280,7 +332,7 @@ export default function ChatPanel({
   useEffect(() => {
     const list = listRef.current
     if (list) list.scrollTo({ top: list.scrollHeight, behavior: reduce ? 'auto' : 'smooth' })
-  }, [chat.messages.length, pending, reduce])
+  }, [chat.messages.length, pending, reduce, live.bubble?.wordsShown])
 
   // Enter (or the button) while the greeting or a reply is still coming used to do nothing and keep
   // the text; now the message waits and goes out as soon as the chat is free.
@@ -335,6 +387,10 @@ export default function ChatPanel({
   // HQ asks for a contact (or the site refused one): a signed-out visitor signs in right here, a
   // signed-in one sends the request with the account email in one tap.
   // A demo never shows the sign-in gate: it takes no contacts and creates no lead.
+  const suggestions =
+    !pending && !chat.demo && chat.state === 'chat' && chips.length === 0 && !chat.messages.some((m) => m.from === 'me')
+      ? (copy.suggest[suggestGroupFor(pageSlug(pathname))] as readonly string[])
+      : []
   const wantsContact = !pending && !chat.demo && (chat.state === 'contact' || chat.needAuth === true)
   const askSignIn = wantsContact && me.status === 'out'
   const sendAs = wantsContact && me.status === 'in' ? me.user.email : null
@@ -353,11 +409,13 @@ export default function ChatPanel({
           exit={reduce ? { opacity: 0 } : { opacity: 0, y: 24, scale: 0.96, filter: 'blur(6px)' }}
           transition={reduce ? fade : spring.sheet}
           style={{ transformOrigin: '100% 100%' }}
-          className="print-hidden material-chrome fixed inset-x-2 top-[max(0.5rem,env(safe-area-inset-top))] bottom-2 z-50 flex flex-col overflow-hidden rounded-panel sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:h-[min(600px,calc(100dvh-3rem))] sm:w-[400px]"
+          className={`print-hidden material-chrome fixed inset-x-2 top-[max(0.5rem,env(safe-area-inset-top))] bottom-2 z-50 flex flex-col overflow-hidden rounded-panel sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 ${wide ? 'sm:h-[min(780px,calc(100dvh-3rem))] sm:w-[min(680px,calc(100vw-3rem))]' : 'sm:h-[min(600px,calc(100dvh-3rem))] sm:w-[400px]'}`}
+          data-chat-size={wide ? 'wide' : 'normal'}
+          data-fira-page={pageSlug(pathname)}
         >
           <header className="flex items-center gap-3 px-5 pt-4 pb-3">
-            <span className="relative grid size-10 shrink-0 place-items-center rounded-full bg-pine">
-              <Avatar talking={pending} size={28} />
+            <span className="relative grid size-11 shrink-0 place-items-center rounded-full bg-pine" data-chat-stage>
+              <FiraStage size={40} />
               <span
                 className="live-dot absolute -right-0.5 -bottom-0.5 border-2 border-bg"
                 aria-hidden="true"
@@ -378,6 +436,25 @@ export default function ChatPanel({
                     : copy.subtitle}
               </p>
             </div>
+            <Link
+              href={contactHref}
+              onClick={onClose}
+              data-chat-build
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-accent px-3 text-[13px] font-medium text-accent-ink transition-[background-color,transform] duration-200 hover:bg-accent-strong active:scale-[0.97]"
+            >
+              <Hammer size={14} weight="bold" aria-hidden="true" />
+              <span className="max-sm:sr-only">{copy.buildProject}</span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setWide((w) => !w)}
+              aria-label={wide ? copy.shrink : copy.expand}
+              aria-pressed={wide}
+              data-chat-expand
+              className="hidden size-10 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-fg/5 hover:text-fg sm:grid"
+            >
+              {wide ? <ArrowsIn size={18} aria-hidden="true" /> : <ArrowsOut size={18} aria-hidden="true" />}
+            </button>
             <button
               type="button"
               onClick={onClose}
@@ -503,6 +580,25 @@ export default function ChatPanel({
                       )}
                     </span>
                   ) : null}
+                  {m.cards?.length ? (
+                    <span className="mt-3 grid gap-2" data-chat-cards>
+                      {m.cards.map((c) => (
+                        <Link
+                          key={c.href}
+                          href={c.href}
+                          onClick={onClose}
+                          data-chat-card={c.kind}
+                          className="group flex items-center gap-2 rounded-2xl border border-accent-text/40 bg-bg/50 px-3 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent-text hover:bg-accent/10 active:scale-[0.98]"
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-caption font-semibold text-accent-text">{copy.cardKinds[c.kind]}</span>
+                            <span className="block [overflow-wrap:anywhere]">{c.title}</span>
+                          </span>
+                          <ArrowRight size={14} weight="bold" aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-0.5" />
+                        </Link>
+                      ))}
+                    </span>
+                  ) : null}
                   {callFor === m.id ? (
                     <ChatSlots
                       copy={copy.slots}
@@ -524,15 +620,22 @@ export default function ChatPanel({
                 </div>
               </li>
             ))}
-            {pending ? (
-              <li className="chat-in flex justify-start" aria-label={copy.typing}>
-                <span className="inline-flex items-center gap-1 rounded-[18px] rounded-bl-md bg-surface-2 px-4 py-3.5">
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                </span>
+            {pending && live.bubble ? (
+              <li className="chat-in flex justify-start" data-chat-live={live.bubble.dots ? 'dots' : 'words'} aria-hidden="true">
+                {live.bubble.dots ? (
+                  <span className="inline-flex items-center gap-1 rounded-[18px] rounded-bl-md bg-surface-2 px-4 py-3.5">
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                  </span>
+                ) : (
+                  <div className="max-w-[85%] rounded-[18px] rounded-bl-md bg-surface-2 px-3.5 py-2.5 text-[15px] leading-snug [overflow-wrap:anywhere] whitespace-pre-line text-fg">
+                    <span data-chat-live-text>{wordsShown(splitWords(live.bubble.text), live.bubble.wordsShown)}</span>
+                  </div>
+                )}
               </li>
             ) : null}
+            {pending ? <li className="sr-only" role="status" aria-label={copy.typing}>{copy.typing}</li> : null}
             {sendAs ? (
               <li className="chat-in flex flex-wrap gap-2 pt-1">
                 <button
@@ -555,6 +658,21 @@ export default function ChatPanel({
                   next={draftReturnPath(window.location.pathname, window.location.search, '#chat')}
                   onSignedIn={() => void refresh()}
                 />
+              </li>
+            ) : null}
+            {suggestions.length ? (
+              <li className="chat-in flex flex-wrap gap-2 pt-1" data-chat-suggest>
+                <span className="sr-only">{copy.suggestLabel}: </span>
+                {suggestions.map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => void send(q, q)}
+                    className="rounded-full border border-accent-text/40 px-3.5 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent-text hover:bg-accent/10 active:scale-[0.97]"
+                  >
+                    {q}
+                  </button>
+                ))}
               </li>
             ) : null}
             {chips.length ? (
@@ -591,6 +709,11 @@ export default function ChatPanel({
                 maxLength={MESSAGE_MAX}
                 placeholder={copy.placeholder}
                 onChange={(e) => setText(e.target.value)}
+                onFocus={() => {
+                  const st = store.getSnapshot().state
+                  if (st === 'idle' || st === 'sleep') store.set('listening')
+                }}
+                onBlur={() => store.release('listening')}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                     e.preventDefault()

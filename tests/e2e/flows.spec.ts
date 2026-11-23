@@ -268,7 +268,7 @@ test('solution page opens the builder with its preset', async ({ page }) => {
 test('chat: Enter sends right after opening (queued behind the greeting), Shift+Enter makes a new line', async ({ page }) => {
   // A slow first answer keeps the greeting in flight while the visitor already types and presses Enter.
   let first = true
-  await page.route('**/api/chat', async (route) => {
+  await page.route('**/api/chat*', async (route) => {
     if (first) {
       first = false
       await new Promise((r) => setTimeout(r, 2500))
@@ -306,7 +306,7 @@ test('chat: a reply with builderLink and cta shows the builder button, the call 
   const errors = watchErrors(page)
   let calls = 0
   const sent: string[] = []
-  await page.route('**/api/chat', async (route) => {
+  await page.route('**/api/chat*', async (route) => {
     calls++
     const body = route.request().postDataJSON() as { message: string }
     sent.push(body.message)
@@ -346,7 +346,7 @@ test('chat: a reply with builderLink and cta shows the builder button, the call 
 
 test('chat: a failed message keeps its bubble and retries', async ({ page }) => {
   let fail = true
-  await page.route('**/api/chat', async (route) => {
+  await page.route('**/api/chat*', async (route) => {
     const body = route.request().postDataJSON() as { message: string }
     if (body.message !== '/start' && fail) {
       fail = false
@@ -367,7 +367,7 @@ test('chat: a failed message keeps its bubble and retries', async ({ page }) => 
 })
 
 test('chat: a demo reply shows the demo chip and the reset, and never the sign-in step', async ({ page }) => {
-  await page.route('**/api/chat', async (route) => {
+  await page.route('**/api/chat*', async (route) => {
     await route.fulfill({ json: { ok: true, reply: 'Здравствуйте, это салон «Лилия».', state: 'contact', demo: true } })
   })
   await openHomeForChat(page)
@@ -430,7 +430,7 @@ test.describe('home demo, signed in', () => {
   })
 
   test('the daily limit shows the friendly plate with «Собрать проект»', async ({ page }) => {
-    await page.route('**/api/chat', async (route) => {
+    await page.route('**/api/chat*', async (route) => {
       const body = route.request().postDataJSON() as { message: string }
       if (body.message === '/start') return route.fulfill({ json: { ok: true, reply: 'Здравствуйте.', state: 'chat', demo: true } })
       return route.fulfill({ status: 429, json: { ok: false, error: { code: 'demo_limit', message: 'x' } } })
