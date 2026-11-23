@@ -117,7 +117,7 @@ test('the dev mock: feed with filters and cursor, a prompt order is delivered on
 
 test('Content is a built HQ section with the three tabs and a page; no empty catch, no long dashes', () => {
   assert.equal(shell.sectionById('content').state, 'ready')
-  assert.deepEqual(shell.HQ_TABS.content, ['feed', 'orders', 'campaigns'])
+  assert.deepEqual(shell.HQ_TABS.content, ['feed', 'orders', 'campaigns', 'rules', 'marketing'])
   assert.equal(shell.sectionTab('content', 'orders'), 'orders')
   assert.equal(shell.sectionTab('content', 'x'), 'feed')
   assert.ok(existsSync(new URL('../src/app/admin/(hq)/content/page.tsx', import.meta.url)))

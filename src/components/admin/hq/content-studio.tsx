@@ -1,15 +1,17 @@
 'use client'
 
-import { Sparkle } from '@phosphor-icons/react'
+import { ChatCircleText, Sparkle } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { fill, hq } from '@/components/admin/control/api'
 import { Chip, type Tone } from '@/components/admin/shell-crm/bits'
 import { ContentCard, nextStatus, type Action } from '@/components/admin/shell-crm/content'
 import { btn, btnPrimary, Empty, inputClass, Loading, Offline, useHqView, useHub } from '@/components/admin/hub/ui'
 import { PromptBox, StudioScreen } from '@/components/admin/hq/studio-screen'
 import { CampaignsSection } from '@/components/admin/hq/campaigns-section'
+import { MarketingPanel } from '@/components/admin/hq/marketing-panel'
+import { MarketingRules } from '@/components/admin/hq/marketing-rules'
 import { Pending } from '@/components/ui/pending'
 import { cn } from '@/lib/cn'
 import { admin } from '@/content/admin'
@@ -20,29 +22,85 @@ import { Select } from '@/components/admin/select'
 const k = admin.pult.content
 const s = k.studio
 
-// The Content section of HQ: the feed of everything, the orders for the Content Maker and the client
-// mailings (Campaigns). The week calendar lives in the Calendar section. «Промпт» is on every tab.
+const PANEL_KEY = 'firtech-marketing-panel'
+const LG = '(min-width: 1024px)'
+const subscribeLg = (cb: () => void) => {
+  const q = window.matchMedia(LG)
+  q.addEventListener('change', cb)
+  return () => q.removeEventListener('change', cb)
+}
+// True from 1024 px up (false in the server HTML, so the side panel never mounts on a phone).
+const useLg = () => useSyncExternalStore(subscribeLg, () => window.matchMedia(LG).matches, () => false)
+
+// The Content section of HQ: the feed of everything, the orders for the Content Maker, the client mailings (Campaigns),
+// the marketing rules and the Marketing chat. From 1024 px the chat is a collapsible panel on the right (remembered);
+// on a phone it is the «Marketing» tab. The week calendar lives in the Calendar section. «Промпт» is on every tab.
 export function ContentSection({ tab, focus }: { tab: string; focus: string | null }) {
   const router = useRouter()
   const [prompt, setPrompt] = useState(false)
+  const [panel, setPanel] = useState(true)
+  const lg = useLg()
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- the remembered state is only known in the browser
+      if (localStorage.getItem(PANEL_KEY) === 'closed') setPanel(false)
+    } catch {
+      // storage is blocked: the panel stays open
+    }
+  }, [])
+  const setOpen = (open: boolean) => {
+    setPanel(open)
+    try {
+      localStorage.setItem(PANEL_KEY, open ? 'open' : 'closed')
+    } catch {
+      // storage is blocked: the choice lasts until the page closes
+    }
+  }
+  const side = lg && tab !== 'marketing' && panel
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)]">
-      <div className="flex items-center justify-end px-3 pt-3 sm:px-4">
-        <button type="button" className={cn(btnPrimary)} onClick={() => setPrompt((v) => !v)} aria-expanded={prompt} data-studio="prompt-toggle">
-          <Sparkle size={16} weight="fill" aria-hidden="true" /> {s.prompt}
-        </button>
-      </div>
-      {prompt ? (
-        <div className="px-3 pt-3 sm:px-4">
-          <PromptBox
-            onSent={() => {
-              setPrompt(false)
-              router.replace('/admin/content?tab=orders')
-            }}
-          />
+    <div className="flex min-w-0 items-start" data-content-section>
+      <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)]">
+        <div className="flex items-center justify-end gap-2 px-3 pt-3 sm:px-4">
+          {lg && tab !== 'marketing' && !panel ? (
+            <button type="button" className={btn} onClick={() => setOpen(true)} data-marketing-open>
+              <ChatCircleText size={16} aria-hidden="true" /> {k.marketing.toggleOpen}
+            </button>
+          ) : null}
+          <button type="button" className={cn(btnPrimary)} onClick={() => setPrompt((v) => !v)} aria-expanded={prompt} data-studio="prompt-toggle">
+            <Sparkle size={16} weight="fill" aria-hidden="true" /> {s.prompt}
+          </button>
         </div>
+        {prompt ? (
+          <div className="px-3 pt-3 sm:px-4">
+            <PromptBox
+              onSent={() => {
+                setPrompt(false)
+                router.replace('/admin/content?tab=orders')
+              }}
+            />
+          </div>
+        ) : null}
+        {tab === 'campaigns' ? (
+          <CampaignsSection embedded />
+        ) : tab === 'orders' ? (
+          <OrdersTab />
+        ) : tab === 'rules' ? (
+          <MarketingRules />
+        ) : tab === 'marketing' ? (
+          <div className="h-[min(44rem,calc(100dvh-14rem))] min-h-[24rem] p-3 sm:p-4">
+            <div className="h-full overflow-hidden rounded-xl border border-line bg-surface">
+              <MarketingPanel />
+            </div>
+          </div>
+        ) : (
+          <FeedTab focus={focus} />
+        )}
+      </div>
+      {side ? (
+        <aside className="sticky top-16 hidden h-[min(46rem,calc(100dvh-6rem))] w-[22rem] shrink-0 border-l border-line bg-surface lg:block xl:w-96" data-marketing-side>
+          <MarketingPanel onHide={() => setOpen(false)} />
+        </aside>
       ) : null}
-      {tab === 'campaigns' ? <CampaignsSection embedded /> : tab === 'orders' ? <OrdersTab /> : <FeedTab focus={focus} />}
     </div>
   )
 }

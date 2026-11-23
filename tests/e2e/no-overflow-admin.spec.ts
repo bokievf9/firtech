@@ -89,7 +89,7 @@ const PANELS: Array<[string, string, string[]]> = [
   ['7', 'projects', ['projects']],
   ['8', 'documents', ['documents', 'referrals', 'reviews']],
   ['9', 'finance', ['invoices', 'payments', 'costs']],
-  ['10', 'content', ['feed', 'orders', 'campaigns']],
+  ['10', 'content', ['feed', 'orders', 'campaigns', 'rules', 'marketing']],
   ['11', 'settings', ['']],
   ['12', 'tasks', ['']],
   ['13', 'calendar', ['']],

@@ -3,6 +3,7 @@ import { createAgentsMock } from './agents-mock'
 import { createKnowledgeMock } from './knowledge-mock'
 import { createClientKnowledgeMock } from './client-knowledge-mock'
 import { createCampaignsMock } from './campaigns-mock'
+import { createMarketingMock } from './marketing-mock'
 import { createSettingsMock } from './settings-mock'
 import { HUB_DEPTS, isoWeek, shiftWeek, weekDates } from './shell'
 
@@ -272,14 +273,17 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   const knowledgeMock = createKnowledgeMock(start)
   const clientKnowledgeMock = createClientKnowledgeMock({ pending: process.env.HQ_MOCK_KNOWLEDGE_PENDING === '1' })
   const campaignsMock = createCampaignsMock()
+  const marketingMock = createMarketingMock()
 
-  return function handle(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', seg: string[], query: Json, body: Json, now: number): Reply | null {
+  return function handle(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', seg: string[], query: Json, body: Json, now: number): Reply | null {
     const settings = settingsMock(method, seg, body, query, now)
     if (settings) return settings
     const clientKnowledge = clientKnowledgeMock(method, seg, body, now)
     if (clientKnowledge) return clientKnowledge
     const knowledge = knowledgeMock(method, seg, body, query, now)
     if (knowledge) return knowledge
+    const marketing = marketingMock(method, seg, query, body, now)
+    if (marketing) return marketing
     const campaigns = campaignsMock(method, seg, body, now)
     if (campaigns) return campaigns
     const agents = agentsMock(method, seg, body, now)

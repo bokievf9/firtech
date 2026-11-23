@@ -23,7 +23,7 @@ export function createClientKnowledgeMock(opts: { pending?: boolean } = {}) {
       fetchedAt: at,
     }))
 
-  return function handle(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', seg: string[], body: Rec, now: number): Reply | null {
+  return function handle(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', seg: string[], body: Rec, now: number): Reply | null {
     if (seg[0] !== 'clients' || seg[2] !== 'knowledge') return null
     if (seg[1] !== '1') return { ok: false, error: 'not_found' }
     const at = new Date(now).toISOString()

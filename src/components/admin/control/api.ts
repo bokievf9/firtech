@@ -7,17 +7,17 @@ import type { HqResult } from '@/lib/hq-admin-view'
 
 // Browser side of the пульт: every call goes to the session-checked proxy /api/admin/hq/*.
 // GET without a body, POST with one. Never throws: failures are { ok: false, error } codes.
-export async function hq<T extends object>(path: string, body?: unknown, method: 'POST' | 'PATCH' | 'DELETE' = 'POST'): Promise<HqResult<T>> {
+export async function hq<T extends object>(path: string, body?: unknown, method: 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'POST', timeoutMs = FETCH_TIMEOUT_MS): Promise<HqResult<T>> {
   try {
     const res = await fetch(
       `/api/admin/hq/${path}`,
       body === undefined
-        ? { cache: 'no-store', signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }
+        ? { cache: 'no-store', signal: AbortSignal.timeout(timeoutMs) }
         : {
             method,
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify(body),
-            signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+            signal: AbortSignal.timeout(timeoutMs),
           },
     )
     if (res.status === 401) return { ok: false, error: 'unauthorized' }

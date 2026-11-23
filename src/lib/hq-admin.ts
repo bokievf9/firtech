@@ -10,8 +10,10 @@ import { hqMock } from './hq-admin-mock'
 
 export const DEFAULT_HQ_ADMIN_URL = 'http://127.0.0.1:8787/admin'
 export const HQ_ADMIN_TIMEOUT_MS = 5000
+// The marketing chat waits for Fira's reply (contract: up to 25 s, then 202 pending).
+export const MARKETING_CHAT_TIMEOUT_MS = 27_000
 
-type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE'
+type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 type Env = Record<string, string | undefined>
 export type Proxied = { ok: true; [k: string]: unknown } | { ok: false; error: string; reason?: string; [k: string]: unknown }
 
@@ -299,6 +301,17 @@ export const REVIEW_ENDPOINTS: readonly Endpoint[] = [
   { method: 'POST', path: /^trends$/, body: z.object({ url: z.string().trim().min(1).max(600), note: z.string().max(500).optional() }).strict() },
 ]
 
+// Marketing chat (contract «Маркетинг-чат», 2026-11-24): the chat with the Head of Marketing, the rules text with its versions
+// (the same entity as `agents/marketing-head/instructions`) and accepting a proposed plan. Strict bodies.
+export const MARKETING_ENDPOINTS: readonly Endpoint[] = [
+  { method: 'GET', path: /^marketing\/chat$/, query: ['limit', 'before'] },
+  { method: 'POST', path: /^marketing\/chat$/, body: z.object({ text: z.string().trim().min(1).max(2000) }).strict() },
+  { method: 'GET', path: /^marketing\/rules$/ },
+  { method: 'PUT', path: /^marketing\/rules$/, body: z.object({ text: z.string().trim().min(1).max(20000), note: z.string().trim().max(200).optional() }).strict() },
+  { method: 'POST', path: /^marketing\/rules\/rollback$/, body: z.object({ version: z.number().int().min(1).max(999999) }).strict() },
+  { method: 'POST', path: /^marketing\/plan\/accept$/, body: z.object({ planId: z.string().regex(/^[\w:.-]{1,64}$/) }).strict() },
+]
+
 // A client id may be `c:<name>` (clients without an account); the browser sends it URL-encoded.
 function clientSegment(segments: string[]): string[] | null {
   if (segments.length !== 3 || segments[0] !== 'crm' || segments[1] !== 'clients') return null
@@ -326,7 +339,7 @@ export function resolveEndpoint(method: string, segments: string[], search: URLS
     return { ok: false, status: 404, error: 'not_found' }
   }
   const path = segments.join('/')
-  const endpoint = [...ENDPOINTS, ...CRM_ENDPOINTS, ...PULT_ENDPOINTS, ...REVIEW_ENDPOINTS].find((e) => e.method === method && e.path.test(path))
+  const endpoint = [...ENDPOINTS, ...CRM_ENDPOINTS, ...PULT_ENDPOINTS, ...REVIEW_ENDPOINTS, ...MARKETING_ENDPOINTS].find((e) => e.method === method && e.path.test(path))
   if (!endpoint) return { ok: false, status: 404, error: 'not_found' }
   const query: Record<string, string> = {}
   for (const key of endpoint.query ?? []) {

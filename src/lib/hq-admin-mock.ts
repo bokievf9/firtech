@@ -665,7 +665,7 @@ export function createHqMock(start = Date.now()) {
     addInbox(now, 'progress', `Задача #${task.id} снова в очереди: ${task.title}.`, { taskId: task.id, read: true })
   }
 
-  return function handle(method: 'GET' | 'POST' | 'PATCH' | 'DELETE', path: string, query: Query = {}, body: Json = {}, now = Date.now()): MockReply {
+  return function handle(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, query: Query = {}, body: Json = {}, now = Date.now()): MockReply {
     advance(now)
     const seg = path.split('/').filter(Boolean)
     if (method === 'GET' && seg.length === 1 && seg[0] === 'dashboard') {
@@ -682,7 +682,7 @@ export function createHqMock(start = Date.now()) {
     }
     const v3 = pult(method, seg, query, body, now)
     if (v3) return v3 as MockReply
-    if (method === 'PATCH' || method === 'DELETE') return { ok: false, error: 'not_found' }
+    if (method === 'PATCH' || method === 'DELETE' || method === 'PUT') return { ok: false, error: 'not_found' }
     const rv = review(method, seg, query, body, now)
     if (rv) return rv as MockReply
     if (seg[0] === 'crm') return crm(method, seg, query, body, now)

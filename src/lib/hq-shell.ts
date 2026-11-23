@@ -79,7 +79,7 @@ export const HQ_TABS = {
   clients: ['pipeline', 'clients', 'site', 'calls', 'prospects'],
   projects: ['projects'],
   documents: ['documents', 'referrals', 'reviews'],
-  content: ['feed', 'orders', 'campaigns'],
+  content: ['feed', 'orders', 'campaigns', 'rules', 'marketing'],
   finance: ['invoices', 'payments', 'costs'],
 } as const satisfies Partial<Record<HqSectionId, readonly string[]>>
 

@@ -26,7 +26,7 @@ test('sections: nineteen English names in four groups, all built, keys 1-9', () 
 test('no duplicate tabs: payments only in Finance, campaigns inside Content, no calendar tab', () => {
   assert.deepEqual(s.HQ_TABS.projects, ['projects'])
   assert.deepEqual(s.HQ_TABS.finance, ['invoices', 'payments', 'costs'])
-  assert.deepEqual(s.HQ_TABS.content, ['feed', 'orders', 'campaigns'])
+  assert.deepEqual(s.HQ_TABS.content, ['feed', 'orders', 'campaigns', 'rules', 'marketing'])
   assert.equal(s.sectionTab('content', 'calendar'), 'feed')
   assert.equal(s.sectionTab('projects', 'payments'), 'projects')
   assert.match(read('src/app/admin/(hq)/campaigns/page.tsx'), /redirect\('\/admin\/content\?tab=campaigns'\)/)
