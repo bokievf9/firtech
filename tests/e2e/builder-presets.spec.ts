@@ -54,7 +54,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       await expect(page.locator('#contact').getByRole('button', { name: 'Отправить проект в работу' })).toBeVisible()
       await noHorizontalOverflow(page, 'preset summary')
       await page.locator('#contact').getByRole('button', { name: 'Отправить проект в работу' }).click()
-      await expect(page.getByRole('status').filter({ hasText: 'Заявка у нас' })).toBeVisible()
+      await expect(page.getByRole('status').filter({ hasText: /Заявка (№\d+ )?принята/ })).toBeVisible()
       expect((sent as unknown as { brief: Record<string, unknown> }).brief).toMatchObject({ type: 'business', niche: 'salon', preset: 'salon' })
       expect(errors).toEqual([])
     })
@@ -84,7 +84,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       await expect(page.locator('[aria-current="step"]')).toHaveAttribute('aria-label', /^8\./)
       expect(page.url()).toContain('r.salon')
       await page.locator('#contact').getByRole('button', { name: 'Отправить проект в работу' }).click()
-      await expect(page.getByRole('status').filter({ hasText: 'Заявка у нас' })).toBeVisible()
+      await expect(page.getByRole('status').filter({ hasText: /Заявка (№\d+ )?принята/ })).toBeVisible()
       expect((sent as unknown as { brief: Record<string, unknown> }).brief).toMatchObject({
         preset: 'salon',
         task: 'Салон красоты: клиенты звонят за записью, не успеваю отвечать',

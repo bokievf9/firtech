@@ -51,7 +51,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       await expect(page.locator('[data-builder]')).not.toContainText('Битрикс24')
       await noHorizontalOverflow(page, 'summary')
       await page.locator('#contact').getByRole('button', { name: 'Отправить проект в работу' }).click()
-      await expect(page.getByRole('status').filter({ hasText: 'Заявка у нас' })).toBeVisible()
+      await expect(page.getByRole('status').filter({ hasText: /Заявка (№\d+ )?принята/ })).toBeVisible()
       const body = sent as unknown as { brief: { discovery: Record<string, unknown> } }
       expect(body.brief.discovery).toMatchObject({ size: 's10', tools: ['bitrix'], langs: ['tj'], src: ['friends', 'other'], success: ['speed'], note: NOTE })
       expect(errors).toEqual([])
@@ -103,7 +103,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       await goNext(page, 6)
       await goNext(page, 7)
       await page.locator('#contact').getByRole('button', { name: 'Отправить проект в работу' }).click()
-      await expect(page.getByRole('status').filter({ hasText: 'Заявка у нас' })).toBeVisible()
+      await expect(page.getByRole('status').filter({ hasText: /Заявка (№\d+ )?принята/ })).toBeVisible()
       const body = sent as unknown as { brief: Record<string, unknown> }
       expect(body.brief).toMatchObject({ type: 'agent', depth: { 'sl-src': ['instagram', 'other'], 'sl-crm': ['amocrm'], 'sl-resp': ['m5'], 'sl-hours': ['h24'] }, note: NOTE })
       expect(errors).toEqual([])

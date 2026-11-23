@@ -72,7 +72,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       expect(page.url()).toMatch(/a\.lead-handler\.telegram-web\.crm\.m\.path-knowledge/)
       await noHorizontalOverflow(page, 'agent estimate')
       await page.locator('#contact').getByRole('button', { name: 'Отправить проект в работу' }).click()
-      await expect(page.getByRole('status').filter({ hasText: 'Заявка у нас' })).toBeVisible()
+      await expect(page.getByRole('status').filter({ hasText: /Заявка (№\d+ )?принята/ })).toBeVisible()
       const body = sent as unknown as { brief: Record<string, unknown>; estimate: string; message?: string }
       expect(body.brief).toMatchObject({ type: 'agent', agent: 'lead-handler', channels: ['telegram', 'web'], connect: ['crm'], volume: 'm', knowledge: true })
       expect(JSON.parse(body.estimate)).toMatchObject({ totalUsd: 240, monthlyUsd: 39 })

@@ -83,14 +83,14 @@ test('builder send: pending is aria-busy, a 500 shows the reason and «Повт�
   await alert.getByRole('button', { name: 'Повторить' }).click()
   await expect(box.getByRole('alert')).toContainText('Сервер не ответил за 20 секунд')
   await box.getByRole('alert').getByRole('button', { name: 'Повторить' }).click()
-  await expect(page.getByRole('status').filter({ hasText: 'Заявка у нас' })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: /Заявка (№\d+ )?принята/ })).toBeVisible()
   expect(calls).toBe(3)
-  await shot(page, page.getByRole('status').filter({ hasText: 'Заявка у нас' }), 'builder-send-success')
+  await shot(page, page.getByRole('status').filter({ hasText: /Заявка (№\d+ )?принята/ }), 'builder-send-success')
 })
 
 for (const [locale, title, queuedText] of [
-  ['ru', 'Заявка у нас', 'Заявка сохранена и уйдёт в работу, как только сервер ответит'],
-  ['en', 'Request received', 'Request saved and will go to work as soon as the server answers'],
+  ['ru', /Заявка (№\d+ )?принята/, 'Заявка сохранена и уйдёт в работу, как только сервер ответит'],
+  ['en', /Request (#\d+ )?received/, 'Request saved and will go to work as soon as the server answers'],
 ] as const) {
   test(`builder send (${locale}): a queued lead (HQ down) shows the saved text, not the plain success`, async ({ page }) => {
     await signedIn(page)
