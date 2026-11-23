@@ -165,7 +165,7 @@ test('AI team: the index lists six departments and every card opens its page', a
   await expect(page).toHaveURL(/\/ru\/ai-team\/support$/)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   // The department page carries a subscription price card for its team.
-  await expect(page.locator('main [data-subscription-card]').first()).toContainText('$')
+  await expect(page.locator('main [data-subscription-card]').first()).toContainText('USD')
 })
 
 test('AI team: a department page lists its agents and an agent page opens the builder or the chat', async ({ page }) => {

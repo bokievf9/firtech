@@ -1857,7 +1857,7 @@ const en: Dict = {
           us: 'The legal entity is being registered, and its details will appear on the payment page. The terms are in the offer, and the quote is confirmed in writing.',
         },
         {
-          id: 'payment',
+          id: 'method',
           label: 'How you pay',
           market: 'Bank accounts and transfers, sometimes with currency conversion.',
           us: 'Payment by card or by invoice, stage by stage, and the first one is refundable.',

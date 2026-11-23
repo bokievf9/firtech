@@ -102,7 +102,7 @@ test('pay-how: meta 120-160, same sections in both locales, covers the required 
 })
 
 test('compare: the contrast block exists in both locales with the same rows', () => {
-  const ids = ['price', 'code', 'payment', 'guarantee', 'demo', 'entity', 'payment']
+  const ids = ['price', 'code', 'payment', 'guarantee', 'demo', 'entity', 'method']
   for (const [locale, dict] of dicts) {
     const c = dict.comparePage.contrast
     assert.deepEqual(c.rows.map((r) => r.id), ids, locale)
