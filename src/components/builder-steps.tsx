@@ -202,10 +202,12 @@ export function KindStep({
   locale,
   kind,
   onPick,
+  hideTitle,
 }: {
   locale: string
   kind: BusinessKind | null
   onPick: (kind: BusinessKind) => void
+  hideTitle?: boolean
 }) {
   const ui = builderUi
   const [all, setAll] = useState(() => Boolean(kind && !popularKinds.includes(kind)))
@@ -219,7 +221,7 @@ export function KindStep({
     })
   return (
     <>
-      <h3 className="mb-4 text-callout font-medium">{pick(faceUi.nichesTitle, locale)}</h3>
+      {!hideTitle && <h3 className="mb-4 text-callout font-medium">{pick(faceUi.nichesTitle, locale)}</h3>}
       <div role="radiogroup" aria-label={pick(faceUi.popular, locale)} className="grid grid-cols-3 gap-2.5">
         {popularKinds.map((id) => (
           <KindCard key={id} id={id} locale={locale} on={kind === id} onPick={onPick} big />

@@ -19,8 +19,28 @@ export const HINT_AFTER_MS = 10_000
 // ---- the events on window ('fira'): open-chat, hint, reaction
 export type FiraEvent = { type: 'open-chat' | 'hint' | 'reaction'; source?: string; key?: string; text?: string }
 export const FIRA_EVENT = 'fira'
+/** A click on Fira's live bubble (fira-guide.tsx): a page may react to it, e.g. the builder focuses its task field. */
+export const FIRA_BUBBLE_EVENT = 'fira-bubble-click'
 export function dispatchFira(detail: FiraEvent) {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(FIRA_EVENT, { detail }))
+}
+
+/** Page code outside the ChatWidget tree (the builder) drives the shared store through this window event: the provider in
+ *  fira-live-store.ts applies it (think = dots, say = a line, fail = sorry, clear = drop the bubble). */
+export const FIRA_SAY_EVENT = 'fira-say'
+export type FiraSay = { op: 'think' | 'say' | 'fail' | 'clear'; text?: string; ifIdle?: boolean }
+export function firaSay(detail: FiraSay) {
+  if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(FIRA_SAY_EVENT, { detail }))
+}
+/** What the provider does with a FiraSay: kept here so it is tested without React. */
+export function applyFiraSay(store: Pick<FiraStore, 'dots' | 'say' | 'fail' | 'clearBubble' | 'getSnapshot'>, d: FiraSay) {
+  if (d.op === 'think') store.dots(true)
+  else if (d.op === 'fail') store.fail()
+  else if (d.op === 'clear') store.clearBubble()
+  else if (d.op === 'say' && d.text) {
+    const now = store.getSnapshot()
+    if (!d.ifIdle || (now.state === 'idle' && !now.bubble)) void store.say(d.text.slice(0, 200))
+  }
 }
 
 // ---- the store

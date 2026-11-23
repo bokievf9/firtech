@@ -62,6 +62,8 @@ for (const width of [390, 768]) {
         if (step === 7) break
         await page.getByRole('button', { name: /^Дальше/ }).click({ force: true })
       }
+      // The entry screen (with its task form) has left the page by now.
+      await expect(page.locator('[data-task-start]')).toHaveCount(0)
       for (const el of await page.locator('[data-builder] input[type=text], [data-builder] input:not([type]), [data-builder] textarea').all()) await el.fill(LONG + LONG)
       expect(await formOverflow(page)).toEqual([])
     })

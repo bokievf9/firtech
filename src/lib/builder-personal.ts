@@ -329,6 +329,9 @@ export function leadBriefOf(source: Build): LeadBrief | null {
     if (Object.keys(details).length) out.details = details
   }
   if (build.discovery) out.discovery = build.discovery
+  // builder v6 wave 2: the niche preset the build started from and the visitor's own words.
+  if (source.preset) out.preset = source.preset
+  if (source.task) out.task = source.task
   // v5: the catalogue picks (ids only). Too long for the limit: the catalogue goes first, the rest stays.
   const caps = capabilitiesBrief(build)
   if (caps) out.capabilities = caps

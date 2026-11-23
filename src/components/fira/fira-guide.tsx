@@ -9,7 +9,7 @@ import { firaFace } from '@/lib/fira/face'
 import {
   GUIDE_MENU_EVENT, GUIDE_POINT_EVENT, GUIDE_TOUR_EVENT, VOICE_KEY, bubbleMs, guideEmotion, pageContextFor, speechLang, splitWords, voiceFromStorage, wordsShown,
 } from '@/lib/fira/guide'
-import { dispatchFira } from '@/lib/fira/live'
+import { FIRA_BUBBLE_EVENT, dispatchFira } from '@/lib/fira/live'
 import type { Emotion } from '@/lib/fira/pose'
 import { peekKey } from '@/lib/fira/presence'
 import { homeStops, isExtra, pickStops } from '@/lib/fira/tour'
@@ -326,10 +326,10 @@ export function FiraGuide({
     ? { kind: 'tour' as const, text: stop.text, key: `tour:${tour.i}` }
     : noteHere
       ? { kind: 'note' as const, text: noteHere.text, key: `note:${noteHere.id}` }
-      : saying && visible && !chatOpen && !menu && line
-        ? { kind: 'line' as const, text: line, key: `line:${pathname}` }
-        : live.bubble && !chatOpen && !menu && visible
-          ? { kind: 'live' as const, text: live.bubble.text, key: live.bubble.dots ? 'live:dots' : 'live:text' }
+      : live.bubble && !chatOpen && !menu && visible
+        ? { kind: 'live' as const, text: live.bubble.text, key: live.bubble.dots ? 'live:dots' : 'live:text' }
+        : saying && visible && !chatOpen && !menu && line
+          ? { kind: 'line' as const, text: line, key: `line:${pathname}` }
           : null
   const open = bubble !== null
 
@@ -404,7 +404,12 @@ export function FiraGuide({
             <span className="mb-0.5 block text-caption font-semibold text-accent-text">{dict.film.name}</span>
             {bubble ? (
               bubble.kind === 'live' ? (
-                <span data-fira-live-text aria-live="polite" className="block">
+                <span
+                  data-fira-live-text
+                  aria-live="polite"
+                  className="block"
+                  onClick={() => window.dispatchEvent(new CustomEvent(FIRA_BUBBLE_EVENT))}
+                >
                   {live.bubble?.dots ? (
                     <span className="inline-flex items-center gap-1 py-1" aria-label={dict.chat.thinking}>
                       <span className="typing-dot" />

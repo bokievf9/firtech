@@ -34,6 +34,7 @@ import {
   stepIssues,
   toggleDelivery,
 } from '@/lib/builder-v2'
+import { isPersonalMatch, matchBuild, presetBuild, type Match, type PresetId } from '@/lib/builder-presets'
 import { personalIssues, personalReady, startPersonal, stopPersonal, tierOf } from '@/lib/builder-personal'
 import {
   agentIssues,
@@ -60,6 +61,7 @@ import { SummaryStep } from './builder-summary'
 import { ForkToggle, PersonalDay, PersonalStep, type ForkMode } from './builder-personal'
 import { AgentEstimate, AgentStep, deptQuestion } from './builder-agent'
 import { Screen } from './builder-ui'
+import { PresetRow, TaskStart } from './builder-presets'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -271,6 +273,24 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     go(PRODUCTS)
   }
 
+  // A niche preset (builder v6 wave 2): its prebuilt set replaces the build, the brief already given stays, the visitor lands on the summary.
+  function pickPreset(id: PresetId) {
+    setBuildState((b) => presetBuild(id, { details: b.details, discovery: b.discovery, task: b.task }))
+    setAttempted(false)
+    go(SUMMARY)
+  }
+
+  // «Собрать так» under the task field: a preset opens the summary, a product the products step, the personal path its own.
+  function applyMatch(match: Match, task: string) {
+    if (isPersonalMatch(match)) {
+      pickFork('personal')
+      return
+    }
+    setBuildState((b) => ({ ...matchBuild(match, task), ...(b.details ? { details: b.details } : {}), ...(b.discovery ? { discovery: b.discovery } : {}) }))
+    setAttempted(false)
+    go(match.kind === 'preset' ? SUMMARY : PRODUCTS)
+  }
+
   function pickProduct(id: ProductId) {
     setBuildState((b) => reapplySiteNeed(toggleProduct(b, id)))
   }
@@ -448,7 +468,12 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                   />
                 )}
                 {business && step === 0 && (
-                  <KindStep locale={locale} kind={kind} onPick={pickKind} />
+                  <>
+                    <PresetRow locale={locale} current={build.preset as PresetId | undefined} onPick={pickPreset} />
+                    <TaskStart locale={locale} onApply={applyMatch} />
+                    <h3 className="mt-14 mb-4 text-callout font-medium">{pick(faceUi.nichesTitle, locale)}</h3>
+                    <KindStep locale={locale} kind={kind} onPick={pickKind} hideTitle />
+                  </>
                 )}
                 {business && step === PRODUCTS && (
                   <ProductsStep

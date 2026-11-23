@@ -265,7 +265,14 @@ export type Build = {
   // added to another build. Two or more agents are priced with the team formula.
   agents?: StandaloneAgentId[]
   agentBrief?: AgentBrief
+  // builder v6 wave 2 (2026-11-24): the niche preset the build started from (chunk `r.<id>`, lib/builder-presets.ts) and the
+  // visitor's own words from «Опишите задачу» (chunk `q.<base64url>`, at most `taskLimit` characters). Neither changes a price;
+  // both ride in the lead brief (`preset`, `task`).
+  preset?: string
+  task?: string
 }
+
+export const taskLimit = 300
 
 export const emptyBuild: Build = { parts: {}, extras: [] }
 
@@ -445,6 +452,8 @@ export function encodeBuild(build: Build) {
   if (discovery) parts.push(`v.${toBase64Url(discovery)}`)
   const agent = agentChunk(build)
   if (agent) parts.push(agent)
+  if (build.preset && /^[a-z]{2,16}$/.test(build.preset)) parts.push(`r.${build.preset}`)
+  if (build.task) parts.push(`q.${toBase64Url(build.task.slice(0, taskLimit))}`)
   if (build.goals?.length) parts.push(`g.${build.goals.join('-')}`)
   if (build.channels?.length) parts.push(`c.${build.channels.join('-')}`)
   // An empty list is a choice too (nothing ticked yet), told apart from "never asked" by `l.none`.
@@ -593,6 +602,15 @@ export function decodeBuild(value: string | null | undefined): Build | null {
     }
     if (head === 'a') {
       readAgentChunk(build, [second, third, fourth, fifth, sixth])
+      continue
+    }
+    if (head === 'r') {
+      if (/^[a-z]{2,16}$/.test(second)) build.preset = second
+      continue
+    }
+    if (head === 'q') {
+      const task = cleanTask(fromBase64Url(chunk.slice(2)) ?? '')
+      if (task) build.task = task
       continue
     }
     if (head === 'v') {
@@ -746,6 +764,17 @@ export function cleanWish(text: string) {
       .replace(/[\u0000-\u0009\u000b-\u001f\u007f]/g, '')
       .trim()
       .slice(0, textLimits.wish) || undefined
+  )
+}
+
+// The task text of «Опишите задачу»: control characters dropped, whitespace collapsed, at most `taskLimit` characters.
+export function cleanTask(text: string) {
+  return (
+    text
+      .replace(/[\u0000-\u001f\u007f]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, taskLimit) || undefined
   )
 }
 
