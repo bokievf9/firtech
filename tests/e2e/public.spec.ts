@@ -191,6 +191,7 @@ test('bare paths of known pages redirect to a language (contracts link /terms an
     ['/terms', 'ru-RU,ru;q=0.9', '/ru/terms'],
     ['/privacy', 'en-US,en;q=0.9', '/en/privacy'],
     ['/pay-how', 'ru', '/ru/pay-how'],
+    ['/security', 'en', '/en/security'],
     ['/services/websites', 'en', '/en/services/websites'],
   ] as const) {
     const res = await request.get(path, { maxRedirects: 0, headers: { 'accept-language': accept } })

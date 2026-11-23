@@ -2751,6 +2751,7 @@ const en: Dict = {
       compare: 'Comparison',
       referral: 'Referrals',
       audit: 'Free audit',
+      security: 'Security and data',
       status: 'Systems status',
       'ai-team': 'AI teams',
       'all-agents': 'All agents',
@@ -3840,6 +3841,103 @@ const en: Dict = {
   channelsStrip: {
     title: 'Where it lives',
     sub: 'Where people already are: the same AI in any channel. We pick the channels in the quote.',
+  },
+  security: {
+    metaTitle: 'Security and data: where it is kept, who sees it, how to delete it | Fir Tech',
+    metaDescription:
+      'Where Fir Tech client data lives, who sees it, what goes to the AI model, how backups, access and deletion work. A plain description of our setup without big promises.',
+    eyebrow: 'Security',
+    title: 'Security and data',
+    updated: 'Updated 24 November 2026',
+    draftNote: 'A description of how the system is built, not a legal document.',
+    intro:
+      'This page says how we store data today. We do not promise what we do not do: if something is still being set up, it says so. The rules for processing data and your rights are in the privacy policy.',
+    sections: [
+      {
+        id: 'where',
+        title: 'Where the data is kept',
+        text: [
+          'The site and the studio internal system run on one server in Singapore (DigitalOcean). Requests, projects, conversations, documents and the knowledge of your agents sit in the internal system database on that server, uploaded files sit in its files folder.',
+          'Accounts, passwords and email confirmation codes are kept by the Supabase service. We never see your password: the service holds only its protected hash. We set the project up for the Singapore region, and we are confirming the exact region in the Supabase panel and will fix this line if it differs.',
+        ],
+        list: [],
+      },
+      {
+        id: 'who',
+        title: 'Who sees the data',
+        text: ['A small circle sees project data:'],
+        list: [
+          'you, in your cabinet: your own projects, documents and conversations',
+          'the studio owner, in the closed admin panel',
+          'your agents: only the knowledge and conversations of your project, they have no access to other clients',
+        ],
+      },
+      {
+        id: 'model',
+        title: 'What goes to the AI model',
+        text: [
+          'Answers are prepared by Anthropic models. Texts from the chat, the cabinet and the project go to the model only to get an answer to that request. We do not train models on client data.',
+          'The site chat does not write visitor texts to the site logs. A conversation is kept in the internal system if you left contacts or asked us to reach out. Do not type passwords or card numbers into the chat.',
+        ],
+        list: [],
+      },
+      {
+        id: 'backups',
+        title: 'Backups',
+        text: [
+          'A copy of the data is made every night. Copies on the server are kept for 14 days. The copy of requests sent to the owner is encrypted with age, and the key to open it is held only by the owner, never on the server.',
+          'When you ask us to delete data, older backups drop out of rotation on their own, which takes up to two weeks.',
+        ],
+        list: [],
+      },
+      {
+        id: 'access',
+        title: 'Access and passwords',
+        text: [
+          'Every page and request goes over a secure TLS connection. The admin panel is closed by a password that is stored only as a hash, the number of login attempts is limited and sessions can be revoked.',
+          'The site sends browser security headers, and the content security policy currently runs in report-only mode: it collects reports and blocks nothing. We will switch to strict mode after reviewing the reports.',
+        ],
+        list: [],
+      },
+      {
+        id: 'never',
+        title: 'What an agent never does on its own',
+        text: ['Agents prepare the work and people make the decisions. Without your yes an agent will not:'],
+        list: [
+          'pay or accept payment in your name',
+          'sign documents',
+          'publish posts, reply to customers or send offers',
+        ],
+      },
+      {
+        id: 'deletion',
+        title: 'Data deletion',
+        text: [
+          'You can delete your account with the button in the cabinet profile or on request. On deletion the client record in our system is anonymized: contacts, message texts, attachments and uploaded files are erased, while payment records and document numbers stay for accounting.',
+          'We also delete requests made without an account on request. How long data is kept without a request is stated in the privacy policy.',
+        ],
+        list: [],
+      },
+      {
+        id: 'analytics',
+        title: 'Analytics',
+        text: [
+          'We use Yandex Metrika on public pages only. It is not loaded in the cabinet or on the payment and demo pages, session recording is off and form fields are not recorded.',
+        ],
+        list: [],
+      },
+      {
+        id: 'report',
+        title: 'Report a problem',
+        text: [
+          'If you found a vulnerability or think your data went to the wrong place, write to hello@firtech.pro. Say what happened and where, and do not put passwords or keys in the email. We will reply and look into it.',
+        ],
+        list: [],
+      },
+    ],
+    privacyLink: 'Privacy policy',
+    footerLink: 'Security and data',
+    builderLink: 'How we protect your data',
   },
   aiTeams: {
     nav: 'A team of AI agents',

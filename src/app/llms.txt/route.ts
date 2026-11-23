@@ -75,6 +75,8 @@ export async function GET() {
       '',
       `${dict.nav.process}: ${siteUrl}/${locale}/how-we-work`,
       '',
+      `${dict.security.title}: ${siteUrl}/${locale}/security`,
+      '',
       `${dict.faqLinks['pay-how']}: ${siteUrl}/${locale}/pay-how`,
     ].join('\n')
   })
@@ -87,6 +89,7 @@ export async function GET() {
     `- English: ${siteUrl}/en`,
     `- Project builder and estimate: ${siteUrl}/en/builder`,
     `- How we work: ${siteUrl}/en/how-we-work`,
+    `- Security and data: ${siteUrl}/en/security`,
     `- Blog: ${siteUrl}/en/blog (RSS feeds: ${siteUrl}/rss-en.xml in English, ${siteUrl}/rss.xml in Russian)`,
     ...(telegramHandle ? [`- Telegram: ${telegramHandle}`] : []),
     '',

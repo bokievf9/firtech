@@ -34,7 +34,7 @@ const go = async (url, lang) => {
 }
 
 test('every bare known page is redirected to the visitor language, path and query kept', async () => {
-  for (const page of ['terms', 'privacy', 'pay-how', 'compare', 'referral', 'audit', 'status', 'builder', 'blog', 'ai-team', 'cabinet', 'solutions']) {
+  for (const page of ['terms', 'privacy', 'pay-how', 'compare', 'referral', 'audit', 'status', 'builder', 'blog', 'ai-team', 'cabinet', 'solutions', 'security']) {
     assert.deepEqual(await go(`/${page}`, 'ru-RU,ru;q=0.9'), { status: 307, to: `https://firtech.pro/ru/${page}` }, page)
     assert.deepEqual(await go(`/${page}`, 'en-US,en;q=0.9'), { status: 307, to: `https://firtech.pro/en/${page}` }, page)
   }

@@ -68,6 +68,13 @@ export default async function PrivacyPage({ params }: PageProps<'/[locale]/priva
               </a>
             </p>
           )}
+          {section.id === 'storage' && (
+            <p>
+              <Link href={`/${locale}/security`} className={linkClass}>
+                {getDict(locale).security.title}
+              </Link>
+            </p>
+          )}
           {section.id === 'rights' && (
             <p>
               {telegramUrl ? t.contactTelegram : t.contactForm}{' '}

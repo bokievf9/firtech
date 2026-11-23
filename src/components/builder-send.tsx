@@ -4,6 +4,7 @@ import { ArrowRight, CheckCircle } from '@phosphor-icons/react'
 import { ErrorNote } from '@/components/ui/error-note'
 import { Pending } from '@/components/ui/pending'
 import { fetchJson, type ErrorInfo } from '@/lib/errors'
+import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { faceUi } from '@/content/builder-v2'
@@ -187,6 +188,14 @@ export function ProjectSend({
       <LeadAccountNote dict={dict} state={me} />
       <p className="text-caption leading-relaxed text-faint">
         <ConsentText text={t.consent} href={`/${locale}/privacy`} />
+      </p>
+      <p className="text-caption leading-relaxed text-faint">
+        <Link
+          href={`/${locale}/security`}
+          className="underline decoration-line-strong underline-offset-2 transition-colors hover:text-fg"
+        >
+          {dict.security.builderLink}
+        </Link>
       </p>
       {authStep && (
         <LeadAuthStep dict={dict} locale={locale} returnPath={returnPath} onSignedIn={() => void onSignedIn()} onBeforeRedirect={keepDraft} />
