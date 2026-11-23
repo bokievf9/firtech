@@ -512,10 +512,11 @@ const ru = {
     subtotal: 'Сумма',
     discount: 'Скидка 10% от двух частей проекта',
     total: 'Итого',
+    totalNow: 'сейчас',
     perMonth: '/мес',
     monthlyNote: 'Поддержка оплачивается отдельно, каждый месяц.',
     termsNote:
-      'Сроки указаны по каждой части. Точный общий срок назовём в смете: часть работ можно вести параллельно.',
+      'Сроки указаны по каждой части. Часть работ можно вести параллельно.',
     payNote: 'Оплата идёт по этапам, их список в смете.',
     stagesTitle: 'Оплата по этапам',
     stageCols: { stage: 'Этап', what: 'Что входит', share: 'Доля', amount: 'Сумма' },
@@ -749,6 +750,11 @@ const ru = {
       payFirstHow: 'Как проходит оплата',
       payFirstSignIn: 'Чтобы запросить счёт, войдите в аккаунт.',
       startTemplate: 'Старт через {days} после оплаты первого этапа.',
+      payNowLabel: 'Платите сейчас',
+      payNowStage: 'этап 1 из {n}',
+      subscriptionLabel: 'Подписка',
+      subscriptionText: 'с запуска, в первый платёж не входит',
+      sketch: 'Смета по вашим ответам; итог фиксируем перед стартом.',
       workdays: ['рабочий день', 'рабочих дня', 'рабочих дней'],
     },
     preview: {
@@ -1861,7 +1867,7 @@ const ru = {
           us: 'Юрлицо регистрируется, реквизиты появятся на странице оплаты. Условия записаны в оферте, а смета подтверждается письменно.',
         },
         {
-          id: 'payment',
+          id: 'method',
           label: 'Способ оплаты',
           market: 'Банковские счета и переводы, иногда с конвертацией.',
           us: 'Оплата картой или по счёту, этап за этапом, а первый можно вернуть.',
@@ -3811,9 +3817,11 @@ const ru = {
   // Subscription card (owner 2026-11-22): every AI product is a one-time setup plus a monthly fee that includes the model
   // usage; with the client's own API key (BYOK) the monthly fee is lower. Amounts come from pricing.ts, never from copy.
   subscription: {
-    setup: 'подключение один раз',
+    setup: 'разово',
     monthly: 'в месяц',
     from: 'от',
+    colSetup: 'Разово',
+    colMonthly: 'В месяц',
     whoseKey: 'Чья модель',
     ours: 'Наш аккаунт',
     own: 'Свой API-ключ',

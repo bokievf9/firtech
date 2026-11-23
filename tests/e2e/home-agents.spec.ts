@@ -15,7 +15,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       await expect(section.locator('[data-home-agent-card]')).toHaveCount(7)
       const first = section.locator('[data-home-agent-card="lead-handler"]')
       await expect(first).toBeVisible()
-      await expect(first.getByText(/^от \$\d+\/мес$/)).toBeVisible()
+      await expect(first.getByText(/^от\s[\d\s]+USD разово \+ [\d\s]+USD\/мес$/)).toBeVisible()
       await first.getByRole('link', { name: 'Собрать' }).click()
       await page.waitForURL(/\/ru\/builder\?b=/)
       expect(errors).toEqual([])

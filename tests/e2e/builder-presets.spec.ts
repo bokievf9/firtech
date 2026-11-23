@@ -16,7 +16,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       const errors = watchErrors(page)
       await open(page, '/ru/builder')
       await expect(page.locator('[data-preset]')).toHaveCount(8)
-      await expect(page.locator('[data-preset="salon"] [data-preset-price]')).toContainText(/Набор от \$\d+/)
+      await expect(page.locator('[data-preset="salon"] [data-preset-price]')).toContainText(/^от\s[\d\s]+USD разово/)
       await expect(page.locator('[data-task-start]')).toBeVisible()
       await expect(page.getByLabel('Опишите задачу своими словами')).toBeVisible()
       await expect(page.locator('[data-preset="salon"]')).toHaveAttribute('data-cta', 'builder_preset_salon')

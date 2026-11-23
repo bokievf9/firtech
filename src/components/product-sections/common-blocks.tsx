@@ -91,7 +91,7 @@ export function ProductHero({ ctx }: Props) {
       <Reveal className="lg:col-span-4" delay={0.3}>
         {layout.face === 'fira' && <FiraHero label={dict.film.name} />}
         <div className={cn('rounded-card border border-line bg-surface p-7', layout.face === 'fira' && '-mt-6 relative')}>
-          <ProductPriceTag id={id} copy={dict.products} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
+          <ProductPriceTag id={id} copy={dict.products} locale={locale} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
           <p className="mt-6 border-t border-line pt-5 text-sm leading-relaxed text-muted">{item.forWhom}</p>
           <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-faint">
             <ShieldCheck size={16} weight="duotone" aria-hidden="true" className="shrink-0 text-accent-text" />
@@ -224,7 +224,7 @@ export function PriceBlock({ ctx, band }: Props) {
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             {/* The Personal AI shows its three levels as cards below instead of the plan lines. */}
             {id !== 'personal' && id !== 'company' && (
-              <ProductPriceTag id={id} copy={dict.products} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
+              <ProductPriceTag id={id} copy={dict.products} locale={locale} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
             )}
             {term && (
               <div className="md:text-right" data-product-term>

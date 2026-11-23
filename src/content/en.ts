@@ -498,10 +498,11 @@ const en: Dict = {
     subtotal: 'Subtotal',
     discount: '10% off from two parts of the project',
     total: 'Total',
+    totalNow: 'now',
     perMonth: '/mo',
     monthlyNote: 'Support is paid separately, every month.',
     termsNote:
-      'Timelines are per part. We will give the exact overall timeline in the quote: some work can run in parallel.',
+      'Timelines are per part. Some work can run in parallel.',
     payNote: 'Payment goes by stages, listed in the quote.',
     stagesTitle: 'Payment by stages',
     stageCols: { stage: 'Stage', what: 'What is included', share: 'Share', amount: 'Amount' },
@@ -739,6 +740,11 @@ const en: Dict = {
       payFirstHow: 'How payment works',
       payFirstSignIn: 'Sign in to request the invoice.',
       startTemplate: 'Work starts {days} after the first stage is paid.',
+      payNowLabel: 'Pay now',
+      payNowStage: 'stage 1 of {n}',
+      subscriptionLabel: 'Subscription',
+      subscriptionText: 'from launch, not part of the first payment',
+      sketch: 'An estimate from your answers; we fix the total before the start.',
       workdays: ['working day', 'working days', 'working days'],
     },
     preview: {
@@ -1851,7 +1857,7 @@ const en: Dict = {
           us: 'The legal entity is being registered, and its details will appear on the payment page. The terms are in the offer, and the quote is confirmed in writing.',
         },
         {
-          id: 'payment',
+          id: 'method',
           label: 'How you pay',
           market: 'Bank accounts and transfers, sometimes with currency conversion.',
           us: 'Payment by card or by invoice, stage by stage, and the first one is refundable.',
@@ -3797,9 +3803,11 @@ const en: Dict = {
   // Subscription card (owner 2026-11-22): every AI product is a one-time setup plus a monthly fee that includes the model
   // usage; with the client's own API key (BYOK) the monthly fee is lower. Amounts come from pricing.ts, never from copy.
   subscription: {
-    setup: 'one-time setup',
+    setup: 'setup',
     monthly: 'a month',
     from: 'from',
+    colSetup: 'Setup',
+    colMonthly: 'Per month',
     whoseKey: 'Whose model',
     ours: 'Our account',
     own: 'Your API key',

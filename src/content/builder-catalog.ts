@@ -442,7 +442,7 @@ export function genericFaq(
         },
         {
           q: 'За какое время это можно запустить?',
-          a: 'Сроки указаны по каждой части набора. Часть работ ведётся параллельно, общий срок назовём в смете.',
+          a: 'Сроки указаны по каждой части набора. Часть работ ведётся параллельно.',
         },
         {
           q: 'У меня уже есть сайт или бот. Нужно начинать с нуля?',
@@ -460,7 +460,7 @@ export function genericFaq(
         },
         {
           q: 'How fast can this launch?',
-          a: 'Terms are listed per part of the set. Some work runs in parallel, and we name the overall term in the quote.',
+          a: 'Terms are listed per part of the set. Some work runs in parallel.',
         },
         {
           q: 'I already have a site or a bot. Do I start from scratch?',

@@ -159,13 +159,13 @@ test('AI team: the index lists six departments and every card opens its page', a
   // The index shows a price line on each of the six team cards (setup + monthly, in USD).
   const prices = page.locator('main [data-team-price]')
   await expect(prices).toHaveCount(6)
-  for (const text of await prices.allTextContents()) expect(text).toMatch(/\$\d/)
+  for (const text of await prices.allTextContents()) expect(text).toMatch(/\d\s*USD/)
   await expect(page.locator('main a[href^="/ru/ai-team/agent/"]').first()).toBeAttached()
   await page.locator('main a[href="/ru/ai-team/support"]').first().click()
   await expect(page).toHaveURL(/\/ru\/ai-team\/support$/)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   // The department page carries a subscription price card for its team.
-  await expect(page.locator('main [data-subscription-card]').first()).toContainText('$')
+  await expect(page.locator('main [data-subscription-card]').first()).toContainText('USD')
 })
 
 test('AI team: a department page lists its agents and an agent page opens the builder or the chat', async ({ page }) => {

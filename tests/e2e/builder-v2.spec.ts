@@ -356,5 +356,5 @@ test('builder: at 390 the sticky total is never cut', async ({ page }) => {
   await expect(total).toContainText('$')
   const clipped = await total.evaluate((el) => el.scrollWidth > el.clientWidth + 1 || el.getBoundingClientRect().right > window.innerWidth)
   expect(clipped).toBe(false)
-  expect(((await total.textContent()) ?? '').trim()).toMatch(/^\$\d[\d\s,.]*\d$|^\$\d$/)
+  expect(((await total.innerText()) ?? '').trim()).toMatch(/^\$\d[\d\s,.]*\d$|^\$\d$/)
 })

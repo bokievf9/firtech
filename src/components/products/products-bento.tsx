@@ -3,7 +3,7 @@ import Link from 'next/link'
 import type { Dict } from '@/content'
 import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
-import { formatUsd } from '@/lib/pricing'
+import { fromLine } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { isFlagship, productAnchor, productBuilderHref, productIds, productPath, type ProductId } from '@/lib/products'
 import { serviceSlugs } from '@/lib/site'
@@ -63,7 +63,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
                   <span>
                     <span className="block font-medium">{dict.services.items[slug].name}</span>
                     <span className="font-mono text-xs text-muted">
-                      {t.from} {formatUsd(pricing.startingPrice[slug])}
+                      {fromLine(pricing.startingPrice[slug], 0, locale)}
                     </span>
                   </span>
                   <ArrowUpRight
@@ -162,7 +162,7 @@ function ProductCard({
                 </h3>
               </div>
             </div>
-            <ProductPriceTag id={id} copy={t} className="shrink-0 sm:text-right" />
+            <ProductPriceTag id={id} copy={t} locale={locale} className="shrink-0 sm:text-right" />
           </div>
 
           <p className="text-headline font-normal">{item.benefit}</p>

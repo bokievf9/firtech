@@ -88,6 +88,10 @@ export type EstimateDoc = {
   link: string
   // The honest start (START_IN_DAYS): «Старт через 3 рабочих дня после оплаты первого этапа».
   start: string
+  // The top block (owner audit 2026-11-24): what to pay now, the subscription apart, null when there is nothing to show.
+  payNow: { label: string; amount: string; stage: string } | null
+  subscription: { label: string; amount: string; text: string } | null
+  sketch: string
   brief: Brief
 }
 
@@ -190,6 +194,7 @@ export function estimateDoc(
       }
     : null
   const oneTime = q.total + (aq?.oneTime ?? 0)
+  const stageRows = aq && !q.lines.length ? agentStages(oneTime, pricing) : stagesFor(build, oneTime, pricing)
   return {
     kind: build.kind ? kindName(build.kind, locale) : null,
     products: build.personal ? [] : (build.products ?? []).map((id) => pick(productCatalog[id].name, locale)),
@@ -203,7 +208,7 @@ export function estimateDoc(
     total: q.lines.length || aq ? formatUsd(oneTime) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
     agents,
-    stages: (aq && !q.lines.length ? agentStages(oneTime, pricing) : stagesFor(build, oneTime, pricing)).map((stage, i) => ({
+    stages: stageRows.map((stage, i) => ({
       id: stage.id,
       n: i + 1,
       name: stage.title[locale === 'ru' ? 'ru' : 'en'],
@@ -214,6 +219,18 @@ export function estimateDoc(
     scope: scopeLine(build, dict),
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,
     start: startLine(dict),
+    payNow: stageRows.length
+      ? { label: dict.builder.estimate.payNowLabel, amount: formatUsd(stageRows[0]!.amountUsd), stage: dict.builder.estimate.payNowStage.replace('{n}', String(stageRows.length)) }
+      : null,
+    subscription:
+      (q.monthly ?? 0) + (aq?.monthly ?? 0) > 0
+        ? {
+            label: dict.builder.estimate.subscriptionLabel,
+            amount: `${formatUsd((q.monthly ?? 0) + (aq?.monthly ?? 0))}${dict.builder.perMonth}`,
+            text: dict.builder.estimate.subscriptionText,
+          }
+        : null,
+    sketch: dict.builder.estimate.sketch,
     brief: briefOf(build, dict, locale),
   }
 }

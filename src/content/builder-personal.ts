@@ -186,7 +186,7 @@ export const dayUi = {
     l('Доброе утро. План на сегодня', 'Good morning. Today’s plan'),
     l('Доброе утро. Сводка на сегодня готова', 'Good morning. Your brief for today is ready'),
   ],
-  label: l('Набросок по вашим ответам', 'A sketch from your answers'),
+  label: l('Смета по вашим ответам; итог фиксируем перед стартом', 'An estimate from your answers; we fix the total before the start'),
 }
 
 export const personalLabels = {
