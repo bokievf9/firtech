@@ -6,6 +6,7 @@ import { FilmFinale } from '@/components/film/film-finale'
 import { FilmStage } from '@/components/film/film-stage'
 import { OfficeScene } from '@/components/film/office-scene'
 import { PainsSection } from '@/components/film/pains-section'
+import { HomeAgents } from '@/components/home-agents'
 import { Hero } from '@/components/hero/hero'
 import { JsonLd, faqJsonLd } from '@/components/json-ld'
 import { RefCapture } from '@/components/ref-capture'
@@ -78,6 +79,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
     hero: <Hero locale={locale} dict={dict} cue={cue(filmScenes[0])} />,
     pains: <PainsSection dict={dict} locale={locale} />,
     products: <ProductsBento locale={locale} dict={dict} />,
+    agents: <HomeAgents locale={locale} dict={dict} />,
     office: <OfficeScene dict={dict} locale={locale} />,
     demo: <DemoSection dict={dict} locale={locale} />,
     solutions: <SolutionsHome dict={dict} locale={locale} />,

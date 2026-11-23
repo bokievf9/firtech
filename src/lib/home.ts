@@ -1,3 +1,4 @@
+import { popularAgentIds } from './agent-ids'
 import { productAnchor, productIds, productPath, type ProductId } from './product-ids'
 import { serviceSlugs, type ServiceSlug } from './site'
 import { solutionKinds } from './solutions'
@@ -12,6 +13,7 @@ export const homeSections = [
   'pains',
   'demo',
   'products',
+  'agents',
   'office',
   'solutions',
   'process',
@@ -25,6 +27,7 @@ export const sectionAnchor: Record<HomeSection, string | null> = {
   hero: 'top',
   pains: 'pains',
   products: 'products',
+  agents: 'agents',
   office: 'office',
   demo: 'demo',
   solutions: 'solutions',
@@ -49,9 +52,10 @@ export type FooterLink =
   | { kind: 'product'; id: ProductId; href: string }
   | { kind: 'service'; id: ServiceSlug; href: string }
   | { kind: 'solution'; id: FeaturedKind; href: string }
+  | { kind: 'agent'; id: (typeof popularAgentIds)[number]; href: string }
   | { kind: 'page'; id: string; href: string }
 
-export type FooterColumn = { id: 'products' | 'services' | 'solutions' | 'company'; links: FooterLink[] }
+export type FooterColumn = { id: 'products' | 'agents' | 'services' | 'solutions' | 'company'; links: FooterLink[] }
 
 // Footer columns as data, so a test can check that every link points to a real route.
 export function footerColumns(locale: string): FooterColumn[] {
@@ -61,6 +65,13 @@ export function footerColumns(locale: string): FooterColumn[] {
       links: [
         ...productIds.map((id): FooterLink => ({ kind: 'product', id, href: `/${locale}${productPath(id)}` })),
         { kind: 'page', id: 'ai-team', href: `/${locale}/ai-team` },
+      ],
+    },
+    {
+      id: 'agents',
+      links: [
+        ...popularAgentIds.map((id): FooterLink => ({ kind: 'agent', id, href: `/${locale}/ai-team/agent/${id}` })),
+        { kind: 'page', id: 'all-agents', href: `/${locale}/ai-team#agents` },
       ],
     },
     {

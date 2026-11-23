@@ -17,6 +17,7 @@ import { getDict } from '@/content'
 import {
   agentOffers,
   agentPath,
+  popularAgentIds,
   aiTeamBuilderHref,
   aiTeamIds,
   aiTeamPath,
@@ -221,6 +222,8 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
           <AgentExplorer
             label={t.agents.filterLabel}
             allLabel={t.agents.allLabel}
+            popularLabel={t.agents.popularLabel}
+            popularIds={popularAgentIds}
             teams={aiTeamIds.map((id) => ({ id, name: t.items[id].title }))}
             cards={agentOffers.map((agent) => ({
               id: agent.id,

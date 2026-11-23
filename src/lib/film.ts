@@ -9,7 +9,7 @@ export const filmScenes = [
   { id: 'hello', sections: ['hero'], emotion: 'wave' },
   { id: 'pains', sections: ['pains'], emotion: 'listening' },
   { id: 'demo', sections: ['demo'], emotion: 'point' },
-  { id: 'team', sections: ['products'], emotion: 'happy' },
+  { id: 'team', sections: ['products', 'agents'], emotion: 'happy' },
   { id: 'office', sections: ['office'], emotion: 'talking' },
   { id: 'solutions', sections: ['solutions'], emotion: 'thinking' },
   { id: 'process', sections: ['process', 'pricing'], emotion: 'talking' },
