@@ -125,10 +125,9 @@ export const agentReady = (build: Build) => agentReachable(build, agentLastStep)
 
 // ----------------------------------------------------------------------- prices
 
-// The two paid options come from prices that already exist in pricing.ts (the automation add-ons: importing data
-// into a sheet, and training); repointing them is one line here.
+// The two paid options have their own prices in pricing.ts (`agentAddons`, owner 2026-11-24).
 export function agentAddonPrices(pricing: Pricing = defaultPricing): Record<AgentAddonId, number> {
-  return { knowledge: pricing.catalog.automation.addons.sheets ?? 0, training: pricing.catalog.automation.addons.training ?? 0 }
+  return { knowledge: pricing.agentAddons?.knowledge ?? 0, training: pricing.agentAddons?.training ?? 0 }
 }
 
 export type AgentQuote = {
