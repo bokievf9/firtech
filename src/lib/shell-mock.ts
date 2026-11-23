@@ -132,6 +132,8 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
           kit: null,
           ...over,
         }
+        // Like HQ: only a live waiting material can be decided, a stale one (no open approval) and the rest carry no actions.
+        Object.defineProperty(row, 'actions', { enumerable: true, configurable: true, get() { return this.status === 'pending' ? ['approve', 'reject', 'revise'] : [] } })
         items.set(id, row)
         day.push(row)
       }
@@ -185,6 +187,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
           files: [{ path: 'content/2026-w47/profile-youtube-banner.png', type: 'png', w: 2560, h: 1440 }],
         })
       }
+      if (full && (i === 1 || i === 4)) add(5, { kind: 'post', status: 'stale', title: i === 1 ? 'Старый пост без одобрения' : 'Карусель без одобрения', hook: 'Одобрение закрыто, решить уже нельзя.', files: [png(`stale-${i}`)] })
       if (full && i === 5) add(3, { kind: 'story', status: 'draft', title: 'Опрос: что автоматизировать первым?', files: [png('story-5')] })
       return { date, items: day }
     })
@@ -457,7 +460,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
     // The approval card a feed row points to: the mock review has cards for the waiting reel and carousel and for one decided
     // material per status; every other row is an «older material» (a card id nothing answers), shown read only.
     const mockReviewId = (i: Row) =>
-      orders.some((o) => o.itemId === i.id) ? `ap_${i.id}` : i.status === 'pending' && i.kind === 'clip' ? 'ap_201' : i.status === 'pending' && i.kind === 'carousel' ? 'ap_202' : i.status === 'published' ? 'ap_199' : i.status === 'approved' ? 'ap_198' : i.status === 'rejected' ? 'ap_197' : `ap_${i.id}`
+      orders.some((o) => o.itemId === i.id) ? `ap_${i.id}` : i.status === 'stale' ? null : i.status === 'pending' && i.kind === 'clip' ? 'ap_201' : i.status === 'pending' && i.kind === 'carousel' ? 'ap_202' : i.status === 'published' ? 'ap_199' : i.status === 'approved' ? 'ap_198' : i.status === 'rejected' ? 'ap_197' : `ap_${i.id}`
     // ---- content studio: the feed of everything and the orders (a working order is delivered on the next read)
     if (seg[0] === 'content' && seg[1] === 'feed' && method === 'GET' && seg.length === 2) {
       if (!items.size && !purged) content(currentWeek)
@@ -475,7 +478,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       })
     }
     if (seg[0] === 'content' && seg[1] === 'purge' && seg.length === 2 && method === 'POST') {
-      const allowed = ['draft', 'approved', 'rendering', 'ready', 'published', 'rejected']
+      const allowed = ['draft', 'approved', 'rendering', 'ready', 'published', 'rejected', 'stale']
       const keys = Object.keys(body)
       const statuses = Array.isArray(body.statuses) ? (body.statuses as unknown[]) : null
       if (keys.some((x) => x !== 'dryRun' && x !== 'statuses') || typeof body.dryRun !== 'boolean' || !statuses || statuses.some((x) => !allowed.includes(String(x)))) return bad('invalid', { allowed })
@@ -484,7 +487,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       const ids = new Set(gone.map(([, i]) => i.id))
       const goneOrders = orders.filter((o) => ids.has(o.itemId))
       const files = gone.reduce((n, [, i]) => n + (Array.isArray(i.files) ? i.files.length : 0), 0)
-      const counts = { materials: gone.length, approvals: gone.filter(([, i]) => i.approvalId !== null).length, reviews: 0, files, orders: goneOrders.length, bytes: files * 120_000 }
+      const counts = { materials: gone.length, approvals: gone.filter(([, i]) => i.approvalId !== null).length, reviews: 0, files, orders: goneOrders.length, bytes: files * 120_000, orphans: gone.filter(([, i]) => i.status === 'stale').length }
       if (body.dryRun === false) {
         for (const [key] of gone) items.delete(key)
         for (const o of goneOrders) orders.splice(orders.indexOf(o), 1)

@@ -196,26 +196,31 @@ export type StudioAccess = {
   readOnly: string | null
 }
 
+export const STALE_HINT = 'No open approval: nothing to decide. Delete it with Delete old materials.'
+
 export function studioAccess(item: ContentItem & { reviewId?: string | null }, review: ReviewItem | null, loading = false): StudioAccess {
   const actions = review?.actions ?? []
   const pending = review?.status === 'pending'
   const has = (a: string) => (actions as readonly string[]).includes(a)
-  const decide = Boolean(review) && pending
+  // HQ's feed row carries `actions` (live pending: approve/reject/revise, else empty); when it does, a button needs both the card and the row to agree.
+  const rowHas = (a: string) => item.actions == null || item.actions.includes(a)
+  const decide = Boolean(review) && pending && item.status !== 'stale'
   const edit = Boolean(review) && has('edit') && (pending || review?.status === 'approved')
   const numeric = /^\d+$/.test(String(item.id))
   const material = numeric && item.kind !== 'article' && item.kind !== 'profile'
   const rendered = item.status === 'approved' || item.status === 'ready'
   const out: StudioAccess = {
-    edit,
-    approve: decide && has('approve'),
-    revise: decide && has('revise'),
-    reject: decide && has('reject'),
+    edit: edit && item.status !== 'stale',
+    approve: decide && has('approve') && rowHas('approve'),
+    revise: decide && has('revise') && rowHas('revise'),
+    reject: decide && has('reject') && rowHas('reject'),
     rerender: material && rendered && Boolean(item.reviewId),
     markPublished: material && rendered && Boolean(item.reviewId),
     reorder: canReorder(item),
     readOnly: null,
   }
-  if (loading) out.readOnly = null
+  if (item.status === 'stale') out.readOnly = STALE_HINT
+  else if (loading) out.readOnly = null
   else if (!item.reviewId) {
     out.readOnly =
       item.status === 'pending'
@@ -237,8 +242,9 @@ export function requestError(name: string, res: { error: string; http?: unknown;
 
 // «Delete old materials» (HQ `POST /admin/content/purge`): the statuses the owner may clear. `pending` (waiting for a decision) is never
 // sent, `published` only with the explicit checkbox.
-export const PURGE_STATUSES = ['draft', 'approved', 'rendering', 'ready', 'rejected'] as const
-export type PurgeCounts = { materials: number; approvals: number; reviews: number; files: number; orders: number; bytes: number }
+// `stale` = a waiting material with no open approval (nobody can decide it).
+export const PURGE_STATUSES = ['draft', 'approved', 'rendering', 'ready', 'rejected', 'stale'] as const
+export type PurgeCounts = { materials: number; approvals: number; reviews: number; files: number; orders: number; bytes: number; orphans: number | null }
 
 export function purgeStatuses(includePublished: boolean): string[] {
   return includePublished ? [...PURGE_STATUSES, 'published'] : [...PURGE_STATUSES]
@@ -254,5 +260,5 @@ export function normalizePurge(body: unknown): PurgeCounts | null {
   if (!c || typeof c !== 'object') return null
   const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : null)
   const out = { materials: n(c.materials), approvals: n(c.approvals), reviews: n(c.reviews), files: n(c.files), orders: n(c.orders), bytes: n(c.bytes) }
-  return Object.values(out).every((v) => v !== null) ? (out as PurgeCounts) : null
+  return Object.values(out).every((v) => v !== null) ? ({ ...out, orphans: n(c.orphans) } as PurgeCounts) : null
 }

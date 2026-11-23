@@ -191,7 +191,7 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
     method: 'POST',
     path: /^content\/purge$/,
     body: z
-      .object({ dryRun: z.boolean(), statuses: z.array(z.enum(['draft', 'approved', 'rendering', 'ready', 'published', 'rejected'])).min(1).max(6) })
+      .object({ dryRun: z.boolean(), statuses: z.array(z.enum(['draft', 'approved', 'rendering', 'ready', 'published', 'rejected', 'stale'])).min(1).max(7) })
       .strict(),
   },
   {

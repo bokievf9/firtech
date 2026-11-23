@@ -675,7 +675,7 @@ export function txExplorerUrl(paidVia: string, txId: string): string | null {
 // ---- content -----------------------------------------------------------------------------------
 
 export const CONTENT_KINDS = ['clip', 'post', 'carousel', 'story', 'article', 'profile'] as const
-export const CONTENT_STATUSES = ['draft', 'pending', 'approved', 'rendering', 'ready', 'published', 'rejected'] as const
+export const CONTENT_STATUSES = ['draft', 'pending', 'stale', 'approved', 'rendering', 'ready', 'published', 'rejected'] as const
 export const CAPTION_PLATFORMS = ['instagram', 'tiktok', 'shorts', 'dzen'] as const
 export const KIT_SECTIONS = ['instagram', 'youtube', 'tiktok'] as const
 export type KitSection = (typeof KIT_SECTIONS)[number]
@@ -696,6 +696,8 @@ export type ContentItem = {
   publishedUrl: string | null
   error: string | null
   kit: ProfileKit | null
+  // What the owner may decide on this row right now (HQ: live pending = approve/reject/revise, everything else empty); null = the response did not carry it (old HQ).
+  actions: string[] | null
 }
 
 // A kit section as text blocks (paragraphs split by blank lines), each to be copied on its own.
@@ -760,6 +762,7 @@ function contentItem(raw: unknown): ContentItem | null {
     publishedUrl: safeUrl(r.publishedUrl),
     error: typeof r.error === 'string' && r.error ? r.error.slice(0, 500) : null,
     kit: kitOf(r.kit),
+    actions: Array.isArray(r.actions) ? r.actions.filter((a): a is string => typeof a === 'string' && /^[a-z_]{1,20}$/.test(a)).slice(0, 10) : null,
   }
 }
 

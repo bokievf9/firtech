@@ -15,6 +15,7 @@ export type Action = 'approve' | 'reject' | 'revise' | 'published' | 'rerender'
 export const statusTone: Record<ContentItem['status'], Tone> = {
   draft: 'dim',
   pending: 'warn',
+  stale: 'dim',
   approved: 'accent',
   rendering: 'plain',
   ready: 'accent',
