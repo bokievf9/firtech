@@ -44,7 +44,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       await page.locator('[data-estimate-send-form] button[type=submit]').click()
       await expect(page.locator('[data-estimate-send-done]')).toBeVisible()
       expect(sent[0]).toMatchObject({ intent: 'save-link', contact: '@fir_client' })
-      expect(String(sent[0].estimateUrl)).toContain('/ru/builder/estimate?b=')
+      expect(String(sent[0]?.estimateUrl)).toContain('/ru/builder/estimate?b=')
 
       // Honest start and the first stage's pay button.
       await expect(page.locator('[data-estimate-start]')).toHaveText('Старт через 3 рабочих дня после оплаты первого этапа.')
