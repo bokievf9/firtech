@@ -212,7 +212,8 @@ test('first-reply promise is one sentence everywhere: 5 minutes, no «рабоч
     const d = getDict(locale)
     assert.ok(d.chat.mock.thanks.includes(promise[locale]), `${locale} chat.thanks`)
     assert.ok(d.booking.bot.received.includes(promise[locale]), `${locale} booking.bot.received`)
-    assert.equal(d.cabinet.leads.defaultNext.new, promise[locale])
+    // The cabinet's own line says «менеджер проекта» since 2026-11-24 (onboarding), the 5 minutes stay.
+    assert.match(d.cabinet.leads.defaultNext.new, locale === 'ru' ? /5 минут, круглосуточно.*менеджер проекта/ : /5 minutes, around the clock.*project manager/)
     for (const text of [d.chat.mock.thanks, d.booking.bot.received, d.cabinet.leads.defaultNext.new, d.cabinet.leads.pending]) {
       assert.doesNotMatch(text, /рабочего дня|working day|скоро ответит|answer soon/i, `${locale}: ${text}`)
     }

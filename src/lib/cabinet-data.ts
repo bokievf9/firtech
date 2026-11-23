@@ -1,5 +1,6 @@
 import { boolOrNull, count, idNum, idStr, isObj, list, str, strOrNull } from './cabinet-parse'
 import { parseNextAction, type NextAction, type NextActionKind, type PublicDoc } from './cabinet-docs'
+import { parseJourney, type Journey } from './cabinet-journey'
 import { sanitizeRefSlug } from './referral'
 import { siteUrl } from './site'
 
@@ -44,6 +45,7 @@ export type CabinetProject = {
   state: ProjectState
   documents: string[]
   nextAction: NextAction | null
+  journey: Journey | null
 }
 export type CabinetInvoice = {
   id: string
@@ -103,6 +105,8 @@ export type CabinetLead = {
   replies: LeadReply[]
   // v3: HQ's `nextStep` may be the same object as a project's `nextAction`; null when it is a sentence.
   nextAction: NextAction | null
+  // Client onboarding: HQ's `journey` (absent in an older HQ, the page derives it from `stage`).
+  journey: Journey | null
 }
 export type CabinetData = {
   client: CabinetClient
@@ -160,6 +164,7 @@ function parseProject(r: Record<string, unknown>): CabinetProject | null {
     state: projectStates.find((x) => x === r.state) ?? projectStateFallback(str(r.status, 20), str(r.stage, 20)),
     documents: Array.isArray(r.documents) ? r.documents.map(idStr).filter((x): x is string => x !== null).slice(0, 100) : [],
     nextAction: parseNextAction(r.nextAction),
+    journey: parseJourney(r.journey),
   }
 }
 
@@ -252,6 +257,7 @@ function parseLead(r: Record<string, unknown>): CabinetLead | null {
     stage: str(r.stage, 20) || 'new',
     nextStep: str(r.nextStep, 300),
     nextAction: parseNextAction(r.nextAction) ?? parseNextAction(r.nextStep),
+    journey: parseJourney(r.journey),
     timeline: list(r.timeline, parseEvent).slice(0, 50),
     replies: list(r.replies, parseReply).slice(-100),
   }

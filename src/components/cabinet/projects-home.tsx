@@ -14,6 +14,7 @@ import { Badge, Card } from '@/components/ui'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { stageTrackLabel } from '@/lib/payment-stages'
+import { JourneyBlock } from './journey-block'
 import { NextActionBlock } from './next-action'
 import { TabLink } from './tab-link'
 import { Chip, Empty, fill } from './ui'
@@ -61,6 +62,10 @@ export function ProjectCard({
         <div className="mt-5">
           <NextActionBlock action={action} dict={dict} projectId={project.id} />
         </div>
+      )}
+
+      {project.journey && (
+        <JourneyBlock journey={project.journey} action={action} dict={dict} locale={locale} projectId={project.id} showAction={false} />
       )}
 
       {rows.length > 0 ? (

@@ -3,6 +3,7 @@ import { CabinetSoon } from '@/components/cabinet/cabinet-soon'
 import { ProfilePanel, type NicheGroup } from '@/components/cabinet/profile-panel'
 import { ReferralsCard } from '@/components/cabinet/cabinet-cards'
 import { CabinetTabs } from '@/components/cabinet/cabinet-tabs'
+import { CabinetTour } from '@/components/cabinet/cabinet-tour'
 import { DocumentsPanel } from '@/components/cabinet/documents-panel'
 import { LeadsSection } from '@/components/cabinet/leads-section'
 import { MaterialsPanel } from '@/components/cabinet/materials-panel'
@@ -189,6 +190,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
           ),
         }}
       />
+      <CabinetTour dict={dict} account={user.id} />
     </section>
   )
 }

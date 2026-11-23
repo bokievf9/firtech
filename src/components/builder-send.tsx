@@ -57,6 +57,10 @@ export function ProjectSend({
   const [failure, setFailure] = useState<ErrorInfo | null>(null)
   const [cabinet, setCabinet] = useState<string | null>(null)
   const [queued, setQueued] = useState(false)
+  // The success screen (client onboarding): the request number, the account email and the coupon, and the
+  // 6 s countdown to the cabinet that «Остаться» cancels.
+  const [sentInfo, setSentInfo] = useState<{ id: number | null; email: string; coupon: string | null }>({ id: null, email: '', coupon: null })
+  const [secs, setSecs] = useState<number | null>(null)
   const root = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -83,7 +87,7 @@ export function ProjectSend({
       const name = (d?.owner || d?.company || account?.name || account?.email.split('@')[0] || 'Client').slice(0, 80)
       const contact = (account ? [account.email, account.telegram].filter(Boolean).join(', ') : d?.owner || d?.company || '').slice(0, 120)
       {
-        const result = await fetchJson<{ cabinet?: string | null; queued?: boolean }>('/api/lead', {
+        const result = await fetchJson<{ cabinet?: string | null; queued?: boolean; hqLeadId?: number | null; coupon?: string | null }>('/api/lead', {
           locale,
           method: 'POST',
           headers: { 'content-type': 'application/json' },
@@ -117,12 +121,18 @@ export function ProjectSend({
         clearDraft(draftStorage(window), 'lead')
         setCabinet(answer.cabinet ?? null)
         setQueued(Boolean(answer.queued))
+        const fromPath = /[?&]lead=(\d{1,12})(?:&|$)/.exec(answer.cabinet ?? '')?.[1]
+        setSentInfo({
+          id: typeof answer.hqLeadId === 'number' && answer.hqLeadId > 0 ? answer.hqLeadId : fromPath ? Number(fromPath) : null,
+          email: account?.email ?? '',
+          coupon: typeof answer.coupon === 'string' && /^[\w-]{1,40}$/.test(answer.coupon) ? answer.coupon : null,
+        })
         setStatus('sent')
         track('builder_sent', { service })
         track('lead_sent', { service })
         trackEvent('lead_sent')
-        // A queued lead stays on the «saved» text; the cabinet is one button away.
-        if (answer.cabinet && !answer.queued) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
+        // A queued lead stays on the «saved» text; the cabinet is one button away, else it opens after 6 s.
+        if (answer.cabinet && !answer.queued) setSecs(6)
       }
     },
     [build, brief, fields, keepDraft, link, locale, service],
@@ -150,20 +160,67 @@ export function ProjectSend({
     void send(next)
   }
 
+  useEffect(() => {
+    if (secs === null) return
+    if (secs <= 0) {
+      if (cabinet) window.location.assign(cabinet)
+      return
+    }
+    const timer = window.setTimeout(() => setSecs(secs - 1), 1000)
+    return () => window.clearTimeout(timer)
+  }, [secs, cabinet])
+
   const returnPath = typeof window === 'undefined' ? '' : draftReturnPath(window.location.pathname, window.location.search, '#contact')
 
   if (status === 'sent') {
+    const sent = t.sent
     return (
-      <div id="contact" ref={root} role="status" className="grid gap-3 scroll-mt-40">
-        <p className="flex items-center gap-2 text-headline">
+      <div id="contact" ref={root} role="status" className="grid gap-4 scroll-mt-40" data-send-success>
+        <p className="flex items-center gap-2 text-headline" data-send-title>
           <CheckCircle size={24} weight="light" className="text-accent-text" />
-          {t.successTitle}
+          {sentInfo.id ? sent.title.replace('{id}', String(sentInfo.id)) : sent.titleNoId}
         </p>
-        <p className="text-callout leading-relaxed text-muted">{queued ? t.successQueued : cabinet ? dict.leadAuth.redirecting : t.successText}</p>
+        {queued && <p className="text-callout leading-relaxed text-muted">{t.successQueued}</p>}
+        <div>
+          <p className="text-footnote text-muted">{sent.stepsTitle}</p>
+          <ol className="mt-2 grid gap-2" data-send-steps>
+            {sent.steps.map((step, i) => (
+              <li key={step.t} className="flex gap-3 rounded-tile border border-hairline border-line p-3 text-callout">
+                <span aria-hidden="true" className="font-mono text-caption text-accent-text">
+                  {i + 1}
+                </span>
+                <span>
+                  <span className="text-fg">{step.t}</span>
+                  <span className="block text-footnote text-muted">{step.eta}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <p className="text-callout leading-relaxed text-fg" data-send-answer>
+          {sentInfo.email ? sent.answer.replace('{email}', sentInfo.email) : sent.answerNoEmail}
+        </p>
+        {sentInfo.coupon && (
+          <p className="text-callout text-muted" data-send-coupon>
+            {sent.coupon.replace('{code}', sentInfo.coupon)}
+          </p>
+        )}
         {cabinet && (
-          <a href={cabinet} className={buttonStyles.secondary}>
-            {dict.leadAuth.toCabinet}
-          </a>
+          <div className="flex flex-wrap items-center gap-3">
+            <a href={cabinet} className={buttonStyles.primary} data-send-open>
+              {sent.open}
+            </a>
+            {secs !== null && secs > 0 && (
+              <>
+                <button type="button" onClick={() => setSecs(null)} className={buttonStyles.secondary} data-send-stay>
+                  {sent.stay}
+                </button>
+                <span className="text-footnote text-muted" data-send-countdown>
+                  {sent.redirect.replace('{n}', String(secs))}
+                </span>
+              </>
+            )}
+          </div>
         )}
       </div>
     )

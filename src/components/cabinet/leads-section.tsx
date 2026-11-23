@@ -1,16 +1,11 @@
 import { TelegramLogo } from '@phosphor-icons/react/ssr'
 import type { Dict } from '@/content'
-import {
-  formatDate,
-  leadNextStep,
-  leadTrack,
-  timelineRows,
-  type CabinetLead,
-} from '@/lib/cabinet-data'
+import { formatDate, timelineRows, type CabinetLead } from '@/lib/cabinet-data'
+import { journeyOf } from '@/lib/cabinet-journey'
 import type { NextAction } from '@/lib/cabinet-docs'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
-import { NextActionBlock } from './next-action'
+import { JourneyBlock } from './journey-block'
 import { ScrollTo } from './scroll-to'
 import { TabLink } from './tab-link'
 import { Chip, fill } from './ui'
@@ -57,7 +52,7 @@ export function LeadsSection({
 
       {leads.length > 0 && (
         <ul className="mt-5 grid gap-5">
-          {leads.map((lead) => (
+          {[...leads].sort((a, b) => Number(b.id === focus) - Number(a.id === focus)).map((lead) => (
             <LeadCard
               key={lead.id}
               lead={lead}
@@ -107,7 +102,8 @@ function LeadCard({
   follow: string | null
 }) {
   const t = dict.cabinet.leads
-  const { steps, lost } = leadTrack(lead.stage)
+  const journey = journeyOf(lead)
+  const lost = journey.stage === 'lost'
   const service = serviceLabel(dict, lead.service)
   const timeline = timelineRows(lead, locale, t.received)
   const facts: [string, string][] = [
@@ -121,6 +117,7 @@ function LeadCard({
     <li
       id={`lead-${lead.id}`}
       data-lead={lead.id}
+      data-lead-focused={focused ? 'true' : undefined}
       className={cn(
         'scroll-mt-32 rounded-card border bg-surface p-6 md:p-8',
         focused ? 'border-accent-text/60' : 'border-line',
@@ -134,35 +131,17 @@ function LeadCard({
             {lead.createdAt ? `, ${formatDate(lead.createdAt, locale)}` : ''}
           </p>
         </div>
-        {lost && <Chip>{t.lost}</Chip>}
+        <div className="flex gap-2">
+          {focused && <Chip tone="accent">{dict.cabinet.journey.fresh}</Chip>}
+          {lost && <Chip>{t.lost}</Chip>}
+        </div>
       </div>
 
       <p className="mt-4 max-w-[60ch] text-headline text-fg" data-lead-status>
-        {leadNextStep(lead, t.defaultNext)}
+        {dict.cabinet.journey.stages[journey.stage].headline}
       </p>
 
-      {action && !lost && (
-        <div className="mt-5">
-          <NextActionBlock action={action} dict={dict} />
-        </div>
-      )}
-
-      <ol aria-label={t.trackLabel} className="mt-6 grid grid-cols-3 gap-2 text-footnote sm:grid-cols-6" data-track>
-        {steps.map((step) => (
-          <li
-            key={step.stage}
-            aria-current={step.state === 'now' ? 'step' : undefined}
-            className={cn(
-              'rounded-full border px-3 py-1.5 text-center',
-              step.state === 'now' && 'border-accent-text bg-accent/10 text-accent-text',
-              step.state === 'done' && 'border-line-strong text-fg',
-              step.state === 'next' && 'border-line text-faint',
-            )}
-          >
-            {t.track[step.stage]}
-          </li>
-        ))}
-      </ol>
+      <JourneyBlock journey={journey} action={action} dict={dict} locale={locale} leadId={lead.id} nextStep={lead.journey ? undefined : lead.nextStep} />
 
       <div className="mt-6 grid gap-6 md:grid-cols-2">
         <dl className="grid content-start gap-3 text-callout">

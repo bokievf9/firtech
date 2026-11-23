@@ -615,10 +615,11 @@ function acceptMock(projectId: number, stageNo: number): CabinetResult<{ already
 // project 2 (hidden from the list by the documents' leadId + projectId), 9 is the running project.
 function mockLeads(iso: (offset: number) => string, mine: (leadId: number) => LeadReply[]): CabinetLead[] {
   const quote = mockState().docs.find((d) => d.id === 'q-14')
-  const lead = (l: Omit<CabinetLead, 'nextAction' | 'hasDomain' | 'hasHosting'> & Partial<CabinetLead>): CabinetLead => ({
+  const lead = (l: Omit<CabinetLead, 'nextAction' | 'hasDomain' | 'hasHosting' | 'journey'> & Partial<CabinetLead>): CabinetLead => ({
     hasDomain: null,
     hasHosting: null,
     nextAction: null,
+    journey: null,
     ...l,
   })
   return [
@@ -636,6 +637,16 @@ function mockLeads(iso: (offset: number) => string, mine: (leadId: number) => Le
         { at: iso(-0.3), kind: 'kp', title: 'Коммерческое предложение готово' },
       ],
       replies: mine(14),
+      journey: {
+        stage: quote?.state === 'awaiting_client' ? 'quote' : 'contract',
+        since: iso(-0.3),
+        eta: null,
+        etaText: null,
+        clientAction: null,
+        answersWhere: ['cabinet', 'email'],
+        nextWeWill: null,
+        stageOf: null,
+      },
     }),
     lead({
       id: 12,
@@ -715,6 +726,7 @@ export function cabinetMock(email: string): CabinetData {
         state: 'in_progress',
         documents: ['c-1', 'i-1-1', 'i-1-2', 'i-1-3'],
         nextAction: null,
+        journey: null,
       },
       {
         id: 2,
@@ -732,6 +744,7 @@ export function cabinetMock(email: string): CabinetData {
         state: 'preparing',
         documents: ['q-12', 'c-2'],
         nextAction: null,
+        journey: null,
       },
     ],
     invoices: [
