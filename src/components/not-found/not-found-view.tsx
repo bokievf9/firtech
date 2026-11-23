@@ -112,7 +112,7 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
             )}
           </div>
           <div className="mt-6 flex flex-wrap gap-3">
-            <Link href={`/${locale}`} className={buttonStyles.primary}>
+            <Link href={`/${locale}`} data-fira-target="home" className={buttonStyles.primary}>
               {t.home}
             </Link>
             {withChat && (

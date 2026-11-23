@@ -112,6 +112,7 @@ export function BottomNav({
           animate={{ y: 0, opacity: 1 }}
           exit={reduce ? { opacity: 0 } : { y: 96, opacity: 0 }}
           transition={reduce ? fade : spring.sheet}
+          data-fira-avoid=""
           className="print-hidden material-thick fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >

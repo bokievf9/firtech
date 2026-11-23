@@ -43,6 +43,7 @@ test('companion: one line per kind of page, none on the home page, once per page
   assert.match(widget, /FILM_EVENT/, 'the launcher steps aside while the film Fira is on screen')
   assert.match(widget, /FiraGuide/, 'Fira is the launcher')
   const guide = read('src/components/fira/fira-guide.tsx')
-  assert.match(guide, /FiraFallback7/, 'the flat round-eight turtle is the face of the launcher')
+  assert.match(guide, /FiraStage/, 'the live stage (SVG stand-in or 3D) is the face of the launcher')
+  assert.match(read('src/components/fira/fira-stage.tsx'), /FiraFallback7/, 'the flat round-eight turtle is the face of the stage')
   assert.match(guide, /sessionStorage|COMPANION_SEEN_KEY/)
 })

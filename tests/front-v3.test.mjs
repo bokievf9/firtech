@@ -356,8 +356,7 @@ test('leftovers 2026-11-22: the home has no estimator, the cabinet stub points t
   assert.match(read('src/components/cabinet/cabinet-soon.tsx'), /\/builder/)
   const widget = read('src/components/chat/chat-widget.tsx')
   assert.match(widget, /SCROLL_IDLE_MS = 1500/)
-  assert.match(widget, /quietRoute = .*builder\|cabinet/)
-  assert.match(widget, /BUILDER_STEP_EVENT/)
+  assert.doesNotMatch(widget, /quietRoute/, 'Fira live 1.1: she is on the builder and the cabinet too')
   assert.match(read('src/components/builder.tsx'), /BUILDER_STEP_EVENT/)
   for (const [, dict] of dicts) {
     assert.equal(typeof dict.pricingHome.title, 'string')

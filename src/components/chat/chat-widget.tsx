@@ -8,7 +8,8 @@ import { track } from '@/lib/analytics'
 import { trackEvent } from '@/lib/track-event'
 import type { Locale } from '@/lib/i18n'
 import { FiraGuide } from '../fira/fira-guide'
-import { BUILDER_STEP_EVENT, CHAT_OPEN_EVENT, FILM_EVENT, filmOn } from './chat-events'
+import { FIRA_EVENT } from '@/lib/fira/live'
+import { CHAT_OPEN_EVENT, FILM_EVENT, filmOn } from './chat-events'
 
 // The panel (messages, input, focus trap) is its own chunk, fetched on the first open or when the
 // visitor hovers or focuses the button, so the page itself only carries this small launcher.
@@ -18,11 +19,9 @@ const ChatPanel = dynamic(loadPanel, { ssr: false })
 export type ChatCopy = Dict['chat']
 
 // Scroll rule (owner 2026-11-21): the launcher steps aside while the visitor scrolls down and comes back on
-// a scroll up or after 1.5 s without scrolling. On /builder and /cabinet it stays away until the builder's
-// last step or until the visitor has been idle for a while.
+// a scroll up or after 1.5 s without scrolling. Fira live 1.1: she is on every page, the builder and the cabinet
+// included; above a sticky bottom bar (data-fira-avoid) the dock lifts by the bar's height (--fira-lift).
 const SCROLL_IDLE_MS = 1500
-const QUIET_IDLE_MS = 8000
-const quietRoute = /\/(builder|cabinet)(\/|$)/
 // Fira, the launcher bottom right (above the phone CTA bar on small screens: components/fira/fira-guide.tsx, the
 // menu, the line per page and the tour live there), plus the panel. The panel opens from her menu, from any ChatOpenButton (window event) and from a #chat link.
 export function ChatWidget({
@@ -38,16 +37,12 @@ export function ChatWidget({
   const [mounted, setMounted] = useState(false)
   const opener = useRef<HTMLElement | null>(null)
   const pathname = usePathname()
-  const quiet = quietRoute.test(pathname)
   const [away, setAway] = useState(false)
-  const [idle, setIdle] = useState(false)
-  const [lastStep, setLastStep] = useState(false)
   const [focused, setFocused] = useState(false)
   const [tourOn, setTourOn] = useState(false)
 
   // Ordinary pages: hide on a scroll down, show on a scroll up or 1.5 s after the last scroll.
   useEffect(() => {
-    if (quiet) return
     let lastY = window.scrollY
     let timer = 0
     const onScroll = () => {
@@ -64,33 +59,37 @@ export function ChatWidget({
       window.removeEventListener('scroll', onScroll)
       window.clearTimeout(timer)
     }
-  }, [quiet, pathname])
+  }, [pathname])
 
-  // Builder and cabinet: hidden until the last step or a quiet moment; any input hides it again.
+  // A sticky bar at the bottom of the page (the builder's Back/Next bar): the dock rides above it.
   useEffect(() => {
-    if (!quiet) return
-    let timer = 0
-    const arm = () => {
-      window.clearTimeout(timer)
-      timer = window.setTimeout(() => setIdle(true), QUIET_IDLE_MS)
+    const root = document.documentElement
+    let raf = 0
+    const measure = () => {
+      let lift = 0
+      for (const el of document.querySelectorAll<HTMLElement>('[data-fira-avoid]')) {
+        const r = el.getBoundingClientRect()
+        if (r.height > 0 && r.bottom > window.innerHeight - 4 && r.top < window.innerHeight) lift = Math.max(lift, window.innerHeight - r.top)
+      }
+      root.style.setProperty('--fira-lift', `${Math.round(lift)}px`)
     }
-    const onInput = () => {
-      setIdle(false)
-      arm()
+    const schedule = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(measure)
     }
-    const onStep = (e: Event) => setLastStep(Boolean((e as CustomEvent<{ last?: boolean }>).detail?.last))
-    arm()
-    const events = ['pointerdown', 'keydown', 'scroll', 'touchstart'] as const
-    for (const name of events) window.addEventListener(name, onInput, { passive: true })
-    window.addEventListener(BUILDER_STEP_EVENT, onStep)
+    schedule()
+    const mo = new MutationObserver(schedule)
+    mo.observe(document.body, { childList: true, subtree: true })
+    window.addEventListener('resize', schedule)
+    const poll = window.setInterval(measure, 400) // the bar slides in with a spring: follow it
     return () => {
-      window.clearTimeout(timer)
-      for (const name of events) window.removeEventListener(name, onInput)
-      window.removeEventListener(BUILDER_STEP_EVENT, onStep)
-      setIdle(false)
-      setLastStep(false)
+      cancelAnimationFrame(raf)
+      mo.disconnect()
+      window.removeEventListener('resize', schedule)
+      window.clearInterval(poll)
+      root.style.removeProperty('--fira-lift')
     }
-  }, [quiet, pathname])
+  }, [pathname])
 
   // On the home page with the film running, the travelling Fira is the launcher.
   const [film, setFilm] = useState(false)
@@ -101,7 +100,7 @@ export function ChatWidget({
     return () => window.removeEventListener(FILM_EVENT, sync)
   }, [])
 
-  const visible = !film && (open || focused || tourOn || (quiet ? lastStep || idle : !away))
+  const visible = !film && (open || focused || tourOn || !away)
 
   const show = useCallback((source: string) => {
     opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
@@ -121,6 +120,10 @@ export function ChatWidget({
     const onOpen = (e: Event) =>
       show((e as CustomEvent<{ source?: string }>).detail?.source ?? 'event')
     window.addEventListener(CHAT_OPEN_EVENT, onOpen)
+    const onFira = (e: Event) => {
+      if ((e as CustomEvent<{ type?: string }>).detail?.type === 'open-chat') show('fira')
+    }
+    window.addEventListener(FIRA_EVENT, onFira)
     const fromHash = () => {
       // #chat: back from the sign-in the chat asked for (the conversation is in sessionStorage).
       if (window.location.hash === '#chat') show('hash')
@@ -129,6 +132,7 @@ export function ChatWidget({
     window.addEventListener('hashchange', fromHash)
     return () => {
       window.removeEventListener(CHAT_OPEN_EVENT, onOpen)
+      window.removeEventListener(FIRA_EVENT, onFira)
       window.removeEventListener('hashchange', fromHash)
       window.clearTimeout(timer)
     }

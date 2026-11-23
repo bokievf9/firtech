@@ -25,6 +25,9 @@ export type FiraTurtle7Props = {
   /** Fixed time in seconds for stills (no blink, no fidgets). */
   clock?: number
   spin?: number
+  nod?: number
+  aim?: number | null
+  onSlow?: () => void
   className?: string
   style?: CSSProperties
   label?: string
@@ -43,7 +46,7 @@ function hasWebGL(): boolean {
   return glOk
 }
 
-export function FiraTurtle7({ variant = 'a', acc, emotion = 'idle', size = 320, lookAt = true, mouth, theme, clock, spin, className, style, label, onReady }: FiraTurtle7Props) {
+export function FiraTurtle7({ variant = 'a', acc, emotion = 'idle', size = 320, lookAt = true, mouth, theme, clock, spin, nod, aim, onSlow, className, style, label, onReady }: FiraTurtle7Props) {
   const reduce = useReducedMotion()
   const host = useRef<HTMLDivElement>(null)
   const [gl, setGl] = useState(false)
@@ -100,7 +103,9 @@ export function FiraTurtle7({ variant = 'a', acc, emotion = 'idle', size = 320, 
             theme={theme}
             clock={clock}
             spin={spin}
-           
+            nod={nod}
+            aim={aim}
+            onSlow={onSlow}
             active={seen && tab}
             onReady={() => {
               setShown(true)
