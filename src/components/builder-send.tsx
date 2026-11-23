@@ -14,6 +14,7 @@ import { agentSource } from '@/lib/ai-teams'
 import { leadBriefOf } from '@/lib/builder-personal'
 import { buttonStyles } from '@/lib/cn'
 import { estimateDoc, leadEstimateFields, leadPage } from '@/lib/estimate-doc'
+import { estimateLink } from '@/lib/estimate-live'
 import type { Locale } from '@/lib/i18n'
 import { clearDraft, draftReturnPath, draftStorage, saveDraft } from '@/lib/lead-draft'
 import { refSource, storedRef } from '@/lib/referral'
@@ -95,6 +96,8 @@ export function ProjectSend({
             source: refSource(storedRef()) || (build.agentBrief && build.agents?.[0] ? agentSource(build.agents[0]) : ''),
             locale,
             page: leadPage(link),
+            intent: 'quote',
+            estimateUrl: estimateLink(locale, build),
           }),
         })
         if (!result.ok && result.status === 401) {
@@ -122,7 +125,7 @@ export function ProjectSend({
         if (answer.cabinet && !answer.queued) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
       }
     },
-    [build.details, build.agentBrief, build.agents, brief, fields, keepDraft, link, locale, service],
+    [build, brief, fields, keepDraft, link, locale, service],
   )
 
   async function onPress() {

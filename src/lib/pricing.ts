@@ -272,3 +272,7 @@ export const smallProjectMaxUsd = defaultPricing.smallProjectMaxUsd
 export const paymentStages: Record<StageTemplateId, readonly StageDef[]> = Object.fromEntries(
   stageTemplateIds.map((id) => [id, stageDefs(id, defaultPricing)]),
 ) as unknown as Record<StageTemplateId, readonly StageDef[]>
+
+// Honest start (builder v6 wave 2): working days between the first stage being paid and the start of
+// work. A constant for now; an HQ-driven value is a later wave. Rendered as «старт через N рабочих дня».
+export const START_IN_DAYS = 3

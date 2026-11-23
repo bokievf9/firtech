@@ -3,7 +3,7 @@
 import { ArrowLeft, FilePdf } from '@phosphor-icons/react'
 import { motion } from 'motion/react'
 import Link from 'next/link'
-import { useEffect, useState, type ReactNode } from 'react'
+import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { builderUi, pick } from '@/content/builder-catalog'
 import { decodeBuild, encodeBuild, type Build } from '@/lib/builder'
@@ -25,6 +25,7 @@ import { useCabinetUser } from './cabinet/use-cabinet-user'
 import { Logo } from './logo'
 import { agentUi } from '@/content/builder-agent'
 import { usePricing } from './pricing-provider'
+import { ContinueLastBuild, PayFirstStage, SaveEstimate, useRememberBuild } from './estimate-live'
 
 const ease = [0.16, 1, 0.3, 1] as const
 
@@ -47,6 +48,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
     setReturnPath(estimateReturnPath(window.location.pathname, window.location.search, window.location.hash))
   }, [locale])
 
+  useRememberBuild(state?.build ?? null)
   const builderHref = `/${locale}/builder`
 
   if (!state) return <div className="min-h-[80dvh]" aria-busy="true" />
@@ -59,6 +61,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
         <Link href={builderHref} className={cn(buttonStyles.primary, 'mt-8')}>
           {t.emptyCta}
         </Link>
+        <ContinueLastBuild dict={dict} locale={locale} className="mt-6" />
       </section>
     )
   }
@@ -109,6 +112,8 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
           </button>
         </div>
       </div>
+
+      <SaveEstimate dict={dict} locale={locale as Locale} build={state.build} className="mb-6" />
 
       <motion.article
         initial={reduce ? false : { opacity: 0, y: 16 }}
@@ -240,22 +245,34 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
               </thead>
               <tbody>
                 {doc.stages.map((stage) => (
-                  <tr key={stage.id} className="break-inside-avoid border-b border-[#e6e9e2] align-top">
-                    <td className="py-2.5 pr-3 whitespace-nowrap text-[#3d443b]">
-                      {dict.builder.stageWord} {stage.n}
-                    </td>
-                    <td className="py-2.5 pr-3">{stage.name}</td>
-                    <td className="py-2.5 pr-3 text-right font-mono text-[13px] whitespace-nowrap">
-                      {stage.share}
-                    </td>
-                    <td className="py-2.5 text-right font-mono text-[13px] whitespace-nowrap">
-                      {stage.amount}
-                    </td>
-                  </tr>
+                  <Fragment key={stage.id}>
+                    <tr className="break-inside-avoid border-b border-[#e6e9e2] align-top">
+                      <td className="py-2.5 pr-3 whitespace-nowrap text-[#3d443b]">
+                        {dict.builder.stageWord} {stage.n}
+                      </td>
+                      <td className="py-2.5 pr-3">{stage.name}</td>
+                      <td className="py-2.5 pr-3 text-right font-mono text-[13px] whitespace-nowrap">
+                        {stage.share}
+                      </td>
+                      <td className="py-2.5 text-right font-mono text-[13px] whitespace-nowrap">
+                        {stage.amount}
+                      </td>
+                    </tr>
+                    {stage.n === 1 && (
+                      <tr className="print-hidden">
+                        <td colSpan={4} className="py-3">
+                          <PayFirstStage dict={dict} locale={locale as Locale} build={state.build!} amount={stage.amount} paper />
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
                 ))}
               </tbody>
             </table>
             <p className="mt-2 text-[13px] text-[#3d443b]">{dict.builder.stageRule}</p>
+            <p className="mt-1.5 text-[13px] font-medium" data-estimate-start>
+              {doc.start}
+            </p>
           </section>
         )}
 
