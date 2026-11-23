@@ -39,7 +39,11 @@ import { flagshipPrice } from './flagships'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
 import { usesAxes } from './builder-style'
 import { effectiveDelivery, effectiveSiteNeed, hasAgent } from './builder-v2'
-import { stagesFor } from './payment-stages'
+import { agentStages, stagesFor } from './payment-stages'
+import { agentQuote, isAgentPath, agentOnly } from './builder-agent'
+import { agentUi } from '../content/builder-agent'
+import { channelName } from './channels'
+import type { ChannelId } from './channels'
 import { defaultPricing, formatUsd, type Pricing } from './pricing'
 import { serviceSlugs, siteUrl, type ServiceSlug } from './site'
 
@@ -52,6 +56,8 @@ export type StageRow = { id: string; n: number; name: string; share: string; amo
 
 export type BriefRow = { id: string; label: string; value: string }
 export type Brief = { goals: BriefRow[]; setup: BriefRow[]; style: BriefRow[]; details: BriefRow[]; catalog: BriefRow[] }
+
+export type EstimateAgents = { rows: EstimateRow[]; monthly: string; monthlyUsd: number; setupUsd: number }
 
 export type EstimateDoc = {
   // The business kind's name, when the build has one.
@@ -68,6 +74,9 @@ export type EstimateDoc = {
   monthly: string | null
   // Payment stages with amounts (owner decision 2026-11-21); empty when nothing is priced.
   stages: StageRow[]
+  // Agents sold one by one (builder v6): a row per agent with its own price, the team discount and the paid options as
+  // rows, and the subscription per month. Their one-time setup is already inside `total`. null without agents.
+  agents: EstimateAgents | null
   // The money-back guarantee sentence for the footer notes (dictionary `guarantee.line`).
   guarantee: string
   // What is not in the price (domain, hosting, paid third-party services), per the brief.
@@ -100,8 +109,8 @@ export function estimateDoc(
   locale: string,
   pricing: Pricing = defaultPricing,
 ): EstimateDoc {
-  // The personal path never shows a niche, products or parts, even when a link carried them.
-  const build = personalOnly(source)
+  // The personal path never shows a niche, products or parts, even when a link carried them; the agent path the same.
+  const build = agentOnly(personalOnly(source))
   const q = quote(build, pricing)
   const parts: EstimateRow[] = []
   const extras: EstimateRow[] = []
@@ -151,18 +160,44 @@ export function estimateDoc(
       price: quoteWord,
     }
   })
+  const aq = agentQuote(build, pricing)
+  const loc2 = locale === 'ru' ? 'ru' : 'en'
+  const agentTitle = (id: string) => (dict.aiTeams.agents.items as Record<string, { title: string }>)[id]?.title ?? id
+  const agents: EstimateAgents | null = aq
+    ? {
+        rows: [
+          ...(build.agents ?? []).map((id) => ({
+            id: `agent-${id}`,
+            name: agentTitle(id),
+            detail: '',
+            term: '',
+            price: `${formatUsd(aq.unit.setup)} + ${formatUsd(aq.unit.monthly)}${dict.builder.perMonth}`,
+          })),
+          ...(aq.count >= 2
+            ? [{ id: 'agent-team', name: agentUi.labels.teamDiscount[loc2], detail: '', term: '', price: `-${aq.discountPercent}%` }]
+            : []),
+          ...aq.addons.map((a) => ({ id: `agent-${a.id}`, name: agentUi.addons[a.id].name[loc2], detail: agentUi.addons[a.id].hint[loc2], term: '', price: formatUsd(a.price) })),
+        ],
+        monthly: `${formatUsd(aq.monthly)}${dict.builder.perMonth}`,
+        monthlyUsd: aq.monthly,
+        setupUsd: aq.oneTime,
+      }
+    : null
+  const oneTime = q.total + (aq?.oneTime ?? 0)
   return {
     kind: build.kind ? kindName(build.kind, locale) : null,
     products: build.personal ? [] : (build.products ?? []).map((id) => pick(productCatalog[id].name, locale)),
     onRequest,
     parts,
     extras,
-    subtotal: formatUsd(q.subtotal),
-    discount: q.discount ? `-${Math.round(pricing.bundleDiscount)}%` : null,
+    subtotal: formatUsd(q.subtotal + (aq?.oneTime ?? 0)),
+    // With agent lines the discount is shown as the amount it takes off the parts, not as a percent of the whole.
+    discount: q.discount ? (aq ? `-${formatUsd(q.discount)}` : `-${Math.round(pricing.bundleDiscount)}%`) : null,
     // No priced lines: nothing to sum, the quote says so instead of showing zero.
-    total: q.lines.length ? formatUsd(q.total) : quoteWord,
+    total: q.lines.length || aq ? formatUsd(oneTime) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
-    stages: stagesFor(build, q.total, pricing).map((stage, i) => ({
+    agents,
+    stages: (aq && !q.lines.length ? agentStages(oneTime, pricing) : stagesFor(build, oneTime, pricing)).map((stage, i) => ({
       id: stage.id,
       n: i + 1,
       name: stage.title[locale === 'ru' ? 'ru' : 'en'],
@@ -227,6 +262,21 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
     )
     add('tier', personalLabels.tier[loc], tierText[tierOf(p)].name[loc])
     add('byok', personalLabels.byok[loc], p.byok ? personalLabels.yes[loc] : personalLabels.no[loc])
+  }
+
+  // The agent path: the agent, where it works, what it connects to, the volume and the paid options.
+  const ab = build.agentBrief
+  if (ab) {
+    const L = agentUi.labels
+    const add = (id: string, label: string, value: string | undefined) => {
+      if (value) setup.push({ id: `a-${id}`, label, value })
+    }
+    const titleOf = (id: string) => (dict.aiTeams.agents.items as Record<string, { title: string }>)[id]?.title ?? id
+    add('agent', L.agents[loc], build.agents?.map(titleOf).join(', '))
+    add('where', L.where[loc], ab.channels?.map((id) => channelName(id as ChannelId, loc)).join(', '))
+    add('connect', L.connect[loc], ab.connect?.map((id) => agentUi.connect[id].name[loc]).join(', '))
+    add('volume', L.volume[loc], ab.volume ? agentUi.volume[ab.volume][loc] : undefined)
+    add('options', L.options[loc], [ab.knowledge && agentUi.addons.knowledge.name[loc], ab.training && agentUi.addons.training.name[loc]].filter(Boolean).join(', '))
   }
 
   const style: BriefRow[] = []
@@ -351,7 +401,14 @@ export function estimateJson(
       return { label: label.slice(0, 120), usd: line.price }
     })
     .filter((l) => l.usd > 0)
+  const aq = agentQuote(build, pricing)
+  if (aq) {
+    const titles = (build.agents ?? []).map((id) => (dict.aiTeams.agents.items as Record<string, { title: string }>)[id]?.title ?? id)
+    lines.push({ label: `${agentUi.labels.agents[locale === 'ru' ? 'ru' : 'en']}: ${titles.join(', ')} (${agentUi.labels.setupWord[locale === 'ru' ? 'ru' : 'en']})`.slice(0, 120), usd: aq.setup })
+    for (const a of aq.addons) lines.push({ label: agentUi.addons[a.id].name[locale === 'ru' ? 'ru' : 'en'], usd: a.price })
+  }
   if (!lines.length || lines.length > 30) return null
+  const monthlyTotal = (q.monthly ?? 0) + (aq?.monthly ?? 0)
   const sum = lines.reduce((acc, l) => acc + l.usd, 0)
   const discountUsd = q.discount ?? 0
   const out: EstimateJson = {
@@ -359,7 +416,7 @@ export function estimateJson(
     lines,
     ...(discountUsd > 0 ? { discountUsd } : {}),
     totalUsd: sum - discountUsd,
-    ...(q.monthly ? { monthlyUsd: q.monthly } : {}),
+    ...(monthlyTotal ? { monthlyUsd: monthlyTotal } : {}),
     ...(doc.onRequest.length ? { onRequest: doc.onRequest.map((r) => r.name) } : {}),
   }
   return JSON.stringify(out).length <= leadLimit ? out : null
@@ -400,6 +457,7 @@ export function leadSummary(
   pricing: Pricing = defaultPricing,
 ) {
   if (source.personal) return personalLeadSummary(source, dict, locale, pricing)
+  if (isAgentPath(source)) return agentLeadSummary(source, dict, locale, pricing)
   const build = source
   const t = dict.builder
   const doc = estimateDoc(build, dict, locale, pricing)
@@ -411,6 +469,7 @@ export function leadSummary(
   lines.push(
     ...doc.parts.map((row) => `${row.name}: ${row.detail} (${row.price}, ${row.term})`),
     ...doc.extras.map((row) => `${row.name} (${row.price})`),
+    ...(doc.agents ? doc.agents.rows.map((row) => `${agentUi.labels.agent[locale === 'ru' ? 'ru' : 'en']}: ${row.name} (${row.price})`) : []),
   )
   if (q.discount) lines.push(`${t.discount}: ${doc.subtotal} -> ${doc.total}`)
   lines.push(`${t.total}: ${doc.total}`)
@@ -422,6 +481,7 @@ export function leadSummary(
         .join(', ')}`,
     )
   if (doc.monthly) lines.push(`${dict.extras.items.support.name}: ${doc.monthly}`)
+  if (doc.agents) lines.push(`${agentUi.labels.monthly[locale === 'ru' ? 'ru' : 'en']}: ${doc.agents.monthly}`)
   if (doc.stages.length)
     lines.push(
       `${t.stageLead}: ${doc.stages.map((s) => `${s.n}. ${s.amount} (${s.share})`).join(', ')}`,
@@ -460,6 +520,27 @@ export function leadSummary(
     const room = leadLimit - text.length - head.length
     if (room > 20)
       text += head + (wish.value.length > room ? `${wish.value.slice(0, room - 3)}...` : wish.value)
+  }
+  return text.slice(0, leadLimit)
+}
+
+// The agent lead: the agents with their price, the one-time total with its stages, the monthly subscription and
+// the answers of the three questions. No niche, no parts.
+export function agentLeadSummary(source: Build, dict: Dict, locale: string, pricing: Pricing = defaultPricing) {
+  const build = agentOnly(source)
+  const loc = locale === 'ru' ? 'ru' : 'en'
+  const t = dict.builder
+  const doc = estimateDoc(build, dict, locale, pricing)
+  const lines: string[] = []
+  for (const row of doc.agents?.rows ?? []) lines.push(`${agentUi.labels.agent[loc]}: ${row.name} (${row.price})`)
+  lines.push(`${t.total}: ${doc.total}`)
+  if (doc.agents) lines.push(`${agentUi.labels.monthly[loc]}: ${doc.agents.monthly}`)
+  if (doc.stages.length) lines.push(`${t.stageLead}: ${doc.stages.map((s) => `${s.n}. ${s.amount} (${s.share})`).join(', ')}`)
+  const rows: BriefRow[] = [...doc.brief.setup.filter((r) => r.id !== 'a-agent'), ...doc.brief.details.filter((r) => r.id.startsWith('d-'))]
+  let text = lines.join('\n')
+  for (const r of rows) {
+    const line = `${r.label}: ${r.value}`
+    if (text.length + 1 + line.length <= leadLimit) text += `\n${line}`
   }
   return text.slice(0, leadLimit)
 }

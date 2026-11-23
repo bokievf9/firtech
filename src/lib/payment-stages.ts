@@ -111,3 +111,9 @@ export function stageTrackLabel(template: string, n: number) {
 export function fillStageTokens(text: string, pricing: Pricing = defaultPricing) {
   return text.replaceAll('{small}', formatUsd(pricing.smallProjectMaxUsd))
 }
+
+// Stages of the one-time payment of an agent-only build (setup and paid options): under the small-project limit two
+// stages 50/50 (owner rule 2026-11-21), else 30/40/30 like a bot (`bot` template).
+export function agentStages(oneTime: number, pricing: Pricing = defaultPricing): PaymentStage[] {
+  return stagesFor(oneTime < pricing.smallProjectMaxUsd ? 'small' : 'bot', oneTime, pricing)
+}

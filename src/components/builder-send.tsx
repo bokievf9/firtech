@@ -10,6 +10,7 @@ import { faceUi } from '@/content/builder-v2'
 import { pick } from '@/content/builder-catalog'
 import { track } from '@/lib/analytics'
 import { leadServiceOf, type Build } from '@/lib/builder'
+import { agentSource } from '@/lib/ai-teams'
 import { leadBriefOf } from '@/lib/builder-personal'
 import { buttonStyles } from '@/lib/cn'
 import { estimateDoc, leadEstimateFields, leadPage } from '@/lib/estimate-doc'
@@ -91,7 +92,7 @@ export function ProjectSend({
             service,
             ...fields,
             ...(brief ? { brief } : {}),
-            source: refSource(storedRef()),
+            source: refSource(storedRef()) || (build.agentBrief && build.agents?.[0] ? agentSource(build.agents[0]) : ''),
             locale,
             page: leadPage(link),
           }),
@@ -121,7 +122,7 @@ export function ProjectSend({
         if (answer.cabinet && !answer.queued) window.setTimeout(() => window.location.assign(answer.cabinet!), 600)
       }
     },
-    [build.details, brief, fields, keepDraft, link, locale, service],
+    [build.details, build.agentBrief, build.agents, brief, fields, keepDraft, link, locale, service],
   )
 
   async function onPress() {

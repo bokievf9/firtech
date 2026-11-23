@@ -156,3 +156,17 @@
 
 ### Проверка
 `tests/builder-capabilities.test.mjs` (целостность и счётчики, чанк `x.`, границы, сводка, brief), `tests/e2e/builder-v2.spec.ts` (поиск внутри вопроса, «показать ещё», выбранное сверху).
+
+## «Один агент» (builder v6, 2026-11-24)
+- Third fork choice on the first screen («Один агент») and a card on the «Что делаем» step open the **agent path**: six screens
+  (agent grid by department with search, three questions tailored to the agent's department: channels, what to connect, monthly
+  volume; knowledge import and team training as paid toggles; the estimate). The agent page CTA «Собрать с этим агентом» is
+  `agentBuilderHref(locale, id)` (`lib/ai-teams.ts`), the team CTA stays under it. `popularAgentIds` is exported from the same file.
+- Link chunk `a.<ids>.<channels>.<connect>.<volume>.<flags>` (`lib/builder-agent.ts`): agent ids joined by `_`, lists by `-`, `_` = empty;
+  flags `path` (the agent path; without it the agents are lines added to another build), `knowledge`, `training`. `Build.agents` and
+  `Build.agentBrief`. Any build can add agents in the summary («Добавить агента»); two or more are priced with the team formula.
+- Prices: setup and monthly from `agentSubscription` / `teamSubscription`; the two paid toggles reuse the automation add-ons
+  `sheets` (knowledge import) and `training`, one line in `agentAddonPrices` if the owner sets their own. The agent setup (and toggles) is part of
+  the one-time total; the monthly subscription is shown apart. Stages: under `smallProjectMaxUsd` 50/50, else 30/40/30 (`agentStages`).
+- Lead: `service: 'bundle'`, `source: agent-<id>` unless a referral is stored, `brief` = `{v:1,type:'agent',agent,agents,channels,connect,volume,knowledge?,training?}`;
+  agents added to a business build ride in its brief as `agents`. The estimate JSON carries one line for the subscription setup (plus the toggles) and `monthlyUsd`.

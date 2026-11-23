@@ -3795,6 +3795,8 @@ const en: Dict = {
     title: 'A whole team works and you only approve',
     sub: 'Marketing, sales or support on AI agents. Agents prepare the work, you approve with a button in your channel. Take one team or the whole company.',
     ctaBuild: 'Build a project',
+    ctaBuildAgent: 'Build with this agent',
+    ctaBuildTeam: 'Build a whole department',
     ctaChat: 'Ask an agent',
     ctaDiscuss: 'Ask an agent',
     // The top of the ladder (owner 2026-11-22): agent, team, the whole AI company.

@@ -53,6 +53,8 @@ import {
   type Discovery,
   type PersonalBrief,
 } from './builder-personal'
+import { agentChunk, readAgentChunk, type AgentBrief } from './builder-agent'
+import type { StandaloneAgentId } from './agent-ids'
 import { catalogJson, isCatalogChunk, keepSubNiches, parseCatalogJson, type CatalogPick } from './builder-capabilities'
 
 // The project builder: a visitor combines several services and extras into one quote. All prices
@@ -258,6 +260,11 @@ export type Build = {
   // v5 (2026-11-23): picks from the capability catalogue (sub-niches, results, abilities, channel sub-options,
   // integrations, content, personal skills), one chunk `x.<base64url JSON>` (lib/builder-capabilities.ts).
   catalog?: CatalogPick
+  // builder v6 (2026-11-24): agents sold one by one, chunk `a.<ids>.<channels>.<connect>.<volume>.<flags>`
+  // (lib/builder-agent.ts). `agentBrief` present = the agent path («Один агент»); `agents` alone = agent lines
+  // added to another build. Two or more agents are priced with the team formula.
+  agents?: StandaloneAgentId[]
+  agentBrief?: AgentBrief
 }
 
 export const emptyBuild: Build = { parts: {}, extras: [] }
@@ -436,6 +443,8 @@ export function encodeBuild(build: Build) {
   if (personal) parts.push(`m.${toBase64Url(personal)}`)
   const discovery = discoveryJson(build.discovery)
   if (discovery) parts.push(`v.${toBase64Url(discovery)}`)
+  const agent = agentChunk(build)
+  if (agent) parts.push(agent)
   if (build.goals?.length) parts.push(`g.${build.goals.join('-')}`)
   if (build.channels?.length) parts.push(`c.${build.channels.join('-')}`)
   // An empty list is a choice too (nothing ticked yet), told apart from "never asked" by `l.none`.
@@ -582,6 +591,10 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       if (personal) build.personal = personal
       continue
     }
+    if (head === 'a') {
+      readAgentChunk(build, [second, third, fourth, fifth, sixth])
+      continue
+    }
     if (head === 'v') {
       const discovery = parseDiscoveryJson(fromBase64Url(chunk.slice(2)) ?? '')
       if (discovery) build.discovery = discovery
@@ -703,6 +716,8 @@ export function decodeBuild(value: string | null | undefined): Build | null {
       build.personal ||
       build.discovery ||
       build.catalog ||
+      build.agents ||
+      build.agentBrief ||
       build.siteNeed,
   )
   return Object.keys(build.parts).length || build.extras.length || hasBrief ? build : null

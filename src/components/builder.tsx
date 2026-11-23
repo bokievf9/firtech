@@ -9,6 +9,7 @@ import { trackEvent } from '@/lib/track-event'
 import { builderUi, pick } from '@/content/builder-catalog'
 import { detailsUi, faceUi, issueText, themeUi } from '@/content/builder-v2'
 import { personalSteps } from '@/content/builder-personal'
+import { agentUi } from '@/content/builder-agent'
 import {
   applyKind,
   decodeBuild,
@@ -34,6 +35,15 @@ import {
   toggleDelivery,
 } from '@/lib/builder-v2'
 import { personalIssues, personalReady, startPersonal, stopPersonal, tierOf } from '@/lib/builder-personal'
+import {
+  agentIssues,
+  agentLastStep,
+  agentQuote,
+  agentReachable,
+  agentReady,
+  isAgentPath,
+  startAgent,
+} from '@/lib/builder-agent'
 import { buttonStyles, cn } from '@/lib/cn'
 import { hasDraftFlag } from '@/lib/lead-draft'
 import type { Locale } from '@/lib/i18n'
@@ -47,7 +57,8 @@ import { BottomNav, NextButton, PreviewSheet, StepBar } from './builder-nav'
 import { BuilderPreview } from './builder-preview'
 import { FeaturesStep, GoalsStep, KindStep, ProductsStep, SetStep } from './builder-steps'
 import { SummaryStep } from './builder-summary'
-import { ForkToggle, PersonalDay, PersonalStep } from './builder-personal'
+import { ForkToggle, PersonalDay, PersonalStep, type ForkMode } from './builder-personal'
+import { AgentEstimate, AgentStep, deptQuestion } from './builder-agent'
 import { Screen } from './builder-ui'
 
 const ease = [0.16, 1, 0.3, 1] as const
@@ -57,6 +68,8 @@ const PRODUCTS = 1
 const PARTS = 3
 const STYLE = 5
 const SUMMARY = 7
+// The longest path (business and personal have eight screens, the agent path six): the URL is read once against this.
+const MOST_STEPS = 8
 // Screens where the live mockup sits next to the content.
 const withPreview = new Set([1, 3, 4, 5])
 // Links from before the products step used `?s=` with seven steps: where each of them lands now.
@@ -69,8 +82,12 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const [build, setBuildState] = useState<Build>(emptyBuild)
   // The personal path (2026-11-22) has its own eight screens; the business path is unchanged.
   const personal = Boolean(build.personal)
-  const steps = pick(personal ? personalSteps.steps : faceUi.steps, locale)
+  // The agent path (builder v6, «Один агент») has six screens: the agent, three questions, extras, the estimate.
+  const agent = isAgentPath(build)
+  const business = !personal && !agent
+  const steps = pick(agent ? agentUi.steps : personal ? personalSteps.steps : faceUi.steps, locale)
   const total = steps.length
+  const summaryStep = total - 1
   const reduce = useReducedMotion()
   const pricing = usePricing()
   const pathname = usePathname()
@@ -100,7 +117,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const hasContent = hasContentOf(build)
   const onRequest = productsOnRequest(build)
   const personalDone = personalReady(build)
-  const reachable = useCallback((i: number) => (personal ? i <= 2 || personalDone : i <= PARTS || hasContent), [hasContent, personal, personalDone])
+  const reachable = useCallback((i: number) => (agent ? agentReachable(build, i) : personal ? i <= 2 || personalDone : i <= PARTS || hasContent), [agent, build, hasContent, personal, personalDone])
 
   const urlFor = useCallback(
     (b: Build, s: number) => {
@@ -123,11 +140,16 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     const fallback = shared ? (isStartingSet(shared) ? PRODUCTS : SUMMARY) : 0
     const wantsSend = window.location.hash === '#contact'
     const back = hasDraftFlag(window.location.search)
-    let next = asked !== null && asked < total ? asked : fallback
+    let next = asked !== null && asked < MOST_STEPS ? asked : fallback
     // An old link to #contact opens the step that holds the send button, when there is a project to send.
     if (wantsSend && parts && asked === null) next = SUMMARY
     if (next > PARTS && !parts) next = shared ? PARTS : 0
     if (shared?.personal && next > 2 && !personalReady(shared)) next = 0
+    // The agent path: a link from an agent page lands on the first screen with the agent chosen, a finished one on the estimate.
+    if (shared && isAgentPath(shared)) {
+      next = asked !== null && asked <= agentLastStep ? asked : agentReady(shared) ? agentLastStep : 0
+      if (!agentReachable(shared, next)) next = 0
+    }
     /* eslint-disable react-hooks/set-state-in-effect -- one-time sync from the URL */
     if (shared) setBuildState(shared)
     setCameBack(back)
@@ -135,18 +157,18 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
     setStep(next)
     setReady(true)
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [total])
+  }, [])
 
   // Пульт «Цифры»: the visitor reached the summary (the estimate) of the builder.
   useEffect(() => {
-    if (ready && step === SUMMARY) trackEvent('builder_done')
-  }, [ready, step])
+    if (ready && step === summaryStep) trackEvent('builder_done')
+  }, [ready, step, summaryStep])
 
   // The chat launcher stays hidden on the builder until the last step.
   useEffect(() => {
     if (!ready) return
-    window.dispatchEvent(new CustomEvent(BUILDER_STEP_EVENT, { detail: { last: step === SUMMARY } }))
-  }, [ready, step])
+    window.dispatchEvent(new CustomEvent(BUILDER_STEP_EVENT, { detail: { last: step === summaryStep } }))
+  }, [ready, step, summaryStep])
 
   // Keep the address in sync with the build and step, without a navigation.
   useEffect(() => {
@@ -227,13 +249,20 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   )
 
   const personalProblems = personal ? personalIssues(build, step) : []
-  const issues = personal ? personalProblems : stepIssues(build, step)
+  const issues: string[] = agent ? agentIssues(build, step) : personal ? personalProblems : stepIssues(build, step)
   const canGo = issues.length === 0
-  const last = step === SUMMARY
+  const last = step === summaryStep
 
-  function pickFork(toPersonal: boolean) {
-    setBuildState((b) => (toPersonal ? startPersonal(b) : stopPersonal(b)))
+  function pickFork(mode: ForkMode) {
+    setBuildState((b) => (mode === 'personal' ? startPersonal(b) : mode === 'agent' ? startAgent(b) : stopPersonal(b)))
     setAttempted(false)
+  }
+
+  // The «Один агент» card on the «Что делаем» step opens the agent path on its first screen.
+  function pickAgentProduct() {
+    setBuildState((b) => startAgent(b))
+    setAttempted(false)
+    go(0)
   }
 
   function pickKind(next: BusinessKind) {
@@ -331,9 +360,16 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   }, [canGo, go, last, sheet, step, next])
 
   const q = quote(build, pricing)
-  const preview = !personal && withPreview.has(step)
+  const aq = agentQuote(build, pricing)
+  const preview = business && withPreview.has(step)
   const ui = builderUi
-  const titles = personal
+  const agentTitles = agentUi.titles.map((title, i) => ({
+    title: pick(i >= 1 && i <= 3 ? { ru: deptQuestion(build, (['where', 'connect', 'volume'] as const)[i - 1]!, 'ru'), en: deptQuestion(build, (['where', 'connect', 'volume'] as const)[i - 1]!, 'en') } : title, locale),
+    sub: pick(agentUi.subs[i]!, locale),
+  }))
+  const titles = agent
+    ? agentTitles
+    : personal
     ? personalSteps.titles.map((title, i) => ({ title: pick(title, locale), sub: pick(personalSteps.subs[i]!, locale) }))
     : [
     { title: pick(faceUi.explainTitle, locale), sub: pick(faceUi.explain, locale) },
@@ -381,7 +417,21 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                 title={screen.title}
                 sub={screen.sub}
               >
-                {step === 0 && <ForkToggle locale={locale} personal={personal} onPick={pickFork} />}
+                {step === 0 && <ForkToggle locale={locale} mode={agent ? 'agent' : personal ? 'personal' : 'business'} onPick={pickFork} />}
+                {agent && step < summaryStep && <AgentStep dict={dict} step={step} locale={locale} build={build} setBuild={setBuild} />}
+                {agent && step === summaryStep && (
+                  <AgentEstimate
+                    dict={dict}
+                    locale={locale}
+                    build={build}
+                    setBuild={setBuild}
+                    estimateHref={`${pathname}/estimate?b=${encodeBuild(build)}`}
+                    copied={copied}
+                    cameBack={cameBack}
+                    focusSend={focusSend}
+                    onCopy={copyLink}
+                  />
+                )}
                 {personal && step < SUMMARY && (
                   <PersonalStep dict={dict} step={step} locale={locale} build={build} setBuild={setBuild} />
                 )}
@@ -397,20 +447,21 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     onCopy={copyLink}
                   />
                 )}
-                {!personal && step === 0 && (
+                {business && step === 0 && (
                   <KindStep locale={locale} kind={kind} onPick={pickKind} />
                 )}
-                {!personal && step === PRODUCTS && (
+                {business && step === PRODUCTS && (
                   <ProductsStep
                     locale={locale}
                     build={build}
                     onToggle={pickProduct}
                     onSiteNeed={pickSiteNeed}
+                    onAgent={pickAgentProduct}
                     setBuild={setBuild}
                   />
                 )}
-                {!personal && step === 2 && <GoalsStep locale={locale} build={build} setBuild={setBuild} />}
-                {!personal && step === PARTS && (
+                {business && step === 2 && <GoalsStep locale={locale} build={build} setBuild={setBuild} />}
+                {business && step === PARTS && (
                   <SetStep
                     dict={dict}
                     locale={locale}
@@ -420,7 +471,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     onDelivery={pickDelivery}
                   />
                 )}
-                {!personal && step === 4 && (
+                {business && step === 4 && (
                   <FeaturesStep
                     dict={dict}
                     locale={locale}
@@ -430,10 +481,10 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     onExtra={toggleExtra}
                   />
                 )}
-                {!personal && step === STYLE && (
+                {business && step === STYLE && (
                   <ThemeStep dict={dict} locale={locale} build={build} setBuild={setBuild} />
                 )}
-                {!personal && step === 6 && (
+                {business && step === 6 && (
                   <DetailsStep
                     dict={dict}
                     locale={locale}
@@ -442,7 +493,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     showErrors={attempted}
                   />
                 )}
-                {!personal && step === SUMMARY &&
+                {business && step === SUMMARY &&
                   (hasContent ? (
                     <SummaryStep
                       dict={dict}
@@ -454,6 +505,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                       focusSend={focusSend}
                       onCopy={copyLink}
                       onEdit={go}
+                      setBuild={setBuild}
                     />
                   ) : (
                     <div className="grid justify-items-start gap-5">
@@ -476,7 +528,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     <span aria-hidden="true" className={cn('mt-1.5 size-1.5 shrink-0 rounded-full', attempted ? 'bg-danger' : 'bg-faint')} />
                     <span>
                       {pick(faceUi.required, locale)}:{' '}
-                      {issues.map((id) => pick((personal ? personalSteps.issues : issueText)[id]!, locale)).join('. ')}
+                      {issues.map((id) => pick((agent ? agentUi.issues : personal ? personalSteps.issues : (issueText as Record<string, { ru: string; en: string }>))[id]!, locale)).join('. ')}
                     </span>
                   </p>
                 )}
@@ -508,14 +560,21 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
               {!last && canGo && <span className="hidden lg:inline"> · {t.enterHint}</span>}
             </p>
             <p className="truncate font-mono text-callout text-accent-text md:text-body" aria-live="polite">
-              {personal ? (build.personal?.hand?.length ? `${formatUsd(pricing.personalPlans[tierOf(build.personal)].setup)} + ${formatUsd(pricing.personalPlans[tierOf(build.personal)].monthly)}${t.perMonth}` : '') : hasParts ? formatUsd(q.total) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
-              {hasParts && onRequest.length > 0 && (
+              {agent ? (aq ? `${formatUsd(aq.oneTime)} + ${formatUsd(aq.monthly)}${t.perMonth}` : '') : personal ? (build.personal?.hand?.length ? `${formatUsd(pricing.personalPlans[tierOf(build.personal)].setup)} + ${formatUsd(pricing.personalPlans[tierOf(build.personal)].monthly)}${t.perMonth}` : '') : hasParts || aq ? formatUsd(q.total + (aq?.oneTime ?? 0)) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
+              {business && aq && (
+                <span className="hidden text-muted sm:inline">
+                  {' '}
+                  + {formatUsd(aq.monthly)}
+                  {t.perMonth}
+                </span>
+              )}
+              {business && hasParts && onRequest.length > 0 && (
                 <span className="hidden text-muted sm:inline">
                   {' '}
                   + {pick(ui.totalOnRequest, locale)}
                 </span>
               )}
-              {hasParts && q.monthly !== null && (
+              {business && hasParts && q.monthly !== null && (
                 <span className="hidden text-muted sm:inline">
                   {' '}
                   + {formatUsd(q.monthly)}
@@ -527,7 +586,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
         }
         primary={
           last ? (
-            (hasContent || personal) && <NextButton label={pick(faceUi.send, locale)} onClick={scrollToSend} />
+            (hasContent || personal || agent) && <NextButton label={pick(faceUi.send, locale)} onClick={scrollToSend} />
           ) : (
             <NextButton label={t.next} blocked={!canGo} onClick={next} />
           )

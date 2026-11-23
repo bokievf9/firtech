@@ -2,6 +2,8 @@ import type { Dict } from '@/content'
 import type { Locale } from './i18n'
 import { productBuild } from './products'
 import { encodeBuild } from './builder'
+import { startAgent } from './builder-agent'
+import { popularAgentIds as popularIds, type StandaloneAgentId } from './agent-ids'
 import { agentSubscriptionOf, defaultPricing, teamSubscription, type Pricing, type Subscription, type TeamSubscription } from './pricing'
 
 // «Отдел из ИИ-агентов» (owner decision 2026-11-21): each department of the Fir Tech agent company
@@ -50,6 +52,16 @@ export function aiTeamBuilderHref(locale: Locale | string, team: AiTeamId = 'com
   const withTeam = team === 'company' ? build : { ...build, options: { company: [team, 'pult', 'knowledge', 'training'] } }
   return `/${locale}/builder?b=${encodeBuild(withTeam)}`
 }
+
+// «Собрать с этим агентом» (builder v6): the builder opens on the agent path with this agent chosen (`a.<id>...path`),
+// no niche and no discovery questions first. The Director is only sold with a team, so it falls back to the AI company.
+export function agentBuilderHref(locale: Locale | string, id: AgentId) {
+  if (!agentOffer(id).standalone) return aiTeamBuilderHref(locale, 'company')
+  return `/${locale}/builder?b=${encodeBuild(startAgent({ parts: {}, extras: [] }, id as StandaloneAgentId))}`
+}
+
+// The agents shown first on the home page (owner picks later; fixed for now). The ids live in agent-ids.ts.
+export const popularAgentIds = popularIds
 
 // Every page of this section, for the sitemap (and tests).
 export const aiTeamPaths = [aiTeamsPath, ...aiTeamIds.map(aiTeamPath)]
