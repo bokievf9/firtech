@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation'
 import { ContentSection } from './content-studio'
 import { PaymentsTab, CostsTab } from './finance-view'
 import { InboxApprovals } from './inbox-approvals'
+import { StandupInbox } from './team-standup'
 
 const q = `?limit=${LIST_LIMIT}`
 
@@ -35,11 +36,14 @@ export function InboxSection({ tab }: { tab: string; focus: string | null }) {
   if (tab === 'approvals') return <InboxApprovals />
   if (!hub.view) return hub.error ? <Offline error={hub.error} onRetry={() => hub.reload()} /> : <Loading />
   return (
-    <Notifications
-      items={hub.view.inbox}
-      now={now}
-      onOpen={(link) => router.push(hqHref(link.panel, link.tab, link.id))}
-    />
+    <>
+      <StandupInbox />
+      <Notifications
+        items={hub.view.inbox}
+        now={now}
+        onOpen={(link) => router.push(hqHref(link.panel, link.tab, link.id))}
+      />
+    </>
   )
 }
 

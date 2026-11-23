@@ -6,14 +6,14 @@ import { test } from 'node:test'
 const s = await import('../src/lib/hq-shell.ts')
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
-test('sections: nineteen English names in four groups, all built, keys 1-9', () => {
-  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Dashboard', 'Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Finance', 'Office', 'Content', 'Agents', 'Processes', 'Knowledge', 'Settings', 'Quality', 'Audit log', 'Analytics'])
+test('sections: twenty English names in four groups, all built, keys 1-9', () => {
+  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Dashboard', 'Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Finance', 'Team', 'Office', 'Content', 'Agents', 'Processes', 'Knowledge', 'Settings', 'Quality', 'Audit log', 'Analytics'])
   assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), s.HQ_SECTIONS.map((x) => x.id))
   assert.deepEqual(s.HQ_GROUPS.map((g) => g.label), ['Work', 'Clients', 'Company', 'Control'])
   const byGroup = (g) => s.HQ_SECTIONS.filter((x) => x.group === g).map((x) => x.id)
   assert.deepEqual(byGroup('work'), ['dashboard', 'inbox', 'approvals', 'tasks', 'calendar', 'chats'])
   assert.deepEqual(byGroup('clients'), ['clients', 'projects', 'documents', 'finance'])
-  assert.deepEqual(byGroup('company'), ['office', 'content', 'agents', 'processes', 'knowledge', 'settings'])
+  assert.deepEqual(byGroup('company'), ['team', 'office', 'content', 'agents', 'processes', 'knowledge', 'settings'])
   assert.deepEqual(byGroup('control'), ['quality', 'audit', 'analytics'])
   assert.ok(!s.HQ_SECTIONS.some((x) => x.id === 'campaigns'))
   assert.equal(s.sectionForKey('1').id, 'dashboard')

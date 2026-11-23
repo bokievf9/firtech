@@ -22,6 +22,7 @@ import {
   CheckCircle,
   UsersThree,
   Desktop,
+  IdentificationBadge,
   List,
   X,
 } from '@phosphor-icons/react'
@@ -44,7 +45,7 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { APPROVALS_CHANGED, approvalsSummary } from '@/lib/approvals'
 import { normalizeReview } from '@/lib/review'
 import { settingsEntries } from '@/lib/settings-sections'
-import { HQ_GROUPS, HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, sectionForKey, type HqSection, type HqSectionId } from '@/lib/hq-shell'
+import { HQ_GROUPS, HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, sectionForKey, sectionOfPath, type HqSection, type HqSectionId } from '@/lib/hq-shell'
 
 const t = admin.hq
 const p = admin.hub.palette
@@ -69,6 +70,7 @@ const icons: Record<HqSectionId, Icon> = {
   knowledge: Books,
   quality: SealCheck,
   office: Desktop,
+  team: IdentificationBadge,
 }
 
 function useNow(step = 15_000) {
@@ -118,7 +120,7 @@ function MenuList({ pathname, waiting, onGo }: { pathname: string; waiting: numb
         <div key={g.id} role="group" aria-labelledby={`hq-group-${g.id}`} data-menu-group={g.id} className="flex flex-col gap-0.5 pb-1">
           <div id={`hq-group-${g.id}`} className="px-3 pb-1 pt-4 text-caption font-medium text-faint">{g.label}</div>
           {HQ_SECTIONS.map((s, i) =>
-            s.group === g.id ? <NavItem key={s.id} s={s} index={i} onGo={onGo} pill={pill} badge={s.id === 'approvals' ? waiting : null} active={pathname === s.href} /> : null,
+            s.group === g.id ? <NavItem key={s.id} s={s} index={i} onGo={onGo} pill={pill} badge={s.id === 'approvals' ? waiting : null} active={sectionOfPath(pathname)?.id === s.id} /> : null,
           )}
         </div>
       ))}
@@ -132,7 +134,7 @@ export function HqShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const now = useNow()
-  const current = HQ_SECTIONS.find((x) => pathname === x.href)
+  const current = sectionOfPath(pathname)
   const [toast, setToast] = useState<ToastMessage | null>(null)
   const [paletteOpen, setPaletteOpen] = useState(false)
   // The phone menu is open for the page it was opened on, so a navigation closes it without an effect.

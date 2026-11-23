@@ -1,7 +1,7 @@
 import 'server-only'
 import { guard } from '@/lib/admin-guard'
 import { json, readJson } from '@/lib/admin-json'
-import { callHqAdmin, MARKETING_CHAT_TIMEOUT_MS, resolveEndpoint } from '@/lib/hq-admin'
+import { callHqAdmin, MARKETING_CHAT_TIMEOUT_MS, resolveEndpoint, TEAM_CHAT_PATH } from '@/lib/hq-admin'
 
 // HQ: proxies the allowed HQ admin endpoints (the whitelist in src/lib/hq-admin.ts) to the page: GET, POST, PUT, PATCH and DELETE.
 // Session-checked like every /api/admin route, writes (POST, PUT, PATCH, DELETE) also check Origin; the HQ token stays here.
@@ -19,7 +19,7 @@ async function handle(request: Request, ctx: Ctx, method: 'GET' | 'POST' | 'PUT'
   const resolved = resolveEndpoint(method, path, new URL(request.url).searchParams, body)
   if (!resolved.ok) return json({ ok: false, error: resolved.error }, resolved.status)
   // The marketing chat answers synchronously for up to 25 s (contract «Маркетинг-чат»); everything else keeps the short default.
-  const slow = method === 'POST' && resolved.path === 'marketing/chat'
+  const slow = method === 'POST' && (resolved.path === 'marketing/chat' || TEAM_CHAT_PATH.test(resolved.path))
   return json(await callHqAdmin(method, resolved.path, { query: resolved.query, body: resolved.body }, slow ? { timeoutMs: MARKETING_CHAT_TIMEOUT_MS } : {}))
 }
 

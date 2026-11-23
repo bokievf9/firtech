@@ -12,6 +12,8 @@ export const DEFAULT_HQ_ADMIN_URL = 'http://127.0.0.1:8787/admin'
 export const HQ_ADMIN_TIMEOUT_MS = 5000
 // The marketing chat waits for Fira's reply (contract: up to 25 s, then 202 pending).
 export const MARKETING_CHAT_TIMEOUT_MS = 27_000
+// A team chat reply is the same kind of wait.
+export const TEAM_CHAT_PATH = /^team\/[a-z0-9][a-z0-9-]{0,63}\/chat$/
 
 type Method = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 type Env = Record<string, string | undefined>
@@ -320,6 +322,24 @@ export const MARKETING_ENDPOINTS: readonly Endpoint[] = [
   { method: 'POST', path: /^marketing\/plan\/accept$/, body: z.object({ planId: z.string().regex(/^[\w:.-]{1,64}$/) }).strict() },
 ]
 
+// Team (contract «Команда», 2026-11-24): the 23 employees with presence, one card, the chat with an agent, assigning a task and the
+// morning standup. `standup` is never an employee id. Strict bodies; a reply to the standup lands in the agent's chat.
+const teamId = '[a-z0-9][a-z0-9-]{0,63}'
+const teamRef = z.object({ kind: z.enum(['task', 'lead', 'client', 'project', 'invoice', 'document', 'order', 'plan', 'rule', 'metric', 'item']), id: z.string().regex(/^[\w:.-]{1,64}$/) }).strict()
+export const TEAM_ENDPOINTS: readonly Endpoint[] = [
+  { method: 'GET', path: /^team$/ },
+  { method: 'GET', path: /^team\/standup$/, query: ['date'] },
+  { method: 'POST', path: /^team\/standup\/reply$/, body: z.object({ agent: z.string().regex(new RegExp(`^${teamId}$`)), text: z.string().trim().min(1).max(2000) }).strict() },
+  { method: 'GET', path: new RegExp(`^team/(?!standup$)${teamId}$`) },
+  { method: 'GET', path: new RegExp(`^team/(?!standup/)${teamId}/chat$`), query: ['limit', 'before'] },
+  { method: 'POST', path: new RegExp(`^team/(?!standup/)${teamId}/chat$`), body: z.object({ text: z.string().trim().min(1).max(2000) }).strict() },
+  {
+    method: 'POST',
+    path: new RegExp(`^team/(?!standup/)${teamId}/assign$`),
+    body: z.object({ text: z.string().trim().min(1).max(2000), dueAt: isoTime.optional(), refs: z.array(teamRef).max(10).optional() }).strict(),
+  },
+]
+
 // A client id may be `c:<name>` (clients without an account); the browser sends it URL-encoded.
 function clientSegment(segments: string[]): string[] | null {
   if (segments.length !== 3 || segments[0] !== 'crm' || segments[1] !== 'clients') return null
@@ -347,7 +367,7 @@ export function resolveEndpoint(method: string, segments: string[], search: URLS
     return { ok: false, status: 404, error: 'not_found' }
   }
   const path = segments.join('/')
-  const endpoint = [...ENDPOINTS, ...CRM_ENDPOINTS, ...PULT_ENDPOINTS, ...REVIEW_ENDPOINTS, ...MARKETING_ENDPOINTS].find((e) => e.method === method && e.path.test(path))
+  const endpoint = [...ENDPOINTS, ...CRM_ENDPOINTS, ...PULT_ENDPOINTS, ...REVIEW_ENDPOINTS, ...MARKETING_ENDPOINTS, ...TEAM_ENDPOINTS].find((e) => e.method === method && e.path.test(path))
   if (!endpoint) return { ok: false, status: 404, error: 'not_found' }
   const query: Record<string, string> = {}
   for (const key of endpoint.query ?? []) {

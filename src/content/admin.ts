@@ -913,6 +913,7 @@ export const admin = {
       knowledge: 'What the agents know: company package and your notes',
       quality: 'Lessons, ratings and the eval report',
       office: 'The living pixel office: who is where, counters per department',
+      team: 'Your employees: who is on what, chat, tasks, morning standup',
     },
   },
   hub: {

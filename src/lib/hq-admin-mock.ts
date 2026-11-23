@@ -1,6 +1,7 @@
 import { officeMock } from './office-mock'
 import { createPultMock } from './shell-mock'
 import { createReviewMock } from './review-mock'
+import { createTeamMock } from './team-mock'
 import { dashboardMock } from './shell-dashboard-mock'
 import {
   effectivePresence,
@@ -452,6 +453,32 @@ export function createHqMock(start = Date.now()) {
   const crm = createCrmMock(start)
   const pult = createPultMock(start, { approvals: () => state.approvals })
   const review = createReviewMock(start)
+  const team = createTeamMock(start, {
+    // «Assign» and «@agent …» make a real task, so it shows on the Tasks page with the owner as creator.
+    addTask: (t, now) => {
+      const id = state.nextTask++
+      const title = t.title.length > 70 ? `${t.title.slice(0, 69)}…` : t.title
+      const task: HqTask = {
+        id,
+        title,
+        dept: t.dept === 'hq' ? 'director' : t.dept,
+        status: 'assigned',
+        assigneeId: t.assigneeId,
+        assigneeTitle: t.assigneeTitle,
+        priority: 'normal',
+        dueAt: t.dueAt,
+        createdAt: iso(now),
+        updatedAt: iso(now),
+        tags: ['от владельца'],
+        progressLine: null,
+        lastEvent: null,
+      }
+      state.tasks.push(task)
+      pushEvent(task, { at: iso(now), kind: 'task.created', actor: 'owner', body: `Владелец: ${t.title}` })
+      pushEvent(task, { at: iso(now), kind: 'task.assigned', actor: 'owner', body: `Назначено: ${t.assigneeTitle}` })
+      return id
+    },
+  })
 
   const addInbox = (now: number, kind: InboxKind, text: string, extra: Partial<InboxItem> = {}) => {
     state.inbox.push({
@@ -680,6 +707,8 @@ export function createHqMock(start = Date.now()) {
         tickets: rows(crm('GET', ['crm', 'tickets'], { limit: '200' }, {}, now)),
       }) as MockReply
     }
+    const teamReply = team(method, seg, query, body, now)
+    if (teamReply) return teamReply as MockReply
     const v3 = pult(method, seg, query, body, now)
     if (v3) return v3 as MockReply
     if (method === 'PATCH' || method === 'DELETE' || method === 'PUT') return { ok: false, error: 'not_found' }

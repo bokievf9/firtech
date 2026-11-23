@@ -6,10 +6,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { errText, usePoll } from '@/components/admin/control/api'
 import { GoliveChip, useGolive } from '@/components/admin/hub/golive'
 import { Offline, useHqView, useHub } from '@/components/admin/hub/ui'
-import { PixelOffice, type OfficeZones } from '@/components/admin/office/pixel-office'
+import { PixelOffice, type OfficePeople, type OfficeZones } from '@/components/admin/office/pixel-office'
 import { useOffice } from '@/components/admin/office/use-office'
 import { admin } from '@/content/admin'
 import { ZONE_SECTION } from '@/lib/hq-shell'
+import { normalizeMembers, teamIdOf } from '@/lib/team'
 import { presenceView, type HqState } from '@/lib/hq-admin-view'
 import type { OfficeData } from '@/lib/office-view'
 import { HUB_DEPTS, normalizeHub, roomPanel, zoneGlow, type DeptCounts, type HubDept, type PanelId } from '@/lib/shell'
@@ -74,9 +75,19 @@ export function OfficeView() {
   const office = useOffice()
   const hub = useHqView('hub', normalizeHub, { visible: 15_000, hidden: 60_000 })
   const state = usePoll<HqState>('state', { visible: 30_000, hidden: 120_000 })
+  const team = useHqView('team', normalizeMembers, { visible: 30_000, hidden: 120_000 })
   const data = office.data
   const hubDepts = hub.view?.departments ?? null
   const zones = useMemo(() => buildZones(data, hubDepts, (href) => router.push(href)), [data, hubDepts, router])
+  // Hovering a person shows what they are on (Team `now`); a click opens their card in Team.
+  const people = useMemo<OfficePeople>(() => {
+    const byId: Record<string, string | undefined> = {}
+    for (const m of team.view ?? []) if (m.now) byId[m.id] = m.now
+    return {
+      nowOf: (id) => byId[teamIdOf(id)],
+      onPerson: (id) => router.push(`/admin/team/${teamIdOf(id)}`),
+    }
+  }, [team.view, router])
   const hqDown = state.error ?? office.error
   const view = presenceView(state.data, now)
   const totals = HUB_DEPTS.reduce(
@@ -122,7 +133,7 @@ export function OfficeView() {
       <div className="relative min-h-0 flex-1 overflow-hidden">
         {data && zones ? (
           <div className={office.error ? 'h-full opacity-60 transition-opacity duration-300' : 'h-full transition-opacity duration-300'}>
-            <PixelOffice data={data} now={now} zones={zones} fill />
+            <PixelOffice data={data} now={now} zones={zones} people={people} fill />
           </div>
         ) : office.error ? (
           <div className="grid h-full place-items-center p-4">

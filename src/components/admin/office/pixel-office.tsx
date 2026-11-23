@@ -33,6 +33,8 @@ export const sameTarget = (a: HitTarget | null, b: HitTarget | null) =>
 
 type Hover = { target: HitTarget; left: number; top: number }
 
+export type OfficePeople = { nowOf: (id: string) => string | undefined; onPerson: (id: string) => void }
+
 // Пульт v3: rooms as clickable zones with counters over them and a lamp glow on their desks.
 export type ZoneBadge = { approvals: number; alerts: number; running: number }
 export type OfficeZones = {
@@ -123,11 +125,14 @@ export function PixelOffice({
   data,
   now,
   zones,
+  people: team,
   fill: fillBox = false,
 }: {
   data: OfficeData
   now: number
   zones?: OfficeZones
+  // Team (2026-11-24): the short `now` phrase of an employee (hover) and where a click on a person goes.
+  people?: OfficePeople
   // Fill the parent box (the hub) instead of sizing to the building.
   fill?: boolean
 }) {
@@ -429,6 +434,10 @@ export function PixelOffice({
       return
     }
     const hit = hitAt(e)
+    if (team && hit?.kind === 'agent') {
+      team.onPerson(hit.id)
+      return
+    }
     if (zones && hit && (hit.kind === 'room' || hit.kind === 'reception' || hit.kind === 'builders')) {
       const room = hit.kind === 'room' ? hit.id : hit.kind === 'reception' ? 'lobby' : 'builders'
       if (zones.names[room]) {
@@ -488,7 +497,7 @@ export function PixelOffice({
       return { title: zoneHover, line: parts.length ? parts.join(' · ') : t.zones.open, dept: deptId }
     }
     if (!hover || !hoverInfo) return null
-    if (hover.target.kind === 'agent') return { title: hoverInfo.title, line: hoverInfo.rows[0]?.[1] ?? '', dept: undefined }
+    if (hover.target.kind === 'agent') return { title: hoverInfo.title, line: team?.nowOf(hover.target.id) ?? hoverInfo.rows[0]?.[1] ?? '', dept: undefined }
     return { title: hoverInfo.title, line: hoverInfo.status ? statusText(hoverInfo.status) : (hoverInfo.rows[0]?.join(': ') ?? ''), dept: undefined }
   })()
 
@@ -594,6 +603,7 @@ export function PixelOffice({
         <div
           ref={bubbleRef}
           aria-hidden="true"
+          data-office-bubble
           data-dept={bubbleText.dept}
           className="office-bubble pointer-events-none absolute z-10 max-w-60 -translate-x-1/2 -translate-y-full border-2 border-paper-ink bg-paper px-2 py-1 font-mono text-[11px] leading-tight text-paper-ink shadow-[3px_3px_0_var(--zone-hue,var(--color-paper-ink))]"
           style={{ left: hover.left, top: hover.top, ...hueVar(bubbleText.dept) }}

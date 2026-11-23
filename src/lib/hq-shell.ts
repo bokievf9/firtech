@@ -22,6 +22,7 @@ export type HqSectionId =
   | 'knowledge'
   | 'quality'
   | 'office'
+  | 'team'
 
 export type HqGroupId = 'work' | 'clients' | 'company' | 'control'
 
@@ -45,6 +46,7 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'projects', group: 'clients', label: 'Projects', state: 'ready', href: '/admin/projects' },
   { id: 'documents', group: 'clients', label: 'Documents', state: 'ready', href: '/admin/documents' },
   { id: 'finance', group: 'clients', label: 'Finance', state: 'ready', href: '/admin/finance' },
+  { id: 'team', group: 'company', label: 'Team', state: 'ready', href: '/admin/team' },
   { id: 'office', group: 'company', label: 'Office', state: 'ready', href: '/admin/office' },
   { id: 'content', group: 'company', label: 'Content', state: 'ready', href: '/admin/content' },
   { id: 'agents', group: 'company', label: 'Agents', state: 'ready', href: '/admin/agents' },
@@ -65,6 +67,9 @@ export const HQ_GROUPS: readonly { id: HqGroupId; label: string }[] = [
 ] as const
 
 export const sectionById = (id: string) => HQ_SECTIONS.find((s) => s.id === id)
+
+// The section a path belongs to: its own page or a page under it (/admin/team/<id> is Team).
+export const sectionOfPath = (pathname: string) => HQ_SECTIONS.find((s) => pathname === s.href || pathname.startsWith(`${s.href}/`))
 
 // Keys 1-9 open the first nine sections in the menu order (the Dashboard is 1, the Inbox 2).
 export function sectionForKey(key: string): HqSection | null {
