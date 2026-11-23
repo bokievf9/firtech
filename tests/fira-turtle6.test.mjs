@@ -180,11 +180,11 @@ test('wiring: own lazy chunk, lab keeps round six at ?round=6 (?round=5, 4, 3 ke
   assert.ok(!/fira-lab/.test(read('src/app/sitemap.ts')))
 })
 
-test('code budget: Fira code stays under 480 KB (raised for round seven)', () => {
+test('code budget: Fira code stays under 520 KB (raised for Fira live: store, chat, presence) (raised for round seven)', () => {
   const files = [...readdirSync('src/components/fira').map((f) => `src/components/fira/${f}`), ...readdirSync('src/lib/fira').map((f) => `src/lib/fira/${f}`)]
   const total = files.reduce((n, f) => n + statSync(f).size, 0)
   console.log(`fira code total ${total} bytes`)
-  assert.ok(total < 480 * 1024, `${total} bytes`)
+  assert.ok(total < 520 * 1024, `${total} bytes`)
   const r6 = ['src/lib/fira/turtle6.ts', 'src/components/fira/fira-kit6.ts', 'src/components/fira/fira-scene6.tsx', 'src/components/fira/fira-fallback6.tsx', 'src/components/fira/fira-turtle6.tsx', 'src/components/fira/fira-lab6.tsx']
   const r6n = r6.reduce((n, f) => n + statSync(f).size, 0)
   console.log(`round six ${r6n} bytes`)

@@ -257,11 +257,11 @@ test('lab: «По контексту» view and the ?ctx= override are wired', (
 
 function rig_shell_x() { return T7.rig7.shell.rx }
 
-test('code budget: Fira code stays under 480 KB (raised from 440 KB for round eight: face meshes, context accessories, fingers, scutes; round seven is about 75 KB)', () => {
+test('code budget: Fira code stays under 520 KB (raised for Fira live: store, chat, presence) (raised from 440 KB for round eight: face meshes, context accessories, fingers, scutes; round seven is about 75 KB)', () => {
   const files = [...readdirSync('src/components/fira').map((f) => `src/components/fira/${f}`), ...readdirSync('src/lib/fira').map((f) => `src/lib/fira/${f}`)]
   const total = files.reduce((n, f) => n + statSync(f).size, 0)
   console.log(`fira code total ${total} bytes`)
-  assert.ok(total < 480 * 1024, `${total} bytes`)
+  assert.ok(total < 520 * 1024, `${total} bytes`)
   const r7 = ['src/lib/fira/turtle7.ts', 'src/components/fira/fira-kit7.ts', 'src/components/fira/fira-scene7.tsx', 'src/components/fira/fira-fallback7.tsx', 'src/components/fira/fira-turtle7.tsx', 'src/components/fira/fira-lab7.tsx']
   const n = r7.reduce((a, f) => a + statSync(f).size, 0)
   console.log(`round seven ${n} bytes`)

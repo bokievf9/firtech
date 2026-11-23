@@ -178,10 +178,10 @@ test('wiring: own lazy chunk, lab keeps round five behind ?round=5 (round six is
   assert.ok(!/fira-lab/.test(sm))
 })
 
-test('code budget: Fira code stays under 480 KB (raised from 260 KB for round five, to 440 KB for round seven)', () => {
+test('code budget: Fira code stays under 520 KB (raised for Fira live: store, chat, presence) (raised from 260 KB for round five, to 440 KB for round seven)', () => {
   const files = [...readdirSync('src/components/fira').map((f) => `src/components/fira/${f}`), ...readdirSync('src/lib/fira').map((f) => `src/lib/fira/${f}`)]
   const total = files.reduce((n, f) => n + statSync(f).size, 0)
-  assert.ok(total < 480 * 1024, `${total} bytes`)
+  assert.ok(total < 520 * 1024, `${total} bytes`)
   const r5 = ['src/lib/fira/turtle5.ts', 'src/components/fira/fira-kit5.ts', 'src/components/fira/fira-scene5.tsx', 'src/components/fira/fira-fallback5.tsx', 'src/components/fira/fira-turtle5.tsx', 'src/components/fira/fira-lab5.tsx']
   assert.ok(r5.reduce((n, f) => n + statSync(f).size, 0) < 60 * 1024, 'round five itself is under 60 KB')
 })

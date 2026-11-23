@@ -588,6 +588,7 @@ export default function ChatPanel({
                           href={c.href}
                           onClick={onClose}
                           data-chat-card={c.kind}
+                          data-fira-target="chat-card"
                           className="group flex items-center gap-2 rounded-2xl border border-accent-text/40 bg-bg/50 px-3 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent-text hover:bg-accent/10 active:scale-[0.98]"
                         >
                           <span className="min-w-0 flex-1">

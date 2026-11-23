@@ -9,6 +9,7 @@ import { blink3, blinkLen3, channels3, springFor, tempo3, type T3 } from '@/lib/
 import { nextFidget } from '@/lib/fira/turtle'
 import { BASE_YAW6, bodyYaw6, feel6, lensFlash6 } from '@/lib/fira/turtle6'
 import { ACC_MORPH7, FINGERS7, TOES7, accFlags7, accOf7, noteState7, notesOnFor7, rig7, scutes7, targets7, type AccSet7, type Turtle7 } from '@/lib/fira/turtle7'
+import { createFpsGuard } from '@/lib/fira/presence'
 import { driveGlyph, type FaceSpec3 } from './fira-kit3'
 import { driveEyes7, EYE_PARTS, face7, faceG7, makeKit7, paint7, type Kit7 } from './fira-kit7'
 import { uni } from './materials'
@@ -27,6 +28,12 @@ export type Scene7Props = {
   theme?: 'light' | 'dark'
   clock?: number
   spin?: number
+  /** Counter that goes up on every new word of her speech: she nods on each change. */
+  nod?: number
+  /** Body yaw (rad) toward `data-fira-target` while she points; null = follow the pointer as usual. */
+  aim?: number | null
+  /** Called once when the frame rate stays under 30 for 3 s: the caller drops to the SVG. */
+  onSlow?: () => void
   active: boolean
   onReady?: () => void
 }
@@ -73,6 +80,7 @@ function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObj
     t: 0, ph: 0, next: 2.4, bt: -1, dbl: false, prev: 'idle' as Emotion, px: 0, py: 0, mo: 0, by: BASE_YAW6, lastMove: -99,
     acg: { x: f0.glasses ? 1 : 0, v: 0 }, ach: { x: f0.headphones ? 1 : 0, v: 0 }, acl: { x: f0.laptop ? 1 : 0, v: 0 }, hp: f0.headphones,
     fid: { at: 6, kind: 'look' as string, t: -1, dir: 1 }, sv: 0, sy: 0, ready: false,
+    nodSp: { x: 0, v: 0 }, tilt: { x: 0, v: 0 }, lastNod: -1, gest: { at: 5, kind: '', t: -1 }, guard: createFpsGuard(), slow: false,
   })
   const turn = useRef<Group>(null), lean = useRef<Group>(null), sq = useRef<Group>(null), head = useRef<Group>(null), tail = useRef<Group>(null)
   const armA = useRef<Group>(null), armB = useRef<Group>(null), handA = useRef<Group>(null), handB = useRef<Group>(null)
@@ -129,6 +137,14 @@ function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObj
     cam.lookAt(0, 1.4, 0)
     s.t += dt
     const fixed = L.clock !== undefined
+    if (!fixed && !s.slow && s.guard.push(dtRaw)) {
+      s.slow = true
+      L.onSlow?.()
+    }
+    if (L.nod !== undefined && L.nod !== s.lastNod) {
+      if (s.lastNod >= 0) s.nodSp.v += 2.6
+      s.lastNod = L.nod
+    }
     const clock = L.clock ?? s.t
     const em = L.emotion
     const accW = accFlags7(L.acc ?? acc0)
@@ -151,6 +167,12 @@ function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObj
     }
     if (s.prev !== em) {
       if (em === 'surprised') s.sp.lift.v += 0.6
+      // an error: a startled double blink and a small hop before she looks sorry
+      if (em === 'sorry' || em === 'surprised') {
+        s.bt = 0
+        s.dbl = true
+        if (em === 'sorry') s.sp.lift.v += 0.35
+      }
       s.prev = em
     }
     let wv = 0, pt = 0, th = 0, sk = 0, lf = 0
@@ -161,6 +183,8 @@ function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObj
       sk = stepSpring(s.skep, em === 'sorry' && !lapOn ? 1 : 0, dt, 60, 0.8)
       lf = stepSpring(s.lift, em === 'happy' || em === 'listening' ? 0.5 : em === 'surprised' ? 1 : 0, dt, 50, 0.7)
     }
+    const nodX = stepSpring(s.nodSp, 0, dt, 130, 0.42)
+    const tiltX = stepSpring(s.tilt, em === 'listening' ? 0.1 : 0, dt, 40, 0.8)
     const hz = tempo3[em] * feel6.tempo
     s.ph = fixed ? clock * hz : s.ph + dt * hz
     const breath = Math.sin(s.ph * Math.PI * 2) * P.breath * 1.5
@@ -201,13 +225,29 @@ function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObj
         if (f.t > 1) f.t = -1
       }
     }
+    const G = s.gest
+    if (!fixed) {
+      if (G.t < 0 && s.t >= G.at && em === 'idle') {
+        const opts = [wg > 0.5 ? 'glasses' : '', lapOn ? 'tap' : ''].filter(Boolean)
+        G.kind = opts.length ? opts[Math.floor(Math.random() * opts.length)]! : ''
+        G.t = G.kind ? 0 : -1
+        G.at = s.t + 7 + Math.random() * 7
+      }
+      if (G.t >= 0) {
+        G.t += dt / (G.kind === 'tap' ? 2.4 : 1.8)
+        if (G.t > 1 || em !== 'idle') G.t = -1
+      }
+    }
+    const gk = G.t >= 0 ? Math.sin(Math.PI * G.t) : 0
+    const adj = G.kind === 'glasses' ? gk : 0
+    const tap = G.kind === 'tap' ? gk : 0
     const blink = em === 'sleep' ? 0 : s.bt >= 0 ? blink3(s.bt, s.dbl) : 0
     const fk = s.fid.t >= 0 ? Math.sin(Math.PI * s.fid.t) : 0
     const fid = s.fid.kind
 
     const tn = turn.current, ln = lean.current, q = sq.current, hd = head.current
     if (!tn || !ln || !q || !hd) return
-    const want = em === 'sleep' ? BASE_YAW6 : bodyYaw6(ptr.current.x, s.t - s.lastMove, clock, follow)
+    const want = em === 'sleep' ? BASE_YAW6 : em === 'point' && L.aim != null ? L.aim : bodyYaw6(ptr.current.x, s.t - s.lastMove, clock, follow)
     s.by = fixed ? want : s.by + (want - s.by) * (1 - Math.exp(-dt * 2.4))
     tn.rotation.y = s.by + (L.spin ? s.t * L.spin : 0) + P.yaw * 0.4
     const sway = Math.sin(clock * 0.5) * 0.03 + Math.sin(clock * 0.31 + 1) * 0.015
@@ -219,9 +259,9 @@ function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObj
     const lag = want - s.by
     const yaw = -P.yaw * 0.5 - P.headRoll * 0.3 + lag * 0.9 + s.px * 0.3 + Math.sin(clock * 0.7) * 0.1 + (fid === 'look' ? fk * 0.5 * s.fid.dir : 0)
     hd.position.set(0, H.y + breath * 0.3, 0.03)
-    hd.rotation.set(P.head * 1.1 + P.lean * 0.3 - s.py * 0.4 + s.sy * 0.3 + Math.sin(clock * 0.43) * 0.03 + (em === 'sleep' ? 0.15 : 0) + (fid === 'look' ? fk * -0.08 : 0), yaw, P.headRoll * 0.9 - s.px * 0.08)
+    hd.rotation.set(P.head * 1.1 + nodX * 0.14 + adj * 0.05 + P.lean * 0.3 - s.py * 0.4 + s.sy * 0.3 + Math.sin(clock * 0.43) * 0.03 + (em === 'sleep' ? 0.15 : 0) + (fid === 'look' ? fk * -0.08 : 0), yaw, P.headRoll * 0.9 + tiltX - s.px * 0.08)
 
-    const Pv = { ...P, smile: P.smile + 0.1, lookX: P.lookX + s.px * 0.5 - lag * 0.25, lookY: P.lookY + s.py * 0.6 }
+    const Pv = { ...P, smile: P.smile + 0.1, lookX: P.lookX + s.px * 0.5 - lag * 0.25, lookY: P.lookY + s.py * 0.6 + th * 0.35 }
     driveGlyph(kit.face, faceM, Pv, blink, s.mo, pal.current, {})
     driveEyes7(kit.eyes, accW.glasses ? faceG7 : face7, Pv, blink, em === 'sleep', Pv.lookX, Pv.lookY)
 
@@ -240,10 +280,12 @@ function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObj
     if (b) {
       const R = T.a.copy(REST_B).add(T.b.set(swB, 0, 0))
       const g = (x: number, y: number, z: number, w: number) => w > 0.001 && R.lerp(T.b.set(x, y, z), Math.min(w, 1))
-      g(0.86, 1.82, 0.25, th)
+      g(0.24, 1.5, 0.74, th)
+      g(0.34 + Math.sin(clock * 9) * 0.02, 2.02, 0.66, adj)
       g(0.9 + Math.sin(clock * 5.2) * 0.12, 1.95, 0.2, wv)
       g(0.6, 1.5, 0.55, lf)
       if (wl > 0.01) R.lerp(HOLD_B, Math.min(wl, 1))
+      if (tap > 0.01) R.lerp(T.b.set(0.2, 0.86 + 0.07 * Math.abs(Math.sin(clock * 12)), 0.86), Math.min(tap, 1))
       reach(b, handB.current, SH_B, R)
     }
     // Accessories are separate objects: they slide and scale in on a context change (the snappy spring, under 400 ms).
@@ -406,10 +448,10 @@ function Rig({ acc0, live, theme, onReady }: { acc0: AccSet7; live: React.RefObj
   )
 }
 
-export default function FiraScene7({ variant, acc, emotion, lookAt, mouth, theme, active, clock, spin, onReady }: Scene7Props) {
-  const live = useRef<Live>({ emotion, lookAt, mouth, clock, spin, acc })
+export default function FiraScene7({ variant, acc, emotion, lookAt, mouth, theme, active, clock, spin, nod, aim, onSlow, onReady }: Scene7Props) {
+  const live = useRef<Live>({ emotion, lookAt, mouth, clock, spin, acc, nod, aim, onSlow })
   useEffect(() => {
-    live.current = { emotion, lookAt, mouth, clock, spin, acc }
+    live.current = { emotion, lookAt, mouth, clock, spin, acc, nod, aim, onSlow }
   })
   return (
     <Canvas

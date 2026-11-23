@@ -47,7 +47,7 @@ export function Footer({
 
   return (
     <footer className="print-hidden relative overflow-hidden border-t border-t-hairline border-line">
-      <div className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-4 pt-20 pb-16 md:flex-row md:items-end md:justify-between md:px-8 md:pt-28">
+      <div data-fira-react="cta" className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-4 pt-20 pb-16 md:flex-row md:items-end md:justify-between md:px-8 md:pt-28">
         <p className="max-w-[16ch] font-display text-title font-semibold">{f.ctaTitle}</p>
         <div className="flex flex-col items-start gap-4 md:items-end">
           <div className="flex flex-col gap-3 sm:flex-row">

@@ -20,8 +20,8 @@ const ChatPanel = dynamic(loadPanel, { ssr: false })
 export type ChatCopy = Dict['chat']
 
 // Scroll rule (owner 2026-11-21): the launcher steps aside while the visitor scrolls down and comes back on
-// a scroll up or after 1.5 s without scrolling. Since Fira live (2026-11-24) she is on EVERY page, the builder, the
-// cabinet, the legal pages and the 404 included (no quiet route); the admin Shell has its own layout.
+// a scroll up or after 1.5 s without scrolling. Fira live 1.1: she is on every page, the builder and the cabinet
+// included; above a sticky bottom bar (data-fira-avoid) the dock lifts by the bar's height (--fira-lift).
 const SCROLL_IDLE_MS = 1500
 // Fira, the launcher bottom right (above the phone CTA bar on small screens: components/fira/fira-guide.tsx, the
 // menu, the line per page and the tour live there), plus the panel. The panel opens from her menu, from any ChatOpenButton (window event) and from a #chat link.
@@ -113,6 +113,36 @@ function ChatWidgetInner({
     return () => {
       window.removeEventListener('scroll', onScroll)
       window.clearTimeout(timer)
+    }
+  }, [pathname])
+
+  // A sticky bar at the bottom of the page (the builder's Back/Next bar): the dock rides above it.
+  useEffect(() => {
+    const root = document.documentElement
+    let raf = 0
+    const measure = () => {
+      let lift = 0
+      for (const el of document.querySelectorAll<HTMLElement>('[data-fira-avoid]')) {
+        const r = el.getBoundingClientRect()
+        if (r.height > 0 && r.bottom > window.innerHeight - 4 && r.top < window.innerHeight) lift = Math.max(lift, window.innerHeight - r.top)
+      }
+      root.style.setProperty('--fira-lift', `${Math.round(lift)}px`)
+    }
+    const schedule = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(measure)
+    }
+    schedule()
+    const mo = new MutationObserver(schedule)
+    mo.observe(document.body, { childList: true, subtree: true })
+    window.addEventListener('resize', schedule)
+    const poll = window.setInterval(measure, 400) // the bar slides in with a spring: follow it
+    return () => {
+      cancelAnimationFrame(raf)
+      mo.disconnect()
+      window.removeEventListener('resize', schedule)
+      window.clearInterval(poll)
+      root.style.removeProperty('--fira-lift')
     }
   }, [pathname])
 

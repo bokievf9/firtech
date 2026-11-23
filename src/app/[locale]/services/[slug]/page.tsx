@@ -243,7 +243,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
         </div>
       </section>
 
-      <section id="pricing" className="mx-auto max-w-7xl px-4 py-section md:px-8" aria-labelledby="service-price">
+      <section id="pricing" data-fira-react="pricing" className="mx-auto max-w-7xl px-4 py-section md:px-8" aria-labelledby="service-price">
         <Reveal>
           <h2 id="service-price" className="font-display text-title font-semibold">
             {t.priceTitle}

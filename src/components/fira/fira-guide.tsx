@@ -2,21 +2,22 @@
 
 import { ChatCircleDots, Compass, Hammer, SpeakerHigh, SpeakerSlash, X } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { accessoriesFor } from '@/lib/fira/contexts'
 import { firaFace } from '@/lib/fira/face'
 import {
   GUIDE_MENU_EVENT, GUIDE_POINT_EVENT, GUIDE_TOUR_EVENT, VOICE_KEY, bubbleMs, guideEmotion, pageContextFor, speechLang, splitWords, voiceFromStorage, wordsShown,
 } from '@/lib/fira/guide'
+import { dispatchFira } from '@/lib/fira/live'
 import type { Emotion } from '@/lib/fira/pose'
+import { peekKey } from '@/lib/fira/presence'
 import { homeStops, isExtra, pickStops } from '@/lib/fira/tour'
-import { COMPANION_SEEN_KEY, FILM_MIN_WIDTH, companionKind, markSeen, seenList } from '@/lib/film'
+import { COMPANION_SEEN_KEY, companionKind, markSeen, seenList } from '@/lib/film'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
-import { FiraFallback7 } from './fira-fallback7'
-import { FiraTurtle7 } from './fira-turtle7'
+import { FiraStage } from './fira-stage'
 import { FiraTyped } from './fira-typed'
-import { useFiraLive } from './fira-live-store'
+import { useFiraLive, useFiraStore } from './fira-live-store'
 
 // Fira as the guide of the whole site (owner 2026-11-23): the chat launcher IS her. She is docked bottom right,
 // says one short line per page (word by word, dismissible, once per page and session), opens a small menu
@@ -33,13 +34,6 @@ const isHomePath = (p: string) => /^\/(ru|en)\/?$/.test(p)
 type Stop = { key: string; el: HTMLElement | null; text: string; emotion: Emotion }
 type Tour = { stops: Stop[]; i: number }
 type Copy = Dict['firaGuide']
-
-const wideQuery = `(min-width: ${FILM_MIN_WIDTH}px)`
-const subscribeWide = (cb: () => void) => {
-  const m = window.matchMedia(wideQuery)
-  m.addEventListener('change', cb)
-  return () => m.removeEventListener('change', cb)
-}
 
 function readSeen(): string[] {
   try {
@@ -101,32 +95,12 @@ export function FiraGuide({
 }) {
   const g: Copy = dict.firaGuide
   const live = useFiraLive()
+  const store = useFiraStore()
   const reduce = useReducedMotion()
-  const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(wideQuery).matches, () => false)
   const home = isHomePath(pathname)
   const kind = companionKind(pathname)
   const launcher = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
-
-  // ---- 3D only on lg+, after the load, when idle and WebGL exists (FiraTurtle7 checks it); the film owns the canvas on home.
-  const [armed, setArmed] = useState(false)
-  useEffect(() => {
-    let idle = 0
-    let timer = 0
-    const arm = () => {
-      const go = () => setArmed(true)
-      if (typeof window.requestIdleCallback === 'function') idle = window.requestIdleCallback(go, { timeout: 3000 })
-      else timer = window.setTimeout(go, 800)
-    }
-    if (document.readyState === 'complete') arm()
-    else window.addEventListener('load', arm, { once: true })
-    return () => {
-      window.removeEventListener('load', arm)
-      if (idle) window.cancelIdleCallback(idle)
-      window.clearTimeout(timer)
-    }
-  }, [])
-  const live3d = armed && wide && !reduce && !home && !film
 
   // ---- 404 (the page marks itself), the menu, the tour, the one-line bubble, the reaction pointing
   const [notFoundAt, setNotFoundAt] = useState<string | null>(null)
@@ -295,25 +269,47 @@ export function FiraGuide({
     return () => window.clearTimeout(timer)
   }, [saying, line])
 
-  // ---- reaction: she points once when the visitor scrolls to a pricing or call-to-action block
-  const pointed = useRef<string | null>(null)
+  // ---- reaction: she peeks once per block and session when the visitor scrolls to a pricing or call-to-action block
+  // ([data-fira-react="pricing"|"cta"], plus the older anchors); on a 404 she points at «home» (data-fira-target).
   useEffect(() => {
     if (tour) return
-    const els = [...document.querySelectorAll(reactSelector)]
+    const els = [...document.querySelectorAll<HTMLElement>(reactSelector)]
     if (els.length === 0 || typeof IntersectionObserver === 'undefined') return
+    const key = (el: HTMLElement) => peekKey(pathname, el.dataset.firaReact ?? el.id ?? el.dataset.tour ?? 'x', els.indexOf(el))
+    const done = (el: HTMLElement) => {
+      try {
+        return window.sessionStorage.getItem(key(el)) === '1'
+      } catch {
+        return false
+      }
+    }
     const io = new IntersectionObserver(
       (entries) => {
-        if (pointed.current === pathname || !entries.some((e) => e.isIntersecting)) return
-        pointed.current = pathname
-        io.disconnect()
-        setPointAt(Date.now())
-        window.dispatchEvent(new CustomEvent(GUIDE_POINT_EVENT, { detail: { ms: POINT_MS } }))
+        for (const e of entries) {
+          const el = e.target as HTMLElement
+          if (!e.isIntersecting || done(el)) continue
+          try {
+            window.sessionStorage.setItem(key(el), '1')
+          } catch {
+            // not remembered: she may peek again on a reload
+          }
+          io.unobserve(el)
+          setPointAt(Date.now())
+          window.dispatchEvent(new CustomEvent(GUIDE_POINT_EVENT, { detail: { ms: POINT_MS } }))
+          dispatchFira({ type: 'reaction', key: el.dataset.firaReact ?? 'block' })
+          break
+        }
       },
       { threshold: 0.35 },
     )
-    for (const el of els) io.observe(el)
+    for (const el of els) if (!done(el)) io.observe(el)
     return () => io.disconnect()
   }, [pathname, tour])
+  useEffect(() => {
+    if (!notFound) return
+    const t = window.setTimeout(() => store.point('home'), 1200)
+    return () => window.clearTimeout(t)
+  }, [notFound, store])
   useEffect(() => {
     if (!pointAt) return
     const on = window.setTimeout(() => setPointing(true), 0)
@@ -401,7 +397,7 @@ export function FiraGuide({
         data-fira-bubble={bubble?.kind ?? ''}
         data-open={open}
         inert={!open}
-        className={`companion-say print-hidden glass fixed right-3 bottom-[9.5rem] z-30 flex max-w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-2 rounded-2xl rounded-br-md py-2 pr-1.5 pl-4 text-[14px] leading-snug text-fg max-sm:left-3 max-sm:max-w-none sm:right-6 sm:bottom-[5.75rem] ${open ? '' : 'pointer-events-none'}`}
+        className={`companion-say print-hidden glass fixed right-3 fira-dock-up z-30 flex max-w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-2 rounded-2xl rounded-br-md py-2 pr-1.5 pl-4 text-[14px] leading-snug text-fg max-sm:left-3 max-sm:max-w-none sm:right-6 ${open ? '' : 'pointer-events-none'}`}
       >
         <div className="flex items-start gap-1">
           <div className="min-w-0 flex-1 py-1">
@@ -468,7 +464,7 @@ export function FiraGuide({
         aria-label={g.menuLabel}
         data-fira-menu={menu ? 'open' : 'closed'}
         inert={!menu}
-        className={`companion-say print-hidden glass fixed right-3 bottom-[9.5rem] z-40 grid min-w-52 gap-0.5 rounded-2xl rounded-br-md p-1.5 text-[14px] sm:right-6 sm:bottom-[5.75rem] ${menu ? '' : 'pointer-events-none'}`}
+        className={`companion-say print-hidden glass fixed right-3 fira-dock-up z-40 grid min-w-52 gap-0.5 rounded-2xl rounded-br-md p-1.5 text-[14px] sm:right-6 ${menu ? '' : 'pointer-events-none'}`}
         data-open={menu}
       >
         <button type="button" role="menuitem" onClick={startTour} data-cta="fira_tour" className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left font-medium transition-colors hover:bg-fg/5 focus-visible:bg-fg/5">
@@ -500,16 +496,11 @@ export function FiraGuide({
         aria-expanded={menu}
         data-cta="chat_fab"
         data-fira-face={firaFace}
-        data-fira-mode={live3d ? 'webgl' : 'svg'}
         data-fira-context={context || 'none'}
-        className={`print-hidden glass fixed right-3 bottom-[5.25rem] z-30 inline-flex h-14 items-center gap-2.5 rounded-full px-2 text-sm font-medium sm:pr-5 sm:pl-2 lg:max-[1399px]:pr-2 text-fg transition-[transform,opacity] duration-300 ease-out-quint hover:-translate-y-0.5 active:scale-[0.97] sm:right-6 sm:bottom-6 ${hidden}`}
+        className={`print-hidden glass fixed right-3 fira-dock z-30 inline-flex h-14 items-center gap-2.5 rounded-full px-2 text-sm font-medium sm:pr-5 sm:pl-2 lg:max-[1399px]:pr-2 text-fg transition-[transform,opacity] duration-300 ease-out-quint hover:-translate-y-0.5 active:scale-[0.97] sm:right-6 ${hidden}`}
       >
         <span className="relative grid size-11 place-items-center">
-          {live3d ? (
-            <FiraTurtle7 variant={firaFace} acc={acc} emotion={emotion} size={44} className="block" />
-          ) : (
-            <FiraFallback7 variant={firaFace} acc={acc} morph emotion={emotion} className="block size-11" />
-          )}
+          <FiraStage variant="widget" size={44} acc={acc} emotion={emotion} interactive={false} disable3d={home || film} className="block" />
         </span>
         <span className="hidden sm:inline lg:max-[1399px]:hidden">{g.launcher}</span>
       </button>
