@@ -1,12 +1,20 @@
 import type {
   DiscApprover,
   DiscBase,
+  DiscChan,
+  DiscDev,
   DiscHeard,
   DiscHours,
+  DiscLang,
   DiscLeads,
   DiscPain,
+  DiscRhythm,
+  DiscRole,
   DiscSize,
+  DiscSrc,
   DiscSuccess,
+  DiscTool,
+  DiscWhen,
   PersonalChannel,
   PersonalConnect,
   PersonalHand,
@@ -211,6 +219,19 @@ export const discUi = {
   pains: l('Что болит сейчас', 'What hurts now'),
   success: l('Как поймём, что получилось', 'How we will know it worked'),
   heard: l('Как узнали о нас', 'How you heard of us'),
+  src: l('Откуда приходят клиенты', 'Where your clients come from'),
+  tools: l('Чем пользуетесь сейчас', 'What you use now'),
+  langs: l('На каких языках общаетесь', 'Languages you use'),
+  when: l('Когда нужен результат', 'When you need it'),
+  role: l('Как устроена ваша работа', 'How your work is set up'),
+  rhythm: l('Ритм вашего дня', 'Your day rhythm'),
+  chan: l('Где вы общаетесь', 'Where you chat'),
+  first: l('Что передать первым', 'What to hand over first'),
+  dev: l('С каких устройств', 'Your devices'),
+  note: l('Своими словами', 'In your own words'),
+  notePlaceholder: l('Например: что у нас особенного, что не должен делать агент, чего боитесь', 'For example: what is special about you, what the agent must not do, what worries you'),
+  noteHint: l('Не больше 500 символов. Пароли и коды сюда не пишите.', 'Up to 500 characters. Please do not put passwords or codes here.'),
+  chosen: l('Ваши ответы', 'Your answers'),
   more: l('Рассказать подробнее', 'Tell us more'),
   less: l('Свернуть', 'Collapse'),
   optional: l('по желанию', 'optional'),
@@ -220,19 +241,28 @@ export const discUi = {
 export const sizeText: Record<DiscSize, L<string>> = {
   solo: l('Только я', 'Just me'),
   s5: l('2-5 человек', '2-5 people'),
-  s20: l('6-20 человек', '6-20 people'),
+  s10: l('6-10 человек', '6-10 people'),
+  s20: l('11-20 человек', '11-20 people'),
+  s50: l('21-50 человек', '21-50 people'),
+  s50p: l('Больше 50', 'Over 50'),
   s20p: l('Больше 20', 'Over 20'),
 }
 export const leadsText: Record<DiscLeads, L<string>> = {
+  dnone: l('Пока почти нет', 'Hardly any yet'),
   d5: l('До 5', 'Up to 5'),
   d20: l('6-20', '6-20'),
   d50: l('21-50', '21-50'),
+  d100: l('51-100', '51-100'),
+  d100p: l('Больше 100', 'Over 100'),
   d50p: l('Больше 50', 'Over 50'),
 }
 export const baseText: Record<DiscBase, L<string>> = {
+  k0: l('Пока нет базы', 'No base yet'),
   k100: l('До 100', 'Up to 100'),
-  k1k: l('До 1 000', 'Up to 1,000'),
-  k10k: l('До 10 000', 'Up to 10,000'),
+  k500: l('100-500', '100-500'),
+  k1k: l('500-1 000', '500-1,000'),
+  k5k: l('1 000-5 000', '1,000-5,000'),
+  k10k: l('5 000-10 000', '5,000-10,000'),
   k10kp: l('Больше 10 000', 'Over 10,000'),
 }
 export const hoursText: Record<DiscHours, L<string>> = {
@@ -240,12 +270,18 @@ export const hoursText: Record<DiscHours, L<string>> = {
   h24: l('Круглосуточно', 'Around the clock'),
   hshift: l('Посменно', 'In shifts'),
   hflex: l('Гибко', 'Flexible'),
+  hlate: l('С 10 до 20', '10 to 8'),
+  hweekend: l('Включая выходные', 'Weekends too'),
+  hseason: l('По сезону', 'Seasonal'),
 }
 export const approverText: Record<DiscApprover, L<string>> = {
   owner: l('Я сам', 'I do'),
   manager: l('Руководитель', 'A manager'),
   team: l('Команда', 'The team'),
   auto: l('Пусть ИИ решает простое', 'Let the AI decide simple things'),
+  partners: l('Партнёры вместе', 'The partners together'),
+  admin: l('Администратор', 'An administrator'),
+  client: l('Клиент подтверждает сам', 'The client confirms'),
 }
 export const painText: Record<DiscPain, L<string>> = {
   calls: l('Звонки отвлекают', 'Calls interrupt'),
@@ -258,6 +294,7 @@ export const painText: Record<DiscPain, L<string>> = {
   time: l('Не хватает времени', 'Not enough time'),
   content: l('Некогда вести соцсети', 'No time for social media'),
   money: l('Деньги и счета путаются', 'Money and bills get tangled'),
+  other: l('Другое', 'Other'),
 }
 export const successText: Record<DiscSuccess, L<string>> = {
   leads: l('Больше заявок', 'More requests'),
@@ -266,6 +303,10 @@ export const successText: Record<DiscSuccess, L<string>> = {
   revenue: l('Больше выручки', 'More revenue'),
   calm: l('Спокойнее голова', 'A calmer mind'),
   control: l('Всё под контролем', 'Everything under control'),
+  speed: l('Быстрее отвечаем', 'We answer faster'),
+  quality: l('Выше качество сервиса', 'Better service'),
+  growth: l('Растём без найма', 'Growth without hiring'),
+  other: l('Другое', 'Other'),
 }
 export const heardText: Record<DiscHeard, L<string>> = {
   search: l('Поиск', 'Search'),
@@ -276,7 +317,57 @@ export const heardText: Record<DiscHeard, L<string>> = {
   ads: l('Реклама', 'Ads'),
   other: l('Другое', 'Other'),
 }
+const other = l('Другое', 'Other')
+export const srcText: Record<DiscSrc, L<string>> = {
+  instagram: l('Instagram', 'Instagram'), telegram: l('Telegram', 'Telegram'), whatsapp: l('WhatsApp', 'WhatsApp'),
+  search: l('Поиск', 'Search'), ads: l('Реклама', 'Ads'), friends: l('Рекомендации', 'Referrals'),
+  offline: l('Офлайн, с улицы', 'Offline, walk-ins'), other,
+}
+export const discToolText: Record<DiscTool, L<string>> = {
+  sheets: l('Google Таблицы', 'Google Sheets'), excel: l('Excel', 'Excel'), amocrm: l('amoCRM', 'amoCRM'),
+  bitrix: l('Битрикс24', 'Bitrix24'), onec: l('1С', '1C'),
+  messengers: l('Только мессенджеры', 'Messengers only'),
+  none: l('Ничего не используем', 'Nothing yet'), other,
+}
+export const langText: Record<DiscLang, L<string>> = {
+  ru: l('Русский', 'Russian'), tj: l('Таджикский', 'Tajik'), en: l('Английский', 'English'),
+  uz: l('Узбекский', 'Uzbek'), kz: l('Казахский', 'Kazakh'), other,
+}
+export const whenText: Record<DiscWhen, L<string>> = {
+  asap: l('Как можно скорее', 'As soon as possible'), month: l('В течение месяца', 'Within a month'),
+  quarter: l('За 2-3 месяца', 'In 2-3 months'), half: l('В течение полугода', 'Within six months'),
+  norush: l('Не торопимся', 'No rush'), date: l('К конкретной дате', 'By a set date'),
+}
+export const roleText: Record<DiscRole, L<string>> = {
+  employed: l('Работаю по найму', 'Employed'), business: l('Свой бизнес', 'My own business'),
+  freelance: l('Фриланс', 'Freelance'), study: l('Учусь', 'Studying'),
+  creative: l('Творческая работа', 'Creative work'), mixed: l('Совмещаю несколько', 'A mix of several'), other,
+}
+export const rhythmText: Record<DiscRhythm, L<string>> = {
+  early: l('Встаю рано', 'Early riser'), owl: l('Сова', 'Night owl'), evening: l('Вечером свободнее', 'Freer in the evening'),
+  shifts: l('Посменно', 'In shifts'), travel: l('Часто в разъездах', 'Often travelling'),
+  weekends: l('Работаю и в выходные', 'Work on weekends too'), irregular: l('Без режима', 'No fixed rhythm'),
+}
+export const chanText: Record<DiscChan, L<string>> = {
+  telegram: l('Telegram', 'Telegram'), whatsapp: l('WhatsApp', 'WhatsApp'), instagram: l('Instagram', 'Instagram'),
+  email: l('Почта', 'Email'), imessage: l('iMessage', 'iMessage'), slack: l('Slack', 'Slack'),
+  phone: l('Звонки', 'Calls'), other,
+}
+export const devText: Record<DiscDev, L<string>> = {
+  iphone: l('iPhone', 'iPhone'), android: l('Android', 'Android'), mac: l('Mac', 'Mac'), windows: l('Windows', 'Windows'),
+  ipad: l('iPad', 'iPad'), web: l('Только браузер', 'Browser only'), watch: l('Часы', 'Watch'), linux: l('Linux', 'Linux'),
+}
 export const discLabels = {
+  src: l('Откуда клиенты', 'Where clients come from'),
+  tools: l('Чем пользуетесь', 'Current tools'),
+  langs: l('Языки', 'Languages'),
+  when: l('Когда нужно', 'Deadline'),
+  role: l('Занятость', 'Work'),
+  rhythm: l('Ритм дня', 'Day rhythm'),
+  chan: l('Где общаетесь', 'Channels used'),
+  first: l('Передать первым', 'Hand over first'),
+  dev: l('Устройства', 'Devices'),
+  note: l('Своими словами', 'In your words'),
   size: l('Команда', 'Team'),
   leads: l('Заявок в день', 'Requests a day'),
   base: l('Клиентов в базе', 'Clients in base'),
@@ -288,6 +379,12 @@ export const discLabels = {
   pains: l('Болит', 'Pains'),
   success: l('Успех', 'Success'),
   heard: l('Узнали о нас', 'Heard of us'),
+}
+export const detailsSummary = {
+  title: l('Подробности', 'Details'),
+  answers: (n: number, ru: boolean) =>
+    ru ? `${n} ${n % 10 === 1 && n % 100 !== 11 ? 'ответ' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'ответа' : 'ответов'}` : `${n} ${n === 1 ? 'answer' : 'answers'}`,
+  note: l('заметка', 'a note'),
 }
 
 // v5: the nine people plus six more (15), for the builder; the Personal AI page keeps `whoText` (first eight).

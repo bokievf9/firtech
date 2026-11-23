@@ -450,6 +450,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                     cameBack={cameBack}
                     focusSend={focusSend}
                     onCopy={copyLink}
+                    onEdit={go}
                   />
                 )}
                 {personal && step < SUMMARY && (

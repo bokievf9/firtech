@@ -31,10 +31,13 @@ import {
   toolText,
 } from '../content/builder-v2'
 import {
-  approverText, baseText, channelNames, connectText, discLabels, handText, heardText, hoursText, leadsText,
+  approverText, baseText, chanText, channelNames, devText, discToolText, langText, rhythmText, roleText, srcText, whenText, connectText, discLabels, handText, heardText, hoursText, leadsText,
   painText, personalLabels, sizeText, successText, tierText, toneUi, whoTextAll,
 } from '../content/builder-personal'
-import { monthlyOf, personalOnly, tierOf } from './builder-personal'
+import { depthLabel, depthTitle, depthUi } from '../content/builder-depth'
+import { depthQuestions } from './builder-depth'
+import { deptOfAgents } from './builder-dept'
+import { cleanNote, monthlyOf, personalOnly, tierOf } from './builder-personal'
 import { catalogRows } from './builder-capabilities'
 import { flagshipPrice } from './flagships'
 import { defaultStyle, encodeBuild, productsOnRequest, quote, type Build } from './builder'
@@ -280,6 +283,11 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
     add('where', L.where[loc], ab.channels?.map((id) => channelName(id as ChannelId, loc)).join(', '))
     add('connect', L.connect[loc], ab.connect?.map((id) => agentUi.connect[id].name[loc]).join(', '))
     add('volume', L.volume[loc], ab.volume ? agentUi.volume[ab.volume][loc] : undefined)
+    for (const q of depthQuestions[deptOfAgents(build)]) {
+      const picked = ab.deep?.[q.id]
+      add(`d-${q.id}`, depthTitle[q.id]![loc], picked?.map((id) => depthLabel(q.id, id)[loc]).join(', '))
+    }
+    add('d-note', depthUi.note[loc], ab.note && cleanNote(ab.note))
     add('options', L.options[loc], [ab.knowledge && agentUi.addons.knowledge.name[loc], ab.training && agentUi.addons.training.name[loc]].filter(Boolean).join(', '))
   }
 
@@ -374,6 +382,16 @@ export function briefOf(build: Build, dict: Dict, locale = 'ru'): Brief {
     row('d-pains', discLabels.pains[loc], v.pains?.map((id) => painText[id][loc]).join(', '))
     row('d-success', discLabels.success[loc], v.success?.map((id) => successText[id][loc]).join(', '))
     row('d-heard', discLabels.heard[loc], v.heard && heardText[v.heard][loc])
+    row('d-src', discLabels.src[loc], v.src?.map((id) => srcText[id][loc]).join(', '))
+    row('d-tools', discLabels.tools[loc], v.tools?.map((id) => discToolText[id][loc]).join(', '))
+    row('d-langs', discLabels.langs[loc], v.langs?.map((id) => langText[id][loc]).join(', '))
+    row('d-when', discLabels.when[loc], v.when && whenText[v.when][loc])
+    row('d-role', discLabels.role[loc], v.role && roleText[v.role][loc])
+    row('d-rhythm', discLabels.rhythm[loc], v.rhythm?.map((id) => rhythmText[id][loc]).join(', '))
+    row('d-chan', discLabels.chan[loc], v.chan?.map((id) => chanText[id][loc]).join(', '))
+    row('d-first', discLabels.first[loc], v.first && handText[v.first].name[loc])
+    row('d-dev', discLabels.dev[loc], v.dev?.map((id) => devText[id][loc]).join(', '))
+    row('d-note', discLabels.note[loc], v.note && cleanNote(v.note))
   }
   return { goals, setup, style, details, catalog: catalogRows(build, locale) }
 }

@@ -134,19 +134,42 @@ export const toneAxes = 5
 export const personalTiers = ['basic', 'plus', 'max'] as const // «Спутник», «Второй пилот», «Второе я»
 
 // Discovery (both paths): optional short answers that help a quote and Fira.
-export const discSizes = ['solo', 's5', 's20', 's20p'] as const
+// Builder depth (2026-11-24): 6 to 8 chips per question. Ids are only ever appended; a legacy id stays known so an old
+// link decodes, but is not offered (`...Shown`). Every list that ends in `other` has a «Другое» chip that opens the note.
+export const discSizes = ['solo', 's5', 's20', 's20p', 's10', 's50', 's50p'] as const
 export type DiscSize = (typeof discSizes)[number]
-export const discLeads = ['d5', 'd20', 'd50', 'd50p'] as const // requests a day
+export const discSizesShown = ['solo', 's5', 's10', 's20', 's50', 's50p'] as const
+export const discLeads = ['d5', 'd20', 'd50', 'd50p', 'dnone', 'd100', 'd100p'] as const // requests a day
 export type DiscLeads = (typeof discLeads)[number]
-export const discBase = ['k100', 'k1k', 'k10k', 'k10kp'] as const // clients in the base
+export const discLeadsShown = ['dnone', 'd5', 'd20', 'd50', 'd100', 'd100p'] as const
+export const discBase = ['k100', 'k1k', 'k10k', 'k10kp', 'k0', 'k500', 'k5k'] as const // clients in the base
 export type DiscBase = (typeof discBase)[number]
-export const discHours = ['h9', 'h24', 'hshift', 'hflex'] as const
+export const discBaseShown = ['k0', 'k100', 'k500', 'k1k', 'k5k', 'k10k', 'k10kp'] as const
+export const discHours = ['h9', 'h24', 'hshift', 'hflex', 'hlate', 'hweekend', 'hseason'] as const
 export type DiscHours = (typeof discHours)[number]
-export const discApprover = ['owner', 'manager', 'team', 'auto'] as const
+export const discApprover = ['owner', 'manager', 'team', 'auto', 'partners', 'admin', 'client'] as const
 export type DiscApprover = (typeof discApprover)[number]
-export const discPains = ['calls', 'lost', 'slow', 'manual', 'noshow', 'reports', 'chaos', 'time', 'content', 'money'] as const
+export const discPains = ['calls', 'lost', 'slow', 'manual', 'noshow', 'reports', 'chaos', 'time', 'content', 'money', 'other'] as const
 export type DiscPain = (typeof discPains)[number]
-export const discSuccess = ['leads', 'time', 'lost', 'revenue', 'calm', 'control'] as const
+export const discSuccess = ['leads', 'time', 'lost', 'revenue', 'calm', 'control', 'speed', 'quality', 'growth', 'other'] as const
 export type DiscSuccess = (typeof discSuccess)[number]
 export const discHeard = ['search', 'instagram', 'friend', 'telegram', 'ai', 'ads', 'other'] as const
 export type DiscHeard = (typeof discHeard)[number]
+// New questions of the same screen.
+export const discSrc = ['instagram', 'telegram', 'whatsapp', 'search', 'ads', 'friends', 'offline', 'other'] as const // where clients come from
+export type DiscSrc = (typeof discSrc)[number]
+export const discTools = ['sheets', 'excel', 'amocrm', 'bitrix', 'onec', 'messengers', 'none', 'other'] as const // tools now
+export type DiscTool = (typeof discTools)[number]
+export const discLangs = ['ru', 'tj', 'en', 'uz', 'kz', 'other'] as const
+export type DiscLang = (typeof discLangs)[number]
+export const discWhen = ['asap', 'month', 'quarter', 'half', 'norush', 'date'] as const // the deadline
+export type DiscWhen = (typeof discWhen)[number]
+// «О вас» (personal path).
+export const discRole = ['employed', 'business', 'freelance', 'study', 'creative', 'mixed', 'other'] as const
+export type DiscRole = (typeof discRole)[number]
+export const discRhythm = ['early', 'owl', 'evening', 'shifts', 'travel', 'weekends', 'irregular'] as const
+export type DiscRhythm = (typeof discRhythm)[number]
+export const discChan = ['telegram', 'whatsapp', 'instagram', 'email', 'imessage', 'slack', 'phone', 'other'] as const
+export type DiscChan = (typeof discChan)[number]
+export const discDev = ['iphone', 'android', 'mac', 'windows', 'ipad', 'web', 'watch', 'linux'] as const
+export type DiscDev = (typeof discDev)[number]

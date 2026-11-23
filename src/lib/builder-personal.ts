@@ -2,12 +2,20 @@ import type { Build } from './builder'
 import {
   discApprover,
   discBase,
+  discChan,
+  discDev,
   discHeard,
   discHours,
+  discLangs,
   discLeads,
   discPains,
+  discRhythm,
+  discRole,
   discSizes,
+  discSrc,
   discSuccess,
+  discTools,
+  discWhen,
   personalChannels,
   personalConnect,
   personalHand,
@@ -15,7 +23,15 @@ import {
   personalWhoAll,
   type DiscApprover,
   type DiscBase,
+  type DiscChan,
+  type DiscDev,
   type DiscHeard,
+  type DiscLang,
+  type DiscRhythm,
+  type DiscRole,
+  type DiscSrc,
+  type DiscTool,
+  type DiscWhen,
   type DiscHours,
   type DiscLeads,
   type DiscPain,
@@ -32,6 +48,8 @@ import { personalServices, type FlagshipProduct } from './builder-ids'
 import type { PersonalLevel } from './pricing'
 import { capabilitiesBrief, withCatalog } from './builder-capabilities'
 import { agentOnly } from './builder-agent'
+import { cleanNote, noteLimit, typingNote } from './builder-depth'
+export { cleanNote, noteLimit, typingNote }
 
 // «Сборка проекта» v4: the personal path and the discovery fields (owner review 2026-11-22). Pure and tested
 // (tests/builder-v2.test.mjs). The personal brief rides in the link as `m.<base64url JSON>`, the discovery
@@ -60,14 +78,28 @@ export type Discovery = {
   pains?: DiscPain[]
   success?: DiscSuccess[]
   heard?: DiscHeard
+  // Builder depth (2026-11-24): more chips and the visitor's own words. `first` is a personal hand-over area.
+  src?: DiscSrc[]
+  tools?: DiscTool[]
+  langs?: DiscLang[]
+  when?: DiscWhen
+  role?: DiscRole
+  rhythm?: DiscRhythm[]
+  chan?: DiscChan[]
+  first?: PersonalHand
+  dev?: DiscDev[]
+  note?: string
 }
 
 export const personalLimit = 900
-export const discoveryLimit = 700
+export const discoveryLimit = 1000
+// The discovery chunk of the link stays within this many UTF-8 bytes so `?b=` is shareable (under 2 KB with the rest).
+export const discoveryBytes = 1000
 export const defaultTone: PersonalTone = [1, 1, 1, 1, 1]
 
 const clean = (text: string, max: number) =>
   text.replace(/[\u0000-\u001f\u007f\s]+/g, ' ').trim().slice(0, max)
+const bytesOf = (text: string) => new TextEncoder().encode(text).length
 const ids = <T extends string>(v: unknown, known: readonly T[]): T[] =>
   Array.isArray(v) ? [...new Set(v.filter((x): x is T => typeof x === 'string' && (known as readonly string[]).includes(x)))] : []
 const one = <T extends string>(v: unknown, known: readonly T[]): T | undefined =>
@@ -115,7 +147,8 @@ export function parsePersonalJson(text: string): PersonalBrief | undefined {
   return out
 }
 
-export function discoveryJson(d: Discovery | undefined): string {
+// `withoutNote`: the agent path carries its own note in the link, so the shared note stays out of it (the lead keeps both).
+export function discoveryJson(d: Discovery | undefined, withoutNote = false): string {
   if (!d) return ''
   const o: Record<string, unknown> = {}
   if (d.size) o.sz = d.size
@@ -129,15 +162,32 @@ export function discoveryJson(d: Discovery | undefined): string {
   if (d.pains?.length) o.pa = d.pains
   if (d.success?.length) o.su = d.success
   if (d.heard) o.he = d.heard
+  if (d.src?.length) o.sc = d.src
+  if (d.tools?.length) o.tl = d.tools
+  if (d.langs?.length) o.lg = d.langs
+  if (d.when) o.wn = d.when
+  if (d.role) o.ro = d.role
+  if (d.rhythm?.length) o.rh = d.rhythm
+  if (d.chan?.length) o.ch = d.chan
+  if (d.first) o.fi = d.first
+  if (d.dev?.length) o.dv = d.dev
+  const note = d.note && !withoutNote ? cleanNote(d.note) : ''
+  if (note) o.no = note
   if (!Object.keys(o).length) return ''
   let text = JSON.stringify(o)
-  // Too long: the free texts first, then the chip lists from the end.
-  for (const key of ['si', 'ig', 'tz', 'su', 'pa']) {
-    if (text.length <= discoveryLimit) break
+  const fits = () => text.length <= discoveryLimit && bytesOf(text) <= discoveryBytes
+  // Too long: the least useful answers first, the visitor's own words last (shortened, never dropped while it fits).
+  for (const key of ['si', 'ig', 'tz', 'dv', 'rh', 'ch', 'su', 'pa', 'sc', 'tl', 'lg', 'he', 'ro', 'fi']) {
+    if (fits()) break
     delete o[key]
     text = JSON.stringify(o)
   }
-  return text.slice(0, discoveryLimit)
+  while (!fits() && typeof o.no === 'string' && o.no.length > 0) {
+    o.no = (o.no as string).slice(0, Math.max(0, (o.no as string).length - 20)).trim()
+    if (!o.no) delete o.no
+    text = JSON.stringify(o)
+  }
+  return fits() ? text : text.slice(0, discoveryLimit)
 }
 
 const link = (v: unknown) => {
@@ -177,10 +227,36 @@ export function parseDiscoveryJson(text: string): Discovery | undefined {
   if (success.length) out.success = success
   const heard = one(o.he, discHeard)
   if (heard) out.heard = heard
+  const src = ids(o.sc, discSrc)
+  if (src.length) out.src = src
+  const tools = ids(o.tl, discTools)
+  if (tools.length) out.tools = tools
+  const langs = ids(o.lg, discLangs)
+  if (langs.length) out.langs = langs
+  const when = one(o.wn, discWhen)
+  if (when) out.when = when
+  const role = one(o.ro, discRole)
+  if (role) out.role = role
+  const rhythm = ids(o.rh, discRhythm)
+  if (rhythm.length) out.rhythm = rhythm
+  const chan = ids(o.ch, discChan)
+  if (chan.length) out.chan = chan
+  const first = one(o.fi, personalHand)
+  if (first) out.first = first
+  const dev = ids(o.dv, discDev)
+  if (dev.length) out.dev = dev
+  if (typeof o.no === 'string' && cleanNote(o.no)) out.note = cleanNote(o.no)
   return Object.keys(out).length ? out : undefined
 }
 
 export const cleanLink = link
+
+// How many questions of the discovery are answered, and whether there is a note (the compact summary line).
+export function discoveryCount(d: Discovery | undefined): { answers: number; note: boolean } {
+  if (!d) return { answers: 0, note: false }
+  const answers = (Object.keys(d) as (keyof Discovery)[]).filter((k) => k !== 'note' && d[k] !== undefined && !(Array.isArray(d[k]) && !(d[k] as unknown[]).length)).length
+  return { answers, note: Boolean(d.note && cleanNote(d.note)) }
+}
 
 // ------------------------------------------------------------ build helpers
 
@@ -300,6 +376,8 @@ export function leadBriefOf(source: Build): LeadBrief | null {
     if (a.volume) out.volume = a.volume
     if (a.knowledge) out.knowledge = true
     if (a.training) out.training = true
+    if (a.deep && Object.keys(a.deep).length) out.depth = a.deep
+    if (a.note && cleanNote(a.note)) out.note = cleanNote(a.note)
   } else if (build.personal) {
     out.type = 'personal'
     const p = build.personal
@@ -328,7 +406,7 @@ export function leadBriefOf(source: Build): LeadBrief | null {
     }
     if (Object.keys(details).length) out.details = details
   }
-  if (build.discovery) out.discovery = build.discovery
+  if (build.discovery) out.discovery = { ...build.discovery, ...(build.discovery.note ? { note: cleanNote(build.discovery.note) } : {}) }
   // builder v6 wave 2: the niche preset the build started from and the visitor's own words.
   if (source.preset) out.preset = source.preset
   if (source.task) out.task = source.task

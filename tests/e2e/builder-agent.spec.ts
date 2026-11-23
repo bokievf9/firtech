@@ -55,13 +55,16 @@ for (const [label, size] of Object.entries(SIZES)) {
       await goNext(page, 4)
       await expect(page.getByRole('heading', { level: 2, name: 'Сколько заявок в месяц?' })).toBeVisible()
       await page.getByRole('radio', { name: '50-300' }).click()
+      // The depth screen (builder depth): optional, so «Дальше» works with nothing picked.
       await goNext(page, 5)
+      await expect(page.locator('[data-agent-depth]')).toBeVisible()
+      await goNext(page, 6)
       await page.locator('[data-agent-addon="knowledge"]').click()
       await expect(page.locator('[data-agent-addon="training"]')).toContainText('+$')
-      await goNext(page, 6)
+      await goNext(page, 7)
       // The estimate: setup with the option, monthly, stages 50/50 under the small-project limit, the guarantee.
       const estimate = page.locator('[data-agent-estimate]')
-      await expect(estimate.locator('[data-agent-setup]')).toHaveText('$270')
+      await expect(estimate.locator('[data-agent-setup]')).toHaveText('$240')
       await expect(estimate.locator('[data-agent-monthly]')).toContainText('$39')
       await expect(estimate.locator('[data-agent-stages] tbody tr')).toHaveCount(2)
       await expect(estimate).toContainText('Менеджер заявок')
@@ -72,7 +75,7 @@ for (const [label, size] of Object.entries(SIZES)) {
       await expect(page.getByRole('status').filter({ hasText: 'Заявка у нас' })).toBeVisible()
       const body = sent as unknown as { brief: Record<string, unknown>; estimate: string; message?: string }
       expect(body.brief).toMatchObject({ type: 'agent', agent: 'lead-handler', channels: ['telegram', 'web'], connect: ['crm'], volume: 'm', knowledge: true })
-      expect(JSON.parse(body.estimate)).toMatchObject({ totalUsd: 270, monthlyUsd: 39 })
+      expect(JSON.parse(body.estimate)).toMatchObject({ totalUsd: 240, monthlyUsd: 39 })
       expect(body.message).toContain('Менеджер заявок')
       expect((sent as unknown as { source: string }).source).toBe('agent-lead-handler')
       expect(errors).toEqual([])

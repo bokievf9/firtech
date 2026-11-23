@@ -1,14 +1,19 @@
 'use client'
 
 import { Check as CheckIcon, Link as LinkGlyph, MagnifyingGlass } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { Dict } from '@/content'
 import { pick } from '@/content/builder-catalog'
 import { agentUi } from '@/content/builder-agent'
+import { detailsSummary } from '@/content/builder-personal'
+import { depthLabel, depthTitle, depthUi } from '@/content/builder-depth'
 import { agentChannelIds, agentConnectIds, agentVolumeIds, agentAddonIds, type StandaloneAgentId } from '@/lib/agent-ids'
-import { agentOffer, agentsOfDept, aiTeamAccent, aiTeamIds, type AgentId, type AiTeamId } from '@/lib/ai-teams'
+import { agentsOfDept, aiTeamAccent, aiTeamIds, type AiTeamId } from '@/lib/ai-teams'
 import type { Build } from '@/lib/builder'
-import { agentAddonPrices, chooseAgent, toggleAgent, withAgentBrief } from '@/lib/builder-agent'
+import { agentAddonPrices, chooseAgent, toggleAgent, withAgentBrief, withDeep } from '@/lib/builder-agent'
+import { depthQuestions, noteLimit, typingNote } from '@/lib/builder-depth'
+import { deptOfAgents } from '@/lib/builder-dept'
+import { fieldClass } from '@/components/ui'
 import { channelLine, channelName } from '@/lib/channels'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimateDoc } from '@/lib/estimate-doc'
@@ -24,10 +29,7 @@ type SetBuild = (update: (b: Build) => Build) => void
 const loc = (locale: string) => (locale === 'ru' ? 'ru' : 'en')
 
 // The department of the agent in the build (the questions follow it); the first agent decides.
-export const deptOfBuild = (build: Build): AiTeamId => {
-  const id = build.agents?.[0]
-  return id ? agentOffer(id as AgentId).dept : 'company'
-}
+export const deptOfBuild = (build: Build): AiTeamId => deptOfAgents(build)
 
 // The 18 standalone agents grouped by department with a search box. `multi` = toggles (agents added to a build),
 // otherwise one choice (the agent path). Titles and promises come from the dictionary.
@@ -158,6 +160,8 @@ export function AgentStep({
       </div>
     )
 
+  if (step === 4) return <AgentDepth build={build} locale={locale} setBuild={setBuild} />
+
   const prices = agentAddonPrices(pricing)
   return (
     <Group title={pick(agentUi.addonOptional, locale)}>
@@ -179,6 +183,58 @@ export function AgentStep({
         })}
       </div>
     </Group>
+  )
+}
+
+// The depth screen: the questions of the agent's department as chips (single questions are radios) and a note.
+function AgentDepth({ build, locale, setBuild }: { build: Build; locale: string; setBuild: SetBuild }) {
+  const noteRef = useRef<HTMLTextAreaElement>(null)
+  const questions = depthQuestions[deptOfBuild(build)]
+  const deep = build.agentBrief?.deep ?? {}
+  return (
+    <div data-agent-depth className="grid max-w-4xl gap-9">
+      {questions.map((q) => {
+        const title = pick(depthTitle[q.id]!, locale)
+        const picked = deep[q.id] ?? []
+        return (
+          <Group key={q.id} title={title}>
+            <div className="flex flex-wrap gap-2" role={q.single ? 'radiogroup' : 'group'} aria-label={title} data-depth={q.id}>
+              {q.options.map((id) => {
+                const on = picked.includes(id)
+                return (
+                  <Pill
+                    key={id}
+                    on={on}
+                    onClick={() => {
+                      setBuild((b) => withDeep(b, q.id, q.single ? (on ? [] : [id]) : on ? picked.filter((x) => x !== id) : [...picked, id]))
+                      if (id === 'other' && !on) setTimeout(() => noteRef.current?.focus(), 0)
+                    }}
+                  >
+                    {pick(depthLabel(q.id, id), locale)}
+                  </Pill>
+                )
+              })}
+            </div>
+          </Group>
+        )
+      })}
+      <Group title={pick(depthUi.note, locale)}>
+        <textarea
+          ref={noteRef}
+          data-agent-note
+          rows={4}
+          maxLength={noteLimit}
+          value={build.agentBrief?.note ?? ''}
+          placeholder={pick(depthUi.notePlaceholder, locale)}
+          aria-label={pick(depthUi.note, locale)}
+          onChange={(e) => setBuild((b) => withAgentBrief(b, { note: typingNote(e.target.value) }))}
+          className={cn('ym-disable-keys', fieldClass, 'resize-y leading-relaxed')}
+        />
+        <p className="mt-2 text-footnote text-faint">
+          {pick(depthUi.noteHint, locale)} <span className="font-mono">{(build.agentBrief?.note ?? '').length}/{noteLimit}</span>
+        </p>
+      </Group>
+    </div>
   )
 }
 
@@ -224,7 +280,7 @@ export function AgentLines({ dict, locale, build, setBuild, defer }: { dict: Dic
 // The last screen of the agent path: the price lines, setup and monthly, the stages by the owner's rule, the guarantee
 // and the actions.
 export function AgentEstimate({
-  dict, locale, build, setBuild, estimateHref, copied, cameBack, focusSend, onCopy,
+  dict, locale, build, setBuild, estimateHref, copied, cameBack, focusSend, onCopy, onEdit,
 }: {
   dict: Dict
   locale: string
@@ -235,12 +291,22 @@ export function AgentEstimate({
   cameBack: boolean
   focusSend: boolean
   onCopy: () => void
+  onEdit?: (step: number) => void
 }) {
   const t = dict.builder
   const l = loc(locale)
   const pricing = usePricing()
   const doc = estimateDoc(build, dict, locale, pricing)
-  const setup = doc.brief.setup.filter((r) => r.id !== 'a-agent')
+  const deepRows = doc.brief.setup.filter((r) => r.id.startsWith('a-d-'))
+  const deepCount = deepRows.filter((r) => r.id !== 'a-d-note').length
+  const hasNote = deepRows.some((r) => r.id === 'a-d-note')
+  const setup = doc.brief.setup.filter((r) => r.id !== 'a-agent' && !r.id.startsWith('a-d-'))
+  if (deepRows.length)
+    setup.push({
+      id: 'a-depth',
+      label: pick(depthUi.label, locale),
+      value: [deepCount ? detailsSummary.answers(deepCount, l === 'ru') : '', hasNote ? pick(detailsSummary.note, locale) : ''].filter(Boolean).join(', '),
+    })
   return (
     <div className="grid gap-4 lg:grid-cols-12">
       <div className="grid content-start gap-4 lg:col-span-7">
@@ -248,7 +314,16 @@ export function AgentEstimate({
           <AgentLines dict={dict} locale={locale} build={build} setBuild={setBuild} defer />
         </Panel>
         {setup.length > 0 && (
-          <Panel title={dict.builder.detailsLabel}>
+          <Panel
+            title={dict.builder.detailsLabel}
+            action={
+              deepRows.length && onEdit ? (
+                <button type="button" data-agent-edit-depth onClick={() => onEdit(4)} className={buttonStyles.ghost}>
+                  {dict.builder.edit}
+                </button>
+              ) : undefined
+            }
+          >
             <dl className="grid gap-3 text-callout">
               {setup.map((row) => (
                 <div key={row.id} className="grid gap-0.5 sm:grid-cols-[9rem_1fr] sm:gap-4">

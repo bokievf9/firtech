@@ -11,6 +11,7 @@ import {
   type AgentVolumeId,
   type StandaloneAgentId,
 } from './agent-ids'
+import { cleanDeep, cleanNote, type Deep } from './builder-depth'
 import { agentSubscriptionOf, defaultPricing, teamSubscription, type Pricing } from './pricing'
 
 // «Один агент» in «Сборка проекта» (builder v6): one agent as a product, and agents added as lines to any build.
@@ -24,9 +25,44 @@ export type AgentBrief = {
   volume?: AgentVolumeId
   knowledge?: boolean
   training?: boolean
+  // Builder depth (2026-11-24): the department questions (ids, see builder-depth.ts) and the visitor's own words.
+  deep?: Deep
+  note?: string
 }
 
 export const agentLimit = 6
+// The depth answers ride in their own chunk `e.<base64url JSON>` ({d: {question: [options]}, n: note}); at most this many
+// UTF-8 bytes of JSON, the note is shortened first, so the link stays shareable.
+export const depthBytes = 1100
+
+export function depthJson(brief: AgentBrief | undefined): string {
+  if (!brief) return ''
+  const deep = cleanDeep(brief.deep)
+  const note = brief.note ? cleanNote(brief.note) : ''
+  const o: { d?: Deep; n?: string } = {}
+  if (Object.keys(deep).length) o.d = deep
+  if (note) o.n = note
+  if (!o.d && !o.n) return ''
+  const size = () => new TextEncoder().encode(JSON.stringify(o)).length
+  while (size() > depthBytes && o.n) o.n = o.n.slice(0, Math.max(0, o.n.length - 20)).trim() || undefined
+  if (!o.n) delete o.n
+  return size() <= depthBytes && (o.d || o.n) ? JSON.stringify(o) : ''
+}
+
+// Reads a `depthJson` text into the brief (unknown questions and options are dropped).
+export function readDepthJson(brief: AgentBrief, text: string): void {
+  let raw: unknown
+  try {
+    raw = JSON.parse(text)
+  } catch {
+    return
+  }
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return
+  const o = raw as { d?: unknown; n?: unknown }
+  const deep = cleanDeep(o.d)
+  if (Object.keys(deep).length) brief.deep = deep
+  if (typeof o.n === 'string' && cleanNote(o.n)) brief.note = cleanNote(o.n)
+}
 
 const known = <T extends string>(list: string, ids: readonly T[], sep: string): T[] => [
   ...new Set(list.split(sep).filter((x): x is T => (ids as readonly string[]).includes(x))),
@@ -64,6 +100,14 @@ export function readAgentChunk(build: Build, fields: string[]): void {
 
 // ---------------------------------------------------------------- build helpers
 
+// One depth question: set the picked options (single questions keep one).
+export function withDeep(build: Build, id: string, picked: string[]): Build {
+  const deep: Deep = { ...build.agentBrief?.deep }
+  if (picked.length) deep[id] = picked
+  else delete deep[id]
+  return withAgentBrief(build, { deep })
+}
+
 export function startAgent(build: Build, first?: StandaloneAgentId): Build {
   return { parts: {}, extras: [], ...(build.discovery ? { discovery: build.discovery } : {}), agentBrief: {}, ...(first ? { agents: [first] } : {}) }
 }
@@ -89,7 +133,8 @@ export function withAgentBrief(build: Build, patch: Partial<AgentBrief>): Build 
   const brief: AgentBrief = { ...build.agentBrief, ...patch }
   for (const key of Object.keys(brief) as (keyof AgentBrief)[]) {
     const v = brief[key]
-    if (v === undefined || v === false || (Array.isArray(v) && !v.length)) delete brief[key]
+    if (v === undefined || v === false || v === '' || (Array.isArray(v) && !v.length)) delete brief[key]
+    else if (key === 'deep' && !Object.keys(v as object).length) delete brief[key]
   }
   return { ...build, agentBrief: brief }
 }
@@ -109,14 +154,14 @@ export function toggleAgent(build: Build, id: StandaloneAgentId): Build {
 }
 
 export type AgentIssue = 'agent' | 'where' | 'volume'
-// What blocks «Дальше» on a screen of the agent path (0-based: agent, where, connect, volume, extras, estimate).
+// What blocks «Дальше» on a screen of the agent path (0-based: agent, where, connect, volume, depth, extras, estimate).
 export function agentIssues(build: Build, step: number): AgentIssue[] {
   if (step === 0) return build.agents?.length ? [] : ['agent']
   if (step === 1) return build.agentBrief?.channels?.length ? [] : ['where']
   if (step === 3) return build.agentBrief?.volume ? [] : ['volume']
   return []
 }
-export const agentStepCount = 6
+export const agentStepCount = 7
 export const agentLastStep = agentStepCount - 1
 // Every screen before `step` is done, so the visitor may jump there.
 export const agentReachable = (build: Build, step: number) =>

@@ -53,7 +53,7 @@ import {
   type Discovery,
   type PersonalBrief,
 } from './builder-personal'
-import { agentChunk, readAgentChunk, type AgentBrief } from './builder-agent'
+import { agentChunk, depthJson, readAgentChunk, readDepthJson, type AgentBrief } from './builder-agent'
 import type { StandaloneAgentId } from './agent-ids'
 import { catalogJson, isCatalogChunk, keepSubNiches, parseCatalogJson, type CatalogPick } from './builder-capabilities'
 
@@ -448,10 +448,12 @@ export function encodeBuild(build: Build) {
   if (build.products?.length) parts.push(`p.${build.products.join('-')}`)
   const personal = build.personal ? personalJson(build.personal) : ''
   if (personal) parts.push(`m.${toBase64Url(personal)}`)
-  const discovery = discoveryJson(build.discovery)
+  const discovery = discoveryJson(build.discovery, Boolean(build.agentBrief?.note))
   if (discovery) parts.push(`v.${toBase64Url(discovery)}`)
   const agent = agentChunk(build)
   if (agent) parts.push(agent)
+  const depth = depthJson(build.agentBrief)
+  if (depth) parts.push(`e.${toBase64Url(depth)}`)
   if (build.preset && /^[a-z]{2,16}$/.test(build.preset)) parts.push(`r.${build.preset}`)
   if (build.task) parts.push(`q.${toBase64Url(build.task.slice(0, taskLimit))}`)
   if (build.goals?.length) parts.push(`g.${build.goals.join('-')}`)
@@ -602,6 +604,10 @@ export function decodeBuild(value: string | null | undefined): Build | null {
     }
     if (head === 'a') {
       readAgentChunk(build, [second, third, fourth, fifth, sixth])
+      continue
+    }
+    if (head === 'e') {
+      if (build.agentBrief) readDepthJson(build.agentBrief, fromBase64Url(chunk.slice(2)) ?? '')
       continue
     }
     if (head === 'r') {

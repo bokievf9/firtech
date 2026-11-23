@@ -21,6 +21,18 @@ import { PayFirstStage, SaveEstimate, useRememberBuild } from './estimate-live'
 import { Panel } from './builder-ui'
 import { AgentLines } from './builder-agent'
 import { agentUi } from '@/content/builder-agent'
+import { detailsSummary } from '@/content/builder-personal'
+import { discoveryCount, type Discovery } from '@/lib/builder-personal'
+
+// The discovery answers of the «Детали» screen as one line («Подробности: 7 ответов, заметка»); «Изменить» opens the screen.
+function compactDiscovery<R extends { id: string; label: string; value: string }>(rows: R[], d: Discovery | undefined, locale: string): R[] {
+  const rest = rows.filter((r) => !r.id.startsWith('d-'))
+  const { answers, note } = discoveryCount(d)
+  if (!answers && !note) return rest
+  const ru = locale === 'ru'
+  const value = [answers ? detailsSummary.answers(answers, ru) : '', note ? pick(detailsSummary.note, locale) : ''].filter(Boolean).join(', ')
+  return [...rest, { id: 'd-count', label: pick(detailsSummary.title, locale), value } as R]
+}
 
 // The last screen: the quote, the brief and the mockup side by side, then the actions.
 export function SummaryStep({
@@ -116,7 +128,7 @@ export function SummaryStep({
         </div>
 
         <Panel title={t.detailsLabel} action={edit(6)}>
-          <Rows rows={brief.details} empty={t.nothingYet} />
+          <Rows rows={compactDiscovery(brief.details, build.discovery, locale)} empty={t.nothingYet} />
         </Panel>
 
         {catalog.length > 0 && (
