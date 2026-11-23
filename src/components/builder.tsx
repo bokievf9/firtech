@@ -381,8 +381,32 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
 
   const q = quote(build, pricing)
   const aq = agentQuote(build, pricing)
-  const preview = business && withPreview.has(step)
   const ui = builderUi
+  const nowAmount = agent
+    ? aq
+      ? formatUsd(aq.oneTime)
+      : ''
+    : personal
+      ? build.personal?.hand?.length
+        ? formatUsd(pricing.personalPlans[tierOf(build.personal)].setup)
+        : ''
+      : hasParts || aq
+        ? formatUsd(q.total + (aq?.oneTime ?? 0))
+        : onRequest.length
+          ? pick(ui.totalOnRequest, locale)
+          : ''
+  const monthlyAmount = agent
+    ? aq
+      ? formatUsd(aq.monthly)
+      : ''
+    : personal
+      ? build.personal?.hand?.length
+        ? formatUsd(pricing.personalPlans[tierOf(build.personal)].monthly)
+        : ''
+      : business && (aq || (hasParts && q.monthly !== null))
+        ? formatUsd((aq?.monthly ?? 0) + (hasParts ? (q.monthly ?? 0) : 0))
+        : ''
+  const preview = business && withPreview.has(step)
   const agentTitles = agentUi.titles.map((title, i) => ({
     title: pick(i >= 1 && i <= 3 ? { ru: deptQuestion(build, (['where', 'connect', 'volume'] as const)[i - 1]!, 'ru'), en: deptQuestion(build, (['where', 'connect', 'volume'] as const)[i - 1]!, 'en') } : title, locale),
     sub: pick(agentUi.subs[i]!, locale),
@@ -586,11 +610,17 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
               {!last && canGo && <span className="hidden lg:inline"> · {t.enterHint}</span>}
             </p>
             <p data-builder-total="" className="whitespace-nowrap font-mono text-callout text-accent-text md:truncate md:text-body" aria-live="polite">
-              {agent ? (aq ? `${formatUsd(aq.oneTime)} + ${formatUsd(aq.monthly)}${t.perMonth}` : '') : personal ? (build.personal?.hand?.length ? `${formatUsd(pricing.personalPlans[tierOf(build.personal)].setup)} + ${formatUsd(pricing.personalPlans[tierOf(build.personal)].monthly)}${t.perMonth}` : '') : hasParts || aq ? formatUsd(q.total + (aq?.oneTime ?? 0)) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
-              {business && aq && (
+              {nowAmount}
+              {nowAmount && (
                 <span className="hidden text-muted sm:inline">
                   {' '}
-                  + {formatUsd(aq.monthly)}
+                  {t.totalNow}
+                </span>
+              )}
+              {monthlyAmount && (
+                <span className="hidden text-muted sm:inline" data-builder-total-monthly="">
+                  {' '}
+                  · {monthlyAmount}
                   {t.perMonth}
                 </span>
               )}
@@ -598,13 +628,6 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
                 <span className="hidden text-muted sm:inline">
                   {' '}
                   + {pick(ui.totalOnRequest, locale)}
-                </span>
-              )}
-              {business && hasParts && q.monthly !== null && (
-                <span className="hidden text-muted sm:inline">
-                  {' '}
-                  + {formatUsd(q.monthly)}
-                  {t.perMonth}
                 </span>
               )}
             </p>

@@ -24,6 +24,8 @@ import { StageTable } from '@/components/stage-table'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale, locales } from '@/lib/i18n'
 import { formatUsd } from '@/lib/pricing'
+import { fromLine } from '@/lib/price-format'
+import { nichePrice } from '@/lib/builder-presets'
 import { getPricing } from '@/lib/pricing-store'
 import { siteUrl } from '@/lib/site'
 import { mainPartTerm } from '@/lib/solutions'
@@ -136,19 +138,11 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
               </span>
               {kindName(kind, locale)}
             </div>
-            <p className="mt-6 text-sm text-muted">
-              {t.startSet} {t.from}
-            </p>
-            <p className="mt-1 font-mono text-5xl tracking-tight text-accent-text">
-              {formatUsd(q.total)}
+            <p className="mt-6 text-sm text-muted">{t.startSet}</p>
+            <p className="mt-1 font-mono text-3xl leading-tight tracking-tight text-accent-text" data-niche-price={kind}>
+              {fromLine(nichePrice(kind, pricing).oneTime, nichePrice(kind, pricing).monthly, locale)}
             </p>
             {q.discount && <p className="mt-3 text-sm text-accent-text">{dict.builder.discount}</p>}
-            {q.monthly !== null && (
-              <p className="mt-1 font-mono text-sm text-muted">
-                + {formatUsd(q.monthly)}
-                {dict.builder.perMonth}
-              </p>
-            )}
           </div>
         </Reveal>
       </section>
@@ -290,7 +284,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                 <span className="min-w-0">
                   <span className="block font-medium">{kindName(other, locale)}</span>
                   <span className="font-mono text-sm text-muted">
-                    {t.from} {formatUsd(quote(presets[other], pricing).total)}
+                    {fromLine(nichePrice(other, pricing).oneTime, nichePrice(other, pricing).monthly, locale)}
                   </span>
                 </span>
                 <ArrowUpRight

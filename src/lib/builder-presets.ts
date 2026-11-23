@@ -1,5 +1,5 @@
 import { presetCopy, presetIds, needWords, type NeedId, type PresetId } from '../content/builder-presets'
-import { emptyBuild, applyKind, cleanTask, quote, toggleProduct, type Build, type BusinessKind } from './builder'
+import { emptyBuild, applyKind, presets, cleanTask, quote, toggleProduct, type Build, type BusinessKind } from './builder'
 import { agentQuote, toggleAgent } from './builder-agent'
 import type { StandaloneAgentId } from './agent-ids'
 import { defaultPricing, type Pricing } from './pricing'
@@ -54,6 +54,16 @@ export function presetPrice(id: PresetId, pricing: Pricing = defaultPricing): Pr
   const q = quote(build, pricing)
   const aq = agentQuote(build, pricing)
   return { oneTime: q.total + (aq?.oneTime ?? 0), monthly: (q.monthly ?? 0) + (aq?.monthly ?? 0) }
+}
+
+// The niche's «от» price, the one source for the solutions pages and the presets row. A kind with a preset gets the preset's
+// price (parts + agents); a kind without one gets its starting set's parts.
+export const presetIdOfKind = (kind: BusinessKind): PresetId | null => presetIds.find((id) => kindOf[id] === kind) ?? null
+export function nichePrice(kind: BusinessKind, pricing: Pricing = defaultPricing): PresetPrice {
+  const id = presetIdOfKind(kind)
+  if (id) return presetPrice(id, pricing)
+  const q = quote(presets[kind], pricing)
+  return { oneTime: q.total, monthly: q.monthly ?? 0 }
 }
 
 // ---------------------------------------------------------------- the matcher

@@ -5,7 +5,7 @@ import { pick, productCatalog } from '@/content/builder-catalog'
 import { presetCopy, presetIds, presetUi, type PresetId } from '@/content/builder-presets'
 import { isPersonalMatch, matchPreset, presetPrice, type Match } from '@/lib/builder-presets'
 import { buttonStyles, cn } from '@/lib/cn'
-import { formatUsd } from '@/lib/pricing'
+import { fromLine } from '@/lib/price-format'
 import { FIRA_BUBBLE_EVENT, firaSay } from '@/lib/fira/live'
 import { fieldClass } from '@/components/ui/input'
 import { usePricing } from './pricing-provider'
@@ -55,10 +55,7 @@ export function PresetRow({ locale, current, onPick }: { locale: string; current
                   ))}
                 </span>
                 <span className="mt-auto pt-1 font-mono text-callout text-accent-text" data-preset-price>
-                  {pick(presetUi.from, locale)} {formatUsd(price.oneTime)}
-                  {price.monthly > 0 && (
-                    <span className="text-muted"> + {formatUsd(price.monthly)}{pick(presetUi.perMonth, locale)}</span>
-                  )}
+                  {fromLine(price.oneTime, price.monthly, locale)}
                 </span>
               </button>
             </li>

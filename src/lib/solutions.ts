@@ -1,9 +1,11 @@
 import type { Dict } from '@/content'
 import { genericFaq, kindCatalog } from '../content/builder-catalog'
 import { solutionPromises } from '../content/solution-promises'
-import { businessKinds, encodeBuild, presets, quote, type Build, type BusinessKind } from './builder'
+import { businessKinds, encodeBuild, presets, type Build, type BusinessKind } from './builder'
 import { serviceSlugs, type ServiceSlug } from './site'
-import { defaultPricing, formatUsd, type Pricing } from './pricing'
+import { defaultPricing, type Pricing } from './pricing'
+import { nichePrice } from './builder-presets'
+import { priceLine } from './price-format'
 
 // Niche landing pages ("solutions"): one per business kind from the builder, except "other". Each
 // page shows the kind's builder preset, so its price and contents always match the builder.
@@ -72,7 +74,8 @@ export function solutionCopy(
   if (written) return { ...written, promise }
   const entry = kindCatalog[kind]
   const [name, title, sub, pains, gets] = locale === 'ru' ? entry.ru : entry.en
-  const from = formatUsd(quote(presets[kind], pricing).total)
+  const np = nichePrice(kind, pricing)
+  const from = priceLine(np.oneTime, np.monthly, locale)
   return {
     metaTitle: title,
     metaDescription: metaDescription(sub, locale),

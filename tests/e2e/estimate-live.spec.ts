@@ -46,6 +46,10 @@ for (const [label, size] of Object.entries(SIZES)) {
       expect(sent[0]).toMatchObject({ intent: 'save-link', contact: '@fir_client' })
       expect(String(sent[0]?.estimateUrl)).toContain('/ru/builder/estimate?b=')
 
+      // The top block: what to pay now, the start line; no riddles about the term.
+      await expect(page.locator('[data-estimate-paynow]')).toContainText('Платите сейчас')
+      await expect(page.locator('[data-estimate-paynow]')).toContainText('этап 1 из')
+      await expect(page.locator('[data-estimate-now]')).not.toContainText('назовём в смете')
       // Honest start and the first stage's pay button.
       await expect(page.locator('[data-estimate-start]')).toHaveText('Старт через 3 рабочих дня после оплаты первого этапа.')
       await page.locator('[data-cta="estimate_pay_first"]').click()

@@ -1,6 +1,6 @@
 import type { Dict } from '@/content'
 import { agentPrice, teamPrice, type AgentId, type AiTeamId } from '@/lib/ai-teams'
-import { formatUsd } from '@/lib/pricing'
+import { usd } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { CompanyPlan } from '../products/plan-levels'
 import { SubscriptionCard } from '../products/subscription-card'
@@ -16,7 +16,7 @@ export async function TeamPriceCard({ id, dict }: { id: AiTeamId; dict: Dict }) 
   const notes = [
     sub.teamCount.replace('{count}', String(price.count)),
     sub.teamNote.replace('{percent}', String(price.discountPercent)),
-    sub.teamFull.replace('{amount}', formatUsd(price.full.monthly)),
+    sub.teamFull.replace('{amount}', usd(price.full.monthly)),
   ]
   return (
     <SubscriptionCard

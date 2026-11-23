@@ -157,6 +157,23 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
           </dl>
         )}
 
+        {(doc.payNow || doc.subscription) && (
+          <div data-estimate-now className="mt-6 grid gap-1.5 rounded-lg border border-[#d9ded4] bg-[#f1f4ec] p-4 text-[14px] leading-snug break-inside-avoid">
+            {doc.payNow && (
+              <p data-estimate-paynow>
+                <span className="font-semibold">{doc.payNow.label}:</span> {doc.payNow.amount} ({doc.payNow.stage})
+              </p>
+            )}
+            {doc.subscription && (
+              <p data-estimate-subscription>
+                <span className="font-semibold">{doc.subscription.label}:</span> {doc.subscription.amount}, {doc.subscription.text}
+              </p>
+            )}
+            <p data-estimate-start>{doc.start}</p>
+            <p className="text-[12.5px] text-[#5b6459]">{doc.sketch}</p>
+          </div>
+        )}
+
         <table className="mt-7 w-full border-collapse text-left text-[13.5px] leading-snug">
           <thead>
             <tr className="border-b border-[#d9ded4] text-[11px] tracking-[0.08em] text-[#5b6459] uppercase">
@@ -270,9 +287,6 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
               </tbody>
             </table>
             <p className="mt-2 text-[13px] text-[#3d443b]">{dict.builder.stageRule}</p>
-            <p className="mt-1.5 text-[13px] font-medium" data-estimate-start>
-              {doc.start}
-            </p>
           </section>
         )}
 
