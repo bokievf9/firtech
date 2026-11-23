@@ -90,7 +90,6 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
     ...(doc.monthly ? [dict.builder.monthlyNote] : []),
     doc.scope,
     dict.builder.note,
-    doc.guarantee,
   ]
   const shownLink = doc.link.replace(/^https?:\/\//, '')
 
@@ -247,6 +246,10 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
           {doc.monthly && <Sum label={t.support} value={`+ ${doc.monthly}`} muted />}
           {doc.agents && <Sum label={agentUi.labels.monthly[locale === 'ru' ? 'ru' : 'en']} value={`+ ${doc.agents.monthly}`} muted />}
         </dl>
+
+        <p className="mt-9 text-[13.5px] leading-snug font-medium text-[#14170f] break-inside-avoid" data-estimate-guarantee>
+          {doc.guarantee}
+        </p>
 
         {doc.stages.length > 0 && (
           <section className="mt-9 break-inside-avoid">

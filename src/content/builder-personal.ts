@@ -153,7 +153,7 @@ export const toneUi = {
 
 export const tierText: Record<'basic' | 'plus' | 'max', Named> = {
   basic: n(['Спутник', 'Помнит, напоминает, отвечает по двум-трём делам'], ['Companion', 'Remembers, reminds, covers two or three areas']),
-  plus: n(['Второй пилот', 'Ведёт несколько дел, понимает голос'], ['Co-pilot', 'Runs several areas and understands voice']),
+  plus: n(['Второй пилот', 'Ведёт несколько дел сразу'], ['Co-pilot', 'Runs several areas at once']),
   max: n(['Второе я', 'Берёт на себя почти всё и долго помнит'], ['Second self', 'Takes on almost everything and remembers long']),
 }
 export const tierUi = {

@@ -167,11 +167,11 @@ test('terms: page, both dictionaries, filled on the owner\'s word, footer link',
     assert.ok(t.sections.length >= 8 && t.draftNote && t.footerLink)
     const text = JSON.stringify(t.sections)
     // Owner 2026-11-19: Fir Tech as an individual contractor, hello@firtech.pro, law of Tajikistan,
-    // crypto or an online wallet from the estimate. No placeholder left.
+    // card or invoice, no crypto (2026-11-24). No placeholder left.
     assert.equal(text.includes(t.placeholder), false, 'no placeholders left')
     assert.match(text, /Fir Tech/)
     assert.match(text, /hello@firtech\.pro/)
-    assert.match(text, /USDT/)
+    assert.doesNotMatch(text, /USDT|TRC20|крипт|crypto/i)
     // Payment by stages (owner 2026-11-21): each stage before it starts, the last before handover,
     // small projects 50% and 50% (the `{small}` limit token), subscriptions monthly in advance.
     const payment = dict.terms.sections.find((s) => s.id === 'payment').text.join(' ')

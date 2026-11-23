@@ -36,7 +36,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { agentUi } from '@/content/builder-agent'
 import { agentChannelIds } from '@/lib/agent-ids'
-import { channelName } from '@/lib/channels'
+import { channelName, publicChannels } from '@/lib/channels'
 import { agentSubscriptionOf } from '@/lib/pricing'
 import type { Dict } from '@/content'
 import {
@@ -359,7 +359,7 @@ export function ProductsStep({
                   </span>
                   <span className="mt-1 block text-callout leading-snug text-muted">{pick(agentUi.card.hint, locale)}</span>
                   <span className="mt-2 block text-footnote leading-snug text-faint">
-                    {pick(agentUi.card.worksIn, locale)}: {agentChannelIds.map((id) => channelName(id, locale)).join(', ')}
+                    {pick(agentUi.card.worksIn, locale)}: {publicChannels(agentChannelIds).map((id) => channelName(id, locale)).join(', ')}
                   </span>
                 </span>
               </button>

@@ -7,6 +7,11 @@ import type { Locale } from './i18n'
 export const channelIds = ['telegram', 'whatsapp', 'web', 'cabinet', 'voice', 'email', 'desktop'] as const
 export type ChannelId = (typeof channelIds)[number]
 
+// Voice is hidden from public pages until it is ready (owner 2026-11-24). Admin copy may still name it.
+export const VOICE_PUBLIC = false as boolean
+export const isPublicChannel = (id: string) => VOICE_PUBLIC || id !== 'voice'
+export const publicChannels = <T extends string>(ids: readonly T[]): T[] => ids.filter(isPublicChannel)
+
 type Text = { ru: string; en: string }
 
 export const channels: Record<ChannelId, { name: Text; line: Text }> = {
