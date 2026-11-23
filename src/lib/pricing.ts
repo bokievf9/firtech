@@ -82,6 +82,9 @@ export type Pricing = {
   // of its agents minus `teamDiscount` percent; the AI company adds `companyPerEmployee` a month for every employee
   // above `companyIncludedStaff` (a fact of the offer, not a price).
   agentSubscription: Subscription
+  // The two optional one-time add-ons of the «one agent» builder path (owner 2026-11-24: cheaper than the
+  // automation add-ons): importing the client's knowledge, and training the team.
+  agentAddons: { knowledge: number; training: number }
   teamDiscount: number
   companyPerEmployee: number
   // DEPRECATED 2026-11-22: Dono and Polly are not sold any more (no link from the site). Kept because HQ's
@@ -130,6 +133,7 @@ export const defaultPricing: Pricing = {
   // employee above five, the own-key monthly is about 30% lower.
   companyPlan: { company: { setup: 1490, monthly: 149, byokMonthly: 104 } },
   agentSubscription: { setup: 220, monthly: 39, byokMonthly: 19 },
+  agentAddons: { knowledge: 20, training: 20 },
   teamDiscount: 15,
   companyPerEmployee: 9,
   // Personal agents (owner decision 2026-11-19, retired from sale 2026-11-22): Dono, a study assistant, and Polly, a language
@@ -272,3 +276,7 @@ export const smallProjectMaxUsd = defaultPricing.smallProjectMaxUsd
 export const paymentStages: Record<StageTemplateId, readonly StageDef[]> = Object.fromEntries(
   stageTemplateIds.map((id) => [id, stageDefs(id, defaultPricing)]),
 ) as unknown as Record<StageTemplateId, readonly StageDef[]>
+
+// Honest start (builder v6 wave 2): working days between the first stage being paid and the start of
+// work. A constant for now; an HQ-driven value is a later wave. Rendered as «старт через N рабочих дня».
+export const START_IN_DAYS = 3

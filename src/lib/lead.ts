@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { extraSlugs, serviceSlugs } from './site'
+import { cleanText, cleanUrl, leadIntents } from './lead-intent'
 
 export const leadSchema = z.object({
   name: z.string().trim().min(1).max(80),
@@ -29,6 +30,12 @@ export const leadSchema = z.object({
     .record(z.string().max(40), z.unknown())
     .refine((b) => JSON.stringify(b).length <= 3500)
     .optional(),
+  // Builder v6 wave 2 (additive, see lead-intent.ts): what the lead is for, the estimate link, the chosen preset and the
+  // visitor's own words from «Опишите задачу». HQ reads them as text in `message` and in `brief`.
+  intent: z.enum(leadIntents).optional(),
+  estimateUrl: z.string().max(900).transform(cleanUrl).optional(),
+  preset: z.string().max(40).transform((v) => cleanText(v, 40)).optional(),
+  task: z.string().max(2000).transform((v) => cleanText(v, 500)).optional(),
   // Honeypot: hidden from people, bots fill it in.
   website: z.string().max(200).optional().default(''),
 })

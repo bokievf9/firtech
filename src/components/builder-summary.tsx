@@ -1,6 +1,7 @@
 'use client'
 
 import { Check, Link as LinkIcon, PencilSimple } from '@phosphor-icons/react'
+import { Fragment } from 'react'
 import type { Dict } from '@/content'
 import { quote, type Build } from '@/lib/builder'
 import { builderUi, kitNames, pick } from '@/content/builder-catalog'
@@ -16,6 +17,7 @@ import { faceUi, themeText, moodText } from '@/content/builder-v2'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
 import { ProjectSend } from './builder-send'
+import { PayFirstStage, SaveEstimate, useRememberBuild } from './estimate-live'
 import { Panel } from './builder-ui'
 import { AgentLines } from './builder-agent'
 import { agentUi } from '@/content/builder-agent'
@@ -48,6 +50,8 @@ export function SummaryStep({
   const pricing = usePricing()
   const q = quote(build, pricing)
   const doc = estimateDoc(build, dict, locale, pricing)
+  useRememberBuild(build)
+  // TODO(W1): the «Продолжить прошлую смету» line (<ContinueLastBuild /> from estimate-live.tsx, `lastBuild()` in lib/estimate-last.ts) belongs on the builder entry screen.
   const brief = briefOf(build, dict, locale)
   const catalog = catalogRows(build, locale, 2000)
   const look = resolveLook(build.style)
@@ -143,6 +147,7 @@ export function SummaryStep({
               </button>
               <EstimateGate dict={dict} locale={locale} build={build} estimateHref={estimateHref} />
             </div>
+            <SaveEstimate dict={dict} locale={locale as Locale} build={build} />
           </div>
         </Panel>
 
@@ -245,18 +250,30 @@ export function SummaryStep({
                 </thead>
                 <tbody>
                   {doc.stages.map((stage) => (
-                    <tr key={stage.id} className="border-b border-b-hairline border-line align-top">
-                      <td className="py-2.5 pr-3 whitespace-nowrap text-muted">
-                        {t.stageWord} {stage.n}
-                      </td>
-                      <td className="py-2.5 pr-3">{stage.name}</td>
-                      <td className="py-2.5 pr-3 text-right font-mono whitespace-nowrap">{stage.share}</td>
-                      <td className="py-2.5 text-right font-mono whitespace-nowrap">{stage.amount}</td>
-                    </tr>
+                    <Fragment key={stage.id}>
+                      <tr className="border-b border-b-hairline border-line align-top">
+                        <td className="py-2.5 pr-3 whitespace-nowrap text-muted">
+                          {t.stageWord} {stage.n}
+                        </td>
+                        <td className="py-2.5 pr-3">{stage.name}</td>
+                        <td className="py-2.5 pr-3 text-right font-mono whitespace-nowrap">{stage.share}</td>
+                        <td className="py-2.5 text-right font-mono whitespace-nowrap">{stage.amount}</td>
+                      </tr>
+                      {stage.n === 1 && (
+                        <tr>
+                          <td colSpan={4} className="py-3">
+                            <PayFirstStage dict={dict} locale={locale as Locale} build={build} amount={stage.amount} />
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
               <p className="mt-2 text-footnote text-faint">{t.stageRule}</p>
+              <p className="mt-1.5 text-footnote font-medium" data-estimate-start>
+                {doc.start}
+              </p>
             </div>
           )}
           <GuaranteeLine dict={dict} locale={locale} className="mt-5" />

@@ -1,3 +1,4 @@
+import { startLine } from './estimate-start'
 import type { Dict } from '@/content'
 import {
   builderUi,
@@ -82,6 +83,8 @@ export type EstimateDoc = {
   // What is not in the price (domain, hosting, paid third-party services), per the brief.
   scope: string
   link: string
+  // The honest start (START_IN_DAYS): «Старт через 3 рабочих дня после оплаты первого этапа».
+  start: string
   brief: Brief
 }
 
@@ -207,6 +210,7 @@ export function estimateDoc(
     guarantee: dict.guarantee.line,
     scope: scopeLine(build, dict),
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,
+    start: startLine(dict),
     brief: briefOf(build, dict, locale),
   }
 }

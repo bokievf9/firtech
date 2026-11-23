@@ -7,6 +7,7 @@ import { formatLead, leadSchema } from '@/lib/lead'
 import { cabinetLeadPath, leadGate } from '@/lib/lead-identity'
 import { forwardLeadDetailed, hqNotified, withinMs } from '@/lib/lead-forward'
 import { currentLeadUser } from '@/lib/lead-session'
+import { applyIntent } from '@/lib/lead-intent'
 import { flushPending, notifyOwner } from '@/lib/lead-bot'
 import { recordForward } from '@/lib/lead-retry'
 import { bookedSlots, createLead, SlotTakenError, updateLead, type StoredLead } from '@/lib/store'
@@ -45,7 +46,7 @@ async function handle(request: NextRequest) {
   const gate = await leadGate(() => currentLeadUser(parsed.data.locale, ip))
   if (!gate.ok) return apiError(gate.error, gate.status)
   const identity = gate.identity
-  const lead = { ...parsed.data, ...(identity ? { account: identity.clientEmail } : {}) }
+  const lead = applyIntent({ ...parsed.data, ...(identity ? { account: identity.clientEmail } : {}) })
 
   const { token, ownerChatId } = telegramEnv()
   const telegramReady = Boolean(token && ownerChatId)
