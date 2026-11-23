@@ -248,6 +248,7 @@ export function SummaryStep({
               </dd>
             </div>
           </dl>
+          <GuaranteeLine dict={dict} locale={locale} className="mt-6" />
           {doc.stages.length > 0 && (
             <div className="mt-6">
               <p className="text-callout font-medium">{t.stagesTitle}</p>
@@ -288,7 +289,6 @@ export function SummaryStep({
               </p>
             </div>
           )}
-          <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
           <ul className="mt-6 grid gap-2 text-footnote leading-relaxed text-faint">
             {doc.onRequest.length > 0 && <li>{pick(ui.onRequestNote, locale)}</li>}
             <li>{t.termsNote}</li>

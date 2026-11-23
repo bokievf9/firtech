@@ -1,5 +1,6 @@
 'use client'
 
+import { VOICE_PUBLIC } from '@/lib/channels'
 import { pick } from '@/content/builder-catalog'
 import { flagshipText } from '@/content/builder-v2'
 import type { Build } from '@/lib/builder'
@@ -32,7 +33,7 @@ export function FlagshipOptions({
     product === 'personal'
       ? [
           { id: 'services', title: flagshipText.personal.services[loc], ids: personalServices as readonly string[] },
-          { id: 'extras', title: flagshipText.personal.extras[loc], ids: personalExtras as readonly string[] },
+          { id: 'extras', title: flagshipText.personal.extras[loc], ids: (personalExtras as readonly string[]).filter((x) => x !== 'voice' || VOICE_PUBLIC) },
         ]
       : [
           { id: 'depts', title: flagshipText.company.depts[loc], ids: companyDepts as readonly string[] },

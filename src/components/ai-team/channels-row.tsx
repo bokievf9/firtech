@@ -1,4 +1,4 @@
-import { channelName, type ChannelId } from '@/lib/channels'
+import { channelName, publicChannels, type ChannelId } from '@/lib/channels'
 import { personalChannelOrder } from '@/lib/personal-page'
 import type { Dict } from '@/content'
 import { channelIcons } from '../product-sections/channels-block'
@@ -11,7 +11,7 @@ export function ChannelsRow({ dict, locale, order = personalChannelOrder }: { di
       <h2 className="text-title-2 font-semibold">{dict.channelsStrip.title}</h2>
       <p className="mt-2 max-w-[52ch] text-callout text-muted">{dict.aiTeams.page.channelsLine}</p>
       <ul className="mt-5 flex flex-wrap gap-2">
-        {order.map((id) => {
+        {publicChannels(order).map((id) => {
           const Glyph = channelIcons[id]
           return (
             <li key={id} data-channel={id} className="material-regular inline-flex items-center gap-2 rounded-full border border-hairline border-glass-line px-4 py-2 text-callout">

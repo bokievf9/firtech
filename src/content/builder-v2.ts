@@ -481,7 +481,7 @@ export const previewUi = {
   },
   concept: { ru: 'Пример по вашим ответам, не финальный дизайн', en: 'An example from your answers, not the final design' },
   live: { ru: 'Отвечает демо-агент для вашей ниши', en: 'A demo agent for your niche is answering' },
-  scripted: { ru: 'Демо-ответы по сценарию', en: 'Scripted demo answers' },
+  scripted: { ru: 'Пример диалога по сценарию. Свой вопрос задайте после входа', en: 'An example dialogue from a script. Ask your own question after you sign in' },
   chatPlaceholder: { ru: 'Напишите вопрос клиента', en: 'Type a customer question' },
   chatSend: { ru: 'Отправить', en: 'Send' },
   suggested: { ru: 'Спросите, как клиент', en: 'Ask like a client' },
@@ -644,8 +644,8 @@ export const flagshipText = {
   personal: {
     title: { ru: 'Что подключить к вашему ИИ', en: 'What to connect to your AI' },
     sub: {
-      ru: 'Уровень считается сам: до двух сервисов «Спутник», три-четыре или голос «Второй пилот», пять и больше или долгая память «Второе я».',
-      en: 'The level follows your picks: up to two services is Companion, three or four or the voice is Copilot, five or more or the long memory is Alter Ego.',
+      ru: 'Уровень считается сам: до двух сервисов «Спутник», три-четыре «Второй пилот», пять и больше или долгая память «Второе я».',
+      en: 'The level follows your picks: up to two services is Companion, three or four is Copilot, five or more or the long memory is Alter Ego.',
     },
     services: { ru: 'Сервисы', en: 'Services' },
     extras: { ru: 'Возможности', en: 'Abilities' },

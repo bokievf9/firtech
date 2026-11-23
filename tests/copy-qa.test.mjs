@@ -307,3 +307,31 @@ test('copy-qa: the guarantee says «первый сценарий агента»
   assert.match(body, /first agent scenario/)
   assert.doesNotMatch(body, /приём?щик|сценарий бота|bot scenario|Небольшие проекты идут|Small projects go|калькулятор|конструктор/iu)
 })
+
+// No crypto, no «real agent» claim, no visible voice channel (owner 2026-11-24). The invoice page dictionary (`pay`) keeps its
+// technical USDT copy for invoices HQ already issued; admin copy may name the voice channel.
+test('copy-qa: no crypto words and no «real agent» claim in the public copy', () => {
+  const forbidden = [/USDT/i, /TRC20/i, /\bTON\b/, /(?<![а-яё])крипт/i, /\bcrypto/i, /комисси[июя] сет/i, /network fee/i, /настоящий агент/i, /агент настоящий/i, /real agent/i, /Tonkeeper/i]
+  const hits = []
+  for (const [name, dict] of [['ru', ru], ['en', en]]) {
+    const rest = Object.fromEntries(Object.entries(publicOf(dict)).filter(([k]) => k !== "pay"))
+    for (const [at, text] of strings({ rest, cabinetDocs: dict.cabinet?.docs, cabinetPay: dict.cabinet?.pay }))
+      for (const re of forbidden) if (re.test(text)) hits.push(`${name} ${at} [${re}]: ${text.slice(0, 100)}`)
+  }
+  none(hits)
+})
+
+test('copy-qa: voice is not a visible channel while VOICE_PUBLIC is false', async () => {
+  const { VOICE_PUBLIC, publicChannels } = await import('../src/lib/channels.ts')
+  assert.equal(VOICE_PUBLIC, false)
+  assert.deepEqual(publicChannels(['web', 'voice', 'email']), ['web', 'email'])
+  const hits = []
+  for (const [name, dict] of [['ru', ru], ['en', en]]) {
+    const re = name === 'ru' ? /голос(?!ов)|озвуч/i : /\bvoice\b/i
+    for (const [at, text] of strings(publicOf(dict))) {
+      if (/^(fira|firaGuide|guide)\b/.test(at)) continue
+      if (re.test(text) && !/tone of voice|in your voice|one brand voice|голосовых/i.test(text)) hits.push(`${name} ${at}: ${text.slice(0, 100)}`)
+    }
+  }
+  none(hits)
+})

@@ -177,7 +177,7 @@ const en: Dict = {
       budget: { s: 'Under $300', m: '$300-1000', l: '$1000 and up', unknown: 'Not sure yet' },
       askContact: 'Last step: how can we reach you? Your Telegram (@username), phone or e-mail.',
       badContact: 'I do not see a contact. Please send your Telegram (@username), phone or e-mail.',
-      thanks: 'Thank you. First reply within 5 minutes, around the clock; prices and timelines are confirmed by the founder.',
+      thanks: 'Thank you. A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the founder.',
       after: 'Your request is already with the team. To add something, message us on Telegram.',
       restart: 'Start over',
     },
@@ -209,7 +209,7 @@ const en: Dict = {
         inside: [
           'Mail, calendar, tasks and study in one chat',
           'Remembers people, habits and promises',
-          'By voice or text, in its own container',
+          'By text, in its own container',
         ],
       },
       company: {
@@ -411,10 +411,10 @@ const en: Dict = {
   },
   region: {
     title: 'We take orders from Tashkent, Almaty, Dushanbe, Bishkek and other cities of the CIS',
-    sub: 'We communicate in Russian or English. You pay in USDT or through an online wallet named in the quote. All prices on the site are in US dollars.',
+    sub: 'We communicate in Russian or English. You pay by card or by invoice, the details arrive after you confirm the quote. All prices on the site are in US dollars.',
     cities: ['Tashkent', 'Almaty', 'Dushanbe', 'Bishkek'],
     payTitle: 'Ways to pay',
-    pay: ['USDT (TRC20 or TON)', 'Online wallet named in the quote'],
+    pay: ['By card', 'By invoice'],
   },
   extras: {
     title: 'We also do',
@@ -1215,7 +1215,7 @@ const en: Dict = {
       },
       {
         q: 'What if I do not like it?',
-        a: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment in full, minus network fees. Write to us about it within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
+        a: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment in full, to the same payment method. Write to us about it within 7 days of receiving it. If you approved the first screen or scenario, the work continues on the usual terms. The exact rules are in the terms.',
       },
       {
         q: 'Can I see first what is wrong?',
@@ -1231,11 +1231,11 @@ const en: Dict = {
       },
       {
         q: 'How do payments work?',
-        a: 'Payment goes by stages. We split the quote into stages, and the quote shows what each includes and what it costs. You pay each stage before it starts and the last one before access and source files are handed over. Subscriptions are paid a month in advance. You can pay in USDT (TRC20 or TON) or through an online wallet named in the quote. A step-by-step guide is on the "How to pay" page.',
+        a: 'Payment goes by stages. We split the quote into stages, and the quote shows what each includes and what it costs. You pay each stage before it starts and the last one before access and source files are handed over. Subscriptions are paid a month in advance. You pay by card or by invoice: the link and the details arrive in your cabinet and by email once the quote is confirmed. A step-by-step guide is on the "How to pay" page.',
       },
       {
         q: 'How fast do you reply?',
-        a: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder. The final price and timeline are always written in the quote.',
+        a: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder. The final price and timeline are always written in the quote.',
       },
       {
         q: 'Do you work with clients abroad?',
@@ -1251,7 +1251,7 @@ const en: Dict = {
       },
       {
         q: 'I do not trust AI: what if it says too much to clients?',
-        a: 'The agent answers only with what you gave it at launch, and names only the prices and deadlines you allow. A new task goes through your approval first. Check it yourself: the demo on this page answers like a real agent.',
+        a: 'The agent answers only with what you gave it at launch, and names only the prices and deadlines you allow. A new task goes through your approval first. Look at the example dialogue on this page: it follows a script, and you can ask your own question after you sign in.',
       },
       {
         q: 'It is expensive. Why is this better than a live employee?',
@@ -1287,7 +1287,7 @@ const en: Dict = {
     telegramCta: 'Get replies in Telegram',
     telegramHint: 'Telegram sends your request number and tells you when we confirm the call.',
     bot: {
-      received: "Request #{id} received. First reply within 5 minutes, around the clock; prices and timelines are confirmed by the founder.",
+      received: "Request #{id} received. A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the founder.",
       booking: 'Call: {time}, waiting for confirmation.',
       bookingConfirmed: 'Call confirmed: {time}.',
       confirmed: 'Your call for request #{id} is confirmed: {time}.',
@@ -1299,7 +1299,7 @@ const en: Dict = {
   },
   contact: {
     title: 'Tell us about your project',
-    sub: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
+    sub: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder.',
     name: 'Name',
     namePlaceholder: 'What should we call you',
     contactField: 'Telegram or phone',
@@ -1318,7 +1318,7 @@ const en: Dict = {
       'By sending this form you agree that we use these details only to reply to your request, as described in the [privacy policy].',
     successTitle: 'Request received',
     successText:
-      "First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder. For something urgent, message us on Telegram: @firtech_bot.",
+      "A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder. For something urgent, message us on Telegram: @firtech_bot.",
     successQueued: 'Request saved and will go to work as soon as the server answers',
     again: 'Send another one',
     error: "Couldn't send the form. Try again or message us on Telegram.",
@@ -1328,7 +1328,7 @@ const en: Dict = {
     },
     nextTitle: 'What happens after you send it',
     next: [
-      'First reply within 5 minutes, around the clock',
+      'A manager replies within 5 minutes in working hours',
       'A 30-minute call to go through your task',
       'You get a quote with the price and timeline. The decision is yours',
     ],
@@ -1534,10 +1534,9 @@ const en: Dict = {
           'Subscriptions (support, content on autopilot, personal agents) are paid monthly in advance. A subscription can be stopped at any time; the paid month is served to its end.',
         ],
         list: [
-          'Cryptocurrency: USDT on the TRC20 or TON network, address in the estimate',
-          'The invoice arrives as a link to a payment page with a QR code; confirmation is automatic',
-          'An online wallet or transfer named in the estimate',
-          'Network and payment service fees are paid by the payer',
+          'Payment by card or by invoice: the link and the details arrive in your cabinet and by email once the estimate is confirmed',
+          'Payment service fees are paid by the payer',
+          'The legal entity details will appear here after registration',
           'A payment counts as received when the funds reach the contractor',
         ],
       },
@@ -1546,7 +1545,7 @@ const en: Dict = {
         title: 'First stage payment guarantee',
         text: [
           'The guarantee covers the first delivered result. What counts as the first result depends on the product, see the list below. If the client does not like it, they say so in writing, for example in Telegram, within 7 days of receiving it.',
-          'The first stage payment is then returned in full, minus network and payment service fees. This rule applies instead of the charge for completed work in the termination section.',
+          'The first stage payment is then returned in full, to the same payment method. This rule applies instead of the charge for completed work in the termination section.',
           'If the client approved the first result, the guarantee for that stage is closed and the work continues on the usual terms.',
         ],
         list: [
@@ -1632,9 +1631,9 @@ const en: Dict = {
   // Money-back guarantee (owner decision 2026-11-19). One sentence reused in the pricing section,
   // the builder summary, the estimate notes, the FAQ and llms.txt; the exact rule is in `terms`.
   sla: {
-    line: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
-    short: 'First reply within 5 minutes, around the clock',
-    llms: 'First reply within 5 minutes, around the clock. Everything about prices and timelines is confirmed by the founder.',
+    line: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder.',
+    short: 'A manager replies within 5 minutes in working hours',
+    llms: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder.',
   },
   guarantee: {
     line: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment.',
@@ -1646,7 +1645,7 @@ const en: Dict = {
   demoGate: {
     hint: 'Sign in to write to the agent',
     login: 'Sign in',
-    scripted: 'A scripted example. Sign in to write yourself.',
+    scripted: 'An example dialogue from a script. Ask your own question after you sign in.',
     left: 'Messages left today: {n}',
     limitTitle: 'The demo is used up for today',
     limitText: 'The limit resets tomorrow. Want an agent like this for your business? Build a project.',
@@ -1655,7 +1654,7 @@ const en: Dict = {
     write: 'Write a message',
     send: 'Send',
     lockTitle: 'Sign in to try it on your own data',
-    lockText: 'Above is a scripted example. Once you sign in, the agent answers for real.',
+    lockText: 'Above is a scripted example. Ask your own question after you sign in.',
     signup: 'Sign up with a code',
   },
   demoPage: {
@@ -1686,7 +1685,7 @@ const en: Dict = {
   referral: {
     metaTitle: 'Referral program: {percent} of each stage | Fir Tech',
     metaDescription:
-      'Recommend Fir Tech to a friend and get {percent} of each stage they pay as a USDT or online wallet transfer, or as a discount on your own project. Rules and link.',
+      'Recommend Fir Tech to a friend and get {percent} of each stage they pay as a transfer or as a discount on your own project. Rules and link.',
     eyebrow: 'Referral program',
     title: 'Recommend us and get {percent} of each stage',
     sub: 'Know someone looking for a website, an AI agent or automation? Bring them to us, and after their first payment you start earning a reward.',
@@ -1702,7 +1701,7 @@ const en: Dict = {
       },
       {
         title: 'You get the reward',
-        text: 'For each stage the client pays you get {percent}: as a USDT transfer, to an online wallet, or as a discount on your own project.',
+        text: 'For each stage the client pays you get {percent}: as a transfer or as a discount on your own project.',
       },
     ],
     rulesTitle: 'Rules',
@@ -1843,22 +1842,22 @@ const en: Dict = {
           id: 'demo',
           label: 'Demo',
           market: 'The result is shown after payment.',
-          us: 'You can see a demo before paying: our real agent works on the home page, and interface examples are on the site too.',
+          us: 'You can see a demo before paying: there is an example dialogue on the home page, and interface examples are on the site too.',
         },
         {
           id: 'entity',
           label: 'Legal entity',
           market: 'A company with a contract and registration details.',
-          us: 'We have no legal entity: we work as an individual contractor. The terms are in the offer, and the quote is confirmed in writing.',
+          us: 'The legal entity is being registered, and its details will appear on the payment page. The terms are in the offer, and the quote is confirmed in writing.',
         },
         {
-          id: 'usdt',
+          id: 'payment',
           label: 'How you pay',
           market: 'Bank accounts and transfers, sometimes with currency conversion.',
-          us: 'Payment in USDT: one transfer, and only the network takes a fee.',
+          us: 'Payment by card or by invoice, stage by stage, and the first one is refundable.',
         },
       ],
-      payLink: 'How to pay in USDT',
+      payLink: 'How to pay',
     },
     officeLink: 'See our HQ',
     note: 'The table describes typical cases. A good freelancer and a good agency may work differently.',
@@ -1912,84 +1911,62 @@ const en: Dict = {
     again: 'Order for another site',
     mockNote: 'Demo mode: the request was not sent anywhere',
   },
-  // Page "How to pay" /[locale]/pay-how: USDT for a first-time payer. Words only, no amounts or fees.
+  // Page "How to pay" /[locale]/pay-how: estimate, invoice by card or by transfer, stages, guarantee. Words only, no amounts.
   payHow: {
-    metaTitle: 'How to pay in USDT: a step-by-step guide | Fir Tech',
+    metaTitle: 'How to pay for a project: by card or by invoice | Fir Tech',
     metaDescription:
-      'How to pay for a project in USDT: what it is, TRC20 or TON, where to buy it, how the payment page with a QR code works and what happens after you pay.',
+      'How payment works at Fir Tech: the estimate and invoice, paying by card or by invoice, stages, the first stage money-back guarantee and monthly subscription.',
     eyebrow: 'Payment',
-    title: 'How to pay in USDT',
-    sub: 'Paying in crypto for the first time? Here it is step by step, from buying to the start of the stage.',
+    title: 'How to pay',
+    sub: 'The estimate, the invoice, the stages and the guarantee, step by step.',
+    banner: 'If you do not like the first stage, we return its payment in full, to the same payment method.',
+    entityNote: 'We accept payment by card or by invoice once the legal entity is registered, and the details will appear here.',
     sections: [
       {
-        id: 'what',
-        title: 'What USDT is',
+        id: 'guarantee',
+        title: 'First stage money-back guarantee',
         text: [
-          'USDT is a digital dollar: one coin is pegged to one US dollar, so the amount in the quote and the amount you send match.',
-          'It sits in a wallet on your phone, and a transfer takes a few minutes.',
+          'If you do not like the first screen of the site or the first scenario of the agent, tell us in writing within 7 days of receiving it.',
+          'We return the first stage payment in full, to the same payment method. If you approved the result, the work continues on the usual terms.',
         ],
         list: [],
       },
       {
-        id: 'network',
-        title: 'TRC20 or TON',
+        id: 'estimate',
+        title: 'The estimate and the invoice',
         text: [
-          'We accept USDT on two networks: TRC20 (the TRON network) and TON. Pick the one your wallet or exchange supports.',
-          'Choose the network carefully. A transfer on another network does not arrive and is not returned. Your wallet or exchange charges the network fee, and it depends on the network.',
+          'You get the estimate first: what each stage includes, what it costs and how long it takes. We issue the invoice only after you confirm the estimate.',
         ],
         list: [],
       },
       {
-        id: 'buy',
-        title: 'Where to buy USDT',
-        text: ['Availability depends on your country, so check each option in your own app.'],
-        list: [
-          'A wallet in a messenger, where it is available',
-          'Crypto exchanges: buy USDT and withdraw it to the right network',
-          'Tonkeeper: a wallet for the TON network, where you can send USDT from an exchange or from @wallet',
-        ],
-      },
-      {
-        id: 'page',
-        title: 'How the payment page works',
+        id: 'pay',
+        title: 'Pay by card or by invoice',
         text: [
-          'When a stage is ready to be paid, we send you a link to the invoice. On the page choose a network, open your wallet and scan the QR code, or copy the address with the button.',
-          'The link is personal: do not forward it to strangers.',
+          'The link and the details arrive in your cabinet and by email once the estimate is confirmed. All prices are in US dollars.',
         ],
         list: [],
       },
       {
-        id: 'cents',
-        title: 'The exact amount, with cents',
+        id: 'stages',
+        title: 'Stages: you pay before each stage',
         text: [
-          'The invoice shows the amount with cents. Send it exactly, to the last digit: that is how we recognize your transfer among others automatically.',
-          'If the amount came out different, message us and we will sort it out by hand.',
+          'Each stage is paid before it starts, the last one before access and source files are handed over. An approved stage opens the invoice for the next one.',
         ],
         list: [],
       },
       {
-        id: 'after',
-        title: 'What happens after you pay',
+        id: 'subscription',
+        title: 'Subscription, monthly',
         text: [
-          'You do not need to press anything: the confirmation arrives automatically, usually within 1-5 minutes, and the page shows by itself that the invoice is paid.',
-          'The paid stage then starts, and the invoice and the stage status are visible in your cabinet.',
+          'Support, content and personal agents are paid a month in advance. You can stop a subscription at any time; the paid month is served to its end.',
         ],
         list: [],
       },
       {
-        id: 'other',
-        title: 'If USDT does not suit you',
-        text: [
-          'Message us before paying. We name an alternative, for example an online wallet, right in the quote.',
-        ],
-        list: [],
-      },
-      {
-        id: 'fees',
-        title: 'Fees and cards',
-        text: [
-          'We add no fees: you pay the stage amount and the network fee. We have no bank card payments of our own.',
-        ],
+        id: 'faq',
+        title: 'Quick answers',
+        text: ['When to pay: before each stage. Refunds: a guarantee on the first stage, 7 days. Where to write: Telegram or email, we reply in working hours.'],
         list: [],
       },
     ],
@@ -2257,7 +2234,7 @@ const en: Dict = {
       haveNot: 'needed',
       nextTitle: 'What happens next',
       defaultNext: {
-        new: 'First reply within 5 minutes, around the clock; prices and timelines are confirmed by the founder.',
+        new: 'A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the founder.',
         qualified: 'We are preparing a commercial proposal.',
         proposal: 'The proposal is ready and waits for your decision.',
         contract: 'The contract is ready and waits for your signature. The first stage invoice follows right after.',
@@ -2269,7 +2246,7 @@ const en: Dict = {
       stageNow: 'Now: {stage}',
       timelineTitle: 'Progress',
       openThread: 'Open the conversation about this request',
-      pending: 'Request received, we will answer within 5 minutes.',
+      pending: 'Request received. A manager replies within 5 minutes in working hours.',
       pendingText: 'It will show up here with its stages and messages within a couple of minutes.',
       emptyTitle: 'No requests yet',
       emptyText: 'Put a project together in the builder or order a free site audit: the request shows up here at once.',
@@ -2525,7 +2502,7 @@ const en: Dict = {
       profile: 'Profile',
       noProjects: 'No projects yet. Put one together in the builder.',
       noInvoices: 'No invoices yet. An invoice arrives as a link to the payment page.',
-      payHow: 'How to pay in USDT',
+      payHow: 'How to pay',
       noDocuments: 'No documents yet.',
       noTickets: 'No requests yet.',
       noReferrals: 'Nobody has come through your link yet.',
@@ -2535,7 +2512,7 @@ const en: Dict = {
       of: 'of',
       stageLabel: 'Project stage',
       number: 'Number',
-      payHint: 'Pay in USDT using the details in the invoice.',
+      payHint: 'Pay by card or with the details in the invoice.',
       payTerms: 'Payment terms',
       answered: 'Answered',
       you: 'You',
@@ -2657,8 +2634,8 @@ const en: Dict = {
         legalNameHint: 'Your full name or the company name, as in official papers.',
         legalAddress: 'Address',
         legalAddressHint: 'Registered or legal address.',
-        wallet: 'Wallet for a guarantee refund',
-        walletHint: 'USDT (TRC20 or TON) or an online wallet. Needed only if the guarantee applies.',
+        wallet: 'Details for a guarantee refund',
+        walletHint: 'The card or account to return the payment to. Needed only if the guarantee applies.',
       },
       notify: {
         title: 'Notifications',
@@ -2722,7 +2699,7 @@ const en: Dict = {
     },
   },
   faqLinks: {
-    'pay-how': 'How to pay in USDT, step by step',
+    'pay-how': 'How to pay, step by step',
     compare: 'Comparison: freelancer, agency or us',
     referral: 'Recommend us and get a reward',
     audit: 'A free audit of your website',
@@ -2969,7 +2946,7 @@ const en: Dict = {
       sales: {
         title: 'Leads and sales',
         rungs: {
-          agent: { title: 'AI lead manager', text: 'Answers clients within a minute, qualifies and hands over to you.' },
+          agent: { title: 'AI lead manager', text: 'The agent answers your clients within a minute, around the clock, qualifies and hands over to you.' },
           auto: { title: 'Sales on autopilot', text: 'Finding new clients joins the replies. A prospector prepares the list and the text.' },
           dept: { title: 'Sales team', text: 'Lead manager, prospector and presales with proposals and quotes.' },
         },
@@ -3012,7 +2989,7 @@ const en: Dict = {
     planLevels: {
       title: 'Three levels',
       basic: 'For a start: mail, calendar and reminders.',
-      plus: 'For busy people: several areas at once and voice.',
+      plus: 'For busy people: several areas at once and long memory.',
       max: 'For those who hand over almost everything: a long memory of people.',
       setup: 'setup',
       monthly: 'a month',
@@ -3178,7 +3155,7 @@ const en: Dict = {
         capabilities: [
           { title: 'Knows your business', text: 'Your site, prices, documents and rules sit in one knowledge base, and answers come with a link to the source.', example: 'Returns within 14 days. Rules, section 2.', mock: 'chat', chips: ['Site', 'Price list', 'Rules'] },
           { title: 'Answers your staff', text: 'An employee asks Fira instead of digging through folders and chats and gets an answer with its source.', example: 'What discount do regulars get? Fira answers from your price list.', mock: 'chat', chips: ['Question', 'Answer', 'Source'] },
-          { title: 'Answers your clients', text: 'In the clients’ channels: site chat, messengers, email and voice. Hands the hard cases to a person.', example: 'A chat request got an answer within a minute.', mock: 'chat', chips: ['Site chat', 'WhatsApp', 'Email'] },
+          { title: 'Answers your clients', text: 'In the clients’ channels: site chat, messengers and email. Hands the hard cases to a person.', example: 'The agent answered a chat request within a minute, at night too.', mock: 'chat', chips: ['Site chat', 'WhatsApp', 'Email'] },
           { title: 'Remembers context', text: 'Remembers clients, agreements and earlier answers, so it never asks the same thing twice.', example: 'A client came back a week later and Fira picked up where it left off.', mock: 'checks', chips: ['Clients', 'Agreements'] },
           { title: 'Skills by role', text: 'Sales, support, content and back office plug in as skills of the same AI, not as separate programs.', example: 'Support was added to sales, nothing was rebuilt.', mock: 'cards', chips: ['Sales', 'Support', 'Content'] },
         ],
@@ -3379,7 +3356,7 @@ const en: Dict = {
         metaDescription:
           'The AI lead manager answers clients in messengers and on your site, asks the right questions and hands you a ready request. Price, payment stages and FAQ.',
         result: 'No request waits until morning for an answer',
-        lead: 'Answers clients in messengers and in your site chat within a minute, clarifies the task and hands you a ready request.',
+        lead: 'The agent answers your clients in messengers and in your site chat within a minute, around the clock, clarifies the task and hands you a ready request.',
         capabilities: [
           { title: 'A reply within a minute', text: 'The first message gets a reply at any hour, nights and weekends included. It answers from the services and terms you gave us at launch. Channels are connected per the estimate: messengers, site chat, email.', example: 'Hello. Yes, we work on Sunday from 10:00 to 18:00.', mock: 'chat', chips: ['Prices', 'Address', 'Booking'] },
           { title: 'Three questions to the client', text: 'The agent finds out the task, the deadline and the budget, as a manager would.', example: 'What do you need and by when?', mock: 'chat', chips: ['Website', 'Automation', 'Other'] },
@@ -3512,7 +3489,7 @@ const en: Dict = {
         inPrice: ['A monthly publishing plan', 'Posts, cards and short video scripts', 'One-button approval of every piece', 'Scheduled posting where the platform allows', 'A short weekly report'],
         notInPrice: ['Buying ads and the ad budget', 'Shooting live video at your place', 'Replies to followers in comments and direct messages', 'Paid services and stock photos, if needed'],
         objections: [
-          { q: 'The texts will sound like a robot', a: 'We set the voice from your examples and tune it on your notes in the first week. You see every piece before it goes out.' },
+          { q: 'The texts will sound like a robot', a: 'We set the tone from your examples and tune it on your notes in the first week. You see every piece before it goes out.' },
           { q: 'How much of my time will it take', a: 'On day one, an intro and the first plan. After that, a few minutes a day to approve with one button.' },
           { q: 'What if a post goes out with a mistake', a: 'Nothing is published without your approval. A rejected piece is redone from your comment.' },
         ],
@@ -3570,11 +3547,11 @@ const en: Dict = {
   demoSection: {
     eyebrow: 'Demo',
     title: 'Try it now',
-    sub: 'Live agents: you write, they answer.',
+    sub: 'An example dialogue from a script. Ask your own question after you sign in.',
     tabsLabel: 'Products to try',
     exampleBadge: 'Example',
     receptionist: {
-      intro: 'Pick a niche and write the way a client would. A real agent answers.',
+      intro: 'Pick a niche and see how the agent answers a client. An example dialogue from a script. Ask your own question after you sign in.',
       nicheLabel: 'Niche',
       niches: { salon: 'Beauty salon', clinic: 'Clinic', shop: 'Shop', cafe: 'Cafe', service: 'Services', courses: 'Courses' },
       hints: {
@@ -3587,7 +3564,7 @@ const en: Dict = {
       },
       placeholder: 'Write a message',
       send: 'Send',
-      note: 'The agent is real. The demo does not take contacts and creates no lead.',
+      note: 'An example dialogue from a script. Ask your own question after you sign in. The demo does not take contacts and creates no lead.',
       empty: 'Tap a question or write your own.',
       chips: { salon: 'Demo: a fictional salon', clinic: 'Demo: a fictional clinic', shop: 'Demo: a fictional shop', cafe: 'Demo: a fictional cafe', service: 'Demo: a fictional service company', courses: 'Demo: fictional courses' },
       reset: 'Reset the demo',
@@ -3627,14 +3604,14 @@ const en: Dict = {
       agent: 'AI booking assistant',
     },
     personal: {
-      intro: 'This is how a Personal AI works: the morning brief, mail, your promises, time for tasks and a language lesson. A scripted sample for a coffee shop owner, no real data is connected.',
+      intro: 'This is how a Personal AI works: the morning brief, mail, your promises, time for tasks and a language lesson. A scripted sample for a busy person, no real data is connected. Ask your own question after you sign in.',
       name: 'Personal AI',
-      sub: 'Sample: a coffee shop owner',
+      sub: 'Sample: a busy person',
       greet: 'Good morning. Today’s brief is ready. Where shall we start?',
       prompts: [
-        { q: 'What is on today?', a: 'Three meetings, the first at 10:00 with a supplier. Two emails wait for a reply, one from the bank. The rent invoice is due by Friday.' },
+        { q: 'What is on today?', a: 'Three things today, the first at 10:00: a call with your manager. Two emails wait for a reply, one from the bank. The rent is due by Friday.' },
         { q: 'Go through my mail', a: 'Five emails: three are just for your information, two wait for you. Replies to the bank and to Aziz are drafted, open and check them.' },
-        { q: 'What did I promise this week?', a: 'The price list to Aziz by Wednesday, a review for Dilnora by Friday and a call to the accountant once the report is in.' },
+        { q: 'What did I promise this week?', a: 'A reply to Aziz by Wednesday, a review for Dilnora by Friday and a call to your mother on Sunday.' },
         { q: 'Find an hour for the report', a: 'I put the report on Tuesday, 15:00. I will remind you an hour before and attach last month’s sheet.' },
         { q: 'English lesson, please', a: 'Ten minutes, three words you mixed up last time. First one: deadline. How do you say the report is due on Friday?' },
       ],
@@ -3682,7 +3659,7 @@ const en: Dict = {
         text: '30 minutes, free. We go through the task and propose a solution, even if you end up going elsewhere.',
         you: 'You tell us about the business and the task.',
         cabinet: 'A request with a status and the conversation with us.',
-        who: 'First reply within 5 minutes, around the clock. After that the founder is in touch.',
+        who: 'A manager replies within 5 minutes in working hours. After that the founder is in touch.',
       },
       {
         title: 'Quote',
@@ -3715,7 +3692,7 @@ const en: Dict = {
     ],
     paymentTitle: 'Payment by stages',
     payment:
-      'You pay each stage before it starts, the last one before the access is handed over. You can pay in USDT (TRC20 or TON) or through an online wallet that we name in the quote.',
+      'You pay each stage before it starts, the last one before the access is handed over. You can pay by card or by invoice: the link and the details arrive once the quote is confirmed.',
     paymentLink: 'How to pay, step by step',
     guaranteeTitle: 'Guarantee',
     guaranteeRule: 'Tell us in writing within 7 days of receiving it. The exact terms are in the offer.',
@@ -4020,7 +3997,7 @@ const en: Dict = {
       needsTitle: 'What we need from you',
       deliveryTitle: 'Delivery',
       delivery:
-        'The agent works in your channels: a site chat, messengers, email, voice or a cabinet. The ones we connect go into the quote.',
+        'The agent works in your channels: a site chat, messengers, email or a cabinet. The ones we connect go into the quote.',
       scopeNote:
         'The scope follows the roles in our own company. What exactly goes into your delivery is fixed in the quote.',
       faqTitle: 'Questions',
@@ -4106,7 +4083,7 @@ const en: Dict = {
             'Sends the materials in a batch for approval',
           ],
           needs: [
-            'A description of the business and your tone of voice',
+            'A description of the business and your tone of writing',
             'Posts you like and a list of forbidden topics',
             'Case studies, photos and facts you are happy to show',
           ],
@@ -4237,8 +4214,8 @@ const en: Dict = {
         },
         'lead-handler': {
           title: 'Lead manager',
-          headline: 'Every client gets an answer within a minute',
-          promise: 'Answers the first customer message within a minute, asks the questions and books a call.',
+          headline: 'Every client gets an answer within a minute, around the clock',
+          promise: 'The agent answers your clients within a minute, around the clock: asks the questions and books a call.',
           does: [
             'Answers the first message in the messenger',
             'Asks clarifying questions from your list',
@@ -4423,7 +4400,7 @@ const en: Dict = {
           ],
           needs: [
             'A list of site and service addresses',
-            'A channel for alerts: chat, email or voice',
+            'A channel for alerts: chat or email',
             'Who should be told when something fails',
           ],
           worksNote: 'Works on its own and depends on nobody.',
@@ -4767,7 +4744,7 @@ const en: Dict = {
       sales: {
         title: 'Sales team',
         headline: 'Every client gets an answer, and a hot one gets a proposal too',
-        card: 'The client gets a reply within a minute, you get a ready proposal.',
+        card: 'The agent replies to the client within a minute, around the clock, and you get a ready proposal.',
         promise:
           'The lead manager answers the first message, the prospector looks for new clients, presales prepares the proposal and the estimate. Prices and contracts stay with you.',
         forWhom: 'Service businesses and shops where requests arrive in messengers and some get lost.',
@@ -4949,8 +4926,8 @@ const en: Dict = {
     here: 'Have a look here, it is worth it.',
     done: 'That is all. If anything is unclear, ask me.',
     noStops: 'There is not much to show here, but I can answer questions.',
-    voiceOn: 'Turn the voice on',
-    voiceOff: 'Turn the voice off',
+    voiceOn: 'Turn the narration on',
+    voiceOff: 'Turn the narration off',
     home: 'Hi, I am Fira. Tap me and I will show you the site, answer a question or help you build a project.',
     notFound: 'There is no such page. I looked everywhere, let us go back to the home page.',
     tour: {
