@@ -104,6 +104,11 @@ function field(path: string, def: number): PriceField {
         ...usd, unit: key === 'setup' ? 'usd' : 'usd_month', step: 5,
       }
     }
+    case 'agentAddons':
+      return {
+        path, def, group: 'plans', section: planNames.agent ?? 'agent',
+        label: a === 'knowledge' ? 'One agent: knowledge import (one-time)' : 'One agent: team training (one-time)', ...usd, step: 5,
+      }
     case 'teamDiscount':
       return { path, def, group: 'discounts', section: 'Discounts', label: 'AI team discount: sum of agents minus', unit: 'percent', min: 0, max: 50, step: 1 }
     case 'companyPerEmployee':
