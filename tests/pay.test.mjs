@@ -190,8 +190,8 @@ test('copy: pay section exists in both locales with the same shape, no dashes or
   assert.match(ru.pay.centsNote, /Сумма с копейками/)
   assert.match(en.pay.warning, /only USDT/)
   const payment = ru.terms.sections.find((s) => s.id === 'payment')
-  assert.ok(payment.list.some((l) => /страницу оплаты с QR-кодом/.test(l)))
-  assert.ok(en.terms.sections.find((s) => s.id === 'payment').list.some((l) => /QR code/.test(l)))
+  assert.ok(payment.list.some((l) => /картой или по счёту/.test(l)))
+  assert.ok(en.terms.sections.find((s) => s.id === 'payment').list.some((l) => /by card or by invoice/.test(l)))
 })
 
 test('headers: pay pages send no-referrer and noindex, global rule untouched', async () => {

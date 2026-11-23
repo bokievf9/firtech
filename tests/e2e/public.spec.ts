@@ -159,13 +159,13 @@ test('AI team: the index lists six departments and every card opens its page', a
   // The index shows a price line on each of the six team cards (setup + monthly, in USD).
   const prices = page.locator('main [data-team-price]')
   await expect(prices).toHaveCount(6)
-  for (const text of await prices.allTextContents()) expect(text).toMatch(/\$\d/)
+  for (const text of await prices.allTextContents()) expect(text).toMatch(/\d\s*USD/)
   await expect(page.locator('main a[href^="/ru/ai-team/agent/"]').first()).toBeAttached()
   await page.locator('main a[href="/ru/ai-team/support"]').first().click()
   await expect(page).toHaveURL(/\/ru\/ai-team\/support$/)
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   // The department page carries a subscription price card for its team.
-  await expect(page.locator('main [data-subscription-card]').first()).toContainText('$')
+  await expect(page.locator('main [data-subscription-card]').first()).toContainText('USD')
 })
 
 test('AI team: a department page lists its agents and an agent page opens the builder or the chat', async ({ page }) => {
@@ -178,12 +178,13 @@ test('AI team: a department page lists its agents and an agent page opens the bu
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
 })
 
-test('pay-how: the three steps of paying in USDT are on the page and no local currency is quoted', async ({ page }) => {
+test('pay-how: guarantee banner first, card or invoice, no crypto words on the page', async ({ page }) => {
   await open(page, '/ru/pay-how')
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  await expect(page.locator('main')).toContainText('USDT')
-  await expect(page.locator('main')).toContainText('TRC20')
-  await expect(page.locator('main')).toContainText('TON')
+  await expect(page.locator('[data-guarantee-banner]')).toBeVisible()
+  await expect(page.locator('main')).toContainText('картой или по счёту')
+  await expect(page.locator('main')).not.toContainText(/USDT|TRC20|крипт/i)
+  await expect(page.locator('[data-entity-note]')).toContainText('после регистрации юрлица')
 })
 
 test('bare paths of known pages redirect to a language (contracts link /terms and /privacy)', async ({ request }) => {

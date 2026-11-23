@@ -153,7 +153,7 @@ export const toneUi = {
 
 export const tierText: Record<'basic' | 'plus' | 'max', Named> = {
   basic: n(['Спутник', 'Помнит, напоминает, отвечает по двум-трём делам'], ['Companion', 'Remembers, reminds, covers two or three areas']),
-  plus: n(['Второй пилот', 'Ведёт несколько дел, понимает голос'], ['Co-pilot', 'Runs several areas and understands voice']),
+  plus: n(['Второй пилот', 'Ведёт несколько дел сразу'], ['Co-pilot', 'Runs several areas at once']),
   max: n(['Второе я', 'Берёт на себя почти всё и долго помнит'], ['Second self', 'Takes on almost everything and remembers long']),
 }
 export const tierUi = {
@@ -186,7 +186,7 @@ export const dayUi = {
     l('Доброе утро. План на сегодня', 'Good morning. Today’s plan'),
     l('Доброе утро. Сводка на сегодня готова', 'Good morning. Your brief for today is ready'),
   ],
-  label: l('Набросок по вашим ответам', 'A sketch from your answers'),
+  label: l('Смета по вашим ответам; итог фиксируем перед стартом', 'An estimate from your answers; we fix the total before the start'),
 }
 
 export const personalLabels = {

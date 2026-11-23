@@ -17,8 +17,9 @@ test('flagships: Personal AI page, twelve skills, persona day, locked demo, thre
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('ИИ, который знает именно вас')
   const got = await page.locator('[data-product-section]').evaluateAll((els) => els.map((el) => el.getAttribute('data-product-section')))
   expect(got).toEqual(['hero', 'channels', 'skills', 'myday', 'plans', 'start', 'questions'])
-  // the channels are equals: seven tiles, Telegram not first
-  await expect(page.locator('[data-channels] > li')).toHaveCount(7)
+  // the channels are equals: six tiles (voice is hidden until ready), Telegram not first
+  await expect(page.locator('[data-channels] > li')).toHaveCount(6)
+  await expect(page.locator('[data-channel="voice"]')).toHaveCount(0)
   expect(await page.locator('[data-channels] > li').first().getAttribute('data-channel')).not.toBe('telegram')
   // twelve skill tiles, a tap shows the example
   await expect(page.locator('[data-skill]')).toHaveCount(12)

@@ -8,7 +8,7 @@ import {
   WhatsappLogo,
 } from '@phosphor-icons/react/ssr'
 import type { ComponentType } from 'react'
-import { channelIds, channelLine, channelName, type ChannelId } from '@/lib/channels'
+import { channelIds, channelLine, channelName, publicChannels, type ChannelId } from '@/lib/channels'
 import { personalChannelOrder } from '@/lib/personal-page'
 import { Reveal } from '../reveal'
 import { SectionShell, type ProductSectionContext } from './shell'
@@ -29,10 +29,11 @@ export function ChannelsBlock({ ctx, band }: { ctx: ProductSectionContext; band?
   const { dict, locale, id: product } = ctx
   // The Personal AI and company pages list them with Telegram in the middle, never first (owner 2026-11-22).
   const order = product === 'personal' || product === 'company' ? personalChannelOrder : channelIds
+  const visible = publicChannels(order)
   return (
     <SectionShell id="channels" title={dict.channelsStrip.title} sub={dict.channelsStrip.sub} band={band}>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-channels>
-        {order.map((id, i) => {
+        {visible.map((id, i) => {
           const Glyph = channelIcons[id]
           return (
             <li key={id} data-channel={id}>

@@ -49,14 +49,15 @@ function* strings(value, at = '') {
     for (const [k, v] of Object.entries(value)) yield* strings(v, at ? `${at}.${k}` : k)
 }
 
-test('payment copy: only USDT and the wallet from the estimate, no Kaspi, Payme, Click', async () => {
+test('payment copy: card or invoice, no crypto, no Kaspi, Payme, Click', async () => {
   for (const [name, dict] of [['ru', ru], ['en', en]])
     for (const [at, text] of strings(dict)) assert.doesNotMatch(text, /Kaspi|\bPayme\b|\bClick\b/, `${name} ${at}`)
-  assert.match(ru.region.pay.join(' '), /USDT/)
-  assert.match(en.region.pay.join(' '), /USDT/)
+  assert.deepEqual(ru.region.pay, ['Картой', 'По счёту'])
+  assert.deepEqual(en.region.pay, ['By card', 'By invoice'])
   const body = await (await llms.GET()).text()
   assert.doesNotMatch(body, /Kaspi|\bPayme\b|\bClick\b|Bank cards/)
-  assert.match(body, /USDT/)
+  assert.doesNotMatch(body, /USDT|TRC20/)
+  assert.match(body, /Картой|By card/)
   assert.doesNotMatch(body, /Working with companies/)
 })
 

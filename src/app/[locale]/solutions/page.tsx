@@ -8,10 +8,10 @@ import { Reveal } from '@/components/reveal'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
 import { categoryNames, kindCatalog, kindName, kindsByCategory, pick } from '@/content/builder-catalog'
-import { presets, quote } from '@/lib/builder'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
-import { formatUsd } from '@/lib/pricing'
+import { fromLine } from '@/lib/price-format'
+import { nichePrice } from '@/lib/builder-presets'
 import { getPricing } from '@/lib/pricing-store'
 import { siteUrl } from '@/lib/site'
 import { solutionCopy, type SolutionKind } from '@/lib/solutions'
@@ -84,7 +84,6 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
               </h2>
               <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {kinds.map((kind, i) => {
-                  const q = quote(presets[kind], pricing)
                   const copy = solutionCopy(kind, locale, dict, pricing)
                   return (
                     <li key={kind}>
@@ -106,9 +105,11 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
                           </h3>
                           <p className="mt-3 leading-relaxed text-muted">{copy.card}</p>
                           <div className="mt-8 flex items-end justify-between gap-4 pt-2 lg:mt-auto">
-                            <p className="font-mono text-2xl text-accent-text">
-                              <span className="text-sm text-muted">{t.from} </span>
-                              {formatUsd(q.total)}
+                            <p className="font-mono text-lg leading-snug text-accent-text" data-niche-price={kind}>
+                              {(() => {
+                                const price = nichePrice(kind, pricing)
+                                return fromLine(price.oneTime, price.monthly, locale)
+                              })()}
                             </p>
                             <span className="inline-flex items-center gap-1.5 text-sm text-muted">
                               {t.more}

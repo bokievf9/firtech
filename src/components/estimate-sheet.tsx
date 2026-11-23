@@ -90,7 +90,6 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
     ...(doc.monthly ? [dict.builder.monthlyNote] : []),
     doc.scope,
     dict.builder.note,
-    doc.guarantee,
   ]
   const shownLink = doc.link.replace(/^https?:\/\//, '')
 
@@ -155,6 +154,23 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
               </div>
             )}
           </dl>
+        )}
+
+        {(doc.payNow || doc.subscription) && (
+          <div data-estimate-now className="mt-6 grid gap-1.5 rounded-lg border border-[#d9ded4] bg-[#f1f4ec] p-4 text-[14px] leading-snug break-inside-avoid">
+            {doc.payNow && (
+              <p data-estimate-paynow>
+                <span className="font-semibold">{doc.payNow.label}:</span> {doc.payNow.amount} ({doc.payNow.stage})
+              </p>
+            )}
+            {doc.subscription && (
+              <p data-estimate-subscription>
+                <span className="font-semibold">{doc.subscription.label}:</span> {doc.subscription.amount}, {doc.subscription.text}
+              </p>
+            )}
+            <p data-estimate-start>{doc.start}</p>
+            <p className="text-[12.5px] text-[#5b6459]">{doc.sketch}</p>
+          </div>
         )}
 
         <table className="mt-7 w-full border-collapse text-left text-[13.5px] leading-snug">
@@ -231,6 +247,10 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
           {doc.agents && <Sum label={agentUi.labels.monthly[locale === 'ru' ? 'ru' : 'en']} value={`+ ${doc.agents.monthly}`} muted />}
         </dl>
 
+        <p className="mt-9 text-[13.5px] leading-snug font-medium text-[#14170f] break-inside-avoid" data-estimate-guarantee>
+          {doc.guarantee}
+        </p>
+
         {doc.stages.length > 0 && (
           <section className="mt-9 break-inside-avoid">
             <Heading>{dict.builder.stagesTitle}</Heading>
@@ -270,9 +290,6 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
               </tbody>
             </table>
             <p className="mt-2 text-[13px] text-[#3d443b]">{dict.builder.stageRule}</p>
-            <p className="mt-1.5 text-[13px] font-medium" data-estimate-start>
-              {doc.start}
-            </p>
           </section>
         )}
 

@@ -25,7 +25,8 @@ import {
   type AiTeamId,
 } from '@/lib/ai-teams'
 import { buttonClass } from '@/lib/cn'
-import { companyPlanOf, formatUsd } from '@/lib/pricing'
+import { companyPlanOf } from '@/lib/pricing'
+import { usd } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
@@ -193,10 +194,20 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
                         </li>
                       ))}
                     </ul>
-                    <p className="mt-auto font-mono text-callout text-fg" data-team-price={id}>
-                      {dict.subscription.from} {formatUsd(price.setup)} + {formatUsd(price.monthly)}
-                      {dict.products.perMonth}
-                    </p>
+                    <dl className="mt-auto grid grid-cols-2 gap-3 font-mono text-callout text-fg" data-team-price={id}>
+                      <div>
+                        <dt className="font-sans text-caption text-faint">{dict.subscription.colSetup}</dt>
+                        <dd>
+                          {dict.subscription.from} {usd(price.setup)}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="font-sans text-caption text-faint">{dict.subscription.colMonthly}</dt>
+                        <dd>
+                          {dict.subscription.from} {usd(price.monthly)}
+                        </dd>
+                      </div>
+                    </dl>
                   </Card>
                 </Reveal>
               </li>

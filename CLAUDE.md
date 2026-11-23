@@ -193,8 +193,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   token filled by `fillServicePrice` (`src/lib/seo.ts`); meta descriptions must be 120-160 characters
   and copy must have no long dashes, AI tells or dollar amounts (`tests/site-c.test.mjs`); `/terms`
   (`terms` in the dictionaries, `components/legal-doc.tsx` shared with privacy) is a full draft
-  (2026-11-19: individual contractor without a legal entity, payment by stages since 2026-11-21, USDT TRC20/TON or an
-  online wallet named in the estimate, two rounds of revisions, 7-day acceptance, liability capped
+  (2026-11-19: individual contractor without a legal entity, payment by stages since 2026-11-21, card or invoice (no crypto, 2026-11-24), two rounds of revisions, 7-day acceptance, liability capped
   at the paid amount; contractor «Fir Tech», contact `hello@firtech.pro`, law of Tajikistan, filled
   on the owner's word 2026-11-19; `placeholder` stays in the dictionary for future gaps); `llms.txt`
   comes from the products and `pricing.ts`.
@@ -202,7 +201,7 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   или первый сценарий не понравился, возвращаем оплату первого этапа») is `guarantee.line` in the dictionaries,
   shown by `components/guarantee-line.tsx` in `#pricing` and the builder summary, in the estimate notes
   (`estimateDoc().guarantee`), in the FAQ, in `llms.txt` (`guarantee.llms`); the rule is the `guarantee`
-  section of `terms` (after `payment`, 7 days, full return minus network fees). `/[locale]/referral`
+  section of `terms` (after `payment`, 7 days, full return to the same payment method). `/[locale]/referral`
   (`referral` dictionary, link generator `components/referral-link.tsx`) pays `referralPercent`
   (`pricing.ts`, number 10) of EACH paid stage of the referred client (owner 2026-11-21); copy carries the `{percent}` token
   (`fillReferralPercent` in `src/lib/referral.ts`), never a typed percent. `/[locale]/compare`
@@ -263,11 +262,15 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
   Tests: `tests/pricing-store.test.mjs`.
 - Security headers (`next.config.ts`, all paths): nosniff, `Referrer-Policy: strict-origin-when-cross-origin`, `X-Frame-Options: DENY`,
   `Permissions-Policy` (camera, geolocation and microphone off everywhere), HSTS in production (nginx sends none, so no duplicate). CSP stage 1 (security 2026-11-23, P1-8): `Content-Security-Policy-Report-Only` from `src/lib/csp.ts` on every path (`frame-ancestors 'self'` on `/api/cabinet/documents/:id/file` and `/api/admin/files/*`), reports go to `POST /api/csp-report` (counts per directive and blocked host only, logged once a minute, 200/min per IP, body <= 8 KB, `lib/csp-report.ts`); no `new Function`/`eval` anywhere (theme fallback is plain code). Stage 2 = enforce with nonce + strict-dynamic on /cabinet, /pay, /admin once the reports are clean. Tests `tests/csp.test.mjs`.
-- Payment copy (owner 2026-11-19, stages 2026-11-21): USDT (TRC20/TON) or an online wallet named in the estimate; payment by
+- Payment copy (owner 2026-11-24, replaces USDT/online wallet): by card or by invoice, never crypto (no USDT, TRC20, TON, «сеть»,
+  «кошелёк»; the entity is being registered, so pay-how and terms say that the details appear after registration); the legacy invoice
+  page `/pay` keeps its technical USDT copy until HQ stops issuing crypto invoices. Voice is hidden from public pages: `VOICE_PUBLIC`
+  in `src/lib/channels.ts` (false). Studio promise «Ответ менеджера в течение 5 минут в рабочее время», agent promise
+  «Агент отвечает вашим клиентам за минуту, круглосуточно». Payment by
   stages, each stage BEFORE it starts and the last before handover (rule sentence `builder.stageRule`), projects under
   `smallProjectMaxUsd` in two stages 50/50, subscriptions monthly in advance; «50%» appears only in the terms
-  (`{small}` token filled by `fillStageTokens`); the guarantee returns the first stage payment; never cards, Kaspi, Payme,
-  Click as our own methods and never «за каждый этап отдельно». The free audit is promised «в течение рабочего дня после заявки, обычно быстрее».
+  (`{small}` token filled by `fillStageTokens`); the guarantee returns the first stage payment to the same payment method (it is the first block of `/pay-how`);
+  never Kaspi, Payme, Click as our own methods and never «за каждый этап отдельно». The free audit is promised «в течение рабочего дня после заявки, обычно быстрее».
   The public office maps `blocked` to `waiting`.
 - Env (in `.env.local`, see `.env.example`): `TELEGRAM_BOT_TOKEN` (bot from @BotFather),
   `TELEGRAM_CHAT_ID` (the owner's user id or a group id: send the bot a message, then read

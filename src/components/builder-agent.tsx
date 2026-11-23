@@ -14,7 +14,7 @@ import { agentAddonPrices, chooseAgent, toggleAgent, withAgentBrief, withDeep } 
 import { depthQuestions, noteLimit, typingNote } from '@/lib/builder-depth'
 import { deptOfAgents } from '@/lib/builder-dept'
 import { fieldClass } from '@/components/ui'
-import { channelLine, channelName } from '@/lib/channels'
+import { channelLine, channelName, publicChannels } from '@/lib/channels'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimateDoc } from '@/lib/estimate-doc'
 import type { Locale } from '@/lib/i18n'
@@ -119,7 +119,7 @@ export function AgentStep({
   if (step === 1)
     return (
       <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
-        {agentChannelIds.map((id) => {
+        {publicChannels(agentChannelIds).map((id) => {
           const on = brief.channels?.includes(id) ?? false
           return (
             <Choice key={id} on={on} onClick={() => setBuild((b) => withAgentBrief(b, { channels: toggle(b.agentBrief?.channels, id) }))} className="flex gap-3 p-4">

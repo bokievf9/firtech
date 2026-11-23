@@ -230,6 +230,22 @@ export function SummaryStep({
               </li>
             )}
           </ul>
+          {(doc.payNow || doc.subscription) && (
+            <div data-estimate-now className="mt-5 grid gap-1.5 rounded-xl border border-hairline border-line bg-surface-2 p-4 text-callout">
+              {doc.payNow && (
+                <p data-estimate-paynow>
+                  <span className="font-medium">{doc.payNow.label}:</span> {doc.payNow.amount} ({doc.payNow.stage})
+                </p>
+              )}
+              {doc.subscription && (
+                <p data-estimate-subscription>
+                  <span className="font-medium">{doc.subscription.label}:</span> {doc.subscription.amount}, {doc.subscription.text}
+                </p>
+              )}
+              <p data-estimate-start>{doc.start}</p>
+              <p className="text-footnote text-faint">{doc.sketch}</p>
+            </div>
+          )}
           <dl className="mt-5 grid gap-2 text-callout">
             {q.discount && (
               <>
@@ -248,6 +264,7 @@ export function SummaryStep({
               </dd>
             </div>
           </dl>
+          <GuaranteeLine dict={dict} locale={locale} className="mt-6" />
           {doc.stages.length > 0 && (
             <div className="mt-6">
               <p className="text-callout font-medium">{t.stagesTitle}</p>
@@ -283,12 +300,8 @@ export function SummaryStep({
                 </tbody>
               </table>
               <p className="mt-2 text-footnote text-faint">{t.stageRule}</p>
-              <p className="mt-1.5 text-footnote font-medium" data-estimate-start>
-                {doc.start}
-              </p>
             </div>
           )}
-          <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
           <ul className="mt-6 grid gap-2 text-footnote leading-relaxed text-faint">
             {doc.onRequest.length > 0 && <li>{pick(ui.onRequestNote, locale)}</li>}
             <li>{t.termsNote}</li>

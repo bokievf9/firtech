@@ -3,7 +3,7 @@
 import { useId, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
-import { formatUsd } from '@/lib/pricing'
+import { usd } from '@/lib/price-format'
 
 // The subscription card shared by the product, team and agent pages (owner 2026-11-22): one-time setup plus a monthly
 // fee that includes the model usage, and a switch to «свой API-ключ» with the lower monthly fee. All amounts come in as
@@ -62,14 +62,14 @@ export function SubscriptionCard({ copy, setup, monthly, byokMonthly, from, titl
       <p className={cn('font-mono', title && 'mt-4')}>
         {from && <span className="mr-1.5 text-sm text-muted">{copy.from}</span>}
         <span className="text-3xl text-fg" data-sub-setup>
-          {formatUsd(setup)}
+          {usd(setup)}
         </span>
         <span className="ml-2 text-sm text-muted">{copy.setup}</span>
       </p>
       <p className="mt-1 font-mono text-sm text-muted">
         +{' '}
         <span className="text-lg text-fg" data-sub-monthly>
-          {formatUsd(month)}
+          {usd(month)}
         </span>{' '}
         {copy.monthly}
       </p>
@@ -78,7 +78,7 @@ export function SubscriptionCard({ copy, setup, monthly, byokMonthly, from, titl
         {own ? copy.ownNote : copy.oursNote}
       </p>
       {own && monthly > byokMonthly && (
-        <p className="mt-1 text-footnote text-accent-text">{copy.saves.replace('{amount}', formatUsd(monthly - byokMonthly))}</p>
+        <p className="mt-1 text-footnote text-accent-text">{copy.saves.replace('{amount}', usd(monthly - byokMonthly))}</p>
       )}
       {children && <div className="mt-4 border-t border-t-hairline border-line pt-4 text-callout text-muted">{children}</div>}
       {notes && notes.length > 0 && (

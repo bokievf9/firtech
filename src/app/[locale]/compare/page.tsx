@@ -141,7 +141,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
                   <p className="text-xs tracking-[0.1em] text-accent-text uppercase">{t.contrast.usLabel}</p>
                   <p className="mt-1 text-fg">
                     {row.us}
-                    {row.id === 'usdt' && (
+                    {row.id === 'payment' && (
                       <Link
                         href={`/${locale}/pay-how`}
                         className="mt-2 flex items-center gap-1 text-accent-text underline underline-offset-4"

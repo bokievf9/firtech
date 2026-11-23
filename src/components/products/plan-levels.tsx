@@ -1,5 +1,6 @@
 import type { Dict } from '@/content'
-import { formatUsd, personalPlanList, companyPlanOf } from '@/lib/pricing'
+import { usd } from '@/lib/price-format'
+import { personalPlanList, companyPlanOf } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
 import { SubscriptionCard } from './subscription-card'
 
@@ -53,7 +54,7 @@ export async function CompanyPlan({ sub }: { sub: Dict['subscription'] }) {
         setup={plan.setup}
         monthly={plan.monthly}
         byokMonthly={plan.byokMonthly ?? plan.monthly}
-        notes={[sub.employees.replace('{amount}', formatUsd(pricing.companyPerEmployee))]}
+        notes={[sub.employees.replace('{amount}', usd(pricing.companyPerEmployee))]}
         highlight
       />
     </div>

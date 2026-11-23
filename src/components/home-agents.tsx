@@ -3,11 +3,12 @@ import Link from 'next/link'
 import type { Dict } from '@/content'
 import { agentBuilderHref, agentCopy, agentPath, popularAgentIds } from '@/lib/ai-teams'
 import { agentChannelIds } from '@/lib/agent-ids'
-import { channelName } from '@/lib/channels'
+import { channelName, publicChannels } from '@/lib/channels'
 import { buttonClass, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { personalBuilderHref } from '@/lib/personal-page'
-import { agentSubscriptionOf, formatUsd, personalPlanList } from '@/lib/pricing'
+import { agentSubscriptionOf, personalPlanList } from '@/lib/pricing'
+import { fromLine } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { productPath } from '@/lib/product-ids'
 import { siteUrl } from '@/lib/site'
@@ -22,10 +23,8 @@ import { SectionHeader } from './ui/section'
 export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict }) {
   const t = dict.homeAgents
   const pricing = await getPricing()
-  const monthly = agentSubscriptionOf(pricing).monthly
-  const personalMonthly = Math.min(...personalPlanList(pricing).map((p) => p.monthly))
-  const from = dict.subscription.from
-  const per = dict.products.perMonth
+  const agentSub = agentSubscriptionOf(pricing)
+  const personalPlan = personalPlanList(pricing).reduce((a, b) => (b.monthly < a.monthly ? b : a))
 
   const list = {
     '@context': 'https://schema.org',
@@ -43,7 +42,7 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
     <div className="mt-auto pt-1">
       <p className="text-caption text-faint">{t.channels}</p>
       <ul className="mt-1.5 flex flex-wrap gap-1.5">
-        {agentChannelIds.map((c) => (
+        {publicChannels(agentChannelIds).map((c) => (
           <li key={c} className="rounded-full border border-hairline border-glass-line px-2.5 py-1 text-caption text-muted">
             {channelName(c, locale)}
           </li>
@@ -71,8 +70,7 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
                   <p className="text-callout text-muted">{copy.headline}</p>
                   {channelRow}
                   <p className="font-mono text-callout text-fg">
-                    {from} {formatUsd(monthly)}
-                    {per}
+                    {fromLine(agentSub.setup, agentSub.monthly, locale)}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     <Link href={`/${locale}${agentPath(id)}`} data-cta={`home_agents_${id}`} className={buttonClass('secondary', 'md')}>
@@ -93,8 +91,7 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
               <h3 className="text-title-3 font-semibold">{t.personalRole}</h3>
               <p className="mt-2 max-w-[60ch] text-callout text-muted">{t.personalJob}</p>
               <p className="mt-3 font-mono text-callout text-fg">
-                {from} {formatUsd(personalMonthly)}
-                {per}
+                {fromLine(personalPlan.setup, personalPlan.monthly, locale)}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

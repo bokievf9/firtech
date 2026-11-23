@@ -105,7 +105,7 @@ test('mock flow: greeting, what, deadline, budget, contact, thanks', () => {
 
   assert.equal(say('не скажу').reply, copy.badContact)
   const done = say('@madina_cafe')
-  assert.equal(done.reply, 'Спасибо. Первый ответ за 5 минут, круглосуточно; цены и сроки подтверждает основатель.')
+  assert.equal(done.reply, 'Спасибо. Ответ менеджера в течение 5 минут в рабочее время; цены и сроки подтверждает основатель.')
   assert.equal(done.state, 'done')
   assert.notEqual(done.leadCreated, true, 'the mock never claims a lead')
   assert.equal(say('ещё вопрос').reply, copy.after)
@@ -205,15 +205,15 @@ test('route: with the cabinet on, a contact from a signed-out visitor is not for
 
 test('first-reply promise is one sentence everywhere: 5 minutes, no «рабочего дня» (the free audit keeps its own deliverable)', () => {
   const promise = {
-    ru: 'Первый ответ за 5 минут, круглосуточно; цены и сроки подтверждает основатель.',
-    en: 'First reply within 5 minutes, around the clock; prices and timelines are confirmed by the founder.',
+    ru: 'Ответ менеджера в течение 5 минут в рабочее время; цены и сроки подтверждает основатель.',
+    en: 'A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the founder.',
   }
   for (const locale of ['ru', 'en']) {
     const d = getDict(locale)
     assert.ok(d.chat.mock.thanks.includes(promise[locale]), `${locale} chat.thanks`)
     assert.ok(d.booking.bot.received.includes(promise[locale]), `${locale} booking.bot.received`)
     // The cabinet's own line says «менеджер проекта» since 2026-11-24 (onboarding), the 5 minutes stay.
-    assert.match(d.cabinet.leads.defaultNext.new, locale === 'ru' ? /5 минут, круглосуточно.*менеджер проекта/ : /5 minutes, around the clock.*project manager/)
+    assert.match(d.cabinet.leads.defaultNext.new, locale === 'ru' ? /5 минут в рабочее время.*менеджер проекта/ : /5 minutes in working hours.*project manager/)
     for (const text of [d.chat.mock.thanks, d.booking.bot.received, d.cabinet.leads.defaultNext.new, d.cabinet.leads.pending]) {
       assert.doesNotMatch(text, /рабочего дня|working day|скоро ответит|answer soon/i, `${locale}: ${text}`)
     }

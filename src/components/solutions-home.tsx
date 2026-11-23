@@ -3,10 +3,10 @@ import type { Icon } from '@phosphor-icons/react'
 import Link from 'next/link'
 import type { Dict } from '@/content'
 import { kindName } from '@/content/builder-catalog'
-import { presets, quote } from '@/lib/builder'
+import { nichePrice } from '@/lib/builder-presets'
 import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
-import { formatUsd } from '@/lib/pricing'
+import { fromLine } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { solutionCopy, type SolutionKind } from '@/lib/solutions'
 import { Reveal } from './reveal'
@@ -38,7 +38,7 @@ export async function SolutionsHome({ dict, locale }: { dict: Dict; locale: Loca
       <ul className="mt-12 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
         {homeSolutionKinds.map((kind, i) => {
           const copy = solutionCopy(kind, locale, dict, pricing)
-          const q = quote(presets[kind], pricing)
+          const price = nichePrice(kind, pricing)
           const Glyph = kindIcons[kind]
           return (
             <li key={kind}>
@@ -54,9 +54,8 @@ export async function SolutionsHome({ dict, locale }: { dict: Dict; locale: Loca
                   </h3>
                   <p className="mt-2 text-callout text-muted">{copy.card}</p>
                   <div className="mt-6 flex items-end justify-between gap-4 pt-2 lg:mt-auto">
-                    <p className="font-mono text-2xl text-accent-text">
-                      <span className="text-footnote text-muted">{t.from} </span>
-                      {formatUsd(q.total)}
+                    <p className="font-mono text-lg leading-snug text-accent-text" data-niche-price={kind}>
+                      {fromLine(price.oneTime, price.monthly, locale)}
                     </p>
                     <ArrowUpRight size={18} aria-hidden="true" className="text-accent-text" />
                   </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import { isPublicChannel } from '@/lib/channels'
 import {
   Briefcase, Browser, Robot, ChatCircleDots, EnvelopeSimple, GraduationCap, Laptop,
   Microphone, Student, TelegramLogo, UserCircle, UsersThree, WhatsappLogo, Baby,
@@ -161,7 +162,7 @@ export function PersonalStep({
   if (step === 2)
     return (
       <Cards cols="sm:grid-cols-2 lg:grid-cols-3">
-        {personalChannels.map((id) => {
+        {personalChannels.filter(isPublicChannel).map((id) => {
           const Glyph = channelIcons[id]
           const on = Boolean(p.where?.includes(id))
           return (

@@ -42,9 +42,9 @@ const dicts = [['ru', ru], ['en', en]]
 test('sla: the response promise is in both dictionaries, the contact block, the FAQ and llms.txt', async () => {
   assert.equal(
     ru.sla.line,
-    'Первый ответ за 5 минут, круглосуточно. Всё, что касается цен и сроков, подтверждает основатель.',
+    'Ответ менеджера в течение 5 минут в рабочее время. Всё, что касается цен и сроков, подтверждает основатель.',
   )
-  assert.match(en.sla.line, /5 minutes, around the clock/)
+  assert.match(en.sla.line, /within 5 minutes in working hours/)
   const body = await (await llms()).text()
   for (const [locale, dict] of dicts) {
     assert.equal(dict.contact.sub, dict.sla.line, `${locale} contact`)
@@ -92,15 +92,17 @@ test('pay-how: meta 120-160, same sections in both locales, covers the required 
     const t = dict.payHow
     assert.ok(t.metaDescription.length >= 120 && t.metaDescription.length <= 160, `${locale} ${t.metaDescription.length}`)
     assert.ok(t.metaTitle.length <= 70, `${locale} title`)
-    assert.deepEqual(t.sections.map((s) => s.id), ['what', 'network', 'buy', 'page', 'cents', 'after', 'other', 'fees'])
+    assert.deepEqual(t.sections.map((s) => s.id), ['guarantee', 'estimate', 'pay', 'stages', 'subscription', 'faq'])
     const all = [...strings(t.sections)].map(([, s]) => s).join(' ')
-    for (const word of ['USDT', 'TRC20', 'TON', '@wallet', 'Tonkeeper']) assert.ok(all.includes(word), `${locale} ${word}`)
+    assert.doesNotMatch(all, /USDT|TRC20|Tonkeeper|крипт|crypto/i, `${locale} no crypto`)
+    assert.ok(t.banner && t.entityNote, `${locale} banner and entity note`)
+    assert.equal(t.sections[0].id, 'guarantee', `${locale} guarantee first`)
     assert.doesNotMatch(all, /\$\s?\d|\d\s?%/, `${locale} typed price or percent`)
   }
 })
 
 test('compare: the contrast block exists in both locales with the same rows', () => {
-  const ids = ['price', 'code', 'payment', 'guarantee', 'demo', 'entity', 'usdt']
+  const ids = ['price', 'code', 'payment', 'guarantee', 'demo', 'entity', 'method']
   for (const [locale, dict] of dicts) {
     const c = dict.comparePage.contrast
     assert.deepEqual(c.rows.map((r) => r.id), ids, locale)
