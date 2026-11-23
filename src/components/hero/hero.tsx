@@ -52,8 +52,8 @@ export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: 
       }
       actions={
         <HeroIntro delay={0.64}>
-          {cue ? <div className="mb-6 [@media(min-width:1024px)_and_(max-height:960px)]:mb-3" data-hero-cue>{cue}</div> : null}
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          {cue ? <div className="mb-6 [@media(min-width:1024px)_and_(max-height:960px)]:mb-3" data-hero-cue data-fira-quiet="">{cue}</div> : null}
+          <div data-fira-quiet="" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
             <Magnetic>
               <Link
                 href={`/${locale}/builder`}

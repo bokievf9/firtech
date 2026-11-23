@@ -318,7 +318,8 @@ test('required fields block «Дальше» with a reason', () => {
   assert.deepEqual(stepIssues(presets.salon, 1), [], 'a site in the build answers it')
   assert.deepEqual(stepIssues(presets.salon, 2), ['goals'])
   assert.deepEqual(stepIssues({ ...presets.salon, goals: ['noshow'] }, 2), [])
-  assert.deepEqual(stepIssues(presets.salon, 6), ['company', 'clients', 'owner', 'deadline', 'after'])
+  assert.deepEqual(stepIssues(presets.salon, 6), [], 'details never block')
+  assert.deepEqual(requiredDetails(presets.salon), ['company', 'clients', 'owner', 'deadline', 'after'], 'they stay the recommended list')
   const shop = presets.shop
   assert.deepEqual(requiredDetails(shop), ['company', 'clients', 'owner', 'deadline'], 'no «after» without an agent')
   const done = withDetails(shop, { company: 'Дукон', clientTypes: ['private'], owner: 'Азиза', deadline: 'w2' })

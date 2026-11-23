@@ -377,6 +377,11 @@ export function DetailsStep({
 
   return (
     <div className="grid max-w-4xl gap-11">
+      {requiredDetails(build).length > 0 && (
+        <p data-details-nudge="" className="-mb-4 max-w-[60ch] text-callout text-muted">
+          {detailsUi.nudge[loc]}
+        </p>
+      )}
       <Field loc={loc} title={detailsUi.company[loc]} required invalid={missing.has('company')} hint={detailsUi.companyHint[loc]}>
         <input
           type="text"
@@ -386,7 +391,6 @@ export function DetailsStep({
           value={d.company ?? ''}
           placeholder={detailsUi.companyPlaceholder[loc]}
           aria-label={detailsUi.company[loc]}
-          aria-required="true"
           aria-invalid={missing.has('company') || undefined}
           onChange={(e) => patch({ company: e.target.value })}
           className={inputClass}
@@ -401,7 +405,6 @@ export function DetailsStep({
           value={d.clients ?? ''}
           placeholder={detailsUi.clientsPlaceholder[loc]}
           aria-label={detailsUi.clients[loc]}
-          aria-required="true"
           aria-invalid={missing.has('clients') || undefined}
           onChange={(e) => patch({ clients: e.target.value })}
           className={cn(inputClass, 'mb-3')}
@@ -423,7 +426,6 @@ export function DetailsStep({
           maxLength={textLimits.owner}
           value={d.owner ?? ''}
           aria-label={detailsUi.owner[loc]}
-          aria-required="true"
           aria-invalid={missing.has('owner') || undefined}
           onChange={(e) => patch({ owner: e.target.value })}
           className={inputClass}

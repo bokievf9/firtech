@@ -57,3 +57,21 @@ test('fira presence: the 404 points her at «home»', async ({ page }) => {
   await expect(page.locator('[data-fira-target=home]')).toBeVisible()
   await expect(page.locator('[data-fira-stage]').first()).toHaveAttribute('data-fira-state', /point|sorry/, { timeout: 6000 })
 })
+
+// Walkthrough 2026-11-24: at 390 the home hero has one Fira bubble owner and the primary CTA is never covered.
+for (const wait of [3000, 12500]) {
+  test(`fira presence: at 390 the hero CTA is clickable after ${wait} ms and no second bubble covers it`, async ({ page }) => {
+    await page.setViewportSize(SIZES.mobile)
+    await open(page, '/ru')
+    await page.waitForTimeout(wait)
+    const cta = page.locator('[data-cta=hero_builder]').first()
+    await expect(cta).toBeVisible()
+    const covered = await cta.evaluate((el) => {
+      const r = el.getBoundingClientRect()
+      const top = document.elementFromPoint(r.left + r.width / 2, Math.min(r.top + r.height / 2, window.innerHeight - 1))
+      return !(top && (top === el || el.contains(top)))
+    })
+    expect(covered).toBe(false)
+    await expect(page.locator('[data-fira-bubble=line][data-open=true]')).toHaveCount(0)
+  })
+}

@@ -200,10 +200,14 @@ export const deadlineText: Record<DetailDeadline, L<string>> = {
 export const detailsUi = {
   title: { ru: 'Детали, которые сэкономят нам звонок', en: 'Details that save us a call' },
   sub: {
-    ru: 'Поля с «обязательно» нужны, чтобы смета сразу легла в точку. Остальное можно пропустить. На цену здесь ничего не влияет.',
-    en: 'Fields marked required let us make the quote right the first time. You can skip the rest. Nothing here changes the price.',
+    ru: 'Поля с пометкой «желательно» помогают сразу попасть в точку со сметой. Всё можно пропустить и вернуться позже. На цену здесь ничего не влияет.',
+    en: 'Fields marked recommended help us get the quote right the first time. You can skip everything and come back later. Nothing here changes the price.',
   },
-  required: { ru: 'обязательно', en: 'required' },
+  required: { ru: 'желательно', en: 'recommended' },
+  nudge: {
+    ru: 'Это можно пропустить. Если ответите на эти вопросы, нам не придётся звонить и уточнять.',
+    en: 'You can skip this. If you answer these, we will not need a call to clarify.',
+  },
   optional: { ru: 'по желанию', en: 'optional' },
   company: { ru: 'Название вашего бизнеса', en: 'Your business name' },
   companyHint: { ru: 'Оно появится в превью', en: 'It appears in the preview' },

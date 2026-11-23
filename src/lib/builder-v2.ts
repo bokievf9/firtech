@@ -284,7 +284,9 @@ export function stepIssues(build: Build, step: number): StepIssue[] {
       return []
     }
     case 6:
-      return requiredDetails(build)
+      // Walkthrough 2026-11-24: the details are recommended, not required (the lead brief tolerates empty ones);
+      // the screen shows a soft nudge and «Дальше» never blocks (`requiredDetails` stays as the list for the nudge).
+      return []
     default:
       return []
   }

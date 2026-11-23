@@ -252,7 +252,29 @@ export function FiraGuide({
 
   // ---- one line per page and session, a moment after the launcher is in view; never twice
   const shownFor = useRef<string | null>(null)
-  const idleNow = visible && !chatOpen && !menu && !tour && !noteHere
+  // One bubble owner at a time (walkthrough 2026-11-24): while the hero's own Fira cue and buttons (data-fira-quiet)
+  // are on screen, the page line stays silent so it can neither double the cue nor cover the primary CTA.
+  const [quiet, setQuiet] = useState(false)
+  useEffect(() => {
+    if (!home) return
+    const check = () => {
+      let on = false
+      for (const el of document.querySelectorAll<HTMLElement>('[data-fira-quiet]')) {
+        const r = el.getBoundingClientRect()
+        if (r.height > 0 && r.bottom > 0 && r.top < window.innerHeight) on = true
+      }
+      setQuiet(on)
+    }
+    check()
+    const poll = window.setInterval(check, 300)
+    window.addEventListener('scroll', check, { passive: true })
+    return () => {
+      window.clearInterval(poll)
+      window.removeEventListener('scroll', check)
+    }
+  }, [home, pathname])
+  const lineQuiet = home && quiet
+  const idleNow = visible && !chatOpen && !menu && !tour && !noteHere && !lineQuiet
   useEffect(() => {
     if (!line || !idleNow || shownFor.current === pathname) return
     if (readSeen().includes(pathname)) return
@@ -328,7 +350,7 @@ export function FiraGuide({
       ? { kind: 'note' as const, text: noteHere.text, key: `note:${noteHere.id}` }
       : live.bubble && !chatOpen && !menu && visible
         ? { kind: 'live' as const, text: live.bubble.text, key: live.bubble.dots ? 'live:dots' : 'live:text' }
-        : saying && visible && !chatOpen && !menu && line
+        : saying && visible && !chatOpen && !menu && !lineQuiet && line
           ? { kind: 'line' as const, text: line, key: `line:${pathname}` }
           : null
   const open = bubble !== null
@@ -421,7 +443,7 @@ export function FiraGuide({
                   )}
                 </span>
               ) : bubble.kind === 'line' ? (
-                <button type="button" onClick={onAsk} data-cta="companion_line" className="block text-left">
+                <button type="button" onClick={onAsk} data-cta="companion_line" className="block text-left max-[480px]:line-clamp-2">
                   <FiraTyped key={bubble.key} text={bubble.text} />
                 </button>
               ) : (

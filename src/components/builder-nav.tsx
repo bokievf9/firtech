@@ -127,7 +127,7 @@ export function BottomNav({
               <ArrowLeft size={16} />
               <span className="hidden md:inline">{backLabel}</span>
             </Button>
-            <div className="min-w-0 flex-1 px-1">{center}</div>
+            <div className="flex-none px-1 md:min-w-0 md:flex-1">{center}</div>
             {onPreview && previewLabel && (
               <IconButton label={previewLabel} tone="outline" onClick={onPreview} className="size-12 lg:hidden">
                 <Eye size={18} />
@@ -182,7 +182,7 @@ export function NextButton({
     <Button
       aria-disabled={blocked || undefined}
       onClick={onClick}
-      className={cn('shrink-0 px-5 md:px-7', blocked && 'opacity-50')}
+      className={cn('min-w-0 px-5 max-sm:h-auto max-sm:min-h-12 max-sm:py-2 max-sm:whitespace-normal max-sm:text-center max-sm:leading-tight md:shrink-0 md:px-7', blocked && 'opacity-50')}
     >
       {label}
       <ArrowRight size={16} />

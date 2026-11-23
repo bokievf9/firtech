@@ -585,7 +585,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
               {t.stepLabel} {step + 1} {t.of} {total}
               {!last && canGo && <span className="hidden lg:inline"> · {t.enterHint}</span>}
             </p>
-            <p className="truncate font-mono text-callout text-accent-text md:text-body" aria-live="polite">
+            <p data-builder-total="" className="whitespace-nowrap font-mono text-callout text-accent-text md:truncate md:text-body" aria-live="polite">
               {agent ? (aq ? `${formatUsd(aq.oneTime)} + ${formatUsd(aq.monthly)}${t.perMonth}` : '') : personal ? (build.personal?.hand?.length ? `${formatUsd(pricing.personalPlans[tierOf(build.personal)].setup)} + ${formatUsd(pricing.personalPlans[tierOf(build.personal)].monthly)}${t.perMonth}` : '') : hasParts || aq ? formatUsd(q.total + (aq?.oneTime ?? 0)) : onRequest.length ? pick(ui.totalOnRequest, locale) : ''}
               {business && aq && (
                 <span className="hidden text-muted sm:inline">

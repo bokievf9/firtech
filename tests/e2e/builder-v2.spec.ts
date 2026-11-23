@@ -98,11 +98,9 @@ for (const [label, size] of Object.entries(SIZES)) {
       await shot(page, `salon-${prefix}-06-theme`)
       await goNext(page, 7)
 
-      // 7. Details: required ones block «Дальше» with a hint, then it goes on.
-      // aria-disabled: Playwright treats it as not enabled, a real press still explains what is missing.
-      await next(page).click({ force: true })
-      await expect(page.locator('#builder-issue')).toContainText('Укажите название бизнеса')
-      await expect(stepAt(page)).toHaveAttribute('aria-label', /^7\./)
+      // 7. Details: recommended, never blocking; a soft nudge says so.
+      await expect(page.locator('[data-details-nudge]')).toBeVisible()
+      await expect(next(page)).not.toHaveAttribute('aria-disabled', 'true')
       await shot(page, `salon-${prefix}-07-details-blocked`)
       await fillDetails(page, 'Лола', true)
       await shot(page, `salon-${prefix}-07-details`)
@@ -339,4 +337,23 @@ test('old links: a legacy style chunk opens the builder and keeps the link decod
   await expect(page.locator('[data-live-preview]')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Отправить проект' }).first()).toBeVisible()
   expect(errors).toEqual([])
+})
+
+test('builder: the details step is skippable and the estimate is reached without answering', async ({ page }) => {
+  await page.setViewportSize(SIZES.mobile)
+  await open(page, '/ru/builder?b=websites.landing.telegram~k.cafe&step=7')
+  await expect(page.locator('[data-details-nudge]')).toBeVisible()
+  await expect(stepAt(page)).toHaveAttribute('aria-label', /^7\./)
+  await goNext(page, 8)
+  await expect(page.getByRole('button', { name: 'Отправить проект' }).first()).toBeVisible()
+})
+
+test('builder: at 390 the sticky total is never cut', async ({ page }) => {
+  await page.setViewportSize(SIZES.mobile)
+  await open(page, '/ru/builder?b=websites.landing.telegram~k.cafe&step=8')
+  const total = page.locator('[data-builder-total]')
+  await expect(total).toContainText('$')
+  const clipped = await total.evaluate((el) => el.scrollWidth > el.clientWidth + 1 || el.getBoundingClientRect().right > window.innerWidth)
+  expect(clipped).toBe(false)
+  expect(((await total.textContent()) ?? '').trim()).toMatch(/^\$\d[\d\s,.]*\d$|^\$\d$/)
 })
