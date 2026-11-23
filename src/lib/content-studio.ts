@@ -234,3 +234,25 @@ export function requestError(name: string, res: { error: string; http?: unknown;
   const reason = typeof res.reason === 'string' && res.reason ? `: ${res.reason.slice(0, 160)}` : ''
   return `${name} failed (${http}${res.error}${reason}${item})`
 }
+
+// «Delete old materials» (HQ `POST /admin/content/purge`): the statuses the owner may clear. `pending` (waiting for a decision) is never
+// sent, `published` only with the explicit checkbox.
+export const PURGE_STATUSES = ['draft', 'approved', 'rendering', 'ready', 'rejected'] as const
+export type PurgeCounts = { materials: number; approvals: number; reviews: number; files: number; orders: number; bytes: number }
+
+export function purgeStatuses(includePublished: boolean): string[] {
+  return includePublished ? [...PURGE_STATUSES, 'published'] : [...PURGE_STATUSES]
+}
+
+export function purgeBody(dryRun: boolean, includePublished: boolean): { dryRun: boolean; statuses: string[] } {
+  return { dryRun, statuses: purgeStatuses(includePublished) }
+}
+
+// HQ's `{ ok, dryRun, counts }`; null for anything that is not that shape.
+export function normalizePurge(body: unknown): PurgeCounts | null {
+  const c = (body as { counts?: Record<string, unknown> } | null)?.counts
+  if (!c || typeof c !== 'object') return null
+  const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : null)
+  const out = { materials: n(c.materials), approvals: n(c.approvals), reviews: n(c.reviews), files: n(c.files), orders: n(c.orders), bytes: n(c.bytes) }
+  return Object.values(out).every((v) => v !== null) ? (out as PurgeCounts) : null
+}

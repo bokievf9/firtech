@@ -186,6 +186,14 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
       z.object({ mode: z.literal('niche'), fromItemId: z.number().int().positive(), niche: z.string().trim().min(1).max(60), note: z.string().trim().max(500).optional() }).strict(),
     ]),
   },
+  // «Delete old materials»: strict, never `pending`, never an unknown key (must stay before the item action route below).
+  {
+    method: 'POST',
+    path: /^content\/purge$/,
+    body: z
+      .object({ dryRun: z.boolean(), statuses: z.array(z.enum(['draft', 'approved', 'rendering', 'ready', 'published', 'rejected'])).min(1).max(6) })
+      .strict(),
+  },
   {
     method: 'POST',
     path: /^content\/[\w-]{1,64}$/,

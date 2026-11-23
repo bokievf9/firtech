@@ -108,6 +108,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   const currentWeek = isoWeek(start)
   const items = new Map<string, Row>()
   const orders: Row[] = []
+  let purged = false
   const content = (week: string) => {
     const dates = weekDates(week)
     const full = week === currentWeek
@@ -232,7 +233,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
   }
 
   const hub = (now: number) => {
-    if (!items.size) content(currentWeek)
+    if (!items.size && !purged) content(currentWeek)
     const counts = Object.fromEntries(HUB_DEPTS.map((d) => [d, { pending: 0, approvals: 0, alerts: 0, running: 0, lastActivityAt: ago(5) }]))
     for (const a of deps.approvals()) {
       const d = a.dept === 'back-office' ? 'backoffice' : a.dept
@@ -459,7 +460,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
       orders.some((o) => o.itemId === i.id) ? `ap_${i.id}` : i.status === 'pending' && i.kind === 'clip' ? 'ap_201' : i.status === 'pending' && i.kind === 'carousel' ? 'ap_202' : i.status === 'published' ? 'ap_199' : i.status === 'approved' ? 'ap_198' : i.status === 'rejected' ? 'ap_197' : `ap_${i.id}`
     // ---- content studio: the feed of everything and the orders (a working order is delivered on the next read)
     if (seg[0] === 'content' && seg[1] === 'feed' && method === 'GET' && seg.length === 2) {
-      if (!items.size) content(currentWeek)
+      if (!items.size && !purged) content(currentWeek)
       const all = [...items.values()].reverse().filter((i) => (!query.status || i.status === query.status) && (!query.kind || i.kind === query.kind))
       const offset = /^\d{1,6}$/.test(String(query.cursor ?? '')) ? Number(query.cursor) : 0
       const limit = Math.min(Math.max(Number(query.limit) || 50, 1), 200)
@@ -473,9 +474,27 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
         total: all.length,
       })
     }
+    if (seg[0] === 'content' && seg[1] === 'purge' && seg.length === 2 && method === 'POST') {
+      const allowed = ['draft', 'approved', 'rendering', 'ready', 'published', 'rejected']
+      const keys = Object.keys(body)
+      const statuses = Array.isArray(body.statuses) ? (body.statuses as unknown[]) : null
+      if (keys.some((x) => x !== 'dryRun' && x !== 'statuses') || typeof body.dryRun !== 'boolean' || !statuses || statuses.some((x) => !allowed.includes(String(x)))) return bad('invalid', { allowed })
+      if (!items.size && !purged) content(currentWeek)
+      const gone = [...items.entries()].filter(([, i]) => i.status !== 'pending' && statuses.includes(i.status))
+      const ids = new Set(gone.map(([, i]) => i.id))
+      const goneOrders = orders.filter((o) => ids.has(o.itemId))
+      const files = gone.reduce((n, [, i]) => n + (Array.isArray(i.files) ? i.files.length : 0), 0)
+      const counts = { materials: gone.length, approvals: gone.filter(([, i]) => i.approvalId !== null).length, reviews: 0, files, orders: goneOrders.length, bytes: files * 120_000 }
+      if (body.dryRun === false) {
+        for (const [key] of gone) items.delete(key)
+        for (const o of goneOrders) orders.splice(orders.indexOf(o), 1)
+        purged = true
+      }
+      return ok({ dryRun: body.dryRun, counts })
+    }
     if (seg[0] === 'content' && seg[1] === 'orders' && seg.length === 2) {
       if (method === 'GET') {
-        if (!items.size) content(currentWeek)
+        if (!items.size && !purged) content(currentWeek)
         for (const o of orders.filter((x) => x.state === 'working')) {
           const from = o.fromItemId !== null ? [...items.values()].find((i) => i.id === o.fromItemId) : undefined
           const id = 900000 + Number(o.id)
@@ -534,7 +553,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
         return ok({ week, days, summary: summaryOf(days) })
       }
       if (method === 'POST' && seg.length === 2) {
-        if (!items.size) content(currentWeek)
+        if (!items.size && !purged) content(currentWeek)
         const item = items.get(seg[1]!) ?? [...items.values()].find((i) => String(i.id) === seg[1])
         if (!item) return bad('not_found')
         const next: Record<string, string> = { approve: 'approved', reject: 'rejected', revise: 'draft', published: 'published', rerender: 'rendering' }

@@ -11,6 +11,7 @@ import { btn, btnPrimary, Empty, inputClass, Loading, Offline, useHqView, useHub
 import { PromptBox, StudioScreen } from '@/components/admin/hq/studio-screen'
 import { CampaignsSection } from '@/components/admin/hq/campaigns-section'
 import { MarketingPanel } from '@/components/admin/hq/marketing-panel'
+import { PurgeButton } from '@/components/admin/hq/purge-dialog'
 import { MarketingRules } from '@/components/admin/hq/marketing-rules'
 import { Pending } from '@/components/ui/pending'
 import { cn } from '@/lib/cn'
@@ -39,6 +40,8 @@ export function ContentSection({ tab, focus }: { tab: string; focus: string | nu
   const router = useRouter()
   const [prompt, setPrompt] = useState(false)
   const [panel, setPanel] = useState(true)
+  // Bumped after a purge: the feed and the orders list remount and reload.
+  const [reloadKey, setReloadKey] = useState(0)
   const lg = useLg()
   useEffect(() => {
     try {
@@ -66,6 +69,7 @@ export function ContentSection({ tab, focus }: { tab: string; focus: string | nu
               <ChatCircleText size={16} aria-hidden="true" /> {k.marketing.toggleOpen}
             </button>
           ) : null}
+          <PurgeButton onDone={() => setReloadKey((v) => v + 1)} />
           <button type="button" className={cn(btnPrimary)} onClick={() => setPrompt((v) => !v)} aria-expanded={prompt} data-studio="prompt-toggle">
             <Sparkle size={16} weight="fill" aria-hidden="true" /> {s.prompt}
           </button>
@@ -83,7 +87,7 @@ export function ContentSection({ tab, focus }: { tab: string; focus: string | nu
         {tab === 'campaigns' ? (
           <CampaignsSection embedded />
         ) : tab === 'orders' ? (
-          <OrdersTab />
+          <OrdersTab key={reloadKey} />
         ) : tab === 'rules' ? (
           <MarketingRules />
         ) : tab === 'marketing' ? (
@@ -93,7 +97,7 @@ export function ContentSection({ tab, focus }: { tab: string; focus: string | nu
             </div>
           </div>
         ) : (
-          <FeedTab focus={focus} />
+          <FeedTab key={reloadKey} focus={focus} />
         )}
       </div>
       {side ? (

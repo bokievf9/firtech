@@ -282,3 +282,48 @@ test('the Content screen has no drawer: player, text, Prompt, Another variant an
     assert.doesNotMatch(t, /errText\(/, `${f}: errors name the request instead of the generic text`)
   }
 })
+
+test('purge: strict proxy body (never pending, no extra keys) and view helpers', () => {
+  const ok = (b) => resolveEndpoint('POST', ['content', 'purge'], q(), b).ok
+  assert.equal(ok({ dryRun: true, statuses: ['draft', 'approved', 'rendering', 'ready', 'rejected'] }), true)
+  assert.equal(ok({ dryRun: false, statuses: ['draft', 'published'] }), true)
+  assert.equal(resolveEndpoint('POST', ['content', 'purge'], q(), { dryRun: true, statuses: ['draft'] }).path, 'content/purge')
+  for (const b of [
+    { dryRun: true, statuses: ['pending'] },
+    { dryRun: true, statuses: ['draft', 'pending'] },
+    { dryRun: true },
+    { statuses: ['draft'] },
+    { dryRun: 'true', statuses: ['draft'] },
+    { dryRun: true, statuses: [] },
+    { dryRun: true, statuses: ['nope'] },
+    { dryRun: true, statuses: ['draft'], before: '2026-01-01' },
+    { dryRun: true, statuses: ['draft'], action: 'approve' },
+    null,
+  ]) assert.equal(ok(b), false, JSON.stringify(b))
+  assert.equal(resolveEndpoint('GET', ['content', 'purge'], q(), undefined).ok, false)
+  assert.deepEqual(cs.purgeStatuses(false), ['draft', 'approved', 'rendering', 'ready', 'rejected'])
+  assert.deepEqual(cs.purgeStatuses(true).slice(-1), ['published'])
+  assert.ok(!cs.purgeStatuses(true).includes('pending'))
+  assert.deepEqual(cs.purgeBody(true, false).dryRun, true)
+  assert.deepEqual(cs.normalizePurge({ ok: true, counts: { materials: 3, approvals: 1, reviews: 0, files: 4, orders: 2, bytes: 9 } }), { materials: 3, approvals: 1, reviews: 0, files: 4, orders: 2, bytes: 9 })
+  assert.equal(cs.normalizePurge({ ok: true, counts: { materials: 'x' } }), null)
+  assert.equal(cs.normalizePurge({ ok: true }), null)
+})
+
+test('purge: the dev mock counts on a dry run, keeps pending and removes for real', () => {
+  const mock = createHqMock(NOW)
+  const before = mock('GET', 'content/feed', { limit: '200' }, {}, NOW)
+  const statuses = ['draft', 'approved', 'rendering', 'ready', 'rejected']
+  const dry = mock('POST', 'content/purge', {}, { dryRun: true, statuses }, NOW)
+  assert.equal(dry.ok, true)
+  assert.equal(dry.counts.materials, before.items.filter((i) => statuses.includes(i.status)).length)
+  assert.equal(mock('GET', 'content/feed', { limit: '200' }, {}, NOW).total, before.total, 'a dry run removes nothing')
+  assert.equal(mock('POST', 'content/purge', {}, { dryRun: true, statuses: ['pending'] }, NOW).error, 'invalid')
+  const real = mock('POST', 'content/purge', {}, { dryRun: false, statuses }, NOW)
+  assert.equal(real.counts.materials, dry.counts.materials)
+  const after = mock('GET', 'content/feed', { limit: '200' }, {}, NOW)
+  assert.ok(after.items.every((i) => !statuses.includes(i.status)))
+  assert.ok(after.items.some((i) => i.status === 'pending'))
+  assert.ok(after.items.some((i) => i.status === 'published'))
+  assert.equal(mock('POST', 'content/purge', {}, { dryRun: true, statuses }, NOW).counts.materials, 0)
+})
