@@ -25,6 +25,8 @@ registerHooks({
 })
 
 const cs = await import('../src/lib/content-studio.ts')
+const { CONTENT_STATUSES, normalizeContentItem } = await import('../src/lib/shell.ts')
+const { admin } = await import('../src/content/admin.ts')
 const shell = await import('../src/lib/hq-shell.ts')
 const { resolveEndpoint } = await import('../src/lib/hq-admin.ts')
 const { createHqMock } = await import('../src/lib/hq-admin-mock.ts')
@@ -92,7 +94,7 @@ test('the dev mock: feed with filters and cursor, a prompt order is delivered on
   const all = mock('GET', 'content/feed', { limit: '5' }, {}, NOW)
   assert.equal(all.ok, true)
   assert.equal(all.items.length, 5)
-  assert.ok(all.items.every((i) => /^ap_\d+$/.test(i.reviewId)))
+  assert.ok(all.items.every((i) => (i.status === 'stale' ? i.reviewId === null : /^ap_\d+$/.test(i.reviewId))))
   assert.ok(all.total > 5)
   assert.equal(all.nextCursor, '5')
   const clips = mock('GET', 'content/feed', { kind: 'clip', limit: '200' }, {}, NOW)
@@ -283,9 +285,26 @@ test('the Content screen has no drawer: player, text, Prompt, Another variant an
   }
 })
 
+test('stale: no buttons from the item actions, a read-only hint, a quiet label', () => {
+  const stale = cs.studioAccess(row({ status: 'stale', reviewId: null, actions: [] }), null)
+  assert.deepEqual([stale.edit, stale.approve, stale.revise, stale.reject, stale.rerender, stale.markPublished], [false, false, false, false, false, false])
+  assert.equal(stale.readOnly, 'No open approval: nothing to decide. Delete it with Delete old materials.')
+  // even with a card that looks open, a stale row offers nothing
+  assert.equal(cs.studioAccess(row({ status: 'stale', actions: [] }), card({ actions: PENDING })).approve, false)
+  // the row's actions array wins when present; absent = the old status rule
+  const noApprove = cs.studioAccess(row({ actions: ['reject'] }), card({ actions: PENDING }))
+  assert.deepEqual([noApprove.approve, noApprove.revise, noApprove.reject], [false, false, true])
+  assert.equal(cs.studioAccess(row({ actions: null }), card({ actions: PENDING })).approve, true)
+  assert.ok(CONTENT_STATUSES.includes('stale'))
+  assert.deepEqual(normalizeContentItem({ item: { id: 5, status: 'stale', actions: [] } }).actions, [])
+  assert.equal(normalizeContentItem({ item: { id: 5, status: 'stale' } }).actions, null)
+  assert.equal(admin.pult.content.statuses.stale, 'Stale')
+})
+
 test('purge: strict proxy body (never pending, no extra keys) and view helpers', () => {
   const ok = (b) => resolveEndpoint('POST', ['content', 'purge'], q(), b).ok
-  assert.equal(ok({ dryRun: true, statuses: ['draft', 'approved', 'rendering', 'ready', 'rejected'] }), true)
+  assert.equal(ok({ dryRun: true, statuses: ['draft', 'approved', 'rendering', 'ready', 'rejected', 'stale'] }), true)
+  assert.equal(ok({ dryRun: true, statuses: ['stale'] }), true)
   assert.equal(ok({ dryRun: false, statuses: ['draft', 'published'] }), true)
   assert.equal(resolveEndpoint('POST', ['content', 'purge'], q(), { dryRun: true, statuses: ['draft'] }).path, 'content/purge')
   for (const b of [
@@ -301,11 +320,13 @@ test('purge: strict proxy body (never pending, no extra keys) and view helpers',
     null,
   ]) assert.equal(ok(b), false, JSON.stringify(b))
   assert.equal(resolveEndpoint('GET', ['content', 'purge'], q(), undefined).ok, false)
-  assert.deepEqual(cs.purgeStatuses(false), ['draft', 'approved', 'rendering', 'ready', 'rejected'])
+  assert.deepEqual(cs.purgeStatuses(false), ['draft', 'approved', 'rendering', 'ready', 'rejected', 'stale'])
+  assert.deepEqual(cs.purgeBody(false, false).statuses, cs.purgeStatuses(false))
   assert.deepEqual(cs.purgeStatuses(true).slice(-1), ['published'])
   assert.ok(!cs.purgeStatuses(true).includes('pending'))
   assert.deepEqual(cs.purgeBody(true, false).dryRun, true)
-  assert.deepEqual(cs.normalizePurge({ ok: true, counts: { materials: 3, approvals: 1, reviews: 0, files: 4, orders: 2, bytes: 9 } }), { materials: 3, approvals: 1, reviews: 0, files: 4, orders: 2, bytes: 9 })
+  assert.deepEqual(cs.normalizePurge({ ok: true, counts: { materials: 3, approvals: 1, reviews: 0, files: 4, orders: 2, bytes: 9 } }), { materials: 3, approvals: 1, reviews: 0, files: 4, orders: 2, bytes: 9, orphans: null })
+  assert.equal(cs.normalizePurge({ ok: true, counts: { materials: 3, approvals: 1, reviews: 0, files: 4, orders: 2, bytes: 9, orphans: 2 } }).orphans, 2)
   assert.equal(cs.normalizePurge({ ok: true, counts: { materials: 'x' } }), null)
   assert.equal(cs.normalizePurge({ ok: true }), null)
 })
@@ -313,9 +334,13 @@ test('purge: strict proxy body (never pending, no extra keys) and view helpers',
 test('purge: the dev mock counts on a dry run, keeps pending and removes for real', () => {
   const mock = createHqMock(NOW)
   const before = mock('GET', 'content/feed', { limit: '200' }, {}, NOW)
-  const statuses = ['draft', 'approved', 'rendering', 'ready', 'rejected']
+  const statuses = ['draft', 'approved', 'rendering', 'ready', 'rejected', 'stale']
+  assert.ok(before.items.some((i) => i.status === 'stale' && Array.isArray(i.actions) && i.actions.length === 0), 'the mock has orphans')
+  assert.ok(before.items.filter((i) => i.status === 'pending').every((i) => i.actions.includes('approve')))
   const dry = mock('POST', 'content/purge', {}, { dryRun: true, statuses }, NOW)
   assert.equal(dry.ok, true)
+  assert.equal(dry.counts.orphans, before.items.filter((i) => i.status === 'stale').length)
+  assert.ok(dry.counts.orphans > 0)
   assert.equal(dry.counts.materials, before.items.filter((i) => statuses.includes(i.status)).length)
   assert.equal(mock('GET', 'content/feed', { limit: '200' }, {}, NOW).total, before.total, 'a dry run removes nothing')
   assert.equal(mock('POST', 'content/purge', {}, { dryRun: true, statuses: ['pending'] }, NOW).error, 'invalid')

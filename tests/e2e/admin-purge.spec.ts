@@ -10,6 +10,8 @@ test.describe('with a session', () => {
     await open(page, '/admin/content?tab=feed')
     const feed = page.locator('[data-feed] li')
     await expect(feed.first()).toBeVisible()
+    // A stale material shows a quiet badge and no decision buttons
+    await expect(feed.filter({ hasText: 'Stale' }).first()).toBeVisible()
     await page.locator('[data-purge="open"]').click()
     const dialog = page.locator('[data-purge="dialog"]')
     await expect(dialog).toBeVisible()
@@ -17,6 +19,10 @@ test.describe('with a session', () => {
     await expect(materials).toBeVisible()
     const base = Number(await materials.innerText())
     expect(base).toBeGreaterThan(0)
+    // Orphans (waiting, no open approval) are counted and part of the default
+    const orphans = dialog.locator('[data-purge-count="of which stale (no open approval)"]')
+    await expect(orphans).toBeVisible()
+    expect(Number(await orphans.innerText())).toBeGreaterThan(0)
     await expect(dialog.locator('[data-purge="warning"]')).toHaveCount(0)
     await expect(dialog.locator('[data-purge="confirm"]')).toContainText(`Delete ${base} materials`)
     // Published articles: a warning and a bigger number
@@ -30,7 +36,7 @@ test.describe('with a session', () => {
     await expect(dialog).toHaveCount(0)
     // Only waiting and published materials are left in the feed
     const statuses = await page.locator('[data-feed] li').allInnerTexts()
-    expect(statuses.join(' ')).not.toMatch(/Rejected|Draft/)
+    expect(statuses.join(' ')).not.toMatch(/Rejected|Draft|Stale/)
     // Nothing more to delete now
     await page.locator('[data-purge="open"]').click()
     await expect(page.locator('[data-purge="dialog"] [data-purge="confirm"]')).toBeDisabled()

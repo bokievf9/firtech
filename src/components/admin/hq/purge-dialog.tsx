@@ -87,6 +87,7 @@ function PurgeDialog({ onClose, onDone }: { onClose: () => void; onDone: () => v
 
   const n = counts?.materials ?? 0
   const rows: [string, number][] = counts ? [[p.materials, counts.materials], [p.orders, counts.orders], [p.files, counts.files], [p.approvals, counts.approvals]] : []
+  if (counts && counts.orphans !== null && counts.orphans > 0) rows.push([p.orphans, counts.orphans])
   return (
     <motion.div
       className={cn('fixed inset-0 z-[80] grid place-items-center bg-scrim p-4', closing && 'pointer-events-none')}

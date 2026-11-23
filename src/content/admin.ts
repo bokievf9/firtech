@@ -1272,6 +1272,7 @@ export const admin = {
       statuses: {
         draft: 'draft',
         pending: 'waiting',
+        stale: 'Stale',
         approved: 'approved',
         rendering: 'rendering',
         ready: 'ready',
@@ -1314,12 +1315,13 @@ export const admin = {
         purge: {
           open: 'Delete old materials',
           title: 'Delete old materials',
-          intro: 'Removes drafts, approved, rendering, ready and rejected materials with their orders, files and approval records. Materials waiting for your decision are never deleted.',
+          intro: 'Removes drafts, approved, rendering, ready, rejected and stale materials with their orders, files and approval records. Materials waiting for your decision are never deleted.',
           counting: 'Counting what would be deleted...',
           materials: 'Materials',
           orders: 'Orders',
           files: 'Files',
           approvals: 'Approvals',
+          orphans: 'of which stale (no open approval)',
           includePublished: 'Also delete published articles',
           publishedWarning: 'Published articles will disappear from the blog and the feed. This cannot be undone.',
           nothing: 'Nothing to delete.',
