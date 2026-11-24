@@ -142,11 +142,13 @@ test('product pages: route, static params, price tag, stage table, preselected b
   assert.match(readFileSync('src/components/stage-table.tsx', 'utf8'), /stage\.share|stage\.amountUsd/)
 })
 
-test('product pages: the bento card has «Подробнее» to the page and the hero caption links there', () => {
+test('product pages: the bento card has «Подробнее» to the page and the hero orbs link to the flagships', () => {
   const bento = readFileSync('src/components/products/products-bento.tsx', 'utf8')
   assert.match(bento, /productPath\(id\)/)
   assert.match(bento, /t\.more/)
-  assert.match(readFileSync('src/components/hero/hero-sequence.tsx', 'utf8'), /products\/\$\{product\.id\}/)
+  const hero = readFileSync('src/components/hero/hero.tsx', 'utf8')
+  assert.match(hero, /products\/personal/)
+  assert.match(hero, /products\/company/)
   for (const [, dict] of dicts) assert.ok(dict.products.more)
 })
 

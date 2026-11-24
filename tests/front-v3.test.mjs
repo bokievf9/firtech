@@ -98,17 +98,37 @@ test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minu
   assert.equal(ru.hero.lines[0], 'ИИ берёт рутину на себя,')
   assert.equal(ru.nav.cta, 'Собрать проект')
   assert.equal(ru.hero.chatCta, 'Спросить агента')
+  assert.equal(ru.hero.askFira, 'Спросить Фиру')
   assert.equal(ru.nav.ask, 'Спросить агента')
   const hero = read('src/components/hero/hero.tsx')
   assert.match(hero, /\/builder/)
   assert.match(hero, /ChatOpenButton/)
-  assert.match(hero, /GuaranteeLine/)
-  assert.match(hero, /dict\.sla\.short/)
+  // Design v5: the guarantee is a line of the hairline row, the team is an orb.
+  assert.match(hero, /dict\.guarantee\.short/)
   assert.match(hero, /\/ai-team/)
-  // No product numbers in the sequence either.
-  const sequence = read('src/components/hero/hero-sequence.tsx')
-  assert.doesNotMatch(sequence, /padStart/)
-  assert.doesNotMatch(sequence, /copy\.of/)
+  assert.equal(existsSync('src/components/hero/hero-sequence.tsx'), false, 'the old product sequence is gone')
+})
+
+test('hero v5 (2026-11-25): split headline, one line, four orbs priced from pricing.ts, one ink bubble, no eyebrow', () => {
+  for (const [locale, dict] of dicts) {
+    const h = dict.hero
+    assert.ok(h.titleLight && h.titleStrong, locale)
+    assert.ok(h.tagline.split(/\s+/).length <= 20, `${locale} tagline is one line of at most 20 words`)
+    assert.doesNotMatch(`${h.titleLight}${h.titleStrong}${h.tagline}`, /—|–/, locale)
+    assert.ok(h.askFira && h.bubble.name && h.bubble.text && h.orbs.teamNote, locale)
+  }
+  assert.equal(ru.hero.titleLight, 'Ваш ИИ.')
+  assert.equal(en.hero.titleStrong, 'For life and for business.')
+  const hero = read('src/components/hero/hero.tsx')
+  assert.doesNotMatch(hero, /h\.eyebrow|KineticHeadline|HeroSequence/)
+  assert.match(hero, /data-cta="hero_builder"/)
+  assert.match(hero, /<FiraPortal/)
+  assert.equal((hero.match(/<Orb\b/g) ?? []).length, 1, 'the orbs are one mapped list of four')
+  assert.match(hero, /personalPlanList\(pricing\)/)
+  assert.match(hero, /agentSubscriptionOf\(pricing\)/)
+  assert.match(hero, /companyPlanOf\(pricing\)/)
+  assert.doesNotMatch(hero, /\b(290|220|1490)\b/, 'no hard-coded prices')
+  assert.equal((hero.match(/bubble-ink/g) ?? []).length, 1)
 })
 
 test('builder is «Сборка проекта» everywhere and the word «калькулятор» is gone', () => {

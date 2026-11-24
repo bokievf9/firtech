@@ -7,6 +7,9 @@ import { fromLine } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { isFlagship, productAnchor, productBuilderHref, productIds, productPath, type ProductId } from '@/lib/products'
 import { serviceSlugs } from '@/lib/site'
+import Image from 'next/image'
+import { displayH2, dotIcon, sectionTitle } from '../home-v5'
+import { GlowBlob } from '../hero/_v5-stubs' // v5 stub: replaced by ui exports on merge
 import { Ladder } from '../ladder'
 import { Reveal } from '../reveal'
 import { SpotlightCard } from '../spotlight-card'
@@ -35,7 +38,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
     <section id="products" className="relative mx-auto max-w-7xl px-4 py-section md:px-8">
       {/* Old links to /#services land here. */}
       <span id="services" className="absolute -top-24" aria-hidden="true" />
-      <SectionHeader title={t.title} lead={t.sub} />
+      <SectionHeader title={sectionTitle(t.title)} titleClassName={displayH2} lead={t.sub} />
 
       <ul className="mt-14 grid gap-gutter md:grid-cols-2 lg:grid-cols-12">
         {productIds.map((id, i) => (
@@ -48,7 +51,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
       </ul>
 
       <Reveal className="mt-gutter">
-        <div className="grid gap-6 rounded-card border border-hairline border-line p-card lg:grid-cols-12 lg:items-center">
+        <div className="grid gap-6 rounded-card border border-hairline border-glass-highlight bg-elevated p-card shadow-card lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-4">
             <p className="font-display text-title-3 font-semibold">{t.classicTitle}</p>
             <p className="mt-2 text-muted">{t.classicSub}</p>
@@ -58,7 +61,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
               <li key={slug}>
                 <Link
                   href={`/${locale}/services/${slug}`}
-                  className="pressable group flex h-full items-center justify-between gap-3 rounded-xl border border-hairline border-line bg-surface px-4 py-3 hover:border-line-strong"
+                  className="pressable group flex h-full items-center justify-between gap-3 rounded-xl border border-hairline border-line bg-surface px-4 py-3 hover:border-accent-text/40 hover:bg-bg"
                 >
                   <span>
                     <span className="block font-medium">{dict.services.items[slug].name}</span>
@@ -79,7 +82,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
       </Reveal>
 
       <div id="levels" className="mt-section scroll-mt-24">
-        <SectionHeader title={dict.ladder.title} lead={dict.ladder.sub} />
+        <SectionHeader title={sectionTitle(dict.ladder.title)} titleClassName={displayH2} lead={dict.ladder.sub} />
         <div className="mt-10">
           <Ladder locale={locale} dict={dict} />
         </div>
@@ -88,8 +91,9 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
       <Reveal className="mt-gutter">
         <div
           data-departments-strip
-          className="flex flex-col gap-5 rounded-card border border-hairline border-accent-text/25 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_65%)] p-card lg:flex-row lg:items-center lg:justify-between"
+          className="relative isolate flex flex-col gap-5 overflow-hidden rounded-card border border-hairline border-accent-text/25 bg-pine p-card lg:flex-row lg:items-center lg:justify-between"
         >
+          <GlowBlob className="-top-24 -right-16 -z-10 size-72" />
           <div>
             <p className="font-display text-title-3 font-semibold">{dict.ladder.strip.title}</p>
             <p className="mt-2 max-w-[60ch] text-muted">{dict.ladder.strip.text}</p>
@@ -126,10 +130,8 @@ function ProductCard({
   return (
     <SpotlightCard
       className={cn(
-        'group h-full rounded-card border border-hairline transition-[border-color,transform,box-shadow] duration-300 ease-out-quint [@media(hover:hover)]:hover:-translate-y-1 [@media(hover:hover)]:hover:shadow-card-hover',
-        flagship
-          ? 'border-accent-text/40 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_60%)] hover:border-accent-text'
-          : 'border-line bg-surface hover:border-line-strong',
+        'group relative isolate h-full overflow-hidden rounded-card border border-hairline border-glass-highlight bg-material-regular shadow-[var(--shadow-glass)] backdrop-blur-xl transition-[border-color,transform,box-shadow] duration-300 ease-out-quint [@media(hover:hover)]:hover:-translate-y-1 [@media(hover:hover)]:hover:shadow-card-hover',
+        flagship ? 'hover:border-accent-text' : 'hover:border-line-strong',
       )}
     >
       <article
@@ -147,11 +149,23 @@ function ProductCard({
           <span className="absolute right-3 bottom-2 text-caption text-faint">{t.concept}</span>
         </div>
 
+        {/* v5: two tiles carry a visual, the rest keep the live mini-demo. */}
+        {id === 'company' && <GlowBlob className="-bottom-24 -left-20 -z-10 size-72" />}
+        {id === 'personal' && (
+          <Image
+            src="/fira/fira-glasses.jpg"
+            alt=""
+            width={96}
+            height={96}
+            sizes="96px"
+            className="absolute right-4 bottom-4 hidden size-20 rounded-full object-cover shadow-[0_0_0_4px_var(--color-glass-strong),0_14px_40px_color-mix(in_srgb,var(--color-accent-text)_28%,transparent)] sm:block"
+          />
+        )}
         <div className="flex flex-1 flex-col gap-5 p-card">
           <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
             <div className="flex min-w-[14rem] flex-1 items-center gap-3">
-              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-pine text-accent-text">
-                <Glyph size={20} aria-hidden="true" />
+              <span className={cn(dotIcon, 'size-10')}>
+                <Glyph size={18} aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 {flagship && (

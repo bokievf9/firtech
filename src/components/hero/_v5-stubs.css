@@ -1,0 +1,121 @@
+/* v5 stub: replaced by the globals.css primitives (R1) on merge. Global class names follow the contract. */
+.h-display {
+  font-weight: 300;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+}
+.h-display strong {
+  font-weight: 800;
+}
+.glow-blob {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(40px);
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent) 70%, transparent) 0%, color-mix(in srgb, var(--color-accent) 25%, transparent) 35%, transparent 65%);
+}
+.glow-blob-green {
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-accent-text) 22%, transparent), transparent 70%);
+}
+.orbit-ring {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  border: 1px solid color-mix(in srgb, var(--color-accent-text) 18%, transparent);
+}
+.orbit-ring-dashed {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-accent-text) 12%, transparent);
+}
+.orb {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 18px 0 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-fg);
+  background: var(--color-material-thin);
+  border: 1px solid var(--color-glass-highlight);
+  box-shadow: inset 0 1px 0 var(--color-glass-highlight), 0 14px 40px color-mix(in srgb, var(--color-accent-text) 12%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  transition: background-color 0.2s, color 0.2s;
+}
+.orb:hover {
+  background: var(--color-elevated);
+  color: var(--color-accent-text);
+}
+.orb-dot {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--color-accent) 45%, var(--color-accent-text));
+}
+.v5-float {
+  animation: v5-float 7s ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+@keyframes v5-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+.fira-portal {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: 0 0 0 8px var(--color-glass-strong), 0 0 0 9px color-mix(in srgb, var(--color-accent-text) 15%, transparent), 0 30px 70px color-mix(in srgb, var(--color-accent-text) 28%, transparent);
+}
+@media (min-width: 1024px) {
+  .fira-portal {
+    width: 360px;
+    height: 360px;
+    box-shadow: 0 0 0 12px var(--color-glass-strong), 0 0 0 13px color-mix(in srgb, var(--color-accent-text) 15%, transparent), 0 40px 110px color-mix(in srgb, var(--color-accent-text) 28%, transparent);
+  }
+}
+.bubble-ink {
+  background: var(--color-fg);
+  color: var(--color-bg);
+  border-radius: 16px 16px 16px 4px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  box-shadow: 0 18px 50px color-mix(in srgb, var(--color-fg) 25%, transparent);
+}
+.bubble-ink b {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v5-float {
+    animation: none;
+  }
+}
+
+/* Hero entrance (contract «Motion»): fade + rise 24px, children staggered by 60 ms. */
+.v5-rise {
+  animation: v5-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+@keyframes v5-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v5-rise {
+    animation: none;
+  }
+}
