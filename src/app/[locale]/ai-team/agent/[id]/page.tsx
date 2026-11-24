@@ -8,6 +8,8 @@ import { AgentPriceCard } from '@/components/ai-team/team-price'
 import { TeamGlyph } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { HeroIntro } from '@/components/hero-intro'
+import { IntegrationsList } from '@/components/integrations-list'
+import { LanguagesNote } from '@/components/languages-note'
 import { JsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
 import { Card, GlassCard, Section } from '@/components/ui'
@@ -216,6 +218,15 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
               </ul>
             )}
           </div>
+        </Reveal>
+      </Section>
+
+      <Section className="grid gap-10 pt-0 lg:grid-cols-12">
+        <Reveal className="lg:col-span-6">
+          <IntegrationsList locale={locale} />
+        </Reveal>
+        <Reveal delay={0.1} className="lg:col-span-6">
+          <LanguagesNote locale={locale} example />
         </Reveal>
       </Section>
 

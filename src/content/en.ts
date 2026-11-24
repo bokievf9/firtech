@@ -1027,7 +1027,7 @@ const en: Dict = {
         faq: [
           {
             q: 'Which CRM do you set up?',
-            a: 'Most often amoCRM or Bitrix24. If you already have a CRM, we work with it.',
+            a: 'Most often amoCRM or Bitrix24. If you already have a CRM, we work with it. We also connect agents to Google Sheets and to a Telegram Mini App, and another system through its API. Connecting is part of the launch stage.',
           },
           {
             q: 'Is the CRM subscription included in the price?',
@@ -1270,6 +1270,10 @@ const en: Dict = {
       {
         q: 'Which messengers do the agents work in?',
         a: 'We connect the channels open to everyone first: Telegram and the site chat. WhatsApp and Instagram are a separate line of the quote: they need official business access, and at the review we tell you whether your account fits.',
+      },
+      {
+        q: 'Which languages does the agent speak?',
+        a: 'The agent answers in Russian and English. It also understands and answers in Uzbek, Kazakh and Tajik; we check the quality on your own dialogues before launch, and it does not change the quote.',
       },
       {
         q: 'What can the agents not do yet?',
