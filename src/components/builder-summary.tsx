@@ -12,6 +12,7 @@ import { briefOf, estimateDoc, type BriefRow } from '@/lib/estimate-doc'
 import { catalogRows } from '@/lib/builder-capabilities'
 import { catalogUi } from '@/content/capabilities'
 import { usePricing } from './pricing-provider'
+import { useCabinetCoupon } from './cabinet/use-cabinet-coupon'
 import { LivePreview } from './builder-live-preview'
 import { faceUi, themeText, moodText } from '@/content/builder-v2'
 import { EstimateGate } from './estimate-gate'
@@ -61,7 +62,8 @@ export function SummaryStep({
   const t = dict.builder
   const pricing = usePricing()
   const q = quote(build, pricing)
-  const doc = estimateDoc(build, dict, locale, pricing)
+  const cabinetCoupon = useCabinetCoupon()
+  const doc = estimateDoc(build, dict, locale, pricing, cabinetCoupon?.percent ?? null)
   useRememberBuild(build)
   // TODO(W1): the «Продолжить прошлую смету» line (<ContinueLastBuild /> from estimate-live.tsx, `lastBuild()` in lib/estimate-last.ts) belongs on the builder entry screen.
   const brief = briefOf(build, dict, locale)
@@ -247,15 +249,26 @@ export function SummaryStep({
             </div>
           )}
           <dl className="mt-5 grid gap-2 text-callout">
-            {q.discount && (
+            {(q.discount || doc.coupon) && (
               <>
                 <Row label={t.subtotal} value={doc.subtotal} className="text-muted" />
-                <Row
-                  label={t.discount}
-                  value={doc.discount ?? `-${Math.round(pricing.bundleDiscount)}%`}
-                  className="text-accent-text"
-                />
+                {doc.coupon ? (
+                  <div data-estimate-coupon>
+                    <Row label={doc.coupon.label} value={doc.coupon.amount} className="text-accent-text" />
+                  </div>
+                ) : (
+                  <Row
+                    label={t.discount}
+                    value={doc.discount ?? `-${Math.round(pricing.bundleDiscount)}%`}
+                    className="text-accent-text"
+                  />
+                )}
               </>
+            )}
+            {doc.couponNote && (
+              <p className="text-footnote text-faint" data-estimate-coupon-note>
+                {doc.couponNote}
+              </p>
             )}
             <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <dt>{t.total}</dt>

@@ -24,6 +24,7 @@ import { Choice, Group, Panel, Pill, Tick } from './builder-ui'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
 import { usePricing } from './pricing-provider'
+import { useCabinetCoupon } from './cabinet/use-cabinet-coupon'
 
 type SetBuild = (update: (b: Build) => Build) => void
 const loc = (locale: string) => (locale === 'ru' ? 'ru' : 'en')
@@ -296,7 +297,8 @@ export function AgentEstimate({
   const t = dict.builder
   const l = loc(locale)
   const pricing = usePricing()
-  const doc = estimateDoc(build, dict, locale, pricing)
+  const cabinetCoupon = useCabinetCoupon()
+  const doc = estimateDoc(build, dict, locale, pricing, cabinetCoupon?.percent ?? null)
   const deepRows = doc.brief.setup.filter((r) => r.id.startsWith('a-d-'))
   const deepCount = deepRows.filter((r) => r.id !== 'a-d-note').length
   const hasNote = deepRows.some((r) => r.id === 'a-d-note')
@@ -362,6 +364,12 @@ export function AgentEstimate({
               ))}
             </ul>
             <dl className="mt-5 grid gap-2 text-callout">
+              {doc.coupon && (
+                <div className="flex items-baseline justify-between gap-4 text-accent-text" data-estimate-coupon>
+                  <dt>{doc.coupon.label}</dt>
+                  <dd className="font-mono">{doc.coupon.amount}</dd>
+                </div>
+              )}
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                 <dt>{agentUi.labels.setupWord[l]}</dt>
                 <dd className="font-mono text-title-2 text-accent-text" data-agent-setup>{doc.total}</dd>

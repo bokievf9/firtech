@@ -386,7 +386,7 @@ function walk(dir) {
 }
 
 test('no component or page computes with the default price constants; client code reads usePricing()', () => {
-  const banned = ['defaultPricing', 'startingPrice', 'catalog', 'extraPrice', 'agentPlans', 'contentPlans', 'bundleDiscount', 'referralPercent', 'smallProjectMaxUsd', 'paymentStages', 'productPrice', 'lowestPrice', 'highestStartingPrice']
+  const banned = ['defaultPricing', 'startingPrice', 'catalog', 'extraPrice', 'agentPlans', 'contentPlans', 'bundleDiscount', 'referralPercent', 'cabinetCouponPercent', 'smallProjectMaxUsd', 'paymentStages', 'productPrice', 'lowestPrice', 'highestStartingPrice']
   const offenders = []
   for (const file of [...walk('src/components'), ...walk('src/app')].filter((f) => /\.tsx?$/.test(f))) {
     // The provider's context default is the one allowed use of the defaults on the client.
@@ -434,7 +434,7 @@ test('v4: every numeric leaf of Pricing is an editable field (none excluded), wi
     'personalPlans.basic.setup', 'personalPlans.plus.monthly', 'personalPlans.max.byokMonthly',
     'companyPlan.company.setup', 'companyPlan.company.monthly', 'companyPlan.company.byokMonthly',
     'agentSubscription.setup', 'agentSubscription.monthly', 'agentSubscription.byokMonthly',
-    'teamDiscount', 'companyPerEmployee', 'bundleDiscount', 'referralPercent', 'smallProjectMaxUsd',
+    'teamDiscount', 'companyPerEmployee', 'bundleDiscount', 'referralPercent', 'cabinetCouponPercent', 'smallProjectMaxUsd',
     'stageShares.company.map', 'contentPlans.content.setup', 'agentPlans.dono.monthly',
   ]) assert.ok(fieldPaths.has(p), p)
   const units = { setup: 'usd', monthly: 'usd_month', byokMonthly: 'usd_month' }

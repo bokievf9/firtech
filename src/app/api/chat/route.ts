@@ -7,6 +7,7 @@ import { chatRequestSchema, wouldCreateLead } from '@/lib/chat'
 import { askReceptionist, chatLimited, chatMode } from '@/lib/chat-hq'
 import { leadGate } from '@/lib/lead-identity'
 import { peekLeadUser } from '@/lib/lead-session'
+import { getPricing } from '@/lib/pricing-store'
 import { cabinetEnabled } from '@/lib/supabase/config'
 import { cardsFor, chunkText, sseLine } from '@/lib/fira/live'
 
@@ -44,7 +45,7 @@ async function handle(request: NextRequest) {
   }
   if (!gate.ok && wouldCreateLead(parsed.data.message)) {
     return NextResponse.json(
-      { ok: true, reply: getDict(parsed.data.locale).chat.signInFirst, state: 'contact', authRequired: true },
+      { ok: true, reply: getDict(parsed.data.locale).chat.signInFirst.replace('{percent}', String((await getPricing()).cabinetCouponPercent)), state: 'contact', authRequired: true },
       { headers: { 'cache-control': 'no-store', 'x-chat-mode': chatMode(process.env) } },
     )
   }

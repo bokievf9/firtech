@@ -129,6 +129,15 @@ function seed(): MockState {
   return { seq: 100, docs, threads, messages, signatures: [], reviews: [] }
 }
 
+// The sample coupon of the dev cabinet (contract coupon/contract.md): 10 %, 30 days from the account (created 20 days
+// ago in the mock, so 10 days left). `COUPON_MOCK=used` shows the used state; `none` the null one.
+export function mockCoupon(iso: (offset: number) => string): import('./cabinet-data').CabinetCoupon | null {
+  const mode = process.env.COUPON_MOCK
+  if (mode === 'none') return null
+  const base = { code: 'cabinet10', percent: 10, expiresAt: iso(10) }
+  return mode === 'used' ? { ...base, used: true, usedAt: iso(-2), usedLeadId: 14 } : { ...base, used: false, usedAt: null, usedLeadId: null }
+}
+
 type G = typeof globalThis & { __firtechCabinetMock?: MockState }
 export function mockState(): MockState {
   const g = globalThis as G

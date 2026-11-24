@@ -94,6 +94,8 @@ export type Pricing = {
   // Share, 0 to 50 percent, off the one-time total when a build has two or more parts.
   bundleDiscount: number
   referralPercent: number
+  // Coupon for opening a cabinet (owner 2026-11-24): percent off the ONE-TIME part of the first order, 0 to 50.
+  cabinetCouponPercent: number
   smallProjectMaxUsd: number
   // Percent of the one-time total per stage, by template and stage id. Shares of a template sum to 100.
   stageShares: Record<StageTemplateId, Record<string, number>>
@@ -145,6 +147,7 @@ export const defaultPricing: Pricing = {
   // Referral reward (owner decision 2026-11-19): this percent of the referred client's estimate, paid
   // once after the client's first payment. Copy carries the `{percent}` token, never the number.
   referralPercent: 10,
+  cabinetCouponPercent: 10,
   // Payment by stages (owner decision 2026-11-21, replaces 50/50): the one-time price is split into
   // stages by the share below; the client pays each stage BEFORE it starts and the last one before
   // handover. A project whose one-time total is under `smallProjectMaxUsd` has two stages 50/50

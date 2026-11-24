@@ -34,6 +34,7 @@ export function pricesJson(pricing: Pricing, updatedAt: string = PRICES_UPDATED_
     agentPlans: agentPlanList(pricing),
     contentPlans: contentPlanList(pricing),
     referralPercent: pricing.referralPercent,
+    cabinetCouponPercent: pricing.cabinetCouponPercent,
     // Payment stages (2026-11-21): templates with id, ru/en title and share; projects with a one-time
     // total under `smallProjectMaxUsd` use the `small` template.
     stages,
