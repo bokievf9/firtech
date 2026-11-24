@@ -20,6 +20,7 @@ registerHooks({
   resolve(specifier, context, next) {
     if (specifier in stubs) return { url: `data:text/javascript,${encodeURIComponent(stubs[specifier])}`, shortCircuit: true }
     if (specifier === 'next/link') return next('next/link.js', context)
+    if (specifier === 'next/image') return next('next/image.js', context)
     // Server actions pull in cookies and Supabase; the cards under test never call them.
     if (specifier.startsWith('@/app/') && specifier.endsWith('/actions')) {
       const stub = ['deleteAccountAction', 'changePasswordAction', 'changeEmailAction', 'signOutEverywhereAction', 'unsubscribeAction'].map((n) => `export const ${n} = async () => ({});`).join(' ')

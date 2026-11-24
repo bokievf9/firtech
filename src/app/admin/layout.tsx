@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { admin } from '@/content/admin'
-import { jetbrains, onest, unbounded } from '../fonts'
+import { jetbrains, manrope } from '../fonts'
 import '../globals.css'
 
 // Owner panel: its own root layout (no site header, footer or analytics), never indexed.
@@ -26,7 +26,7 @@ export default function AdminLayout({ children }: LayoutProps<'/admin'>) {
       lang="ru"
       data-theme="dark"
       suppressHydrationWarning
-      className={`${onest.variable} ${jetbrains.variable} ${unbounded.variable} admin-root`}
+      className={`${manrope.variable} ${jetbrains.variable} admin-root`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

@@ -99,6 +99,21 @@
   --color-glass-strong: rgb(255 255 255 / 0.86);
   --color-glass-line: rgb(14 18 15 / 0.09);
   --color-glass-highlight: rgb(255 255 255 / 0.9);
+  /*
+    v5 glass (docs/design-system-v5.md): the nav capsule and the orbs are lighter than the v4 materials
+    (white 55-62%) and sit over the lime glow; tests/site-theme.test.mjs composites them like the others.
+  */
+  --color-material-capsule: rgb(255 255 255 / 0.55);
+  --color-material-orb: rgb(255 255 255 / 0.62);
+  --color-capsule-line: rgb(255 255 255 / 0.95);
+  --color-tab-on: #ffffff;
+  --color-tab-hover: rgb(255 255 255 / 0.85);
+  --color-orb-hover: #ffffff;
+  --color-ring-white: rgb(255 255 255 / 0.7);
+  /* Dark speech bubble of Fira (.bubble-ink): fill, text, the lime name. */
+  --color-bubble: #0e120f;
+  --color-bubble-ink: #ffffff;
+  --color-bubble-name: #c6ff3d;
   /* Control fills (segmented controls, quiet buttons, icon buttons): the text colour at low strength. */
   --color-fill: rgb(14 18 15 / 0.05);
   --color-fill-strong: rgb(14 18 15 / 0.09);
@@ -111,22 +126,23 @@
   --radius-card: 20px;
   --radius-panel: 28px;
 
-  --font-sans: var(--font-onest), ui-sans-serif, system-ui, sans-serif;
+  /* Design v5: Manrope for text, display and the wordmark (docs/design-system-v5.md). */
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-jetbrains), ui-monospace, monospace;
-  --font-brand: var(--font-unbounded), var(--font-onest), sans-serif;
-  --font-display: var(--font-geologica), var(--font-onest), ui-sans-serif, sans-serif;
+  --font-brand: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
 
   /*
     Type scale (stage A). text-display is the hero only; text-title for section titles, text-lead
     for the line under a title. Fluid between 360px and 1440px, tight leading and tracking at size.
   */
-  --text-display: clamp(2.55rem, 1.15rem + 5.6vw, 6.4rem);
-  --text-display--line-height: 0.96;
-  --text-display--letter-spacing: -0.048em;
-  --text-title: clamp(2rem, 1.35rem + 2.4vw, 3.5rem);
-  --text-title--line-height: 1.04;
+  --text-display: clamp(2.5rem, 5.8vw, 5rem);
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.035em;
+  --text-title: clamp(2rem, 3.6vw, 3rem);
+  --text-title--line-height: 1.06;
   --text-title--letter-spacing: -0.035em;
-  --text-lead: clamp(1.05rem, 0.98rem + 0.35vw, 1.3rem);
+  --text-lead: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
   --text-lead--line-height: 1.55;
   --text-micro: 0.6875rem;
   --text-micro--line-height: 1.3;
@@ -139,7 +155,7 @@
   --text-title-2: clamp(1.5rem, 1.2rem + 1.1vw, 2.125rem);
   --text-title-2--line-height: 1.12;
   --text-title-2--letter-spacing: -0.026em;
-  --text-title-3: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --text-title-3: 1.5rem;
   --text-title-3--line-height: 1.2;
   --text-title-3--letter-spacing: -0.02em;
   --text-headline: 1.0625rem;
@@ -206,6 +222,17 @@
   --hero-card-bg: linear-gradient(160deg, rgb(236 245 220 / 0.9), rgb(255 255 255 / 0.96) 55%);
   --hero-glow: rgb(198 255 61 / 0.35);
   --demo-glow: rgb(198 255 61 / 0.22);
+  /* v5 primitives: lime glow strength, orbit rings, the lime button shadow, the portal halo. */
+  --glow-a: 0.7;
+  --glow-b: 0.25;
+  --glow-green: color-mix(in srgb, var(--color-accent-text) 22%, transparent);
+  --orbit-a: 18%;
+  --orbit-dashed-a: 12%;
+  --shadow-lime: 0 12px 36px color-mix(in srgb, var(--color-accent) 45%, transparent);
+  --portal-halo: 0 40px 110px color-mix(in srgb, var(--color-accent-text) 28%, transparent);
+  --shadow-capsule: 0 18px 50px color-mix(in srgb, var(--color-accent-text) 10%, transparent);
+  --shadow-orb: 0 14px 40px color-mix(in srgb, var(--color-accent-text) 12%, transparent);
+  --shadow-tab: 0 6px 18px color-mix(in srgb, var(--color-accent-text) 12%, transparent);
 }
 
 @utility shadow-card {
@@ -274,6 +301,16 @@
   --color-fill-strong: rgb(232 240 230 / 0.11);
   --color-glass-line: rgb(232 240 230 / 0.1);
   --color-glass-highlight: rgb(255 255 255 / 0.07);
+  --color-material-capsule: rgb(16 20 17 / 0.88);
+  --color-material-orb: rgb(16 20 17 / 0.82);
+  --color-capsule-line: rgb(232 240 230 / 0.12);
+  --color-tab-on: #1e2420;
+  --color-tab-hover: rgb(232 240 230 / 0.08);
+  --color-orb-hover: #1e2420;
+  --color-ring-white: rgb(232 240 230 / 0.1);
+  --color-bubble: #1e2420;
+  --color-bubble-ink: #edf2ea;
+  --color-bubble-name: #b5eb6a;
 
   --shadow-glass: inset 0 1px 0 var(--color-glass-highlight), 0 30px 80px -30px rgb(0 0 0 / 0.7);
   --shadow-float: 0 18px 50px -18px rgb(0 0 0 / 0.75), 0 0 0 1px var(--color-glass-line);
@@ -300,6 +337,16 @@
   --hero-card-bg: linear-gradient(160deg, rgb(29 58 42 / 0.55), rgb(17 21 18 / 0.92) 55%);
   --hero-glow: rgb(29 58 42 / 0.9);
   --demo-glow: rgb(29 58 42 / 0.55);
+  --glow-a: 0.3;
+  --glow-b: 0.1;
+  --glow-green: color-mix(in srgb, var(--color-pine) 70%, transparent);
+  --orbit-a: 20%;
+  --orbit-dashed-a: 13%;
+  --shadow-lime: 0 12px 36px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  --portal-halo: 0 40px 110px color-mix(in srgb, var(--color-accent) 16%, transparent);
+  --shadow-capsule: 0 18px 50px rgb(0 0 0 / 0.5);
+  --shadow-orb: 0 14px 40px rgb(0 0 0 / 0.45);
+  --shadow-tab: 0 4px 14px rgb(0 0 0 / 0.4);
 }
 
 @utility shadow-panel {
@@ -840,6 +887,266 @@
     transform: none;
   }
 }
+}
+
+/*
+  Design v5 primitives (docs/design-system-v5.md, owner «гааззз» 2026-11-25): glass capsule nav, glowing
+  lime blobs, orbit rings, floating orbs, Fira in a portal, the dark bubble, the display headline.
+  Colours come from tokens (light and dark twins above); only transform and opacity move.
+*/
+@layer components {
+  /* Headline pattern: light weight, the <strong> part black. Hero size; .h-display-section for h2. */
+  .h-display {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: var(--text-display);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+  .h-display-section {
+    font-size: var(--text-title);
+    line-height: 1.06;
+  }
+  .h-display strong,
+  .h-display b {
+    font-weight: 800;
+  }
+
+  /* Lime glow. Size and position come from the caller (utility classes or inline style). */
+  .glow-blob {
+    position: absolute;
+    width: 520px;
+    height: 520px;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(40px);
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--color-accent) calc(var(--glow-a) * 100%), transparent) 0%,
+      color-mix(in srgb, var(--color-accent) calc(var(--glow-b) * 100%), transparent) 35%,
+      transparent 65%
+    );
+  }
+  .glow-blob-green {
+    background: radial-gradient(circle, var(--glow-green), transparent 70%);
+  }
+
+  /* Thin circles around Fira or as page decoration: never more than two per screen. */
+  .orbit-ring {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    border: 1px solid color-mix(in srgb, var(--color-accent-text) var(--orbit-a), transparent);
+  }
+  .orbit-ring-dashed {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--color-accent-text) var(--orbit-dashed-a), transparent);
+  }
+
+  /* Glass capsule with the nav tabs. */
+  .nav-capsule {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 999px;
+    background: var(--color-material-capsule);
+    border: 1px solid var(--color-capsule-line);
+    box-shadow: inset 0 1px 0 var(--color-glass-highlight), var(--shadow-capsule);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    backdrop-filter: blur(18px) saturate(160%);
+  }
+  .nav-tab {
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: 999px;
+    color: var(--color-muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    transition: background-color 160ms var(--ease-out-quint), color 160ms var(--ease-out-quint),
+      box-shadow 160ms var(--ease-out-quint);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-tab:hover {
+      background: var(--color-tab-hover);
+      color: var(--color-fg);
+    }
+  }
+  .nav-tab[aria-current='page'] {
+    background: var(--color-tab-on);
+    color: var(--color-fg);
+    box-shadow: var(--shadow-tab);
+  }
+
+  /* Orb: a floating glass pill with a gradient dot (product teasers around Fira). */
+  .orb {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 46px;
+    padding: 0 18px 0 10px;
+    border-radius: 999px;
+    background: var(--color-material-orb);
+    border: 1px solid var(--color-capsule-line);
+    box-shadow: inset 0 1px 0 var(--color-glass-highlight), var(--shadow-orb);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
+    color: var(--color-fg);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    animation: v5-float 7s ease-in-out var(--float-delay, 0s) infinite;
+    transition: background-color 160ms var(--ease-out-quint), color 160ms var(--ease-out-quint);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .orb:hover {
+      background: var(--color-orb-hover);
+      color: var(--color-accent-text);
+    }
+  }
+  .orb-dot {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffffff, var(--color-accent) 45%, var(--color-accent-text));
+  }
+  @media (max-width: 767px) {
+    .orb {
+      height: 40px;
+      gap: 8px;
+      padding: 0 14px 0 8px;
+      font-size: 13px;
+    }
+    .orb-dot {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  /* Fira in a round portal: image, white ring, thin green ring, soft halo. */
+  .fira-portal {
+    --portal-size: 360px;
+    position: relative;
+    width: var(--portal-size);
+    height: var(--portal-size);
+    flex: none;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 0 0 12px var(--color-ring-white),
+      0 0 0 13px color-mix(in srgb, var(--color-accent-text) 15%, transparent), var(--portal-halo);
+    animation: v5-float 7s ease-in-out infinite;
+  }
+  .fira-portal > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  @media (max-width: 767px) {
+    .fira-portal {
+      --portal-size: 200px;
+      box-shadow: 0 0 0 8px var(--color-ring-white),
+        0 0 0 9px color-mix(in srgb, var(--color-accent-text) 15%, transparent), var(--portal-halo);
+    }
+  }
+  .fira-portal-sm {
+    --portal-size: 140px;
+    box-shadow: 0 0 0 6px var(--color-ring-white),
+      0 0 0 7px color-mix(in srgb, var(--color-accent-text) 15%, transparent), var(--portal-halo);
+  }
+
+  /* Fira's dark speech bubble. */
+  .bubble-ink {
+    background: var(--color-bubble);
+    color: var(--color-bubble-ink);
+    border-radius: 16px 16px 16px 4px;
+    padding: 10px 14px;
+    font-size: 14px;
+    line-height: 1.4;
+    box-shadow: 0 18px 50px rgb(14 18 15 / 0.25);
+  }
+  .bubble-name {
+    color: var(--color-bubble-name);
+    font-weight: 700;
+  }
+
+  /* Buttons (v5): the lime one glows, the glass one floats. */
+  .btn-glow {
+    box-shadow: var(--shadow-lime);
+  }
+  .btn-glass {
+    background: var(--color-material-orb);
+    border: 1px solid var(--color-capsule-line);
+    color: var(--color-fg);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .btn-glass:hover {
+      background: var(--color-orb-hover);
+    }
+  }
+
+  /* Hairline row under the hero, footer rows: a thin green-tinted line. */
+  .hairline-green {
+    border-top: 1px solid color-mix(in srgb, var(--color-accent-text) 14%, transparent);
+  }
+
+  /* Hero children: fade and rise 24px, staggered by --i (60 ms steps). */
+  .v5-rise {
+    animation: v5-rise 700ms var(--ease-out-expo) calc(var(--i, 0) * 60ms) both;
+  }
+}
+
+@keyframes v5-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+@keyframes v5-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb,
+  .fira-portal,
+  .v5-rise {
+    animation: none;
+  }
+}
+/* Less transparency or more contrast: the v5 glass turns solid. */
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  .nav-capsule,
+  .orb,
+  .btn-glass {
+    background: var(--color-elevated);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .nav-capsule,
+  .orb {
+    border-color: var(--color-line-strong);
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav-capsule,
+  .orb,
+  .btn-glass {
+    background: var(--color-elevated);
+  }
 }
 
 /*
