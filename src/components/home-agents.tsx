@@ -12,6 +12,7 @@ import { fromLine } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { productPath } from '@/lib/product-ids'
 import { siteUrl } from '@/lib/site'
+import { IntegrationsList } from './integrations-list'
 import { JsonLd } from './json-ld'
 import { Reveal } from './reveal'
 import { SectionHeader } from './ui/section'
@@ -105,6 +106,8 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
           </div>
         </li>
       </ul>
+
+      <IntegrationsList locale={locale} compact className="mt-8" />
 
       <div className="mt-8">
         <Link href={`/${locale}/ai-team#agents`} data-cta="home_agents_all" className={cn(buttonClass('secondary', 'md'), 'group')}>

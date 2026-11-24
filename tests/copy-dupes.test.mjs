@@ -87,6 +87,7 @@ const telegramAllowed = [
   /^serviceDetails\.bots\./, // the messengers service lists the channels
   /^services\.items\.bots\./,
   /^aiTeams\..*\.faq\[\d+\]\.a$/, // platform lists for publishing (Instagram, Telegram, YouTube)
+  /^solutions\.items\.services\.faq\[0\]\.a$/, // the CRM answer names the Telegram Mini App (a product, not the default channel)
   /\bchannels?\b/, // a channel list
   /\.chips\[/, // channel chips
   /^(hero|showcase)\.demo\./, // mock labels next to the Telegram icon of the illustration

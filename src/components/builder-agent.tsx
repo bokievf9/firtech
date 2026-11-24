@@ -23,6 +23,8 @@ import { ProjectSend } from './builder-send'
 import { Choice, Group, Panel, Pill, Tick } from './builder-ui'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
+import { IntegrationsList } from './integrations-list'
+import { LanguagesNote } from './languages-note'
 import { usePricing } from './pricing-provider'
 import { useCabinetCoupon } from './cabinet/use-cabinet-coupon'
 
@@ -119,6 +121,7 @@ export function AgentStep({
 
   if (step === 1)
     return (
+      <div className="grid gap-5">
       <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
         {publicChannels(agentChannelIds).map((id) => {
           const on = brief.channels?.includes(id) ?? false
@@ -133,20 +136,25 @@ export function AgentStep({
           )
         })}
       </div>
+      <LanguagesNote locale={locale} />
+      </div>
     )
 
   if (step === 2)
     return (
-      <div className="flex flex-wrap gap-2.5">
-        {agentConnectIds.map((id) => (
-          <Pill
-            key={id}
-            on={brief.connect?.includes(id) ?? false}
-            onClick={() => setBuild((b) => withAgentBrief(b, { connect: toggle(b.agentBrief?.connect, id) }))}
-          >
-            {agentUi.connect[id].name[l]}
-          </Pill>
-        ))}
+      <div className="grid gap-5">
+        <div className="flex flex-wrap gap-2.5">
+          {agentConnectIds.map((id) => (
+            <Pill
+              key={id}
+              on={brief.connect?.includes(id) ?? false}
+              onClick={() => setBuild((b) => withAgentBrief(b, { connect: toggle(b.agentBrief?.connect, id) }))}
+            >
+              {agentUi.connect[id].name[l]}
+            </Pill>
+          ))}
+        </div>
+        <IntegrationsList locale={locale} compact />
       </div>
     )
 
