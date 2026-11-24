@@ -17,10 +17,12 @@ import { buttonStyles } from '@/lib/cn'
 import { estimateDoc, leadEstimateFields, leadPage } from '@/lib/estimate-doc'
 import { estimateLink } from '@/lib/estimate-live'
 import type { Locale } from '@/lib/i18n'
+import { briefWithCoupon } from '@/lib/lead-intent'
 import { clearDraft, draftReturnPath, draftStorage, saveDraft } from '@/lib/lead-draft'
 import { refSource, storedRef } from '@/lib/referral'
 import { trackEvent } from '@/lib/track-event'
 import { LeadAccountNote, LeadAuthStep } from './cabinet/lead-auth'
+import { fetchCabinetCoupon } from './cabinet/use-cabinet-coupon'
 import { useCabinetUser, type CabinetUserState } from './cabinet/use-cabinet-user'
 import { ConsentText } from './consent-text'
 import { usePricing } from './pricing-provider'
@@ -86,6 +88,8 @@ export function ProjectSend({
       const d = build.details
       const account = who.status === 'in' ? who.user : null
       const name = (d?.owner || d?.company || account?.name || account?.email.split('@')[0] || 'Client').slice(0, 80)
+      // A valid cabinet coupon goes into the brief (asked now: the client may have just signed in).
+      const coupon = account ? await fetchCabinetCoupon() : null
       const contact = (account ? [account.email, account.telegram].filter(Boolean).join(', ') : d?.owner || d?.company || '').slice(0, 120)
       {
         const result = await fetchJson<{ cabinet?: string | null; queued?: boolean; hqLeadId?: number | null; coupon?: string | null }>('/api/lead', {
@@ -97,7 +101,7 @@ export function ProjectSend({
             contact: contact.length >= 3 ? contact : '(builder)',
             service,
             ...fields,
-            ...(brief ? { brief } : {}),
+            ...(briefWithCoupon(brief, Boolean(coupon)) ? { brief: briefWithCoupon(brief, Boolean(coupon)) } : {}),
             source: refSource(storedRef()) || (build.agentBrief && build.agents?.[0] ? agentSource(build.agents[0]) : ''),
             locale,
             page: leadPage(link),

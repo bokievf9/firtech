@@ -2,6 +2,7 @@
 
 import type { Dict } from '@/content'
 import type { Locale } from '@/lib/i18n'
+import { usePricing } from '@/components/pricing-provider'
 import { AuthForms } from './auth-forms'
 import type { CabinetUserState } from './use-cabinet-user'
 import { fill } from './ui'
@@ -22,10 +23,11 @@ export function LeadAuthStep({
   onSignedIn: (email: string) => void
   onBeforeRedirect?: () => void
 }) {
+  const pricing = usePricing()
   return (
     <div className="mt-4 grid gap-3" data-lead-auth>
       <p role="status" className="text-callout font-medium text-fg">
-        {dict.leadAuth.authRequired}
+        {dict.leadAuth.authRequired.replace('{percent}', String(pricing.cabinetCouponPercent))}
       </p>
       <AuthForms
         compact

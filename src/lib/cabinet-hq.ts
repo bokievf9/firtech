@@ -19,6 +19,7 @@ import { parseClientDocs, signBodyForHq, type ClientDoc, type RejectMode, type S
 import type { CabinetExtras } from './cabinet-view'
 import {
   mockAcceptQuote,
+  mockCoupon,
   mockRejectQuote,
   mockReview,
   mockMessages as mockThreadMessages,
@@ -763,6 +764,7 @@ export function cabinetMock(email: string): CabinetData {
       { id: 1, referred: 'Боб', status: 'proposed', reward: '10%', createdAt: iso(-3), paidAt: null, rewardedAt: null },
     ],
     referralSlug: 'test-client',
+    coupon: mockCoupon(iso),
   }
 }
 

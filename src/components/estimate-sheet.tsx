@@ -25,6 +25,7 @@ import { useCabinetUser } from './cabinet/use-cabinet-user'
 import { Logo } from './logo'
 import { agentUi } from '@/content/builder-agent'
 import { usePricing } from './pricing-provider'
+import { useCabinetCoupon } from './cabinet/use-cabinet-coupon'
 import { ContinueLastBuild, PayFirstStage, SaveEstimate, useRememberBuild } from './estimate-live'
 
 const ease = [0.16, 1, 0.3, 1] as const
@@ -35,6 +36,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
   const t = dict.builder.estimate
   const reduce = useReducedMotion()
   const pricing = usePricing()
+  const cabinetCoupon = useCabinetCoupon()
   const [state, setState] = useState<{ build: Build | null; date: string } | null>(null)
   const { state: me, refresh } = useCabinetUser()
   const [returnPath, setReturnPath] = useState('')
@@ -81,13 +83,14 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
     )
   }
 
-  const doc = estimateDoc(state.build, dict, locale, pricing)
+  const doc = estimateDoc(state.build, dict, locale, pricing, cabinetCoupon?.percent ?? null)
   const catalog = catalogRows(state.build, locale, 3000)
   const notes = [
     dict.builder.termsNote,
     ...(doc.stages.length ? [] : [dict.builder.payNote]),
     ...(doc.onRequest.length ? [pick(builderUi.onRequestNote, locale)] : []),
     ...(doc.monthly ? [dict.builder.monthlyNote] : []),
+    ...(doc.couponNote ? [doc.couponNote] : []),
     doc.scope,
     dict.builder.note,
   ]
@@ -233,10 +236,16 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
         </table>
 
         <dl className="mt-6 ml-auto grid max-w-sm gap-2 text-sm break-inside-avoid">
-          {doc.discount && (
+          {(doc.discount || doc.coupon) && (
             <>
               <Sum label={dict.builder.subtotal} value={doc.subtotal} muted />
-              <Sum label={dict.builder.discount} value={doc.discount} />
+              {doc.coupon ? (
+                <div data-estimate-coupon className="contents">
+                  <Sum label={doc.coupon.label} value={doc.coupon.amount} />
+                </div>
+              ) : (
+                <Sum label={dict.builder.discount} value={doc.discount ?? ''} />
+              )}
             </>
           )}
           <div className="mt-1 flex items-baseline justify-between gap-4 border-t-2 border-[#14170f] pt-3">

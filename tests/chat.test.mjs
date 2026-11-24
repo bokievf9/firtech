@@ -193,7 +193,7 @@ test('route: with the cabinet on, a contact from a signed-out visitor is not for
     const body = await res.json()
     assert.equal(body.authRequired, true)
     assert.equal(body.state, 'contact')
-    assert.equal(body.reply, getDict('ru').chat.signInFirst)
+    assert.equal(body.reply, getDict('ru').chat.signInFirst.replace('{percent}', '10'))
     // Plain questions still reach the receptionist.
     const q = await (await post({ sessionId: SID, locale: 'ru', message: 'Сколько стоит сайт?', page: '/ru' })).json()
     assert.notEqual(q.authRequired, true)

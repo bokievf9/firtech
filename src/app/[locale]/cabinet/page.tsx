@@ -9,7 +9,7 @@ import { LeadsSection } from '@/components/cabinet/leads-section'
 import { MaterialsPanel } from '@/components/cabinet/materials-panel'
 import { MessagesPanel } from '@/components/cabinet/messages-panel'
 import { OffersStrip } from '@/components/cabinet/offers'
-import { EmptyProjects, ProjectCard, RecentBlock } from '@/components/cabinet/projects-home'
+import { CouponBanner, EmptyProjects, ProjectCard, RecentBlock } from '@/components/cabinet/projects-home'
 import { RefreshWhileVisible } from '@/components/cabinet/refresh-while-visible'
 import { fill } from '@/components/cabinet/ui'
 import { HeroIntro } from '@/components/hero-intro'
@@ -49,6 +49,7 @@ const emptyData = (email: string, name: string): CabinetData => ({
   tickets: [],
   referrals: [],
   referralSlug: null,
+  coupon: null,
 })
 
 // The «Ниша» list of the profile: the builder's niches grouped by its categories («Другое» last).
@@ -94,6 +95,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
   // `?review=<projectId>`: the link of the «Как вам работа с Fir Tech?» email opens the review form.
   const reviewId = reviewProjectId(query.review)
   const reviewPricing = reviewId ? await getPricing() : null
+  const couponPricing = reviewPricing ?? (await getPricing())
 
   return (
     <section className="mx-auto max-w-6xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
@@ -141,6 +143,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
           projects: (
             <>
               <RefreshWhileVisible />
+              <CouponBanner coupon={data.coupon} percent={couponPricing.cabinetCouponPercent} dict={dict} locale={locale} />
               {reviewId !== null && reviewPricing && (
                 <ReviewCard
                   dict={dict}

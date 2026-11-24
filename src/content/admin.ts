@@ -1133,6 +1133,8 @@ export const admin = {
       nothing: 'Nobody for this search.',
       cabinet: 'cabinet',
       noCabinet: 'no cabinet',
+      couponValid: 'Coupon {percent}% until {date}',
+      couponUsed: 'Coupon used',
       counts: { leads: 'leads', tickets: 'tickets', projects: 'projects', invoices: 'invoices', documents: 'documents' },
       copyEmail: 'Email',
       copyTelegram: 'Telegram',

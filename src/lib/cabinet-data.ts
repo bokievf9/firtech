@@ -1,4 +1,4 @@
-import { boolOrNull, count, idNum, idStr, isObj, list, str, strOrNull } from './cabinet-parse'
+import { boolOrNull, count, idNum, idStr, intOrNull, isObj, list, str, strOrNull } from './cabinet-parse'
 import { parseNextAction, type NextAction, type NextActionKind, type PublicDoc } from './cabinet-docs'
 import { parseJourney, type Journey } from './cabinet-journey'
 import { sanitizeRefSlug } from './referral'
@@ -118,6 +118,38 @@ export type CabinetData = {
   tickets: CabinetTicket[]
   referrals: CabinetReferral[]
   referralSlug: string | null
+  // The coupon for opening the cabinet (contract coupon/contract.md): HQ is the source of truth, the site only shows it.
+  coupon: CabinetCoupon | null
+}
+
+// `coupon` of the cabinet payload. `null` = none (an old account, or HQ without coupons).
+export type CabinetCoupon = { code: string; percent: number; expiresAt: string; used: boolean; usedAt: string | null; usedLeadId: number | null }
+
+export function parseCoupon(value: unknown): CabinetCoupon | null {
+  if (!isObj(value)) return null
+  const code = typeof value.code === 'string' && /^[\w-]{1,40}$/.test(value.code) ? value.code : ''
+  const expires = typeof value.expiresAt === 'string' ? value.expiresAt.slice(0, 40) : ''
+  if (!code || Number.isNaN(Date.parse(expires))) return null
+  const percent = typeof value.percent === 'number' && Number.isFinite(value.percent) && value.percent > 0 && value.percent <= 50 ? value.percent : 0
+  return { code, percent, expiresAt: expires, used: value.used === true,
+    usedAt: strOrNull(value.usedAt),
+    // Not in the contract yet (additive, optional): the request the coupon went into.
+    usedLeadId: intOrNull(value.usedLeadId),
+  }
+}
+
+// A coupon the client can still use: not used and not expired. Only then the estimate shows the discount and the
+// lead carries `brief.coupon`.
+export const couponValid = (coupon: CabinetCoupon | null | undefined, now: number = Date.now()): coupon is CabinetCoupon =>
+  !!coupon && !coupon.used && Date.parse(coupon.expiresAt) > now
+
+// «DD.MM.YYYY» (or «DD.MM» without the year) of an ISO date, in UTC so the server and the browser agree.
+export function couponDate(iso: string, withYear = true): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const dd = String(d.getUTCDate()).padStart(2, '0')
+  const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+  return withYear ? `${dd}.${mm}.${d.getUTCFullYear()}` : `${dd}.${mm}`
 }
 
 const milestoneStates: MilestoneState[] = ['awaiting_payment', 'in_progress', 'awaiting_acceptance', 'accepted']
@@ -293,6 +325,7 @@ export function parseClientBody(body: unknown): CabinetData | null {
     tickets: list(body.tickets, parseTicket),
     referrals: list(body.referrals, parseReferral),
     referralSlug: slug || null,
+    coupon: parseCoupon(body.coupon),
   }
 }
 
