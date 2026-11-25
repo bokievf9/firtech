@@ -90,6 +90,10 @@ export type EstimateDoc = {
   start: string
   // The top block (owner audit 2026-11-24): what to pay now, the subscription apart, null when there is nothing to show.
   payNow: { label: string; amount: string; stage: string } | null
+  // The cabinet coupon (contract coupon/contract.md): the discount line on the one-time part, `couponNote` when the
+  // bundle discount is the larger one and the coupon stays for the next order. Both null without a valid coupon.
+  coupon: { label: string; amount: string; percent: number } | null
+  couponNote: string | null
   subscription: { label: string; amount: string; text: string } | null
   sketch: string
   brief: Brief
@@ -113,11 +117,24 @@ export function scopeLine(build: Build, dict: Dict) {
 const isService = (id: string): id is ServiceSlug =>
   (serviceSlugs as readonly string[]).includes(id)
 
+// The cabinet coupon on the ONE-TIME part (setup + stages), never on the monthly. Not stacked with the bundle
+// discount: the larger of the two applies. `subtotal` is the one-time sum before any discount, `bundleAmount` what
+// the bundle already took off it (0 = none), `bundlePercent` its percent. Whole USD like the other discounts.
+export function couponMath(subtotal: number, bundleAmount: number, bundlePercent: number, percent: number) {
+  const bundled = subtotal - bundleAmount
+  if (!(percent > 0) || subtotal <= 0) return { amount: 0, total: bundled, kept: false }
+  if (bundleAmount > 0 && bundlePercent >= percent) return { amount: 0, total: bundled, kept: true }
+  const amount = Math.round((subtotal * percent) / 100)
+  return { amount, total: subtotal - amount, kept: false }
+}
+
 export function estimateDoc(
   source: Build,
   dict: Dict,
   locale: string,
   pricing: Pricing = defaultPricing,
+  // The percent of a valid cabinet coupon of the signed-in client (`useCabinetCoupon`), null = none.
+  couponPercent: number | null = null,
 ): EstimateDoc {
   // The personal path never shows a niche, products or parts, even when a link carried them; the agent path the same.
   const build = agentOnly(personalOnly(source))
@@ -193,7 +210,10 @@ export function estimateDoc(
         setupUsd: aq.oneTime,
       }
     : null
-  const oneTime = q.total + (aq?.oneTime ?? 0)
+  const subtotalOne = q.subtotal + (aq?.oneTime ?? 0)
+  const cm = couponMath(subtotalOne, q.discount ?? 0, q.discount ? pricing.bundleDiscount : 0, couponPercent ?? 0)
+  const oneTime = cm.amount > 0 ? cm.total : q.total + (aq?.oneTime ?? 0)
+  const couponLine = dict.builder.estimate.couponLine.replace('{percent}', String(couponPercent ?? 0))
   const stageRows = aq && !q.lines.length ? agentStages(oneTime, pricing) : stagesFor(build, oneTime, pricing)
   return {
     kind: build.kind ? kindName(build.kind, locale) : null,
@@ -203,7 +223,7 @@ export function estimateDoc(
     extras,
     subtotal: formatUsd(q.subtotal + (aq?.oneTime ?? 0)),
     // With agent lines the discount is shown as the amount it takes off the parts, not as a percent of the whole.
-    discount: q.discount ? (aq ? `-${formatUsd(q.discount)}` : `-${Math.round(pricing.bundleDiscount)}%`) : null,
+    discount: q.discount && cm.amount === 0 ? (aq ? `-${formatUsd(q.discount)}` : `-${Math.round(pricing.bundleDiscount)}%`) : null,
     // No priced lines: nothing to sum, the quote says so instead of showing zero.
     total: q.lines.length || aq ? formatUsd(oneTime) : quoteWord,
     monthly: q.monthly === null ? null : `${formatUsd(q.monthly)}${dict.builder.perMonth}`,
@@ -230,6 +250,8 @@ export function estimateDoc(
             text: dict.builder.estimate.subscriptionText,
           }
         : null,
+    coupon: cm.amount > 0 ? { label: couponLine, amount: `-${formatUsd(cm.amount)}`, percent: couponPercent ?? 0 } : null,
+    couponNote: cm.kept ? dict.builder.estimate.couponNote : null,
     sketch: dict.builder.estimate.sketch,
     brief: briefOf(build, dict, locale),
   }

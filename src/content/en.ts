@@ -100,7 +100,7 @@ const en: Dict = {
     contactHelp: 'Your account email is already here. You can add a phone or Telegram.',
     draftRestored: 'Your draft is back. Check the fields and press «Send».',
     send: 'Send',
-    authRequired: 'To send a request, sign in or create an account.',
+    authRequired: 'Open your personal cabinet: the request is saved, the estimate becomes a document, and you get a {percent}% coupon on any product.',
     redirecting: 'Request sent. Opening your cabinet...',
     toCabinet: 'Open the cabinet',
   },
@@ -144,7 +144,7 @@ const en: Dict = {
     mockNote: 'Demo mode: scripted answers, nothing is sent',
     restart: 'Start over',
     // Leads need an account (owner 2026-11-20): the chat itself stays open to everyone.
-    signInFirst: 'To leave a request, sign in or create an account. The conversation is kept and the request appears in your cabinet.',
+    signInFirst: 'Open your personal cabinet: the request is saved, the estimate becomes a document, and you get a {percent}% coupon on any product.',
     sendAs: 'Send the request as {email}',
     leadInCabinet: 'Your request is in the cabinet: you can follow what happens next there.',
     toCabinet: 'Open the cabinet',
@@ -741,6 +741,8 @@ const en: Dict = {
       payFirstSignIn: 'Sign in to request the invoice.',
       startTemplate: 'Work starts {days} after the first stage is paid.',
       payNowLabel: 'Pay now',
+      couponLine: 'Cabinet coupon -{percent}%',
+      couponNote: 'The coupon stays for your next order: the two-part bundle discount is larger.',
       payNowStage: 'stage 1 of {n}',
       subscriptionLabel: 'Subscription',
       subscriptionText: 'from launch, not part of the first payment',
@@ -1027,7 +1029,7 @@ const en: Dict = {
         faq: [
           {
             q: 'Which CRM do you set up?',
-            a: 'Most often amoCRM or Bitrix24. If you already have a CRM, we work with it.',
+            a: 'Most often amoCRM or Bitrix24. If you already have a CRM, we work with it. We also connect agents to Google Sheets and to a Telegram Mini App, and another system through its API. Connecting is part of the launch stage.',
           },
           {
             q: 'Is the CRM subscription included in the price?',
@@ -1270,6 +1272,10 @@ const en: Dict = {
       {
         q: 'Which messengers do the agents work in?',
         a: 'We connect the channels open to everyone first: Telegram and the site chat. WhatsApp and Instagram are a separate line of the quote: they need official business access, and at the review we tell you whether your account fits.',
+      },
+      {
+        q: 'Which languages does the agent speak?',
+        a: 'The agent answers in Russian and English. It also understands and answers in Uzbek, Kazakh and Tajik; we check the quality on your own dialogues before launch, and it does not change the quote.',
       },
       {
         q: 'What can the agents not do yet?',
@@ -2333,6 +2339,9 @@ const en: Dict = {
         emptyTitle: 'Your project will show up here',
         emptyText: 'Right after a request the project journey opens here: the steps, what we do now and what we need from you. Documents and messages appear next to it. You can start in the builder.',
         builder: 'Build a project in the builder',
+        couponValid: 'Your {percent}% coupon is valid until {date}',
+        couponUsed: 'Coupon used in request No. {id}',
+        couponUsedNoId: 'Coupon used',
         audit: 'Order a free audit',
         openThread: 'Project conversation',
         projectDocs: 'Documents',

@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn'
 import { focusRow, focusRowClass, useFocusRow } from '@/components/admin/hub/focus-row'
 import { formatDuration, minutesSince } from '@/lib/office-view'
 import { clientPath, isOverdue, matchesQuery, normalizeClient360, normalizeClientRows, type Client360 } from '@/lib/shell'
+import { couponDate } from '@/lib/cabinet-data'
 import { knowledgeClientId } from '@/lib/client-knowledge'
 import { ClientKnowledgePanel } from './client-knowledge'
 import { Chip, InvoiceChip, shortDate, shortTime, TxLink, usd } from './bits'
@@ -107,6 +108,11 @@ function Client360Body({ data }: { data: Client360 }) {
         ) : (
           <Chip tone="dim">{c.noCabinet}</Chip>
         )}
+        {data.client.coupon ? (
+          <span data-client-coupon><Chip tone={data.client.coupon.used ? 'dim' : 'accent'}>
+            {data.client.coupon.used ? c.couponUsed : c.couponValid.replace('{percent}', String(data.client.coupon.percent || 10)).replace('{date}', couponDate(data.client.coupon.expiresAt, false))}
+          </Chip></span>
+        ) : null}
         {data.client.createdAt ? <span className="text-xs text-faint">{fillSince(data.client.createdAt)}</span> : null}
         {data.client.email ? <CopyButton text={data.client.email} label={c.copyEmail} /> : null}
         {data.client.telegram ? <CopyButton text={data.client.telegram} label={c.copyTelegram} /> : null}

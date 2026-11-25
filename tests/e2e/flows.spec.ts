@@ -114,7 +114,7 @@ test('builder send: «Отправить проект в работу» asks to 
   await expect(page.locator('#contact form')).toHaveCount(0)
   await send.click()
   await expect(page.locator('[data-lead-auth]')).toBeVisible()
-  await expect(page.locator('[data-lead-auth]')).toContainText('войдите или создайте аккаунт')
+  await expect(page.locator('[data-lead-auth]')).toContainText('Откройте личный кабинет')
 })
 
 test('API: a lead without an account is refused (401 auth_required), bad origin is 403', async ({ request, baseURL }) => {

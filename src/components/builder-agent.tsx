@@ -23,7 +23,10 @@ import { ProjectSend } from './builder-send'
 import { Choice, Group, Panel, Pill, Tick } from './builder-ui'
 import { EstimateGate } from './estimate-gate'
 import { GuaranteeLine } from './guarantee-line'
+import { IntegrationsList } from './integrations-list'
+import { LanguagesNote } from './languages-note'
 import { usePricing } from './pricing-provider'
+import { useCabinetCoupon } from './cabinet/use-cabinet-coupon'
 
 type SetBuild = (update: (b: Build) => Build) => void
 const loc = (locale: string) => (locale === 'ru' ? 'ru' : 'en')
@@ -118,6 +121,7 @@ export function AgentStep({
 
   if (step === 1)
     return (
+      <div className="grid gap-5">
       <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
         {publicChannels(agentChannelIds).map((id) => {
           const on = brief.channels?.includes(id) ?? false
@@ -132,20 +136,25 @@ export function AgentStep({
           )
         })}
       </div>
+      <LanguagesNote locale={locale} />
+      </div>
     )
 
   if (step === 2)
     return (
-      <div className="flex flex-wrap gap-2.5">
-        {agentConnectIds.map((id) => (
-          <Pill
-            key={id}
-            on={brief.connect?.includes(id) ?? false}
-            onClick={() => setBuild((b) => withAgentBrief(b, { connect: toggle(b.agentBrief?.connect, id) }))}
-          >
-            {agentUi.connect[id].name[l]}
-          </Pill>
-        ))}
+      <div className="grid gap-5">
+        <div className="flex flex-wrap gap-2.5">
+          {agentConnectIds.map((id) => (
+            <Pill
+              key={id}
+              on={brief.connect?.includes(id) ?? false}
+              onClick={() => setBuild((b) => withAgentBrief(b, { connect: toggle(b.agentBrief?.connect, id) }))}
+            >
+              {agentUi.connect[id].name[l]}
+            </Pill>
+          ))}
+        </div>
+        <IntegrationsList locale={locale} compact />
       </div>
     )
 
@@ -296,7 +305,8 @@ export function AgentEstimate({
   const t = dict.builder
   const l = loc(locale)
   const pricing = usePricing()
-  const doc = estimateDoc(build, dict, locale, pricing)
+  const cabinetCoupon = useCabinetCoupon()
+  const doc = estimateDoc(build, dict, locale, pricing, cabinetCoupon?.percent ?? null)
   const deepRows = doc.brief.setup.filter((r) => r.id.startsWith('a-d-'))
   const deepCount = deepRows.filter((r) => r.id !== 'a-d-note').length
   const hasNote = deepRows.some((r) => r.id === 'a-d-note')
@@ -362,6 +372,12 @@ export function AgentEstimate({
               ))}
             </ul>
             <dl className="mt-5 grid gap-2 text-callout">
+              {doc.coupon && (
+                <div className="flex items-baseline justify-between gap-4 text-accent-text" data-estimate-coupon>
+                  <dt>{doc.coupon.label}</dt>
+                  <dd className="font-mono">{doc.coupon.amount}</dd>
+                </div>
+              )}
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                 <dt>{agentUi.labels.setupWord[l]}</dt>
                 <dd className="font-mono text-title-2 text-accent-text" data-agent-setup>{doc.total}</dd>

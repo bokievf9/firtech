@@ -66,7 +66,22 @@ export function applyIntent<T extends Shape>(lead: T, now: Date = new Date()): T
     const { estimateUrl: _u, ...short } = extra
     void _u
     brief = { ...(lead.brief ?? {}), ...short }
-    if (JSON.stringify(brief).length > briefLimit) brief = { ...short }
+    // The coupon note is tiny and worth money: it survives the cut.
+    if (JSON.stringify(brief).length > briefLimit) brief = { ...short, ...(lead.brief?.coupon === 'cabinet10' ? { coupon: 'cabinet10' } : {}) }
   }
   return { ...lead, message: intentNote(lead, remindAt), brief, ...(remindAt ? { remindAt } : {}) }
+}
+
+// The cabinet coupon rides in the lead's `brief` (contract coupon/contract.md): `brief.coupon = 'cabinet10'`, only when
+// the signed-in client's coupon is valid (not used, not expired; checked by the caller). HQ re-checks it. A brief that
+// would pass `max` characters keeps no coupon note rather than losing the lead.
+export const cabinetCouponCode = 'cabinet10'
+export function briefWithCoupon(
+  brief: Record<string, unknown> | null,
+  valid: boolean,
+  max = 3500,
+): Record<string, unknown> | null {
+  if (!valid) return brief
+  const next = { v: 1, ...(brief ?? {}), coupon: cabinetCouponCode }
+  return JSON.stringify(next).length <= max ? next : brief
 }

@@ -38,7 +38,7 @@ test('flagships: Personal AI page, twelve skills, persona day, locked demo, thre
   await expect(demo.locator('[data-personal-example]')).toBeVisible()
   await expect(demo.locator('input')).toHaveCount(0)
   await expect(page.locator('[data-plan-levels] [data-plan]')).toHaveCount(3)
-  await expect(page.locator('[data-plan="basic"]')).toContainText('$290')
+  await expect(page.locator('[data-plan="basic"]')).toContainText('290 USD')
   await expect(page.locator('[data-start-steps] > li')).toHaveCount(3)
   await expect(page.locator('[data-questions] button')).toHaveCount(4)
   await expect(page.locator('[data-cta="product_page_personal_build"]')).toHaveAttribute('href', /p\.personal/)

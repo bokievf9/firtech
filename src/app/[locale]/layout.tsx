@@ -15,7 +15,7 @@ import { isLocale, locales } from '@/lib/i18n'
 import { getPricing } from '@/lib/pricing-store'
 import { siteUrl } from '@/lib/site'
 import { cabinetEnabled } from '@/lib/supabase/config'
-import { geologica, jetbrains, onest, unbounded } from '../fonts'
+import { jetbrains, manrope } from '../fonts'
 import '../globals.css'
 
 export function generateStaticParams() {
@@ -67,7 +67,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`site ${onest.variable} ${jetbrains.variable} ${unbounded.variable} ${geologica.variable}`}
+      className={`site ${manrope.variable} ${jetbrains.variable}`}
     >
       <head>
         <ThemeInit />

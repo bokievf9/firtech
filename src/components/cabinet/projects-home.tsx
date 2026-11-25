@@ -2,11 +2,14 @@ import Link from 'next/link'
 import type { Dict } from '@/content'
 import type { ChatMessage, ChatThread } from '@/lib/cabinet-chat'
 import {
+  couponDate,
+  couponValid,
   formatDate,
   prepSteps,
   projectStatusKey,
   stageRows,
   stageTemplate,
+  type CabinetCoupon,
   type CabinetProject,
 } from '@/lib/cabinet-data'
 import { docStateKey, type NextAction, type PublicDoc } from '@/lib/cabinet-docs'
@@ -164,6 +167,43 @@ export function EmptyProjects({ dict, locale }: { dict: Dict; locale: Locale }) 
           {v.audit}
         </Link>
       </div>
+    </Card>
+  )
+}
+
+// The coupon for opening the cabinet (contract coupon/contract.md): a banner with «Собрать проект» while it is unused
+// and valid, «Купон использован в заявке №N» once used, nothing for `null` or an expired one.
+export function CouponBanner({
+  coupon,
+  percent,
+  dict,
+  locale,
+}: {
+  coupon: CabinetCoupon | null
+  percent: number
+  dict: Dict
+  locale: Locale
+}) {
+  const v = dict.cabinet.v3.home
+  if (!coupon) return null
+  if (coupon.used) {
+    return (
+      <Card className="mb-5 flex flex-wrap items-center justify-between gap-3 p-4" data-coupon-used>
+        <p className="text-callout text-muted">
+          {coupon.usedLeadId ? fill(v.couponUsed, { id: String(coupon.usedLeadId) }) : v.couponUsedNoId}
+        </p>
+      </Card>
+    )
+  }
+  if (!couponValid(coupon)) return null
+  return (
+    <Card className="mb-5 flex flex-wrap items-center justify-between gap-3 p-4" data-coupon-banner>
+      <p className="text-callout font-medium">
+        {fill(v.couponValid, { percent: String(coupon.percent > 0 ? coupon.percent : percent), date: couponDate(coupon.expiresAt) })}
+      </p>
+      <Link href={`/${locale}/builder`} className={buttonStyles.primary}>
+        {v.builder}
+      </Link>
     </Card>
   )
 }

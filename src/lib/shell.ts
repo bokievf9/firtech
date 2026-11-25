@@ -456,8 +456,18 @@ export function normalizeSupportTickets(body: unknown): Rows<SupportTicket> | nu
 // ---- client 360 --------------------------------------------------------------------------------
 
 export type Touch = { at: string; kind: string; title: string }
+// The cabinet coupon of the client (admin CRM client payload `coupon`, contract coupon/contract.md).
+export type ClientCoupon = { percent: number; expiresAt: string; used: boolean }
+export function clientCoupon(raw: unknown): ClientCoupon | null {
+  const r = rec(raw)
+  const expiresAt = when(r.expiresAt)
+  if (!expiresAt) return null
+  const percent = typeof r.percent === 'number' && r.percent > 0 && r.percent <= 50 ? r.percent : 0
+  return { percent, expiresAt, used: r.used === true }
+}
+
 export type Client360 = {
-  client: { id: string; name: string; email: string; telegram: string; cabinet: boolean; createdAt: string | null }
+  client: { id: string; name: string; email: string; telegram: string; cabinet: boolean; createdAt: string | null; coupon: ClientCoupon | null }
   leads: Lead[]
   projects: Project[]
   invoices: Invoice[]
@@ -484,6 +494,7 @@ export function normalizeClient360(body: unknown): Client360 | null {
       telegram: str(c.telegram, 120),
       cabinet: c.cabinet === true,
       createdAt: when(c.createdAt),
+      coupon: clientCoupon(b.coupon ?? c.coupon),
     },
     leads: arr(b.leads, 200).map(leadRow).filter((x): x is Lead => !!x),
     projects: normalizeProjects(itemsOf(b.projects))?.items ?? [],

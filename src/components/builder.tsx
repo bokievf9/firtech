@@ -61,6 +61,8 @@ import { SummaryStep } from './builder-summary'
 import { ForkToggle, PersonalDay, PersonalStep, type ForkMode } from './builder-personal'
 import { AgentEstimate, AgentStep, deptQuestion } from './builder-agent'
 import { Screen } from './builder-ui'
+import { useCabinetCoupon } from './cabinet/use-cabinet-coupon'
+import { couponMath } from '@/lib/estimate-doc'
 import { PresetRow, TaskStart } from './builder-presets'
 
 const ease = [0.16, 1, 0.3, 1] as const
@@ -382,16 +384,22 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
   const q = quote(build, pricing)
   const aq = agentQuote(build, pricing)
   const ui = builderUi
+  // The cabinet coupon takes its percent off the one-time sum (the larger of it and the bundle discount applies).
+  const cabinetCoupon = useCabinetCoupon()
+  const withCoupon = (subtotal: number, bundle: number, bundlePercent: number) => {
+    const cm = couponMath(subtotal, bundle, bundlePercent, cabinetCoupon?.percent ?? 0)
+    return cm.amount > 0 ? cm.total : subtotal - bundle
+  }
   const nowAmount = agent
     ? aq
-      ? formatUsd(aq.oneTime)
+      ? formatUsd(withCoupon(aq.oneTime, 0, 0))
       : ''
     : personal
       ? build.personal?.hand?.length
         ? formatUsd(pricing.personalPlans[tierOf(build.personal)].setup)
         : ''
       : hasParts || aq
-        ? formatUsd(q.total + (aq?.oneTime ?? 0))
+        ? formatUsd(withCoupon(q.subtotal + (aq?.oneTime ?? 0), q.discount ?? 0, q.discount ? pricing.bundleDiscount : 0))
         : onRequest.length
           ? pick(ui.totalOnRequest, locale)
           : ''
