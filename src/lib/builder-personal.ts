@@ -49,6 +49,7 @@ import type { PersonalLevel } from './pricing'
 import { capabilitiesBrief, withCatalog } from './builder-capabilities'
 import { agentOnly } from './builder-agent'
 import { cleanNote, noteLimit, typingNote } from './builder-depth'
+import { cleanLoss, lossMath } from './loss'
 export { cleanNote, noteLimit, typingNote }
 
 // «Сборка проекта» v4: the personal path and the discovery fields (owner review 2026-11-22). Pure and tested
@@ -378,6 +379,9 @@ export function leadBriefOf(source: Build): LeadBrief | null {
     if (a.training) out.training = true
     if (a.deep && Object.keys(a.deep).length) out.depth = a.deep
     if (a.note && cleanNote(a.note)) out.note = cleanNote(a.note)
+    // The visitor's own loss numbers (only when he typed them): `loss: {missedPerDay, avgCheck, offHoursShare, monthlyLossUsd}`.
+    const loss = cleanLoss(a.loss)
+    if (loss) out.loss = { missedPerDay: loss.missedPerDay, avgCheck: loss.avgCheck, offHoursShare: loss.offHoursShare, monthlyLossUsd: lossMath(loss).monthlyLossUsd }
   } else if (build.personal) {
     out.type = 'personal'
     const p = build.personal
