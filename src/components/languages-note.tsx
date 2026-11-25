@@ -8,7 +8,7 @@ export function LanguagesNote({ locale, example, className }: { locale: string; 
   const c = languagesCopy
   return (
     <div data-languages-note className={cn('grid gap-3', className)}>
-      <p className="flex gap-2.5 text-callout text-muted">
+      <p className="flex gap-2.5 border-y border-line py-4 text-callout text-muted">
         <Translate size={18} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
         <span>{pickBi(c.note, locale)}</span>
       </p>

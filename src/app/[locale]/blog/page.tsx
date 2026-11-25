@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { notFound } from 'next/navigation'
 import { DraftBadge } from '@/components/article-body'
-import { HeroIntro } from '@/components/hero-intro'
+import { PageHero } from '@/components/page-hero'
 import { Reveal } from '@/components/reveal'
 import { getDict } from '@/content'
 import { formatArticleDate, readingTime } from '@/content/blog'
@@ -45,17 +45,9 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
 
   return (
     <>
-      <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
-        <HeroIntro>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h1 className="mt-5 max-w-[18ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
-            {t.title}
-          </h1>
-          <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-muted md:text-xl">{t.sub}</p>
-        </HeroIntro>
-      </section>
+      <PageHero light={t.titleLight} strong={t.titleStrong} lead={t.sub} narrow />
 
-      <section className="mx-auto max-w-7xl px-4 pb-8 md:px-8">
+      <section className="mx-auto max-w-3xl px-4 pb-16 md:px-8">
         {list.length === 0 ? (
           <Reveal>
             <div className="dot-grid flex flex-col items-start gap-5 rounded-card border border-line bg-surface p-8 md:p-12">
@@ -73,17 +65,17 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
             </div>
           </Reveal>
         ) : (
-          <ul className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid border-t border-line">
             {list.map((article, i) => {
               const content = article[locale]
               return (
                 <li key={article.slug} className="flex">
-                  <Reveal delay={(i % 3) * 0.06} className="flex w-full">
+                  <Reveal delay={(i % 3) * 0.04} className="flex w-full">
                     <Link
                       href={`/${locale}/blog/${article.slug}`}
-                      className="group flex w-full flex-col rounded-card border border-line bg-surface p-6 transition-colors duration-300 hover:border-line-strong md:p-7"
+                      className="group flex w-full flex-col border-b border-line py-8 transition-colors duration-300"
                     >
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-xs text-faint">
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-footnote text-faint">
                         {!article.published && <DraftBadge label={t.draft} />}
                         <span className="whitespace-nowrap">
                           <time dateTime={article.date}>
@@ -93,11 +85,11 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
                           {readingTime(content)} {t.minutes}
                         </span>
                       </div>
-                      <h2 className="mt-5 text-2xl leading-tight font-semibold tracking-[-0.025em]">
+                      <h2 className="mt-3 text-title-2 font-extrabold tracking-[-0.03em] transition-colors group-hover:text-accent-text">
                         {content.title}
                       </h2>
-                      <p className="mt-3 leading-relaxed text-muted">{content.description}</p>
-                      <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm font-medium text-accent-text">
+                      <p className="mt-3 max-w-[60ch] leading-relaxed text-muted">{content.description}</p>
+                      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-accent-text">
                         {t.read}
                         <ArrowUpRight
                           size={16}

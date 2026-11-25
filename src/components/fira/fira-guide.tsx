@@ -1,6 +1,6 @@
 'use client'
 
-import { ChatCircleDots, Compass, Hammer, SpeakerHigh, SpeakerSlash, X } from '@phosphor-icons/react'
+import { ChatCircleDots, Compass, Hammer, MapTrifold, SpeakerHigh, SpeakerSlash, X } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dict } from '@/content'
@@ -9,12 +9,19 @@ import { firaFace } from '@/lib/fira/face'
 import {
   GUIDE_MENU_EVENT, GUIDE_POINT_EVENT, GUIDE_TOUR_EVENT, VOICE_KEY, bubbleMs, guideEmotion, pageContextFor, speechLang, splitWords, voiceFromStorage, wordsShown,
 } from '@/lib/fira/guide'
-import { FIRA_BUBBLE_EVENT, dispatchFira } from '@/lib/fira/live'
+import { navCopyFor } from '@/lib/fira/nav/copy'
+import { FIRA_BUBBLE_EVENT, dispatchFira, pageSlug } from '@/lib/fira/live'
+import { SCENE_OFF_KEY, SCENE_SEEN_KEY, TOUR_OFFER_KEY, markOffered, offerDue, offeredList, sceneLinesOn } from '@/lib/fira/nav/offer'
 import type { Emotion } from '@/lib/fira/pose'
 import { peekKey } from '@/lib/fira/presence'
+import { BUBBLE_RESERVE, HEADER_OFFSET, scrollTopFor, stepIndex } from '@/lib/fira/nav/spotlight'
 import { homeStops, isExtra, pickStops } from '@/lib/fira/tour'
 import { COMPANION_SEEN_KEY, companionKind, markSeen, seenList } from '@/lib/film'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { focusOf } from './nav/fira-dom'
+import { FiraMapPanel } from './nav/fira-map-panel'
+import { useFiraNav } from './nav/fira-nav'
+import { FiraSpotlight } from './nav/fira-spotlight'
 import { FiraStage } from './fira-stage'
 import { FiraTyped } from './fira-typed'
 import { useFiraLive, useFiraStore } from './fira-live-store'
@@ -25,13 +32,15 @@ import { useFiraLive, useFiraStore } from './fira-live-store'
 // the tour herself. The scroll rules of the launcher (hidden while scrolling down) stay in chat-widget.tsx.
 const SAY_AFTER_MS = 1400
 const HOME_SAY_AFTER_MS = 4500 // the home film (wide screens) takes over the narration a moment after the load
-const SCROLL_OFFSET = 104
+const OFFER_AFTER_MS = 7000
+const OFFER_SHOW_MS = 14000
 const NOTE_MS = 6000
 const POINT_MS = 2800
 const reactSelector = '#pricing, [data-tour="price"], [data-tour="plans"], [data-tour="next"], [data-fira-react]'
 const isHomePath = (p: string) => /^\/(ru|en)\/?$/.test(p)
 
 type Stop = { key: string; el: HTMLElement | null; text: string; emotion: Emotion }
+type NoteState = { at: string; text: string; id: number; kind?: 'scene' }
 type Tour = { stops: Stop[]; i: number }
 type Copy = Dict['firaGuide']
 
@@ -114,7 +123,10 @@ export function FiraGuide({
   const menu = menuAt === pathname
   const [tourState, setTourState] = useState<{ at: string; tour: Tour } | null>(null)
   const tour = tourState && tourState.at === pathname ? tourState.tour : null
-  const [note, setNote] = useState<{ at: string; text: string; id: number } | null>(null)
+  const [note, setNote] = useState<NoteState | null>(null)
+  const [offerAt, setOfferAt] = useState<string | null>(null)
+  const [mapAt, setMapAt] = useState<string | null>(null)
+  const nav = navCopyFor(locale)
   const [sayOn, setSayOn] = useState<string | null>(null)
   const [pointAt, setPointAt] = useState(0)
   const [pointing, setPointing] = useState(false)
@@ -153,8 +165,9 @@ export function FiraGuide({
       const el = stop?.el
       if (!el) return
       el.setAttribute('data-tour-on', '')
-      const top = el.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET
-      window.scrollTo({ top: Math.max(0, top), behavior: reduce ? 'auto' : 'smooth' })
+      // A scene taller than the screen is read by its heading; a small block is centred with room kept for her bubble.
+      const r = focusOf(el).getBoundingClientRect()
+      window.scrollTo({ top: scrollTopFor(r.top + window.scrollY, r.height, window.innerHeight, HEADER_OFFSET, BUBBLE_RESERVE), behavior: reduce ? 'auto' : 'smooth' })
     },
     [clearMarks, reduce],
   )
@@ -177,20 +190,28 @@ export function FiraGuide({
     }
     setNote(null)
     setSayOn(null)
+    setOfferAt(null)
+    setMapAt(null)
     setTourState({ at: pathname, tour: { stops, i: 0 } })
     goTo(stops[0])
   }
 
-  const next = useCallback(() => {
-    if (!tour) return
-    if (tour.i + 1 >= tour.stops.length) {
-      stopTour(g.done)
-      return
-    }
-    const i = tour.i + 1
-    setTourState({ at: pathname, tour: { ...tour, i } })
-    goTo(tour.stops[i])
-  }, [tour, pathname, goTo, stopTour, g.done])
+  const step = useCallback(
+    (dir: 1 | -1) => {
+      if (!tour) return
+      if (dir === 1 && tour.i + 1 >= tour.stops.length) {
+        stopTour(g.done)
+        return
+      }
+      const i = stepIndex(tour.i, tour.stops.length, dir)
+      if (i === tour.i) return
+      setTourState({ at: pathname, tour: { ...tour, i } })
+      goTo(tour.stops[i])
+    },
+    [tour, pathname, goTo, stopTour, g.done],
+  )
+  const next = useCallback(() => step(1), [step])
+  const prev = useCallback(() => step(-1), [step])
 
   // Keyboard: right arrow next, Esc stop. Only while a tour runs and the chat is closed.
   useEffect(() => {
@@ -201,11 +222,20 @@ export function FiraGuide({
       if (e.key === 'ArrowRight') {
         e.preventDefault()
         next()
-      } else if (e.key === 'Escape') stopTour()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        prev()
+      } else if (e.key === 'Escape') {
+        stopTour()
+        launcher.current?.focus({ preventScroll: true })
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [tour, chatOpen, next, stopTour])
+  }, [tour, chatOpen, next, prev, stopTour])
+
+  // «Отведи меня»: chat cards, map rows, chips and deep links (?fira=tour, ?fira=go:<key>) all arrive here.
+  useFiraNav({ pathname, locale, reduce, startTour })
 
   // The note (done, nothing to show) goes quiet after a while.
   useEffect(() => {
@@ -247,7 +277,7 @@ export function FiraGuide({
     }
   }, [menu])
   useEffect(() => {
-    if (chatOpen) setTimeout(() => setMenuAt(null), 0)
+    if (chatOpen) setTimeout(() => { setMenuAt(null); setMapAt(null) }, 0)
   }, [chatOpen])
 
   // ---- one line per page and session, a moment after the launcher is in view; never twice
@@ -274,7 +304,9 @@ export function FiraGuide({
     }
   }, [home, pathname])
   const lineQuiet = home && quiet
-  const idleNow = visible && !chatOpen && !menu && !tour && !noteHere && !lineQuiet
+  const offer = offerAt === pathname
+  const mapOpen = mapAt === pathname
+  const idleNow = visible && !chatOpen && !menu && !mapOpen && !tour && !noteHere && !offer && !lineQuiet
   useEffect(() => {
     if (!line || !idleNow || shownFor.current === pathname) return
     if (readSeen().includes(pathname)) return
@@ -290,6 +322,84 @@ export function FiraGuide({
     const timer = window.setTimeout(() => setSayOn(null), bubbleMs(line))
     return () => window.clearTimeout(timer)
   }, [saying, line])
+
+  // ---- the tour is OFFERED once per page and browser (localStorage), a while after her line; it never starts by itself
+  // (TOUR_AUTOSTART is false) and the menu always has «Покажи сайт». Only on pages that have something to show.
+  const offerFor = useRef<string | null>(null)
+  const slug = pageSlug(pathname)
+  useEffect(() => {
+    if (!idleNow || saying || offerFor.current === pathname) return
+    if (line && !readSeen().includes(pathname)) return // her line comes first
+    const timer = window.setTimeout(() => {
+      offerFor.current = pathname
+      let list: string[] = []
+      try {
+        list = offeredList(window.localStorage.getItem(TOUR_OFFER_KEY))
+      } catch {
+        // Storage blocked: offered at most once per visit to the page (offerFor).
+      }
+      if (!offerDue(list, slug) || buildStops(pathname, dict).length === 0) return
+      try {
+        window.localStorage.setItem(TOUR_OFFER_KEY, JSON.stringify(markOffered(list, slug)))
+      } catch {
+        // See above.
+      }
+      setOfferAt(pathname)
+    }, OFFER_AFTER_MS)
+    return () => window.clearTimeout(timer)
+  }, [idleNow, saying, line, pathname, slug, dict])
+  useEffect(() => {
+    if (!offer) return
+    const timer = window.setTimeout(() => setOfferAt(null), OFFER_SHOW_MS)
+    return () => window.clearTimeout(timer)
+  }, [offer])
+
+  // ---- scroll companion on the home page: when a film scene enters the screen the docked bubble says that scene's line,
+  // once per session, one line at a time; a dismissed line switches them off for the session. Off under reduced motion
+  // and below 400 px.
+  const sceneIdle = useRef(false)
+  useEffect(() => {
+    sceneIdle.current = !chatOpen && !menu && !mapOpen && !tour && !noteHere && !offer && !saying
+  })
+  useEffect(() => {
+    if (!home || !sceneLinesOn(reduce, window.innerWidth) || typeof IntersectionObserver === 'undefined') return
+    try {
+      if (window.sessionStorage.getItem(SCENE_OFF_KEY) === '1') return
+    } catch {
+      // Storage blocked: the lines come once per page view.
+    }
+    const scenes = [...document.querySelectorAll<HTMLElement>('[data-film-scene]')].filter((el) => el.dataset.filmScene !== 'hello')
+    if (scenes.length === 0) return
+    const shown = new Set<string>()
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const en of entries) {
+          const id = (en.target as HTMLElement).dataset.filmScene
+          const text = id ? (dict.film.scenes as Record<string, string>)[id] : undefined
+          if (!en.isIntersecting || !id || !text || shown.has(id) || !sceneIdle.current) continue
+          let seen: string[] = []
+          try {
+            seen = seenList(window.sessionStorage.getItem(SCENE_SEEN_KEY))
+          } catch {
+            // see above
+          }
+          if (seen.includes(id)) continue
+          shown.add(id)
+          try {
+            window.sessionStorage.setItem(SCENE_SEEN_KEY, JSON.stringify(markSeen(seen, id)))
+          } catch {
+            // see above
+          }
+          sceneIdle.current = false
+          setNote({ at: pathname, text, id: Date.now(), kind: 'scene' })
+          break
+        }
+      },
+      { rootMargin: '-35% 0px -35% 0px', threshold: 0 }, // the scene crosses the middle band of the screen
+    )
+    for (const el of scenes) io.observe(el)
+    return () => io.disconnect()
+  }, [home, pathname, reduce, dict])
 
   // ---- reaction: she peeks once per block and session when the visitor scrolls to a pricing or call-to-action block
   // ([data-fira-react="pricing"|"cta"], plus the older anchors); on a 404 she points at «home» (data-fira-target).
@@ -348,12 +458,18 @@ export function FiraGuide({
     ? { kind: 'tour' as const, text: stop.text, key: `tour:${tour.i}` }
     : noteHere
       ? { kind: 'note' as const, text: noteHere.text, key: `note:${noteHere.id}` }
-      : live.bubble && !chatOpen && !menu && visible
-        ? { kind: 'live' as const, text: live.bubble.text, key: live.bubble.dots ? 'live:dots' : 'live:text' }
+      : offer && !chatOpen && !menu
+        ? { kind: 'offer' as const, text: nav.offer, key: `offer:${pathname}` }
         : saying && visible && !chatOpen && !menu && !lineQuiet && line
-          ? { kind: 'line' as const, text: line, key: `line:${pathname}` }
-          : null
+          ? // her page line is not cut off by the proactive hint (a slow page used to show the hint after half a second)
+            { kind: 'line' as const, text: line, key: `line:${pathname}` }
+          : live.bubble && !chatOpen && !menu && visible
+            ? { kind: 'live' as const, text: live.bubble.text, key: live.bubble.dots ? 'live:dots' : 'live:text' }
+            : null
   const open = bubble !== null
+  // The tour has its own spotlight bubble (FiraSpotlight); the dock bubble carries everything else.
+  const dock = bubble && bubble.kind !== 'tour' ? bubble : null
+  const dockOpen = dock !== null && !mapOpen
 
   // ---- voice (Web Speech API, page language; off by default, remembered)
   const speak = useCallback(
@@ -398,8 +514,16 @@ export function FiraGuide({
     if ('speechSynthesis' in window) window.speechSynthesis.cancel()
     if (tour) stopTour()
     else {
+      if (noteHere?.kind === 'scene') {
+        try {
+          window.sessionStorage.setItem(SCENE_OFF_KEY, '1') // a dismissed scene line sticks: no more of them this session
+        } catch {
+          // Storage blocked: the next scene may speak again.
+        }
+      }
       setNote(null)
       setSayOn(null)
+      setOfferAt(null)
     }
   }
 
@@ -411,21 +535,20 @@ export function FiraGuide({
   const acc = accessoriesFor(context)
   const hidden = chatOpen ? 'pointer-events-none translate-y-3 opacity-0' : visible || tour ? 'opacity-100' : 'pointer-events-none translate-y-3 opacity-0'
 
-  const last = tour ? tour.i + 1 >= tour.stops.length : false
   return (
     <>
       <div
         data-companion={kind ?? (home ? 'home' : 'none')}
-        data-fira-bubble={bubble?.kind ?? ''}
-        data-open={open}
-        inert={!open}
-        className={`companion-say print-hidden glass fixed right-3 fira-dock-up z-30 flex max-w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-2 rounded-2xl rounded-br-md py-2 pr-1.5 pl-4 text-[14px] leading-snug text-fg max-sm:left-3 max-sm:max-w-none sm:right-6 ${open ? '' : 'pointer-events-none'}`}
+        data-fira-bubble={dock?.kind ?? ''}
+        data-open={dockOpen}
+        inert={!dockOpen}
+        className={`companion-say print-hidden glass fixed right-3 fira-dock-up z-[35] flex max-w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-2 rounded-2xl rounded-br-md py-2 pr-1.5 pl-4 text-[14px] leading-snug text-fg max-sm:left-3 max-sm:max-w-none sm:right-6 ${dockOpen ? '' : 'pointer-events-none'}`}
       >
         <div className="flex items-start gap-1">
           <div className="min-w-0 flex-1 py-1">
             <span className="mb-0.5 block text-caption font-semibold text-accent-text">{dict.film.name}</span>
-            {bubble ? (
-              bubble.kind === 'live' ? (
+            {dock ? (
+              dock.kind === 'live' ? (
                 <span
                   data-fira-live-text
                   aria-live="polite"
@@ -439,15 +562,15 @@ export function FiraGuide({
                       <span className="typing-dot" />
                     </span>
                   ) : (
-                    wordsShown(splitWords(bubble.text), live.bubble?.wordsShown ?? 0)
+                    wordsShown(splitWords(dock.text), live.bubble?.wordsShown ?? 0)
                   )}
                 </span>
-              ) : bubble.kind === 'line' ? (
+              ) : dock.kind === 'line' ? (
                 <button type="button" onClick={onAsk} data-cta="companion_line" className="block text-left max-[480px]:line-clamp-2">
-                  <FiraTyped key={bubble.key} text={bubble.text} />
+                  <FiraTyped key={dock.key} text={dock.text} />
                 </button>
               ) : (
-                <FiraTyped key={bubble.key} text={bubble.text} />
+                <FiraTyped key={dock.key} text={dock.text} />
               )
             ) : null}
           </div>
@@ -472,14 +595,13 @@ export function FiraGuide({
             <X size={14} aria-hidden="true" />
           </button>
         </div>
-        {tour ? (
-          <div className="flex items-center gap-2 pr-2.5 pb-1" data-fira-tour={`${tour.i + 1}/${tour.stops.length}`}>
-            <span className="mr-auto font-mono text-[11px] tracking-[0.12em] text-faint">{tour.i + 1} / {tour.stops.length}</span>
-            <button type="button" onClick={() => stopTour()} data-cta="fira_tour_stop" className="rounded-full px-3 py-1.5 text-[13px] font-medium text-muted transition-colors hover:bg-fg/5 hover:text-fg">
-              {g.stop}
+        {dock?.kind === 'offer' ? (
+          <div className="flex items-center gap-2 pr-2.5 pb-1" data-fira-offer="">
+            <button type="button" onClick={() => setOfferAt(null)} data-cta="fira_offer_no" className="ml-auto rounded-full px-3 py-1.5 text-[13px] font-medium text-muted transition-colors hover:bg-fg/5 hover:text-fg">
+              {nav.offerNo}
             </button>
-            <button type="button" onClick={next} data-cta="fira_tour_next" className="rounded-full bg-accent px-3.5 py-1.5 text-[13px] font-semibold text-accent-fg transition-transform active:scale-[0.97]">
-              {last ? g.finish : g.next}
+            <button type="button" onClick={startTour} data-cta="fira_offer_yes" className="rounded-full bg-accent px-3.5 py-1.5 text-[13px] font-semibold text-accent-ink transition-transform active:scale-[0.97]">
+              {nav.offerYes}
             </button>
           </div>
         ) : null}
@@ -506,12 +628,32 @@ export function FiraGuide({
           <Hammer size={18} weight="bold" aria-hidden="true" className="text-accent-text" />
           {g.build}
         </Link>
+        <button type="button" role="menuitem" onClick={() => { setMenuAt(null); setMapAt(pathname) }} data-cta="fira_map" className="flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-left font-medium transition-colors hover:bg-fg/5 focus-visible:bg-fg/5">
+          <MapTrifold size={18} weight="bold" aria-hidden="true" className="text-accent-text" />
+          {nav.mapItem}
+        </button>
       </div>
+
+      <FiraMapPanel open={mapOpen} locale={locale === 'en' ? 'en' : 'ru'} copy={nav} onClose={() => { setMapAt(null); launcher.current?.focus({ preventScroll: true }) }} />
+
+      {tour ? (
+        <FiraSpotlight
+          stops={tour.stops.map((st) => ({ key: st.key, el: st.el, text: st.text }))}
+          i={tour.i}
+          name={dict.film.name}
+          copy={nav}
+          locale={locale}
+          reduce={reduce}
+          onPrev={prev}
+          onNext={next}
+          onStop={() => stopTour()}
+        />
+      ) : null}
 
       <button
         ref={launcher}
         type="button"
-        onClick={() => setMenuAt(menu ? null : pathname)}
+        onClick={() => { setMapAt(null); setMenuAt(menu ? null : pathname) }}
         onPointerEnter={onWarm}
         onFocus={() => {
           onWarm()

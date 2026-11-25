@@ -21,11 +21,9 @@ import type { ComponentType } from 'react'
 import { buttonClass } from '@/lib/cn'
 import { FiraFlat } from '../fira/fira-flat'
 import { ChatOpenButton } from '../chat/chat-open-button'
-import { HeroIntro } from '../hero-intro'
-import { FiraHero } from '../products/fira-hero'
+import { PageHero } from '../page-hero'
 import { CompanyPlan } from '../products/plan-levels'
 import { productIcons } from '../products/product-icons'
-import { Reveal } from '../reveal'
 import { Badge, Card, GlassCard } from '../ui'
 import { CompanyDemo } from './company-demo'
 import { SectionShell, type ProductSectionContext } from './shell'
@@ -51,29 +49,28 @@ export function CompanyHero({ ctx }: { ctx: ProductSectionContext }) {
   const Glyph = productIcons.company
   const hero = page.heroCta!
   return (
-    <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12" data-product-section="hero">
-      <HeroIntro className="lg:col-span-7">
+    <PageHero
+      title={page.result}
+      portal
+      portalAlt={dict.film.name}
+      lead={page.lead}
+      attrs={{ 'data-product-section': 'hero' }}
+      before={
         <Badge tone="glass" className="gap-2">
           <Glyph size={14} aria-hidden="true" />
           {dict.products.items[id].name}
         </Badge>
-        <h1 className="mt-5 max-w-[16ch] font-display text-display text-balance">{page.result}</h1>
-        <p className="mt-6 max-w-[40ch] text-lead text-muted">{page.lead}</p>
-        <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-          <ChatOpenButton source="product_company_call" fallbackHref="#cdemo" className={buttonClass('primary', 'lg')}>
-            <ChatCircleDots size={18} weight="fill" aria-hidden="true" />
-            {hero.ask}
-          </ChatOpenButton>
-          <Link href={buildHref} data-cta="product_page_company_build" className={buttonClass('secondary', 'lg')}>
-            {hero.cta}
-            <ArrowRight size={18} aria-hidden="true" />
-          </Link>
-        </div>
-      </HeroIntro>
-      <Reveal className="lg:col-span-5" delay={0.2}>
-        <FiraHero label={dict.film.name} />
-      </Reveal>
-    </section>
+      }
+    >
+      <ChatOpenButton source="product_company_call" fallbackHref="#cdemo" className={buttonClass('primary', 'lg')}>
+        <ChatCircleDots size={18} weight="fill" aria-hidden="true" />
+        {hero.ask}
+      </ChatOpenButton>
+      <Link href={buildHref} data-cta="product_page_company_build" className={buttonClass('glass', 'lg')}>
+        {hero.cta}
+        <ArrowRight size={18} aria-hidden="true" />
+      </Link>
+    </PageHero>
   )
 }
 

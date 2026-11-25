@@ -86,19 +86,19 @@ export function StatusView({
         aria-live="polite"
         className={cn('rounded-card border p-6 md:p-8', chip[tone])}
       >
-        <p className="flex items-center gap-3 font-display text-2xl font-semibold text-fg md:text-4xl">
+        <p className="flex items-center gap-3 font-display text-title-2 font-extrabold text-fg">
           <span className={cn('size-3 rounded-full', dot[tone])} aria-hidden="true" />
           {t.headline[state]}
         </p>
         <p className="mt-3 max-w-[60ch] text-muted">{t.headlineSub[state]}</p>
       </div>
 
-      <h2 className="mt-12 font-display text-2xl font-semibold">{t.servicesTitle}</h2>
+      <h2 className="mt-12 font-display text-title-3 font-bold">{t.servicesTitle}</h2>
       <ul className="mt-5 grid gap-3">
         {ordered.map((s) => (
           <li
             key={s.id}
-            className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-xl border border-line bg-surface px-5 py-4"
+            className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-tile border border-line bg-surface px-5 py-4"
           >
             <div>
               <p className="font-medium">{t.services[s.id]}</p>
@@ -130,13 +130,13 @@ export function StatusView({
       </ul>
       <p className="mt-3 text-[13px] text-faint">{t.uptimeNote}</p>
 
-      <h2 className="mt-12 font-display text-2xl font-semibold">{t.incidentsTitle}</h2>
+      <h2 className="mt-12 font-display text-title-3 font-bold">{t.incidentsTitle}</h2>
       {data.incidents.length ? (
         <ul className="mt-5 grid gap-3">
           {data.incidents.map((i) => (
             <li
               key={`${i.service}-${i.startedAt}`}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line px-5 py-4"
+              className="flex flex-wrap items-center justify-between gap-2 rounded-tile border border-line px-5 py-4"
             >
               <p>
                 <span className="font-medium">{t.services[i.service]}</span>

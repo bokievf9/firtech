@@ -25,7 +25,7 @@ export function DemoGateBar({ gate, href, locked = false, variant = 'bar' }: { g
       <div
         data-demo-gate={locked ? 'checking' : 'out'}
         data-demo-lock
-        className="flex flex-col gap-3 rounded-[1.25rem] border border-hairline border-accent-text/30 bg-[linear-gradient(160deg,var(--color-pine),transparent_90%)] p-4 sm:flex-row sm:items-center"
+        className="flex flex-col gap-3 rounded-[1.25rem] border border-hairline border-accent-text/30 material-regular p-4 sm:flex-row sm:items-center"
       >
         <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-elevated text-accent-text shadow-card">
           <FiraFlat emotion="sorry" context="docs" className="block size-9" />

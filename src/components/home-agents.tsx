@@ -13,6 +13,9 @@ import { getPricing } from '@/lib/pricing-store'
 import { productPath } from '@/lib/product-ids'
 import { siteUrl } from '@/lib/site'
 import { IntegrationsList } from './integrations-list'
+import Image from 'next/image'
+import { displayH2, sectionTitle } from './home-v5'
+import { GlowBlob } from '@/components/ui'
 import { JsonLd } from './json-ld'
 import { Reveal } from './reveal'
 import { SectionHeader } from './ui/section'
@@ -55,7 +58,7 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
   return (
     <section id="agents" data-home-agents className="relative mx-auto max-w-7xl px-4 py-section md:px-8">
       <JsonLd data={list} />
-      <SectionHeader title={t.title} lead={t.sub} />
+      <SectionHeader title={sectionTitle(t.title)} titleClassName={displayH2} lead={t.sub} />
 
       <ul
         aria-label={t.listLabel}
@@ -66,7 +69,8 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
           return (
             <li key={id} data-home-agent-card={id} className="w-[82%] shrink-0 snap-start sm:w-[55%] lg:w-auto">
               <Reveal className="h-full" delay={(i % 3) * 0.06}>
-                <div className="material-regular relative flex h-full flex-col gap-3 rounded-card border border-hairline border-glass-line p-card">
+                <div className="relative isolate flex h-full flex-col gap-3 overflow-hidden rounded-card border border-hairline border-line bg-surface p-card">
+                  {i % 3 === 0 && <GlowBlob className="-top-16 -right-16 -z-10 size-56" />}
                   <h3 className="text-title-3 font-semibold">{copy.title}</h3>
                   <p className="text-callout text-muted">{copy.headline}</p>
                   {channelRow}
@@ -87,8 +91,17 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
           )
         })}
         <li data-home-agent-card="personal" className="w-[82%] shrink-0 snap-start sm:w-[55%] lg:col-span-3 lg:w-auto">
-          <div className="relative flex h-full flex-col gap-4 rounded-card border border-hairline border-accent-text/30 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_68%)] p-card lg:flex-row lg:items-center lg:justify-between">
-            <div>
+          <div className="relative isolate flex h-full flex-col gap-4 overflow-hidden rounded-card border border-hairline border-accent-text/30 bg-pine p-card lg:flex-row lg:items-center lg:justify-between">
+            <GlowBlob className="-top-24 -right-10 -z-10 size-72" />
+            <Image
+              src="/fira/fira-glasses.jpg"
+              alt=""
+              width={96}
+              height={96}
+              sizes="96px"
+              className="size-20 shrink-0 rounded-full object-cover shadow-[0_0_0_4px_var(--color-glass-strong),0_14px_40px_color-mix(in_srgb,var(--color-accent-text)_28%,transparent)]"
+            />
+            <div className="lg:flex-1">
               <h3 className="text-title-3 font-semibold">{t.personalRole}</h3>
               <p className="mt-2 max-w-[60ch] text-callout text-muted">{t.personalJob}</p>
               <p className="mt-3 font-mono text-callout text-fg">

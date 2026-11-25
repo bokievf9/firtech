@@ -4,10 +4,8 @@ import { handText, whoText } from '@/content/builder-personal'
 import { buttonClass } from '@/lib/cn'
 import { personaKinds, personalBuilderHref, skillGroups, type SkillGroupId } from '@/lib/personal-page'
 import { ChatOpenButton } from '../chat/chat-open-button'
-import { HeroIntro } from '../hero-intro'
+import { PageHero } from '../page-hero'
 import { PlanLevels } from '../products/plan-levels'
-import { FiraHero } from '../products/fira-hero'
-import { Reveal } from '../reveal'
 import { Badge } from '../ui'
 import { PersonalLive } from './personal-live'
 import { QuestionChips } from './question-chips'
@@ -28,28 +26,27 @@ export function PersonalHero({ ctx }: { ctx: ProductSectionContext }) {
   const Glyph = productIcons.personal
   const hero = page.heroCta!
   return (
-    <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12" data-product-section="hero">
-      <HeroIntro className="lg:col-span-7">
+    <PageHero
+      title={page.result}
+      portal
+      portalAlt={dict.film.name}
+      lead={page.lead}
+      attrs={{ 'data-product-section': 'hero' }}
+      before={
         <Badge tone="glass" className="gap-2">
           <Glyph size={14} aria-hidden="true" />
           {dict.products.items.personal.name}
         </Badge>
-        <h1 className="mt-5 max-w-[14ch] font-display text-display text-balance">{page.result}</h1>
-        <p className="mt-6 max-w-[40ch] text-lead text-muted">{page.lead}</p>
-        <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-          <Link href={personalBuilderHref(locale)} data-cta="product_page_personal_build" className={buttonClass('primary', 'lg')}>
-            {hero.cta}
-            <ArrowRight size={18} aria-hidden="true" />
-          </Link>
-          <ChatOpenButton source="product_personal" fallbackHref="#plans" className={buttonClass('secondary', 'lg')}>
-            {hero.ask}
-          </ChatOpenButton>
-        </div>
-      </HeroIntro>
-      <Reveal className="lg:col-span-5" delay={0.2}>
-        <FiraHero label={dict.film.name} />
-      </Reveal>
-    </section>
+      }
+    >
+      <Link href={personalBuilderHref(locale)} data-cta="product_page_personal_build" className={buttonClass('primary', 'lg')}>
+        {hero.cta}
+        <ArrowRight size={18} aria-hidden="true" />
+      </Link>
+      <ChatOpenButton source="product_personal" fallbackHref="#plans" className={buttonClass('glass', 'lg')}>
+        {hero.ask}
+      </ChatOpenButton>
+    </PageHero>
   )
 }
 

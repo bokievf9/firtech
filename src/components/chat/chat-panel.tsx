@@ -26,8 +26,14 @@ import { fill } from '../cabinet/ui'
 import { useCabinetUser } from '../cabinet/use-cabinet-user'
 import { FiraStage } from '../fira/fira-stage'
 import { useFiraLive, useFiraStore } from '../fira/fira-live-store'
-import { cardsFor, pageSlug, parseSse, suggestGroupFor, type FiraCard } from '@/lib/fira/live'
-import { splitWords, wordsShown } from '@/lib/fira/guide'
+import { cardsFor, pageSlug, parseSse, type FiraCard } from '@/lib/fira/live'
+import { pageContextFor, splitWords, wordsShown } from '@/lib/fira/guide'
+import type { Chip } from '@/lib/fira/nav/chips'
+import { navCopyFor } from '@/lib/fira/nav/copy'
+import { requestGo, requestTour } from '@/lib/fira/nav/go'
+import { matchIntent } from '@/lib/fira/nav/intents'
+import { entryHref, onEntryPage } from '@/lib/fira/nav/sitemap'
+import { FiraChips } from '../fira/nav/fira-chips'
 import { ChatSlots } from './chat-slots'
 import { storedRef } from '@/lib/referral'
 import { fade, spring } from '@/lib/motion'
@@ -45,6 +51,8 @@ type Message = {
   actions?: ChatAction[]
   // Link cards under the reply (page, builder, agent, article).
   cards?: FiraCard[]
+  // «Отведи меня»: where Fira takes the visitor (site map keys); answered locally, no model.
+  go?: { key: string; title: string; href: string; here: boolean }[]
   // The founder took over: a calm line under the reply.
   handoff?: boolean
   // The visitor's message that did not reach the receptionist: «Повторить» sends it again.
@@ -337,10 +345,53 @@ export default function ChatPanel({
   // Enter (or the button) while the greeting or a reply is still coming used to do nothing and keep
   // the text; now the message waits and goes out as soon as the chat is free.
   const [queued, setQueued] = useState(false)
+  // «Отведи меня»: a short message that is clearly about a place of the site (цены, как оплатить, кабинет...) is
+  // answered here, with no model: one line and a card that takes the visitor there. Anything else goes to the chat.
+  const tryIntent = (value: string): boolean => {
+    const cur = chatRef.current
+    if (cur.demo || cur.state !== 'chat') return false
+    const hit = matchIntent(value)
+    if (!hit) return false
+    const nc = navCopyFor(locale)
+    const entries = [hit.top, ...hit.alts].map((m) => m.entry)
+    const first = entries[0]!
+    const here = onEntryPage(first, window.location.pathname)
+    setChat((c) => ({
+      ...c,
+      messages: [
+        ...c.messages,
+        { id: uuid(), from: 'me', text: value },
+        {
+          id: uuid(),
+          from: 'bot',
+          text: `${here ? `${nc.here} ` : ''}${first.line[locale]}`,
+          go: entries.map((en) => ({ key: en.key, title: en.name[locale], href: entryHref(en, locale), here: onEntryPage(en, window.location.pathname) })),
+        },
+      ],
+    }))
+    return true
+  }
   const sendTyped = async () => {
     const value = text.trim().slice(0, MESSAGE_MAX)
     if (!value) return
+    if (tryIntent(value)) {
+      setText('')
+      return
+    }
     if (await send(value, value)) setText('')
+  }
+  // The chips above the input: a tour, a trip to a place of the site, a section of this page, or a prepared question.
+  const onChip = (chip: Chip) => {
+    const a = chip.action
+    if (a.type === 'chat') {
+      lastSent.current = 0
+      void send(a.text[locale], a.text[locale])
+      return
+    }
+    onClose()
+    if (a.type === 'tour') window.setTimeout(requestTour, 350)
+    else if (a.type === 'go') window.setTimeout(() => requestGo({ key: a.key }), 150)
+    else window.setTimeout(() => requestGo({ selectors: a.selectors, fallback: a.fallbackKey }), 150)
   }
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -387,10 +438,6 @@ export default function ChatPanel({
   // HQ asks for a contact (or the site refused one): a signed-out visitor signs in right here, a
   // signed-in one sends the request with the account email in one tap.
   // A demo never shows the sign-in gate: it takes no contacts and creates no lead.
-  const suggestions =
-    !pending && !chat.demo && chat.state === 'chat' && chips.length === 0 && !chat.messages.some((m) => m.from === 'me')
-      ? (copy.suggest[suggestGroupFor(pageSlug(pathname))] as readonly string[])
-      : []
   const wantsContact = !pending && !chat.demo && (chat.state === 'contact' || chat.needAuth === true)
   const askSignIn = wantsContact && me.status === 'out'
   const sendAs = wantsContact && me.status === 'in' ? me.user.email : null
@@ -600,6 +647,32 @@ export default function ChatPanel({
                       ))}
                     </span>
                   ) : null}
+                  {m.go?.length ? (
+                    <span className="mt-3 grid gap-2" data-chat-cards data-chat-go>
+                      {m.go.map((c) => (
+                        <a
+                          key={c.key}
+                          href={c.href}
+                          data-chat-card="go"
+                          data-chat-go-key={c.key}
+                          data-fira-target="chat-card"
+                          onClick={(e) => {
+                            if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return
+                            e.preventDefault()
+                            onClose()
+                            window.setTimeout(() => requestGo({ key: c.key }), 150)
+                          }}
+                          className="group flex items-center gap-2 rounded-2xl border border-accent-text/40 bg-bg/50 px-3 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent-text hover:bg-accent/10 active:scale-[0.98]"
+                        >
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-caption font-semibold text-accent-text">{c.here ? navCopyFor(locale).cardHere : navCopyFor(locale).cardGo}</span>
+                            <span className="block [overflow-wrap:anywhere]">{c.title}</span>
+                          </span>
+                          <ArrowRight size={14} weight="bold" aria-hidden="true" className="shrink-0 transition-transform group-hover:translate-x-0.5" />
+                        </a>
+                      ))}
+                    </span>
+                  ) : null}
                   {callFor === m.id ? (
                     <ChatSlots
                       copy={copy.slots}
@@ -661,21 +734,6 @@ export default function ChatPanel({
                 />
               </li>
             ) : null}
-            {suggestions.length ? (
-              <li className="chat-in flex flex-wrap gap-2 pt-1" data-chat-suggest>
-                <span className="sr-only">{copy.suggestLabel}: </span>
-                {suggestions.map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    onClick={() => void send(q, q)}
-                    className="rounded-full border border-accent-text/40 px-3.5 py-2 text-sm text-fg transition-[background-color,border-color,transform] duration-200 hover:border-accent-text hover:bg-accent/10 active:scale-[0.97]"
-                  >
-                    {q}
-                  </button>
-                ))}
-              </li>
-            ) : null}
             {chips.length ? (
               <li className="chat-in flex flex-wrap gap-2 pt-1">
                 {chips.map((b) => (
@@ -692,7 +750,11 @@ export default function ChatPanel({
             ) : null}
           </ol>
 
-          <form onSubmit={submit} className="border-t border-t-hairline border-glass-line p-3">
+          <div className="border-t border-t-hairline border-glass-line">
+          {!chat.demo && chat.state === 'chat' && !wantsContact ? (
+            <FiraChips context={pageContextFor(pathname)} locale={locale} label={copy.suggestLabel} disabled={pending} onChip={onChip} />
+          ) : null}
+          <form onSubmit={submit} className="p-3 pt-2">
             {hint ? (
               <p role="status" className="px-2 pb-2 text-xs text-faint">
                 {hint}
@@ -733,6 +795,7 @@ export default function ChatPanel({
               </button>
             </div>
           </form>
+          </div>
         </motion.div>
       ) : null}
     </AnimatePresence>
