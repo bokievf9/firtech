@@ -4,6 +4,7 @@ import { JsonLd } from '@/components/json-ld'
 import { ProductSection, type ProductSectionContext } from '@/components/product-sections'
 import { getDict } from '@/content'
 import { productPages, type ProductPageCopy } from '@/content/product-pages'
+import { guaranteeCtx } from '@/lib/guarantee'
 import { isLocale, locales } from '@/lib/i18n'
 import { getPricing } from '@/lib/pricing-store'
 import { productPayment, productTerm } from '@/lib/product-page'
@@ -67,6 +68,7 @@ export default async function ProductPage({ params }: PageProps<'/[locale]/produ
     term: productTerm(id, dict, pricing),
     buildHref: productBuilderHref(locale, id),
     telegramUrl,
+    guarantee: guaranteeCtx(dict, locale, pricing),
   }
 
   const service = {

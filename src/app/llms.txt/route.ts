@@ -1,4 +1,5 @@
 import { getDict } from '@/content'
+import { guaranteeLine } from '@/lib/guarantee'
 import { agentOffers, agentPath, aiTeamIds, aiTeamPath, aiTeamsPath } from '@/lib/ai-teams'
 import { formatUsd, type Pricing } from '@/lib/pricing'
 import { getPricing } from '@/lib/pricing-store'
@@ -69,7 +70,7 @@ export async function GET() {
       '',
       dict.builder.payNote,
       '',
-      dict.guarantee.llms,
+      guaranteeLine(dict, locale, pricing, 'llms'),
       '',
       dict.sla.llms,
       '',

@@ -55,9 +55,9 @@ test('sla: the response promise is in both dictionaries, the contact block, the 
 
 test('hero: the guarantee is on the first screen (the hairline row since design v5)', () => {
   const hero = readFileSync('src/components/hero/hero.tsx', 'utf8')
-  assert.match(hero, /dict\.guarantee\.short/)
+  assert.match(hero, /guaranteeLine\(dict, locale, pricing, 'short'\)/)
   const g = readFileSync('src/components/guarantee-line.tsx', 'utf8')
-  assert.match(g, /dict\.guarantee\.(line|short)/)
+  assert.match(g, /guaranteeLine\(dict, locale, pricing, short/)
   for (const [, dict] of dicts) assert.ok(dict.guarantee.line.length > 20)
 })
 

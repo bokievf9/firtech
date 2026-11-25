@@ -96,6 +96,10 @@ export type Pricing = {
   referralPercent: number
   // Coupon for opening a cabinet (owner 2026-11-24): percent off the ONE-TIME part of the first order, 0 to 50.
   cabinetCouponPercent: number
+  // The guarantee of the first stage in numbers (owner 2026-11-25): launch within `launchDays` working days after
+  // the first-stage payment; in the first `pilotDays` days the agent answers `replyShare` percent of requests
+  // within `replyMinutes` minutes, otherwise the first stage is refunded. Copy: `guaranteeLine` (lib/guarantee.ts).
+  guarantee: { launchDays: number; pilotDays: number; replyShare: number; replyMinutes: number }
   smallProjectMaxUsd: number
   // Percent of the one-time total per stage, by template and stage id. Shares of a template sum to 100.
   stageShares: Record<StageTemplateId, Record<string, number>>
@@ -148,6 +152,7 @@ export const defaultPricing: Pricing = {
   // once after the client's first payment. Copy carries the `{percent}` token, never the number.
   referralPercent: 10,
   cabinetCouponPercent: 10,
+  guarantee: { launchDays: 3, pilotDays: 14, replyShare: 95, replyMinutes: 1 },
   // Payment by stages (owner decision 2026-11-21, replaces 50/50): the one-time price is split into
   // stages by the share below; the client pays each stage BEFORE it starts and the last one before
   // handover. A project whose one-time total is under `smallProjectMaxUsd` has two stages 50/50

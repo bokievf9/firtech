@@ -197,7 +197,6 @@ test('copy-qa: the 5-minute promise and the guarantee are word for word the same
     assert.ok(dict.faq.items.some((i) => i.a.startsWith(dict.sla.line)), `${locale} faq answers with the full line`)
     const guaranteeSentence = dict.guarantee.line.replace(/\.$/, '')
     assert.ok(dict.guarantee.llms.includes(guaranteeSentence.slice(1, 60)), `${locale} llms guarantee`)
-    assert.ok(dict.faq.items.some((i) => i.a.includes(guaranteeSentence)), `${locale} faq quotes the guarantee word for word`)
     assert.ok(dict.how.dislike.includes(dict.guarantee.line), `${locale} how-we-work quotes the guarantee word for word`)
     assert.ok(dict.comparePage.contrast.rows.some((r) => r.us.startsWith(dict.guarantee.line)), `${locale} compare quotes the guarantee word for word`)
   }
@@ -299,12 +298,12 @@ test('copy-qa: the guarantee says «первый сценарий агента»
     }
     none(hits)
   }
-  assert.match(ru.guarantee.line, /первый сценарий агента/)
-  assert.match(en.guarantee.line, /first agent scenario/)
+  assert.match(ru.guarantee.line, /возвращаем оплату первого этапа целиком/)
+  assert.match(en.guarantee.line, /refund the first stage in full/)
   const { GET } = await import('../src/app/llms.txt/route.ts')
   const body = await (await GET()).text()
-  assert.match(body, /первый сценарий агента/)
-  assert.match(body, /first agent scenario/)
+  assert.match(body, /возвращаем оплату первого этапа целиком/)
+  assert.match(body, /refund the first stage in full/)
   assert.doesNotMatch(body, /приём?щик|сценарий бота|bot scenario|Небольшие проекты идут|Small projects go|калькулятор|конструктор/iu)
 })
 

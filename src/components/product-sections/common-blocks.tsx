@@ -79,7 +79,7 @@ export function ProductHero({ ctx }: Props) {
           <p className="mt-6 border-t border-line pt-5 text-sm leading-relaxed text-muted">{item.forWhom}</p>
           <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-faint">
             <ShieldCheck size={16} weight="duotone" aria-hidden="true" className="shrink-0 text-accent-text" />
-            {dict.guarantee.line}
+            {ctx.guarantee.line}
           </p>
         </div>
       }
@@ -272,7 +272,7 @@ export function OfferBlock({ ctx, band }: Props) {
           <div className="flex h-full flex-col rounded-card border border-accent-text/40 bg-[linear-gradient(150deg,var(--color-pine),var(--color-surface)_75%)] p-6 md:p-8">
             <ShieldCheck size={28} weight="duotone" aria-hidden="true" className="text-accent-text" />
             <h3 className="mt-4 text-xl font-semibold">{t.offer.guarantee}</h3>
-            <p className="mt-3 text-lg leading-relaxed">{dict.guarantee.line}</p>
+            <p className="mt-3 text-lg leading-relaxed">{ctx.guarantee.line}</p>
             <Link
               href={`/${locale}/terms#terms-guarantee`}
               className="mt-auto inline-flex items-center gap-1.5 pt-6 text-sm text-muted underline decoration-line-strong underline-offset-4 hover:text-accent-text"

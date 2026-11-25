@@ -1,4 +1,5 @@
 import { startLine } from './estimate-start'
+import { guaranteeLine } from './guarantee'
 import type { Dict } from '@/content'
 import {
   builderUi,
@@ -235,7 +236,7 @@ export function estimateDoc(
       share: `${stage.share}%`,
       amount: formatUsd(stage.amountUsd),
     })),
-    guarantee: dict.guarantee.line,
+    guarantee: guaranteeLine(dict, locale, pricing),
     scope: scopeLine(build, dict),
     link: `${siteUrl}/${locale}/builder?b=${encodeBuild(build)}`,
     start: startLine(dict),

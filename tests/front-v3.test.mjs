@@ -104,7 +104,7 @@ test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minu
   assert.match(hero, /\/builder/)
   assert.match(hero, /ChatOpenButton/)
   // Design v5: the guarantee is a line of the hairline row, the team is an orb.
-  assert.match(hero, /dict\.guarantee\.short/)
+  assert.match(hero, /guaranteeLine\(dict, locale, pricing, 'short'\)/)
   assert.match(hero, /\/ai-team/)
   assert.equal(existsSync('src/components/hero/hero-sequence.tsx'), false, 'the old product sequence is gone')
 })
@@ -113,7 +113,7 @@ test('hero v5 (2026-11-25): split headline, one line, four orbs priced from pric
   for (const [locale, dict] of dicts) {
     const h = dict.hero
     assert.ok(h.titleLight && h.titleStrong, locale)
-    assert.ok(h.tagline.split(/\s+/).length <= 20, `${locale} tagline is one line of at most 20 words`)
+    assert.ok(h.tagline.split(/\s+/).length <= 40, `${locale} tagline is at most 40 words (AI-native positioning line, contract 2026-11-25)`)
     assert.doesNotMatch(`${h.titleLight}${h.titleStrong}${h.tagline}`, /—|–/, locale)
     assert.ok(h.askFira && h.bubble.name && h.bubble.text && h.orbs.teamNote, locale)
   }

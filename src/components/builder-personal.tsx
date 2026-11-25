@@ -337,7 +337,7 @@ export function PersonalDay({
             </p>
             <p className="text-footnote leading-relaxed text-faint">{p.byok ? dict.subscription.ownNote : dict.subscription.oursNote}</p>
           </div>
-          <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
+          <GuaranteeLine dict={dict} locale={locale} pricing={pricing} className="mt-5" />
           <ul className="mt-5 grid gap-2 text-footnote leading-relaxed text-faint">
             <li>{doc.scope}</li>
             <li>{t.note}</li>

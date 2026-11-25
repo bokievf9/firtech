@@ -27,7 +27,7 @@ type View = {
 type Op = { path: string; value: number } | { reset: string }
 
 const fmt = (unit: PriceUnit, value: number) =>
-  unit === 'percent' ? `${value}%` : unit === 'usd_month' ? `$${value.toLocaleString('en-US')}${k.perMonth}` : `$${value.toLocaleString('en-US')}`
+  unit === 'percent' ? `${value}%` : unit === 'days' ? `${value} d` : unit === 'minutes' ? `${value} min` : unit === 'usd_month' ? `$${value.toLocaleString('en-US')}${k.perMonth}` : `$${value.toLocaleString('en-US')}`
 
 const errorText = (key: string) => (k.errors as Record<string, string>)[key.split(':')[0] ?? ''] ?? key
 

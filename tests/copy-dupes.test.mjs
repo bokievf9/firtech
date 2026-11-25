@@ -40,7 +40,7 @@ const norm = (key) => key.replace(/\[\d+\]/g, '[]')
 
 // Sentences that legitimately repeat in many places because every item of a list carries the same line.
 // The first-reply promise and the guarantee are word for word the same everywhere by rule (sla and copy-qa tests), so it is exempt.
-const promise = /5 минут|5 minutes|prices and timelines|цен и сроков|первый экран сайта|first screen of the website/i
+const promise = /5 минут|5 minutes|prices and timelines|цен и сроков|первый экран сайта|first screen of the website|агент отвечает на \{|agent answers \{/i
 // English runs about a quarter longer than Russian, so its threshold is 10 words. Questions (FAQ headings that a
 // department and its agent both ask) are not counted.
 const sentencesOf = (text, min) =>
@@ -66,6 +66,7 @@ test('copy-dupes: no sentence of 8+ words repeats under two different keys', () 
 
 // Where Telegram may be named, each entry a reason (audit: docs/copy-audit-2026-11-23.md, «keep»):
 const telegramAllowed = [
+  /^hero\.tagline$/, // the AI-native positioning line names the three channels (owner contract 2026-11-25)
   /^contact\./, // the studio's own contact options
   /^chat\./, // chat fallbacks that point to the studio's own contact
   /^booking\./, // the follow-up in Telegram after a request (a real option next to the others)

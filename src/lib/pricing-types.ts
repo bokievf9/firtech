@@ -1,6 +1,6 @@
 // Types and tiny helpers of the price editor, light enough for the Пульт client bundle.
 
-export type PriceUnit = 'usd' | 'usd_month' | 'percent'
+export type PriceUnit = 'usd' | 'usd_month' | 'percent' | 'days' | 'minutes'
 export type PriceGroup = 'start' | 'kinds' | 'options' | 'extras' | 'plans' | 'discounts' | 'stages'
 
 export type PriceField = {

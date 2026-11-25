@@ -1681,10 +1681,11 @@ const en: Dict = {
     llms: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the project manager.',
   },
   guarantee: {
-    line: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment.',
-    short: 'Not happy with the first stage? We refund it.',
+    // Tokens {launchIn} {pilotIn} {replyShare} {replyIn} come from `pricing.guarantee` (lib/guarantee.ts).
+    line: 'Launch within {launchIn} after the first-stage payment. In the first {pilotIn} the agent answers {replyShare} % of requests within {replyIn}, around the clock. Otherwise we refund the first stage in full.',
+    short: 'Launch within {launchIn}, reply within {replyIn}, otherwise we refund the first stage.',
     more: 'Guarantee terms',
-    llms: 'Guarantee: if you do not like the first screen of the website or the first agent scenario, the first stage payment is returned.',
+    llms: 'Guarantee: launch within {launchIn} after the first-stage payment. In the first {pilotIn} the agent answers {replyShare} % of requests within {replyIn}, around the clock. Otherwise we refund the first stage in full.',
   },
   // Referral page /[locale]/referral. `{percent}` is filled from `referralPercent` (pricing.ts).
   demoGate: {
@@ -1887,7 +1888,7 @@ const en: Dict = {
           id: 'guarantee',
           label: 'Guarantee',
           market: 'The guarantee is not written down or stays in general words.',
-          us: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment. The terms are in the offer.',
+          us: 'Launch within {launchIn} after the first-stage payment. In the first {pilotIn} the agent answers {replyShare} % of requests within {replyIn}, around the clock. Otherwise we refund the first stage in full. The terms are in the offer.',
         },
         {
           id: 'demo',
@@ -1974,7 +1975,7 @@ const en: Dict = {
     titleLight: 'How',
     titleStrong: 'to pay',
     sub: 'The estimate, the invoice, the stages and the guarantee, step by step.',
-    banner: 'If you do not like the first stage, we return its payment in full, to the same payment method.',
+    banner: 'Launch within {launchIn} after the first-stage payment. In the first {pilotIn} the agent answers {replyShare} % of requests within {replyIn}, around the clock. Otherwise we refund the first stage in full, to the same payment method.',
     entityNote: 'We accept payment by card or by invoice once the legal entity is registered, and the details will appear here.',
     sections: [
       {
@@ -3797,7 +3798,7 @@ const en: Dict = {
     dislikeTitle: 'If something is not to your liking',
     dislike: [
       'Send remarks as a list: two rounds of revisions are in the quote.',
-      'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment.',
+      'Launch within {launchIn} after the first-stage payment. In the first {pilotIn} the agent answers {replyShare} % of requests within {replyIn}, around the clock. Otherwise we refund the first stage in full.',
       'New features beyond the quote are estimated separately and only with your consent.',
     ],
     toolsTitle: 'What we work with',

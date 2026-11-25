@@ -3,6 +3,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
+import { fillGuarantee } from '@/lib/guarantee'
+import { getPricing } from '@/lib/pricing-store'
 import { GuaranteeLine } from '@/components/guarantee-line'
 import { PageHero, LightStrong } from '@/components/page-hero'
 import { Reveal } from '@/components/reveal'
@@ -39,6 +41,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
   const { locale } = await params
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
+  const pricing = await getPricing()
   const t = dict.how
   const rows = [
     ['you', t.you],
@@ -124,18 +127,21 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
         <div className="mx-auto grid max-w-7xl gap-gutter px-4 py-section md:grid-cols-2 md:px-8">
           <Reveal>
             <h2 className="font-display text-title-2 font-light tracking-tight [&_strong]:font-extrabold"><LightStrong text={t.guaranteeTitle} /></h2>
-            <GuaranteeLine dict={dict} locale={locale} className="mt-6 max-w-[52ch]" />
+            <GuaranteeLine dict={dict} locale={locale} pricing={pricing} className="mt-6 max-w-[52ch]" />
             <p className="mt-4 max-w-[52ch] text-sm leading-relaxed text-muted">{t.guaranteeRule}</p>
           </Reveal>
           <Reveal delay={0.08}>
             <h2 className="font-display text-title-2 font-light tracking-tight [&_strong]:font-extrabold"><LightStrong text={t.dislikeTitle} /></h2>
             <ul className="mt-6 grid gap-3">
-              {t.dislike.map((line) => (
+              {t.dislike.map((raw) => {
+                const line = fillGuarantee(raw, locale, pricing)
+                return (
                 <li key={line} className="flex gap-3 text-muted">
                   <Check size={16} weight="bold" aria-hidden="true" className="mt-1 shrink-0 text-accent-text" />
                   {line}
                 </li>
-              ))}
+                )
+              })}
             </ul>
           </Reveal>
         </div>

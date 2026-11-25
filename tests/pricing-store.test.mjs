@@ -202,7 +202,7 @@ test('editor view: every field has a label, group, unit and limits; paths cover 
   assert.deepEqual(edit.priceFields.map((f) => f.path), paths)
   for (const f of edit.priceFields) {
     assert.ok(f.label && f.group && f.section, f.path)
-    assert.ok(['usd', 'usd_month', 'percent'].includes(f.unit), f.path)
+    assert.ok(['usd', 'usd_month', 'percent', 'days', 'minutes'].includes(f.unit), f.path)
     assert.ok(f.min <= f.def && f.def <= f.max && f.step > 0, f.path)
     assert.equal(/\{|undefined/.test(f.label), false, f.label)
   }

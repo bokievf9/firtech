@@ -6,7 +6,9 @@ import { PageHero, LightStrong } from '@/components/page-hero'
 import { Reveal } from '@/components/reveal'
 import { getDict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
+import { fillGuarantee } from '@/lib/guarantee'
 import { isLocale } from '@/lib/i18n'
+import { getPricing } from '@/lib/pricing-store'
 import { shareBase } from '@/lib/share'
 import { telegramHandle, telegramUrl } from '@/lib/site'
 
@@ -32,12 +34,13 @@ export async function generateMetadata({ params }: PageProps<'/[locale]/pay-how'
 export default async function PayHowPage({ params }: PageProps<'/[locale]/pay-how'>) {
   const { locale } = await params
   if (!isLocale(locale)) notFound()
+  const pricing = await getPricing()
   const t = getDict(locale).payHow
 
   return (
     <>
       <PageHero light={t.titleLight} strong={t.titleStrong} lead={t.sub} narrow>
-        <p data-guarantee-banner className="max-w-[60ch] rounded-card border border-accent-text/30 bg-pine/40 px-4 py-3 text-callout font-medium">{t.banner}</p>
+        <p data-guarantee-banner className="max-w-[60ch] rounded-card border border-accent-text/30 bg-pine/40 px-4 py-3 text-callout font-medium">{fillGuarantee(t.banner, locale, pricing)}</p>
       </PageHero>
 
       <section className="mx-auto max-w-3xl px-4 pb-16 md:px-8">

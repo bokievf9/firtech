@@ -1,4 +1,5 @@
 // Guarantee, referral page, comparison page (2026-11-19): copy rules, meta, routes, referral flow.
+import { guaranteeLine } from '../src/lib/guarantee.ts'
 import assert from 'node:assert/strict'
 import { existsSync, readFileSync } from 'node:fs'
 import { registerHooks } from 'node:module'
@@ -168,7 +169,7 @@ test('guarantee: pricing, builder summary, estimate notes, FAQ, terms, llms.txt'
   for (const f of ['src/components/pricing-section.tsx', 'src/components/builder-summary.tsx'])
     assert.match(readFileSync(f, 'utf8'), /<GuaranteeLine/, f)
   const doc = estimateDoc(decodeBuild('apps.pwa'), ru, 'ru')
-  assert.equal(doc.guarantee, ru.guarantee.line)
+  assert.equal(doc.guarantee, guaranteeLine(ru, 'ru'))
   assert.match(readFileSync('src/components/estimate-sheet.tsx', 'utf8'), /doc\.guarantee/)
   for (const [name, dict] of dicts) {
     assert.ok(dict.faq.items.some((i) => /first stage payment/i.test(i.a) || /оплату первого этапа/.test(i.a)), `faq ${name}`)
@@ -179,5 +180,5 @@ test('guarantee: pricing, builder summary, estimate notes, FAQ, terms, llms.txt'
   }
   const { GET } = await import('../src/app/llms.txt/route.ts')
   const body = await (await GET()).text()
-  assert.ok(body.includes(ru.guarantee.llms) && body.includes(en.guarantee.llms))
+  assert.ok(body.includes(guaranteeLine(ru, 'ru', undefined, 'llms')) && body.includes(guaranteeLine(en, 'en', undefined, 'llms')))
 })

@@ -277,7 +277,7 @@ export function SummaryStep({
               </dd>
             </div>
           </dl>
-          <GuaranteeLine dict={dict} locale={locale} className="mt-6" />
+          <GuaranteeLine dict={dict} locale={locale} pricing={pricing} className="mt-6" />
           {doc.stages.length > 0 && (
             <div className="mt-6">
               <p className="text-callout font-medium">{t.stagesTitle}</p>

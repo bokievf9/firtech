@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation'
 import { PageHero, LightStrong } from '@/components/page-hero'
 import { getDict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
+import { fillGuarantee } from '@/lib/guarantee'
+import { getPricing } from '@/lib/pricing-store'
 import { isLocale } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
 import { telegramHandle, telegramUrl } from '@/lib/site'
@@ -39,6 +41,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
   const { locale } = await params
   if (!isLocale(locale)) notFound()
   const dict = getDict(locale)
+  const pricing = await getPricing()
   const t = dict.comparePage
   const cols = ['freelancer', 'agency', 'fir'] as const
   const office = (id: string) =>
@@ -132,7 +135,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
                 <div className="rounded-tile bg-accent/10 p-3">
                   <p className="text-xs font-semibold text-accent-text">{t.contrast.usLabel}</p>
                   <p className="mt-1 text-fg">
-                    {row.us}
+                    {fillGuarantee(row.us, locale, pricing)}
                     {row.id === 'payment' && (
                       <Link
                         href={`/${locale}/pay-how`}

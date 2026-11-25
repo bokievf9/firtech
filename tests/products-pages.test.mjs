@@ -133,7 +133,7 @@ test('product pages: route, static params, price tag, stage table, preselected b
   assert.match(page, /productPages\[id\]/)
   for (const part of ['productBuilderHref', 'productPayment', 'productTerm', 'ProductSection'])
     assert.match(page, new RegExp(part), part)
-  for (const part of ['ProductPriceTag', 'StageTable', 'ChatOpenButton', 'CapabilityMock', 'dict.guarantee.line', 'DemoChat', 'DemoBooking', 'DemoAssistant'])
+  for (const part of ['ProductPriceTag', 'StageTable', 'ChatOpenButton', 'CapabilityMock', 'ctx.guarantee.line', 'DemoChat', 'DemoBooking', 'DemoAssistant'])
     assert.match(blocks, new RegExp(part.replace('.', '\\.')), part)
   for (const source of [page, blocks]) {
     assert.doesNotMatch(source, /<Faq|faqJsonLd/)
@@ -256,7 +256,7 @@ test('product pages: each product has its own section order, every block has cop
   for (const [, dict] of dicts) for (const f of dict.productPage.items.miniapp.facts.items) assert.ok(f.source.length > 5)
   // The offer quotes the terms and the guarantee word for word; the readiness block has the three levels.
   const blocks = readFileSync('src/components/product-sections/common-blocks.tsx', 'utf8')
-  assert.match(blocks, /dict\.guarantee\.line/)
+  assert.match(blocks, /ctx\.guarantee\.line/)
   for (const level of ['cold', 'warm', 'hot']) assert.match(blocks, new RegExp(`t\\.${level}\\.`))
   assert.match(blocks, /telegramUrl/)
 })

@@ -490,7 +490,7 @@ export function AgentEstimate({
                 <p className="mt-2 text-footnote text-faint">{t.stageRule}</p>
               </div>
             )}
-            <GuaranteeLine dict={dict} locale={locale} className="mt-5" />
+            <GuaranteeLine dict={dict} locale={locale} pricing={pricing} className="mt-5" />
             <ul className="mt-6 grid gap-2 text-footnote leading-relaxed text-faint">
               <li>{t.termsNote}</li>
               <li>{t.monthlyNote}</li>

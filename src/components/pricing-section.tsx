@@ -23,7 +23,7 @@ export async function PricingSection({ dict, locale }: { dict: Dict; locale: str
           <p className="mt-6 text-footnote text-faint">
             {h.currency}. {h.stages} {dict.region.payTitle}: {dict.region.pay.join(', ')}.
           </p>
-          <GuaranteeLine dict={dict} locale={locale} className="mt-5 max-w-[52ch]" />
+          <GuaranteeLine dict={dict} locale={locale} pricing={pricing} className="mt-5 max-w-[52ch]" />
           <Link
             href={`/${locale}/compare`}
             className="mt-4 inline-flex items-center gap-1.5 text-callout text-fg underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"

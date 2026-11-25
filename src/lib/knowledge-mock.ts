@@ -11,7 +11,7 @@ export function createKnowledgeMock(start = Date.now()) {
   const ago = (min: number) => new Date(start - min * 60_000).toISOString()
   const docs: Doc[] = [
     { id: 'site-pricing', title: 'Цены и этапы оплаты', tier: 'public', source: 'site', text: 'Цены берутся из живого прайса. Оплата по этапам, каждый этап до его начала.', updatedAt: ago(60 * 5) },
-    { id: 'site-guarantee', title: 'Гарантия первого этапа', tier: 'public', source: 'site', text: 'Если первый экран или первый сценарий не понравился, возвращаем оплату первого этапа.', updatedAt: ago(60 * 5) },
+    { id: 'site-guarantee', title: 'Гарантия первого этапа', tier: 'public', source: 'site', text: 'Запуск за 3 рабочих дня после оплаты первого этапа; в первые 14 дней агент отвечает на 95 % обращений за минуту, иначе возвращаем оплату первого этапа.', updatedAt: ago(60 * 5) },
     { id: 'site-products', title: 'Продукты студии', tier: 'public', source: 'site', text: 'ИИ-администратор, ИИ-менеджер заявок, автоматизация, контент, Mini App, ИИ-команда.', updatedAt: ago(60 * 26) },
     { id: 'company-about', title: 'О компании', tier: 'public', source: 'company', text: 'Fir Tech: студия ИИ-агентов и автоматизации.', updatedAt: ago(60 * 48) },
     { id: 'company-roles', title: 'Роли агентов и уровни доверия', tier: 'internal', source: 'company', text: 'Директор, маркетинг, продажи, поддержка, производство, бэк-офис.', updatedAt: ago(60 * 48) },

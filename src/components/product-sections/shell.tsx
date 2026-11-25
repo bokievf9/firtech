@@ -3,6 +3,7 @@ import type { Dict } from '@/content'
 import type { ProductPageCopy, ProductPageLayout } from '@/content/product-pages'
 import { cn } from '@/lib/cn'
 import type { ProductPayment } from '@/lib/product-page'
+import type { GuaranteeCtx } from '@/lib/guarantee'
 import type { ProductId } from '@/lib/products'
 import { Reveal } from '../reveal'
 
@@ -17,6 +18,7 @@ export type ProductSectionContext = {
   term: string | null
   buildHref: string
   telegramUrl: string | null
+  guarantee: GuaranteeCtx
 }
 
 // One section of a product page: a band (tinted, with lines) or plain, a heading, an optional sub and the body.

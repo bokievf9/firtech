@@ -119,6 +119,16 @@ function field(path: string, def: number): PriceField {
       return { path, def, group: 'discounts', section: 'Referral', label: 'Reward for a referred client', unit: 'percent', min: 0, max: 50, step: 1 }
     case 'cabinetCouponPercent':
       return { path, def, group: 'discounts', section: 'Cabinet coupon', label: 'Cabinet coupon, % of one-time part', unit: 'percent', min: 0, max: 50, step: 1 }
+    case 'guarantee': {
+      const g = {
+        launchDays: ['Launch, working days after the first payment', 'days', 1, 30],
+        pilotDays: ['Pilot period, days', 'days', 1, 60],
+        replyShare: ['Share of requests answered in time', 'percent', 50, 100],
+        replyMinutes: ['Reply time, minutes', 'minutes', 1, 60],
+      } as const
+      const [label, unit, min, max] = g[a as keyof typeof g]
+      return { path, def, group: 'discounts', section: 'Guarantee of the first stage', label, unit, min, max, step: 1 }
+    }
     case 'smallProjectMaxUsd':
       return { path, def, group: 'stages', section: 'Threshold', label: 'Small project: project sum below', unit: 'usd', min: 0, max: 5000, step: 10 }
     case 'stageShares':
