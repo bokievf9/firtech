@@ -10,6 +10,11 @@ export const languagesCopy = {
     ru: 'Агент отвечает на русском и английском. Узбекский, казахский и таджикский понимает и отвечает, качество проверяем на ваших диалогах до запуска; на смету это не влияет.',
     en: 'The agent answers in Russian and English. It also understands and answers in Uzbek, Kazakh and Tajik; we check the quality on your own dialogues before launch, and it does not change the quote.',
   },
+  // Where the data lives (owner contract 2026-11-25), shown with the languages line and on the niche and security pages.
+  dataNote: {
+    ru: 'Данные хранятся в Сингапуре, на одном сервере, доступ только у вас и у нас по договору.',
+    en: 'Data is stored in Singapore on one server; only you and we have access, under the contract.',
+  },
   exampleSummary: { ru: 'Пример на узбекском', en: 'Example in Uzbek' },
   exampleHint: {
     ru: 'Условный пример записи на приём, не реальный диалог клиента.',

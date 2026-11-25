@@ -1279,6 +1279,10 @@ const en: Dict = {
         a: 'An agent works around the clock without days off, you see the price before you apply, you pay by stages and the first stage is under guarantee. You can start with one agent and grow to a department without rebuilding.',
       },
       {
+        q: 'Why a subscription and not a payment for every answer?',
+        a: 'A subscription with a conversation limit gives a predictable bill. Paying for a result sounds fair, but without an exact definition of the result it turns into an argument; we write the result in words in the quote and keep the price clear.',
+      },
+      {
         q: 'Do the agents decide things about money and contracts?',
         a: 'No. Agents prepare replies, texts and documents, and a person decides prices, money and contracts. In projects with agents you get the same approvals: a post, a reply to a client or a proposal goes out after your yes.',
       },
@@ -3943,6 +3947,7 @@ const en: Dict = {
         id: 'where',
         title: 'Where the data is kept',
         text: [
+          'Data is stored in Singapore on one server; only you and we have access, under the contract.',
           'The site and the studio internal system run on one server in Singapore (DigitalOcean). Requests, projects, conversations, documents and the knowledge of your agents sit in the internal system database on that server, uploaded files sit in its files folder.',
           'Accounts, passwords and email confirmation codes are kept by the Supabase service. We never see your password: the service holds only its protected hash. We set the project up for the Singapore region, and we are confirming the exact region in the Supabase panel and will fix this line if it differs.',
         ],

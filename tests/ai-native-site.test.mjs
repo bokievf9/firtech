@@ -65,3 +65,22 @@ test('every agent page carries the «Позвать человека» block wit
   assert.match(block, /role="img"/)
   assert.doesNotMatch(block, /<img|next\/image/)
 })
+
+test('data line (Singapore) on the security page, the languages block and the niche pages; hybrid-pricing FAQ entry', async () => {
+  const { languagesCopy } = await import('../src/content/langs-integrations.ts')
+  const line = { ru: 'Данные хранятся в Сингапуре, на одном сервере, доступ только у вас и у нас по договору.', en: 'Data is stored in Singapore on one server; only you and we have access, under the contract.' }
+  assert.deepEqual(languagesCopy.dataNote, line)
+  for (const [locale, dict] of [['ru', ru], ['en', en]]) {
+    const where = dict.security.sections.find((s) => s.id === 'where')
+    assert.equal(where.text[0], line[locale], `${locale} security`)
+  }
+  assert.match(readFileSync('src/components/languages-note.tsx', 'utf8'), /<DataNote locale=\{locale\} \/>/)
+  assert.match(readFileSync('src/app/[locale]/solutions/[kind]/page.tsx', 'utf8'), /<DataNote locale=\{locale\}/)
+  const q = ru.faq.items.find((i) => i.q === 'Почему подписка, а не оплата за каждый ответ?')
+  assert.equal(
+    q.a,
+    'Подписка с лимитом разговоров даёт предсказуемый счёт. Оплата за результат звучит честно, но без точного определения результата превращается в спор; мы фиксируем результат словами в смете и оставляем цену понятной.',
+  )
+  assert.ok(en.faq.items.some((i) => i.q === 'Why a subscription and not a payment for every answer?'))
+  assert.equal(ru.faq.items.length, en.faq.items.length)
+})

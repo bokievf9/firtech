@@ -8,6 +8,7 @@ import {
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { DataNote } from '@/components/languages-note'
 import { BuilderPreview } from '@/components/builder-preview'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { PageHero, LightStrong } from '@/components/page-hero'
@@ -244,6 +245,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
               </dl>
             </div>
           </Reveal>
+          <DataNote locale={locale} className="mt-8 max-w-[60ch]" />
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link href={builderHref} className={cn(buttonStyles.primary, 'group')}>
               {t.cta}

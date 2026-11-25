@@ -1,4 +1,4 @@
-import { Translate } from '@phosphor-icons/react/ssr'
+import { Database, Translate } from '@phosphor-icons/react/ssr'
 import { languagesCopy, pickBi } from '@/content/langs-integrations'
 import { cn } from '@/lib/cn'
 
@@ -26,6 +26,17 @@ export function LanguagesNote({ locale, example, className }: { locale: string; 
           <p lang={locale} className="mt-3 text-footnote text-faint">{pickBi(c.exampleHint, locale)}</p>
         </details>
       )}
+      <DataNote locale={locale} />
     </div>
+  )
+}
+
+// «Данные хранятся в Сингапуре»: the same line on the languages block, the niche pages and the security page.
+export function DataNote({ locale, className }: { locale: string; className?: string }) {
+  return (
+    <p data-data-note className={cn('flex gap-2.5 text-callout text-muted', className)}>
+      <Database size={18} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
+      <span>{pickBi(languagesCopy.dataNote, locale)}</span>
+    </p>
   )
 }
