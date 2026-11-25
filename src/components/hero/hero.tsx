@@ -47,7 +47,7 @@ export async function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
       <div className="relative mx-auto max-w-[1280px] px-4 pt-28 md:px-8 lg:pt-32">
         <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10">
           <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
-            <h1 className="h-display v5-rise text-fg" style={rise(0)}>
+            <h1 className="h-display v5-rise text-fg lg:text-[clamp(2.5rem,4.4vw,3.6rem)]" style={rise(0)}>
               {h.titleLight}
               <br />
               <strong>{h.titleStrong}</strong>
