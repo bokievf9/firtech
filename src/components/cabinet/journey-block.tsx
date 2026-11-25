@@ -3,13 +3,13 @@ import type { Dict } from '@/content'
 import { formatDate } from '@/lib/cabinet-data'
 import { actionNeedsClient, type NextAction } from '@/lib/cabinet-docs'
 import { answerChannels, journeyTrack, localizeHref, pickText, type Journey } from '@/lib/cabinet-journey'
-import { buttonStyles, cn } from '@/lib/cn'
+import { buttonClass, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { NextActionBlock } from './next-action'
 import { TabLink } from './tab-link'
 import { fill } from './ui'
 
-const big = `${buttonStyles.primary} px-8 py-4 text-body`
+const big = buttonClass('primary', 'lg')
 
 // «Путь проекта» (client onboarding): the six steps (nine HQ stages collapsed), then three short blocks:
 // what we are doing now, the one thing the client has to do (a big button, or «Ничего, ждём нас»), where
@@ -55,21 +55,34 @@ export function JourneyBlock({
         <p className="text-footnote text-muted">{j.title}</p>
         {journey.since && <p className="font-mono text-caption text-faint">{fill(j.since, { date: formatDate(journey.since, locale) })}</p>}
       </div>
-      <ol aria-label={j.stepsLabel} className="mt-3 grid grid-cols-3 gap-2 text-footnote sm:grid-cols-6" data-track data-journey-steps>
-        {steps.map((step) => (
+      <ol aria-label={j.stepsLabel} className="mt-4 grid text-footnote sm:grid-cols-6" data-track data-journey-steps>
+        {steps.map((step, i) => (
           <li
             key={step.id}
             data-step={step.id}
             data-state={step.state}
             aria-current={step.state === 'now' ? 'step' : undefined}
             className={cn(
-              'flex items-center justify-center gap-1.5 rounded-full border px-3 py-1.5 text-center',
-              step.state === 'now' && 'border-accent-text bg-accent/10 text-accent-text',
-              step.state === 'done' && 'border-line-strong text-fg',
-              step.state === 'next' && 'border-line text-faint',
+              'relative flex items-center gap-3 pb-4 pl-9 last:pb-0 sm:flex-col sm:items-start sm:gap-2 sm:pt-9 sm:pr-2 sm:pb-0 sm:pl-0',
+              // the hairline to the next step: down on a phone, right on a wide screen
+              i < steps.length - 1 &&
+                'before:absolute before:top-7 before:bottom-0 before:left-[11px] before:w-px before:bg-line-strong sm:before:top-[11px] sm:before:right-0 sm:before:bottom-auto sm:before:left-7 sm:before:h-px sm:before:w-auto',
+              step.state === 'done' && 'text-fg before:bg-accent-text/60',
+              step.state === 'now' && 'font-semibold text-fg',
+              step.state === 'next' && 'text-faint',
             )}
           >
-            {step.state === 'done' && <Check size={12} weight="bold" aria-hidden="true" />}
+            <span
+              aria-hidden="true"
+              className={cn(
+                'absolute top-0 left-0 grid size-6 place-items-center rounded-full border',
+                step.state === 'now' && 'border-accent-text bg-accent text-accent-ink shadow-[var(--shadow-lime)]',
+                step.state === 'done' && 'border-accent-text/60 bg-accent/20 text-accent-text',
+                step.state === 'next' && 'border-line-strong bg-bg',
+              )}
+            >
+              {step.state === 'done' && <Check size={12} weight="bold" />}
+            </span>
             {j.steps[step.id]}
           </li>
         ))}
@@ -77,7 +90,7 @@ export function JourneyBlock({
       {finished && <p className="sr-only">{j.stages.done.headline}</p>}
 
       <div className="mt-5 grid gap-3 md:grid-cols-3">
-        <div className="rounded-tile border border-hairline border-line p-4" data-journey-now>
+        <div className="rounded-card border border-hairline border-line bg-surface-2/50 p-4" data-journey-now>
           <p className="text-footnote text-muted">{j.nowTitle}</p>
           {journey.stageOf && journey.stage === 'stages' && (
             <p className="mt-1 font-mono text-caption text-accent-text" data-journey-stage-of>
@@ -93,7 +106,7 @@ export function JourneyBlock({
             <NextActionBlock action={action} dict={dict} projectId={projectId} compact />
           </div>
         ) : (
-          <div className="rounded-tile border border-hairline border-line p-4" data-journey-need={actLabel ? 'link' : 'none'}>
+          <div className="rounded-card border border-hairline border-line bg-surface-2/50 p-4" data-journey-need={actLabel ? 'link' : 'none'}>
             <p className="text-footnote text-muted">{j.needTitle}</p>
             {ownLink && act && act.href ? (
               <a href={localizeHref(act.href, locale)} className={`${big} mt-3`} data-big-action data-journey-action={act.kind}>
@@ -112,7 +125,7 @@ export function JourneyBlock({
           </div>
         )}
 
-        <div className="rounded-tile border border-hairline border-line p-4" data-journey-answer>
+        <div className="rounded-card border border-hairline border-line bg-surface-2/50 p-4" data-journey-answer>
           <p className="text-footnote text-muted">{j.answerTitle}</p>
           <ul className="mt-1 grid gap-0.5 text-callout text-fg">
             {channels.map((c) => (

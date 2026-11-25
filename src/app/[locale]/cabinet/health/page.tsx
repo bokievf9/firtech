@@ -35,7 +35,7 @@ export default async function HealthPage({ params }: PageProps<'/[locale]/cabine
   return (
     <section className="mx-auto max-w-xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <p className="text-caption text-accent-text font-medium">{t.eyebrow}</p>
-      <h1 className="mt-5 text-title font-semibold">{t.title}</h1>
+      <h1 className="h-display mt-5 text-title">{t.title}</h1>
       <p className="mt-4 text-lead text-muted">{t.sub}</p>
       <div className="mt-10">
         <Card title={t.title}>

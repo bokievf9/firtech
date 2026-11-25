@@ -38,7 +38,7 @@ export default async function LoginPage({
     <section data-tour="login" className="mx-auto max-w-xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <HeroIntro>
         <p className="text-caption text-accent-text font-medium">{t.eyebrow}</p>
-        <h1 className="mt-5 text-title font-semibold text-balance">
+        <h1 className="h-display mt-5 text-title text-balance">
           {t.title}
         </h1>
         <p className="mt-4 text-lead text-muted">{t.sub}</p>

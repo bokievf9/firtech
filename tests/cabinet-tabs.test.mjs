@@ -91,7 +91,7 @@ test('arrow keys wrap over the visible tabs, Home and End jump, other keys do no
 
 test('the bar is an accessible tablist, polls the unread badge, and the page uses it', () => {
   const bar = read('src/components/cabinet/cabinet-tabs.tsx')
-  for (const needle of ['<TabList', 'base="cabinet"', 'role="tabpanel"', 'aria-labelledby', '/api/cabinet/threads', 'COUNTS_EVENT']) {
+  for (const needle of ['nav-capsule', 'role="tablist"', 'role="tab"', 'tabId(\'cabinet\'', 'role="tabpanel"', 'aria-labelledby', '/api/cabinet/threads', 'COUNTS_EVENT']) {
     assert.ok(bar.includes(needle), needle)
   }
   const page = read('src/app/[locale]/cabinet/page.tsx')

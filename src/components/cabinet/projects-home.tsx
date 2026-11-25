@@ -13,8 +13,8 @@ import {
   type CabinetProject,
 } from '@/lib/cabinet-data'
 import { docStateKey, type NextAction, type PublicDoc } from '@/lib/cabinet-docs'
-import { Badge, Card } from '@/components/ui'
-import { buttonStyles, cn } from '@/lib/cn'
+import { Badge, Card, FiraPortal } from '@/components/ui'
+import { buttonClass, buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { stageTrackLabel } from '@/lib/payment-stages'
 import { JourneyBlock } from './journey-block'
@@ -157,13 +157,14 @@ export function EmptyProjects({ dict, locale }: { dict: Dict; locale: Locale }) 
   const v = dict.cabinet.v3.home
   return (
     <Card className="grid justify-items-start gap-4 md:p-sheet" data-projects-empty>
-      <p className="font-display text-title-3 font-semibold">{v.emptyTitle}</p>
+      <FiraPortal alt="" pose="glasses" size="sm" className="animate-none [--portal-size:96px]" />
+      <p className="font-display text-title-3 font-bold">{v.emptyTitle}</p>
       <p className="max-w-[56ch] text-callout leading-relaxed text-muted">{v.emptyText}</p>
       <div className="flex flex-wrap gap-3">
-        <Link href={`/${locale}/builder`} className={buttonStyles.primary}>
+        <Link href={`/${locale}/builder`} className={buttonClass('primary', 'lg')}>
           {v.builder}
         </Link>
-        <Link href={`/${locale}/audit`} className={buttonStyles.secondary}>
+        <Link href={`/${locale}/audit`} className={buttonStyles.glass}>
           {v.audit}
         </Link>
       </div>
@@ -188,23 +189,24 @@ export function CouponBanner({
   if (!coupon) return null
   if (coupon.used) {
     return (
-      <Card className="mb-5 flex flex-wrap items-center justify-between gap-3 p-4" data-coupon-used>
+      <div className="material-regular mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[28px] px-5 py-3" data-coupon-used>
         <p className="text-callout text-muted">
           {coupon.usedLeadId ? fill(v.couponUsed, { id: String(coupon.usedLeadId) }) : v.couponUsedNoId}
         </p>
-      </Card>
+      </div>
     )
   }
   if (!couponValid(coupon)) return null
   return (
-    <Card className="mb-5 flex flex-wrap items-center justify-between gap-3 p-4" data-coupon-banner>
-      <p className="text-callout font-medium">
+    <div className="material-regular mb-5 flex flex-wrap items-center justify-between gap-3 rounded-[28px] py-2 pr-2 pl-5" data-coupon-banner>
+      <p className="flex items-center gap-3 text-callout font-semibold">
+        <span aria-hidden="true" className="orb-dot shrink-0" />
         {fill(v.couponValid, { percent: String(coupon.percent > 0 ? coupon.percent : percent), date: couponDate(coupon.expiresAt) })}
       </p>
-      <Link href={`/${locale}/builder`} className={buttonStyles.primary}>
+      <Link href={`/${locale}/builder`} className={buttonClass('primary', 'md')}>
         {v.builder}
       </Link>
-    </Card>
+    </div>
   )
 }
 

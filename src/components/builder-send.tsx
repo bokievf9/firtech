@@ -1,6 +1,7 @@
 'use client'
 
-import { ArrowRight, CheckCircle } from '@phosphor-icons/react'
+import { ArrowRight } from '@phosphor-icons/react'
+import { FiraPortal } from '@/components/ui'
 import { ErrorNote } from '@/components/ui/error-note'
 import { Pending } from '@/components/ui/pending'
 import { fetchJson, type ErrorInfo } from '@/lib/errors'
@@ -13,7 +14,7 @@ import { track } from '@/lib/analytics'
 import { leadServiceOf, type Build } from '@/lib/builder'
 import { agentSource } from '@/lib/ai-teams'
 import { leadBriefOf } from '@/lib/builder-personal'
-import { buttonStyles } from '@/lib/cn'
+import { buttonClass, buttonStyles } from '@/lib/cn'
 import { estimateDoc, leadEstimateFields, leadPage } from '@/lib/estimate-doc'
 import { estimateLink } from '@/lib/estimate-live'
 import type { Locale } from '@/lib/i18n'
@@ -180,24 +181,27 @@ export function ProjectSend({
   if (status === 'sent') {
     const sent = t.sent
     return (
-      <div id="contact" ref={root} role="status" className="grid gap-4 scroll-mt-40" data-send-success>
-        <p className="flex items-center gap-2 text-headline" data-send-title>
-          <CheckCircle size={24} weight="light" className="text-accent-text" />
-          {sentInfo.id ? sent.title.replace('{id}', String(sentInfo.id)) : sent.titleNoId}
-        </p>
+      <div id="contact" ref={root} role="status" className="grid gap-5 scroll-mt-40" data-send-success>
+        <div className="flex items-center gap-4">
+          <FiraPortal alt="" pose="glasses" size="sm" className="animate-none [--portal-size:96px]" />
+          <p className="h-display-section text-title-3 text-balance" data-send-title>
+            {sentInfo.id ? sent.title.replace('{id}', String(sentInfo.id)) : sent.titleNoId}
+          </p>
+        </div>
         {queued && <p className="text-callout leading-relaxed text-muted">{t.successQueued}</p>}
         <div>
-          <p className="text-footnote text-muted">{sent.stepsTitle}</p>
-          <ol className="mt-2 grid gap-2" data-send-steps>
+          <p className="text-footnote font-semibold text-muted">{sent.stepsTitle}</p>
+          <ol className="relative mt-3 grid gap-0 border-l border-accent-text/30 pl-6" data-send-steps>
             {sent.steps.map((step, i) => (
-              <li key={step.t} className="flex gap-3 rounded-tile border border-hairline border-line p-3 text-callout">
-                <span aria-hidden="true" className="font-mono text-caption text-accent-text">
+              <li key={step.t} className="relative pb-5 text-callout last:pb-0">
+                <span
+                  aria-hidden="true"
+                  className={`absolute top-0.5 -left-[2.1rem] grid size-6 place-items-center rounded-full border font-mono text-caption ${i === 0 ? 'border-accent-text bg-accent text-accent-ink' : 'border-accent-text/40 bg-bg text-accent-text'}`}
+                >
                   {i + 1}
                 </span>
-                <span>
-                  <span className="text-fg">{step.t}</span>
-                  <span className="block text-footnote text-muted">{step.eta}</span>
-                </span>
+                <span className="block font-semibold text-fg">{step.t}</span>
+                <span className="block text-footnote text-muted">{step.eta}</span>
               </li>
             ))}
           </ol>
@@ -206,18 +210,18 @@ export function ProjectSend({
           {sentInfo.email ? sent.answer.replace('{email}', sentInfo.email) : sent.answerNoEmail}
         </p>
         {sentInfo.coupon && (
-          <p className="text-callout text-muted" data-send-coupon>
+          <p className="rounded-full border border-accent-text/40 bg-accent/10 px-4 py-2 text-callout font-semibold text-fg" data-send-coupon>
             {sent.coupon.replace('{code}', sentInfo.coupon)}
           </p>
         )}
         {cabinet && (
           <div className="flex flex-wrap items-center gap-3">
-            <a href={cabinet} className={buttonStyles.primary} data-send-open>
+            <a href={cabinet} className={buttonClass('primary', 'lg')} data-send-open>
               {sent.open}
             </a>
             {secs !== null && secs > 0 && (
               <>
-                <button type="button" onClick={() => setSecs(null)} className={buttonStyles.secondary} data-send-stay>
+                <button type="button" onClick={() => setSecs(null)} className={buttonStyles.glass} data-send-stay>
                   {sent.stay}
                 </button>
                 <span className="text-footnote text-muted" data-send-countdown>
@@ -239,7 +243,7 @@ export function ProjectSend({
         </p>
       )}
       {!authStep && (
-        <Pending pending={status === 'sending'} pendingLabel={t.sending} onClick={() => void onPress()} className={buttonStyles.primary}>
+        <Pending pending={status === 'sending'} pendingLabel={t.sending} onClick={() => void onPress()} className={buttonClass('primary', 'lg')}>
           {pick(faceUi.send, locale)}
           <ArrowRight size={16} />
         </Pending>

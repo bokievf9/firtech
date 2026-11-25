@@ -25,8 +25,9 @@ export function LeadAuthStep({
 }) {
   const pricing = usePricing()
   return (
-    <div className="mt-4 grid gap-3" data-lead-auth>
-      <p role="status" className="text-callout font-medium text-fg">
+    <div className="material-regular mt-4 grid gap-4 rounded-panel p-5 md:p-6" data-lead-auth>
+      <p role="status" className="flex items-start gap-3 rounded-2xl bg-accent/15 px-4 py-3 text-headline font-semibold text-fg">
+        <span aria-hidden="true" className="orb-dot mt-0.5 shrink-0" />
         {dict.leadAuth.authRequired.replace('{percent}', String(pricing.cabinetCouponPercent))}
       </p>
       <AuthForms

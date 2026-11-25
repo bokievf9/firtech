@@ -2,7 +2,8 @@
 
 import { useSearchParams } from 'next/navigation'
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react'
-import { Badge, TabList } from '@/components/ui'
+import { Badge, tabId, tabPanelId } from '@/components/ui'
+import { cn } from '@/lib/cn'
 import { parseTab, withTab, type CabinetTab } from '@/lib/cabinet-tabs'
 import { fill } from './ui'
 
@@ -102,26 +103,50 @@ export function CabinetTabs({
   return (
     <div className="mt-10" id="cabinet-tabs">
       <div ref={bar}>
-        <TabList
-          base="cabinet"
-          label={labels.label}
-          value={tab}
-          onChange={select}
-          itemProps={(id) => ({ 'data-cabinet-tab': id })}
-          items={tabs.map((id) => ({
-            id,
-            label: (
-              <span className="inline-flex items-center gap-2">
-                {labels[id]}
-                {counts[id] ? (
-                  <Badge tone="solid" aria-label={fill(labels.badge, { n: String(counts[id]) })} className="min-w-5 justify-center font-mono">
-                    {counts[id]}
-                  </Badge>
-                ) : null}
-              </span>
-            ),
-          }))}
-        />
+        <div
+          role="tablist"
+          aria-label={labels.label}
+          className="nav-capsule -mx-1 max-w-[calc(100%+0.5rem)] overflow-x-auto [scrollbar-width:none] md:mx-0 md:w-fit md:max-w-full"
+        >
+          {tabs.map((id, i) => {
+            const selected = id === tab
+            return (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                id={tabId('cabinet', id)}
+                aria-selected={selected}
+                aria-controls={tabPanelId('cabinet', id)}
+                tabIndex={selected ? 0 : -1}
+                data-cabinet-tab={id}
+                onClick={() => select(id)}
+                onKeyDown={(e) => {
+                  const dir = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0
+                  if (!dir && e.key !== 'Home' && e.key !== 'End') return
+                  e.preventDefault()
+                  const n = tabs.length
+                  const next = tabs[e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : (i + dir + n) % n]!
+                  select(next)
+                  bar.current?.querySelector<HTMLElement>(`[data-cabinet-tab="${next}"]`)?.focus()
+                }}
+                className={cn(
+                  'pressable inline-flex h-10 shrink-0 items-center rounded-full px-4 text-[14px] font-semibold whitespace-nowrap transition-[background-color,color,box-shadow] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text',
+                  selected ? 'bg-tab-on text-fg shadow-[var(--shadow-tab)]' : 'text-muted hover:bg-tab-hover hover:text-fg',
+                )}
+              >
+                <span className="inline-flex items-center gap-2">
+                  {labels[id]}
+                  {counts[id] ? (
+                    <Badge tone="solid" aria-label={fill(labels.badge, { n: String(counts[id]) })} className="min-w-5 justify-center font-mono">
+                      {counts[id]}
+                    </Badge>
+                  ) : null}
+                </span>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {tabs.map((id) => (

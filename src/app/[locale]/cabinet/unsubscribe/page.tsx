@@ -40,7 +40,7 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
     <section className="mx-auto max-w-xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <HeroIntro>
         <p className="text-caption text-accent-text font-medium">{t.eyebrow}</p>
-        <h1 className="mt-5 text-title font-semibold text-balance">{t.title}</h1>
+        <h1 className="h-display mt-5 text-title text-balance">{t.title}</h1>
       </HeroIntro>
       <div className="mt-8 grid gap-6">
         <p

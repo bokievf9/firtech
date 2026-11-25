@@ -165,7 +165,7 @@ export function SummaryStep({
           </div>
         </Panel>
 
-        <Panel title={t.quoteTitle} action={edit(3)}>
+        <Panel title={t.quoteTitle} action={edit(3)} className="material-regular rounded-panel md:p-8">
           {(doc.kind || doc.products.length > 0) && (
             <dl className="mb-5 grid gap-1.5 text-callout">
               {doc.kind && (
@@ -272,8 +272,8 @@ export function SummaryStep({
             )}
             <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
               <dt>{t.total}</dt>
-              <dd className="font-mono text-title-2 text-accent-text">
-                {doc.total}
+              <dd className="h-display text-title-2 text-accent-text" data-estimate-total>
+                <strong>{doc.total}</strong>
               </dd>
             </div>
           </dl>
