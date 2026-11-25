@@ -20,7 +20,7 @@ export function FilmFinale({ scene, dict, locale }: { scene: FilmScene; dict: Di
         <h2 className={displayH2}>{sectionTitle(f.finale.title)}</h2>
         <FilmLine name={f.name} line={f.scenes.final} className="mt-5" />
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link href={`/${locale}/builder`} data-cta="film_build" className={cn('group')}>
+          <Link href={`/${locale}/builder`} data-cta="film_build" className={cn(buttonClass('primary', 'lg'), 'group')}>
             {f.finale.build}
             <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
           </Link>

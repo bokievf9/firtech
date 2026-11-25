@@ -63,7 +63,7 @@ export async function PricingSection({ dict, locale }: { dict: Dict; locale: str
               <Link
                 href={`/${locale}/builder`}
                 data-cta="pricing_builder"
-                className={cn('group mt-7')}
+                className={cn(buttonClass('primary', 'lg'), 'group mt-7')}
               >
                 {h.builderCta}
                 <ArrowRight
