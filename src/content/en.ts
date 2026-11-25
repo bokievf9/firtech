@@ -1276,7 +1276,7 @@ const en: Dict = {
       },
       {
         q: 'It is expensive. Why is this better than a live employee?',
-        a: 'An agent works around the clock without days off, you see the price before you apply, you pay by stages and the first stage is under guarantee. You can start with one agent and grow to a department without rebuilding.',
+        a: 'The agent does not replace your staff: it takes the routine, the decisions stay with people. It works around the clock without days off, you see the price before you apply, you pay by stages and the first stage is under guarantee. You can start with one agent and grow to a department without rebuilding.',
       },
       {
         q: 'Why a subscription and not a payment for every answer?',

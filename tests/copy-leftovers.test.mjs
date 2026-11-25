@@ -55,3 +55,17 @@ test('no free trials or free pilots promised (owner 2026-11-25: «бесплат
   assert.doesNotMatch(strip(ru), /бесплатн[а-я]+ пробн|пробный период|пилот[а-я]* бесплатно|бесплатн[а-я]+ пилот/i)
   assert.doesNotMatch(strip(en), /free trial|free pilot/i)
 })
+
+// Copy rule (owner contract 2026-11-25): the agent never «заменит сотрудников» / goes «вместо людей»; it takes the routine,
+// the decisions stay with people. Negations («не заменяет юриста») are fine.
+test('no «replaces staff» claims; the expense FAQ states the rule', () => {
+  const ruText = strip(ru)
+  const enText = strip(en)
+  assert.doesNotMatch(ruText, /(?<!не )замен(яет|ит|ят|яют|ять)\s+(сотрудник|люд|менеджер|персонал|команд)/i)
+  assert.doesNotMatch(ruText, /вместо (людей|сотрудников|менеджеров|персонала|живых)/i)
+  assert.doesNotMatch(enText, /(?<!not |n't |never |nor )replaces?\s+(your\s+|the\s+)?(staff|employees|people|humans|managers|team)\b/i)
+  assert.doesNotMatch(enText, /instead of (people|staff|employees|humans)/i)
+  const faq = ru.faq.items.find((i) => i.q.startsWith('Дорого'))
+  assert.match(faq.a, /берёт рутину, решения остаются за людьми/)
+  assert.match(en.faq.items.find((i) => i.q.startsWith('It is expensive')).a, /takes the routine, the decisions stay with people/)
+})
