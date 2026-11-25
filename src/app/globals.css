@@ -1042,6 +1042,7 @@
     box-shadow: 0 0 0 12px var(--color-ring-white),
       0 0 0 13px color-mix(in srgb, var(--color-accent-text) 15%, transparent), var(--portal-halo);
     animation: v5-float 7s ease-in-out infinite;
+    will-change: transform;
   }
   .fira-portal > img {
     width: 100%;
@@ -1083,7 +1084,8 @@
   }
   .btn-glass {
     background: var(--color-material-orb);
-    border: 1px solid var(--color-capsule-line);
+    /* The capsule line is near-white and vanished on the page background: a hairline of the text colour keeps the button visible. */
+    border: 1px solid var(--color-line-strong);
     color: var(--color-fg);
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
