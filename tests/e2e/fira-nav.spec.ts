@@ -3,7 +3,11 @@ import { fakeSessionCookie, noHorizontalOverflow, open, SIZES, watchErrors } fro
 
 // Fira navigation 2.0 (owner 2026-11-25): the spotlight tour, «Отведи меня» (chat cards, deep links), the site map
 // panel, the context chips, the one-time tour offer and the scroll companion. Reduced motion is on where timing matters.
-const openChat = (page: Page) => page.evaluate(() => window.dispatchEvent(new CustomEvent('fira', { detail: { type: 'open-chat' } })))
+const openChat = (page: Page) =>
+  expect(async () => {
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('fira', { detail: { type: 'open-chat' } })))
+    await expect(page.locator('[role=dialog]')).toBeVisible({ timeout: 1500 })
+  }).toPass({ timeout: 30_000 })
 const startTourFromMenu = async (page: Page) => {
   await page.locator('[data-cta="chat_fab"]').click()
   await page.locator('[data-cta="fira_tour"]').click()

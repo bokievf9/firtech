@@ -460,10 +460,11 @@ export function FiraGuide({
       ? { kind: 'note' as const, text: noteHere.text, key: `note:${noteHere.id}` }
       : offer && !chatOpen && !menu
         ? { kind: 'offer' as const, text: nav.offer, key: `offer:${pathname}` }
-        : live.bubble && !chatOpen && !menu && visible
-          ? { kind: 'live' as const, text: live.bubble.text, key: live.bubble.dots ? 'live:dots' : 'live:text' }
-          : saying && visible && !chatOpen && !menu && !lineQuiet && line
-            ? { kind: 'line' as const, text: line, key: `line:${pathname}` }
+        : saying && visible && !chatOpen && !menu && !lineQuiet && line
+          ? // her page line is not cut off by the proactive hint (a slow page used to show the hint after half a second)
+            { kind: 'line' as const, text: line, key: `line:${pathname}` }
+          : live.bubble && !chatOpen && !menu && visible
+            ? { kind: 'live' as const, text: live.bubble.text, key: live.bubble.dots ? 'live:dots' : 'live:text' }
             : null
   const open = bubble !== null
   // The tour has its own spotlight bubble (FiraSpotlight); the dock bubble carries everything else.
@@ -541,7 +542,7 @@ export function FiraGuide({
         data-fira-bubble={dock?.kind ?? ''}
         data-open={dockOpen}
         inert={!dockOpen}
-        className={`companion-say print-hidden glass fixed right-3 fira-dock-up z-30 flex max-w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-2 rounded-2xl rounded-br-md py-2 pr-1.5 pl-4 text-[14px] leading-snug text-fg max-sm:left-3 max-sm:max-w-none sm:right-6 ${dockOpen ? '' : 'pointer-events-none'}`}
+        className={`companion-say print-hidden glass fixed right-3 fira-dock-up z-[35] flex max-w-[min(22rem,calc(100vw-1.5rem))] flex-col gap-2 rounded-2xl rounded-br-md py-2 pr-1.5 pl-4 text-[14px] leading-snug text-fg max-sm:left-3 max-sm:max-w-none sm:right-6 ${dockOpen ? '' : 'pointer-events-none'}`}
       >
         <div className="flex items-start gap-1">
           <div className="min-w-0 flex-1 py-1">

@@ -301,9 +301,11 @@ test('home film: phones get the plain sections with the flat Fira and the ordina
 })
 
 test('companion: a product page shows one line of Fira, a click opens the chat, the same page stays quiet after that', async ({ page }) => {
-  await open(page, '/ru/products/admin')
+  // Not `open()`: on a cold dev server the load event can come after her line (about 9 s) is already gone.
+  await page.goto('/ru/products/admin', { waitUntil: 'domcontentloaded' })
   const line = page.locator('[data-companion="product"]')
-  await expect(line).toHaveAttribute('data-open', 'true', { timeout: 6000 })
+  await expect(line).toHaveAttribute('data-fira-bubble', 'line', { timeout: 30_000 })
+  await expect(line).toHaveAttribute('data-open', 'true')
   await line.locator('[data-cta="companion_line"]').click()
   await expect(page.locator('[role=dialog]')).toBeVisible()
   await open(page, '/ru/products/admin')

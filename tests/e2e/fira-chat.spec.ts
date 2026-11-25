@@ -15,6 +15,7 @@ async function mockStream(page: Page) {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, reply: 'Здравствуйте, я Фира.', state: 'chat' }) })
   })
   await page.route(isStream, async (route) => {
+    await new Promise((r) => setTimeout(r, 700)) // the dots stay long enough to be seen on a fast machine
     const words = REPLY.split(' ')
     const body =
       words.map((w, i) => sse({ t: i < words.length - 1 ? `${w} ` : w })).join('') +
@@ -30,7 +31,12 @@ async function mockStream(page: Page) {
   })
 }
 
-const openChat = (page: Page) => page.evaluate(() => window.dispatchEvent(new CustomEvent('fira', { detail: { type: 'open-chat' } })))
+// Retried: right after load the widget may not be listening yet (a slow first compile).
+const openChat = (page: Page) =>
+  expect(async () => {
+    await page.evaluate(() => window.dispatchEvent(new CustomEvent('fira', { detail: { type: 'open-chat' } })))
+    await expect(page.locator('[role=dialog]')).toBeVisible({ timeout: 1500 })
+  }).toPass({ timeout: 30_000 })
 
 test('fira chat: dots, then words appear one by one, a card appears and opens its page', async ({ page }) => {
   const errors = watchErrors(page)
