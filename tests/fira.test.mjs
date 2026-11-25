@@ -221,7 +221,8 @@ test('procedural only: under 520 KB (raised for Fira live: store, chat, presence
   const files = [...readdirSync('src/components/fira').map((f) => `src/components/fira/${f}`), ...readdirSync('src/lib/fira').map((f) => `src/lib/fira/${f}`)]
   const total = files.reduce((n, f) => n + statSync(f).size, 0)
   assert.ok(total < 520 * 1024, `${total} bytes`)
-  for (const f of files) {
+  // The navigation code (site map, matcher, spotlight, chips) lives in nav/ folders: it is not the 3D rig, so it has its own tests.
+  for (const f of files.filter((x) => statSync(x).isFile())) {
     const code = read(f)
     assert.ok(!/TextureLoader|useTexture|useGLTF|\.(png|jpe?g|webp|glb|gltf|hdr)['"]/.test(code), f)
   }

@@ -5,11 +5,12 @@ import { open, watchErrors } from './helpers'
 // The stream is mocked (page.route): the widget paces the words itself (about 180 ms a word).
 
 const REPLY = 'Оплата идёт по этапам: сначала предоплата за первый этап, потом остальное по принятой работе. Всё понятно описано в статье.'
+const ASK = 'Расскажите подробнее, как у вас устроена предоплата и что идёт после неё'
 const sse = (data: unknown) => `data: ${JSON.stringify(data)}\n\n`
 const isStream = (u: URL) => u.pathname === '/api/chat' && u.search === '?stream=1'
 
 async function mockStream(page: Page) {
-  // The greeting (plain JSON, no buttons): the page suggestions show under it until the visitor writes.
+  // The greeting (plain JSON, no buttons): the three chips of the page sit above the input.
   await page.route((u) => u.pathname === '/api/chat' && u.search === '', async (route) => {
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, reply: 'Здравствуйте, я Фира.', state: 'chat' }) })
   })
@@ -41,9 +42,10 @@ test('fira chat: dots, then words appear one by one, a card appears and opens it
   await expect(dialog).toBeVisible()
   await expect(dialog.locator('[data-chat-stage] svg').first()).toBeVisible()
   await expect(dialog.locator('[data-chat-build]')).toHaveAttribute('href', '/ru/builder')
-  // Suggestions of this page (pricing group), sent with one click.
-  await expect(dialog.locator('[data-chat-suggest]')).toBeVisible()
-  await dialog.getByRole('button', { name: 'Как проходит оплата по этапам?' }).click()
+  // The chips of this page (pricing context) and a free question typed by hand: a long one is not a place of the site, so it goes to the chat.
+  await expect(dialog.locator('[data-fira-chips=pricing] [data-fira-chip]')).toHaveCount(3)
+  await dialog.locator('textarea').fill(ASK)
+  await dialog.getByLabel('Отправить').click()
   await expect(dialog.locator('[data-chat-live="dots"]')).toBeVisible()
   await expect(dialog.locator('[data-chat-live="words"]')).toBeVisible()
   // Incremental: a short prefix first, the whole line later.
@@ -59,7 +61,7 @@ test('fira chat: dots, then words appear one by one, a card appears and opens it
   await expect(page).toHaveURL(/\/ru\/blog\/website-cost-2026$/)
   // The history survives the navigation: open again and the exchange is still there.
   await openChat(page)
-  await expect(page.locator('[role=dialog]')).toContainText('Как проходит оплата по этапам?')
+  await expect(page.locator('[role=dialog]')).toContainText(ASK)
   await expect(page.locator('main')).toHaveAttribute('data-fira-page', 'blog/website-cost-2026')
   expect(errors).toEqual([])
 })
@@ -98,7 +100,7 @@ test('fira chat: reduced motion shows the whole answer at once, without dots', a
   await open(page, '/ru/pay-how')
   await openChat(page)
   const dialog = page.locator('[role=dialog]')
-  await dialog.locator('textarea').fill('Как платить?')
+  await dialog.locator('textarea').fill(ASK)
   await dialog.getByLabel('Отправить').click()
   await expect(dialog).toContainText('Всё понятно описано в статье.')
   await expect(dialog.locator('[data-chat-live="dots"]')).toHaveCount(0)

@@ -328,11 +328,12 @@ test('companion: the line types word by word, can be dismissed, and the face is 
   await noHorizontalOverflow(page, '/ru/products/admin guide')
 })
 
-test('companion: the launcher is Fira and opens a menu with the tour, the chat and the builder', async ({ page }) => {
+test('companion: the launcher is Fira and opens a menu with the tour, the chat, the builder and the site map', async ({ page }) => {
   await open(page, '/ru/products/admin')
   await page.locator('[data-cta="chat_fab"]').click()
   const menu = page.getByRole('menu')
-  await expect(menu.getByRole('menuitem')).toHaveCount(3)
+  await expect(menu.getByRole('menuitem')).toHaveCount(4)
+  await expect(menu.locator('[data-cta="fira_map"]')).toBeVisible()
   await expect(menu.locator('[data-cta="fira_build"]')).toHaveAttribute('href', /\/ru\/builder/)
   await menu.locator('[data-cta="fira_ask"]').click()
   await expect(page.locator('[role=dialog]')).toBeVisible()
