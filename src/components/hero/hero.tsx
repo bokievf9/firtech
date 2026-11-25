@@ -5,7 +5,6 @@ import type { Dict } from '@/content'
 import { buttonClass, cn } from '@/lib/cn'
 import { channelName, publicChannels } from '@/lib/channels'
 import { guaranteeLine } from '@/lib/guarantee'
-import { startLine } from '@/lib/estimate-start'
 import type { Locale } from '@/lib/i18n'
 import { agentSubscriptionOf, companyPlanOf, personalPlanList } from '@/lib/pricing'
 import { fromWord, usd } from '@/lib/price-format'
@@ -30,7 +29,8 @@ export async function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
   const channels = publicChannels(['telegram', 'whatsapp', 'web', 'email'] as const)
     .map((c) => channelName(c, locale))
     .join(', ')
-  const facts = [channels, guaranteeLine(dict, locale, pricing, 'short'), startLine(dict), Object.values(dict.builder.langs).join(', ')]
+  // three facts: the guarantee line already names the launch term, so the old «Старт через 3 рабочих дня» line is not repeated
+  const facts = [channels, guaranteeLine(dict, locale, pricing, 'short'), Object.values(dict.builder.langs).join(', ')]
 
   const orbs = [
     { id: 'personal', label: `${h.orbs.personal} · ${from} ${usd(personalFrom)}`, href: `/${locale}/products/personal`, pos: 'lg:left-0 lg:top-[70px]' },
