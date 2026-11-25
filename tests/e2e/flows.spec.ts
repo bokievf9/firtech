@@ -328,7 +328,7 @@ test('chat: a reply with builderLink and cta shows the builder button, the call 
   // The link stays on this site, relative, and opens in the same tab.
   await expect(build).toHaveAttribute('href', '/ru/builder?b=k.salon~p.adminbot~g.booking')
   await expect(build).not.toHaveAttribute('target', /.+/)
-  await expect(dialog.locator('[data-chat-handoff]')).toHaveText('Передал основателю, ответит здесь или в кабинете')
+  await expect(dialog.locator('[data-chat-handoff]')).toHaveText('Передала менеджеру проекта, ответит здесь или в кабинете')
   await expect(dialog.locator('[data-chat-cta=telegram]')).toBeVisible()
   // The call picker: free slots inline, the chosen one goes out as the next message.
   await dialog.locator('[data-chat-cta=call]').click()
