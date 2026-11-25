@@ -60,7 +60,7 @@ export const goliveItems: GoliveItem[] = [
 
   { id: 'launch-first-clients', block: 'launch', title: 'План первых 10 клиентов: 100 бизнесов от Разведчика, 10 знакомых, 2GIS и Google Карты, партнёры 10%', hint: 'Список составлен, первые контакты назначены.', owner: 'owner' },
   { id: 'launch-demo-client', block: 'launch', title: 'Демо-клиент с полным проектом в кабинете для показов', hint: 'Тестовый клиент с заявкой, проектом, счётом и документами, помечен как демо.', owner: 'claude' },
-  { id: 'launch-sla', block: 'launch', title: 'SLA на сайте: первый ответ за 5 минут круглосуточно, цены после владельца', hint: 'На сайте, в чате и в боте одно обещание.', owner: 'claude' },
+  { id: 'launch-sla', block: 'launch', title: 'SLA на сайте: первый ответ менеджера за 5 минут в рабочее время, цены подтверждает менеджер проекта', hint: 'На сайте, в чате и в боте одно обещание.', owner: 'claude' },
   { id: 'launch-film', block: 'launch', title: 'Launch-фильм и серия постов запуска', hint: 'Ролик и посты готовы и одобрены.', owner: 'claude' },
   { id: 'launch-stoplist', block: 'launch', title: 'Стоп-лист соблюдён: без TikTok API, Telegram-канала, Meta API, валют', hint: 'Нигде не подключены и не обещаны.', owner: 'owner' },
 

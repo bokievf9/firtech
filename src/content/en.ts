@@ -121,7 +121,7 @@ const en: Dict = {
     buildProject: 'Build a project',
     offerCall: 'Suggest a time',
     telegramLast: 'Or message us on Telegram',
-    handoff: 'Passed to the founder, the answer comes here or in your cabinet',
+    handoff: 'Passed to the project manager, the answer comes here or in your cabinet',
     demoChip: { salon: 'Demo: a fictional salon', clinic: 'Demo: a fictional clinic', shop: 'Demo: a fictional shop', cafe: 'Demo: a fictional cafe', service: 'Demo: a fictional service company', courses: 'Demo: fictional courses' },
     demoReset: 'Reset the demo',
     signedInAs: 'Signed in as {name}',
@@ -186,7 +186,7 @@ const en: Dict = {
       budget: { s: 'Under $300', m: '$300-1000', l: '$1000 and up', unknown: 'Not sure yet' },
       askContact: 'Last step: how can we reach you? Your Telegram (@username), phone or e-mail.',
       badContact: 'I do not see a contact. Please send your Telegram (@username), phone or e-mail.',
-      thanks: 'Thank you. A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the founder.',
+      thanks: 'Thank you. A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the project manager.',
       after: 'Your request is already with the team. To add something, message us on Telegram.',
       restart: 'Start over',
     },
@@ -1256,7 +1256,7 @@ const en: Dict = {
       },
       {
         q: 'How fast do you reply?',
-        a: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder. The final price and timeline are always written in the quote.',
+        a: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the project manager. The final price and timeline are always written in the quote.',
       },
       {
         q: 'Do you work with clients abroad?',
@@ -1312,7 +1312,7 @@ const en: Dict = {
     telegramCta: 'Get replies in Telegram',
     telegramHint: 'Telegram sends your request number and tells you when we confirm the call.',
     bot: {
-      received: "Request #{id} received. A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the founder.",
+      received: "Request #{id} received. A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the project manager.",
       booking: 'Call: {time}, waiting for confirmation.',
       bookingConfirmed: 'Call confirmed: {time}.',
       confirmed: 'Your call for request #{id} is confirmed: {time}.',
@@ -1324,7 +1324,7 @@ const en: Dict = {
   },
   contact: {
     title: 'Tell us about your project',
-    sub: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder.',
+    sub: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the project manager.',
     name: 'Name',
     namePlaceholder: 'What should we call you',
     contactField: 'Telegram or phone',
@@ -1676,9 +1676,9 @@ const en: Dict = {
   // Money-back guarantee (owner decision 2026-11-19). One sentence reused in the pricing section,
   // the builder summary, the estimate notes, the FAQ and llms.txt; the exact rule is in `terms`.
   sla: {
-    line: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder.',
+    line: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the project manager.',
     short: 'A manager replies within 5 minutes in working hours',
-    llms: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the founder.',
+    llms: 'A manager replies within 5 minutes in working hours. Everything about prices and timelines is confirmed by the project manager.',
   },
   guarantee: {
     line: 'If you do not like the first screen of the website or the first agent scenario, we return the first stage payment.',
@@ -3763,7 +3763,7 @@ const en: Dict = {
         text: '30 minutes, free. We go through the task and propose a solution, even if you end up going elsewhere.',
         you: 'You tell us about the business and the task.',
         cabinet: 'A request with a status and the conversation with us.',
-        who: 'A manager replies within 5 minutes in working hours. After that the founder is in touch.',
+        who: 'A manager replies within 5 minutes in working hours. After that the project manager is in touch.',
       },
       {
         title: 'Quote',

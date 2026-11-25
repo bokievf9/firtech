@@ -105,7 +105,7 @@ test('mock flow: greeting, what, deadline, budget, contact, thanks', () => {
 
   assert.equal(say('не скажу').reply, copy.badContact)
   const done = say('@madina_cafe')
-  assert.equal(done.reply, 'Спасибо. Ответ менеджера в течение 5 минут в рабочее время; цены и сроки подтверждает основатель.')
+  assert.equal(done.reply, 'Спасибо. Ответ менеджера в течение 5 минут в рабочее время; цены и сроки подтверждает менеджер проекта.')
   assert.equal(done.state, 'done')
   assert.notEqual(done.leadCreated, true, 'the mock never claims a lead')
   assert.equal(say('ещё вопрос').reply, copy.after)
@@ -205,8 +205,8 @@ test('route: with the cabinet on, a contact from a signed-out visitor is not for
 
 test('first-reply promise is one sentence everywhere: 5 minutes, no «рабочего дня» (the free audit keeps its own deliverable)', () => {
   const promise = {
-    ru: 'Ответ менеджера в течение 5 минут в рабочее время; цены и сроки подтверждает основатель.',
-    en: 'A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the founder.',
+    ru: 'Ответ менеджера в течение 5 минут в рабочее время; цены и сроки подтверждает менеджер проекта.',
+    en: 'A manager replies within 5 minutes in working hours; prices and timelines are confirmed by the project manager.',
   }
   for (const locale of ['ru', 'en']) {
     const d = getDict(locale)
@@ -326,6 +326,6 @@ test('the receptionist is Fira, never a bot, in the chat copy', () => {
       assert.doesNotMatch(text, /бот|\bbots?\b/i, `${locale}: ${text}`)
     }
     assert.match(copy.greeting, locale === 'ru' ? /Фира, ИИ-ассистент/ : /Fira/)
-    assert.match(copy.handoff, locale === 'ru' ? /Передал основателю, ответит здесь или в кабинете/ : /founder/)
+    assert.match(copy.handoff, locale === 'ru' ? /Передала менеджеру проекта, ответит здесь или в кабинете/ : /project manager/)
   }
 })

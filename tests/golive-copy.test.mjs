@@ -42,7 +42,7 @@ const dicts = [['ru', ru], ['en', en]]
 test('sla: the response promise is in both dictionaries, the contact block, the FAQ and llms.txt', async () => {
   assert.equal(
     ru.sla.line,
-    'Ответ менеджера в течение 5 минут в рабочее время. Всё, что касается цен и сроков, подтверждает основатель.',
+    'Ответ менеджера в течение 5 минут в рабочее время. Всё, что касается цен и сроков, подтверждает менеджер проекта.',
   )
   assert.match(en.sla.line, /within 5 minutes in working hours/)
   const body = await (await llms()).text()
