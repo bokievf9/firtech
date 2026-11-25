@@ -50,3 +50,18 @@ test('every agent has a public result unit (ru and en), shown on the card, the p
   assert.ok(row, 'support row in the estimate')
   assert.equal(row.detail, `Результат, за который платите: ${ru.aiTeams.agents.items.support.result}`)
 })
+
+test('every agent page carries the «Позвать человека» block with the contract wording and an illustration', () => {
+  assert.equal(ru.aiTeams.agents.page.handoff.title, 'Позвать человека')
+  assert.equal(
+    ru.aiTeams.agents.page.handoff.text,
+    'Одна кнопка в любом чате; агент передаёт диалог с кратким резюме. Порог передачи вы задаёте сами.',
+  )
+  assert.equal(en.aiTeams.agents.page.handoff.title, 'Call a human')
+  const page = readFileSync('src/app/[locale]/ai-team/agent/[id]/page.tsx', 'utf8')
+  assert.match(page, /<AgentHandoff dict=\{dict\} \/>/)
+  const block = readFileSync('src/components/ai-team/agent-blocks.tsx', 'utf8')
+  assert.match(block, /data-agent-handoff/)
+  assert.match(block, /role="img"/)
+  assert.doesNotMatch(block, /<img|next\/image/)
+})

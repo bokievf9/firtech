@@ -4130,6 +4130,16 @@ const en: Dict = {
       standaloneNo: 'Only with a team',
       page: {
         resultLabel: 'The result you pay for',
+        // Human handoff as a feature (owner contract 2026-11-25), on every agent page.
+        handoff: {
+          title: 'Call a human',
+          text: 'One button in any chat; the agent hands the dialogue over with a short summary. You set the handoff threshold yourself.',
+          client: 'Client: can we agree on a price?',
+          button: 'Call a human',
+          agent: 'Agent: passing you to your manager, who will answer in person.',
+          summary: 'Summary for you: the client asks about the price, your decision is needed.',
+          illustration: 'Diagram: the client writes to the agent, presses the button, the dialogue with a summary goes to a person',
+        },
         back: 'All agents',
         partOf: 'Part of:',
         deptLabel: 'Team',

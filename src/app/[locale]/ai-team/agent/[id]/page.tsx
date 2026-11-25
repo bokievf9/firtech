@@ -2,7 +2,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Hourglass, Lightning } from
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { AgentPilot } from '@/components/ai-team/agent-blocks'
+import { AgentHandoff, AgentPilot } from '@/components/ai-team/agent-blocks'
 import { AgentCard } from '@/components/ai-team/agent-list'
 import { ChannelsRow } from '@/components/ai-team/channels-row'
 import { AgentPriceCard } from '@/components/ai-team/team-price'
@@ -194,6 +194,12 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
       <Section className="pt-0">
         <Reveal>
           <AgentPilot id={id} guarantee={guarantee} />
+        </Reveal>
+      </Section>
+
+      <Section className="pt-0">
+        <Reveal>
+          <AgentHandoff dict={dict} />
         </Reveal>
       </Section>
 
