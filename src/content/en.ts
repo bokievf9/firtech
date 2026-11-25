@@ -4129,6 +4129,7 @@ const en: Dict = {
       standaloneYes: 'Available on its own',
       standaloneNo: 'Only with a team',
       page: {
+        resultLabel: 'The result you pay for',
         back: 'All agents',
         partOf: 'Part of:',
         deptLabel: 'Team',
@@ -4151,6 +4152,7 @@ const en: Dict = {
         'trend-scout': {
           title: 'Trend scout',
           headline: 'Every morning you know what to post about',
+          result: 'A found trend = a topic with an example and a link, ready to take into work',
           promise: 'Brings the rising topics and formats of your niche every day, so you stop guessing what to write about.',
           does: [
             'Scans social networks and search trends in your niche',
@@ -4186,6 +4188,7 @@ const en: Dict = {
         'content-maker': {
           title: 'Content maker',
           headline: 'Reels, carousels and posts wait only for your approval',
+          result: 'A ready post = text and picture from the plan that you approved',
           promise: 'Turns topics, trends and case studies into reels, carousels and posts in Russian and English.',
           does: [
             'Makes reels, carousels and posts on your topics',
@@ -4221,6 +4224,7 @@ const en: Dict = {
         publisher: {
           title: 'Publisher',
           headline: 'Content goes out on schedule while you run the business',
+          result: 'A published post on plan = the post went out on time in the right channel',
           promise: 'Puts ready materials on a schedule and publishes after your approval: YouTube Shorts by itself, other platforms through a posting queue.',
           does: [
             'Builds the publishing schedule',
@@ -4256,6 +4260,7 @@ const en: Dict = {
         analyst: {
           title: 'Analyst',
           headline: 'Every week you see the numbers and the plan for the next',
+          result: 'A weekly report = figures by channel and three conclusions on what to do next',
           promise: 'Sends the numbers for your channels and leads once a week, with a plan for the next week.',
           does: [
             'Collects channel and lead metrics',
@@ -4291,6 +4296,7 @@ const en: Dict = {
         seo: {
           title: 'SEO specialist',
           headline: 'Clients find you in search for what they actually type',
+          result: 'A fixed page = an audit fix that you approved and we applied',
           promise: 'Prepares articles and pages in Russian and English for the search queries of your niche.',
           does: [
             'Collects the keywords for your niche',
@@ -4326,6 +4332,7 @@ const en: Dict = {
         'lead-handler': {
           title: 'Lead manager',
           headline: 'Every client gets an answer within a minute, around the clock',
+          result: 'A handled lead = a reply to the client and a record in the CRM',
           promise: 'The agent answers your clients within a minute, around the clock: asks the questions and books a call.',
           does: [
             'Answers the first message in the messenger',
@@ -4362,6 +4369,7 @@ const en: Dict = {
         prospector: {
           title: 'Prospector',
           headline: 'New clients turn up while you serve the current ones',
+          result: 'A found contact = a company that fits you, with the reason why',
           promise: 'Finds suitable businesses in your niches and cities and prepares a personal offer for each.',
           does: [
             'Collects businesses by niche and city from open sources',
@@ -4397,6 +4405,7 @@ const en: Dict = {
         presales: {
           title: 'Presales: proposals and quotes',
           headline: 'The proposal, quote and contract are ready for your signature',
+          result: 'A prepared offer = an estimate and proposal that you approved for sending',
           promise: 'Turns a lead card into a commercial proposal, a quote and a draft contract.',
           does: [
             'Reads the lead card and the conversation',
@@ -4432,6 +4441,7 @@ const en: Dict = {
         referral: {
           title: 'Referral agent',
           headline: 'Partners bring clients and the payouts add up by themselves',
+          result: 'A handled referral = the partner got an answer and the reward is recorded by your rules',
           promise: 'Runs a referral program: personal links, the leads that came through them and a list of rewards for your approval.',
           does: [
             'Gives partners personal links',
@@ -4467,6 +4477,7 @@ const en: Dict = {
         support: {
           title: 'Support desk',
           headline: 'Clients get answers and only the hard cases reach you',
+          result: 'A solved request = an answer the client did not dispute within 24 hours',
           promise: 'Answers customers from your base of answers, tracks tickets against deadlines and hands the hard ones to you.',
           does: [
             'Answers questions from the answer base',
@@ -4502,6 +4513,7 @@ const en: Dict = {
         monitoring: {
           title: 'Monitoring',
           headline: 'You hear about a failure before your clients do',
+          result: 'A closed incident = the failure was noticed, you were warned, the cause is recorded',
           promise: 'Watches that your sites and services keep working and sends an alert the moment something fails.',
           does: [
             'Checks the availability of sites and services from a list',
@@ -4537,6 +4549,7 @@ const en: Dict = {
         billing: {
           title: 'Billing',
           headline: 'Invoices and payment reminders go out on time',
+          result: 'An issued invoice = the invoice was sent to the client and the payment is marked in the books',
           promise: 'Prepares invoices and payment reminders for your subscriptions, and sends them after you approve.',
           does: [
             'Keeps the list of subscriptions and due dates',
@@ -4572,6 +4585,7 @@ const en: Dict = {
         onboarding: {
           title: 'Onboarding',
           headline: 'A new client knows what to do from day one',
+          result: 'A connected client = the client finished the first steps and got access',
           promise: 'Welcomes a new customer: collects the access you need and guides them through the first week by your instructions.',
           does: [
             'Sends the customer a questionnaire and a list of the access you need',
@@ -4607,6 +4621,7 @@ const en: Dict = {
         'project-manager': {
           title: 'Project manager',
           headline: 'The client sees the project status and you write no reports',
+          result: 'A closed project task = the task is done, the status is updated, the client is notified',
           promise: 'Turns a signed proposal into a brief, a plan and tasks, and sends the client a status at each stage.',
           does: [
             'Builds the brief from the signed proposal',
@@ -4642,6 +4657,7 @@ const en: Dict = {
         'reviewer-qa': {
           title: 'Reviewer and QA',
           headline: 'Errors are found before the client sees them',
+          result: 'A checked piece of work = the result was matched against the checklist, remarks are recorded',
           promise: 'Checks the result of a stage and prepares remarks on quality and security before it goes to the client.',
           does: [
             'Compares the result with the brief',
@@ -4677,6 +4693,7 @@ const en: Dict = {
         deployer: {
           title: 'Deployer',
           headline: 'Finished work reaches the server without manual uploads',
+          result: 'A released version = the change is live, checked and available to clients',
           promise: 'Puts a finished build on the server from templates and scripts and sends a report of the release.',
           does: [
             'Builds the application image from a template',
@@ -4712,6 +4729,7 @@ const en: Dict = {
         documents: {
           title: 'Documents',
           headline: 'Contracts and terms are ready from your own templates',
+          result: 'A ready document = a contract, act or certificate from a template that you approved',
           promise: 'Prepares contracts, offers, policies and proposal templates from your samples.',
           does: [
             'Drafts contracts and offers from your template',
@@ -4747,6 +4765,7 @@ const en: Dict = {
         'knowledge-base': {
           title: 'Knowledge base',
           headline: 'The team and the agents take answers from one place',
+          result: 'An updated article = the answer is in the base and available to the agents',
           promise: 'Keeps playbooks, templates and lessons from projects so the team and the agents take answers from one place.',
           does: [
             'Gathers policies, instructions and conversations into one base',
@@ -4782,6 +4801,7 @@ const en: Dict = {
         director: {
           title: 'Director: the managing agent',
           headline: 'You run the company from one chat',
+          result: 'A completed assignment = the task is split between agents and you get one summary message',
           promise: 'The one agent you talk to: hands tasks to the teams and collects the approvals and the morning summary.',
           does: [
             'Takes your tasks in one chat',

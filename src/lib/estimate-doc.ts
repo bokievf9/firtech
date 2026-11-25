@@ -191,13 +191,18 @@ export function estimateDoc(
   const aq = agentQuote(build, pricing)
   const loc2 = locale === 'ru' ? 'ru' : 'en'
   const agentTitle = (id: string) => (dict.aiTeams.agents.items as Record<string, { title: string }>)[id]?.title ?? id
+  const agentResult = (id: string) => {
+    const a = dict.aiTeams.agents
+    const result = (a.items as Record<string, { result?: string }>)[id]?.result
+    return result ? `${a.page.resultLabel}: ${result}` : ''
+  }
   const agents: EstimateAgents | null = aq
     ? {
         rows: [
           ...(build.agents ?? []).map((id) => ({
             id: `agent-${id}`,
             name: agentTitle(id),
-            detail: '',
+            detail: agentResult(id),
             term: '',
             price: `${formatUsd(aq.unit.setup)} + ${formatUsd(aq.unit.monthly)}${dict.builder.perMonth}`,
           })),

@@ -112,6 +112,9 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
               </p>
             </div>
             <p className="mt-5 text-callout font-medium">{page.title}</p>
+            <p data-agent-result className="mt-2 max-w-[60ch] text-callout text-muted">
+              <span className="font-medium text-accent-text">{ta.page.resultLabel}:</span> {page.result}
+            </p>
           </>
         }
         aside={

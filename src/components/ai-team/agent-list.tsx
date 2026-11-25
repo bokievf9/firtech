@@ -28,6 +28,9 @@ export function AgentCard({ id, locale, dict, showTeam = true, className }: { id
         </Link>
       </h3>
       <p className="text-callout text-muted">{copy.headline}</p>
+      <p data-agent-result className="text-footnote text-faint">
+        <span className="font-medium text-accent-text">{t.agents.page.resultLabel}:</span> {copy.result}
+      </p>
       <div className="mt-auto flex flex-wrap items-center gap-2 pt-1">
         <Badge className="whitespace-normal">{t.trust[offer.trust]}</Badge>
         {showTeam && (

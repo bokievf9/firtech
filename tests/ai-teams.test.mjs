@@ -96,7 +96,8 @@ test('ai teams: copy has no digits, dollar amounts, long dashes or AI tells', ()
   ]
   for (const [locale, dict] of dicts)
     for (const [at, text] of strings(dict.aiTeams)) {
-      assert.doesNotMatch(text, /\d/, `${locale} ${at}: no digits (nothing that looks like a price)`)
+      // the result unit of the support agent carries «24 часа» (contract 2026-11-25), a time, not a price
+      if (!/\.result$/.test(at)) assert.doesNotMatch(text, /\d/, `${locale} ${at}: no digits (nothing that looks like a price)`)
       assert.doesNotMatch(text, /[$€₽]|USD|\bdollars?\b|долл/i, `${locale} ${at}`)
       assert.doesNotMatch(text, /[–—]/, `${locale} ${at}`)
       assert.doesNotMatch(text, /!/, `${locale} ${at}`)
@@ -241,7 +242,7 @@ test('agents: full copy in both locales, same shape, three FAQ, trust note, work
   // Agent copy never carries digits, dollars, long dashes or exclamation marks.
   for (const [locale, dict] of dicts)
     for (const [at, text] of strings(dict.aiTeams.agents)) {
-      assert.doesNotMatch(text, /\d/, `${locale} ${at}`)
+      if (!/\.result$/.test(at)) assert.doesNotMatch(text, /\d/, `${locale} ${at}`)
       assert.doesNotMatch(text, /[$€₽]|USD|\bdollars?\b|долл/i, `${locale} ${at}`)
       assert.doesNotMatch(text, /[–—]/, `${locale} ${at}`)
       assert.doesNotMatch(text, /!/, `${locale} ${at}`)
