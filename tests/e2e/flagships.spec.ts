@@ -52,7 +52,7 @@ test('flagships: AI company page (v4), Fira, one brain diagram, company day, loc
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Один ИИ, который знает вашу компанию')
   await expect(page.locator('[data-fira-hero]')).toBeVisible()
   const got = await page.locator('[data-product-section]').evaluateAll((els) => els.map((el) => el.getAttribute('data-product-section')))
-  expect(got).toEqual(['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions'])
+  expect(got).toEqual(['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'pilot', 'start', 'questions'])
   // the brain diagram: sources, the centre, outputs, roles
   for (const part of ['data-brain-sources', 'data-brain-center', 'data-brain-outputs', 'data-brain-roles']) await expect(page.locator(`[${part}]`)).toBeVisible()
   // the company day and the channels as equals
