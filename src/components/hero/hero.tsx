@@ -1,109 +1,96 @@
-import { ArrowRight, ChatCircleDots, Clock } from '@phosphor-icons/react/ssr'
+import { ChatCircleDots } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import type { CSSProperties } from 'react'
 import type { Dict } from '@/content'
-import { buttonStyles, cn } from '@/lib/cn'
+import { buttonClass, cn } from '@/lib/cn'
+import { channelName, publicChannels } from '@/lib/channels'
+import { startLine } from '@/lib/estimate-start'
 import type { Locale } from '@/lib/i18n'
-import { productIds } from '@/lib/products'
+import { agentSubscriptionOf, companyPlanOf, personalPlanList } from '@/lib/pricing'
+import { fromWord, usd } from '@/lib/price-format'
+import { getPricing } from '@/lib/pricing-store'
 import { ChatOpenButton } from '../chat/chat-open-button'
-import { HeroIntro } from '../hero-intro'
-import { KineticHeadline } from '../kinetic-headline'
-import { GuaranteeLine } from '../guarantee-line'
-import { Magnetic } from '../magnetic'
-import { Badge } from '../ui/badge'
-import { HeroSequence } from './hero-sequence'
+import { FiraPortal, GlowBlob, Orb, OrbitRing } from '@/components/ui'
 
-// Home hero, stage B1 («сайт из будущего»): a huge kinetic headline over a 3D product stage, and a
-// scroll sequence that brings the seven products forward one by one (HeroSequence). The headline,
-// sub and buttons are server HTML animated in CSS, so the headline is the LCP and everything reads
-// without JavaScript; the stage, captions and parallax are the client island.
-// `cue` is scene one of the home film (Fira greets the visitor), shown above the buttons.
-export function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: ReactNode }) {
+// Home hero, design v5 «Стекло, орбиты, фирменный лайм» (artboard F): the light/black headline, one line,
+// two buttons on the left; Fira in a glowing portal with two orbit rings, four product orbs and one ink
+// bubble on the right; a hairline row of facts under it. Everything is server HTML: the headline paints
+// at once and the children fade and rise in CSS (`.v5-rise`, off under reduced motion).
+const rise = (i: number) => ({ '--i': i }) as CSSProperties
+
+export async function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
   const h = dict.hero
-  const products = productIds.map((id) => ({
-    id,
-    name: dict.products.items[id].name,
-    benefit: dict.products.items[id].benefit,
-  }))
+  const pricing = await getPricing()
+  const personalFrom = Math.min(...personalPlanList(pricing).map((p) => p.setup))
+  const employeeFrom = agentSubscriptionOf(pricing).setup
+  const companyFrom = companyPlanOf(pricing).setup
+  const from = fromWord(locale)
+  const channels = publicChannels(['telegram', 'whatsapp', 'web', 'email'] as const)
+    .map((c) => channelName(c, locale))
+    .join(', ')
+  const facts = [channels, dict.guarantee.short, startLine(dict), Object.values(dict.builder.langs).join(', ')]
+
+  const orbs = [
+    { id: 'personal', label: `${h.orbs.personal} · ${from} ${usd(personalFrom)}`, href: `/${locale}/products/personal`, pos: 'lg:left-0 lg:top-[70px]' },
+    { id: 'employee', label: `${h.orbs.employee} · ${from} ${usd(employeeFrom)}`, href: `/${locale}/ai-team#agents`, pos: 'lg:right-0 lg:top-[130px]' },
+    { id: 'team', label: `${h.orbs.team} · ${h.orbs.teamNote}`, href: `/${locale}/ai-team`, pos: 'lg:bottom-[90px] lg:left-2.5' },
+    { id: 'company', label: `${h.orbs.company} · ${from} ${usd(companyFrom)}`, href: `/${locale}/products/company`, pos: 'lg:bottom-10 lg:right-3' },
+  ]
+
   return (
-    <HeroSequence
-      locale={locale}
-      products={products}
-      demo={dict.products.demo}
-      copy={h.sequence}
-      concept={dict.products.concept}
-      intro={
-        <>
-          <HeroIntro delay={0}>
-            <p className="mb-5 text-callout font-medium text-accent-text">{h.eyebrow}</p>
-          </HeroIntro>
-          <KineticHeadline
-            title={h.title}
-            lines={h.lines}
-            accent={1}
-            className="hero-display font-display font-semibold [font-variation-settings:'SHRP'_60] [@media(min-width:1024px)_and_(max-height:960px)]:!text-[min(8.4vh,5.4rem)]"
-          />
-        </>
-      }
-      sub={
-        <HeroIntro delay={0.55}>
-          <p className="max-w-[46ch] text-lead text-muted">{h.sub}</p>
-        </HeroIntro>
-      }
-      actions={
-        <HeroIntro delay={0.64}>
-          {cue ? <div className="mb-6 [@media(min-width:1024px)_and_(max-height:960px)]:mb-3" data-hero-cue data-fira-quiet="">{cue}</div> : null}
-          <div data-fira-quiet="" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-            <Magnetic>
-              <Link
-                href={`/${locale}/builder`}
-                data-cta="hero_builder"
-                className={cn(buttonStyles.primary, 'group w-full sm:w-auto')}
-              >
+    <section id="top" className="relative isolate overflow-hidden bg-bg">
+      <GlowBlob className="-top-20 -right-36 size-[520px] lg:size-[900px]" />
+      <GlowBlob tone="green" className="-bottom-52 -left-40 hidden size-[520px] lg:block" />
+      <OrbitRing className="top-[300px] -right-28 size-[420px] lg:top-[110px] lg:right-[2%] lg:size-[760px]" />
+      <OrbitRing dashed className="-top-2.5 -right-[6%] hidden size-[1000px] lg:block" />
+
+      <div className="relative mx-auto max-w-[1280px] px-4 pt-28 md:px-8 lg:pt-32">
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10">
+          <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
+            <h1 className="h-display v5-rise text-fg" style={rise(0)}>
+              {h.titleLight}
+              <br />
+              <strong>{h.titleStrong}</strong>
+            </h1>
+            <p className="v5-rise max-w-[38ch] text-base leading-relaxed text-muted lg:text-[19px]" style={rise(1)}>
+              {h.tagline}
+            </p>
+            <div className="v5-rise flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:gap-3" style={rise(2)}>
+              <Link href={`/${locale}/builder`} data-cta="hero_builder" className={cn(buttonClass('primary', 'lg'), 'w-full sm:w-auto')}>
                 {h.primary}
-                <ArrowRight
-                  size={16}
-                  aria-hidden="true"
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                />
               </Link>
-            </Magnetic>
-            <ChatOpenButton
-              source="hero"
-              fallbackHref="#demo"
-              className={buttonStyles.glass}
-            >
-              <ChatCircleDots size={18} weight="fill" aria-hidden="true" className="text-accent-text" />
-              {h.chatCta}
-            </ChatOpenButton>
+              <ChatOpenButton source="hero" fallbackHref="#demo" className={cn(buttonClass('glass', 'lg'), 'w-full sm:w-auto')}>
+                <ChatCircleDots size={20} weight="fill" aria-hidden="true" className="text-accent-text" />
+                {h.askFira}
+              </ChatOpenButton>
+            </div>
           </div>
-          <p className="mt-4 text-footnote [@media(min-width:1024px)_and_(max-height:960px)]:hidden">
-            <Link
-              href={`/${locale}/ai-team`}
-              data-cta="hero_team"
-              className="inline-flex items-center gap-1.5 text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent-text hover:decoration-accent-text"
+
+          <div className="v5-rise relative flex min-w-0 flex-col items-center gap-4 pb-2 lg:h-[560px] lg:justify-center lg:pb-0" style={rise(3)}>
+            <FiraPortal pose="wave" alt={h.portalAlt} priority />
+            <div
+              role="list"
+              aria-label={h.orbsLabel}
+              className="flex w-full gap-2 overflow-x-auto py-1.5 [scrollbar-width:none] lg:contents [&::-webkit-scrollbar]:hidden"
             >
-              {h.teamLink}
-              <ArrowRight size={12} aria-hidden="true" />
-            </Link>
-          </p>
-          {/* Go-live trust lines (owner 2026-11-21): the guarantee and the response promise on the first screen. */}
-          <div className="mt-4 grid max-w-[46ch] gap-2 [@media(min-width:1024px)_and_(max-height:960px)]:mt-3 [@media(min-width:1024px)_and_(max-height:960px)]:gap-1 lg:max-w-[min(30rem,calc(44vw-5rem))]" data-hero-promises>
-            <GuaranteeLine dict={dict} locale={locale} className="text-footnote" short />
-            <p className="flex items-start gap-2.5 text-footnote text-muted">
-              <Clock size={18} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-              <span>{dict.sla.short}</span>
+              {orbs.map((o, i) => (
+                <div key={o.id} role="listitem" className="contents">
+                  <Orb label={o.label} href={o.href} delay={0.8 * (i + 1)} data-orb="" data-cta={o.id === 'team' ? 'hero_team' : `hero_orb_${o.id}`} className={cn('shrink-0 lg:absolute', o.pos)} />
+                </div>
+              ))}
+            </div>
+            <p className="bubble-ink absolute bottom-[-6px] left-0 hidden max-w-[235px] lg:block">
+              <b>{h.bubble.name}</b> {h.bubble.text}
             </p>
           </div>
-          <ul className="mt-4 flex flex-wrap gap-2 lg:hidden">
-            {h.trust.map((item) => (
-              <li key={item}>
-                <Badge>{item}</Badge>
-              </li>
-            ))}
-          </ul>
-        </HeroIntro>
-      }
-    />
+        </div>
+
+        <ul className="v5-rise mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-accent-text/15 py-5 text-sm font-medium text-muted lg:mt-4" style={rise(4)}>
+          {facts.map((f) => (
+            <li key={f}>{f}</li>
+          ))}
+        </ul>
+      </div>
+    </section>
   )
 }

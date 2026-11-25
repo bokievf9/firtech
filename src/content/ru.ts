@@ -43,6 +43,15 @@ const ru = {
       open: 'Подробнее о продукте',
     },
     primary: 'Собрать проект',
+    // Design v5 (owner 2026-11-25): the first screen is a light/black headline, one line, two buttons and Fira in a portal.
+    titleLight: 'Ваш ИИ.',
+    titleStrong: 'Для жизни и для дела.',
+    tagline: 'Личный помощник, сотрудник для бизнеса или целая команда. Цена и срок известны до старта.',
+    askFira: 'Спросить Фиру',
+    portalAlt: 'Фира, ИИ Fir Tech, машет рукой',
+    orbsLabel: 'Что можно собрать',
+    orbs: { personal: 'Личный ИИ', employee: 'ИИ-сотрудник', team: 'ИИ-команда', teamNote: 'смета за минуту', company: 'ИИ вашей компании' },
+    bubble: { name: 'Фира:', text: 'записала Азиза на 10:00 и напомню за час. Вам ничего делать не нужно.' },
     trust: ['Цена фиксирована в смете', 'Оплата по этапам, до старта каждого', 'Код и доступы ваши'],
     scroll: 'Листайте',
     // Secondary hero button: opens the on-page chat with the AI receptionist.
