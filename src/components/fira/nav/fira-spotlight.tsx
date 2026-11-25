@@ -38,6 +38,7 @@ export function FiraSpotlight({
   onStop: () => void
 }) {
   const stop = stops[i]
+  const anchor = stop?.el ?? null
   const bubbleRef = useRef<HTMLDivElement>(null)
   const nextRef = useRef<HTMLButtonElement>(null)
   const [target, setTarget] = useState<Rect | null>(null)
@@ -50,8 +51,7 @@ export function FiraSpotlight({
     let raf = 0
     let last = ''
     const frame = () => {
-      const el = stop?.el
-      const r = el && el.isConnected ? focusRect(el) : null
+      const r = anchor && anchor.isConnected ? focusRect(anchor) : null
       const vw = window.innerWidth
       const vh = window.innerHeight
       const key = r ? `${Math.round(r.x)}|${Math.round(r.y)}|${Math.round(r.w)}|${Math.round(r.h)}|${vw}|${vh}` : `none|${vw}|${vh}`
@@ -64,7 +64,7 @@ export function FiraSpotlight({
     }
     raf = requestAnimationFrame(frame)
     return () => cancelAnimationFrame(raf)
-  }, [stop])
+  }, [anchor])
 
   useLayoutEffect(() => {
     const el = bubbleRef.current
