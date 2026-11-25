@@ -266,9 +266,10 @@ test('product pages: each one has its own result headline, price, stage table, t
 test('home film: eight scenes, each with Fira on her mark and her line in the HTML', async ({ page }) => {
   await open(page, '/ru')
   await expect(page.locator('[data-film-scene]')).toHaveCount(8)
-  await expect(page.locator('[data-film-mark]')).toHaveCount(8)
-  await expect(page.locator('[data-film-mark] svg')).toHaveCount(8)
-  await expect(page.locator('[data-film-line]').first()).toContainText('Привет, я Фира')
+  // The hello scene has no flat mark since design v5: the hero portal is Fira's first appearance.
+  await expect(page.locator('[data-film-mark]')).toHaveCount(7)
+  await expect(page.locator('[data-film-mark] svg')).toHaveCount(7)
+  await expect(page.locator('[data-film-line]').first()).toBeAttached()
   await expect(page.locator('#pains [data-pain]')).toHaveCount(3)
   await expect(page.locator('#office [data-office-room]')).toHaveCount(6)
   // One Fira line per product (seven products in productIds); the scenes themselves are eight.
@@ -296,7 +297,7 @@ test('home film: phones get the plain sections with the flat Fira and the ordina
   await page.waitForTimeout(2500)
   await expect(page.locator('[data-film-fira]')).toHaveCount(0)
   expect(await page.evaluate(() => document.documentElement.dataset.film ?? null)).toBeNull()
-  await expect(page.locator('[data-film-mark="hello"] svg')).toBeVisible()
+  await expect(page.locator('#top .fira-portal img')).toBeVisible()
   await noHorizontalOverflow(page, '/ru film phone')
 })
 

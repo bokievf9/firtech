@@ -234,9 +234,9 @@ test('chat widget opens, sends and answers in mock mode, then closes', async ({ 
   expect(errors).toEqual([])
 })
 
-test('chat opens from the hero button «Спросить агента»', async ({ page }) => {
+test('chat opens from the hero glass button «Спросить Фиру»', async ({ page }) => {
   await open(page, '/ru')
-  await page.locator('#top').getByRole('link', { name: 'Спросить агента' }).click()
+  await page.locator('#top').getByRole('link', { name: 'Спросить Фиру' }).click()
   await expect(page.locator('[role=dialog]')).toBeVisible()
 })
 
