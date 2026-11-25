@@ -45,7 +45,7 @@ const en: Dict = {
     // Design v5 (owner 2026-11-25): the first screen is a light/black headline, one line, two buttons and Fira in a portal.
     titleLight: 'Your AI.',
     titleStrong: 'For life and for business.',
-    tagline: 'A personal assistant, an employee for your business or a whole team. Price and timeline are known before we start.',
+    tagline: 'An AI-native studio: AI employees for your salon, clinic, shop or company answer clients within a minute on Telegram, WhatsApp and Instagram. Price and term are fixed before the start.',
     askFira: 'Ask Fira',
     portalAlt: 'Fira, the Fir Tech AI, waving',
     orbsLabel: 'What you can build',

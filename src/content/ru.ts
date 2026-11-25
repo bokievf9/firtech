@@ -46,7 +46,7 @@ const ru = {
     // Design v5 (owner 2026-11-25): the first screen is a light/black headline, one line, two buttons and Fira in a portal.
     titleLight: 'Ваш ИИ.',
     titleStrong: 'Для жизни и для дела.',
-    tagline: 'Личный помощник, сотрудник для бизнеса или целая команда. Цена и срок известны до старта.',
+    tagline: 'AI-native студия: ИИ-сотрудники для салона, клиники, магазина или вашей компании отвечают клиентам за минуту в Telegram, WhatsApp и Instagram. Цена и срок фиксируются до старта.',
     askFira: 'Спросить Фиру',
     portalAlt: 'Фира, ИИ Fir Tech, машет рукой',
     orbsLabel: 'Что можно собрать',
