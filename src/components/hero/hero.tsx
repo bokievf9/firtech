@@ -14,7 +14,8 @@ import { FiraPortal, GlowBlob, Orb, OrbitRing } from '@/components/ui'
 
 // Home hero, design v5 «Стекло, орбиты, фирменный лайм» (artboard F): the light/black headline, one line,
 // two buttons on the left; Fira in a glowing portal with two orbit rings, four product orbs and one ink
-// bubble on the right; a hairline row of facts under it. Everything is server HTML: the headline paints
+// bubble on the right; a hairline row of facts pinned to the bottom. On desktop the section fills the
+// viewport (owner 2026-11-25: the hero must not end halfway down the screen) and grows on 2xl. Everything is server HTML: the headline paints
 // at once and the children fade and rise in CSS (`.v5-rise`, off under reduced motion).
 const rise = (i: number) => ({ '--i': i }) as CSSProperties
 
@@ -38,16 +39,16 @@ export async function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
   ]
 
   return (
-    <section id="top" className="relative isolate overflow-hidden bg-bg">
+    <section id="top" className="relative isolate overflow-hidden bg-bg lg:flex lg:min-h-[100dvh] lg:flex-col">
       <GlowBlob className="-top-20 -right-36 size-[520px] lg:size-[900px]" />
       <GlowBlob tone="green" className="-bottom-52 -left-40 hidden size-[520px] lg:block" />
       <OrbitRing className="top-[300px] -right-28 size-[420px] lg:top-[110px] lg:right-[2%] lg:size-[760px]" />
       <OrbitRing dashed className="-top-2.5 -right-[6%] hidden size-[1000px] lg:block" />
 
-      <div className="relative mx-auto max-w-[1280px] px-4 pt-28 md:px-8 lg:pt-32">
-        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10">
+      <div className="relative mx-auto w-full max-w-[1280px] px-4 pt-28 md:px-8 lg:flex lg:flex-1 lg:flex-col lg:pt-32 2xl:max-w-[1440px]">
+        <div className="grid items-center gap-8 lg:flex-1 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:content-center lg:gap-10">
           <div className="flex min-w-0 flex-col gap-5 lg:gap-6">
-            <h1 className="h-display v5-rise text-fg lg:text-[clamp(2.5rem,4.4vw,3.6rem)]" style={rise(0)}>
+            <h1 className="h-display v5-rise text-fg lg:text-[clamp(2.5rem,4.4vw,3.6rem)] 2xl:text-[4.25rem]" style={rise(0)}>
               {h.titleLight}
               <br />
               <strong>{h.titleStrong}</strong>
@@ -66,8 +67,8 @@ export async function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
             </div>
           </div>
 
-          <div className="v5-rise relative flex min-w-0 flex-col items-center gap-4 pb-2 lg:h-[560px] lg:justify-center lg:pb-0" style={rise(3)}>
-            <FiraPortal pose="wave" alt={h.portalAlt} priority />
+          <div className="v5-rise relative flex min-w-0 flex-col items-center gap-4 pb-2 lg:h-[560px] lg:justify-center lg:pb-0 2xl:h-[660px]" style={rise(3)}>
+            <FiraPortal pose="wave" alt={h.portalAlt} priority className="2xl:[--portal-size:440px]" />
             <div
               role="list"
               aria-label={h.orbsLabel}
@@ -85,7 +86,7 @@ export async function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
           </div>
         </div>
 
-        <ul className="v5-rise mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-accent-text/15 py-5 text-sm font-medium text-muted lg:mt-4" style={rise(4)}>
+        <ul className="v5-rise mt-8 flex flex-wrap gap-x-6 gap-y-2 border-t border-accent-text/15 py-5 text-sm font-medium text-muted lg:mt-auto" style={rise(4)}>
           {facts.map((f) => (
             <li key={f}>{f}</li>
           ))}

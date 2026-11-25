@@ -51,7 +51,7 @@ test('the manager is never round-the-clock; the agent is', () => {
   assert.match(readFileSync('src/content/golive.ts', 'utf8'), /первый ответ менеджера за 5 минут в рабочее время/)
 })
 
-test('no free trials promised (the flagship «free pilot» block is an open owner question)', () => {
-  assert.doesNotMatch(strip(ru), /бесплатн[а-я]+ пробн|пробный период/i)
-  assert.doesNotMatch(strip(en), /free trial/i)
+test('no free trials or free pilots promised (owner 2026-11-25: «бесплатных пилотов нет»)', () => {
+  assert.doesNotMatch(strip(ru), /бесплатн[а-я]+ пробн|пробный период|пилот[а-я]* бесплатно|бесплатн[а-я]+ пилот/i)
+  assert.doesNotMatch(strip(en), /free trial|free pilot/i)
 })

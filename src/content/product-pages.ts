@@ -37,7 +37,6 @@ export const productSectionIds = [
   'trust', // trust levels: the agent acts alone after a run of approvals
   'teamgets', // what your team gets: training, rules, roles of people
   'rollout', // four stages of the rollout, what you see at each
-  'pilot', // the first one or two pilots free for a case study and a review (flagships only)
   'first', // the first day, week and month
   'scope', // what we need from you and what it does not do
   'included', // what the price includes and what it does not
@@ -156,7 +155,6 @@ export type ProductBlocks = {
   trust?: { title: string; sub: string; levels: { name: string; text: string; example: string }[]; note: string }
   teamgets?: { title: string; sub: string; items: { title: string; text: string }[] }
   rollout?: { title: string; sub: string; stages: { title: string; text: string; see: string }[] }
-  pilot?: { title: string; text: string; terms: string[]; cta: string }
 }
 
 // Fields every product page has (on top of the older capabilities, first, needs and not).
@@ -202,5 +200,4 @@ export const sectionCopyKey: Partial<Record<ProductSectionId, keyof ProductBlock
   trust: 'trust',
   teamgets: 'teamgets',
   rollout: 'rollout',
-  pilot: 'pilot',
 }

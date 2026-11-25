@@ -166,7 +166,7 @@ test('flagship pages: their own structure, both cut to the short v4 list (the pi
     assert.deepEqual(c.rollout.stages.map((s) => s.title), stageDefs('company').map((s) => s.title[locale]))
     assert.equal(c.trust.levels.length, 3)
     assert.equal(c.pult.tabs.length, 3)
-    assert.ok(c.pilot.title && c.pilot.terms.length >= 2, locale)
+    assert.equal(c.pilot, undefined, `${locale} free pilot removed (owner 2026-11-25)`)
     // the company page's own blocks have copy, no founder / Dono / Polly mentions, four chips as questions
     for (const key of ['brain', 'cday', 'cdemo', 'cplan', 'start', 'questions', 'heroCta']) assert.ok(c[key], `${locale} company ${key}`)
     assert.equal(c.brain.sources.length, 4, locale)

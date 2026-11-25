@@ -16,7 +16,7 @@ import { PultTour } from './pult-tour'
 import { SectionShell } from './shell'
 
 // Blocks of the «ИИ-компания» flagship page (owner 2026-11-22): company map, the control room tour, knowledge, trust
-// levels, the team, four rollout stages, plus the pilot offer. The Personal AI page has its own blocks in
+// levels, the team, four rollout stages. The Personal AI page has its own blocks in
 // personal-blocks.tsx. Each takes its copy from productPage.items.<id>.
 type Band = { band?: boolean }
 type Req<K extends keyof ProductBlocks> = NonNullable<ProductBlocks[K]>
@@ -193,35 +193,3 @@ export function RolloutBlock({ copy, band }: { copy: Req<'rollout'> } & Band) {
   )
 }
 
-// The pilot offer of the flagships (owner 2026-11-22): the first one or two pilots free for a case study and a review.
-export function PilotBlock({ copy, band, id }: { copy: Req<'pilot'>; id: string } & Band) {
-  return (
-    <section id="pilot" data-product-section="pilot" data-tour="pilot" className={cn(band && 'border-y border-line bg-surface/40')}>
-      <div className="mx-auto max-w-7xl px-4 py-section md:px-8">
-        <Reveal>
-          <div className={cn('grid gap-8 rounded-card border p-6 md:p-10 lg:grid-cols-12 lg:items-center', lime)}>
-            <div className="lg:col-span-7">
-              <Gift size={30} weight="duotone" aria-hidden="true" className="text-accent-text" />
-              <h2 className="mt-4 font-display text-title font-semibold text-balance">{copy.title}</h2>
-              <p className="mt-4 max-w-[56ch] text-lead text-muted">{copy.text}</p>
-            </div>
-            <div className="lg:col-span-5">
-              <ul className="grid gap-2.5">
-                {copy.terms.map((term) => (
-                  <li key={term} className="flex gap-2.5">
-                    <CheckCircle size={18} weight="fill" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
-                    {term}
-                  </li>
-                ))}
-              </ul>
-              <ChatOpenButton source={`product_${id}_pilot`} fallbackHref="#next" className={cn(buttonStyles.primary, 'mt-6')}>
-                <ChatCircleDots size={18} weight="fill" aria-hidden="true" />
-                {copy.cta}
-              </ChatOpenButton>
-            </div>
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  )
-}

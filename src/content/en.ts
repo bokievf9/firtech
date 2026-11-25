@@ -3395,12 +3395,6 @@ const en: Dict = {
             { title: 'Team training and launch', text: 'We train your staff, write the rules down and move routine tasks to independent work where you allow it.', see: 'The team works with Fira, the rules are yours' },
           ],
         },
-        pilot: {
-          title: 'A free pilot for a case study and a review',
-          text: 'We roll out the first one or two pilots of your company’s AI for free. In return we ask to describe the rollout as a case study without your clients’ data, and for an honest review.',
-          terms: ['We write down the pilot scope and timing before the work starts', 'The case study goes public only after you approve it', 'When the pilot places are taken, we will say so plainly'],
-          cta: 'Ask about the pilot',
-        },
         inPrice: ['Getting to know the business and gathering the sources', 'The first skills from the quote', 'A knowledge base from your documents and site', 'The control room and the review centre', 'Team training and rules', 'Model usage is included in the monthly payment'],
         notInPrice: ['Paid third-party services and their subscriptions', 'Skills beyond the quote: a separate part', 'Changes to systems we have no access to'],
         objections: [
