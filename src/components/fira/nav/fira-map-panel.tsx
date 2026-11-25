@@ -104,6 +104,7 @@ export function FiraMapPanel({
       data-fira-map={open ? 'open' : 'closed'}
       data-open={open}
       inert={!open}
+      aria-hidden={!open}
       style={{ bottom: 'calc(max(1.5rem, calc(var(--fira-lift, 0px) + 0.75rem)) + 4.25rem)' }}
       className={`companion-say print-hidden glass fixed right-3 z-40 flex max-h-[min(34rem,72vh)] w-[min(24rem,calc(100vw-1.5rem))] flex-col rounded-[28px] rounded-br-lg p-2 text-[14px] max-sm:inset-x-0 max-sm:right-0 max-sm:bottom-0! max-sm:max-h-[82vh] max-sm:w-full max-sm:rounded-b-none max-sm:rounded-t-[28px] sm:right-6 ${open ? '' : 'pointer-events-none'}`}
     >
