@@ -3,6 +3,7 @@ import { emptyBuild, applyKind, presets, cleanTask, quote, toggleProduct, type B
 import { agentQuote, toggleAgent } from './builder-agent'
 import type { StandaloneAgentId } from './agent-ids'
 import { defaultPricing, type Pricing } from './pricing'
+import type { LossInputs } from './loss'
 
 export { presetIds, type PresetId, type NeedId }
 
@@ -31,6 +32,23 @@ export const presetAgents: Record<PresetId, StandaloneAgentId[]> = {
   auto: ['lead-handler', 'billing'],
   school: ['support', 'onboarding'],
 }
+
+// «Сколько вы теряете без агента»: honest conservative starting numbers per niche (inquiries a day, average check in USD,
+// share outside working hours in percent). Only a start: the visitor edits all three, and the block says they are his own.
+export const lossDefaults: Record<PresetId, LossInputs> = {
+  cafe: { missedPerDay: 4, avgCheck: 12, offHoursShare: 35 },
+  salon: { missedPerDay: 4, avgCheck: 30, offHoursShare: 40 },
+  shop: { missedPerDay: 6, avgCheck: 35, offHoursShare: 35 },
+  delivery: { missedPerDay: 8, avgCheck: 15, offHoursShare: 40 },
+  services: { missedPerDay: 3, avgCheck: 120, offHoursShare: 30 },
+  clinic: { missedPerDay: 5, avgCheck: 50, offHoursShare: 35 },
+  auto: { missedPerDay: 3, avgCheck: 70, offHoursShare: 35 },
+  school: { missedPerDay: 4, avgCheck: 90, offHoursShare: 40 },
+}
+// Without a niche (the agent path starts from an agent, not a niche) a middle set.
+export const lossDefaultsGeneric: LossInputs = { missedPerDay: 3, avgCheck: 40, offHoursShare: 35 }
+export const lossDefaultsFor = (preset: string | undefined): LossInputs =>
+  isPresetId(preset) ? lossDefaults[preset] : lossDefaultsGeneric
 
 export const isPresetId = (value: string | null | undefined): value is PresetId => (presetIds as readonly string[]).includes(value ?? '')
 

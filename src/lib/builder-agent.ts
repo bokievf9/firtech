@@ -12,6 +12,7 @@ import {
   type StandaloneAgentId,
 } from './agent-ids'
 import { cleanDeep, cleanNote, type Deep } from './builder-depth'
+import { cleanLoss, type LossBrief } from './loss'
 import { agentSubscriptionOf, defaultPricing, teamSubscription, type Pricing } from './pricing'
 
 // «Один агент» in «Сборка проекта» (builder v6): one agent as a product, and agents added as lines to any build.
@@ -28,6 +29,8 @@ export type AgentBrief = {
   // Builder depth (2026-11-24): the department questions (ids, see builder-depth.ts) and the visitor's own words.
   deep?: Deep
   note?: string
+  // The loss block (2026-11-25): the visitor's own numbers, set only once he edits one (lib/loss.ts). Rides in the `e.` chunk as `x`.
+  loss?: LossBrief
 }
 
 export const agentLimit = 6
@@ -39,14 +42,16 @@ export function depthJson(brief: AgentBrief | undefined): string {
   if (!brief) return ''
   const deep = cleanDeep(brief.deep)
   const note = brief.note ? cleanNote(brief.note) : ''
-  const o: { d?: Deep; n?: string } = {}
+  const o: { d?: Deep; n?: string; x?: number[] } = {}
   if (Object.keys(deep).length) o.d = deep
   if (note) o.n = note
-  if (!o.d && !o.n) return ''
+  const loss = cleanLoss(brief.loss)
+  if (loss) o.x = [loss.missedPerDay, loss.avgCheck, loss.offHoursShare, loss.conversion]
+  if (!o.d && !o.n && !o.x) return ''
   const size = () => new TextEncoder().encode(JSON.stringify(o)).length
   while (size() > depthBytes && o.n) o.n = o.n.slice(0, Math.max(0, o.n.length - 20)).trim() || undefined
   if (!o.n) delete o.n
-  return size() <= depthBytes && (o.d || o.n) ? JSON.stringify(o) : ''
+  return size() <= depthBytes && (o.d || o.n || o.x) ? JSON.stringify(o) : ''
 }
 
 // Reads a `depthJson` text into the brief (unknown questions and options are dropped).
@@ -58,7 +63,11 @@ export function readDepthJson(brief: AgentBrief, text: string): void {
     return
   }
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return
-  const o = raw as { d?: unknown; n?: unknown }
+  const o = raw as { d?: unknown; n?: unknown; x?: unknown }
+  if (Array.isArray(o.x)) {
+    const loss = cleanLoss({ missedPerDay: o.x[0], avgCheck: o.x[1], offHoursShare: o.x[2], conversion: o.x[3] })
+    if (loss) brief.loss = loss
+  }
   const deep = cleanDeep(o.d)
   if (Object.keys(deep).length) brief.deep = deep
   if (typeof o.n === 'string' && cleanNote(o.n)) brief.note = cleanNote(o.n)

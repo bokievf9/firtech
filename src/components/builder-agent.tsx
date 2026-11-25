@@ -10,10 +10,13 @@ import { depthLabel, depthTitle, depthUi } from '@/content/builder-depth'
 import { agentChannelIds, agentConnectIds, agentVolumeIds, agentAddonIds, type StandaloneAgentId } from '@/lib/agent-ids'
 import { agentsOfDept, aiTeamAccent, aiTeamIds, type AiTeamId } from '@/lib/ai-teams'
 import type { Build } from '@/lib/builder'
-import { agentAddonPrices, chooseAgent, toggleAgent, withAgentBrief, withDeep } from '@/lib/builder-agent'
+import { lossUi } from '@/content/builder-loss'
+import { lossDefaultsFor } from '@/lib/builder-presets'
+import { cleanLoss, lossDefaultConversion, lossLimits, lossMath, type LossBrief } from '@/lib/loss'
+import { agentAddonPrices, agentQuote, chooseAgent, toggleAgent, withAgentBrief, withDeep } from '@/lib/builder-agent'
 import { depthQuestions, noteLimit, typingNote } from '@/lib/builder-depth'
 import { deptOfAgents } from '@/lib/builder-dept'
-import { fieldClass } from '@/components/ui'
+import { fieldClass, GlassCard } from '@/components/ui'
 import { channelLine, channelName, publicChannels } from '@/lib/channels'
 import { buttonStyles, cn } from '@/lib/cn'
 import { estimateDoc } from '@/lib/estimate-doc'
@@ -286,6 +289,76 @@ export function AgentLines({ dict, locale, build, setBuild, defer }: { dict: Dic
   )
 }
 
+// «Сколько вы теряете без агента»: three numbers of the visitor (prefilled by the niche, stored in the draft only once he
+// edits one), the monthly loss and one comparison line with the agent's price. On a phone the fields sit behind a
+// disclosure (the CSS decides, no JS media query), from `sm` they are open.
+export function LossBlock({ locale, build, setBuild }: { locale: string; build: Build; setBuild: SetBuild }) {
+  const pricing = usePricing()
+  const [open, setOpen] = useState(false)
+  const stored = cleanLoss(build.agentBrief?.loss)
+  const values: LossBrief = stored ?? { ...lossDefaultsFor(build.preset), conversion: lossDefaultConversion }
+  const result = lossMath(values)
+  const quote = agentQuote(build, pricing)
+  const fmt = (n: number) => n.toLocaleString('en-US')
+  const fields = [
+    { key: 'missedPerDay', label: lossUi.missedPerDay },
+    { key: 'avgCheck', label: lossUi.avgCheck },
+    { key: 'offHoursShare', label: lossUi.offHoursShare },
+    { key: 'conversion', label: lossUi.conversion },
+  ] as const
+  const edit = (key: (typeof fields)[number]['key'], text: string) => {
+    const digits = text.replace(/\D/g, '').slice(0, 6)
+    const next = cleanLoss({ ...values, [key]: digits === '' ? 0 : Number(digits) })
+    if (next) setBuild((b) => withAgentBrief(b, { loss: next }))
+  }
+  return (
+    <GlassCard as="section" data-loss-block padded={false} className="p-5 md:p-sheet">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-headline">{pick(lossUi.title, locale)}</h3>
+        <button
+          type="button"
+          data-loss-toggle
+          aria-expanded={open}
+          aria-controls="loss-fields"
+          onClick={() => setOpen((v) => !v)}
+          className={cn(buttonStyles.secondary, 'sm:hidden')}
+        >
+          {open ? pick(lossUi.close, locale) : pick(lossUi.open, locale)}
+        </button>
+      </div>
+      <div id="loss-fields" data-loss-fields className={cn('mt-4 gap-5', open ? 'grid' : 'hidden sm:grid')}>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {fields.map(({ key, label }) => (
+            <label key={key} className="grid gap-1.5 text-footnote text-muted">
+              <span>{pick(label, locale)}</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                data-loss-input={key}
+                value={values[key]}
+                maxLength={7}
+                onChange={(e) => edit(key, e.target.value)}
+                aria-label={pick(label, locale)}
+                className={cn('ym-disable-keys', fieldClass, 'font-mono')}
+              />
+              <span className="sr-only">{`0-${lossLimits[key]}`}</span>
+            </label>
+          ))}
+        </div>
+        <p className="bubble-ink text-[15px] leading-relaxed" data-loss-result aria-live="polite">
+          {pick(lossUi.result(fmt(result.missedPerMonth), fmt(result.monthlyLossUsd)), locale)}
+        </p>
+        {quote && (
+          <p className="font-mono text-callout text-accent-text" data-loss-compare>
+            {pick(lossUi.agent(fmt(quote.oneTime), fmt(quote.monthly)), locale)}
+          </p>
+        )}
+        <p className="text-footnote text-faint">{pick(lossUi.hint, locale)} {pick(lossUi.basis(values.conversion), locale)}</p>
+      </div>
+    </GlassCard>
+  )
+}
+
 // The last screen of the agent path: the price lines, setup and monthly, the stages by the owner's rule, the guarantee
 // and the actions.
 export function AgentEstimate({
@@ -318,6 +391,8 @@ export function AgentEstimate({
       value: [deepCount ? detailsSummary.answers(deepCount, l === 'ru') : '', hasNote ? pick(detailsSummary.note, locale) : ''].filter(Boolean).join(', '),
     })
   return (
+    <div className="grid gap-4">
+    <LossBlock locale={locale} build={build} setBuild={setBuild} />
     <div className="grid gap-4 lg:grid-cols-12">
       <div className="grid content-start gap-4 lg:col-span-7">
         <Panel title={agentUi.lines.title[l]}>
@@ -424,6 +499,7 @@ export function AgentEstimate({
           </div>
         </Panel>
       </div>
+    </div>
     </div>
   )
 }
