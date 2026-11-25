@@ -127,7 +127,7 @@ test('teams and agents: v4 primitives, a card per agent with the team link, team
 })
 
 test('company page: the diagram, the company day, the locked demo and the subscription card are there', () => {
-  assert.deepEqual(productPages.company.sections, ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions'])
+  assert.deepEqual(productPages.company.sections, ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'pilot', 'start', 'questions'])
   const blocks = readFileSync('src/components/product-sections/company-blocks.tsx', 'utf8')
   for (const marker of ['data-brain-sources', 'data-brain-center', 'data-brain-outputs', 'data-brain-roles', 'data-company-day', 'CompanyPlan', 'CompanyDemo'])
     assert.match(blocks, new RegExp(marker))

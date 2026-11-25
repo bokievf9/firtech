@@ -3,7 +3,6 @@ import {
   ChatCircleDots,
   CheckCircle,
   FileText,
-  Gift,
   Globe,
   ShieldCheck,
   UsersThree,
@@ -11,6 +10,7 @@ import {
 import type { ProductBlocks } from '@/content/product-pages'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ChatOpenButton } from '../chat/chat-open-button'
+import type { ProductSectionContext } from './shell'
 import { Reveal } from '../reveal'
 import { PultTour } from './pult-tour'
 import { SectionShell } from './shell'
@@ -193,3 +193,30 @@ export function RolloutBlock({ copy, band }: { copy: Req<'rollout'> } & Band) {
   )
 }
 
+// The paid pilot of the flagships (owner 2026-11-25, replaces the free one): the first stage is the pilot, the
+// length comes from `pricing.guarantee.pilotDays`, the terms are the guarantee line.
+export function PilotBlock({ ctx, band }: { ctx: ProductSectionContext } & Band) {
+  const t = ctx.guarantee.pilot
+  return (
+    <section id="pilot" data-product-section="pilot" data-tour="pilot" className={cn(band && 'border-y border-line bg-surface/40')}>
+      <div className="mx-auto max-w-7xl px-4 py-section md:px-8">
+        <Reveal>
+          <div className={cn('grid gap-8 rounded-card border p-6 md:p-10 lg:grid-cols-12 lg:items-center', lime)}>
+            <div className="lg:col-span-8">
+              <ShieldCheck size={30} weight="duotone" aria-hidden="true" className="text-accent-text" />
+              <h2 className="mt-4 font-display text-title font-semibold text-balance">{t.title}</h2>
+              <p className="mt-4 max-w-[56ch] text-lead text-muted">{t.text}</p>
+              <p className="mt-3 max-w-[56ch] text-callout text-faint">{ctx.guarantee.line}</p>
+            </div>
+            <div className="lg:col-span-4">
+              <ChatOpenButton source={`product_${ctx.id}_pilot`} fallbackHref="#next" className={buttonStyles.primary}>
+                <ChatCircleDots size={18} weight="fill" aria-hidden="true" />
+                {t.cta}
+              </ChatOpenButton>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  )
+}

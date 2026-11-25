@@ -3089,6 +3089,12 @@ const ru = {
   // Product pages /[locale]/products/[id] (owner 2026-11-22): what it does, the first day, week and
   // month, what we need, what it does not do, the live price, the stage table and the FAQ.
   productPage: {
+    // The paid pilot (owner 2026-11-25): the first stage is the pilot; tokens from `pricing.guarantee` (lib/guarantee.ts).
+    pilot: {
+      title: 'Пилот {pilotIn} на ваших данных',
+      text: 'Первый этап и есть пилот: {pilotIn} агент работает на ваших настоящих заявках. Платите только за первый этап, не сработал - возвращаем.',
+      cta: 'Начать пилот',
+    },
     back: 'Все продукты',
     ladderLabel: 'Ступень',
     capabilitiesTitle: 'Что умеет',

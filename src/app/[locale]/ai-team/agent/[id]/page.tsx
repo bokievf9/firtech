@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Hourglass, Lightning } from
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { AgentPilot } from '@/components/ai-team/agent-blocks'
 import { AgentCard } from '@/components/ai-team/agent-list'
 import { ChannelsRow } from '@/components/ai-team/channels-row'
 import { AgentPriceCard } from '@/components/ai-team/team-price'
@@ -28,6 +29,8 @@ import {
   type AgentId,
 } from '@/lib/ai-teams'
 import { buttonClass } from '@/lib/cn'
+import { guaranteeCtx } from '@/lib/guarantee'
+import { getPricing } from '@/lib/pricing-store'
 import { isLocale, locales } from '@/lib/i18n'
 import { shareBase } from '@/lib/share'
 import { siteUrl } from '@/lib/site'
@@ -66,6 +69,7 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
   const { locale, id } = await params
   if (!isLocale(locale) || !isAgentId(id)) notFound()
   const dict = getDict(locale)
+  const guarantee = guaranteeCtx(dict, locale, await getPricing())
   const t = dict.aiTeams
   const ta = t.agents
   const page = agentCopy(id, dict)
@@ -182,6 +186,12 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
             </Card>
           </Reveal>
         </div>
+      </Section>
+
+      <Section className="pt-0">
+        <Reveal>
+          <AgentPilot id={id} guarantee={guarantee} />
+        </Reveal>
       </Section>
 
       <Section className="grid gap-10 pt-0 lg:grid-cols-12">

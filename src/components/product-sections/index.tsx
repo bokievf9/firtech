@@ -16,6 +16,7 @@ import { BrainBlock, CdayBlock, CdemoBlock, CompanyHero, CplanBlock } from './co
 import { PersonaBlock, PersonalHero, PlansBlock, QuestionsBlock, SkillsBlock, StartBlock } from './personal-blocks'
 import {
   KnowledgeBlock,
+  PilotBlock,
   PultBlock,
   RolloutBlock,
   StructureBlock,
@@ -116,6 +117,8 @@ export function ProductSection({ section, ctx, band }: { section: ProductSection
       return page.teamgets ? <TeamGetsBlock copy={page.teamgets} band={band} /> : null
     case 'rollout':
       return page.rollout ? <RolloutBlock copy={page.rollout} band={band} /> : null
+    case 'pilot':
+      return <PilotBlock ctx={ctx} band={band} />
   }
 }
 

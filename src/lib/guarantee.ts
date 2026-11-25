@@ -19,6 +19,7 @@ export function guaranteeTokens(locale: string, g: Guarantee = defaultPricing.gu
     const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
     return {
       launchIn: plural(g.launchDays, 'working day', 'working days'),
+      pilotDays: String(g.pilotDays),
       pilotIn: plural(g.pilotDays, 'day', 'days'),
       replyShare: String(g.replyShare),
       replyIn: g.replyMinutes === 1 ? 'a minute' : `${g.replyMinutes} minutes`,
@@ -26,6 +27,7 @@ export function guaranteeTokens(locale: string, g: Guarantee = defaultPricing.gu
   }
   return {
     launchIn: `${g.launchDays} ${ruPlural(g.launchDays, ['рабочий день', 'рабочих дня', 'рабочих дней'])}`,
+    pilotDays: String(g.pilotDays),
     pilotIn: `${g.pilotDays} ${ruPlural(g.pilotDays, ['день', 'дня', 'дней'])}`,
     replyShare: String(g.replyShare),
     replyIn: g.replyMinutes === 1 ? 'минуту' : `${g.replyMinutes} ${ruPlural(g.replyMinutes, ['минуту', 'минуты', 'минут'])}`,
@@ -35,16 +37,20 @@ export function guaranteeTokens(locale: string, g: Guarantee = defaultPricing.gu
 // Fills the guarantee tokens in any text of the dictionary.
 export function fillGuarantee(text: string, locale: string, pricing: Pricing = defaultPricing) {
   const tokens = guaranteeTokens(locale, pricing.guarantee)
-  return text.replace(/\{(launchIn|pilotIn|replyShare|replyIn)\}/g, (_, key: string) => tokens[key] ?? '')
+  return text.replace(/\{(launchIn|pilotDays|pilotIn|replyShare|replyIn)\}/g, (_, key: string) => tokens[key] ?? '')
 }
 
 // What a product page block needs: the filled line and the pilot length.
-export type GuaranteeCtx = { line: string; pilotDays: number; pilotIn: string }
+export type GuaranteeCtx = { line: string; pilotDays: number; pilot: { title: string; text: string; cta: string } }
 export function guaranteeCtx(dict: Dict, locale: string, pricing: Pricing = defaultPricing): GuaranteeCtx {
   return {
     line: guaranteeLine(dict, locale, pricing),
     pilotDays: pricing.guarantee.pilotDays,
-    pilotIn: guaranteeTokens(locale, pricing.guarantee).pilotIn ?? '',
+    pilot: {
+      title: fillGuarantee(dict.productPage.pilot.title, locale, pricing),
+      text: fillGuarantee(dict.productPage.pilot.text, locale, pricing),
+      cta: dict.productPage.pilot.cta,
+    },
   }
 }
 

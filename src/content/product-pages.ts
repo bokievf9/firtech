@@ -37,6 +37,7 @@ export const productSectionIds = [
   'trust', // trust levels: the agent acts alone after a run of approvals
   'teamgets', // what your team gets: training, rules, roles of people
   'rollout', // four stages of the rollout, what you see at each
+  'pilot', // the PAID pilot: the first stage is the pilot, 14 days on real requests (company flagship and every agent page; copy `productPage.pilot`, shared)
   'first', // the first day, week and month
   'scope', // what we need from you and what it does not do
   'included', // what the price includes and what it does not
@@ -65,7 +66,7 @@ export const productPages: Record<ProductId, ProductPageLayout> = {
   company: {
     face: 'fira',
     callFirst: true,
-    sections: ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions'],
+    sections: ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'pilot', 'start', 'questions'],
   },
   // The salon owner wants to see booking happen without them: the demo comes first, then a day by the hour.
   admin: {

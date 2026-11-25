@@ -3077,6 +3077,12 @@ const en: Dict = {
   // Product pages /[locale]/products/[id] (owner 2026-11-22): what it does, the first day, week and
   // month, what we need, what it does not do, the live price, the stage table and the FAQ.
   productPage: {
+    // The paid pilot (owner 2026-11-25): the first stage is the pilot; tokens from `pricing.guarantee` (lib/guarantee.ts).
+    pilot: {
+      title: 'A {pilotDays}-day pilot on your data',
+      text: 'The first stage is the pilot: for {pilotIn} the agent works on your real requests. You pay for the first stage only; if it does not work, we refund it.',
+      cta: 'Start the pilot',
+    },
     back: 'All products',
     ladderLabel: 'Level',
     capabilitiesTitle: 'What it does',

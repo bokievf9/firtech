@@ -145,14 +145,15 @@ test('flagship pages: their own structure, both cut to the short v4 list (the pi
   const order = (list, ids) => ids.every((id, i) => i === 0 || list.indexOf(ids[i - 1]) < list.indexOf(id))
   assert.deepEqual(personal, ['hero', 'channels', 'skills', 'myday', 'plans', 'start', 'questions'])
   // AI company (front v4): the brain diagram -> where it lives -> a company day -> ask Fira -> subscription -> start -> questions.
-  assert.deepEqual(company, ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions'])
-  assert.ok(order(company, ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'start', 'questions']))
+  assert.deepEqual(company, ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'pilot', 'start', 'questions'])
+  assert.ok(order(company, ['hero', 'brain', 'channels', 'cday', 'cdemo', 'cplan', 'pilot', 'start', 'questions']))
   assert.equal(productPages.company.face, 'fira')
   assert.equal(productPages.company.callFirst, true)
   // the two pages share no block of their own
   const shared = new Set(['hero', 'channels', 'start', 'questions'])
   assert.equal(personal.filter((s) => !shared.has(s) && company.includes(s)).length, 0)
-  for (const id of productIds) assert.equal(productPages[id].sections.includes('pilot'), false, `${id} pilot`)
+  // the PAID pilot (owner 2026-11-25) is a section of the company flagship only (Personal AI stays without it); its copy is shared (`productPage.pilot`)
+  for (const id of productIds) assert.equal(productPages[id].sections.includes('pilot'), id === 'company', `${id} pilot`)
   for (const [locale, dict] of dicts) {
     const p = dict.productPage.items.personal
     const c = dict.productPage.items.company
