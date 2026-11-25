@@ -8,7 +8,7 @@ import { TogetherFlow } from '@/components/ai-team/together-flow'
 import { TeamPriceCard } from '@/components/ai-team/team-price'
 import { TeamGlyph } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
-import { HeroIntro } from '@/components/hero-intro'
+import { PageHero, LightStrong, h2Light } from '@/components/page-hero'
 import { IntegrationsList } from '@/components/integrations-list'
 import { LanguagesNote } from '@/components/languages-note'
 import { JsonLd } from '@/components/json-ld'
@@ -78,36 +78,41 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
     <>
       <JsonLd data={service} />
 
-      <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12">
-        <HeroIntro className="lg:col-span-7">
-          <Link href={`/${locale}/ai-team`} className="inline-flex items-center gap-2 text-callout text-muted transition-colors hover:text-fg">
-            <ArrowLeft size={14} aria-hidden="true" />
-            {t.page.back}
-          </Link>
-          <div className="mt-6 flex items-center gap-3">
-            <TeamGlyph id={id} />
-            <p className="text-callout font-medium text-accent-text">{page.title}</p>
-          </div>
-          <h1 className="mt-5 max-w-[22ch] font-display text-title text-balance">{page.headline}</h1>
-          <p className="mt-6 max-w-[48ch] text-lead text-muted">{page.promise}</p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link href={aiTeamBuilderHref(locale, id)} data-cta={`aiteam_${id}_build`} className={buttonClass('primary', 'lg')}>
-              {t.ctaBuild}
-              <ArrowRight size={18} aria-hidden="true" />
+      <PageHero
+        title={page.headline}
+        compact
+        portal
+        lead={page.promise}
+        before={
+          <>
+            <Link href={`/${locale}/ai-team`} className="inline-flex items-center gap-2 text-callout text-muted transition-colors hover:text-fg">
+              <ArrowLeft size={14} aria-hidden="true" />
+              {t.page.back}
             </Link>
-            <ChatOpenButton source={`aiteam_${id}`} fallbackHref={`/${locale}#demo`} className={buttonClass('secondary', 'lg')}>
-              {t.ctaChat}
-            </ChatOpenButton>
-          </div>
-        </HeroIntro>
-        <Reveal className="lg:col-span-5" delay={0.2}>
-          <TeamPriceCard id={id} dict={dict} />
-          <p className="mt-4 px-2 text-footnote text-muted">{page.forWhom}</p>
-        </Reveal>
-      </section>
+            <div className="mt-6 flex items-center gap-3">
+              <TeamGlyph id={id} />
+              <p className="text-callout font-medium text-accent-text">{page.title}</p>
+            </div>
+          </>
+        }
+        aside={
+          <>
+            <TeamPriceCard id={id} dict={dict} />
+            <p className="mt-4 px-2 text-footnote text-muted">{page.forWhom}</p>
+          </>
+        }
+      >
+        <Link href={aiTeamBuilderHref(locale, id)} data-cta={`aiteam_${id}_build`} className={buttonClass('primary', 'lg')}>
+          {t.ctaBuild}
+          <ArrowRight size={18} aria-hidden="true" />
+        </Link>
+        <ChatOpenButton source={`aiteam_${id}`} fallbackHref={`/${locale}#demo`} className={buttonClass('glass', 'lg')}>
+          {t.ctaChat}
+        </ChatOpenButton>
+      </PageHero>
 
       <Section id="agents" className="pt-0">
-        <SectionHeader title={t.agents.page.listTitle} />
+        <SectionHeader title={<LightStrong text={t.agents.page.listTitle} />} titleClassName={h2Light} />
         <ul className="mt-8 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
           {agentsOfDept(id).map((agent, i) => (
             <li key={agent.id}>
@@ -121,7 +126,7 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
 
       <section className="border-y border-y-hairline border-line bg-surface/40">
         <Section>
-          <SectionHeader title={t.together.title} />
+          <SectionHeader title={<LightStrong text={t.together.title} />} titleClassName={h2Light} />
           <div className="mt-10">
             <TogetherFlow copy={t.together} />
           </div>

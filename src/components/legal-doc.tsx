@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { PageHero } from './page-hero'
 
 type Section = { id: string; title: string; text: string[]; list: string[] }
 
@@ -10,35 +11,28 @@ export function LegalDoc({
   sections,
   extra,
 }: {
-  t: { eyebrow: string; title: string; updated: string; draftNote: string; intro: string }
+  t: { eyebrow: string; title: string; titleLight: string; titleStrong: string; updated: string; draftNote: string; intro: string }
   idPrefix: string
   sections: Section[]
   extra?: (section: Section) => ReactNode
 }) {
   return (
-    <article className="mx-auto max-w-3xl px-4 pt-32 pb-24 md:px-8 md:pt-40 md:pb-36">
-      <header>
-        <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-        {/* "конфиденциальности" is one long word: smaller on phones, hyphenated if still too wide. */}
-        <h1 className="mt-5 text-[2.1rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance hyphens-auto sm:text-[2.6rem] md:text-6xl">
-          {t.title}
-        </h1>
-        <p className="mt-5 font-mono text-[13px] text-faint">{t.updated}</p>
-        <p
-          role="note"
-          className="mt-4 inline-block rounded-full border border-line-strong px-3.5 py-1.5 text-[13px] text-muted"
-        >
-          {t.draftNote}
-        </p>
-        <p className="mt-8 max-w-[62ch] text-lg leading-relaxed text-muted">{t.intro}</p>
-      </header>
+    <article>
+      <PageHero light={t.titleLight} strong={t.titleStrong} lead={t.intro} narrow>
+        <div className="flex flex-wrap items-center gap-3 text-[13px]">
+          <p className="font-mono text-faint">{t.updated}</p>
+          <p role="note" className="rounded-full border border-line-strong px-3.5 py-1.5 text-muted">
+            {t.draftNote}
+          </p>
+        </div>
+      </PageHero>
 
-      <div className="mt-14 grid gap-12 border-t border-line pt-12">
+      <div className="mx-auto grid max-w-3xl gap-0 border-t border-line px-4 pb-24 md:px-8 md:pb-36 [&>section]:border-b [&>section]:border-line [&>section]:py-10">
         {sections.map((section, i) => (
           <section key={section.id} aria-labelledby={`${idPrefix}-${section.id}`}>
             <h2
               id={`${idPrefix}-${section.id}`}
-              className="flex items-baseline gap-4 text-2xl font-semibold tracking-[-0.02em] md:text-[1.75rem]"
+              className="flex items-baseline gap-4 text-title-3 font-extrabold tracking-[-0.025em]"
             >
               <span className="font-mono text-sm font-normal text-accent-text">
                 {String(i + 1).padStart(2, '0')}

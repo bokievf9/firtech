@@ -18,7 +18,7 @@ export function IntegrationsList({ locale, compact, className }: { locale: strin
   return (
     <div data-integrations-list data-compact={compact ? 'true' : undefined} className={cn(className)}>
       <h2 className={compact ? 'text-callout font-semibold' : 'text-headline font-semibold'}>{pickBi(c.title, locale)}</h2>
-      <ul className={cn('flex flex-wrap', compact ? 'mt-2 gap-x-4 gap-y-1.5' : 'mt-3 gap-2')}>
+      <ul className={cn(compact ? 'mt-2 flex flex-wrap gap-x-4 gap-y-1.5' : 'mt-3 grid border-t border-line sm:grid-cols-2 sm:gap-x-8')}>
         {integrationIds.map((id) => {
           const Glyph = icons[id]
           return (
@@ -27,7 +27,7 @@ export function IntegrationsList({ locale, compact, className }: { locale: strin
               data-integration={id}
               className={cn(
                 'inline-flex items-center gap-2',
-                compact ? 'text-footnote text-muted' : 'rounded-full border border-hairline border-line-strong px-4 py-2 text-callout',
+                compact ? 'text-footnote text-muted' : 'border-b border-line py-3 text-callout',
               )}
             >
               <Glyph size={compact ? 14 : 18} weight="duotone" aria-hidden="true" className="shrink-0 text-accent-text" />

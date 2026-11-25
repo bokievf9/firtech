@@ -2,7 +2,7 @@ import { Check } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { AuditForm } from '@/components/audit-form'
-import { HeroIntro } from '@/components/hero-intro'
+import { PageHero } from '@/components/page-hero'
 import { Reveal } from '@/components/reveal'
 import { getDict } from '@/content'
 import { isLocale } from '@/lib/i18n'
@@ -40,17 +40,11 @@ export default async function AuditPage({ params }: PageProps<'/[locale]/audit'>
   const t = dict.auditPage
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-12 px-4 pt-32 pb-28 md:px-8 md:pt-40 lg:grid-cols-12 lg:gap-10">
-      <div className="lg:col-span-5">
-        <HeroIntro>
-          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h1 className="mt-5 text-[2.2rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">
-            {t.title}
-          </h1>
-          <p className="mt-6 max-w-[52ch] text-lg leading-relaxed text-muted">{t.sub}</p>
-        </HeroIntro>
-        <Reveal className="mt-10">
-          <h2 className="font-display text-xl font-semibold">{t.pointsTitle}</h2>
+    <>
+      <PageHero light={t.titleLight} strong={t.titleStrong} lead={t.sub} compact />
+      <section className="mx-auto grid max-w-7xl gap-12 px-4 pb-28 md:px-8 lg:grid-cols-12 lg:gap-10">
+        <Reveal className="lg:col-span-5">
+          <h2 className="font-display text-title-3 font-bold">{t.pointsTitle}</h2>
           <ul className="mt-4 grid gap-3 text-[15px] text-muted">
             {t.points.map((p) => (
               <li key={p} className="flex gap-3">
@@ -62,10 +56,10 @@ export default async function AuditPage({ params }: PageProps<'/[locale]/audit'>
             ))}
           </ul>
         </Reveal>
-      </div>
-      <Reveal className="lg:col-span-7" delay={0.08}>
-        <AuditForm dict={dict} locale={locale} botUrl={telegramUrl} />
-      </Reveal>
-    </section>
+        <Reveal className="lg:col-span-7" delay={0.08}>
+          <AuditForm dict={dict} locale={locale} botUrl={telegramUrl} />
+        </Reveal>
+      </section>
+    </>
   )
 }

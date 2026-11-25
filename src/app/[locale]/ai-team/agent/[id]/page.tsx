@@ -7,7 +7,7 @@ import { ChannelsRow } from '@/components/ai-team/channels-row'
 import { AgentPriceCard } from '@/components/ai-team/team-price'
 import { TeamGlyph } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
-import { HeroIntro } from '@/components/hero-intro'
+import { PageHero } from '@/components/page-hero'
 import { IntegrationsList } from '@/components/integrations-list'
 import { LanguagesNote } from '@/components/languages-note'
 import { JsonLd } from '@/components/json-ld'
@@ -87,62 +87,63 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
     <>
       <JsonLd data={service} />
 
-      <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12">
-        <HeroIntro className="lg:col-span-7">
-          <Link href={`/${locale}/ai-team#agents`} className="inline-flex items-center gap-2 text-callout text-muted transition-colors hover:text-fg">
-            <ArrowLeft size={14} aria-hidden="true" />
-            {ta.page.back}
-          </Link>
-          <div className="mt-6 flex items-center gap-3">
-            <TeamGlyph id={offer.dept} />
-            <p className="text-callout text-muted">
-              {ta.page.partOf}{' '}
-              <Link href={`/${locale}${aiTeamPath(offer.dept)}`} className="font-medium text-accent-text hover:underline" data-agent-team-link>
-                {deptTitle}
-              </Link>
-            </p>
-          </div>
-          <p className="mt-5 text-callout font-medium">{page.title}</p>
-          <h1 className="mt-3 max-w-[22ch] font-display text-title text-balance">{page.headline}</h1>
-          <p className="mt-6 max-w-[48ch] text-lead text-muted">{page.promise}</p>
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link href={agentBuilderHref(locale, id)} data-cta={`agent_${id}_build`} className={buttonClass('primary', 'lg')}>
-              {t.ctaBuildAgent}
-              <ArrowRight size={18} aria-hidden="true" />
+      <PageHero
+        title={page.headline}
+        compact
+        portal
+        lead={page.promise}
+        before={
+          <>
+            <Link href={`/${locale}/ai-team#agents`} className="inline-flex items-center gap-2 text-callout text-muted transition-colors hover:text-fg">
+              <ArrowLeft size={14} aria-hidden="true" />
+              {ta.page.back}
             </Link>
-            <ChatOpenButton source={agentSource(id)} fallbackHref={`/${locale}#demo`} className={buttonClass('secondary', 'lg')}>
-              {t.ctaChat}
-            </ChatOpenButton>
-          </div>
-          <p className="mt-5">
-            <Link
-              href={aiTeamBuilderHref(locale, offer.dept)}
-              data-cta={`agent_${id}_team_build`}
-              className="inline-flex items-center gap-1.5 text-callout font-medium text-accent-text hover:underline"
-            >
-              {t.ctaBuildTeam}
-              <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-          </p>
-        </HeroIntro>
-        <Reveal className="lg:col-span-5" delay={0.2}>
-          {offer.standalone ? (
-            <>
-              <AgentPriceCard id={id} dict={dict} />
-              <p className="mt-4 px-2 text-footnote text-muted">{ta.standaloneYes}</p>
-            </>
-          ) : (
-            <Card data-agent-requires>
-              <p className="text-headline font-semibold">{ta.page.requiresTitle}</p>
-              <p className="mt-1.5 text-callout text-muted">{ta.page.requiresText}</p>
-              <Link href={`/${locale}/ai-team#teams`} className="mt-3 inline-flex items-center gap-1.5 text-callout font-medium text-accent-text hover:underline">
-                {t.deptsTitle}
-                <ArrowRight size={14} aria-hidden="true" />
-              </Link>
-            </Card>
-          )}
-        </Reveal>
-      </section>
+            <div className="mt-6 flex items-center gap-3">
+              <TeamGlyph id={offer.dept} />
+              <p className="text-callout text-muted">
+                {ta.page.partOf}{' '}
+                <Link href={`/${locale}${aiTeamPath(offer.dept)}`} className="font-medium text-accent-text hover:underline" data-agent-team-link>
+                  {deptTitle}
+                </Link>
+              </p>
+            </div>
+            <p className="mt-5 text-callout font-medium">{page.title}</p>
+          </>
+        }
+        aside={
+          offer.standalone ? (
+              <>
+                <AgentPriceCard id={id} dict={dict} />
+                <p className="mt-4 px-2 text-footnote text-muted">{ta.standaloneYes}</p>
+              </>
+            ) : (
+              <Card data-agent-requires>
+                <p className="text-headline font-semibold">{ta.page.requiresTitle}</p>
+                <p className="mt-1.5 text-callout text-muted">{ta.page.requiresText}</p>
+                <Link href={`/${locale}/ai-team#teams`} className="mt-3 inline-flex items-center gap-1.5 text-callout font-medium text-accent-text hover:underline">
+                  {t.deptsTitle}
+                  <ArrowRight size={14} aria-hidden="true" />
+                </Link>
+              </Card>
+            )
+        }
+      >
+        <Link href={agentBuilderHref(locale, id)} data-cta={`agent_${id}_build`} className={buttonClass('primary', 'lg')}>
+          {t.ctaBuildAgent}
+          <ArrowRight size={18} aria-hidden="true" />
+        </Link>
+        <ChatOpenButton source={agentSource(id)} fallbackHref={`/${locale}#demo`} className={buttonClass('glass', 'lg')}>
+          {t.ctaChat}
+        </ChatOpenButton>
+        <Link
+          href={aiTeamBuilderHref(locale, offer.dept)}
+          data-cta={`agent_${id}_team_build`}
+          className="inline-flex items-center gap-1.5 self-center text-callout font-medium text-accent-text hover:underline"
+        >
+          {t.ctaBuildTeam}
+          <ArrowRight size={14} aria-hidden="true" />
+        </Link>
+      </PageHero>
 
       <Section className="pt-0">
         <div className="grid gap-gutter lg:grid-cols-12">
