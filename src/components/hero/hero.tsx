@@ -65,6 +65,10 @@ export async function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; 
                 {h.askFira}
               </ChatOpenButton>
             </div>
+            <Link href={`/${locale}/ai-team`} data-cta="hero_team" className="mt-4 inline-flex items-center gap-1.5 text-footnote font-medium text-accent-text underline-offset-4 hover:underline">
+              {h.teamLink}
+              <ArrowRight size={14} aria-hidden="true" />
+            </Link>
             <ul data-hero-facts className="mt-6 flex max-w-[52ch] flex-wrap gap-x-5 gap-y-2 border-t border-accent-text/15 pt-4 text-footnote font-medium text-muted">
               {facts.filter(Boolean).map((item) => (
                 <li key={item}>{item}</li>
