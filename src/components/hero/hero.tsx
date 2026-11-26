@@ -12,6 +12,7 @@ import { ChatOpenButton } from '../chat/chat-open-button'
 import { HeroIntro } from '../hero-intro'
 import { KineticHeadline } from '../kinetic-headline'
 import { Magnetic } from '../magnetic'
+import { HeroField } from '../live/hero-field'
 import { HeroOrbit } from './hero-orbit'
 
 // Home hero (owner 2026-11-26): the living 3D Fira in the centre, the seven products orbiting her on an
@@ -33,8 +34,10 @@ export async function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; 
     benefit: dict.products.items[id].benefit,
   }))
   return (
-    <section id="top" data-hero className="relative flex flex-col justify-center overflow-x-clip px-5 pt-24 pb-10 sm:px-8 lg:min-h-[100dvh] lg:pt-28 lg:pb-8">
-      <div className="mx-auto grid w-full max-w-7xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(44vw,660px))] lg:gap-8 xl:gap-14">
+    <section id="top" data-hero className="relative isolate flex flex-col justify-center overflow-hidden px-5 pt-24 pb-10 sm:px-8 lg:min-h-[100dvh] lg:pt-28 lg:pb-8">
+      {/* The backdrop from before the orbit: the aurora gradient from the first paint and, on capable devices, the WebGL field (src/components/live). */}
+      <HeroField />
+      <div className="relative mx-auto grid w-full max-w-7xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(44vw,660px))] lg:gap-8 xl:gap-14">
         <div className="min-w-0">
           {cue ? (
             <HeroIntro delay={0}>
