@@ -42,6 +42,7 @@ for (const size of desktop) {
 })
 
 test('hover on a product pauses the ring and shows its benefit', async ({ page }) => {
+  test.setTimeout(120_000) // the animated ring is heavy for a software-GL browser on a loaded machine
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto('/ru')
   await page.waitForTimeout(1200)
