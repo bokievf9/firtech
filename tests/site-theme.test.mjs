@@ -94,9 +94,6 @@ const materialText = {
   regular: ['fg', 'muted', 'accent-text'],
   thick: ['fg', 'muted', 'faint', 'accent-text'],
   chrome: ['fg', 'muted', 'faint', 'accent-text'],
-  // v5: the nav capsule (tabs in muted) and the orbs (fg, accent-text on hover) float over the lime glow.
-  capsule: ['fg', 'muted', 'accent-text'],
-  orb: ['fg', 'accent-text'],
 }
 
 for (const [name, set] of [
@@ -252,21 +249,4 @@ test('no raw white or black utilities in public components', () => {
     const hit = readFileSync(f, 'utf8').split('\n').findIndex((l) => bad.test(l))
     assert.equal(hit, -1, `${f}:${hit + 1} has a raw white/black utility`)
   }
-})
-
-// Design v5 (docs/design-system-v5.md): the dark bubble keeps its text and the lime name readable; the
-// glass fallbacks exist for reduced transparency.
-for (const [name, set] of [
-  ['light', light],
-  ['dark', dark],
-]) {
-  test(`${name} theme: v5 bubble text and lime name reach AA on the bubble fill`, () => {
-    assert.ok(contrast(set['bubble-ink'], set.bubble) >= 4.5)
-    assert.ok(contrast(set['bubble-name'], set.bubble) >= 4.5)
-  })
-}
-
-test('v5 glass (capsule, orb, glass button) turns solid with reduced transparency', () => {
-  assert.match(css, /@media \(prefers-reduced-transparency: reduce\), \(prefers-contrast: more\)\s*\{\s*\.nav-capsule,\s*\.orb,\s*\.btn-glass/)
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)\s*\{\s*\.orb,\s*\.fira-portal/)
 })

@@ -4,7 +4,6 @@ import type { CSSProperties } from 'react'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
-import { displayH2, sectionTitle } from '../home-v5'
 import { Reveal } from '../reveal'
 import { Badge } from '../ui/badge'
 
@@ -17,7 +16,7 @@ export function OfficeScene({ dict, locale }: { dict: Dict; locale: Locale }) {
     <section id="office" className="relative isolate mx-auto max-w-7xl scroll-mt-20 px-4 py-section md:px-8">
       <div className="grid gap-10 lg:grid-cols-12 lg:items-start lg:gap-12">
         <Reveal className="lg:col-span-5">
-          <h2 className={displayH2}>{sectionTitle(t.title)}</h2>
+          <h2 className="max-w-[18ch] font-display text-title font-semibold">{t.title}</h2>
           <p className="mt-5 max-w-[48ch] text-lead text-muted">{t.sub}</p>
           <ul className="mt-8 grid gap-3">
             {t.rules.map((rule) => (

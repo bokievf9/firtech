@@ -2,7 +2,7 @@ import { ArrowRight, TelegramLogo } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { PageHero, LightStrong } from '@/components/page-hero'
+import { HeroIntro } from '@/components/hero-intro'
 import { getDict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
 import { fillGuarantee } from '@/lib/guarantee'
@@ -57,11 +57,19 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
 
   return (
     <>
-      <PageHero light={t.titleLight} strong={t.titleStrong} lead={t.sub} portal compact />
+      <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
+        <HeroIntro>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
+          <h1 className="mt-5 max-w-[20ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+            {t.title}
+          </h1>
+          <p className="mt-6 max-w-[60ch] text-lg leading-relaxed text-muted md:text-xl">{t.sub}</p>
+        </HeroIntro>
+      </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-12 md:px-8">
         {/* Wide screens: a real table. Phones: one card per row with the three options inside. */}
-        <div className="hidden overflow-hidden rounded-card border border-line bg-surface shadow-card md:block">
+        <div className="hidden overflow-hidden rounded-card border border-line md:block">
           <table className="w-full border-collapse text-left text-[15px] leading-relaxed">
             <thead>
               <tr className="border-b border-line-strong text-sm">
@@ -99,12 +107,12 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
 
         <ul className="grid gap-4 md:hidden">
           {t.rows.map((row) => (
-            <li key={row.id} className="rounded-card border border-line bg-surface p-5">
+            <li key={row.id} className="rounded-card border border-line p-5">
               <p className="text-lg font-medium">{row.label}</p>
               <dl className="mt-3 grid gap-3 text-[15px] leading-relaxed">
                 {cols.map((col) => (
-                  <div key={col} className={cn(col === 'fir' && 'rounded-tile bg-accent/10 p-3')}>
-                    <dt className={cn('text-xs font-semibold', col === 'fir' ? 'text-accent-text' : 'text-faint')}>
+                  <div key={col} className={cn(col === 'fir' && 'rounded-2xl bg-accent/10 p-3')}>
+                    <dt className={cn('text-xs tracking-[0.1em] uppercase', col === 'fir' ? 'text-accent-text' : 'text-faint')}>
                       {t.columns[col]}
                     </dt>
                     <dd className={col === 'fir' ? 'mt-1 text-fg' : 'mt-1 text-muted'}>
@@ -121,19 +129,19 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
       </section>
 
       <section id="contrast" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-16 md:px-8">
-        <h2 className="font-display text-title-2 font-light tracking-tight [&_strong]:font-extrabold"><LightStrong text={t.contrast.title} /></h2>
+        <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.contrast.title}</h2>
         <p className="mt-3 max-w-[60ch] leading-relaxed text-muted">{t.contrast.sub}</p>
         <ul className="mt-8 grid gap-4">
           {t.contrast.rows.map((row) => (
-            <li key={row.id} className="rounded-card border border-line bg-surface p-5 md:p-6">
+            <li key={row.id} className="rounded-card border border-line p-5 md:p-6">
               <p className="text-lg font-medium">{row.label}</p>
               <div className="mt-3 grid gap-3 text-[15px] leading-relaxed md:grid-cols-2">
                 <div>
-                  <p className="text-xs font-semibold text-faint">{t.contrast.marketLabel}</p>
+                  <p className="text-xs tracking-[0.1em] text-faint uppercase">{t.contrast.marketLabel}</p>
                   <p className="mt-1 text-muted">{row.market}</p>
                 </div>
-                <div className="rounded-tile bg-accent/10 p-3">
-                  <p className="text-xs font-semibold text-accent-text">{t.contrast.usLabel}</p>
+                <div className="rounded-2xl bg-accent/10 p-3">
+                  <p className="text-xs tracking-[0.1em] text-accent-text uppercase">{t.contrast.usLabel}</p>
                   <p className="mt-1 text-fg">
                     {fillGuarantee(row.us, locale, pricing)}
                     {row.id === 'payment' && (
@@ -155,7 +163,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
 
       <section className="mx-auto max-w-7xl px-4 pb-28 md:px-8">
         <div className="flex flex-col items-start gap-6 rounded-card border border-accent-text/30 p-6 md:flex-row md:items-center md:justify-between md:p-10">
-          <p className="h-display h-display-section max-w-[24ch]"><LightStrong text={t.ctaTitle} /></p>
+          <p className="font-display text-2xl font-semibold md:text-3xl">{t.ctaTitle}</p>
           <div className="flex flex-wrap gap-3">
             <Link href={`/${locale}/builder`} data-cta="compare_builder" className={cn(buttonStyles.primary, 'group')}>
               {t.ctaBuilder}

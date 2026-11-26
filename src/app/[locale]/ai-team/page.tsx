@@ -7,7 +7,7 @@ import { AgentCard } from '@/components/ai-team/agent-list'
 import { ChannelsRow } from '@/components/ai-team/channels-row'
 import { TeamGlyph } from '@/components/ai-team/team-parts'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
-import { PageHero, LightStrong, h2Light } from '@/components/page-hero'
+import { HeroIntro } from '@/components/hero-intro'
 import { Ladder } from '@/components/ladder'
 import { JsonLd } from '@/components/json-ld'
 import { ProofLive } from '@/components/proof/proof-live'
@@ -103,25 +103,23 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       <JsonLd data={list} />
       <JsonLd data={agentList} />
 
-      <PageHero
-        light={t.titleLight}
-        strong={t.titleStrong}
-        lead={t.sub}
-        portal
-        compact
-        attrs={{ 'data-tour': 'top' }}
-      >
-        <Link href={aiTeamBuilderHref(locale)} data-cta="aiteam_build" className={buttonClass('primary', 'lg')}>
-          {t.ctaBuild}
-          <ArrowRight size={18} aria-hidden="true" />
-        </Link>
-        <ChatOpenButton source="aiteam" fallbackHref={`/${locale}#demo`} className={buttonClass('glass', 'lg')}>
-          {t.ctaChat}
-        </ChatOpenButton>
-      </PageHero>
+      <section data-tour="top" className="mx-auto grid max-w-7xl items-center gap-12 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12">
+        <HeroIntro className="lg:col-span-7">
+          <p className="text-footnote font-medium text-accent-text">{t.eyebrow}</p>
+          <h1 className="mt-4 max-w-[16ch] font-display text-display text-balance">{t.title}</h1>
+          <p className="mt-6 max-w-[44ch] text-lead text-muted">{t.sub}</p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Link href={aiTeamBuilderHref(locale)} data-cta="aiteam_build" className={buttonClass('primary', 'lg')}>
+              {t.ctaBuild}
+              <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+            <ChatOpenButton source="aiteam" fallbackHref={`/${locale}#demo`} className={buttonClass('secondary', 'lg')}>
+              {t.ctaChat}
+            </ChatOpenButton>
+          </div>
+        </HeroIntro>
 
-      <section className="mx-auto max-w-7xl px-4 pb-8 md:px-8">
-        <Reveal className="mx-auto max-w-2xl" delay={0.2}>
+        <Reveal className="lg:col-span-5" delay={0.2}>
           <GlassCard thickness="thick" className="rounded-panel p-sheet">
             <p className="text-headline font-semibold">{t.flow.title}</p>
             <ol className="relative mt-5 grid gap-5 before:absolute before:top-5 before:bottom-5 before:left-[19px] before:w-px before:bg-line">
@@ -145,7 +143,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       </section>
 
       <Section id="levels" data-tour="levels">
-        <SectionHeader title={<LightStrong text={dict.ladder.title} />} titleClassName={h2Light} lead={dict.ladder.sub} />
+        <SectionHeader title={dict.ladder.title} lead={dict.ladder.sub} />
         <div className="mt-10">
           <Ladder locale={locale} dict={dict} heading="h3" />
         </div>
@@ -167,7 +165,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       </Section>
 
       <Section id="teams" data-tour="teams">
-        <SectionHeader title={<LightStrong text={t.deptsTitle} />} titleClassName={h2Light} />
+        <SectionHeader title={t.deptsTitle} />
         <ul className="mt-12 grid gap-gutter md:grid-cols-2 lg:grid-cols-12">
           {aiTeamIds.map((id, i) => {
             const item = t.items[id]
@@ -230,7 +228,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       </Section>
 
       <Section id="agents" data-tour="agents">
-        <SectionHeader title={<LightStrong text={t.agents.sectionTitle} />} titleClassName={h2Light} lead={t.agents.sectionSub} />
+        <SectionHeader title={t.agents.sectionTitle} lead={t.agents.sectionSub} />
         <div className="mt-10">
           <AgentExplorer
             label={t.agents.filterLabel}
@@ -252,7 +250,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       </Section>
 
       <Section id="proof" data-tour="proof" className="grid items-center gap-10 lg:grid-cols-12">
-        <SectionHeader title={<LightStrong text={t.proof.title} />} titleClassName={h2Light} className="lg:col-span-6" />
+        <SectionHeader title={t.proof.title} className="lg:col-span-6" />
         <Reveal delay={0.1} className="lg:col-span-6">
           <Card tone="accent" className="p-sheet">
             <p className="mb-5 text-headline font-semibold">{t.proof.label}</p>

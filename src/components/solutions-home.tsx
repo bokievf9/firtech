@@ -9,8 +9,6 @@ import type { Locale } from '@/lib/i18n'
 import { fromLine } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { solutionCopy, type SolutionKind } from '@/lib/solutions'
-import { GlowBlob } from '@/components/ui'
-import { displayH2, dotIcon, sectionTitle } from './home-v5'
 import { Reveal } from './reveal'
 import { SpotlightCard } from './spotlight-card'
 import { SectionHeader } from './ui/section'
@@ -35,7 +33,7 @@ export async function SolutionsHome({ dict, locale }: { dict: Dict; locale: Loca
   const pricing = await getPricing()
   return (
     <section id="solutions" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-section md:px-8">
-      <SectionHeader title={sectionTitle(t.title)} titleClassName={displayH2} lead={t.sub} />
+      <SectionHeader title={t.title} lead={t.sub} />
 
       <ul className="mt-12 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
         {homeSolutionKinds.map((kind, i) => {
@@ -45,10 +43,9 @@ export async function SolutionsHome({ dict, locale }: { dict: Dict; locale: Loca
           return (
             <li key={kind}>
               <Reveal delay={i * 0.06} className="h-full">
-                <SpotlightCard data-solution-card={kind} className="pressable lift relative isolate flex h-full flex-col overflow-hidden rounded-card border border-hairline border-line bg-surface p-card hover:border-accent-text/40">
-                  {i % 3 === 1 && <GlowBlob className="-top-20 -right-20 -z-10 size-60" />}
-                  <span aria-hidden="true" className={cn(dotIcon, 'size-11')}>
-                    <Glyph size={20} />
+                <SpotlightCard data-solution-card={kind} className="pressable lift relative flex h-full flex-col rounded-card border border-hairline border-line bg-surface p-card hover:border-line-strong">
+                  <span aria-hidden="true" className="grid size-11 place-items-center rounded-xl bg-pine text-accent-text">
+                    <Glyph size={22} />
                   </span>
                   <h3 className="mt-5 text-title-3 font-semibold">
                     <Link href={`/${locale}/solutions/${kind}`} className="after:absolute after:inset-0 after:rounded-card">

@@ -7,7 +7,7 @@ import { Fragment, useEffect, useState, type ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { builderUi, pick } from '@/content/builder-catalog'
 import { decodeBuild, encodeBuild, type Build } from '@/lib/builder'
-import { buttonClass, cn } from '@/lib/cn'
+import { buttonStyles, cn } from '@/lib/cn'
 import { accentOf } from '@/lib/builder-style'
 import { catalogRows } from '@/lib/builder-capabilities'
 import {
@@ -20,7 +20,6 @@ import { siteUrl, telegramHandle, telegramUrl } from '@/lib/site'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { estimateAccess, estimateReturnPath } from '@/lib/estimate-gate'
 import type { Locale } from '@/lib/i18n'
-import { FiraPortal } from '@/components/ui'
 import { LeadAuthStep } from './cabinet/lead-auth'
 import { useCabinetUser } from './cabinet/use-cabinet-user'
 import { Logo } from './logo'
@@ -59,10 +58,9 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
   if (!state.build) {
     return (
       <section className="mx-auto flex min-h-[80dvh] max-w-7xl flex-col items-start justify-center px-4 pt-24 md:px-8">
-        <FiraPortal alt="" pose="glasses" size="sm" className="animate-none mb-8" />
-        <h1 className="h-display text-title text-balance">{t.emptyTitle}</h1>
+        <h1 className="text-4xl font-semibold tracking-[-0.03em] md:text-5xl">{t.emptyTitle}</h1>
         <p className="mt-4 max-w-[52ch] text-lg text-muted">{t.emptyText}</p>
-        <Link href={builderHref} className={cn(buttonClass('primary', 'lg'), 'mt-8')}>
+        <Link href={builderHref} className={cn(buttonStyles.primary, 'mt-8')}>
           {t.emptyCta}
         </Link>
         <ContinueLastBuild dict={dict} locale={locale} className="mt-6" />
@@ -76,8 +74,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
   if (access === 'gate') {
     return (
       <section className="mx-auto flex min-h-[80dvh] max-w-xl flex-col items-start justify-center px-4 pt-24 md:px-8" data-estimate-gate>
-        <FiraPortal alt="" pose="glasses" size="sm" className="animate-none mb-8" />
-        <h1 className="h-display text-title text-balance">{t.gateTitle}</h1>
+        <h1 className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl">{t.gateTitle}</h1>
         <p className="mt-3 text-lg text-muted">{t.gateText}</p>
         <div className="w-full">
           <LeadAuthStep dict={dict} locale={locale as Locale} returnPath={returnPath} onSignedIn={() => void refresh()} />
@@ -111,7 +108,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
         </Link>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <p className="hidden text-sm text-faint md:block">{t.saveHint}</p>
-          <button type="button" onClick={() => window.print()} className={buttonClass('primary', 'md')}>
+          <button type="button" onClick={() => window.print()} className={buttonStyles.primary}>
             <FilePdf size={18} />
             {t.save}
           </button>

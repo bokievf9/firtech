@@ -11,13 +11,14 @@ import { notFound } from 'next/navigation'
 import { DataNote } from '@/components/languages-note'
 import { BuilderPreview } from '@/components/builder-preview'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
-import { PageHero, LightStrong } from '@/components/page-hero'
+import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
+import { RiseText } from '@/components/rise-text'
 import { SolutionSet } from '@/components/solution-parts'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
-import { kindName } from '@/content/builder-catalog'
+import { kindCatalog, kindName } from '@/content/builder-catalog'
 import { presets, quote } from '@/lib/builder'
 import { stagesFor } from '@/lib/payment-stages'
 import { StageTable } from '@/components/stage-table'
@@ -75,6 +76,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
   const t = dict.solutions
   const pricing = await getPricing()
   const page = solutionCopy(kind, locale, dict, pricing)
+  const entry = kindCatalog[kind]
   const build = presets[kind]
   const q = quote(build, pricing)
   const builderHref = solutionBuilderHref(locale, kind)
@@ -100,27 +102,41 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
     <>
       <JsonLd data={service} />
 
-      <PageHero
-        title={page.promise}
-        compact
-        portal
-        lead={page.sub}
-        before={
-          <>
-            <Link
-              href={`/${locale}/solutions`}
-              className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-fg"
-            >
-              <ArrowLeft size={14} />
-              {t.all}
+      <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12">
+        <HeroIntro className="lg:col-span-8">
+          <Link
+            href={`/${locale}/solutions`}
+            className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-fg"
+          >
+            <ArrowLeft size={14} />
+            {t.all}
+          </Link>
+          <p className="mt-6 text-sm font-medium text-accent-text">{page.title}</p>
+          <h1 className="mt-3 max-w-[20ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+            {page.promise}
+          </h1>
+          <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-muted md:text-xl">
+            {page.sub}
+          </p>
+          <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <Link href={builderHref} className={cn(buttonStyles.primary, 'group')}>
+              {t.cta}
+              <ArrowRight
+                size={16}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
             </Link>
-            <p className="mt-6 text-sm font-medium text-accent-text">{page.title}</p>
-          </>
-        }
-        aside={
-          <div className="rounded-card border border-line bg-surface p-7 shadow-card">
+            <ChatOpenButton source={`solution_${kind}`} fallbackHref={`/${locale}#demo`} className={buttonStyles.secondary}>
+              {t.discuss}
+            </ChatOpenButton>
+          </div>
+        </HeroIntro>
+        <Reveal className="lg:col-span-4" delay={0.3}>
+          <div className="rounded-card border border-line bg-surface p-7">
             <div className="flex items-center gap-3 text-sm text-muted">
-              <span aria-hidden="true" className="orb-dot" />
+              <span aria-hidden="true" className="text-2xl leading-none">
+                {entry.emoji}
+              </span>
               {kindName(kind, locale)}
             </div>
             <p className="mt-6 text-sm text-muted">{t.startSet}</p>
@@ -129,23 +145,15 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
             </p>
             {q.discount && <p className="mt-3 text-sm text-accent-text">{dict.builder.discount}</p>}
           </div>
-        }
-      >
-        <Link href={builderHref} className={cn(buttonStyles.primary, 'group')}>
-          {t.cta}
-          <ArrowRight
-            size={16}
-            className="transition-transform duration-300 group-hover:translate-x-1"
-          />
-        </Link>
-        <ChatOpenButton source={`solution_${kind}`} fallbackHref={`/${locale}#demo`} className={buttonStyles.glass}>
-          {t.discuss}
-        </ChatOpenButton>
-      </PageHero>
+        </Reveal>
+      </section>
 
       <section className="border-y border-line bg-surface/40">
         <div className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28">
-          <Reveal><h2 className="h-display h-display-section max-w-[22ch]"><LightStrong text={t.problemsTitle} /></h2></Reveal>
+          <RiseText
+            text={t.problemsTitle}
+            className="max-w-[22ch] text-3xl font-semibold tracking-[-0.03em] md:text-5xl"
+          />
           <ul className="mt-12 grid gap-4 md:grid-cols-2">
             {page.problems.map((item, i) => (
               <li key={item.pain}>
@@ -176,7 +184,10 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28">
-        <Reveal><h2 className="h-display h-display-section max-w-[22ch]"><LightStrong text={t.setTitle} /></h2></Reveal>
+        <RiseText
+          text={t.setTitle}
+          className="text-3xl font-semibold tracking-[-0.03em] md:text-5xl"
+        />
         <p className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted">{t.setSub}</p>
         <div className="mt-12 grid gap-6 lg:grid-cols-12">
           <Reveal className="min-w-0 lg:col-span-7">
@@ -211,7 +222,10 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
 
       <section className="border-y border-line bg-surface/40" aria-labelledby="solution-stages">
         <div className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28">
-          <Reveal><h2 className="h-display h-display-section max-w-[22ch]"><LightStrong text={t.stagesTitle} /></h2></Reveal>
+          <RiseText
+            text={t.stagesTitle}
+            className="text-3xl font-semibold tracking-[-0.03em] md:text-5xl"
+          />
           <p id="solution-stages" className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted">
             {t.stagesSub}
           </p>
@@ -259,7 +273,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
       </section>
 
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8" aria-label={t.othersTitle}>
-        <h2 className="text-title-3 font-bold">{t.othersTitle}</h2>
+        <h2 className="text-xl font-semibold tracking-tight">{t.othersTitle}</h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {allSolutionKinds
             .filter((other) => other !== kind)

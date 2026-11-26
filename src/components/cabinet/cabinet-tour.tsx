@@ -53,16 +53,16 @@ export function CabinetTour({ dict, account }: { dict: Dict; account: string }) 
 
   if (phase === 'static') {
     return (
-      <aside aria-label={t.label} data-tour-static className="bubble-ink mt-8 !rounded-[20px_20px_20px_6px] p-5 md:p-6">
-        <p className="font-display text-title-3 font-bold">{t.staticTitle}</p>
+      <aside aria-label={t.label} data-tour-static className="mt-8 rounded-card border border-accent-text/40 bg-accent/[0.06] p-5">
+        <p className="font-display text-title-3 font-semibold">{t.staticTitle}</p>
         <ul className="mt-3 grid gap-2 text-callout">
           {tourSteps.map((id) => (
             <li key={id}>
-              <span className="bubble-name">{t.steps[id].title}.</span> <span className="opacity-80">{t.steps[id].text}</span>
+              <span className="font-medium">{t.steps[id].title}.</span> <span className="text-muted">{t.steps[id].text}</span>
             </li>
           ))}
         </ul>
-        <button type="button" onClick={finish} className={cn(buttonStyles.primary, 'mt-4')} data-tour-done>
+        <button type="button" onClick={finish} className={cn(buttonStyles.secondary, 'mt-4')} data-tour-done>
           {t.done}
         </button>
       </aside>
@@ -77,14 +77,14 @@ export function CabinetTour({ dict, account }: { dict: Dict; account: string }) 
       aria-label={t.label}
       aria-live="polite"
       data-tour-bubble={key}
-      className="bubble-ink fixed bottom-24 left-4 right-4 z-40 !rounded-[20px_20px_20px_6px] p-5 md:bottom-6 md:left-6 md:right-auto md:w-[22rem]"
+      className="fixed bottom-24 left-4 right-4 z-40 rounded-card border border-line-strong bg-surface p-5 shadow-card md:bottom-6 md:left-6 md:right-auto md:w-[22rem]"
     >
-      <div className="flex items-center justify-between gap-3 text-footnote opacity-90">
-        <span className="bubble-name">{t.fira}</span>
+      <div className="flex items-center justify-between gap-3 text-footnote text-muted">
+        <span className="font-medium text-accent-text">{t.fira}</span>
         <span className="font-mono text-caption">{fill(t.progress, { n: String(at + 1), m: String(tourSteps.length) })}</span>
       </div>
       <p className="mt-2 font-medium">{step.title}</p>
-      <p className="mt-1 text-callout leading-relaxed opacity-80">{step.text}</p>
+      <p className="mt-1 text-callout leading-relaxed text-muted">{step.text}</p>
       <button
         type="button"
         onClick={() => (last ? finish() : setAt(at + 1))}

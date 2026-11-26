@@ -25,42 +25,56 @@ export function StepBar({
   onGo: (i: number) => void
 }) {
   return (
-    <div className="sticky top-16 z-30 bg-gradient-to-b from-bg from-70% to-transparent md:top-[72px]">
-      <div className="mx-auto max-w-7xl px-4 pt-3 pb-2 md:px-8 md:pt-4">
+    <div className="material-thick sticky top-16 z-30 rounded-none border-x-0 border-t-0 md:top-[72px]">
+      <div className="mx-auto max-w-7xl px-4 pt-3 pb-2.5 md:px-8 md:pt-4">
         <div className="flex items-baseline justify-between gap-4">
-          <h1 className="truncate text-callout font-semibold">
-            <span className="mr-2 text-caption font-semibold text-accent-text">
+          <h1 className="truncate text-callout font-medium">
+            <span className="mr-2 text-caption font-medium text-accent-text">
               {eyebrow}
             </span>
             <span className="text-muted">{title}</span>
           </h1>
-          <span className="shrink-0 text-footnote font-semibold text-fg md:hidden">
+          <span className="shrink-0 text-footnote text-muted md:hidden">
             {steps[step]}
           </span>
         </div>
-        <ol className="nav-capsule mt-3 max-w-full gap-0.5 overflow-x-auto [scrollbar-width:none] md:w-fit">
+        <ol className="mt-3 flex gap-1.5 md:gap-2">
           {steps.map((label, i) => {
             const can = reachable(i)
-            const on = i === step
             return (
-              <li key={label} className="min-w-0 flex-1 md:flex-none">
+              <li key={label} className="min-w-0 flex-1">
                 <button
                   type="button"
                   disabled={!can}
                   onClick={() => onGo(i)}
-                  aria-current={on ? 'step' : undefined}
+                  aria-current={i === step ? 'step' : undefined}
                   aria-label={`${i + 1}. ${label}`}
                   className={cn(
-                    'pressable flex h-10 w-full items-center justify-center gap-2 rounded-full px-0 text-[14px] font-semibold whitespace-nowrap transition-[background-color,color,box-shadow] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text md:px-4',
-                    on
-                      ? 'bg-accent text-accent-ink shadow-[var(--shadow-lime)]'
-                      : can
-                        ? 'text-muted hover:bg-tab-hover hover:text-fg'
-                        : 'cursor-not-allowed text-faint/60',
+                    'group flex w-full flex-col gap-2 rounded-md py-1 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text',
+                    !can && 'cursor-not-allowed',
                   )}
                 >
-                  <span className="font-mono text-[13px] md:text-[12px]">{i + 1}</span>
-                  <span className="hidden max-w-[9rem] truncate md:inline">{label}</span>
+                  <span className="relative block h-1 overflow-hidden rounded-full bg-line-strong">
+                    <span
+                      className={cn(
+                        'absolute inset-0 origin-left rounded-full transition-[transform,background-color] duration-300 ease-drawer motion-reduce:transition-none',
+                        i <= step ? 'scale-x-100' : 'scale-x-0',
+                        i === step ? 'bg-accent' : 'bg-accent/45',
+                      )}
+                    />
+                  </span>
+                  <span
+                    className={cn(
+                      'hidden truncate text-footnote transition-colors md:block',
+                      i === step
+                        ? 'text-fg'
+                        : can
+                          ? 'text-faint group-hover:text-muted'
+                          : 'text-faint/50',
+                    )}
+                  >
+                    {label}
+                  </span>
                 </button>
               </li>
             )
@@ -99,12 +113,12 @@ export function BottomNav({
           exit={reduce ? { opacity: 0 } : { y: 96, opacity: 0 }}
           transition={reduce ? fade : spring.sheet}
           data-fira-avoid=""
-          className="print-hidden pointer-events-none fixed inset-x-0 bottom-0 z-40 px-2 pt-2 md:px-6"
-          style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}
+          className="print-hidden material-thick fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          <div className="nav-capsule pointer-events-auto mx-auto w-full max-w-5xl gap-2 p-2 md:gap-4 md:pl-3" data-builder-bar>
+          <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 md:gap-4 md:px-8">
             <Button
-              variant="glass"
+              variant="secondary"
               onClick={onBack}
               disabled={!onBack}
               aria-label={backLabel}
@@ -115,7 +129,7 @@ export function BottomNav({
             </Button>
             <div className="flex-none px-1 md:min-w-0 md:flex-1">{center}</div>
             {onPreview && previewLabel && (
-              <IconButton label={previewLabel} tone="outline" onClick={onPreview} className="btn-glass size-12 lg:hidden">
+              <IconButton label={previewLabel} tone="outline" onClick={onPreview} className="size-12 lg:hidden">
                 <Eye size={18} />
               </IconButton>
             )}

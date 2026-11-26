@@ -7,12 +7,11 @@ automation for clients in the CIS (mainly Tajikistan) and abroad.
 ## Stack
 - Next.js 16 (App Router, Turbopack), React 19, TypeScript, Tailwind CSS 4, Motion (`motion/react`),
   Phosphor icons (`@phosphor-icons/react`, `/ssr` in server components), zod.
-- Fonts (design v5, 2026-11-25): Manrope for text, display and the wordmark (`font-sans`, `font-display`,
-  `font-brand` all map to it) and JetBrains Mono (data) via `next/font` (`src/app/fonts.ts`).
-- Design: v5 «Стекло, орбиты, фирменный лайм» (glass capsule nav, `.h-display`, `GlowBlob`/`OrbitRing`/`Orb`/
-  `FiraPortal` in `components/ui`): `docs/design-system-v5.md`, on top of `docs/design-system-v4.md`.
-- Brand: wordmark `fir.tech` ("fir" is from the founder's name, not the tree) in Manrope 800
-  with a lime dot (`src/components/logo.tsx`; the OG image still uses `assets/fonts` Unbounded). Avatars and files in `brand/` (`1-fir.png` is the chosen avatar).
+- Fonts: Onest (Cyrillic-first, text), Geologica (display: hero and section titles, `font-display`,
+  sharpness axis) and JetBrains Mono (data) via `next/font` (`src/app/fonts.ts`).
+- Brand: wordmark `fir.tech` ("fir" is from the founder's name, not the tree) in Unbounded 700
+  with a lime dot (`src/components/logo.tsx`, font in `fonts.ts` and `assets/fonts` for the OG
+  image). Avatars and files in `brand/` (`1-fir.png` is the chosen avatar).
 - Public site (owner 2026-11-21): the default follows the visitor's system scheme (stored choice wins, owner decision same day; `lib/theme.ts` `resolveTheme`), light on a white page / dark, with a sun/moon switch in the header and the mobile menu (`components/theme-switch.tsx`). The choice is in localStorage `fir-theme` (`light`|`dark`); `ThemeInit` (via `useServerInsertedHTML`, script in `lib/site-theme.ts`) sets `data-theme` on <html> before the first paint, falls back to the system scheme (`prefers-color-scheme` is read only in `theme-init.tsx`, never in CSS) and follows live system changes until a choice is stored. Tokens: the `@theme static` block at the top of `globals.css` holds the LIGHT values, `:root[data-theme='dark']` redefines them (same names); shadows and page decoration (`--shadow-card`, `--deco-*`, `--aurora-*`, `--hero-glow`...) are plain variables in `:root` and the dark block. Lime is a FILL under `text-accent-ink` (buttons, dots, bars); text and thin lines use `text-accent-text` / `border-accent-text` (dark green on light, the lime on dark), never `text-accent`. No raw `text-white`/`bg-black` in public components (`tests/site-theme.test.mjs` checks contrast of both token sets and this). The owner panel (/admin) sets `data-theme` explicitly (`dark` default, `light` stored in `firtech-admin-theme`; its light tokens apply to `html:not(.site)`, switch in the admin header). One accent ("fir lime"). The panel's seven departments have their own hues (`--color-dept-<id>`, `-soft`, `-text`, helper `deptTheme` in `src/lib/shell-theme.ts`) that tint only accents, never cards (`docs/shell.md`, «Темы и цвета отделов»). Design tokens and shape rules are at the top of
   `src/app/globals.css`; keep to them.
 

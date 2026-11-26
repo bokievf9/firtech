@@ -2,12 +2,12 @@ import { ArrowRight, ArrowUpRight } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { PageHero } from '@/components/page-hero'
+import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
 import { Reveal } from '@/components/reveal'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
-import { categoryNames, kindName, kindsByCategory, pick } from '@/content/builder-catalog'
+import { categoryNames, kindCatalog, kindName, kindsByCategory, pick } from '@/content/builder-catalog'
 import { buttonStyles, cn } from '@/lib/cn'
 import { isLocale } from '@/lib/i18n'
 import { fromLine } from '@/lib/price-format'
@@ -63,7 +63,15 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
   return (
     <>
       <JsonLd data={list} />
-      <PageHero light={t.titleLight} strong={t.titleStrong} lead={t.sub} portal />
+      <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
+        <HeroIntro>
+          <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
+          <h1 className="mt-5 max-w-[16ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+            {t.title}
+          </h1>
+          <p className="mt-6 max-w-[60ch] text-lg leading-relaxed text-muted md:text-xl">{t.sub}</p>
+        </HeroIntro>
+      </section>
 
       <section className="mx-auto grid max-w-7xl gap-14 px-4 pb-24 md:px-8">
         {kindsByCategory.map((group) => {
@@ -71,7 +79,7 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
           if (!kinds.length) return null
           return (
             <div key={group.category}>
-              <h2 className="mb-5 text-callout font-semibold text-muted">
+              <h2 className="mb-5 text-sm tracking-[0.12em] text-faint uppercase">
                 {pick(categoryNames[group.category], locale)}
               </h2>
               <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -82,7 +90,9 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
                       <Reveal delay={(i % 3) * 0.06} className="h-full">
                         <SpotlightCard className="relative flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-colors hover:border-line-strong md:p-8">
                           <div className="flex items-center gap-3 text-sm text-muted">
-                            <span aria-hidden="true" className="orb-dot" />
+                            <span aria-hidden="true" className="text-2xl leading-none">
+                              {kindCatalog[kind].emoji}
+                            </span>
                             {kindName(kind, locale)}
                           </div>
                           <h3 className="mt-6 text-2xl leading-tight font-semibold tracking-[-0.02em]">

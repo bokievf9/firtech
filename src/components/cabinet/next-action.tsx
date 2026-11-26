@@ -3,7 +3,7 @@
 import { ArrowUpRight, Hourglass } from '@phosphor-icons/react'
 import type { Dict } from '@/content'
 import { actionControl, type NextAction } from '@/lib/cabinet-docs'
-import { buttonClass, cn } from '@/lib/cn'
+import { buttonStyles, cn } from '@/lib/cn'
 import { AcceptStageButton } from './accept-stage'
 import { TabLink } from './tab-link'
 import { fill } from './ui'
@@ -12,7 +12,7 @@ import { fill } from './ui'
 // the proposal, sign the contract, pay a stage, accept a stage, or a calm line when only we are
 // working. Accepting and signing happen in the document viewer (the client must be able to read first),
 // paying opens the pay page, accepting a stage is done in place.
-const big = buttonClass('primary', 'lg')
+const big = `${buttonStyles.primary} px-8 py-4 text-body`
 
 export function NextActionBlock({
   action,
@@ -56,7 +56,7 @@ export function NextActionBlock({
 
   return (
     <div
-      className={cn('rounded-card border border-accent-text/40 bg-accent/[0.08]', compact ? 'p-4' : 'p-5 md:p-6')}
+      className={cn('rounded-tile border border-accent-text/40 bg-accent/[0.07]', compact ? 'p-4' : 'p-5 md:p-6')}
       data-next-action={action.kind}
     >
       <p className="text-footnote text-muted">{t.title}</p>

@@ -103,7 +103,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-caption text-accent-text font-medium">{t.home.eyebrow}</p>
-            <h1 className="h-display mt-5 text-title text-balance">
+            <h1 className="mt-5 text-title font-semibold text-balance">
               {name ? fill(t.home.greeting, { name }) : t.home.greetingNoName}
             </h1>
             <p className="mt-4 max-w-[56ch] text-lead text-muted">{t.home.sub}</p>
@@ -155,7 +155,7 @@ export default async function CabinetPage({ params, searchParams }: PageProps<'/
               {view.projects.length === 0 && view.leads.length === 0 && !leadParam && <EmptyProjects dict={dict} locale={locale} />}
               {view.projects.length > 0 && (
                 <section aria-labelledby="cabinet-projects-title" data-cabinet-projects>
-                  <h2 id="cabinet-projects-title" className="font-display text-title-2 font-bold">
+                  <h2 id="cabinet-projects-title" className="font-display text-title-2 font-semibold">
                     {t.v3.home.projectsTitle}
                   </h2>
                   <div className="mt-5 grid gap-5">

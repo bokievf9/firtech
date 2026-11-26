@@ -15,8 +15,9 @@ import { ChatOpenButton } from '../chat/chat-open-button'
 import { DemoAssistant } from '../demo/demo-assistant'
 import { DemoBooking } from '../demo/demo-booking'
 import { DemoChat } from '../demo/demo-chat'
-import { PageHero } from '../page-hero'
+import { HeroIntro } from '../hero-intro'
 import { CapabilityMock, type MockKind } from '../products/capability-mock'
+import { FiraHero } from '../products/fira-hero'
 import { CompanyPlan, PlanLevels } from '../products/plan-levels'
 import { productIcons } from '../products/product-icons'
 import { ProductPriceTag } from '../products/product-price'
@@ -40,41 +41,56 @@ export function ProductHero({ ctx }: Props) {
     <Link
       href={buildHref}
       data-cta={`product_page_${id}_build`}
-      className={cn(layout.callFirst ? buttonStyles.glass : buttonStyles.primary, 'group')}
+      className={cn(layout.callFirst ? buttonStyles.secondary : buttonStyles.primary, 'group')}
     >
       {t.cta}
       <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
     </Link>
   )
   return (
-    <PageHero
-      title={page.result}
-      compact
-      portal
-      portalAlt={dict.film.name}
-      lead={page.lead}
-      attrs={{ 'data-product-section': 'hero' }}
-      before={
-        <>
-          <Link href={`/${locale}#products`} className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-fg">
-            <ArrowLeft size={14} aria-hidden="true" />
-            {t.back}
-          </Link>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-tile border border-line-strong text-accent-text">
-              <Glyph size={22} aria-hidden="true" />
-            </span>
-            <p className="text-sm font-medium">{item.name}</p>
-            {rung && (
-              <Link href={`/${locale}#levels`} className="rounded-full bg-accent/15 px-3 py-1 text-xs text-accent-text">
-                {t.ladderLabel}: {dict.ladder.levels[rung.level]}
-              </Link>
-            )}
-          </div>
-        </>
-      }
-      aside={
-        <div className="rounded-card border border-line bg-surface p-7 shadow-card">
+    <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12" data-product-section="hero">
+      <HeroIntro className="lg:col-span-8">
+        <Link href={`/${locale}#products`} className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-fg">
+          <ArrowLeft size={14} aria-hidden="true" />
+          {t.back}
+        </Link>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-line-strong text-accent-text">
+            <Glyph size={22} aria-hidden="true" />
+          </span>
+          <p className="text-sm font-medium">{item.name}</p>
+          {rung && (
+            <Link href={`/${locale}#levels`} className="rounded-full bg-accent/15 px-3 py-1 text-xs text-accent-text">
+              {t.ladderLabel}: {dict.ladder.levels[rung.level]}
+            </Link>
+          )}
+        </div>
+        <h1 className="mt-5 max-w-[20ch] font-display text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+          {page.result}
+        </h1>
+        <p className="mt-6 max-w-[56ch] text-lead text-muted">{page.lead}</p>
+        <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+          {layout.callFirst ? (
+            <>
+              <ChatOpenButton source={`product_${id}_call`} fallbackHref={telegramUrl ?? '#price'} className={buttonStyles.primary}>
+                <ChatCircleDots size={18} weight="fill" aria-hidden="true" />
+                {t.readiness.hot.call}
+              </ChatOpenButton>
+              {build}
+            </>
+          ) : (
+            <>
+              {build}
+              <ChatOpenButton source={`product_${id}`} fallbackHref="#price" className={buttonStyles.secondary}>
+                {t.ask}
+              </ChatOpenButton>
+            </>
+          )}
+        </div>
+      </HeroIntro>
+      <Reveal className="lg:col-span-4" delay={0.3}>
+        {layout.face === 'fira' && <FiraHero label={dict.film.name} />}
+        <div className={cn('rounded-card border border-line bg-surface p-7', layout.face === 'fira' && '-mt-6 relative')}>
           <ProductPriceTag id={id} copy={dict.products} locale={locale} className="[&_span]:text-2xl sm:[&_span]:text-3xl [&_p]:text-base" />
           <p className="mt-6 border-t border-line pt-5 text-sm leading-relaxed text-muted">{item.forWhom}</p>
           <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-faint">
@@ -82,25 +98,8 @@ export function ProductHero({ ctx }: Props) {
             {ctx.guarantee.line}
           </p>
         </div>
-      }
-    >
-      {layout.callFirst ? (
-        <>
-          <ChatOpenButton source={`product_${id}_call`} fallbackHref={telegramUrl ?? '#price'} className={buttonStyles.primary}>
-            <ChatCircleDots size={18} weight="fill" aria-hidden="true" />
-            {t.readiness.hot.call}
-          </ChatOpenButton>
-          {build}
-        </>
-      ) : (
-        <>
-          {build}
-          <ChatOpenButton source={`product_${id}`} fallbackHref="#price" className={buttonStyles.glass}>
-            {t.ask}
-          </ChatOpenButton>
-        </>
-      )}
-    </PageHero>
+      </Reveal>
+    </section>
   )
 }
 

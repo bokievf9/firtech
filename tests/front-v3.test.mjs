@@ -109,7 +109,7 @@ test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minu
   assert.equal(existsSync('src/components/hero/hero-sequence.tsx'), false, 'the old product sequence is gone')
 })
 
-test('hero v5 (2026-11-25): split headline, one line, four orbs priced from pricing.ts, one ink bubble, no eyebrow', () => {
+test('hero copy (2026-11-25): split headline, one line, four product links priced from pricing.ts, no eyebrow', () => {
   for (const [locale, dict] of dicts) {
     const h = dict.hero
     assert.ok(h.titleLight && h.titleStrong, locale)
@@ -122,13 +122,11 @@ test('hero v5 (2026-11-25): split headline, one line, four orbs priced from pric
   const hero = read('src/components/hero/hero.tsx')
   assert.doesNotMatch(hero, /h\.eyebrow|KineticHeadline|HeroSequence/)
   assert.match(hero, /data-cta="hero_builder"/)
-  assert.match(hero, /<FiraPortal/)
-  assert.equal((hero.match(/<Orb\b/g) ?? []).length, 1, 'the orbs are one mapped list of four')
+  // Design restore 2026-11-26: the v5 portal, orbs and ink bubble are gone; the new orbit hero (D2) brings its own test.
   assert.match(hero, /personalPlanList\(pricing\)/)
   assert.match(hero, /agentSubscriptionOf\(pricing\)/)
   assert.match(hero, /companyPlanOf\(pricing\)/)
   assert.doesNotMatch(hero, /\b(290|220|1490)\b/, 'no hard-coded prices')
-  assert.equal((hero.match(/bubble-ink/g) ?? []).length, 1)
 })
 
 test('builder is «Сборка проекта» everywhere and the word «калькулятор» is gone', () => {

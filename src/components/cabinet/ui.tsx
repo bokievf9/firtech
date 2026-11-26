@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Badge, Card as Surface, fieldClass, FiraPortal } from '@/components/ui'
+import { Badge, Card as Surface, fieldClass } from '@/components/ui'
 import { cn } from '@/lib/cn'
 
 // Shared bits of the cabinet, built on the v4 primitives: the field class and labels of `Input`, `Card`
@@ -53,7 +53,7 @@ export function Card({
 }) {
   return (
     <Surface as="section" id={id} aria-labelledby={id ? `${id}-title` : undefined} className={cn('md:p-sheet', className)}>
-      <h2 id={id ? `${id}-title` : undefined} className="font-display text-title-3 font-bold">
+      <h2 id={id ? `${id}-title` : undefined} className="font-display text-title-3 font-semibold">
         {title}
       </h2>
       <div className="mt-5">{children}</div>
@@ -66,12 +66,7 @@ export function Chip({ children, tone = 'muted' }: { children: ReactNode; tone?:
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex items-center gap-4" data-empty>
-      <FiraPortal alt="" pose="glasses" size="sm" className="animate-none [--portal-size:56px] [box-shadow:0_0_0_4px_var(--color-ring-white),var(--portal-halo)] animate-none" />
-      <p className="text-callout text-muted">{children}</p>
-    </div>
-  )
+  return <p className="text-callout text-muted">{children}</p>
 }
 
 export const fill = (text: string, values: Record<string, string>) =>

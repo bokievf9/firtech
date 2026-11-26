@@ -15,13 +15,9 @@ export type SpotStop = { key: string; el: HTMLElement | null; text: string }
 
 const BUBBLE_W = 340
 
-// Local fallback of the v5 `.bubble-ink` (dark bubble, lime name); the foundation's own class wins by specificity.
-const fallbackCss = `
-:where(.fira-ink){background:var(--color-fg);color:var(--color-bg);border-radius:16px 16px 16px 4px;box-shadow:0 18px 50px -12px rgba(0,0,0,.45)}
+// The tour target keeps no focus ring of its own: the cutout around it is the highlight.
+const spotCss = `
 [data-tour-on]{outline:none!important}
-:where(.fira-ink) .fira-ink-name{color:var(--color-accent)}
-:root[data-theme='dark'] :where(.fira-ink) .fira-ink-name{color:var(--color-accent-text)}
-@media (prefers-reduced-transparency: reduce){:where(.fira-ink){box-shadow:none}}
 `
 
 export function FiraSpotlight({
@@ -114,7 +110,7 @@ export function FiraSpotlight({
 
   return (
     <>
-      <style>{fallbackCss}</style>
+      <style>{spotCss}</style>
       {cut ? (
         <div
           aria-hidden="true"
@@ -155,17 +151,17 @@ export function FiraSpotlight({
           if (dir === -1) onNext()
           else if (dir === 1 && i > 0) onPrev()
         }}
-        className="bubble-ink fira-ink print-hidden fixed z-[59] flex flex-col gap-2.5 py-3 pr-2 pl-4 text-[14px] leading-snug"
+        className="glass print-hidden fixed z-[59] flex flex-col gap-2.5 rounded-2xl rounded-bl-md py-3 pr-2 pl-4 text-[14px] leading-snug text-fg"
         style={{ ...pos, width: w, transition: ease }}
       >
         <div className="flex items-start gap-1">
           <div className="min-w-0 flex-1">
-            <span className="fira-ink-name mb-0.5 block text-caption font-semibold">{name}</span>
+            <span className="mb-0.5 block text-caption font-semibold text-accent-text">{name}</span>
             <p aria-live="polite" className="text-[14.5px] leading-snug [overflow-wrap:anywhere]">
               <FiraTyped key={`tour:${i}`} text={stop.text} />
             </p>
           </div>
-          <button type="button" onClick={onStop} aria-label={copy.stop} className="grid size-8 shrink-0 place-items-center rounded-full opacity-70 transition-[opacity,background-color] hover:bg-bg/10 hover:opacity-100">
+          <button type="button" onClick={onStop} aria-label={copy.stop} className="grid size-8 shrink-0 place-items-center rounded-full text-muted transition-colors hover:bg-fg/5 hover:text-fg">
             <X size={14} aria-hidden="true" />
           </button>
         </div>
@@ -173,20 +169,20 @@ export function FiraSpotlight({
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <span className="flex items-center gap-1" aria-hidden="true">
               {stops.map((s, k) => (
-                <span key={s.key + k} data-fira-dot={k === i ? 'on' : 'off'} className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ${k === i ? 'w-4 bg-accent' : 'w-1.5 bg-bg/30'}`} />
+                <span key={s.key + k} data-fira-dot={k === i ? 'on' : 'off'} className={`h-1.5 rounded-full transition-[width,background-color] duration-300 ${k === i ? 'w-4 bg-accent' : 'w-1.5 bg-fg/20'}`} />
               ))}
             </span>
-            <span className="font-mono text-[11px] tracking-[0.08em] opacity-70" data-fira-progress="">
+            <span className="font-mono text-[11px] tracking-[0.12em] text-faint" data-fira-progress="">
               {progressLabel(i + 1, n, locale)}
             </span>
           </div>
         </div>
         <div className="flex items-center gap-1.5 pr-1 pb-0.5">
-          <button type="button" onClick={onPrev} disabled={i === 0} data-cta="fira_tour_prev" className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-[13px] font-medium opacity-80 transition-[opacity,background-color] hover:bg-bg/10 hover:opacity-100 disabled:pointer-events-none disabled:opacity-30">
+          <button type="button" onClick={onPrev} disabled={i === 0} data-cta="fira_tour_prev" className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:bg-fg/5 hover:text-fg disabled:pointer-events-none disabled:opacity-30">
             <ArrowLeft size={13} weight="bold" aria-hidden="true" />
             {copy.back}
           </button>
-          <button type="button" onClick={onStop} data-cta="fira_tour_stop" className="rounded-full px-3 py-2 text-[13px] font-medium opacity-80 transition-[opacity,background-color] hover:bg-bg/10 hover:opacity-100">
+          <button type="button" onClick={onStop} data-cta="fira_tour_stop" className="rounded-full px-3 py-2 text-[13px] font-medium text-muted transition-colors hover:bg-fg/5 hover:text-fg">
             {copy.stop}
           </button>
           <button ref={nextRef} type="button" onClick={onNext} data-cta="fira_tour_next" className="ml-auto inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-[13px] font-semibold text-accent-ink transition-transform active:scale-[0.97]">

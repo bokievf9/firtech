@@ -20,12 +20,6 @@ registerHooks({
   resolve(specifier, context, next) {
     if (specifier in stubs) return { url: `data:text/javascript,${encodeURIComponent(stubs[specifier])}`, shortCircuit: true }
     if (specifier === 'next/link') return next('next/link.js', context)
-    // The Fira portal uses next/image; the optimiser needs a server, so the markup test takes a plain img.
-    if (specifier === 'next/image') {
-      const react = pathToFileURL(path.resolve('node_modules/react/index.js')).href
-      const image = `import { createElement } from "${react}"; export default function Image({ src, alt, fill, priority, sizes, ...p }) { return createElement("img", { src, alt, ...p }) }`
-      return { url: `data:text/javascript,${encodeURIComponent(image)}`, shortCircuit: true }
-    }
     // Server actions pull in cookies and Supabase; the cards under test never call them.
     if (specifier.startsWith('@/app/') && specifier.endsWith('/actions')) {
       const stub = ['deleteAccountAction', 'changePasswordAction', 'changeEmailAction', 'signOutEverywhereAction', 'unsubscribeAction'].map((n) => `export const ${n} = async () => ({});`).join(' ')

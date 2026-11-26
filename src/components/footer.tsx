@@ -8,13 +8,11 @@ import type { Locale } from '@/lib/i18n'
 import { instagramUrl, telegramHandle, telegramUrl } from '@/lib/site'
 import { ChatOpenButton } from './chat/chat-open-button'
 import { Logo } from './logo'
-import { GlowBlob, OrbitRing } from './ui/glow'
 import { Magnetic } from './magnetic'
 import { Reveal } from './reveal'
 
-// Site footer (design v5, docs/design-system-v5.md): a call to action over a lime glow and an orbit ring,
-// the brand with social links, four link columns led by the products, a legal row between hairlines, and
-// the page ends on a giant wordmark (Manrope 800).
+// Site footer (stage B1, footer.design patterns): a call to action, the brand with social links,
+// four link columns led by the products, a legal row, and the page ends on a giant wordmark.
 // Columns come from footerColumns (src/lib/home.ts), tested to point at real routes.
 export function Footer({
   locale,
@@ -51,11 +49,9 @@ export function Footer({
   }
 
   return (
-    <footer className="print-hidden relative overflow-hidden border-t border-t-hairline border-line bg-surface">
-      <GlowBlob className="-top-40 -right-40 size-[560px]" />
-      <OrbitRing className="-top-48 right-[4%] hidden size-[440px] md:block" />
-      <div data-fira-react="cta" className="relative mx-auto flex max-w-7xl flex-col items-start gap-8 px-4 pt-20 pb-16 md:flex-row md:items-end md:justify-between md:px-8 md:pt-28">
-        <p className="h-display h-display-section max-w-[16ch] font-extrabold">{f.ctaTitle}</p>
+    <footer className="print-hidden relative overflow-hidden border-t border-t-hairline border-line">
+      <div data-fira-react="cta" className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-4 pt-20 pb-16 md:flex-row md:items-end md:justify-between md:px-8 md:pt-28">
+        <p className="max-w-[16ch] font-display text-title font-semibold">{f.ctaTitle}</p>
         <div className="flex flex-col items-start gap-4 md:items-end">
           <div className="flex flex-col gap-3 sm:flex-row">
             <Magnetic>
@@ -71,7 +67,7 @@ export function Footer({
             <ChatOpenButton
               source="footer"
               fallbackHref={`/${locale}#demo`}
-              className={buttonClass('glass', 'lg')}
+              className={buttonClass('secondary', 'lg')}
             >
               <ChatCircleDots size={18} weight="fill" aria-hidden="true" className="text-accent-text" />
               {dict.nav.ask}
@@ -90,16 +86,16 @@ export function Footer({
         </div>
       </div>
 
-      <div className="relative mx-auto grid max-w-7xl gap-12 border-t border-t-hairline border-line px-4 py-16 md:grid-cols-12 md:px-8">
+      <div className="mx-auto grid max-w-7xl gap-12 border-t border-t-hairline border-line px-4 py-16 md:grid-cols-12 md:px-8">
         <div className="md:col-span-12 lg:col-span-2">
           <Logo />
           <p className="mt-5 max-w-[34ch] text-footnote text-muted">{f.tagline}</p>
-          <p className="mt-8 text-footnote font-bold">{f.social}</p>
+          <p className="mt-8 text-footnote font-semibold">{f.social}</p>
           <div className="mt-3 flex gap-2">
             <a
               href={instagramUrl}
               aria-label="Instagram"
-              className="pressable grid size-10 place-items-center rounded-full btn-glass text-muted hover:text-fg"
+              className="pressable grid size-10 place-items-center rounded-full bg-fill text-muted hover:bg-fill-strong hover:text-fg"
             >
               <InstagramLogo size={18} />
             </a>
@@ -108,7 +104,7 @@ export function Footer({
                 href={telegramUrl}
                 data-place="footer"
                 aria-label={`Telegram ${telegramHandle ?? ''}`}
-                className="pressable grid size-10 place-items-center rounded-full btn-glass text-muted hover:text-fg"
+                className="pressable grid size-10 place-items-center rounded-full bg-fill text-muted hover:bg-fill-strong hover:text-fg"
               >
                 <TelegramLogo size={18} />
               </a>
@@ -123,7 +119,7 @@ export function Footer({
               'md:col-span-6 lg:col-span-2',
             )}
           >
-            <p className="text-footnote font-bold">{titles[col.id]}</p>
+            <p className="text-footnote font-semibold">{titles[col.id]}</p>
             <ul className="mt-4 grid gap-2.5 text-footnote text-muted">
               {col.links.map((link) => (
                 <li key={link.href}>
@@ -137,7 +133,7 @@ export function Footer({
         ))}
       </div>
 
-      <div className="relative mx-auto flex max-w-7xl flex-col gap-3 border-t border-t-hairline border-line px-4 py-6 text-caption text-faint sm:flex-row sm:items-center sm:justify-between md:px-8">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-t-hairline border-line px-4 py-6 text-caption text-faint sm:flex-row sm:items-center sm:justify-between md:px-8">
         <p>
           © {new Date().getFullYear()} Fir Tech. {f.rights}
         </p>
@@ -166,7 +162,7 @@ export function Footer({
       <Reveal className="pointer-events-none select-none" delay={0.1}>
         <p
           aria-hidden="true"
-          className="wordmark-fill font-brand -mb-[0.16em] text-center text-[21vw] leading-none font-extrabold tracking-[-0.05em] whitespace-nowrap"
+          className="wordmark-fill font-brand -mb-[0.18em] text-center text-[18.5vw] leading-none font-bold tracking-[-0.06em] whitespace-nowrap"
         >
           fir<span className="text-accent-text [-webkit-text-fill-color:var(--color-accent)]">.</span>tech
         </p>

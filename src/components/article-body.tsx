@@ -40,7 +40,7 @@ export function ArticleBody({
               <h2
                 key={i}
                 id={`section-${i}`}
-                className="mt-14 text-2xl leading-tight font-extrabold tracking-[-0.03em] text-fg md:text-[1.9rem]"
+                className="mt-14 text-2xl leading-tight font-semibold tracking-[-0.025em] text-fg md:text-[1.9rem]"
               >
                 {block.text}
               </h2>

@@ -345,7 +345,7 @@ export function LossBlock({ locale, build, setBuild }: { locale: string; build: 
             </label>
           ))}
         </div>
-        <p className="bubble-ink text-[15px] leading-relaxed" data-loss-result aria-live="polite">
+        <p className="rounded-card border border-accent-text/30 bg-pine/40 px-4 py-3 text-[15px] leading-relaxed font-medium text-fg" data-loss-result aria-live="polite">
           {pick(lossUi.result(fmt(result.missedPerMonth), fmt(result.monthlyLossUsd)), locale)}
         </p>
         {quote && (

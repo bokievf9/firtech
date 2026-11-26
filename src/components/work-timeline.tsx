@@ -2,8 +2,6 @@ import { ArrowRight, Code, FileText, PhoneCall, RocketLaunch, ShieldCheck } from
 import Link from 'next/link'
 import type { Dict } from '@/content'
 import type { Locale } from '@/lib/i18n'
-import { GlowBlob } from '@/components/ui'
-import { displayH2, dotIcon, sectionTitle } from './home-v5'
 import { Reveal } from './reveal'
 import { SectionHeader } from './ui/section'
 
@@ -17,7 +15,7 @@ export function WorkTimeline({ dict, locale }: { dict: Dict; locale: Locale }) {
   const steps = dict.process.steps
   return (
     <section id="process" className="mx-auto max-w-7xl px-4 py-section md:px-8">
-      <SectionHeader title={sectionTitle(w.title)} titleClassName={displayH2} lead={w.sub} />
+      <SectionHeader title={w.title} lead={w.sub} />
       {/* v4: a timeline, not four equal cards. A hairline runs through the step icons (across on lg,
           down the left edge on phones), so the order reads before the words. */}
       <ol className="relative mt-14 grid gap-10 lg:grid-cols-4 lg:gap-gutter">
@@ -27,7 +25,7 @@ export function WorkTimeline({ dict, locale }: { dict: Dict; locale: Locale }) {
           return (
             <li key={step.title} className="relative">
               <Reveal delay={i * 0.05} className="flex gap-5 lg:flex-col lg:gap-6">
-                <span className={`relative size-11 ${dotIcon}`}>
+                <span className="relative grid size-11 shrink-0 place-items-center rounded-full border border-hairline border-accent-text/40 bg-bg text-accent-text">
                   <Icon size={20} aria-hidden="true" />
                 </span>
                 <div className="min-w-0 lg:pr-4">
@@ -40,8 +38,7 @@ export function WorkTimeline({ dict, locale }: { dict: Dict; locale: Locale }) {
         })}
       </ol>
       <Reveal className="mt-14">
-        <div className="relative isolate overflow-hidden rounded-card border border-hairline border-glass-highlight bg-elevated p-card shadow-card">
-          <GlowBlob className="-right-24 -bottom-32 -z-10 size-80" />
+        <div className="rounded-card border border-hairline border-accent-text/30 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_70%)] p-card">
           <p className="flex items-center gap-2 text-footnote font-semibold text-accent-text">
             <ShieldCheck size={16} aria-hidden="true" />
             {w.rulesTitle}

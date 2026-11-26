@@ -36,9 +36,9 @@ export function FilmCue({ scene, name, line, size = 'md', className }: { scene: 
 
 // One scene: the wrapper FilmStage watches, the cue on top (in the section's top padding) and the
 // scene's sections. The hero carries its cue inside its own first screen, so it passes none here.
-export function FilmSceneBlock({ scene, cue, tone = 'bg', children }: { scene: FilmScene; cue?: ReactNode; tone?: 'bg' | 'surface'; children: ReactNode }) {
+export function FilmSceneBlock({ scene, cue, children }: { scene: FilmScene; cue?: ReactNode; children: ReactNode }) {
   return (
-    <div data-film-scene={scene.id} data-emotion={scene.emotion} className={cn('film-scene relative', tone === 'surface' ? 'bg-surface' : 'bg-bg')}>
+    <div data-film-scene={scene.id} data-emotion={scene.emotion} className="film-scene relative">
       {cue ? (
         <div className="film-cue-row relative z-10 mx-auto max-w-7xl px-4 md:px-8 -mb-[calc(var(--spacing-section)-2.5rem)]">
           {cue}

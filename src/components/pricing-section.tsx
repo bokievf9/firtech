@@ -1,10 +1,8 @@
 import { ArrowRight, Check } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
 import type { Dict } from '@/content'
-import { buttonClass, cn } from '@/lib/cn'
+import { buttonStyles, cn } from '@/lib/cn'
 import { getPricing } from '@/lib/pricing-store'
-import { GlowBlob } from '@/components/ui'
-import { displayH2, sectionTitle } from './home-v5'
 import { GuaranteeLine } from './guarantee-line'
 import { Reveal } from './reveal'
 
@@ -18,7 +16,7 @@ export async function PricingSection({ dict, locale }: { dict: Dict; locale: str
       <div className={'grid gap-gutter lg:grid-cols-12 lg:items-stretch'}>
         <Reveal className={'lg:col-span-7 lg:self-center'}>
           <p className="mb-4 text-footnote font-medium text-accent-text">{h.eyebrow}</p>
-          <h2 className={displayH2}>{sectionTitle(h.title)}</h2>
+          <h2 className="max-w-[18ch] font-display text-title font-semibold">{h.title}</h2>
           <p className="mt-5 max-w-[48ch] text-lead text-muted">{h.sub}</p>
           <p className="mt-6 text-footnote text-faint">
             {h.currency}. {h.stages} {dict.region.payTitle}: {dict.region.pay.join(', ')}.
@@ -33,8 +31,7 @@ export async function PricingSection({ dict, locale }: { dict: Dict; locale: str
           </Link>
         </Reveal>
         <Reveal delay={0.08} className="lg:col-span-5">
-          <div className="relative isolate h-full overflow-hidden rounded-card border border-hairline border-glass-highlight bg-surface p-sheet shadow-card">
-            <GlowBlob className="-top-28 -right-24 -z-10 size-80" />
+          <div className="relative h-full overflow-hidden rounded-panel border border-hairline border-accent-text/30 bg-[linear-gradient(150deg,var(--color-pine),var(--color-surface)_70%)] p-sheet shadow-card">
             <div
               aria-hidden="true"
               className="dot-grid pointer-events-none absolute inset-0 opacity-50 [mask-image:linear-gradient(to_bottom,black,transparent)]"
@@ -63,7 +60,7 @@ export async function PricingSection({ dict, locale }: { dict: Dict; locale: str
               <Link
                 href={`/${locale}/builder`}
                 data-cta="pricing_builder"
-                className={cn(buttonClass('primary', 'lg'), 'group mt-7')}
+                className={cn(buttonStyles.primary, 'group mt-7')}
               >
                 {h.builderCta}
                 <ArrowRight

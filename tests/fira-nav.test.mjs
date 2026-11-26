@@ -314,7 +314,7 @@ test('recent: newest first, no repeats, five at most', () => {
 // ---- guard rails of the components
 test('components: the spotlight keeps the old hooks, the keyboard, the focus trap and reduced motion', () => {
   const spot = read('src/components/fira/nav/fira-spotlight.tsx')
-  for (const needle of ['data-fira-bubble="tour"', 'data-fira-tour=', 'fira_tour_next', 'fira_tour_stop', 'fira_tour_prev', 'aria-live="polite"', "e.key !== 'Tab'", 'onTouchEnd', 'reduce ? ', "pointerEvents: 'none'", 'bubble-ink']) {
+  for (const needle of ['data-fira-bubble="tour"', 'data-fira-tour=', 'fira_tour_next', 'fira_tour_stop', 'fira_tour_prev', 'aria-live="polite"', "e.key !== 'Tab'", 'onTouchEnd', 'reduce ? ', "pointerEvents: 'none'", 'glass']) {
     assert.ok(spot.includes(needle), `spotlight has ${needle}`)
   }
   const guide = read('src/components/fira/fira-guide.tsx')

@@ -19,7 +19,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Buttons (design system v4, sizes and glow from v5: lg 56px, md 44px, docs/design-system-v4.md «Кнопки»): pills, one line, feedback on press
+// Buttons (design system v4, docs/design-system-v4.md «Кнопки»): pills, one line, feedback on press
 // (`.pressable` in globals.css: scale 0.97 in 80 ms, released in 160 ms), hover only with a real pointer.
 // `buttonStyles.*` stays for the 140 call sites; new code uses `buttonClass(variant, size)` or
 // <Button>/<ButtonLink> from components/ui/button.tsx.
@@ -30,16 +30,16 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'glass'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 const variants: Record<ButtonVariant, string> = {
-  primary: 'btn-glow bg-accent text-accent-ink hover:bg-accent-strong',
+  primary: 'bg-accent text-accent-ink shadow-[inset_0_1px_0_rgb(255_255_255/0.35)] hover:bg-accent-strong',
   secondary: 'border border-line-strong text-fg hover:border-fg/35 hover:bg-fill',
   ghost: 'text-fg hover:bg-fill-strong',
-  glass: 'btn-glass',
+  glass: 'glass text-fg hover:border-line-strong',
 }
 
 const sizes: Record<ButtonSize, string> = {
-  sm: 'h-9 px-4 text-sm font-semibold',
-  md: 'h-11 px-5 text-[15px] font-bold',
-  lg: 'h-14 px-7 text-base font-bold',
+  sm: 'h-9 px-4 text-sm',
+  md: 'h-12 px-6 text-[15px] tracking-[-0.005em]',
+  lg: 'h-14 px-8 text-base tracking-[-0.01em]',
 }
 
 export function buttonClass(variant: ButtonVariant = 'primary', size: ButtonSize = 'md') {

@@ -1,3 +1,6 @@
+Superseded 2026-11-26: the site is back on design-system-v4.md; kept for history.
+
+
 # firtech.pro design system v5 (2026-11-25): glass, orbits, brand lime
 
 Owner picked artboard F («гааззз»): glass capsule nav, Manrope light + black headline, Fira in a glowing

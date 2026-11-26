@@ -8,7 +8,6 @@ import { buttonStyles, cn } from '@/lib/cn'
 import { fromLine } from '@/lib/price-format'
 import { FIRA_BUBBLE_EVENT, firaSay } from '@/lib/fira/live'
 import { fieldClass } from '@/components/ui/input'
-import { FiraAsk } from './builder-ui'
 import { usePricing } from './pricing-provider'
 
 // The two quick starts on the builder's entry screen (builder v6 wave 2): ready sets by niche, and one text field that
@@ -38,12 +37,11 @@ export function PresetRow({ locale, current, onPick }: { locale: string; current
                 onClick={() => onPick(id)}
                 className={cn(
                   'pressable flex h-full w-full flex-col gap-3 rounded-card border p-4 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-text',
-                  'bg-material-orb border-capsule-line shadow-[inset_0_1px_0_var(--color-glass-highlight),var(--shadow-orb)] backdrop-blur-[14px] backdrop-saturate-150',
-                  current === id ? 'border-accent-text ring-2 ring-accent/70' : 'hover:bg-orb-hover',
+                  current === id ? 'border-accent-text/70 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_68%)]' : 'border-line bg-surface hover:border-line-strong hover:bg-surface-2',
                 )}
               >
                 <span className="flex items-center gap-3">
-                  <span aria-hidden="true" className="orb-dot !size-8 shrink-0" />
+                  <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full border border-line-strong text-xl leading-none">{c.emoji}</span>
                   <span className="text-callout leading-tight font-medium">{pick(c.name, locale)}</span>
                 </span>
                 <span className="text-footnote leading-snug text-muted">{pick(c.promise, locale)}</span>
@@ -126,8 +124,7 @@ export function TaskStart({ locale, onApply }: { locale: string; onApply: (match
 
   return (
     <section data-task-start aria-labelledby={`${id}-t`} className="mt-12 max-w-3xl">
-      <h3 id={`${id}-t`} className="text-callout font-semibold">{pick(presetUi.taskTitle, locale)}</h3>
-      <FiraAsk className="mt-4">{pick(presetUi.firaOffer, locale)}</FiraAsk>
+      <h3 id={`${id}-t`} className="text-callout font-medium">{pick(presetUi.taskTitle, locale)}</h3>
       <form
         className="mt-4 grid gap-3"
         onSubmit={(e) => {
@@ -157,14 +154,14 @@ export function TaskStart({ locale, onApply }: { locale: string; onApply: (match
           className={cn('ym-disable-keys min-h-24 resize-y', fieldClass)}
         />
         <div>
-          <button type="submit" disabled={busy || text.trim().length < 3} className={buttonStyles.glass}>
+          <button type="submit" disabled={busy || text.trim().length < 3} className={buttonStyles.secondary}>
             {pick(presetUi.taskSubmit, locale)}
           </button>
         </div>
       </form>
       <div aria-live="polite" className="mt-4">
         {match && (
-          <div data-task-match={match.kind === 'preset' ? match.id : match.id} className="material-regular grid max-w-[60ch] gap-3 rounded-card p-4 ring-1 ring-accent-text/40">
+          <div data-task-match={match.kind === 'preset' ? match.id : match.id} className="grid max-w-[60ch] gap-3 rounded-card border border-accent-text/50 bg-surface p-4">
             <p className="text-callout">
               <span className="text-faint">{pick(presetUi.looksLike, locale)} </span>
               <span className="font-medium">{title}</span>

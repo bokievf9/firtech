@@ -7,7 +7,7 @@ import { CabinetNavLabel } from './cabinet/cabinet-nav-label'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import type { Dict } from '@/content'
-import { buttonClass, cn, homeAnchor } from '@/lib/cn'
+import { buttonStyles, cn, homeAnchor } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { spring, staggerStep } from '@/lib/motion'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
@@ -18,11 +18,11 @@ import { Logo } from './logo'
 import { ScrollProgress } from './scroll-progress'
 import { ThemeSwitch } from './theme-switch'
 
-// Site header (design v5, docs/design-system-v5.md): wordmark left, the links in a glass capsule in the
-// middle (`.nav-capsule` / `.nav-tab`, the active page has aria-current and a white fill), the theme and
-// locale switches and one lime CTA right. At the top of the page the bar is clear; once the page scrolls
-// a thick material band fades in behind it (opacity only, the geometry never changes, so nothing jumps).
-// Phones get the full-screen Sheet (ui/sheet.tsx): focus trapped, Esc closes, scroll locked.
+// Site header (design system v4, docs/design-system-v4.md «Шапка»): one stable floating bar. At the top of
+// the page it is clear; once the page scrolls the thick material fades in behind it (opacity only, the
+// geometry never changes, so nothing jumps), with a soft scroll edge instead of a divider line. A hover
+// pill slides between the links on the ui spring; the locale is a two-letter segmented control; one
+// clear CTA. Phones get the full-screen Sheet (ui/sheet.tsx): focus trapped, Esc closes, scroll locked.
 export function Header({
   locale,
   dict,
@@ -36,6 +36,7 @@ export function Header({
   const reduce = useReducedMotion()
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const [hovered, setHovered] = useState<string | null>(null)
   const { scrollY } = useScroll()
 
   // Only flips a boolean when crossing the threshold, so React re-renders twice per page, not per frame.
@@ -57,14 +58,6 @@ export function Header({
     { href: homeAnchor(locale, 'pricing'), label: dict.nav.pricing },
   ]
 
-  // Active tab: a real page matches its own path; the home page marks the first anchor (products).
-  // Links with a hash on another page (agents on /ai-team) are never marked, so two tabs are never lit.
-  const atHome = pathname === `/${locale}`
-  const isActive = (href: string, i: number) => {
-    if (href.includes('#')) return atHome && i === 0
-    return pathname === href || pathname.startsWith(`${href}/`)
-  }
-
   const localeSwitch = (
     <div className="flex items-center rounded-full bg-fill p-0.5 font-mono text-[11px] uppercase">
       <span aria-current="true" className="rounded-full bg-elevated px-2 py-1 text-fg shadow-card">
@@ -82,41 +75,57 @@ export function Header({
   )
 
   return (
-    <header className="print-hidden fixed inset-x-0 top-0 z-40">
+    <header className="print-hidden fixed inset-x-0 top-0 z-40 px-2 pt-2 md:px-3 md:pt-3">
       <ScrollProgress />
-      {/* The material: a band that fades in behind the bar once the page scrolls (opacity only). */}
-      <span
-        aria-hidden="true"
-        data-header-material
-        className={cn(
-          'material-thick pointer-events-none absolute inset-x-0 top-0 -z-10 h-16 md:h-20 rounded-none border-0 border-b shadow-none border-b-hairline border-line transition-opacity duration-300 ease-out-quint',
-          scrolled ? 'opacity-100' : 'opacity-0',
-        )}
-      />
-      <div className="relative mx-auto grid h-16 max-w-7xl grid-cols-[1fr_auto] items-center gap-4 px-4 md:h-20 md:px-8 lg:grid-cols-[1fr_auto_1fr]">
+      <div
+        className="relative mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full pr-2 pl-5"
+      >
+        {/* The material: fades in behind the bar once the page scrolls (opacity only). */}
+        <span
+          aria-hidden="true"
+          data-header-material
+          className={cn(
+            'material-thick pointer-events-none absolute inset-0 -z-10 rounded-full transition-opacity duration-300 ease-out-quint',
+            scrolled ? 'opacity-100' : 'opacity-0',
+          )}
+        />
         <Link
           href={`/${locale}`}
           aria-label="Fir Tech"
           onClick={() => setOpen(false)}
-          className="justify-self-start"
+          className="shrink-0"
         >
           <Logo />
         </Link>
 
-        <nav className="nav-capsule hidden lg:flex" aria-label={dict.nav.menu}>
-          {links.map((link, i) => (
+        <nav
+          className="hidden items-center lg:flex"
+          aria-label={dict.nav.menu}
+          onPointerLeave={() => setHovered(null)}
+        >
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              aria-current={isActive(link.href, i) ? 'page' : undefined}
-              className="nav-tab px-3 xl:px-4"
+              onPointerEnter={() => setHovered(link.href)}
+              onFocus={() => setHovered(link.href)}
+              onBlur={() => setHovered(null)}
+              className="relative rounded-full px-3.5 py-2 text-callout text-muted transition-colors hover:text-fg focus-visible:text-fg"
             >
+              {hovered === link.href ? (
+                <motion.span
+                  layoutId="nav-hover"
+                  aria-hidden="true"
+                  className="absolute inset-0 -z-10 rounded-full bg-fill-strong"
+                  transition={reduce ? { duration: 0 } : spring.snappy}
+                />
+              ) : null}
               {link.label}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center justify-self-end gap-2">
+        <div className="flex items-center gap-2">
           {cabinet && (
             <Link
               href={`/${locale}/cabinet`}
@@ -135,14 +144,14 @@ export function Header({
           <Link
             href={`/${locale}/builder`}
             data-cta="header"
-            className={cn(buttonClass('primary', 'md'), 'hidden sm:inline-flex')}
+            className={cn(buttonStyles.small, 'hidden sm:inline-flex')}
           >
             {dict.nav.cta}
           </Link>
           <IconButton
             label={open ? dict.nav.close : dict.nav.menu}
             tone="outline"
-            className="btn-glass size-11 lg:hidden"
+            className="lg:hidden"
             aria-expanded={open}
             aria-controls="mobile-menu"
             onClick={() => setOpen((v) => !v)}
@@ -173,7 +182,7 @@ export function Header({
                 <Link
                   href={link.href}
                   onClick={() => setOpen(false)}
-                  className="group flex items-center justify-between border-b border-b-hairline border-line py-4 text-title-2 font-bold"
+                  className="group flex items-center justify-between border-b border-b-hairline border-line py-4 font-display text-title-2 font-semibold"
                 >
                   {link.label}
                   <ArrowUpRight
@@ -191,7 +200,7 @@ export function Header({
             href={`/${locale}/builder`}
             data-cta="menu"
             onClick={() => setOpen(false)}
-            className={cn(buttonClass('primary', 'lg'), 'w-full')}
+            className={cn(buttonStyles.primary, 'w-full')}
           >
             {dict.nav.cta}
           </Link>
@@ -199,7 +208,7 @@ export function Header({
             <Link
               href={`/${locale}/cabinet`}
               onClick={() => setOpen(false)}
-              className={cn(buttonClass('glass', 'lg'), 'w-full')}
+              className={cn(buttonStyles.secondary, 'w-full')}
             >
               <UserCircle size={18} aria-hidden="true" className="text-accent-text" />
               <CabinetNavLabel signedIn={dict.nav.cabinet} start={dict.nav.cabinetStart} />
@@ -211,7 +220,7 @@ export function Header({
               setOpen(false)
               openChat('menu')
             }}
-            className={cn(buttonClass('glass', 'lg'), 'w-full')}
+            className={cn(buttonStyles.secondary, 'w-full')}
           >
             <ChatCircleDots
               size={18}

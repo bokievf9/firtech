@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { PageHero } from '@/components/page-hero'
+import { HeroIntro } from '@/components/hero-intro'
 import { StatusView } from '@/components/status-view'
 import { getDict } from '@/content'
 import { isLocale } from '@/lib/i18n'
@@ -40,11 +40,17 @@ export default async function StatusPage({ params }: PageProps<'/[locale]/status
   const initial = await statusSource.get()
 
   return (
-    <>
-      <PageHero light={t.titleLight} strong={t.titleStrong} lead={t.sub} narrow />
-      <section className="mx-auto max-w-3xl px-4 pb-28 md:px-8">
+    <section className="mx-auto max-w-3xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
+      <HeroIntro>
+        <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
+        <h1 className="mt-5 text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+          {t.title}
+        </h1>
+        <p className="mt-6 max-w-[60ch] text-lg leading-relaxed text-muted">{t.sub}</p>
+      </HeroIntro>
+      <div className="mt-10">
         <StatusView initial={initial} dict={dict} locale={locale} />
-      </section>
-    </>
+      </div>
+    </section>
   )
 }

@@ -11,7 +11,7 @@ export function CabinetSoon({ locale, dict }: { locale: Locale; dict: Dict }) {
     <section className="mx-auto max-w-3xl px-4 pt-32 pb-28 md:px-8 md:pt-40">
       <HeroIntro>
         <p className="text-caption text-accent-text font-medium">{t.eyebrow}</p>
-        <h1 className="mt-5 h-display text-title text-balance">
+        <h1 className="mt-5 text-title font-semibold text-balance">
           {t.title}
         </h1>
         <p className="mt-6 max-w-[56ch] text-lead text-muted">{t.text}</p>

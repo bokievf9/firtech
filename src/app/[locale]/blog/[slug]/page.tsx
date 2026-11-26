@@ -6,7 +6,7 @@ import { notFound } from 'next/navigation'
 import { ArticleBody, DraftBadge } from '@/components/article-body'
 import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
-import { LightStrong } from '@/components/page-hero'
+import { RiseText } from '@/components/rise-text'
 import { getDict } from '@/content'
 import { formatArticleDate, readingTime } from '@/content/blog'
 import { allArticles, findArticle } from '@/lib/blog-hq'
@@ -92,7 +92,7 @@ export default async function ArticlePage({ params }: PageProps<'/[locale]/blog/
               <ArrowLeft size={14} />
               {t.back}
             </Link>
-            <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 text-footnote text-faint">
+            <div className="mt-8 flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-xs text-faint">
               {!article.published && <DraftBadge label={t.draft} />}
               <span className="whitespace-nowrap">
                 <time dateTime={article.date}>{formatArticleDate(article.date, locale)}</time>
@@ -101,9 +101,12 @@ export default async function ArticlePage({ params }: PageProps<'/[locale]/blog/
               </span>
             </div>
           </HeroIntro>
-          <h1 className="h-display mt-6 text-[2.3rem] md:text-[3.2rem]">
-            <LightStrong text={content.title} />
-          </h1>
+          <RiseText
+            as="h1"
+            text={content.title}
+            delay={0.15}
+            className="mt-6 text-[2.3rem] leading-[1.08] font-semibold tracking-[-0.035em] text-balance md:text-[3.4rem]"
+          />
           <HeroIntro delay={0.3}>
             <p className="mt-6 text-lg leading-relaxed text-muted md:text-xl">
               {content.description}
@@ -122,7 +125,7 @@ export default async function ArticlePage({ params }: PageProps<'/[locale]/blog/
 
       {others.length > 0 && (
         <nav className="mx-auto mt-24 max-w-[46rem] px-4 md:px-8" aria-label={t.more}>
-          <h2 className="text-title-3 font-bold">{t.more}</h2>
+          <h2 className="text-xl font-semibold tracking-tight">{t.more}</h2>
           <div className="mt-5 grid gap-3">
             {others.map((other) => (
               <Link

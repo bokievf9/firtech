@@ -14,11 +14,13 @@ import { notFound } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { BotChatDemo } from '@/components/bot-chat-demo'
-import { PageHero, LightStrong } from '@/components/page-hero'
+import { HeroIntro } from '@/components/hero-intro'
+import { HeroStage } from '@/components/hero-stage'
 import { JsonLd } from '@/components/json-ld'
 import { Magnetic } from '@/components/magnetic'
 import { Process } from '@/components/process'
 import { Reveal } from '@/components/reveal'
+import { RiseText } from '@/components/rise-text'
 import { ServiceConcepts } from '@/components/service-concepts'
 import { ServiceVariants } from '@/components/service-variants'
 import { FlowChain, PhoneFan, SiteAssembly } from '@/components/service-visuals'
@@ -80,6 +82,7 @@ const serviceTemplate = { websites: 'site', bots: 'bot', apps: 'app', automation
 
 const icons = { websites: Browser, bots: TelegramLogo, apps: DeviceMobile, automation: Lightning }
 
+const sectionTitle = 'text-4xl font-semibold tracking-[-0.035em] md:text-6xl'
 
 export default async function ServicePage({ params }: PageProps<'/[locale]/services/[slug]'>) {
   const { locale, slug } = await params
@@ -123,42 +126,58 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
     <>
       <JsonLd data={service} />
 
-      <PageHero
-        title={page.title}
-        lead={page.sub}
-        before={
-          <Link
-            href={homeAnchor(locale, 'products')}
-            className="inline-flex items-center gap-2 rounded-full border border-line px-3.5 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-fg"
-          >
-            <ArrowLeft size={14} />
-            {dict.services.items[slug].name}
-          </Link>
-        }
-        aside={<HeroCard slug={slug} dict={dict} pricing={pricing} />}
-      >
-        <Magnetic>
-          <Link
-            href={buildHref}
-            data-cta={`service_${slug}_build`}
-            className={cn(buttonStyles.primary, 'group w-full sm:w-auto')}
-          >
-            {dict.nav.cta}
-            <ArrowRight
-              size={16}
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            />
-          </Link>
-        </Magnetic>
-        <ChatOpenButton source={`service_${slug}`} fallbackHref="#pricing" className={buttonStyles.glass}>
-          {dict.nav.ask}
-        </ChatOpenButton>
-      </PageHero>
+      <section className="relative overflow-hidden">
+        <HeroStage
+          copy={
+            <>
+              <HeroIntro>
+                <Link
+                  href={homeAnchor(locale, 'products')}
+                  className="inline-flex items-center gap-2 rounded-full border border-line px-3.5 py-1.5 text-sm text-muted transition-colors hover:border-line-strong hover:text-fg"
+                >
+                  <ArrowLeft size={14} />
+                  {dict.services.items[slug].name}
+                </Link>
+              </HeroIntro>
+              <RiseText
+                as="h1"
+                text={page.title}
+                delay={0.1}
+                className="mt-7 max-w-[16ch] text-balance text-[clamp(2.5rem,5.2vw,4.6rem)] leading-[1.02] font-semibold tracking-[-0.045em]"
+              />
+              <HeroIntro delay={0.4}>
+                <p className="mt-7 max-w-[46ch] text-lg leading-relaxed text-muted md:text-xl">
+                  {page.sub}
+                </p>
+                <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Magnetic>
+                    <Link
+                      href={buildHref}
+                      data-cta={`service_${slug}_build`}
+                      className={cn(buttonStyles.primary, 'group w-full sm:w-auto')}
+                    >
+                      {dict.nav.cta}
+                      <ArrowRight
+                        size={16}
+                        className="transition-transform duration-300 group-hover:translate-x-1"
+                      />
+                    </Link>
+                  </Magnetic>
+                  <ChatOpenButton source={`service_${slug}`} fallbackHref="#pricing" className={buttonStyles.secondary}>
+                    {dict.nav.ask}
+                  </ChatOpenButton>
+                </div>
+              </HeroIntro>
+            </>
+          }
+          demo={<HeroCard slug={slug} dict={dict} pricing={pricing} />}
+        />
+      </section>
 
       <section className="border-y border-line bg-surface/40">
         <div className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32">
           <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
-            <Reveal className={'lg:col-span-6'}><h2 className="h-display h-display-section"><LightStrong text={t.included} /></h2></Reveal>
+            <RiseText text={t.included} className={cn(sectionTitle, 'lg:col-span-6')} />
             <Reveal delay={0.1} className="lg:col-span-6">
               <p className="text-sm text-muted">{t.fits}</p>
               <ul className="mt-3 flex flex-wrap gap-2">
@@ -196,7 +215,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32">
-        <Reveal><h2 className="h-display h-display-section"><LightStrong text={t.variants} /></h2></Reveal>
+        <RiseText text={t.variants} className={sectionTitle} />
         <ServiceVariants
           service={slug}
           items={Object.entries(variants).map(([id, v]) => ({
@@ -216,7 +235,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
 
       <section className="border-y border-line bg-surface/40">
         <div className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32">
-          <Reveal><h2 className="h-display h-display-section"><LightStrong text={t.concepts} /></h2></Reveal>
+          <RiseText text={t.concepts} className={sectionTitle} />
           <Reveal delay={0.15}>
             <p className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted">{t.conceptsSub}</p>
           </Reveal>
@@ -261,7 +280,10 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
       </section>
 
       <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8 md:pb-32" aria-label={t.others}>
-        <Reveal><h2 className="h-display h-display-section"><LightStrong text={t.others} /></h2></Reveal>
+        <RiseText
+          text={t.others}
+          className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl"
+        />
         <div className="mt-8 grid gap-4 md:grid-cols-3">
           {serviceSlugs
             .filter((other) => other !== slug)

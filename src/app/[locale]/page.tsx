@@ -29,13 +29,6 @@ import { notFound } from 'next/navigation'
 // `homeSections` order (src/lib/home.ts, tested), grouped into the eight scenes of src/lib/film.ts, each
 // with Fira on her mark and her line in the HTML. FilmStage adds the travelling WebGL Fira on wide
 // screens once the page is loaded; the footer comes from the locale layout.
-// Design v5: sections alternate the page `bg` and `surface`. A scene carries its own tone; inside a scene
-// of two sections the second one flips it (`innerTone`).
-const sceneTone: Record<FilmScene['id'], 'bg' | 'surface'> = {
-  hello: 'bg', pains: 'surface', demo: 'bg', team: 'surface', office: 'surface', solutions: 'bg', process: 'surface', final: 'surface',
-}
-const innerTone: Partial<Record<HomeSection, 'bg' | 'surface'>> = { agents: 'bg', pricing: 'bg' }
-
 export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   const { locale } = await params
   if (!isLocale(locale)) notFound()
@@ -83,7 +76,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   )
 
   const sections: Record<HomeSection, ReactNode> = {
-    hero: <Hero locale={locale} dict={dict} />,
+    hero: <Hero locale={locale} dict={dict} cue={cue(filmScenes[0])} />,
     pains: <PainsSection dict={dict} locale={locale} />,
     products: <ProductsBento locale={locale} dict={dict} />,
     agents: <HomeAgents locale={locale} dict={dict} />,
@@ -105,19 +98,10 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
         <FilmSceneBlock
           key={scene.id}
           scene={scene}
-          tone={sceneTone[scene.id]}
           cue={scene.id === 'hello' ? null : scene.id === 'final' ? <FilmFinale scene={scene} dict={dict} locale={locale} /> : cue(scene)}
         >
           {homeSections.map((id) =>
-            (scene.sections as readonly HomeSection[]).includes(id) ? (
-              innerTone[id] ? (
-                <div key={id} className={innerTone[id] === 'bg' ? 'bg-bg' : 'bg-surface'}>
-                  {sections[id]}
-                </div>
-              ) : (
-                <Fragment key={id}>{sections[id]}</Fragment>
-              )
-            ) : null,
+            (scene.sections as readonly HomeSection[]).includes(id) ? <Fragment key={id}>{sections[id]}</Fragment> : null,
           )}
         </FilmSceneBlock>
       ))}

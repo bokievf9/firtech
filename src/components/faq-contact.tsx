@@ -5,7 +5,6 @@ import { buttonStyles, cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n'
 import { ChatOpenButton } from './chat/chat-open-button'
 import { FaqList } from './faq'
-import { displayH2, sectionTitle } from './home-v5'
 import { Reveal } from './reveal'
 
 // The only FAQ on the site's pages besides the per-product ones (owner 2026-11-22): the accordion
@@ -17,7 +16,7 @@ export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
     <section id="faq" className="relative mx-auto max-w-7xl scroll-mt-24 px-4 py-section md:px-8">
       <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
         <Reveal className="lg:col-span-4">
-          <h2 className={displayH2}>{sectionTitle(dict.faq.title)}</h2>
+          <h2 className="font-display text-title font-semibold">{dict.faq.title}</h2>
           <ul className="mt-6 grid gap-2 text-callout">
             {(['pay-how', 'compare', 'referral', 'audit'] as const).map((page) => (
               <li key={page}>
