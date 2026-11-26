@@ -103,29 +103,30 @@ test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minu
   const hero = read('src/components/hero/hero.tsx')
   assert.match(hero, /\/builder/)
   assert.match(hero, /ChatOpenButton/)
-  // Design v5: the guarantee is a line of the hairline row, the team is an orb.
+  // Orbit hero (2026-11-26): the guarantee is a fact of the row, the products orbit Fira as links.
   assert.match(hero, /guaranteeLine\(dict, locale, pricing, 'short'\)/)
-  assert.match(hero, /\/ai-team/)
+  assert.match(hero, /data-hero-facts/)
   assert.equal(existsSync('src/components/hero/hero-sequence.tsx'), false, 'the old product sequence is gone')
+  // No product numbers in the orbit either.
+  const orbit = read('src/components/hero/hero-orbit.tsx')
+  assert.doesNotMatch(orbit, /padStart/)
 })
 
-test('hero copy (2026-11-25): split headline, one line, four product links priced from pricing.ts, no eyebrow', () => {
+test('hero copy (2026-11-25): split headline, one line, no eyebrow, no hard-coded prices', () => {
   for (const [locale, dict] of dicts) {
     const h = dict.hero
     assert.ok(h.titleLight && h.titleStrong, locale)
     assert.ok(h.tagline.split(/\s+/).length <= 40, `${locale} tagline is at most 40 words (AI-native positioning line, contract 2026-11-25)`)
     assert.doesNotMatch(`${h.titleLight}${h.titleStrong}${h.tagline}`, /—|–/, locale)
-    assert.ok(h.askFira && h.bubble.name && h.bubble.text && h.orbs.teamNote, locale)
+    assert.ok(h.askFira, locale)
   }
   assert.equal(ru.hero.titleLight, 'Ваш ИИ.')
   assert.equal(en.hero.titleStrong, 'For life and for business.')
   const hero = read('src/components/hero/hero.tsx')
-  assert.doesNotMatch(hero, /h\.eyebrow|KineticHeadline|HeroSequence/)
+  assert.doesNotMatch(hero, /h\.eyebrow|HeroSequence/)
+  assert.match(hero, /h\.titleLight/)
+  assert.match(hero, /h\.tagline/)
   assert.match(hero, /data-cta="hero_builder"/)
-  // Design restore 2026-11-26: the v5 portal, orbs and ink bubble are gone; the new orbit hero (D2) brings its own test.
-  assert.match(hero, /personalPlanList\(pricing\)/)
-  assert.match(hero, /agentSubscriptionOf\(pricing\)/)
-  assert.match(hero, /companyPlanOf\(pricing\)/)
   assert.doesNotMatch(hero, /\b(290|220|1490)\b/, 'no hard-coded prices')
 })
 
