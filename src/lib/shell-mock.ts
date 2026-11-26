@@ -90,6 +90,7 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
     ]],
   ])
   const projectNotes = new Map<string, string[]>()
+  const ownerRefs = new Map<string, number>()
   const callBookings = new Map<string, { at: string; state: string; site: string }>()
 
   const tickets: Row[] = [
@@ -294,6 +295,23 @@ export function createPultMock(start = Date.now(), deps: { approvals: () => Appr
     if (agents) return agents
     const path = seg.join('/')
     if (method === 'GET' && path === 'hub') return hub(now)
+
+    // ---- «Client from owner» (HQ `POST /admin/leads/owner`): a lead with source `owner`; the same `clientRef` answers with the same lead.
+    if (seg[0] === 'leads' && seg[1] === 'owner' && seg.length === 2) {
+      if (method !== 'POST') return bad('not_found')
+      const name = typeof body.name === 'string' ? body.name.trim() : ''
+      const need = typeof body.need === 'string' ? body.need.trim() : ''
+      if (!name || !need) return bad('invalid')
+      const ref = typeof body.clientRef === 'string' ? body.clientRef : ''
+      const known = ref ? ownerRefs.get(ref) : undefined
+      if (known) return ok({ id: known, leadId: known })
+      const id = Math.max(0, ...leads.map((l) => Number(l.id))) + 1
+      const links = Array.isArray(body.links) ? (body.links as unknown[]).filter((x): x is string => typeof x === 'string') : []
+      const contact = typeof body.contact === 'string' ? body.contact.trim() : ''
+      leads.unshift({ id, name, contact, service: '', niche: '', brief: need, budget: '', source: 'owner', temperature: 'warm', stage: 'new', nextAction: 'Sales is on it', estimateUsd: null, hasDomain: null, hasHosting: null, notes: links.length ? [{ at: iso(now), text: links.join('\n') }] : [], clientId: null, callAt: null, createdAt: iso(now), message: need })
+      if (ref) ownerRefs.set(ref, id)
+      return ok({ id, leadId: id })
+    }
 
     // ---- leads
     if (seg[0] === 'crm' && seg[1] === 'leads') {

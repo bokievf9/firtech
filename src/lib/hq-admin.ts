@@ -51,6 +51,17 @@ export const QUALITY_RATE = z
   })
   .strict()
 
+const ownerLink = z.string().trim().max(2000).regex(/^https?:\/\/[^\s]+$/i)
+const OWNER_CLIENT_BODY = z
+  .object({
+    name: z.string().trim().min(1).max(200),
+    contact: z.string().trim().max(200).optional(),
+    need: z.string().trim().min(1).max(4000),
+    links: z.array(ownerLink).max(10).optional(),
+    clientRef: z.string().trim().min(1).max(64).optional(),
+  })
+  .strict()
+
 export const ENDPOINTS: readonly Endpoint[] = [
   { method: 'GET', path: /^state$/ },
   { method: 'POST', path: /^ping$/, body: empty },
@@ -160,6 +171,8 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
       .strict()
       .refine((b) => (b.action === 'confirm' || b.action === 'cancel' ? b.at === undefined : b.at !== undefined), 'at only with book or reschedule'),
   },
+  // «Client from owner»: the owner hands HQ a client he found himself (strict: no unknown keys, http/https links only, `clientRef` makes a double click harmless).
+  { method: 'POST', path: /^leads\/owner$/, body: OWNER_CLIENT_BODY },
   { method: 'GET', path: /^crm\/clients\/[^/]+$/ },
   { method: 'GET', path: /^crm\/projects\/\d{1,12}$/ },
   {

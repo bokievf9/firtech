@@ -24,6 +24,8 @@ import {
   type Lead,
   type LeadStage,
 } from '@/lib/shell'
+import { OwnerClientButton } from './owner-client-dialog'
+import { isOwnerLead, ownerLeadNoContact } from '@/lib/owner-client'
 import { Kanban } from './kanban'
 import { LeadBreakdown } from './lead-breakdown'
 import { btn, btnPrimary, CopyButton, Empty, inputClass, Loading, Offline, Pills, useHqView, useHub } from '../hub/ui'
@@ -54,6 +56,12 @@ function LeadCard({ lead, now }: { lead: Lead; now: number }) {
       <span className="mt-0.5 block truncate text-xs text-muted">
         {[(k.services as Record<string, string>)[lead.service] ?? lead.service, money(lead.estimateUsd)].filter(Boolean).join(' · ') || k.noService}
       </span>
+      {isOwnerLead(lead) ? (
+        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span data-lead-badge="owner" className="rounded-full bg-fill-strong px-2 py-0.5 text-[11px] text-muted">{k.fromOwner}</span>
+          {ownerLeadNoContact(lead) ? <span data-lead-hint="no-contact" className="min-w-0 text-[11px] text-faint">{k.ownerNoContact}</span> : null}
+        </span>
+      ) : null}
       {lead.nextAction ? <span className="mt-1 block truncate text-xs text-accent-text">{lead.nextAction}</span> : null}
       {lead.stage === 'lost' && lead.lostReason ? <span className="mt-1 block truncate text-xs text-faint">{lead.lostReason}</span> : null}
     </>
@@ -121,7 +129,10 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3.5 p-3 sm:p-5">
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <Search value={q} onChange={setQ} placeholder={k.search} />
-        <p className="text-xs text-faint">{fill(k.count, { n: shown.length })}</p>
+        <div className="flex items-center gap-3">
+          <p className="text-xs text-faint">{fill(k.count, { n: shown.length })}</p>
+          <OwnerClientButton onDone={() => void feed.reload()} />
+        </div>
       </div>
       {services.length > 1 ? (
         <Pills
@@ -365,6 +376,12 @@ function LeadBody({ lead, onMove, onWrite, onCall, onClient, onDocuments }: Draw
               {k.noteAdd}
             </button>
           </section>
+          {isOwnerLead(lead) ? (
+            <p className="text-xs text-faint" data-lead-hint="owner">
+              {k.fromOwner}
+              {ownerLeadNoContact(lead) ? `. ${k.ownerNoContact}` : ''}
+            </p>
+          ) : null}
           {lead.source.startsWith('ref:') ? (
             <p className="flex items-center gap-1.5 text-xs text-faint">
               <ArrowSquareOut size={12} aria-hidden="true" /> {fill(k.fromRef, { slug: lead.source.slice(4) })}
