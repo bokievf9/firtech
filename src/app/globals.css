@@ -1491,3 +1491,190 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
     bottom: calc(max(1.5rem, calc(var(--fira-lift) + 0.75rem)) + 4.25rem);
   }
 }
+
+/* hero orbit: the 3D Fira with the seven products on an inclined ring (src/components/hero/hero-orbit.tsx).
+   Below lg the ring is a plain scrollable row. The ring, each card's counter-rotation (so it keeps facing
+   the viewer) and its dimming are CSS animations that share one duration; each card's phase is a negative
+   delay (--ph). Only transform and opacity move. */
+.orbit-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.orbit-stage {
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  container-type: inline-size;
+}
+.orbit-glow {
+  display: none;
+}
+.orbit-scene,
+.orbit-tilt {
+  display: contents;
+}
+.orbit-fira {
+  position: relative;
+  width: 12.5rem;
+  pointer-events: none;
+}
+.orbit-fira-box {
+  position: relative;
+  aspect-ratio: 1;
+  width: 100%;
+}
+.orbit-ring {
+  display: flex;
+  width: 100%;
+  gap: 0.625rem;
+  overflow-x: auto;
+  padding: 0.25rem 0.125rem 0.5rem;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  list-style: none;
+}
+.orbit-ring::-webkit-scrollbar {
+  display: none;
+}
+.orbit-item {
+  flex: none;
+  scroll-snap-align: start;
+}
+.orbit-card {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 1rem;
+  padding: 0.5rem 0.875rem;
+  /* seven moving blurred layers are costly: the solid twin of the material, no backdrop-filter */
+  background: var(--color-glass-strong);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.orbit-caption {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .orbit-wrap {
+    width: min(100%, 660px, calc(100dvh - 10.5rem));
+  }
+  .orbit-stage {
+    display: block;
+    aspect-ratio: 1;
+  }
+  .orbit-glow {
+    display: block;
+    position: absolute;
+    inset: 16%;
+    border-radius: 9999px;
+    background: radial-gradient(circle, var(--hero-glow), transparent 70%);
+  }
+  .orbit-scene {
+    display: block;
+    position: absolute;
+    inset: 0;
+    perspective: 1500px;
+  }
+  .orbit-tilt {
+    display: block;
+    position: absolute;
+    inset: 0;
+    transform: rotateX(-20deg);
+    transform-style: preserve-3d;
+  }
+  .orbit-fira {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 56cqw;
+    transform: translate(-50%, -50%) rotateX(20deg);
+  }
+  .orbit-ring {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: visible;
+    padding: 0;
+    transform-style: preserve-3d;
+  }
+  .orbit-item {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(9.5rem, 30cqw, 13rem);
+    transform: translate(-50%, -50%) rotateY(var(--th)) translateZ(43cqw);
+    transform-style: preserve-3d;
+  }
+  .orbit-card {
+    transform: rotateY(calc(var(--th) * -1)) rotateX(20deg);
+    transition: scale 0.25s var(--ease-out-quint, ease-out), border-color 0.2s;
+  }
+  .orbit-card:hover,
+  .orbit-card:focus-visible {
+    scale: 1.08;
+    border-color: var(--color-accent-text);
+  }
+  .orbit-caption {
+    display: block;
+    min-height: 1.5rem;
+    text-align: center;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .orbit-ring {
+    animation: orbit-spin 40s linear infinite;
+  }
+  .orbit-card {
+    animation-name: orbit-face, orbit-dim;
+    animation-duration: 40s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-delay: calc(var(--ph) * -40s);
+  }
+  .orbit-stage[data-paused='true'] .orbit-ring,
+  .orbit-stage[data-paused='true'] .orbit-card,
+  .orbit-stage[data-idle='true'] .orbit-ring,
+  .orbit-stage[data-idle='true'] .orbit-card {
+    animation-play-state: paused;
+  }
+  /* the card under the pointer or focus stays fully lit wherever it stopped */
+  .orbit-card:hover,
+  .orbit-card:focus-visible {
+    animation-name: orbit-face;
+  }
+}
+@keyframes orbit-spin {
+  to {
+    transform: rotateY(360deg);
+  }
+}
+@keyframes orbit-face {
+  from {
+    transform: rotateY(0deg) rotateX(20deg);
+  }
+  to {
+    transform: rotateY(-360deg) rotateX(20deg);
+  }
+}
+@keyframes orbit-dim {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  25%,
+  75% {
+    opacity: 0.62;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}

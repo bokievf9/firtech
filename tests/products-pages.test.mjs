@@ -146,7 +146,7 @@ test('product pages: the bento card has «Подробнее» to the page and t
   const bento = readFileSync('src/components/products/products-bento.tsx', 'utf8')
   assert.match(bento, /productPath\(id\)/)
   assert.match(bento, /t\.more/)
-  assert.match(readFileSync('src/components/hero/hero-sequence.tsx', 'utf8'), /products\/\$\{product\.id\}/)
+  assert.match(readFileSync('src/components/hero/hero-orbit.tsx', 'utf8'), /products\/\$\{p\.id\}/)
   for (const [, dict] of dicts) assert.ok(dict.products.more)
 })
 

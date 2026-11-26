@@ -102,13 +102,10 @@ test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minu
   const hero = read('src/components/hero/hero.tsx')
   assert.match(hero, /\/builder/)
   assert.match(hero, /ChatOpenButton/)
-  assert.match(hero, /GuaranteeLine/)
-  assert.match(hero, /dict\.sla\.short/)
-  assert.match(hero, /\/ai-team/)
-  // No product numbers in the sequence either.
-  const sequence = read('src/components/hero/hero-sequence.tsx')
-  assert.doesNotMatch(sequence, /padStart/)
-  assert.doesNotMatch(sequence, /copy\.of/)
+  assert.match(hero, /data-hero-facts/)
+  // No product numbers in the orbit either.
+  const orbit = read('src/components/hero/hero-orbit.tsx')
+  assert.doesNotMatch(orbit, /padStart/)
 })
 
 test('builder is «Сборка проекта» everywhere and the word «калькулятор» is gone', () => {
