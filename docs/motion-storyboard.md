@@ -58,7 +58,7 @@ States (all measured on the existing 24 px scroll threshold, `useMotionValueEven
 | State | Trigger | What moves | Duration / curve |
 |---|---|---|---|
 | top | scrollY <= 24 | clear bar; rail marker hidden on desktop except Fira at top tick; current-section label hidden | none |
-| scrolled | scrollY > 24 | `material-thick` opacity 0->1 (exists, 300 ms out-quint); logo wordmark stays; the nav links shrink via `transform: scale(.96)` on the link group? NO: no shrink (geometry stays). Instead the **current section label** fades in (see below) | label: 320 ms out-quint, translateY 6 px -> 0 |
+| scrolled | scrollY > 24 | `material-thick` opacity 0->1 (exists, 300 ms out-quint); logo and links stay as they are (no shrink, geometry never changes); the **current section label** fades in (see below) | label: 320 ms out-quint, translateY 6 px -> 0 |
 | scrolling down fast | velocity > 1200 px/s for 150 ms | bar stays; nothing hides (hiding the CTA hurts conversion). Rail marker gets `data-fast` which stretches the tail 0->8 px | 160 ms |
 | palette open | ⌘K / Ctrl+K / "/" (not inside input) | header material forced on, links dim to 40% opacity, palette sheet materializes below the bar (`materialize`, `spring.sheet`); focus trapped | open 420 ms spring, close 200 ms `fade` |
 | phone | < 1024 px | links live in the existing top Sheet; a 2 px progress line under the bar (see section 3) | sheet unchanged |
@@ -107,7 +107,7 @@ Home labels (RU / EN; no film words):
 - On home at lg the WebGL Fira keeps her own travel (film overlay); the rail marker is a small flat Fira and stays visible (two Firas is acceptable: the big one is the scene, the small one is the map). If the owner finds this noisy: hide the rail marker while the big Fira is in shot (open question 3).
 
 ### 3.3 Phone (< 1024 px)
-- A 2 px progress line directly under the header bar (replaces the current top-edge `ScrollProgress` which stays only as the line's fill): full-width track, fill `scaleX` from `scrollYProgress` of the **current section group**? No: whole-page progress, to be predictable.
+- A 2 px progress line directly under the header bar (it replaces the current top-edge `ScrollProgress`): full-width track, fill `scaleX` from whole-page `scrollYProgress`, which is predictable.
 - Ticks as 1 px gaps cut in the line at section boundaries (a CSS mask; no per-frame JS). Fira marker 18 px rides the leading edge of the fill (translateX = progress). Tap on the line opens the section sheet (the palette in bottom-sheet form, `Sheet side="bottom"`).
 - The sheet lists the sections with the active one marked; tapping scrolls smoothly (`scrollIntoView({behavior:'smooth'})`; instant under reduced motion) and closes.
 - No horizontal swipe gestures on the page body (conflicts with browser Back swipe).
@@ -119,7 +119,7 @@ Home labels (RU / EN; no film words):
 - Copy: placeholder «Куда перейти?» / "Where to?"; empty state «Ничего не нашли» / "Nothing found"; group titles «Эта страница», «Разделы сайта», «Действия» / "This page", "Pages", "Actions".
 
 ### 3.5 A11y
-- Rail: `<nav aria-label="Разделы страницы" / "Page sections">` containing an `<ol>` of `<a href="#id">`; active link has `aria-current="location"`; focus ring `outline-2 outline-accent-text offset-2`; the rail is in the tab order after the header, before `main`? No: after `main` content would be unreachable by keyboard quickly, so it goes right after the header and has a skip link «Перейти к разделам» that is not needed (it is 1 stop). The nav is a single tab stop; arrow Up/Down inside it moves between ticks (roving tabindex).
+- Rail: `<nav aria-label="Разделы страницы" / "Page sections">` containing an `<ol>` of `<a href="#id">`; active link has `aria-current="location"`; focus ring `outline-2 outline-accent-text offset-2`; the rail sits in the tab order right after the header and is a single tab stop (no skip link needed); arrow Up/Down inside it moves between ticks (roving tabindex).
 - The Fira marker and the progress line are `aria-hidden`; changes are announced through `aria-current` only (no live region chatter).
 - Palette: `role="dialog" aria-modal="true"`, combobox pattern for input + listbox, `aria-activedescendant`, focus trap (reuse `ui/sheet.tsx`), restore focus on close.
 - Target size: phone line tap area 44 px tall via padding, visual stays 2 px.
