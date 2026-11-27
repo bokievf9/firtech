@@ -2185,3 +2185,195 @@ html[data-fira-big] [data-rail-fira] {
     clip-path: none !important;
   }
 }
+
+/* ===== page transitions (T2) =====
+   docs/motion-storyboard.md section 4. React starts a browser view transition when the path changes
+   (components/nav-types.tsx). The page is the browser's own `root` snapshot (viewport-sized): it slides a few
+   pixels in the direction of the navigation and fades in, the old one stays opaque underneath so the page never
+   dips to the background (no plus-lighter blending). Header, rail, phone progress line, launcher and the phone bar
+   are named elements that keep their place. Direction comes from <html data-nav> (forward | back | sibling | fade),
+   set by PageTransition from the two pathnames. In 260 ms or less, never ease-in. */
+:root {
+  --pt-out: 0px;
+  --pt-in: 0px;
+  --pt-in-dur: 200ms;
+  --dur-fira: 300ms;
+}
+:root[data-nav='forward'] {
+  --pt-out: -12px;
+  --pt-in: 16px;
+  --pt-in-dur: var(--dur-page-in);
+}
+:root[data-nav='back'] {
+  --pt-out: 12px;
+  --pt-in: -16px;
+  --pt-in-dur: var(--dur-page-in);
+}
+:root[data-nav='sibling'] {
+  --pt-out: -6px;
+  --pt-in: 8px;
+  --pt-in-dur: var(--dur-page-in);
+}
+@keyframes pt-out {
+  to {
+    transform: translate3d(var(--pt-out), 0, 0);
+  }
+}
+@keyframes pt-in {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--pt-in), 0, 0);
+  }
+}
+@keyframes pt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+/* React starts every view transition with the page root switched off (inline `view-transition-name: none` on <html> and a
+   hidden root group), because it expects a <ViewTransition> boundary to carry the page. Here the root IS the page, so
+   both are overridden: `!important` beats the inline style and the animation that hides the group. */
+:root {
+  view-transition-name: root !important;
+}
+::view-transition-group(root) {
+  opacity: 1 !important;
+}
+::view-transition-old(root) {
+  animation: pt-out var(--dur-page-out) var(--ease-out-quint) both;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  animation: pt-in var(--pt-in-dur) var(--ease-out-quint) both;
+  mix-blend-mode: normal;
+}
+/* Persistent chrome: its own group above the page, never animated; an old snapshot would only flash. The names are
+   unique and each element exists once (a duplicate name makes the browser skip the whole transition). The Fira
+   marker in the rail has no name of its own: it is part of the rail group (the shared Fira is only the hero and the launcher face). */
+body > header {
+  view-transition-name: pt-header;
+  view-transition-class: pt-chrome;
+}
+.rail {
+  view-transition-name: pt-rail;
+  view-transition-class: pt-chrome;
+}
+[data-progress-line] {
+  view-transition-name: pt-progress;
+  view-transition-class: pt-chrome;
+}
+[data-cta='chat_fab'] {
+  view-transition-name: pt-launcher;
+  view-transition-class: pt-chrome;
+}
+[data-mobile-cta] {
+  view-transition-name: pt-mobile-cta;
+  view-transition-class: pt-chrome;
+}
+.rail-fira,
+[data-progress-fira] {
+  view-transition-name: none;
+}
+::view-transition-group(.pt-chrome) {
+  animation: none;
+  z-index: 10;
+}
+::view-transition-old(.pt-chrome) {
+  animation: none;
+  display: none;
+}
+::view-transition-new(.pt-chrome) {
+  animation: none;
+}
+/* The WebGL Fira of the home film (a canvas cannot join a DOM morph): it fades out at the start of the navigation. */
+.film-fira,
+.film-camera {
+  view-transition-class: pt-film;
+}
+.film-fira {
+  view-transition-name: pt-film-fira;
+}
+.film-camera {
+  view-transition-name: pt-film-camera;
+}
+::view-transition-group(.pt-film) {
+  animation: none;
+  z-index: 9;
+}
+::view-transition-old(.pt-film) {
+  animation: pt-fade-out 120ms var(--ease-out-quint) both;
+}
+::view-transition-new(.pt-film) {
+  animation: pt-fade-in 200ms var(--ease-out-quint) 60ms both;
+}
+.film-fira[data-leaving='true'] {
+  opacity: 0 !important;
+  transition: opacity 120ms var(--ease-out-quint);
+}
+/* Fira, the shared element: the hero's Fira becomes the launcher's face on the next page (and back). */
+::view-transition-group(.fira-morph) {
+  animation-duration: var(--dur-fira);
+  animation-timing-function: var(--ease-out-expo);
+  z-index: 30;
+}
+/* The language switch and the quiet, legal, cabinet, pay and demo pages fade; Fira does not travel there. */
+:root[data-nav='fade']::view-transition-group(.fira-morph) {
+  animation: none;
+}
+:root[data-nav='fade']::view-transition-old(.fira-morph) {
+  animation: none;
+  display: none;
+}
+:root[data-nav='fade']::view-transition-new(.fira-morph) {
+  animation: pt-fade-in var(--pt-in-dur) var(--ease-out-quint) both;
+}
+/* Reduced motion: every direction is a 150 ms fade, no slide, no Fira morph. */
+@media (prefers-reduced-motion: reduce) {
+  :root,
+  :root[data-nav] {
+    --pt-out: 0px !important;
+    --pt-in: 0px !important;
+    --pt-in-dur: 150ms !important;
+  }
+  ::view-transition-old(root) {
+    animation: none;
+  }
+  ::view-transition-new(root) {
+    animation: pt-fade-in 150ms linear both;
+  }
+  ::view-transition-group(.fira-morph) {
+    animation: none;
+  }
+  ::view-transition-old(.fira-morph) {
+    animation: none;
+    display: none;
+  }
+  ::view-transition-new(.fira-morph) {
+    animation: pt-fade-in 150ms linear both;
+  }
+  ::view-transition-old(.pt-film) {
+    animation-duration: 1ms;
+  }
+  ::view-transition-new(.pt-film) {
+    animation: none;
+  }
+}
+/* The loading ring of a route that waits for data fades out when the page arrives. */
+::view-transition-group(.pt-loading) {
+  animation: none;
+}
+::view-transition-old(.pt-loading) {
+  animation: pt-fade-out 120ms var(--ease-out-quint) both;
+}
+::view-transition-new(.pt-loading) {
+  animation: none;
+}
+/* A transition is a visual layer only: clicks go through to the live page. */
+::view-transition {
+  pointer-events: none;
+}

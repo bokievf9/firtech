@@ -48,6 +48,7 @@ export function MobileCta({
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 96, opacity: 0 }}
           transition={spring.sheet}
+          data-mobile-cta
           className="print-hidden material-thick fixed inset-x-3 bottom-3 z-40 flex gap-2 rounded-full p-1.5 sm:hidden"
           style={{ marginBottom: 'env(safe-area-inset-bottom)' }}
         >

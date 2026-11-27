@@ -126,6 +126,34 @@ export default function FilmOverlay({ copy }: { copy: FilmCopy }) {
     }
   }, [offX, offY, offW])
 
+  // Navigation start (docs/motion-storyboard.md section 4): a canvas cannot join the page's DOM morph, so this Fira
+  // fades out (120 ms) as soon as a link to another page is activated; the Fira of the hero is the shared element.
+  // If the navigation never happens she comes back. (Back/Forward swap the page at once, there is nothing to fade.)
+  useEffect(() => {
+    const el = box.current
+    if (!el) return
+    let timer = 0
+    const leave = () => {
+      el.dataset.leaving = 'true'
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => delete el.dataset.leaving, 1500)
+    }
+    const onClick = (e: MouseEvent) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+      const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null
+      if (!a || (a.target && a.target !== '_self') || a.hasAttribute('download')) return
+      const to = new URL(a.href, window.location.href)
+      if (to.origin !== window.location.origin || to.pathname === window.location.pathname) return
+      leave()
+    }
+    // Capture phase: Next's Link calls preventDefault on the click before it would bubble up here.
+    document.addEventListener('click', onClick, true)
+    return () => {
+      document.removeEventListener('click', onClick, true)
+      window.clearTimeout(timer)
+    }
+  }, [])
+
   // She is on screen: the flat marks fade out and the chat launcher steps aside.
   useEffect(() => {
     if (!ready) return

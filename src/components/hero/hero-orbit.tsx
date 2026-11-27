@@ -2,7 +2,7 @@
 
 import { ArrowRight } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, ViewTransition } from 'react'
 import { accessoriesFor } from '@/lib/fira/contexts'
 import { firaFace } from '@/lib/fira/face'
 import type { ProductId } from '@/lib/product-ids'
@@ -104,11 +104,16 @@ export function HeroOrbit({ locale, products, label, ring, hello, note }: { loca
                   </p>
                 ) : null}
 
-                {live ? (
-                  <FiraTurtle7 variant={firaFace} acc={acc} emotion="idle" size={360} label={label} style={{ width: '100%', height: '100%' }} />
-                ) : (
-                  <FiraFlat emotion="idle" context="home" className="relative block size-full" />
-                )}
+                {/* The shared element of the page transition (docs/motion-storyboard.md section 4): this Fira morphs into the launcher's face on the next page. */}
+                <ViewTransition name="fira" share="fira-morph" default="none">
+                  <div className="absolute inset-0">
+                    {live ? (
+                      <FiraTurtle7 variant={firaFace} acc={acc} emotion="idle" size={360} label={label} style={{ width: '100%', height: '100%' }} />
+                    ) : (
+                      <FiraFlat emotion="idle" context="home" className="relative block size-full" />
+                    )}
+                  </div>
+                </ViewTransition>
               </div>
             </div>
             <ol aria-label={ring} className="orbit-ring">

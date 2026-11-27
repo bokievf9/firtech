@@ -7,6 +7,7 @@ import { Header } from '@/components/header'
 import { MobileCta } from '@/components/mobile-cta'
 import { NavLayer } from '@/components/nav/nav-layer'
 import { MotionProvider } from '@/components/motion-provider'
+import { PageTransition } from '@/components/nav-types'
 import { PricingProvider } from '@/components/pricing-provider'
 import { ThemeInit } from '@/components/theme-init'
 import { RefLinks } from '@/components/ref-links'
@@ -70,6 +71,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   return (
     <html
       lang={locale}
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`site ${onest.variable} ${jetbrains.variable} ${unbounded.variable} ${geologica.variable}`}
     >
@@ -93,7 +95,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
             <Header locale={locale} dict={dict} cabinet={cabinet} />
             <NavLayer locale={locale} dict={dict} />
             <main id="main" tabIndex={-1} className="outline-none">
-              {children}
+              <PageTransition>{children}</PageTransition>
             </main>
             <Footer locale={locale} dict={dict} cabinet={cabinet} />
             <MobileCta locale={locale} label={dict.nav.cta} />

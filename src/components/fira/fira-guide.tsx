@@ -2,7 +2,7 @@
 
 import { ChatCircleDots, Compass, Hammer, MapTrifold, SpeakerHigh, SpeakerSlash, X } from '@phosphor-icons/react'
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, ViewTransition } from 'react'
 import type { Dict } from '@/content'
 import { accessoriesFor } from '@/lib/fira/contexts'
 import { firaFace } from '@/lib/fira/face'
@@ -668,9 +668,15 @@ export function FiraGuide({
         data-fira-context={context || 'none'}
         className={`print-hidden glass fixed right-3 fira-dock z-30 inline-flex h-14 items-center gap-2.5 rounded-full px-2 text-sm font-medium sm:pr-5 sm:pl-2 lg:max-[1399px]:pr-2 text-fg transition-[transform,opacity] duration-300 ease-out-quint hover:-translate-y-0.5 active:scale-[0.97] sm:right-6 ${hidden}`}
       >
-        <span className="relative grid size-11 place-items-center">
-          <FiraStage variant="widget" size={44} acc={acc} emotion={emotion} interactive={false} disable3d={home || film} className="block" />
-        </span>
+        {/* The companion mark of the page transition (docs/motion-storyboard.md section 4): named only off the home page,
+            where the hero's own Fira carries the same name, so exactly one element holds it at a time. The key remounts
+            the boundary (not the launcher) when the visitor crosses that line: React pairs a VT that unmounts with one that
+            mounts, but warns and skips the transition when a mounted VT changes its name to one that is still taken. */}
+        <ViewTransition key={home ? 'home' : 'page'} name={home ? undefined : 'fira'} share="fira-morph" default="none">
+          <span className="relative grid size-11 place-items-center">
+            <FiraStage variant="widget" size={44} acc={acc} emotion={emotion} interactive={false} disable3d={home || film} className="block" />
+          </span>
+        </ViewTransition>
         <span className="hidden sm:inline lg:max-[1399px]:hidden">{g.launcher}</span>
       </button>
     </>
