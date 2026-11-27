@@ -26,7 +26,7 @@ export function StepBar({
 }) {
   return (
     <div className="material-thick sticky top-16 z-30 rounded-none border-x-0 border-t-0 md:top-[72px]">
-      <div className="mx-auto max-w-7xl px-4 pt-3 pb-2.5 md:px-8 md:pt-4">
+      <div className="mx-auto site-container pt-3 pb-2.5 md:pt-4">
         <div className="flex items-baseline justify-between gap-4">
           <h1 className="truncate text-callout font-medium">
             <span className="mr-2 text-caption font-medium text-accent-text">
@@ -116,7 +116,7 @@ export function BottomNav({
           className="print-hidden material-thick fixed inset-x-0 bottom-0 z-40 rounded-none border-x-0 border-b-0"
           style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
         >
-          <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-3 md:gap-4 md:px-8">
+          <div className="mx-auto flex site-container items-center gap-2 py-3 md:gap-4">
             <Button
               variant="secondary"
               onClick={onBack}

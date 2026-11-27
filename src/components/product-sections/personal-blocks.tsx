@@ -28,7 +28,7 @@ export function PersonalHero({ ctx }: { ctx: ProductSectionContext }) {
   const Glyph = productIcons.personal
   const hero = page.heroCta!
   return (
-    <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12" data-product-section="hero">
+    <section className="mx-auto grid site-container items-center gap-10 pt-32 pb-16 md:pt-40 lg:grid-cols-12" data-product-section="hero">
       <HeroIntro className="lg:col-span-7">
         <Badge tone="glass" className="gap-2">
           <Glyph size={14} aria-hidden="true" />

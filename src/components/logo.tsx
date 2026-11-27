@@ -14,7 +14,7 @@ export function LogoMark({ className }: { className?: string }) {
 export function Logo({ className }: { className?: string }) {
   return (
     <span
-      className={cn('font-brand text-[20px] leading-none font-bold tracking-[-0.05em]', className)}
+      className={cn('font-brand text-[1.25rem] leading-none font-bold tracking-[-0.05em]', className)}
     >
       <span className="sr-only">Fir Tech</span>
       <span aria-hidden="true">

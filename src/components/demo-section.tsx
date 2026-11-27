@@ -23,7 +23,7 @@ export function DemoSection({ dict, locale }: { dict: Dict; locale: Locale }) {
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(55%_60%_at_75%_30%,var(--demo-glow),transparent_70%)]"
       />
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
+      <div className="mx-auto site-container">
         <SectionHeader eyebrow={d.eyebrow} title={d.title} lead={d.sub} />
         <div className="mt-10">
           <DemoTabs dict={dict} locale={locale} names={names} buildHrefs={buildHrefs} />

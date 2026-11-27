@@ -57,7 +57,7 @@ export function AgentExplorer({
         role="tabpanel"
         id={tabPanelId(base, team)}
         aria-labelledby={tabId(base, team)}
-        className="mt-6 grid grid-cols-1 gap-gutter sm:grid-cols-2 xl:grid-cols-3"
+        className="mt-6 grid grid-cols-1 gap-gutter sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4"
       >
         {shown.map((c) => (
           <li key={c.id}>{c.node}</li>

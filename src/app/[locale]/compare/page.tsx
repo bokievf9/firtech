@@ -57,7 +57,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
 
   return (
     <>
-      <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
+      <section className="mx-auto site-container pt-32 pb-12 md:pt-40 md:pb-16">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
           <h1 className="mt-5 max-w-[20ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
@@ -67,7 +67,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
         </HeroIntro>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-12 md:px-8">
+      <section className="mx-auto site-container pb-12">
         {/* Wide screens: a real table. Phones: one card per row with the three options inside. */}
         <div className="hidden overflow-hidden rounded-card border border-line md:block">
           <table className="w-full border-collapse text-left text-[15px] leading-relaxed">
@@ -128,7 +128,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
         <p className="mt-6 max-w-[70ch] text-sm leading-relaxed text-faint">{t.note}</p>
       </section>
 
-      <section id="contrast" className="mx-auto max-w-7xl scroll-mt-28 px-4 pb-16 md:px-8">
+      <section id="contrast" className="mx-auto site-container scroll-mt-28 pb-16">
         <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.contrast.title}</h2>
         <p className="mt-3 max-w-[60ch] leading-relaxed text-muted">{t.contrast.sub}</p>
         <ul className="mt-8 grid gap-4">
@@ -161,7 +161,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
         </ul>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-28 md:px-8">
+      <section className="mx-auto site-container pb-28">
         <div className="flex flex-col items-start gap-6 rounded-card border border-accent-text/30 p-6 md:flex-row md:items-center md:justify-between md:p-10">
           <p className="font-display text-2xl font-semibold md:text-3xl">{t.ctaTitle}</p>
           <div className="flex flex-wrap gap-3">

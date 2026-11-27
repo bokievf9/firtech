@@ -91,7 +91,7 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
     <>
       <JsonLd data={service} />
 
-      <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12">
+      <section className="mx-auto grid site-container items-end gap-12 pt-32 pb-16 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-7">
           <Link href={`/${locale}/ai-team#agents`} className="inline-flex items-center gap-2 text-callout text-muted transition-colors hover:text-fg">
             <ArrowLeft size={14} aria-hidden="true" />
@@ -153,7 +153,7 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
 
       <Section className="pt-0">
         <div className="grid gap-gutter lg:grid-cols-12">
-          <Reveal className="lg:col-span-7">
+          <Reveal className="lg:col-span-7 3xl:col-span-6">
             <Card className="h-full">
               <h2 className="text-title-3 font-semibold">{ta.page.whatTitle}</h2>
               <ul className="mt-4 grid gap-3">
@@ -166,7 +166,7 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
               </ul>
             </Card>
           </Reveal>
-          <Reveal delay={0.1} className="lg:col-span-5">
+          <Reveal delay={0.1} className="lg:col-span-5 3xl:col-span-6">
             <Card tone="accent" className="h-full">
               <h2 className="text-title-3 font-semibold">{ta.page.trustTitle}</h2>
               <dl className="mt-5 grid gap-5">
@@ -269,7 +269,7 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
       </Section>
 
       {siblings.length > 0 && (
-        <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8" aria-label={ta.page.othersTitle}>
+        <nav className="mx-auto site-container pb-24" aria-label={ta.page.othersTitle}>
           <h2 className="text-headline font-semibold">{ta.page.othersTitle}</h2>
           <ul className="mt-4 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
             {siblings.map((other) => (

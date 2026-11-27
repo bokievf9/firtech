@@ -13,7 +13,7 @@ import { Reveal } from './reveal'
 export function FaqContact({ dict, locale }: { dict: Dict; locale: Locale }) {
   const t = dict.askStrip
   return (
-    <section id="faq" className="relative mx-auto max-w-7xl scroll-mt-24 px-4 py-section md:px-8">
+    <section id="faq" className="relative mx-auto site-container scroll-mt-24 py-section">
       <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
         <Reveal className="lg:col-span-4">
           <h2 className="font-display text-title font-semibold">{dict.faq.title}</h2>

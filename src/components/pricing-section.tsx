@@ -12,7 +12,7 @@ export async function PricingSection({ dict, locale }: { dict: Dict; locale: str
   const h = dict.pricingHome
   const pricing = await getPricing()
   return (
-    <section id="pricing" data-fira-react="pricing" className="mx-auto max-w-7xl px-4 py-section md:px-8">
+    <section id="pricing" data-fira-react="pricing" className="mx-auto site-container py-section">
       <div className={'grid gap-gutter lg:grid-cols-12 lg:items-stretch'}>
         <Reveal className={'lg:col-span-7 lg:self-center'}>
           <p className="mb-4 text-footnote font-medium text-accent-text">{h.eyebrow}</p>

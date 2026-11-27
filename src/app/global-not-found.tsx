@@ -19,7 +19,7 @@ export default function GlobalNotFound() {
     <html lang="ru" className={`site ${onest.variable} ${jetbrains.variable} ${unbounded.variable} ${geologica.variable}`}>
       <body className="grain min-h-[100dvh]">
         <header className="fixed inset-x-0 top-0 z-40">
-          <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:h-[72px] md:px-8">
+          <div className="mx-auto flex h-16 site-container items-center justify-between md:h-[72px]">
             <Link href="/ru" aria-label="Fir Tech">
               <Logo />
             </Link>

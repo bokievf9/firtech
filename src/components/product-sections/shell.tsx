@@ -38,7 +38,7 @@ export function SectionShell({
   className?: string
 }) {
   const inner = (
-    <div className={cn('mx-auto max-w-7xl px-4 py-section md:px-8', className)}>
+    <div className={cn('mx-auto site-container py-section', className)}>
       <Reveal>
         <h2 id={`ps-${id}`} className="max-w-[24ch] font-display text-title font-semibold text-balance">
           {title}

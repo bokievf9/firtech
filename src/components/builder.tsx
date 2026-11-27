@@ -446,7 +446,7 @@ export function Builder({ dict, locale }: { dict: Dict; locale: Locale }) {
         onGo={go}
       />
 
-      <div className="mx-auto min-h-[calc(100dvh-10rem)] max-w-7xl overflow-x-clip px-4 pt-10 pb-36 md:px-8 md:pt-14 md:pb-40">
+      <div className="mx-auto min-h-[calc(100dvh-10rem)] site-container overflow-x-clip pt-10 pb-36 md:pt-14 md:pb-40">
         <AnimatePresence mode="wait" initial={false} custom={dir}>
           <motion.div
             key={step}

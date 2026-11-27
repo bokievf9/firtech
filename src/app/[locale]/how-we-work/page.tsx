@@ -51,7 +51,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
 
   return (
     <>
-      <section className="mx-auto max-w-7xl px-4 pt-32 pb-16 md:px-8 md:pt-40 md:pb-20">
+      <section className="mx-auto site-container pt-32 pb-16 md:pt-40 md:pb-20">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
           <h1 className="mt-5 max-w-[18ch] font-display text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
@@ -72,7 +72,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
       </section>
 
       <section className="border-y border-line bg-surface/40" aria-labelledby="stages">
-        <div className="mx-auto max-w-7xl px-4 py-section md:px-8">
+        <div className="mx-auto site-container py-section">
           <Reveal>
             <h2 id="stages" className="font-display text-title font-semibold">
               {t.stagesTitle}
@@ -103,7 +103,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-gutter px-4 py-section md:grid-cols-2 md:px-8">
+      <section className="mx-auto grid site-container gap-gutter py-section md:grid-cols-2">
         <Reveal>
           <div className="h-full rounded-card border border-line p-6 md:p-8">
             <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.acceptanceTitle}</h2>
@@ -133,7 +133,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
       </section>
 
       <section className="border-y border-line bg-surface/40">
-        <div className="mx-auto grid max-w-7xl gap-gutter px-4 py-section md:grid-cols-2 md:px-8">
+        <div className="mx-auto grid site-container gap-gutter py-section md:grid-cols-2">
           <Reveal>
             <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.guaranteeTitle}</h2>
             <GuaranteeLine dict={dict} locale={locale} pricing={pricing} className="mt-6 max-w-[52ch]" />
@@ -156,7 +156,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-gutter px-4 py-section md:px-8 lg:grid-cols-12">
+      <section className="mx-auto grid site-container gap-gutter py-section lg:grid-cols-12">
         <Reveal className="lg:col-span-7">
           <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.toolsTitle}</h2>
           <p className="mt-4 max-w-[56ch] leading-relaxed text-muted">{t.toolsText}</p>
@@ -177,7 +177,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
         </Reveal>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-section md:px-8">
+      <section className="mx-auto site-container pb-section">
         <Reveal>
           <div className="rounded-card border border-line bg-surface p-6 md:p-10">
             <h2 className="font-display text-3xl font-semibold tracking-tight md:text-4xl">{t.ctaTitle}</h2>

@@ -78,7 +78,7 @@ export function Header({
     <header className="print-hidden fixed inset-x-0 top-0 z-40 px-2 pt-2 md:px-3 md:pt-3">
       <ScrollProgress />
       <div
-        className="relative mx-auto flex h-14 max-w-6xl items-center justify-between rounded-full pr-2 pl-5"
+        className="relative mx-auto flex h-14 max-w-6xl items-center 2xl:max-w-[84rem] 3xl:h-16 3xl:max-w-[96rem] 4xl:max-w-[94rem] justify-between rounded-full pr-2 pl-5 3xl:pr-3 3xl:pl-7"
       >
         {/* The material: fades in behind the bar once the page scrolls (opacity only). */}
         <span
@@ -99,7 +99,7 @@ export function Header({
         </Link>
 
         <nav
-          className="hidden items-center lg:flex"
+          className="hidden items-center lg:flex 3xl:gap-1"
           aria-label={dict.nav.menu}
           onPointerLeave={() => setHovered(null)}
         >
@@ -110,7 +110,7 @@ export function Header({
               onPointerEnter={() => setHovered(link.href)}
               onFocus={() => setHovered(link.href)}
               onBlur={() => setHovered(null)}
-              className="relative rounded-full px-3.5 py-2 text-callout text-muted transition-colors hover:text-fg focus-visible:text-fg"
+              className="relative rounded-full px-3.5 py-2 text-callout whitespace-nowrap text-muted 3xl:px-4 transition-colors hover:text-fg focus-visible:text-fg"
             >
               {hovered === link.href ? (
                 <motion.span
@@ -125,7 +125,7 @@ export function Header({
           ))}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 3xl:gap-3">
           {cabinet && (
             <Link
               href={`/${locale}/cabinet`}

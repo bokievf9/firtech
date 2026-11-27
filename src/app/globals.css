@@ -13,6 +13,9 @@
   the type scale with its optical sizes and the motion rules. Primitives: src/components/ui/.
 */
 @theme static {
+  /* Wide tiers (public site): 3xl from 1920px, 4xl from 2400px. 2xl stays Tailwind's 1536px. */
+  --breakpoint-3xl: 120rem;
+  --breakpoint-4xl: 150rem;
   --color-bg: #ffffff;
   --color-surface: #f6f7f4;
   --color-surface-2: #eceee7;
@@ -120,13 +123,13 @@
     Type scale (stage A). text-display is the hero only; text-title for section titles, text-lead
     for the line under a title. Fluid between 360px and 1440px, tight leading and tracking at size.
   */
-  --text-display: clamp(2.55rem, 1.15rem + 5.6vw, 6.4rem);
+  --text-display: clamp(2.55rem, 1.15rem + 5.6vw, 7.5rem);
   --text-display--line-height: 0.96;
   --text-display--letter-spacing: -0.048em;
-  --text-title: clamp(2rem, 1.35rem + 2.4vw, 3.5rem);
+  --text-title: clamp(2rem, 1.35rem + 2.4vw, 4rem);
   --text-title--line-height: 1.04;
   --text-title--letter-spacing: -0.035em;
-  --text-lead: clamp(1.05rem, 0.98rem + 0.35vw, 1.3rem);
+  --text-lead: clamp(1.05rem, 0.98rem + 0.35vw, 1.4rem);
   --text-lead--line-height: 1.55;
   --text-micro: 0.6875rem;
   --text-micro--line-height: 1.3;
@@ -206,6 +209,13 @@
   --hero-card-bg: linear-gradient(160deg, rgb(236 245 220 / 0.9), rgb(255 255 255 / 0.96) 55%);
   --hero-glow: rgb(198 255 61 / 0.35);
   --demo-glow: rgb(198 255 61 / 0.22);
+}
+
+/* The one page container: centred, tiered max width and side padding (see html.site above). */
+@utility site-container {
+  margin-inline: auto;
+  max-width: var(--site-max, 80rem);
+  padding-inline: var(--site-pad, 1rem);
 }
 
 @utility shadow-card {
@@ -430,11 +440,41 @@
   /*
     Big screens (public site only, html.site): the root size grows from 16px at 1440 to about
     19.5px at 2560, so rem-based type and spacing scale with the viewport, and the page container
-    (every max-w-7xl) grows from 1280px to 1760px instead of leaving bars on the sides.
+    (every .site-container) grows from 1280px to 1760px instead of leaving bars on the sides.
   */
   html.site {
     font-size: clamp(100%, 0.55rem + 0.42vw, 125%);
-    --container-7xl: clamp(80rem, 736px + 40vw, 1760px);
+    /* Page container tiers: up to 1535px it grows with the viewport as before; 2xl 1440px with 48px
+       sides, 3xl 1680px with 64px, 4xl 1840px. .site-container reads these two variables. */
+    --site-max: clamp(80rem, 736px + 40vw, 1760px);
+    --site-pad: 1rem;
+    --container-7xl: var(--site-max);
+    /* The hero scene (orbit) size: rem, so it grows with the fluid root; wider tiers get more. */
+    --orbit-size: 41.25rem;
+  }
+  @media (min-width: 48rem) {
+    html.site {
+      --site-pad: 2rem;
+    }
+  }
+  @media (min-width: 96rem) {
+    html.site {
+      --site-max: 1440px;
+      --site-pad: 3rem;
+    }
+  }
+  @media (min-width: 120rem) {
+    html.site {
+      --site-max: 1680px;
+      --site-pad: 4rem;
+      --orbit-size: 48.5rem;
+    }
+  }
+  @media (min-width: 150rem) {
+    html.site {
+      --site-max: 1840px;
+      --orbit-size: 51rem;
+    }
   }
 
   h2 {
@@ -1564,7 +1604,7 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
 
 @media (min-width: 1024px) {
   .orbit-wrap {
-    width: min(100%, 660px, calc(100dvh - 10.5rem));
+    width: min(100%, var(--orbit-size, 41.25rem), calc(100dvh - 10.5rem));
   }
   .orbit-stage {
     display: block;
@@ -1581,7 +1621,7 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
     display: block;
     position: absolute;
     inset: 0;
-    perspective: 1500px;
+    perspective: 93.75rem;
   }
   .orbit-tilt {
     display: block;

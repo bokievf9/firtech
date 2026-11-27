@@ -35,7 +35,7 @@ export function CatalogPicker({
   onClear,
   initial = 9,
   step = 12,
-  cols = 'sm:grid-cols-2 lg:grid-cols-3',
+  cols = 'sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4',
   testId,
 }: {
   locale: string

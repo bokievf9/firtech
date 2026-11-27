@@ -40,7 +40,7 @@ export default async function AuditPage({ params }: PageProps<'/[locale]/audit'>
   const t = dict.auditPage
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-12 px-4 pt-32 pb-28 md:px-8 md:pt-40 lg:grid-cols-12 lg:gap-10">
+    <section className="mx-auto grid site-container gap-12 pt-32 pb-28 md:pt-40 lg:grid-cols-12 lg:gap-10">
       <div className="lg:col-span-5">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>

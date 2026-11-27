@@ -102,7 +102,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
     <>
       <JsonLd data={service} />
 
-      <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12">
+      <section className="mx-auto grid site-container items-end gap-12 pt-32 pb-20 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-8">
           <Link
             href={`/${locale}/solutions`}
@@ -149,7 +149,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
       </section>
 
       <section className="border-y border-line bg-surface/40">
-        <div className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28">
+        <div className="mx-auto site-container py-20 md:py-28">
           <RiseText
             text={t.problemsTitle}
             className="max-w-[22ch] text-3xl font-semibold tracking-[-0.03em] md:text-5xl"
@@ -183,7 +183,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28">
+      <section className="mx-auto site-container py-20 md:py-28">
         <RiseText
           text={t.setTitle}
           className="text-3xl font-semibold tracking-[-0.03em] md:text-5xl"
@@ -221,7 +221,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
       </section>
 
       <section className="border-y border-line bg-surface/40" aria-labelledby="solution-stages">
-        <div className="mx-auto max-w-7xl px-4 py-20 md:px-8 md:py-28">
+        <div className="mx-auto site-container py-20 md:py-28">
           <RiseText
             text={t.stagesTitle}
             className="text-3xl font-semibold tracking-[-0.03em] md:text-5xl"
@@ -272,7 +272,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
         </div>
       </section>
 
-      <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8" aria-label={t.othersTitle}>
+      <nav className="mx-auto site-container pb-24" aria-label={t.othersTitle}>
         <h2 className="text-xl font-semibold tracking-tight">{t.othersTitle}</h2>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {allSolutionKinds

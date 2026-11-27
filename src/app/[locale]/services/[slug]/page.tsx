@@ -175,7 +175,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
       </section>
 
       <section className="border-y border-line bg-surface/40">
-        <div className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32">
+        <div className="mx-auto site-container py-24 md:py-32">
           <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
             <RiseText text={t.included} className={cn(sectionTitle, 'lg:col-span-6')} />
             <Reveal delay={0.1} className="lg:col-span-6">
@@ -214,7 +214,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32">
+      <section className="mx-auto site-container py-24 md:py-32">
         <RiseText text={t.variants} className={sectionTitle} />
         <ServiceVariants
           service={slug}
@@ -234,7 +234,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
       </div>
 
       <section className="border-y border-line bg-surface/40">
-        <div className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-32">
+        <div className="mx-auto site-container py-24 md:py-32">
           <RiseText text={t.concepts} className={sectionTitle} />
           <Reveal delay={0.15}>
             <p className="mt-5 max-w-[60ch] text-lg leading-relaxed text-muted">{t.conceptsSub}</p>
@@ -243,7 +243,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
         </div>
       </section>
 
-      <section id="pricing" data-fira-react="pricing" className="mx-auto max-w-7xl px-4 py-section md:px-8" aria-labelledby="service-price">
+      <section id="pricing" data-fira-react="pricing" className="mx-auto site-container py-section" aria-labelledby="service-price">
         <Reveal>
           <h2 id="service-price" className="font-display text-title font-semibold">
             {t.priceTitle}
@@ -279,7 +279,7 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
         </Reveal>
       </section>
 
-      <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8 md:pb-32" aria-label={t.others}>
+      <nav className="mx-auto site-container pb-24 md:pb-32" aria-label={t.others}>
         <RiseText
           text={t.others}
           className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl"

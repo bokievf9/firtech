@@ -57,7 +57,7 @@ export function EstimateSheet({ dict, locale }: { dict: Dict; locale: string }) 
 
   if (!state.build) {
     return (
-      <section className="mx-auto flex min-h-[80dvh] max-w-7xl flex-col items-start justify-center px-4 pt-24 md:px-8">
+      <section className="mx-auto flex min-h-[80dvh] site-container flex-col items-start justify-center pt-24">
         <h1 className="text-4xl font-semibold tracking-[-0.03em] md:text-5xl">{t.emptyTitle}</h1>
         <p className="mt-4 max-w-[52ch] text-lg text-muted">{t.emptyText}</p>
         <Link href={builderHref} className={cn(buttonStyles.primary, 'mt-8')}>
