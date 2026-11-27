@@ -20,31 +20,31 @@ Principles (apple-design, emil-design-eng, animate):
 1. Motion explains where you are and what changed; if it explains nothing, it is cut (gate in section 5).
 2. Only `transform`, `opacity` and (rarely) `filter`/`clip-path` move. Never width, height, top, left.
 3. All text is in server HTML from the first paint. Motion reveals it, never creates it. No text in canvas.
-4. Entrances ease out, exits are shorter than entrances (about 60%), nothing UI-level exceeds 700 ms except a scrubbed scene.
-5. Everything interruptible: springs for gesture/UI, CSS transitions for state, no keyframes that cannot be reversed mid-flight.
+4. Entrances ease out, exits are shorter than entrances (about 60%). UI motion (header, rail, palette, page change, pressed states) stays under 300 ms; only explanatory marketing reveals and scrubbed scenes may run to 700 ms. Nothing enters from `scale(0)`: start at `scale(0.95)` or more plus `opacity: 0`.
+5. Everything interruptible: springs (damping 1.0, start from the live on-screen value) for position/gesture, CSS transitions (not keyframes) for anything that can be triggered twice in a second, scrubbed motion is reversible by construction. Frequency gate first: keyboard-initiated and 100+/day actions get NO animation.
 6. One pass: reveals play once per visit of a page (`once`), scrubbed things follow the scroll both ways.
 7. Hover only behind `@media (hover: hover)`; touch gets pressed states.
 8. Scroll is never hijacked: no Lenis, no wheel capture, no snap on the page body. Native scroll, native anchors, find-in-page and Back keep working.
-9. Reduced motion: plain stacked sections, no parallax/scrub/pin, transitions become a 150 ms fade, the rail still navigates.
+9. Reduced motion: plain stacked sections, no parallax/scrub/pin, transitions become a 150 ms fade, the rail still navigates. Reduced transparency: glass becomes solid (section 5.3). Hover effects only under `@media (hover: hover) and (pointer: fine)`.
 10. Sound is off by default and never the only carrier of information.
 
 Tokens: extend, do not fork. Add to `src/lib/motion.ts` and `globals.css` (T1):
 
 | Token | Value | Use |
 |---|---|---|
-| `spring.ui` (exists) | bounce 0, 0.4 s | rail marker, palette, header morph |
-| `spring.snappy` (exists) | bounce 0, 0.28 s | toggles, pressed states, rail ticks |
-| `spring.sheet` (exists) | bounce 0.12, 0.42 s | palette open, mobile sheet |
-| `spring.momentum` (exists) | bounce 0.22, 0.45 s | only after a flick/drag (rail drag on phone) |
+| `spring.ui` (exists) | bounce 0, 0.4 s (Apple: damping 1.0, response 0.4) | rail marker, Fira marker, tab-like pills |
+| `spring.snappy` (exists) | bounce 0, 0.28 s (damping 1.0, response 0.28) | toggles, pressed states, rail ticks |
+| `spring.sheet` (exists) | bounce 0.12, 0.42 s (damping ~0.88, response 0.3-0.4) | phone section sheet, mobile menu (NOT the desktop palette: it is keyboard-opened, instant) |
+| `spring.momentum` (exists) | bounce 0.22, 0.45 s (damping ~0.8) | only after a flick/drag release; this storyboard has none, listed for completeness |
 | NEW `spring.flight` | bounce 0.15, 0.9 s | Fira travelling (value already in `film-overlay.tsx` as `flight`; move it here and import) |
 | `reveal` (exists) | 0.6 s, out-expo | section reveals, translate 24 px max |
 | `staggerStep` (exists) | 0.05 s | lists, max 6 children staggered, rest appear together |
 | NEW `dur.micro / dur.base / dur.scene` | 160 / 320 / 700 ms | CSS transitions (header, rail labels, scene reveals) |
-| NEW `dur.page` | out 380 ms, in 480 ms | page transition (section 4) |
+| NEW `dur.page` | out 160 ms, in 260 ms | page transition (section 4): navigation is frequent, so UI-fast, under 300 ms |
 | NEW `dur.cold` | 1800 ms total | cold open (section 6) |
 | Easings (exist) | `--ease-out-expo`, `--ease-out-quint`, `--ease-in-out-soft`, `--ease-drawer` | entrances, state changes, scrubbed timelines, sheets |
 
-CSS vars to add in `globals.css` `:root`: `--dur-micro: 160ms; --dur-base: 320ms; --dur-scene: 700ms; --dur-page-out: 380ms; --dur-page-in: 480ms;`
+CSS vars to add in `globals.css` `:root`: `--dur-micro: 160ms; --dur-base: 320ms; --dur-scene: 700ms; --dur-page-out: 160ms; --dur-page-in: 260ms;`
 and the scroll-driven helper `--scene-range: entry 10% cover 45%`. No new easing curves.
 
 ## 2. Hybrid header
@@ -58,19 +58,18 @@ States (all measured on the existing 24 px scroll threshold, `useMotionValueEven
 | State | Trigger | What moves | Duration / curve |
 |---|---|---|---|
 | top | scrollY <= 24 | clear bar; rail marker hidden on desktop except Fira at top tick; current-section label hidden | none |
-| scrolled | scrollY > 24 | `material-thick` opacity 0->1 (exists, 300 ms out-quint); logo and links stay as they are (no shrink, geometry never changes); the **current section label** fades in (see below) | label: 320 ms out-quint, translateY 6 px -> 0 |
-| scrolling down fast | velocity > 1200 px/s for 150 ms | bar stays; nothing hides (hiding the CTA hurts conversion). Rail marker gets `data-fast` which stretches the tail 0->8 px | 160 ms |
-| palette open | ⌘K / Ctrl+K / "/" (not inside input) | header material forced on, links dim to 40% opacity, palette sheet materializes below the bar (`materialize`, `spring.sheet`); focus trapped | open 420 ms spring, close 200 ms `fade` |
-| phone | < 1024 px | links live in the existing top Sheet; a 2 px progress line under the bar (see section 3) | sheet unchanged |
+| scrolled | scrollY > 24 | `material-thick` opacity 0->1 (exists, 300 ms out-quint); logo and links stay as they are (no shrink, geometry never changes); the **current section label** fades in (see below) | label: opacity only, 200 ms `--ease-out-quint` |
+| scrolling down fast | any | bar stays; nothing hides (hiding the CTA hurts conversion). No velocity effects (rejected: stretch/tail on the marker, decoration on a tens-per-session element) | n/a |
+| palette open | ⌘K / Ctrl+K / "/" (not inside input) | header material forced on; the palette appears **instantly** (keyboard-initiated, 100+/day for power users: no open/close animation, same as Raycast); focus trapped | 0 ms; only the backdrop dim is a 120 ms opacity transition (disabled under reduced motion) |
+| phone | < 1024 px | links live in the existing top Sheet (unchanged); a 2 px progress line under the bar (section 3); the sound toggle is an item in this menu | sheet unchanged |
 
 Current-section label (morph): a small mono text (`font-mono text-[11px]`) between the nav and the right group on
 lg+, e.g. «Команда» / "Team". It sits in the header's free space and is `aria-hidden` (the rail carries the a11y name).
-On section change the old label slides up 6 px and fades (160 ms), the new one slides in from below 6 px (320 ms out-quint). Crossfade through a
-keyed `motion.span` with `mode="popLayout"`. Hidden below 1280 px (the bar is crowded at 1024, see header comment).
+Tier: tens of changes per visit, so near-imperceptible: purpose = state indication. On section change the old label fades out (120 ms) and the new one fades in (200 ms, `--ease-out-quint`), opacity only, no translate, no blur. Implemented as two stacked spans toggled by `data-on` (CSS transition, so a fast scroll retargets instead of restarting). Hidden below 1280 px (the bar is crowded at 1024, see header comment).
 Not shown on routes without sections (rail has < 2 items).
 
 Keyboard: `Tab` order unchanged (logo, links, controls, CTA). `⌘K` / `Ctrl+K` and `/` open the palette; `Esc` closes and returns focus to the opener;
-`[` and `]` jump to the previous/next section (only when no input is focused and the palette is closed); each shows a visible focus ring.
+`[` and `]` jump to the previous/next section (only when no input is focused and the palette is closed) with an instant scroll jump (keyboard action: no smooth scroll animation, no sound); each shows a visible focus ring.
 A tiny hint "⌘K" chip appears on the rail's header (desktop, hover-capable only) and in the mobile menu as a "Sections" button.
 
 Files: `header.tsx` (label, palette trigger), new `components/nav/section-label.tsx`, `components/nav/palette.tsx`.
@@ -100,21 +99,21 @@ Home labels (RU / EN; no film words):
 
 ### 3.2 Desktop rail (>= 1024 px, pointer or keyboard)
 - Thin vertical rail fixed to the right edge, 24 px from the edge, vertically centred, height min(60vh, 8 x 28 px). One 1 px line (`--line`) with one tick per section (6 px dot, 10 px when active).
-- The **Fira marker** (flat Fira, 28 px, `fira-flat`, emotion of the active section from `filmScenes[].emotion` on home, `happy` elsewhere) sits on the active tick and travels between ticks with `spring.ui` (layoutId `rail-fira`). Scroll progress inside the section moves her 0-100% of the way to the next tick (translateY from `scrollYProgress`, CSS `animation-timeline: scroll()` where supported, else `useScroll`).
-- Hover/focus on the rail expands it to 160 px wide in 200 ms (transform: scaleX on a pill background; labels fade in at 100 ms delay). Labels only visible in the expanded state; ticks have `aria-label` always.
+- The **Fira marker** (flat Fira, 28 px, `fira-flat`, emotion of the active section from `filmScenes[].emotion` on home, `happy` elsewhere) sits on the active tick and travels between ticks with `spring.ui` (damping 1.0, response 0.4; layoutId `rail-fira`; the spring starts from the live position, so a second section change mid-flight redirects it without a jump). Scroll progress inside the section moves her 0-100% of the way to the next tick: `transform: translateY()` only, CSS `animation-timeline: scroll()` where supported, else `useScroll` motion values. Purpose: spatial consistency (where am I in the page). Tier: tens per visit, so no bounce.
+- Hover/focus on the rail expands it to 160 px wide in 200 ms (a pill background that starts at `scale(0.95)` + opacity 0 and settles to 1, `--ease-out-quint`; origin at the right edge; labels fade in after 80 ms). Only under `@media (hover: hover) and (pointer: fine)`; on keyboard focus-within the same. Ticks have `aria-label` always. Tick press: `scale(0.97)` on pointer-down, 160 ms.
 - Hidden while the palette is open (it is replaced by the palette list), and on routes with no sections.
 - It never overlaps content: right gutter is >= 56 px at lg; at 1024-1279 px the rail shows ticks only (no expand label; the label morph is in the header at xl+).
-- On home at lg the WebGL Fira keeps her own travel (film overlay); the rail marker is a small flat Fira and stays visible (two Firas is acceptable: the big one is the scene, the small one is the map). If the owner finds this noisy: hide the rail marker while the big Fira is in shot (open question 3).
+- **One Fira on screen at a time (owner decision 2026-11-27).** On home at lg the WebGL Fira keeps her own travel (film overlay). While she is in shot (`markInShot`, i.e. not docked in the corner) the rail marker is hidden: `film-overlay.tsx` sets `data-fira-big` on `<html>`, the marker fades out/in in 200 ms (opacity, `--ease-out-quint`), the rail ticks stay and the active tick is highlighted instead (dot 10 px, accent). When the big Fira docks or on any other route/size, the rail marker shows. On phones there is no big Fira, so the marker always shows.
 
 ### 3.3 Phone (< 1024 px)
 - A 2 px progress line directly under the header bar (it replaces the current top-edge `ScrollProgress`): full-width track, fill `scaleX` from whole-page `scrollYProgress`, which is predictable.
-- Ticks as 1 px gaps cut in the line at section boundaries (a CSS mask; no per-frame JS). Fira marker 18 px rides the leading edge of the fill (translateX = progress). Tap on the line opens the section sheet (the palette in bottom-sheet form, `Sheet side="bottom"`).
+- Ticks as 1 px gaps cut in the line at section boundaries (a CSS mask; no per-frame JS). Fira marker 18 px rides the leading edge of the fill (`translateX` = progress, no spring needed: it is 1:1 with the finger-driven scroll). Tap on the line (44 px tall hit area, `touch-action: manipulation`, `-webkit-tap-highlight-color: transparent`) opens the section sheet (the palette in bottom-sheet form, `Sheet side="bottom"`, `spring.sheet`, `max-height: 80dvh`, bottom padding `env(safe-area-inset-bottom)`, `overscroll-behavior: contain`). Tier: occasional, so it animates; the sheet is draggable-to-dismiss only if `ui/sheet.tsx` already supports it (otherwise tap/Esc).
 - The sheet lists the sections with the active one marked; tapping scrolls smoothly (`scrollIntoView({behavior:'smooth'})`; instant under reduced motion) and closes.
 - No horizontal swipe gestures on the page body (conflicts with browser Back swipe).
 
 ### 3.4 Palette (⌘K / "/")
-- One input + list. Groups: "Sections of this page" (from 3.1), "Pages" (products, services, solutions, ai-team, how-we-work, builder, blog, compare, referral, security), "Actions" (Build a project, Ask an agent, Switch language, Toggle theme, Toggle sound).
-- Fuzzy filter by simple `includes` on lowercased label + RU/EN aliases; no library (cmdk adds ~12 KB; hand-roll, under 2 KB). Arrow keys move, Enter goes, `Esc` closes. Results keep to 8 visible rows.
+- One input + list. **No open/close animation on desktop** (keyboard-initiated; frequency gate). The phone sheet (section 3.3) is tap-initiated and occasional, so it animates. The input uses `font-size: 16px` minimum so iOS does not zoom. Groups: "Sections of this page" (from 3.1), "Pages" (products, services, solutions, ai-team, how-we-work, builder, blog, compare, referral, security), "Actions" (Build a project, Ask an agent, Switch language, Toggle theme, Toggle sound).
+- Fuzzy filter by simple `includes` on lowercased label + RU/EN aliases; no library (cmdk adds ~12 KB; hand-roll, under 2 KB). Arrow keys move the highlight instantly (no sliding pill: keyboard list navigation), Enter goes, `Esc` closes. Results keep to 8 visible rows. Hover highlight on rows only under `(hover: hover) and (pointer: fine)`.
 - Pages in the list are real `<a href>` (prefetch on hover); sections use `href="#id"` so no-JS and crawlers see links. The list is rendered client-only on open, but the rail ticks are server HTML links (`<a href="#demo">`), so the sections are reachable without JS.
 - Copy: placeholder «Куда перейти?» / "Where to?"; empty state «Ничего не нашли» / "Nothing found"; group titles «Эта страница», «Разделы сайта», «Действия» / "This page", "Pages", "Actions".
 
@@ -133,11 +132,11 @@ Mechanism (vercel-react-view-transitions, references/nextjs.md): Next 16 App Rou
 do NOT add `experimental.viewTransition` or canary React. Do check `grep -r transitionTypes node_modules/next/dist/` (needs 16.2.0+; `package.json` has `^16.4.6`).
 - `Link` gets `transitionTypes={['nav-forward']}` or `['nav-back']` where the direction is known; otherwise the type is chosen in a small client `NavTypes` helper that compares route depth (see below). Browser Back/Forward: `popstate` -> `nav-back` via `addTransitionType` in a `pageswap`-style handler is not available in same-document VT, so Back/Forward use the default type `nav-pop` (short crossfade only).
 - Layout: `<ViewTransition default="none">` wrapper around `{children}` in `[locale]/layout.tsx` with `enter/exit` mapped by type: `{ 'nav-forward': 'slide-forward', 'nav-back': 'slide-back', 'nav-pop': 'page-fade', default: 'none' }`. The header, rail, footer, chat launcher live in the layout outside the wrapper and do not animate (they persist).
-- CSS in `globals.css`, names `::view-transition-old/new(.slide-forward)` etc.: forward = old page translateX(-24px)+opacity 0 (`dur.page-out`, `--ease-in-out-soft`), new page translateX(32px)->0 +opacity (`dur.page-in`, `--ease-out-expo`). back mirrors the direction. Distance is small on purpose (premium, not a carousel).
+- CSS in `globals.css`, names `::view-transition-old/new(.slide-forward)` etc.: forward = old page `translateX(-12px)` + opacity 0 (160 ms, `--ease-out-quint`), new page `translateX(16px)`->0 + opacity 0->1 (260 ms, `--ease-out-quint`; never `ease-in`). Back mirrors the direction. Distance is small on purpose (premium, not a carousel) and the whole change stays under 300 ms because navigation is frequent. Tier: tens per visit; purpose: spatial consistency. Interruptibility: a click during a transition lets React finish or skip it and start the next one; the new page content is interactive immediately (the transition is a visual layer only). Not gesture-driven, so no springs here.
 - Suspense fallbacks: a bare `<ViewTransition>` around fallback with `exit="page-fade"` so loading states do not pop.
-- Fira shared element: the first-viewport Fira (home: `FilmCue` mark of the hello scene; inner pages: the companion mark) carries `<ViewTransition name="fira" share="fira-morph">`; the rail marker is excluded (`view-transition-name: none`) so it does not collide. On lg home the WebGL Fira cannot take part in a DOM transition: the film overlay fades to opacity 0 over 120 ms at navigation start (listen to `onNavigate`/pathname change in `film-overlay.tsx`), the flat Fira of the hero mark is the VT participant, and the new page's mark animates from the old position/size (`::view-transition-group(fira)` 480 ms `--ease-out-expo`). If a page has no Fira mark, Fira simply is absent from the pair (the CSS group fades).
+- Fira shared element: the first-viewport Fira (home: `FilmCue` mark of the hello scene; inner pages: the companion mark) carries `<ViewTransition name="fira" share="fira-morph">`; the rail marker is excluded (`view-transition-name: none`) so it does not collide. On lg home the WebGL Fira cannot take part in a DOM transition: the film overlay fades to opacity 0 over 120 ms at navigation start (listen to `onNavigate`/pathname change in `film-overlay.tsx`), the flat Fira of the hero mark is the VT participant, and the new page's mark animates from the old position/size (`::view-transition-group(fira)` 320 ms `--ease-out-expo`). If a page has no Fira mark, Fira simply is absent from the pair (the CSS group fades).
 - Locale switch (`/ru/x` -> `/en/x`): `nav-pop` (crossfade), no slide; the `lang` attribute changes in the new tree.
-- Reduced motion: every type resolves to `page-fade` at 150 ms linear-out, no slide, no Fira morph (`@media (prefers-reduced-motion: reduce) { ::view-transition-group(*) { animation-duration: 150ms } ... }` plus `transform: none`).
+- Reduced motion: every type resolves to `page-fade` at 150 ms linear-out, no slide, no Fira morph (`@media (prefers-reduced-motion: reduce) { ::view-transition-group(*) { animation-duration: 150ms } ... }` plus `transform: none`). Under `prefers-reduced-transparency` nothing changes here (the page layers are opaque); the header material is handled in 5.3.
 - Unsupported browsers (Firefox without same-document VT where unavailable): React falls back to instant swap; nothing else to do. Never block navigation on a transition (skip if `document.hidden`).
 - Direction rule (`src/lib/nav-direction.ts`, pure, tested): rank = depth in the map below; deeper = forward, shallower = back, equal rank = forward.
 
@@ -152,28 +151,40 @@ do NOT add `experimental.viewTransition` or canary React. Do check `grep -r tran
 | `/fira-lab`, `[...rest]` (404) | 1 | page-fade | page-fade | 404: Fira stays in the 404 art, no shared element |
 
 Same-rank sibling jumps (for example product -> product) use `slide-forward` with half distance (16 px).
-Anchor links on the same page are not transitions: smooth scroll (instant under reduced motion).
+Anchor links on the same page are not transitions: smooth scroll for pointer/tap clicks (instant under reduced motion and for keyboard `[`/`]` jumps). The rail never scrolls the window itself with JS animation: it uses `scrollIntoView({behavior})` so the browser's own physics and the user's scroll interruption apply.
 
 ## 5. Page-by-page storyboard
 
-### 5.1 Scene template catalogue (reusable, 9 templates)
-Each template is one component or one CSS class set in `src/components/motion/`, with one trigger and one reduced-motion fallback.
-Trigger kinds: `view` = CSS `animation-timeline: view()` inside `@supports (animation-timeline: view())`, else `motion` `whileInView` once; `once` = IntersectionObserver once; `load` = on first paint of the page.
+### 5.1 Scene template catalogue (reusable, 10 templates)
+Each template is one component or one CSS class set in `src/components/motion/`. Gate recorded per template (find-animation-opportunities: frequency, purpose, budget, function).
+Trigger kinds: `view` = CSS `animation-timeline: view()` inside `@supports (animation-timeline: view())`, else `motion` `whileInView` once; `once` = IntersectionObserver once; `load` = on first paint of the page. Tool choice (animate skill): CSS first (runs off the main thread), Motion only for springs/layout. Easings are the existing tokens only.
 
-| # | Name | What it does | Trigger | Duration / curve | Reduced motion |
+| # | Name | Tier / purpose | Motion, properties, values | Interrupt | Reduced motion |
 |---|---|---|---|---|---|
-| T-A | **title reveal** | h1/h2 words rise 0.6em + fade, stagger 40 ms, max 8 words (text already in HTML; initial state applied by CSS class on the server, so no flash and no layout shift) | load (h1), once (h2) | 700 ms out-expo | text visible, no motion |
-| T-B | **section rise** | the existing `Reveal`: block fades up 24 px | once, amount 0.2 | 600 ms out-expo | `initial={false}` |
-| T-C | **card stack** | cards of a grid enter staggered 50 ms (max 6), then hover lift on `@media (hover:hover)` | once | 600 ms out-expo | no stagger, visible |
-| T-D | **blueprint draw** | SVG/CSS lines draw (stroke-dashoffset) from 0 to 1 as the block crosses the viewport, nodes pop after the line passes them (diagrams: brain, org chart, flow) | view (scrubbed over `entry 10% cover 45%`) | scrubbed, line `--ease-in-out-soft` | drawn state, fully visible |
-| T-E | **before/after wipe** | `clip-path: inset()` reveals the "after" over the "before"; handle position bound to scroll within the section (scrub) or driven by a tap on phone | view (scrubbed) | scrubbed | both states stacked, labelled |
-| T-F | **phone chat** | a phone mock with messages arriving one by one (existing `chat-in` 320 ms, typing dots), runs once when 60% visible | once, amount 0.6 | 320 ms per bubble, 700 ms gap | all messages visible |
-| T-G | **counter** | the existing `count-up.tsx`: numbers count up when visible (only for real numbers, see rejected list) | once | 900 ms out-expo | final value |
-| T-H | **parallax drift** | one background layer moves at 0.85x on `translate3d` (max 40 px total), never behind text that must be read | view (scrubbed) | scrubbed | static |
-| T-I | **pin and step** | a sticky block (desktop only, `lg+`) swaps 3-4 states as the user scrolls through a 200-300vh track (CSS `position: sticky`; step = `animation-timeline: view()` opacity/translate); the products "seven in a row" track already exists in the hero and is re-cut in section 6 | view | scrubbed, 4 states max | stacked sections, no pin |
-| T-J | **tour dot** | a Fira corner reaction: on section entry the flat Fira's emotion changes (blink/nod, `fira-nod` 260 ms), never moves the layout | once | 260 ms | static |
+| T-A | **title reveal** | Occasional (once per page view) / preventing a jarring change, delight on the home h1 | words `translateY(0.5em)` -> 0 + opacity 0 -> 1, stagger 40 ms, max 8 words, 700 ms `--ease-out-expo`; initial state is a server-rendered class so text is in HTML, no flash, no CLS | CSS transition per word, no keyframes | text visible at once |
+| T-B | **section rise** | Occasional / preventing a jarring change | the existing `Reveal`: `translateY(24px)` -> 0 + opacity, once, 600 ms `--ease-out-expo` (marketing reveal; tiny blocks use `dur.base` 320 ms) | once, no reverse needed | `initial={false}` |
+| T-C | **card stack** | Occasional / group entrance | cards `translateY(16px) scale(0.97)` + opacity 0 -> settled, stagger 50 ms for the first 6 (rest together), 500 ms `--ease-out-expo`; hover lift `translateY(-2px)` 160 ms only under `(hover: hover) and (pointer: fine)`; press `scale(0.98)` on pointer-down, 160 ms | transition-based, hover/press retarget from live value | no stagger, visible |
+| T-D | **blueprint draw** | Occasional / explanation (how it connects) | lines drawn with `clip-path: inset(0 100% 0 0)` -> `inset(0)` (straight lines may use `transform: scaleX/scaleY` with origin at the start), scrubbed over `entry 10% cover 45%`, `--ease-in-out-soft`; nodes pop `scale(0.95)` + opacity once the line passes (stagger 50 ms). No `stroke-dashoffset` (paint-bound) | scrubbed = reversible with the scroll | fully drawn |
+| T-E | **before/after wipe** | Occasional / explanation (state indication) | top layer `clip-path: inset(0 var(--w) 0 0)`; `--w` scrubbed 100% -> 0% over the section (scroll) or toggled 200 ms `--ease-out-quint` by tap (phones, pains cards); no extra DOM | tap toggle is a transition (interruptible) | both states stacked and labelled |
+| T-F | **phone chat** | Rare per page / explanation | messages arrive one by one: `translateY(8px) scale(0.97)` + opacity -> settled, 320 ms `--ease-out-quint` each (existing `chat-in`), 700 ms gap, typing dots; starts at 60% visible | plays once; leaving does not rewind | all messages visible |
+| T-G | **counter** | Rare / delight, real numbers only | existing `count-up.tsx`, 900 ms `--ease-out-expo`, tabular numerals so width does not shift; never on prices | once | final value |
+| T-H | **parallax drift** | Occasional / delight, optional | ONE decorative layer, `translate3d` max 24 px total, never behind text, semi-transparent, home hero and ai-team hero only; scrubbed | scrubbed | static |
+| T-I | **pin and step** | Occasional / explanation | desktop `lg+` only: a `position: sticky` block over a 200-300vh track swaps 3-4 states (`opacity` + `translateY(12px)`), scrubbed; height of the sticky box is `100svh` (stable, no URL-bar layout shift) | scrubbed | stacked sections, no pin |
+| T-J | **tour dot** | Rare / feedback (Fira reacts) | flat Fira emotion swap + `fira-nod` 260 ms `--ease-out-quint`; never moves layout | restarts from the live pose | static pose |
+
+Frequency gate verdicts that changed the design: the palette, `[`/`]` jumps and arrow-key list navigation are keyboard-initiated, so they are instant; header label and rail marker are tens per visit, so opacity/ease-only with no bounce; page transitions are shortened to under 300 ms; hover/press effects are near-imperceptible (scale 0.97-0.98, 160 ms).
 
 Fixed rules: no template runs on more than 12 elements at once; a scrubbed template is `view()` CSS with a `useScroll` fallback (`motion`, `transform` motion values, no React state per frame); `animation-timeline` is declared AFTER the `animation` shorthand; every scrubbed block is wrapped in `@media (prefers-reduced-motion: no-preference)`; no image sequences and no WebGL on phones.
+
+### 5.3 Cross-cutting rules (apply to every template, rail, header and palette)
+- Properties: `transform`, `opacity`, `clip-path` (sanctioned for wipes/draws), `filter: blur` only up to 4 px for masking a crossfade, never as a main effect. Never `transition: all`; never `width/height/top/left/margin/padding`. In Motion use the full `transform` string for hardware acceleration under load, not `x/y/scale` props. Never drive child transforms from a parent CSS variable (the scrubbed `--w`/`--p` variables are set on the element that uses them).
+- Hover: every hover effect is inside `@media (hover: hover) and (pointer: fine)`; phones get pressed states on pointer-down instead (instant feedback, 160 ms release). Global baseline (T1 adds if missing): `-webkit-tap-highlight-color: transparent`, `touch-action: manipulation` on buttons/links/rail, `overscroll-behavior: contain` on sheets (not `none` on the root: the page keeps its native bounce).
+- Viewport units (mobile-native): marketing heroes and sticky pins use `100svh`/`svh` (stable); sheets, menus and anything pinned to the bottom use `dvh` with `env(safe-area-inset-bottom)`; never `100vh`. Fixed header/progress line respect `env(safe-area-inset-top)`; the viewport meta has `viewport-fit=cover` (check `layout.tsx`).
+- Reduced motion: scrubbed, pinned, parallax, draw, stagger and Fira flight are removed; state changes that aid comprehension stay as opacity/colour (reduced means gentler, not zero). Page transitions: 150 ms fade.
+- Reduced transparency (`prefers-reduced-transparency: reduce`): `material-thick` (header), the rail pill, the palette and the phone sheet switch to an opaque `--bg-elevated` with a 1 px line, blur removed; the existing CSS block at `globals.css` (`@media (prefers-reduced-transparency: reduce)`, line ~814) is extended, not duplicated. Contrast of both token sets stays covered by `tests/site-theme.test.mjs`.
+- Interruptibility: position-like motion uses springs or transitions that start from the current value; no `@keyframes` for anything a user can trigger twice in a second (keyframes only for one-shot entrances and ambient loops that already exist).
+- Stagger: 30-80 ms (we use 40-50), capped at 6 items, never delaying interaction.
+- Origins: anything that grows from a trigger (rail pill, phone sheet from the line) sets `transform-origin` at the trigger; the cold-open overlay and the page are not trigger-anchored.
 
 Rejected as a class (find-animation-opportunities gate: only animate where motion carries meaning, frequency is low, and it survives repeated use):
 - Per-section animated backgrounds on legal, blog, pay, cabinet, status, audit forms: used repeatedly or read at length, motion adds nothing.
@@ -265,22 +276,23 @@ Transitions between scenes: none are cinematic. The "camera" glow (`camera` tabl
 
 Cold open (home, first visit only):
 - Gate: `localStorage['fir-open-seen']`, read/write inside try/catch; if storage throws, skip the cold open (no repeat flashes). Only on `/ru` and `/en` home, only when `scrollY === 0` and no hash in the URL, never when `prefers-reduced-motion`, `Save-Data` or the tab is hidden.
-- Duration <= 1.8 s total (`dur.cold`), hard cap 2 s: 0-400 ms the wordmark `fir.tech` draws in centre on the page background; 400-1100 ms the lime dot pulses once and Fira's flat mark rises to her hero position (shared element with the hero mark, so the open ends exactly in place); 1100-1800 ms the overlay (`clip-path` circle from the dot) opens to reveal the page. Overlay is `position: fixed; inset: 0; z-index` above the page, `pointer-events: none` after 300 ms so it never blocks clicks.
+- Duration <= 1.8 s total (`dur.cold`), hard cap 2 s: 0-400 ms the wordmark `fir.tech` fades in at the centre from `scale(0.96)` + opacity 0 (`--ease-out-expo`; never from scale 0); 400-1100 ms the lime dot pulses once and Fira's flat mark rises to her hero position (shared element with the hero mark, so the open ends exactly in place); 1100-1800 ms the overlay (`clip-path` circle from the dot) opens to reveal the page. Overlay is `position: fixed; inset: 0; z-index` above the page, `pointer-events: none` after 300 ms so it never blocks clicks.
 - Skippable: click, tap, any key, or scroll cancels it at once (overlay fades 120 ms). A visible "Skip" is unnecessary (every input skips), but the overlay has `aria-hidden="true"`.
 - LCP/CLS: the hero h1 and the page are in the HTML and painted from the first frame beneath an overlay that is CSS-only (class on `<html>` set by the existing `ThemeInit`-style inline script before paint, only when the key is missing). The overlay is `opacity`/`clip-path` only, adds no layout. Because the overlay covers the LCP element, LCP is still measured on the h1 paint (Chrome counts content under an opaque overlay as painted); budget check in section 8, and if T1 measures LCP regression > 100 ms, shorten to a 900 ms version without the wordmark draw.
+- Tier: rare (first visit only), so this is the one place the delight budget is spent; it is still capped at 2 s and skippable. Reduced motion: no cold open at all.
 - Sound: the cold open cue plays only if the visitor already turned sound on in this browser (it cannot be on at first visit, so it is silent for first-time users; see section 7).
 
 ## 7. Sound
 
-One toggle, off by default, persisted in `localStorage['fir-sound']` (try/catch). Toggle: a speaker icon button in the header's right group on lg+ (`aria-pressed`, label «Звук» / "Sound") and as an item in the palette ("Actions") and the mobile menu. Turning it on plays the "on" cue once (this is the user gesture that unlocks audio). No autoplay anywhere; on iOS the context resumes on first tap.
+One toggle, off by default, persisted in `localStorage['fir-sound']` (try/catch). Toggle (owner decision 2026-11-27): a speaker icon button visible in the header's right group on lg+ (`aria-pressed`, label «Звук» / "Sound"), and as an item in the phone menu (Sheet); also listed in the palette "Actions". Turning it on plays the "on" cue once (this is the user gesture that unlocks audio). No autoplay anywhere; on iOS the context resumes on first tap.
 Format: one small sprite (`public/sound/ui.m4a` + `ui.webm`, under 60 KB total) loaded only after the toggle is first turned on (lazy, so zero cost for everyone else). Master gain -18 LUFS-ish, low (target peak -12 dBFS), no music, no ambience.
 
 | Cue | Trigger | Character | Length |
 |---|---|---|---|
 | on | sound toggled on | soft two-note rise | 250 ms |
-| rail tick | active section changes (rail/progress line) | very quiet wooden tick, pitch rises 1 semitone per section, rate-limited to 1 per 120 ms and never while a transition plays | 40 ms |
+| rail tick | active section changes by SCROLL (rail/progress line); not on keyboard `[`/`]` jumps | very quiet wooden tick, pitch rises 1 semitone per section, rate-limited to 1 per 120 ms and never while a transition plays | 40 ms |
 | page transition | forward / back navigation start | low airy swish, direction by pitch (forward up, back down) | 280 ms |
-| palette | palette opens / closes | glassy pop / reverse pop | 120 ms |
+| palette | palette opens / closes (sound only; the visual is instant) | glassy pop / reverse pop | 120 ms |
 | CTA | primary CTA press (`data-cta`) | warm click with a short tail | 150 ms |
 | cold open | cold open reaches the dot pulse (only if sound already on) | single resonant tone, lime-dot pulse | 600 ms |
 
@@ -312,7 +324,7 @@ Fallbacks: `@supports not (animation-timeline: view())` -> `motion` `whileInView
 ### T1: rail, palette, hybrid header (largest user-visible change, safest to ship first)
 - Add: `src/lib/sections.ts`, `components/nav/{section-rail,progress-line,palette,section-label}.tsx`, `dict.rail`, `dict.palette` in `ru.ts` and `en.ts`, tokens in `motion.ts` and `globals.css` (section 1).
 - Touch: `header.tsx`, `[locale]/layout.tsx`, `scroll-progress.tsx` (merged), `film-overlay.tsx` (import `spring.flight`), ids on `h2`s in the pages of section 5.2 that lack them.
-- Tests: `tests/sections.test.mjs` (home rail = `filmScenes`; every route in 5.2 resolves to a list or none; labels exist in RU and EN; no forbidden film words in any new string), `tests/rail-a11y.test.mjs` (nav landmark, `aria-current`, roving tabindex rendered), palette keyboard test (Playwright: ⌘K, "/", Esc, focus return), reduced-motion test.
+- Tests: `tests/sections.test.mjs` (home rail = `filmScenes`; every route in 5.2 resolves to a list or none; labels exist in RU and EN; no forbidden film words in any new string), `tests/rail-a11y.test.mjs` (nav landmark, `aria-current`, roving tabindex rendered), palette keyboard test (Playwright: ⌘K, "/", Esc, focus return; opens in the same frame, no transition class), reduced-motion and reduced-transparency tests (CSS contains both blocks for the new classes), a grep test that new CSS has no `transition: all`, no `scale(0)`, no `100vh`, and every `:hover` is inside `(hover: hover)`.
 - Acceptance: header geometry unchanged (no CLS); rail works with JS disabled as anchors; `/` does not open the palette inside inputs; Lighthouse mobile LCP not worse than baseline +50 ms; JS <= 12 KB gz; tsc, lint, tests, build pass.
 
 ### T2: page transitions
@@ -333,7 +345,14 @@ Fallbacks: `@supports not (animation-timeline: view())` -> `motion` `whileInView
 - Tests: `tests/cold-open.test.mjs` (gate logic pure: first visit, key set, storage throws, hash present, reduced motion), Playwright: first visit shows the overlay and it is gone by 2 s, second visit does not, click skips; sound defaults to off, sprite not requested until toggled; `/pay/**` and `/cabinet/**` never play.
 - Acceptance: LCP delta <= +100 ms mobile vs baseline (else the 900 ms variant); no audio before a gesture; JS <= 8 KB, sprite <= 60 KB loaded lazily; all four checks (tsc, lint, tests, build) pass.
 
-## Open questions for the owner
-1. Header CTA text: keep «Собрать проект» / "Build a project" (current), or change to «Связаться» / "Contact"? The builder is the real conversion path, so the recommendation is to keep it.
-2. Sound toggle in the header on desktop (visible, recommended) or only in the palette and menu (calmer)?
-3. On the home at lg there are two Firas (the big WebGL one in the scenes and the small rail marker). Keep both (recommended: big = the scene, small = the map), or hide the small one while the big one is in shot?
+## Owner decisions (2026-11-27, answers to the T0 questions)
+1. Header CTA stays «Собрать проект» / "Build a project" (`dict.nav.cta`); not changed.
+2. Sound toggle: visible in the desktop header, in the menu on phones.
+3. One Fira on screen at a time: the small rail marker is hidden while the big WebGL Fira is in shot on home at lg (section 3.2).
+
+## Skills applied (what each rule changed in this document)
+- **find-animation-opportunities (gate: frequency, purpose, budget, function; rejected list):** every template T-A..T-J now carries a tier and a named purpose; added the rejected-candidates list in 5.1 and per-page; the desktop palette, `[`/`]` jumps and arrow-key list moves became instant (keyboard-initiated, 100+/day); header label and rail marker reduced to near-imperceptible (opacity, no bounce); the "velocity stretch" on the marker was rejected.
+- **animate (sequence, tokens, never-ship table):** CSS before Motion; only existing easing tokens; transform/opacity/clip-path only (blueprint draw moved from `stroke-dashoffset` to `clip-path`); no `scale(0)`, entrances from 0.95-0.97 or an opacity fade; transitions not keyframes for retriggerable things; stagger 30-80 ms capped at 6; page change cut to 160/260 ms (UI under 300 ms); hover gating and reduced motion specified with each template.
+- **apple-design (springs, interruptibility, materials, reduced motion/transparency):** springs written as damping/response (damping 1.0 default, bounce only after a momentum gesture, which this site has none); rail marker springs start from the live value; added the reduced-transparency fallbacks (opaque header material, rail pill, palette, sheet); one-Fira-at-a-time and large-motion limits (parallax max 24 px, semi-transparent, never behind text).
+- **emil-design-eng (polish, origin, press feedback, clip-path):** press `scale(0.97-0.98)` on pointer-down; `transform-origin` at the trigger for the rail pill and phone sheet; the before/after wipe and draw use `clip-path`; blur only as a crossfade mask up to 4 px; tooltips/hover quiet on frequent elements.
+- **mobile-native (phone fixes):** `svh` for heroes and sticky pins, `dvh` + `env(safe-area-inset-*)` for sheets and bottom-pinned UI, never `100vh`; hover only in `(hover: hover) and (pointer: fine)`; `-webkit-tap-highlight-color: transparent`; `touch-action: manipulation` on tappables; `overscroll-behavior: contain` on sheets; 16 px minimum on the palette input; 44 px hit area on the progress line; native scroll everywhere (no scroll hijack, no horizontal swipe on the body).
