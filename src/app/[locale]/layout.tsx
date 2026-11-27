@@ -1,3 +1,4 @@
+import { verificationFromEnv } from '@/lib/indexnow'
 import type { Metadata, Viewport } from 'next'
 import { notFound } from 'next/navigation'
 import { ChatWidget } from '@/components/chat/chat-widget'
@@ -51,6 +52,8 @@ export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Pr
       url: `/${locale}`,
     },
     twitter: { card: 'summary_large_image' },
+    // Search Console / Yandex Webmaster tags, rendered only when the variables are set.
+    verification: verificationFromEnv(),
   }
 }
 
