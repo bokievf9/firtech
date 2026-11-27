@@ -1718,3 +1718,16 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
     opacity: 0.3;
   }
 }
+
+/*
+  Shell (/admin HQ, 2026-11-27): one press feel for every pressable of the owner panel. Scale .97 on press, released
+  in 120 ms on the strong ease-out; exact properties only (the base `.pressable` list), never `all`.
+  Reduced motion keeps colour and opacity changes only (the base rule already drops the transform).
+*/
+[data-hq-shell] .pressable {
+  transition-duration: 120ms;
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+}
+[data-hq-shell] .pressable:active {
+  transition-duration: 120ms;
+}

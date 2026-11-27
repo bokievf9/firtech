@@ -9,6 +9,7 @@ import { LeadDrawer } from '@/components/admin/lead-drawer'
 import { admin } from '@/content/admin'
 import { adminStatuses, formatDateTime, formatSlot, type AdminLead } from '@/lib/admin-data'
 import { crmCsv, newLeadCount, statusCounts, visibleLeads, type StatusFilter } from '@/lib/admin-crm'
+import { Segmented } from '@/components/admin/segmented'
 import { cn } from '@/lib/cn'
 import { dayKey } from '@/lib/admin-data'
 import { badgeText } from '@/lib/hq-admin-view'
@@ -71,25 +72,12 @@ export function LeadsPanel({
       >
         <div className="grid gap-3 p-3 sm:p-4">
           <p className="text-xs text-faint">{t.hint}</p>
-          <div className="flex flex-wrap gap-1.5" role="group" aria-label={admin.drawer.status}>
-            {(['all', ...adminStatuses] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                aria-pressed={status === s}
-                onClick={() => setStatus(s)}
-                className={cn(
-                  'inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3.5 text-sm transition-colors',
-                  status === s
-                    ? 'border-accent bg-accent text-accent-ink'
-                    : 'border-line-strong text-muted hover:border-accent hover:text-fg',
-                )}
-              >
-                {s === 'all' ? t.all : admin.statuses[s]}
-                <span className="font-mono text-xs tabular-nums opacity-70">{counts[s]}</span>
-              </button>
-            ))}
-          </div>
+          <Segmented
+            label={admin.drawer.status}
+            value={status}
+            onChange={setStatus}
+            items={(['all', ...adminStatuses] as const).map((s) => ({ key: s, label: s === 'all' ? t.all : admin.statuses[s], count: counts[s] }))}
+          />
           <label className="relative block">
             <span className="sr-only">{t.search}</span>
             <MagnifyingGlass

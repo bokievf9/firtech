@@ -23,17 +23,15 @@ import { normalizeHub } from '@/lib/shell'
 import { useRouter } from 'next/navigation'
 import { ContentSection } from './content-studio'
 import { PaymentsTab, CostsTab } from './finance-view'
-import { InboxApprovals } from './inbox-approvals'
 import { StandupInbox } from './team-standup'
 
 const q = `?limit=${LIST_LIMIT}`
 
-// Inbox: the notifications HQ collects (GET /admin/hub, `inbox`) and the approvals waiting for the owner.
-export function InboxSection({ tab }: { tab: string; focus: string | null }) {
+// Inbox: the notifications HQ collects (GET /admin/hub, `inbox`). Approving lives only in Approvals (one queue).
+export function InboxSection() {
   const { now } = useHub()
   const router = useRouter()
   const hub = useHqView('hub', normalizeHub, { visible: 15_000, hidden: 60_000 })
-  if (tab === 'approvals') return <InboxApprovals />
   if (!hub.view) return hub.error ? <Offline error={hub.error} onRetry={() => hub.reload()} /> : <Loading />
   return (
     <>
@@ -82,7 +80,7 @@ function Reviews() {
 
 export function SectionBody({ section, tab, focus }: { section: 'inbox' | 'clients' | 'projects' | 'documents' | 'content' | 'finance'; tab: string; focus: string | null }) {
   let body: React.ReactNode = null
-  if (section === 'inbox') body = <InboxSection tab={tab} focus={focus} />
+  if (section === 'inbox') body = <InboxSection />
   else if (section === 'content') body = <ContentSection tab={tab} focus={focus} />
   else if (section === 'finance') body = tab === 'payments' ? <PaymentsTab /> : tab === 'costs' ? <CostsTab /> : <InvoicesTab focus={focus} />
   else if (section === 'clients') {

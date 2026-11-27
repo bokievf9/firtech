@@ -1,383 +1,439 @@
 'use client'
 
-import { ArrowsClockwise, CheckCircle, Warning, XCircle, Question } from '@phosphor-icons/react'
+import { ArrowRight, Check, Tray, Warning, WarningCircle } from '@phosphor-icons/react'
+import { AnimatePresence, motion } from 'motion/react'
 import Link from 'next/link'
-import { useState } from 'react'
-import { fill } from '@/components/admin/control/api'
-import { Offline, useHqView } from '@/components/admin/hub/ui'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { errText, fill, hq } from '@/components/admin/control/api'
+import { btn, btnPrimary, Offline, useHqView, useHub } from '@/components/admin/hub/ui'
+import { cn, filterPill } from '@/components/admin/kit'
+import { PageHeader } from '@/components/admin/hq/page-header'
 import { admin } from '@/content/admin'
-import { approvalsHrefFor } from '@/lib/approvals'
-import { cn } from '@/lib/cn'
-import { sectionById } from '@/lib/hq-shell'
+import { APPROVALS_CHANGED } from '@/lib/approvals'
 import {
-  approvalTiles,
-  contentWeekTotals,
-  dayLong,
-  dayShort,
-  DEFAULT_RANGE,
+  ageLabel,
+  dateInWords,
+  DECIDE_VISIBLE,
   funnelRows,
-  minutesLabel,
-  normalizeDashboard,
-  percent,
-  RANGES,
+  normalizeToday,
+  sparkBars,
   spendRatio,
-  spendState,
+  updatedLabel,
   usd,
-  usdCents,
-  weekShort,
-  type Block,
-  type DashboardData,
-  type DashRange,
-  type ServiceState,
-} from '@/lib/shell-dashboard'
-import { ColumnsChart } from './charts'
+  waitingTotal,
+  withoutDecision,
+  type AlertsBlock,
+  type BlockId,
+  type DecideAction,
+  type DecideBlock,
+  type DecideItem,
+  type FunnelBlock,
+  type HotLead,
+  type MoneyBlock,
+  type NightBlock,
+  type TeamBlock,
+  type TeamState,
+  type TodayData,
+} from '@/lib/shell-today'
+import { useReducedMotion } from '@/lib/use-reduced-motion'
 
-const t = admin.hq
 const d = admin.hq.dashboard
-const dept = d.depts as Record<string, string>
 
-const tile = 'min-w-0 rounded-card border border-hairline border-line bg-surface p-4'
-const label = 'text-footnote text-muted'
-const count = (n: number) => (n === 1 ? d.money.invoiceOne : fill(d.money.invoicesCount, { n }))
-const big = 'font-mono text-title-2 tabular-nums'
+const card = 'min-w-0 rounded-card border border-hairline border-line bg-surface'
+const num = 'font-mono text-[22px] leading-tight tabular-nums'
+const caption = 'text-xs text-muted'
 
-// One tile: the title (a link when the tile has a home in the Shell), the content when the source is available,
-// otherwise only «Source unavailable» for this tile (the others keep their numbers).
-function Tile({ id, title, href, block, span, children }: { id: string; title: string; href?: string; block: Block<object>; span?: string; children: React.ReactNode }) {
+// One block: a title row (count or link on the right) and the body. A block HQ did not return says so quietly,
+// the other blocks keep their numbers.
+function Block({ id, title, aside, gone, children }: { id: BlockId; title: string; aside?: React.ReactNode; gone: boolean; children?: React.ReactNode }) {
   return (
-    <section className={cn(tile, span)} aria-label={title} data-tile={id} data-available={block.available ? 'yes' : 'no'}>
-      <h2 className="mb-2.5 text-callout font-medium">
-        {href ? (
-          <Link href={href} className="rounded-sm hover:text-accent-text focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-text">
-            {title}
-          </Link>
+    <section id={`today-${id}`} aria-labelledby={`today-${id}-h`} data-block={id} data-available={gone ? 'no' : 'yes'} className={cn(card, 'scroll-mt-28')}>
+      <div className="flex min-h-11 items-center gap-2 px-4 pt-3">
+        <h2 id={`today-${id}-h`} className="text-sm font-medium">{title}</h2>
+        <span className="ml-auto flex items-center text-xs text-muted">{aside}</span>
+      </div>
+      <div className="px-4 pb-4 pt-1">
+        {gone ? (
+          <p data-unavailable className="text-footnote text-faint">{fill(d.unavailable, { block: d.blocks[id] })}</p>
         ) : (
-          title
+          children
         )}
-      </h2>
-      {block.available ? (
-        children
-      ) : (
-        <div data-unavailable>
-          <p className="text-callout text-muted">{d.unavailable}</p>
-          <p className="mt-0.5 text-footnote text-faint">{d.unavailableHint}</p>
-        </div>
-      )}
+      </div>
     </section>
   )
 }
 
-function Stat({ name, value, sub, id, n }: { name: string; value: string; sub?: string; id?: string; n?: number }) {
+// An empty block: one sentence and the next step.
+function EmptyNote({ text, next, href }: { text: string; next: string; href?: string }) {
   return (
-    <div data-stat={id}>
-      {name ? <div className={label}>{name}</div> : null}
-      <div className={big} data-value data-n={n}>
-        {value}
+    <div className="flex items-start gap-2.5 py-1" data-empty>
+      <span aria-hidden="true" className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-full bg-fill text-faint"><Tray size={14} /></span>
+      <p className="min-w-0 text-callout text-muted">
+        {text}{' '}
+        {href ? <Link href={href} className="rounded-sm text-fg underline decoration-line-strong underline-offset-2 outline-none focus-visible:ring-2 focus-visible:ring-accent-text">{next}</Link> : <span className="text-faint">{next}</span>}
+      </p>
+    </div>
+  )
+}
+
+const kindDot: Record<string, string> = { document: 'bg-fg/50', reply: 'bg-accent-text', content: 'bg-fg/30', money: 'bg-warn', other: 'bg-fg/20' }
+
+function DecideRow({ item, busy, onAct }: { item: DecideItem; busy: boolean; onAct: (item: DecideItem, a: DecideAction) => void }) {
+  const reduce = useReducedMotion()
+  return (
+    <motion.li
+      layout={false}
+      data-decide-row={item.id}
+      initial={false}
+      exit={reduce ? { opacity: 0 } : { height: 0, opacity: 0, overflow: 'hidden' }}
+      transition={{ duration: 0.18, ease: 'easeOut' }}
+      className="border-t border-t-hairline border-line first:border-t-0"
+    >
+      <div className="grid grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-x-2.5 py-2">
+        <span aria-hidden="true" className={cn('size-2 justify-self-center rounded-full', kindDot[item.kind])} />
+        <div className="min-w-0">
+          {item.href ? (
+            <Link href={item.href} className="block truncate rounded-sm text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-accent-text">{item.title}</Link>
+          ) : (
+            <span className="block truncate text-sm font-medium">{item.title}</span>
+          )}
+          <span className="block truncate text-xs text-muted">{item.meta}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {item.actions.map((a) =>
+            a.kind === 'link' && a.href ? (
+              <Link key={a.id} href={a.href} data-decide-action={a.id} className={cn(btn, 'min-h-9 px-3.5 max-sm:hidden')}>{a.label}</Link>
+            ) : a.kind === 'post' ? (
+              <button key={a.id} type="button" data-decide-action={a.id} disabled={busy} onClick={() => onAct(item, a)} className={cn(a.primary ? btnPrimary : btn, 'min-h-9 px-3.5')}>
+                {a.primary ? <Check size={14} weight="bold" aria-hidden="true" /> : null}
+                {a.label}
+              </button>
+            ) : null,
+          )}
+        </div>
       </div>
-      {sub ? <div className="text-footnote text-faint">{sub}</div> : null}
-    </div>
+    </motion.li>
   )
 }
 
-function Meter({ ratio, state }: { ratio: number; state: 'none' | 'ok' | 'warn' | 'over' }) {
-  return (
-    <div className="h-1.5 overflow-hidden rounded-full bg-fill-strong" aria-hidden="true">
-      <div className={cn('h-full rounded-full', state === 'over' ? 'bg-danger' : state === 'warn' ? 'bg-warn' : 'bg-accent-text')} style={{ width: `${Math.round(ratio * 100)}%` }} />
-    </div>
+function Decide({ b, busy, onAct }: { b: { available: true } & DecideBlock; busy: boolean; onAct: (item: DecideItem, a: DecideAction) => void }) {
+  const shown = b.items.slice(0, DECIDE_VISIBLE)
+  const more = Math.max(0, b.total - shown.length)
+  return b.total === 0 && shown.length === 0 ? (
+    <EmptyNote text={d.decideEmpty} next={d.decideEmptyNext} href="/admin/inbox" />
+  ) : (
+    <>
+      <ul aria-label={d.decide} data-decide-list>
+        <AnimatePresence initial={false}>
+          {shown.map((it) => (
+            <DecideRow key={it.id} item={it} busy={busy} onAct={onAct} />
+          ))}
+        </AnimatePresence>
+      </ul>
+      {more > 0 ? (
+        <Link href="/admin/approvals" data-decide-more className="mt-1 inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 text-sm text-muted outline-none hover:bg-fill hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-text">
+          {fill(d.decideMore, { n: more })}
+          <ArrowRight size={14} aria-hidden="true" />
+        </Link>
+      ) : null}
+    </>
   )
 }
 
-const stateIcon: Record<ServiceState, typeof CheckCircle> = { ok: CheckCircle, degraded: Warning, down: XCircle, unknown: Question }
-const stateTone: Record<ServiceState, string> = { ok: 'text-accent-text', degraded: 'text-warn', down: 'text-danger', unknown: 'text-muted' }
-
-function Tiles({ x }: { x: DashboardData }) {
-  const leads = x.leads
-  const money = x.money
-  const approvals = x.approvals
-  const tickets = x.tickets
-  const agents = x.agents
-  const content = x.content
-  const projects = x.projects
-  const services = x.services
-  const funnel = x.funnel
-
+function HotLeads({ items }: { items: HotLead[] }) {
+  if (!items.length) return <EmptyNote text={d.hotEmpty} next={d.hotEmptyNext} href="/admin/clients" />
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <Tile id="leads-new" title={d.tiles.leads} href="/admin/clients?tab=pipeline" block={leads}>
-        {leads.available ? <Stat id="leads-new" name="" value={String(leads.new)} sub={`${fill(d.leads.won, { n: leads.won })}, ${fill(d.leads.lost, { n: leads.lost })}`} n={leads.new} /> : null}
-      </Tile>
-      <Tile id="leads-work" title={d.tiles.work} href="/admin/clients?tab=pipeline" block={leads}>
-        {leads.available ? <Stat id="leads-work" name="" value={String(leads.inWork)} n={leads.inWork} /> : null}
-      </Tile>
-      <Tile id="conversion" title={d.tiles.conversion} block={leads}>
-        {leads.available ? <Stat id="conversion" name="" value={percent(leads.conversion)} sub={leads.conversion === null ? d.conversion.none : fill(d.conversion.of, { won: leads.won, n: leads.new })} /> : null}
-      </Tile>
-      <Tile id="approvals" title={d.tiles.approvals} href="/admin/approvals" block={approvals}>
-        {approvals.available ? (
-          <div>
-            <div className={big} data-value data-n={approvals.waiting}>
-              {approvals.waiting}
-            </div>
-            {approvals.waiting === 0 ? <p className="text-footnote text-faint">{d.approvals.none}</p> : <p className="text-footnote text-faint">{fill(d.approvals.total, { n: approvals.waiting })}</p>}
-            <ul className="mt-2 grid grid-cols-2 gap-1.5">
-              {approvalTiles(approvals).map((a) => (
-                <li key={a.tab}>
-                  <Link
-                    href={approvalsHrefFor({ tab: a.tab })}
-                    data-approvals-tab={a.tab}
-                    data-n={a.n}
-                    className="flex min-h-9 items-center justify-between gap-2 rounded-full bg-fill px-3 text-footnote transition-colors hover:bg-fill-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent-text"
-                  >
-                    <span>{d.approvals.tabs[a.tab]}</span>
-                    <span className="font-mono tabular-nums">{a.n}</span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </Tile>
-
-      <Tile id="leads-chart" title={d.leads.perDay} block={leads} span="sm:col-span-2">
-        {leads.available ? (
-          leads.perDay.length === 0 ? (
-            <p className="text-callout text-muted">{d.leads.noLeads}</p>
-          ) : (
-            <ColumnsChart title={d.leads.perDay} points={leads.perDay.map((p) => ({ label: dayLong(p.day), short: dayShort(p.day), value: p.n, text: String(p.n) }))} valueLabel={d.leads.count} rowLabel={d.leads.day} empty={d.leads.noLeads} />
-          )
-        ) : null}
-      </Tile>
-      <Tile id="revenue-chart" title={d.money.perWeek} href="/admin/finance?tab=payments" block={money} span="sm:col-span-2">
-        {money.available ? (
-          <ColumnsChart title={d.money.perWeek} points={money.perWeek.map((p) => ({ label: p.week, short: weekShort(p.week), value: p.paid, text: Math.round(p.paid).toLocaleString('en-US') }))} unit="$" valueLabel={d.tiles.money} rowLabel={d.money.week} empty={d.money.noRevenue} />
-        ) : null}
-      </Tile>
-
-      <Tile id="money" title={d.tiles.money} href="/admin/finance?tab=payments" block={money}>
-        {money.available ? (
-          <div className="grid gap-2.5">
-            <Stat id="money-paid" name={d.money.paid} value={usd(money.paid)} sub={count(money.invoices.paid)} n={Math.round(money.paid * 100) / 100} />
-            <div className="grid grid-cols-2 gap-2.5">
-              <Stat id="money-pending" name={d.money.pending} value={usd(money.pending)} sub={count(money.invoices.pending)} n={Math.round(money.pending * 100) / 100} />
-              <Stat id="money-overdue" name={d.money.overdue} value={usd(money.overdue)} sub={count(money.invoices.overdue)} n={Math.round(money.overdue * 100) / 100} />
-            </div>
-          </div>
-        ) : null}
-      </Tile>
-      <Tile id="funnel" title={d.funnel.title} block={funnel} span="sm:col-span-2">
-        {funnel.available ? (
-          funnel.steps.length === 0 || funnel.steps[0]!.n === 0 ? (
-            <p className="text-callout text-muted">{d.noData}</p>
-          ) : (
-            <ol className="grid gap-2">
-              {funnelRows(funnel.steps).map((r) => (
-                <li key={r.step} data-funnel-step={r.step}>
-                  <div className="mb-1 flex flex-wrap items-baseline gap-x-2 text-footnote">
-                    <span>{(d.funnel.steps as Record<string, string>)[r.step] ?? r.step}</span>
-                    <span className="font-mono tabular-nums text-fg" data-value>
-                      {r.n}
-                    </span>
-                    {r.rate !== null ? <span className="text-faint">{fill(d.funnel.rate, { p: Math.round(r.rate * 100) })}</span> : null}
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-fill-strong" aria-hidden="true">
-                    <div className="h-full rounded-full bg-accent-text" style={{ width: `${Math.round(r.width * 100)}%` }} />
-                  </div>
-                </li>
-              ))}
-            </ol>
-          )
-        ) : null}
-      </Tile>
-      <Tile id="projects" title={d.tiles.projects} href="/admin/projects" block={projects}>
-        {projects.available ? (
-          projects.byStage.every((s) => s.n === 0) ? (
-            <p className="text-callout text-muted">{d.projects.none}</p>
-          ) : (
-            <ul className="grid gap-1.5">
-              {projects.byStage.map((s) => (
-                <li key={s.stage} className="flex items-center justify-between gap-2 text-callout" data-stage={s.stage}>
-                  <span>{(d.projects.stages as Record<string, string>)[s.stage] ?? s.stage}</span>
-                  <span className="font-mono tabular-nums">{s.n}</span>
-                </li>
-              ))}
-            </ul>
-          )
-        ) : null}
-      </Tile>
-
-      <Tile id="tickets" title={d.tiles.tickets} href="/admin/chats" block={tickets}>
-        {tickets.available ? (
-          <div className="grid grid-cols-2 gap-2.5">
-            <Stat id="tickets-open" name={d.tickets.open} value={String(tickets.open)} n={tickets.open} />
-            <Stat id="tickets-overdue" name={d.tickets.overdue} value={String(tickets.overdue)} n={tickets.overdue} />
-            <Stat id="tickets-answered" name={d.tickets.answered} value={String(tickets.answeredToday)} />
-            <div>
-              <div className={label}>{d.tickets.firstReply}</div>
-              {tickets.avgFirstResponseMin === null ? <div className="text-callout text-muted">{d.tickets.noReplies}</div> : <div className={big}>{minutesLabel(tickets.avgFirstResponseMin)}</div>}
-            </div>
-          </div>
-        ) : null}
-      </Tile>
-      <Tile id="content" title={d.tiles.content} href="/admin/content" block={content}>
-        {content.available ? (
-          contentWeekTotals(content).planned === 0 && content.waitingApproval === 0 ? (
-            <p className="text-callout text-muted">{d.content.noPlan}</p>
-          ) : (
-            <div className="grid gap-2">
-              <div className="grid grid-cols-3 gap-2">
-                <Stat name={d.content.planned} value={String(contentWeekTotals(content).planned)} />
-                <Stat name={d.content.approved} value={String(contentWeekTotals(content).approved)} />
-                <Stat name={d.content.published} value={String(contentWeekTotals(content).published)} />
-              </div>
-              <Link href={approvalsHrefFor({ tab: 'content' })} className="text-footnote text-accent-text hover:underline" data-content-waiting={content.waitingApproval}>
-                {fill(d.content.waiting, { n: content.waitingApproval })}
+    <ul aria-label={d.hot}>
+      {items.map((l) => (
+        <li key={l.id} data-hot-lead={l.id} className="border-t border-t-hairline border-line first:border-t-0">
+          <div className="grid grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-x-2.5 py-2">
+            <span aria-hidden="true" className={cn('size-2 justify-self-center rounded-full', l.stage === 'new' ? 'bg-accent-text' : 'bg-fg/30')} title={l.stageLabel} />
+            <div className="min-w-0">
+              <Link href={`/admin/clients?tab=pipeline&focus=${encodeURIComponent(l.id)}`} className="block truncate rounded-sm text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-accent-text">
+                {l.name}
+                {l.what ? <span className="font-normal text-muted"> · {l.what}</span> : null}
               </Link>
+              <span className="block truncate text-xs text-muted">
+                {l.stageLabel}
+                {l.amount ? <> · <span className="tabular-nums">{usd(l.amount)}</span></> : null}
+                {' · '}
+                <span className="tabular-nums">{ageLabel(l.ageMinutes)}</span>
+              </span>
             </div>
-          )
-        ) : null}
-      </Tile>
-      <Tile id="agents" title={d.tiles.agents} href="/admin/agents" block={agents}>
-        {agents.available ? (
-          <div className="grid grid-cols-2 gap-2.5">
-            <Stat name={d.agents.active} value={String(agents.activeNow)} />
-            <Stat name={d.agents.tasks} value={String(agents.tasksToday)} />
-            <Stat name={d.agents.failed} value={String(agents.tasksFailedToday)} />
-            <Stat name={d.agents.spendToday} value={usdCents(agents.spendToday)} />
+            {l.next?.href ? <Link href={l.next.href} className={cn(btn, 'min-h-9 px-3.5')}>{l.next.label}</Link> : null}
           </div>
-        ) : null}
-      </Tile>
-      <Tile id="services" title={d.tiles.services} block={services}>
-        {services.available ? (
-          services.items.length === 0 ? (
-            <p className="text-callout text-muted">{d.services.none}</p>
-          ) : (
-            <ul className="grid gap-1.5">
-              {services.items.map((s) => {
-                const Ico = stateIcon[s.state]
-                return (
-                  <li key={s.id} className="flex items-center gap-2 text-callout" data-service={s.id} data-state={s.state}>
-                    <Ico size={16} weight="fill" aria-hidden="true" className={cn('shrink-0', stateTone[s.state])} />
-                    <span className="min-w-0 flex-1 truncate">{s.title}</span>
-                    <span className="text-footnote text-muted">{d.services[s.state]}</span>
-                  </li>
-                )
-              })}
-            </ul>
-          )
-        ) : null}
-      </Tile>
-
-      <Tile id="spend" title={d.tiles.spend} href="/admin/finance?tab=costs" block={agents} span="sm:col-span-2 xl:col-span-4">
-        {agents.available ? (
-          <div>
-            <p className="mb-2.5 text-callout">
-              <span className="font-mono tabular-nums" data-value data-n={agents.spendMonth}>
-                {usdCents(agents.spendMonth)}
-              </span>{' '}
-              <span className="text-muted">{agents.budgetMonth === null ? d.agents.noLimit : fill(d.agents.budget, { limit: usd(agents.budgetMonth) })}</span>
-            </p>
-            {agents.byDept.length === 0 ? (
-              <p className="text-callout text-muted">{d.noData}</p>
-            ) : (
-              <ul className="grid gap-x-6 gap-y-2.5 sm:grid-cols-2 xl:grid-cols-3">
-                {agents.byDept.map((r) => {
-                  const st = spendState(r.spendMonth, r.limit)
-                  return (
-                    <li key={r.dept} data-dept={r.dept} data-state={st}>
-                      <div className="mb-1 flex flex-wrap items-baseline gap-x-2 text-footnote">
-                        <span>{dept[r.dept] ?? r.dept}</span>
-                        <span className="font-mono tabular-nums text-fg">
-                          {usdCents(r.spendMonth)}
-                          {r.limit === null ? '' : ` / ${usd(r.limit)}`}
-                        </span>
-                        <span className={cn('ml-auto', st === 'over' ? 'text-danger' : st === 'warn' ? 'text-warn' : 'text-muted')}>{d.spend[st]}</span>
-                      </div>
-                      <Meter ratio={spendRatio(r.spendMonth, r.limit)} state={st} />
-                    </li>
-                  )
-                })}
-              </ul>
-            )}
-          </div>
-        ) : null}
-      </Tile>
-    </div>
-  )
-}
-
-function Skeletons() {
-  return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" role="status" aria-label={d.loading} data-dashboard-loading>
-      {Array.from({ length: 8 }, (_, i) => (
-        <div key={i} className={cn('skeleton skeleton-block h-32 rounded-card', i >= 4 && i < 6 && 'sm:col-span-2')} />
+        </li>
       ))}
+    </ul>
+  )
+}
+
+function Money({ b }: { b: { available: true } & MoneyBlock }) {
+  const bars = sparkBars(b.perDay)
+  if (!b.paid7d && !b.pending && !b.overdue) return <EmptyNote text={d.moneyEmpty} next={d.moneyEmptyNext} href="/admin/finance" />
+  return (
+    <div>
+      <div className="grid grid-cols-3 gap-3">
+        <div data-stat="paid7d">
+          <div className={num} data-n={b.paid7d}>{usd(b.paid7d)}</div>
+          <div className={caption}>{d.paid7d}</div>
+        </div>
+        <div data-stat="pending">
+          <div className={num} data-n={b.pending}>{usd(b.pending)}</div>
+          <div className={caption}>{d.pending}</div>
+        </div>
+        <div data-stat="overdue">
+          <div className={cn(num, b.overdue > 0 && 'text-danger')} data-n={b.overdue}>{usd(b.overdue)}</div>
+          <div className={caption}>{b.overdueCount > 0 ? fill(d.overdueCount, { n: b.overdueCount }) : d.overdue}</div>
+        </div>
+      </div>
+      <div className="mt-3 flex h-8 items-end gap-1" role="img" aria-label={`${d.paid7d}: ${b.perDay.map((x) => `${x.day.slice(5)} ${usd(x.paid)}`).join(', ')}`} data-spark>
+        {bars.map((x, i) => (
+          <span key={i} title={`${b.perDay[i]?.day ?? ''}: ${usd(b.perDay[i]?.paid ?? 0)}`} className={cn('flex-1 rounded-sm bg-accent-text', x.last ? 'opacity-100' : 'opacity-35')} style={{ height: `${Math.round(x.ratio * 100)}%` }} />
+        ))}
+      </div>
     </div>
   )
 }
 
-const timeOf = (iso: string) => {
-  const dt = new Date(iso)
-  return Number.isNaN(dt.getTime()) ? '' : dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+function Funnel({ b }: { b: { available: true } & FunnelBlock }) {
+  const rows = funnelRows(b.steps)
+  if (!rows.length || rows[0]!.n === 0) return <EmptyNote text={d.funnelEmpty} next={d.funnelEmptyNext} />
+  return (
+    <ol className="grid gap-2.5">
+      {rows.map((r) => (
+        <li key={r.step} data-funnel-step={r.step}>
+          <div className="mb-1 flex items-baseline gap-2 text-xs">
+            <span className="text-muted">{r.label}</span>
+            <span className="ml-auto font-mono text-sm tabular-nums text-fg" data-n={r.n}>{r.n}</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-fill-strong" aria-hidden="true">
+            <div className="h-full rounded-full bg-accent-text/70" style={{ width: `${Math.round(r.width * 100)}%` }} />
+          </div>
+        </li>
+      ))}
+    </ol>
+  )
 }
 
-// The Shell home: one screen of live numbers from HQ's `GET /admin/dashboard`, a range switch (today, 7 days, 30 days),
-// a refresh every minute while the tab is visible (a hidden tab waits; it refreshes the moment it comes back) and a
-// retry when HQ does not answer. A broken source greys out only its own tile.
+const stateDot: Record<TeamState, string> = { working: 'bg-accent-text', waiting: 'bg-warn', blocked: 'bg-danger', idle: 'bg-fg/25' }
+
+function Team({ b }: { b: { available: true } & TeamBlock }) {
+  if (!b.items.length) return <EmptyNote text={d.teamEmpty} next={d.teamEmptyNext} href="/admin/team" />
+  const ratio = spendRatio(b.spendToday, b.limitToday)
+  return (
+    <div>
+      <p className="mb-2 text-xs text-muted tabular-nums" data-team-busy>{fill(d.teamBusy, { busy: b.busy, total: b.total })}</p>
+      <ul className="flex flex-wrap gap-1.5" aria-label={d.team}>
+        {b.items.map((m) => {
+          const inner = (
+            <>
+              <span aria-hidden="true" className={cn('size-2 shrink-0 rounded-full', stateDot[m.state])} />
+              <span className="truncate">{m.title}</span>
+              <span className="sr-only">{d.states[m.state]}{m.doing ? `: ${m.doing}` : ''}</span>
+            </>
+          )
+          const cls = 'inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-full bg-fill px-3 text-xs text-fg outline-none focus-visible:ring-2 focus-visible:ring-accent-text'
+          return (
+            <li key={m.id} data-team-chip={m.id} data-state={m.state}>
+              {m.href ? (
+                <Link href={m.href} title={`${d.states[m.state]}${m.doing ? `: ${m.doing}` : ''}`} className={cn(cls, 'pressable hover:bg-fill-strong')}>{inner}</Link>
+              ) : (
+                <span className={cls}>{inner}</span>
+              )}
+            </li>
+          )
+        })}
+      </ul>
+      <div className="mt-3">
+        <p className="mb-1 text-xs text-muted tabular-nums" data-team-spend>
+          {b.limitToday ? fill(d.teamSpend, { spent: `$${b.spendToday.toFixed(2)}`, limit: `$${Math.round(b.limitToday)}` }) : fill(d.teamSpendFree, { spent: `$${b.spendToday.toFixed(2)}` })}
+        </p>
+        {b.limitToday ? (
+          <div className="h-1.5 overflow-hidden rounded-full bg-fill-strong" aria-hidden="true">
+            <div className={cn('h-full rounded-full', ratio >= 1 ? 'bg-danger' : ratio >= 0.8 ? 'bg-warn' : 'bg-accent-text/70')} style={{ width: `${Math.round(ratio * 100)}%` }} />
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function Alerts({ b }: { b: { available: true } & AlertsBlock }) {
+  if (!b.items.length) return <EmptyNote text={d.alertsEmpty} next={d.alertsEmptyNext} />
+  return (
+    <ul aria-label={d.alerts}>
+      {b.items.map((a) => {
+        const Ico = a.level === 'bad' ? WarningCircle : Warning
+        return (
+          <li key={a.id} data-alert={a.level} className="border-t border-t-hairline border-line first:border-t-0">
+            <div className="grid grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-x-2.5 py-2">
+              <Ico size={16} weight="fill" aria-hidden="true" className={cn('justify-self-center', a.level === 'bad' ? 'text-danger' : 'text-warn')} />
+              <span className="min-w-0 text-sm">{a.text}</span>
+              {a.href ? <Link href={a.href} className={cn(btn, 'min-h-9 px-3.5')}>{d.decideOpen}</Link> : null}
+            </div>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+// «Overnight»: one line, the items are links, separated by commas. Quiet when HQ did not return it.
+function Night({ b, gone }: { b: ({ available: true } & NightBlock) | null; gone: boolean }) {
+  return (
+    <p data-night className="px-4 pt-3 text-callout text-muted sm:px-6" aria-label={d.overnight}>
+      <span className="font-medium text-fg">{d.overnight}</span>{' '}
+      {gone ? (
+        <span className="text-faint">{fill(d.unavailable, { block: d.blocks.night })}</span>
+      ) : b && b.items.length ? (
+        b.items.map((it, i) => (
+          <span key={i}>
+            {it.href ? <Link href={it.href} className="rounded-sm underline decoration-line-strong underline-offset-2 outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-text">{it.text}</Link> : it.text}
+            {i < b.items.length - 1 ? ', ' : ''}
+          </span>
+        ))
+      ) : b && b.text ? (
+        b.text
+      ) : (
+        <span className="text-faint">{d.overnightNone}</span>
+      )}
+    </p>
+  )
+}
+
+function Skeleton() {
+  const rows = (n: number) =>
+    Array.from({ length: n }, (_, i) => (
+      <div key={i} className="grid grid-cols-[18px_minmax(0,1fr)_auto] items-center gap-x-2.5 py-2">
+        <span className="skeleton size-2 justify-self-center rounded-full" />
+        <span className="grid gap-1.5">
+          <span className={cn('skeleton block h-3.5', i % 2 ? 'w-2/5' : 'w-3/5')} />
+          <span className="skeleton block h-3 w-1/4" />
+        </span>
+        <span className="skeleton h-9 w-20 rounded-full" />
+      </div>
+    ))
+  return (
+    <div role="status" aria-label={d.loading} data-dashboard-loading className="grid gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+      <div className="grid content-start gap-4">
+        <div className={cn(card, 'px-4 py-3')}>{rows(5)}</div>
+        <div className={cn(card, 'px-4 py-3')}>{rows(3)}</div>
+      </div>
+      <div className="grid content-start gap-4">
+        <div className={cn(card, 'h-36 p-4')}><span className="skeleton block h-6 w-2/3" /></div>
+        <div className={cn(card, 'h-28 p-4')}><span className="skeleton block h-3 w-full" /></div>
+        <div className={cn(card, 'h-24 p-4')}><span className="skeleton block h-8 w-full rounded-full" /></div>
+      </div>
+    </div>
+  )
+}
+
+// The Shell home «today»: what the owner has to do now, in one screen, from HQ's `GET /admin/today`. It refreshes
+// every 15 s while the tab is visible and every minute while hidden; a decision collapses its row, lowers every
+// «waiting» number at once (here, in the menu through APPROVALS_CHANGED) and rolls back with a toast if HQ refuses.
 export function DashboardSection() {
-  const info = sectionById('dashboard')!
-  const [range, setRange] = useState<DashRange>(DEFAULT_RANGE)
-  const view = useHqView(`dashboard?range=${range}`, normalizeDashboard, { visible: 60_000, hidden: 3_600_000 })
+  const { notify } = useHub()
+  const view = useHqView('today', normalizeToday, { visible: 15_000, hidden: 60_000 })
+  const { mutate, reload } = view
   const x = view.view
   const [busy, setBusy] = useState(false)
-  const refresh = async () => {
-    if (busy) return
-    setBusy(true)
-    try {
-      await view.reload()
-    } finally {
-      setBusy(false)
+  const alive = useRef(true)
+  useEffect(() => {
+    alive.current = true
+    return () => {
+      alive.current = false
     }
-  }
+  }, [])
+
+  const act = useCallback(
+    async (item: DecideItem, a: DecideAction) => {
+      if (busy || a.kind !== 'post' || !a.url) return
+      setBusy(true)
+      mutate((v: TodayData) => withoutDecision(v, item.id))
+      const res = await hq<Record<string, unknown>>(a.url, a.body ?? {})
+      if (alive.current) setBusy(false)
+      // The menu badge re-reads the queue once HQ has answered (not before, or it would read the old count).
+      if (res.ok) {
+        window.dispatchEvent(new Event(APPROVALS_CHANGED))
+        notify(fill(d.decideApproved, { title: item.title }))
+        return
+      }
+      notify(fill(d.decideFailed, { e: errText(res.error) }), 'error')
+      await reload()
+      window.dispatchEvent(new Event(APPROVALS_CHANGED))
+    },
+    [busy, mutate, reload, notify],
+  )
+
+  const jump = (id: BlockId) => document.getElementById(`today-${id}`)?.scrollIntoView({ block: 'start', behavior: 'auto' })
+  const total = waitingTotal(x)
 
   return (
     <div className="flex min-h-full flex-col" data-section-view="dashboard">
-      <div className="material-thick sticky top-0 z-10 border-b border-b-hairline border-line">
-        <div className="flex flex-wrap items-baseline gap-x-3 px-4 pt-3 sm:px-5">
-          <h1 className="text-title-3 font-semibold">{info.label}</h1>
-          <p className="text-sm text-muted">{t.sectionHints.dashboard}</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 px-3 py-2 sm:px-4">
-          <div role="group" aria-label={d.rangeLabel} className="inline-flex rounded-full bg-fill p-0.5">
-            {RANGES.map((r) => (
-              <button
-                key={r}
-                type="button"
-                aria-pressed={range === r}
-                data-range={r}
-                onClick={() => setRange(r)}
-                className={cn('pressable min-h-9 rounded-full px-3.5 text-callout transition-colors', range === r ? 'bg-elevated text-fg shadow-card' : 'text-muted hover:text-fg')}
-              >
-                {d.ranges[r]}
-              </button>
-            ))}
-          </div>
-          <p className="min-w-0 text-footnote text-faint" data-updated aria-live="polite">
-            {x && x.generatedAt ? fill(d.updated, { time: timeOf(x.generatedAt) }) : ''}
-          </p>
-          <button type="button" onClick={() => void refresh()} aria-busy={busy} className="pressable ml-auto inline-flex size-10 items-center justify-center rounded-full bg-fill text-muted hover:text-fg" aria-label={d.refresh}>
-            <ArrowsClockwise size={16} aria-hidden="true" className={cn(busy && 'animate-spin')} />
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={d.title}
+        hint={x ? dateInWords(x.date) : undefined}
+        actions={
+          <span className="text-xs tabular-nums text-faint" data-updated aria-live="polite">
+            {x && x.generatedAt ? fill(d.updated, { time: updatedLabel(x.generatedAt) }) : ''}
+          </span>
+        }
+      >
+        <nav aria-label={d.jump} className="-mx-3 flex gap-1.5 overflow-x-auto px-3 [scrollbar-width:none] lg:hidden" data-jump>
+          {(['decide', 'hotLeads', 'money', 'funnel', 'team', 'alerts'] as const).map((id) => (
+            <button key={id} type="button" onClick={() => jump(id)} className={filterPill(false, 'sm')}>
+              {id === 'decide' ? d.decide : id === 'hotLeads' ? d.hot : id === 'money' ? d.money : id === 'funnel' ? d.funnel : id === 'team' ? d.team : d.alerts}
+              {id === 'decide' && total ? <span className="text-xs tabular-nums text-faint">{total}</span> : null}
+            </button>
+          ))}
+        </nav>
+      </PageHeader>
 
-      {view.error && !x ? <Offline error={view.error} onRetry={view.reload} /> : null}
-      {!x && !view.error ? <div className="p-3 sm:p-4"><Skeletons /></div> : null}
+      {view.error && !x ? <Offline error={view.error} onRetry={reload} /> : null}
+      {!x && !view.error ? <Skeleton /> : null}
       {x ? (
-        <div className={cn('grid gap-3 p-3 sm:p-4', view.stale && 'opacity-60 transition-opacity')} aria-busy={view.stale} data-dashboard-range={x.range}>
-          {view.failed ? <Offline error={view.failed} onRetry={view.reload} /> : null}
-          <Tiles x={x} />
-          <p className="text-footnote text-faint">{fill(d.footer, { tz: x.tz })}</p>
-        </div>
+        <>
+          <Night b={x.night.available ? x.night : null} gone={!x.night.available} />
+          {view.failed ? <Offline error={view.failed} onRetry={reload} /> : null}
+          <div className="grid gap-4 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]" data-dashboard>
+            <div className="grid content-start gap-4">
+              <Block
+                id="decide"
+                title={d.decide}
+                gone={!x.decide.available}
+                aside={
+                  x.decide.available ? (
+                    <>
+                      <span className="mr-2 font-mono text-sm tabular-nums text-fg" data-decide-total data-n={x.decide.total}>{x.decide.total}</span>
+                      <Link href="/admin/approvals" className="rounded-sm text-muted outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-text">{d.decideAll}</Link>
+                    </>
+                  ) : null
+                }
+              >
+                {x.decide.available ? <Decide b={x.decide} busy={busy} onAct={(i, a) => void act(i, a)} /> : null}
+              </Block>
+              <Block id="hotLeads" title={d.hot} gone={!x.hotLeads.available} aside={x.hotLeads.available ? <Link href="/admin/clients" className="rounded-sm text-muted outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-text">{d.hotAll}</Link> : null}>
+                {x.hotLeads.available ? <HotLeads items={x.hotLeads.items} /> : null}
+              </Block>
+            </div>
+            <div className="grid content-start gap-4">
+              <Block id="money" title={d.money} gone={!x.money.available} aside={x.money.available ? <Link href="/admin/finance" className="rounded-sm text-muted outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-text">Finance</Link> : null}>
+                {x.money.available ? <Money b={x.money} /> : null}
+              </Block>
+              <Block id="funnel" title={d.funnel} gone={!x.funnel.available} aside={x.funnel.available ? fill(d.funnelDays, { n: x.funnel.days }) : null}>
+                {x.funnel.available ? <Funnel b={x.funnel} /> : null}
+              </Block>
+              <Block id="team" title={d.team} gone={!x.team.available} aside={x.team.available ? <Link href="/admin/team" className="rounded-sm text-muted outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-text">Team</Link> : null}>
+                {x.team.available ? <Team b={x.team} /> : null}
+              </Block>
+              <Block id="alerts" title={d.alerts} gone={!x.alerts.available} aside={x.alerts.available && x.alerts.items.length ? <span className="tabular-nums text-fg">{x.alerts.items.length}</span> : null}>
+                {x.alerts.available ? <Alerts b={x.alerts} /> : null}
+              </Block>
+            </div>
+          </div>
+          <p className="px-4 pb-6 text-xs text-faint sm:px-6">{fill(d.footer, { tz: x.tz })}</p>
+        </>
       ) : null}
     </div>
   )
