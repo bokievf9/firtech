@@ -18,6 +18,7 @@ import type { ComponentType } from 'react'
 import { useState } from 'react'
 import { GlassCard } from '@/components/ui'
 import { cn } from '@/lib/cn'
+import { CardStack } from '../motion/card-stack'
 
 export const skillIcons: Record<string, ComponentType<{ size?: number; weight?: 'duotone'; 'aria-hidden'?: boolean | 'true' }>> = {
   mail: EnvelopeSimple,
@@ -47,7 +48,7 @@ export function SkillGrid({ groups }: { groups: SkillGroup[] }) {
       {groups.map((group) => (
         <div key={group.id} data-skill-group={group.id}>
           <h3 className="text-footnote font-medium text-muted">{group.name}</h3>
-          <ul className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <CardStack as="ul" className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
             {group.tiles.map((tile) => {
               const Glyph = skillIcons[tile.id]!
               const shown = open === tile.id
@@ -88,7 +89,7 @@ export function SkillGrid({ groups }: { groups: SkillGroup[] }) {
                 </li>
               )
             })}
-          </ul>
+          </CardStack>
         </div>
       ))}
     </div>

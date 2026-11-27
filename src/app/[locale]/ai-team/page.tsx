@@ -2,10 +2,14 @@ import { ArrowRight, ArrowUpRight, Check, PaperPlaneTilt, ShieldCheck, UserCheck
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { CardStack } from '@/components/motion/card-stack'
+import { TitleReveal } from '@/components/motion/title-reveal'
+import { TourDot } from '@/components/motion/tour-dot'
 import { AgentExplorer } from '@/components/ai-team/agent-explorer'
 import { AgentCard } from '@/components/ai-team/agent-list'
 import { ChannelsRow } from '@/components/ai-team/channels-row'
 import { TeamGlyph } from '@/components/ai-team/team-parts'
+import { FiraFlat } from '@/components/fira/fira-flat'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { HeroIntro } from '@/components/hero-intro'
 import { Ladder } from '@/components/ladder'
@@ -106,7 +110,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       <section data-tour="top" className="mx-auto grid site-container items-center gap-12 pt-32 pb-16 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-7">
           <p className="text-footnote font-medium text-accent-text">{t.eyebrow}</p>
-          <h1 className="mt-4 max-w-[16ch] font-display text-display text-balance">{t.title}</h1>
+          <TitleReveal as="h1" className="mt-4 max-w-[16ch] font-display text-display text-balance">{t.title}</TitleReveal>
           <p className="mt-6 max-w-[44ch] text-lead text-muted">{t.sub}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link href={aiTeamBuilderHref(locale)} data-cta="aiteam_build" className={buttonClass('primary', 'lg')}>
@@ -121,7 +125,10 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
 
         <Reveal className="lg:col-span-5" delay={0.2}>
           <GlassCard thickness="thick" className="rounded-panel p-sheet">
-            <p className="text-headline font-semibold">{t.flow.title}</p>
+            <p className="flex items-center gap-3 text-headline font-semibold">
+              <TourDot size={36} rest={<FiraFlat emotion="idle" className="size-full" />} done={<FiraFlat emotion="happy" className="size-full" />} />
+              {t.flow.title}
+            </p>
             <ol className="relative mt-5 grid gap-5 before:absolute before:top-5 before:bottom-5 before:left-[19px] before:w-px before:bg-line">
               {t.flow.steps.map((step, i) => {
                 const Glyph = flowIcons[i]!
@@ -166,13 +173,12 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
 
       <Section id="teams" data-tour="teams">
         <SectionHeader title={t.deptsTitle} />
-        <ul className="mt-12 grid gap-gutter md:grid-cols-2 lg:grid-cols-12 3xl:grid-cols-4">
-          {aiTeamIds.map((id, i) => {
+        <CardStack as="ul" className="mt-12 grid gap-gutter md:grid-cols-2 lg:grid-cols-12 3xl:grid-cols-4">
+          {aiTeamIds.map((id) => {
             const item = t.items[id]
             const price = teamPrice(id, pricing) ?? companyPlanOf(pricing)
             return (
               <li key={id} className={spans[id]}>
-                <Reveal className="h-full" delay={(i % 3) * 0.06}>
                   <Card tone={id === 'company' ? 'accent' : 'plain'} interactive className="group flex h-full flex-col gap-5">
                     <div className="flex items-start justify-between gap-3">
                       <TeamGlyph id={id} />
@@ -209,11 +215,10 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
                       </div>
                     </dl>
                   </Card>
-                </Reveal>
               </li>
             )
           })}
-        </ul>
+        </CardStack>
         <Reveal className="mt-gutter">
           <div className="flex flex-col gap-4 rounded-card border border-dashed border-line-strong p-card md:flex-row md:items-center md:justify-between">
             <div>

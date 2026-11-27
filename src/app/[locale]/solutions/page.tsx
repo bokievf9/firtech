@@ -2,8 +2,10 @@ import { ArrowRight, ArrowUpRight } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { TitleReveal } from '@/components/motion/title-reveal'
 import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
+import { CardStack } from '@/components/motion/card-stack'
 import { Reveal } from '@/components/reveal'
 import { SpotlightCard } from '@/components/spotlight-card'
 import { getDict } from '@/content'
@@ -66,9 +68,9 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
       <section className="mx-auto site-container pt-32 pb-12 md:pt-40 md:pb-16">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h1 className="mt-5 max-w-[16ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+          <TitleReveal as="h1" className="mt-5 max-w-[16ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {t.title}
-          </h1>
+          </TitleReveal>
           <p className="mt-6 max-w-[60ch] text-lg leading-relaxed text-muted md:text-xl">{t.sub}</p>
         </HeroIntro>
       </section>
@@ -82,12 +84,11 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
               <h2 className="mb-5 text-sm tracking-[0.12em] text-faint uppercase">
                 {pick(categoryNames[group.category], locale)}
               </h2>
-              <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
-                {kinds.map((kind, i) => {
+              <CardStack as="ul" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
+                {kinds.map((kind) => {
                   const copy = solutionCopy(kind, locale, dict, pricing)
                   return (
                     <li key={kind}>
-                      <Reveal delay={(i % 3) * 0.06} className="h-full">
                         <SpotlightCard className="relative flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-colors hover:border-line-strong md:p-8">
                           <div className="flex items-center gap-3 text-sm text-muted">
                             <span aria-hidden="true" className="text-2xl leading-none">
@@ -117,11 +118,10 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
                             </span>
                           </div>
                         </SpotlightCard>
-                      </Reveal>
                     </li>
                   )
                 })}
-              </ul>
+              </CardStack>
             </div>
           )
         })}

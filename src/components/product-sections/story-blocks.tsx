@@ -1,6 +1,11 @@
 import { ArrowRight, Check, CheckCircle, Clock, X } from '@phosphor-icons/react/ssr'
 import type { ProductBlocks } from '@/content/product-pages'
 import { cn } from '@/lib/cn'
+import { Blueprint } from '../motion/blueprint'
+import { CardStack } from '../motion/card-stack'
+import { PhoneChat } from '../motion/phone-chat'
+import { PinStep } from '../motion/pin-step'
+import { Wipe } from '../motion/wipe'
 import { Reveal } from '../reveal'
 import { SpotlightCard } from '../spotlight-card'
 import { SectionShell } from './shell'
@@ -14,11 +19,12 @@ type Req<K extends keyof ProductBlocks> = NonNullable<ProductBlocks[K]>
 export function DayBlock({ copy, band, note }: { copy: Req<'day'>; note: string } & Band) {
   return (
     <SectionShell id="day" title={copy.title} sub={copy.sub} band={band}>
-      <ol className="relative grid gap-4 border-l border-line pl-6 md:ml-24 md:pl-10" data-day-timeline>
+      <Blueprint as="ol" axis="y" lineClassName="-left-px top-0 bottom-0 w-px" className="grid gap-4 border-l border-line pl-6 md:ml-24 md:pl-10" data-day-timeline>
         {copy.items.map((item, i) => (
           <li key={`${item.time}-${i}`} className="relative">
             <Reveal delay={Math.min(i, 4) * 0.05}>
               <span
+                data-node
                 aria-hidden="true"
                 className="absolute top-5 -left-[31px] size-2.5 rounded-full bg-accent md:-left-[45px]"
               />
@@ -32,7 +38,7 @@ export function DayBlock({ copy, band, note }: { copy: Req<'day'>; note: string 
             </Reveal>
           </li>
         ))}
-      </ol>
+      </Blueprint>
       <p className="mt-6 text-xs text-faint md:ml-24">{note}</p>
     </SectionShell>
   )
@@ -42,7 +48,7 @@ export function DayBlock({ copy, band, note }: { copy: Req<'day'>; note: string 
 export function FlowBlock({ copy, band }: { copy: Req<'flow'> } & Band) {
   return (
     <SectionShell id="flow" title={copy.title} sub={copy.sub} band={band}>
-      <ol className="grid gap-3 md:grid-cols-5" data-flow>
+      <PinStep as="ol" stageClassName="grid gap-3 md:grid-cols-5" data-flow>
         {copy.steps.map((step, i) => (
           <li key={step.title} className="relative">
             <Reveal delay={i * 0.06} className="h-full">
@@ -61,7 +67,7 @@ export function FlowBlock({ copy, band }: { copy: Req<'flow'> } & Band) {
             )}
           </li>
         ))}
-      </ol>
+      </PinStep>
     </SectionShell>
   )
 }
@@ -70,10 +76,9 @@ export function FlowBlock({ copy, band }: { copy: Req<'flow'> } & Band) {
 export function WeekBlock({ copy, band, note }: { copy: Req<'week'>; note: string } & Band) {
   return (
     <SectionShell id="week" title={copy.title} sub={copy.sub} band={band}>
-      <ul className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-6 md:overflow-visible md:px-0" data-week>
+      <PhoneChat as="ul" gap={300} className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-6 md:overflow-visible md:px-0" data-week>
         {copy.days.map((day, i) => (
           <li key={day.day} className="w-[15rem] shrink-0 snap-start md:w-auto">
-            <Reveal delay={i * 0.05} className="h-full">
               <article className="flex h-full flex-col rounded-card border border-line bg-surface p-4">
                 <div className="flex items-center justify-between">
                   <span className="font-mono text-sm text-accent-text">{day.day}</span>
@@ -90,10 +95,9 @@ export function WeekBlock({ copy, band, note }: { copy: Req<'week'>; note: strin
                   {day.status}
                 </p>
               </article>
-            </Reveal>
           </li>
         ))}
-      </ul>
+      </PhoneChat>
       <p className="mt-5 text-xs text-faint">{note}</p>
     </SectionShell>
   )
@@ -103,10 +107,9 @@ export function WeekBlock({ copy, band, note }: { copy: Req<'week'>; note: strin
 export function RolesBlock({ copy, band }: { copy: Req<'roles'> } & Band) {
   return (
     <SectionShell id="roles" title={copy.title} sub={copy.sub} band={band}>
-      <ul className="grid gap-gutter sm:grid-cols-2 lg:grid-cols-4" data-roles>
+      <CardStack as="ul" className="grid gap-gutter sm:grid-cols-2 lg:grid-cols-4" data-roles>
         {copy.items.map((role, i) => (
           <li key={role.name}>
-            <Reveal delay={i * 0.06} className="h-full">
               <SpotlightCard
                 className={cn(
                   'h-full rounded-card border p-6',
@@ -116,10 +119,9 @@ export function RolesBlock({ copy, band }: { copy: Req<'roles'> } & Band) {
                 <h3 className="text-xl font-semibold tracking-tight">{role.name}</h3>
                 <p className="mt-3 leading-relaxed text-muted">{role.does}</p>
               </SpotlightCard>
-            </Reveal>
           </li>
         ))}
-      </ul>
+      </CardStack>
     </SectionShell>
   )
 }
@@ -133,9 +135,8 @@ export function BeforeAfterBlock({ copy, band }: { copy: Req<'beforeAfter'> } & 
         <p className="text-accent-text">{copy.afterLabel}</p>
       </div>
       <ol className="grid gap-3" data-before-after>
-        {copy.rows.map((row, i) => (
-          <li key={row.after}>
-            <Reveal delay={Math.min(i, 4) * 0.05}>
+        {copy.rows.map((row) => (
+          <Wipe as="li" key={row.after}>
               <div className="grid gap-2 md:grid-cols-2 md:gap-gutter">
                 <p className="flex gap-3 rounded-card border border-dashed border-line-strong p-4 text-muted">
                   <X size={16} weight="bold" aria-hidden="true" className="mt-1 shrink-0 text-faint" />
@@ -144,7 +145,7 @@ export function BeforeAfterBlock({ copy, band }: { copy: Req<'beforeAfter'> } & 
                     {row.before}
                   </span>
                 </p>
-                <p className="flex gap-3 rounded-card border border-accent-text/30 bg-surface p-4">
+                <p className="scene-wipe flex gap-3 rounded-card border border-accent-text/30 bg-surface p-4">
                   <Check size={16} weight="bold" aria-hidden="true" className="mt-1 shrink-0 text-accent-text" />
                   <span>
                     <span className="mr-1.5 text-xs text-accent-text uppercase md:hidden">{copy.afterLabel}:</span>
@@ -152,8 +153,7 @@ export function BeforeAfterBlock({ copy, band }: { copy: Req<'beforeAfter'> } & 
                   </span>
                 </p>
               </div>
-            </Reveal>
-          </li>
+          </Wipe>
         ))}
       </ol>
     </SectionShell>
@@ -164,10 +164,9 @@ export function BeforeAfterBlock({ copy, band }: { copy: Req<'beforeAfter'> } & 
 export function RoutinesBlock({ copy, band }: { copy: Req<'routines'> } & Band) {
   return (
     <SectionShell id="routines" title={copy.title} sub={copy.sub} band={band}>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-routines>
-        {copy.items.map((item, i) => (
+      <CardStack as="ul" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-routines>
+        {copy.items.map((item) => (
           <li key={item.task}>
-            <Reveal delay={(i % 3) * 0.05} className="h-full">
               <div className="flex h-full items-start gap-3 rounded-card border border-line bg-surface p-5">
                 <CheckCircle size={20} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
                 <div>
@@ -175,10 +174,9 @@ export function RoutinesBlock({ copy, band }: { copy: Req<'routines'> } & Band) 
                   <p className="mt-1 text-sm text-faint">{item.now}</p>
                 </div>
               </div>
-            </Reveal>
           </li>
         ))}
-      </ul>
+      </CardStack>
     </SectionShell>
   )
 }
@@ -187,10 +185,9 @@ export function RoutinesBlock({ copy, band }: { copy: Req<'routines'> } & Band) 
 export function PhonesBlock({ copy, band, note }: { copy: Req<'phones'>; note: string } & Band) {
   return (
     <SectionShell id="phones" title={copy.title} sub={copy.sub} band={band}>
-      <ol className="grid gap-gutter md:grid-cols-3" data-phones>
+      <PhoneChat as="ol" gap={500} className="grid gap-gutter md:grid-cols-3" data-phones>
         {copy.screens.map((screen, i) => (
           <li key={screen.title}>
-            <Reveal delay={i * 0.08}>
               <div className="mx-auto w-full max-w-[17rem] rounded-[2.2rem] border border-line-strong bg-bg p-2.5 shadow-[var(--shadow-card)]">
                 <div className="flex aspect-[9/17] flex-col rounded-[1.7rem] border border-line bg-surface p-4">
                   <div aria-hidden="true" className="mx-auto h-1.5 w-14 rounded-full bg-line-strong" />
@@ -213,10 +210,9 @@ export function PhonesBlock({ copy, band, note }: { copy: Req<'phones'>; note: s
                 </div>
               </div>
               <p className="mx-auto mt-4 max-w-[17rem] text-center text-sm leading-relaxed text-muted">{screen.caption}</p>
-            </Reveal>
           </li>
         ))}
-      </ol>
+      </PhoneChat>
       <p className="mt-6 text-center text-xs text-faint">{note}</p>
     </SectionShell>
   )
@@ -250,10 +246,9 @@ export function FactsBlock({ copy, band, sourceLabel }: { copy: Req<'facts'>; so
 export function ScenariosBlock({ copy, band }: { copy: Req<'scenarios'> } & Band) {
   return (
     <SectionShell id="scenarios" title={copy.title} sub={copy.sub} band={band}>
-      <ol className="grid gap-gutter lg:grid-cols-3" data-scenarios>
+      <CardStack as="ol" className="grid gap-gutter lg:grid-cols-3" data-scenarios>
         {copy.items.map((s, i) => (
           <li key={s.title}>
-            <Reveal delay={i * 0.07} className="h-full">
               <article className="flex h-full flex-col rounded-card border border-line bg-surface p-6">
                 <p className="font-mono text-xs tracking-[0.14em] text-accent-text uppercase">{String(i + 1).padStart(2, '0')}</p>
                 <h3 className="mt-3 text-xl font-semibold tracking-tight">{s.title}</h3>
@@ -271,10 +266,9 @@ export function ScenariosBlock({ copy, band }: { copy: Req<'scenarios'> } & Band
                 </ol>
                 <p className="mt-auto border-t border-line pt-4 text-sm font-medium">{s.result}</p>
               </article>
-            </Reveal>
           </li>
         ))}
-      </ol>
+      </CardStack>
     </SectionShell>
   )
 }

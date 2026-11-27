@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { encodeBuild } from '@/lib/builder'
 import { formatUsd } from '@/lib/pricing'
 import type { ServiceSlug } from '@/lib/site'
-import { Reveal } from './reveal'
+import { CardStack } from './motion/card-stack'
 import { SpotlightCard } from './spotlight-card'
 
 type Variant = { id: string; name: string; term: string; price: number }
@@ -22,10 +22,9 @@ export function ServiceVariants({
   labels: { term: string; from: string; calc: string; calcLabel: string }
 }) {
   return (
-    <div className="mt-12 grid gap-4 lg:grid-cols-3">
+    <CardStack className="mt-12 grid gap-4 lg:grid-cols-3">
       {items.map((v, i) => (
-        <Reveal key={v.id} delay={i * 0.08} className="h-full">
-          <SpotlightCard className="group flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong md:p-7">
+          <SpotlightCard key={v.id} className="group flex h-full flex-col rounded-card border border-line bg-surface p-6 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong md:p-7">
             <div className="flex items-center justify-between gap-3 text-sm">
               <span className="font-mono text-faint">{String(i + 1).padStart(2, '0')}</span>
               <span className="flex items-center gap-1.5 text-muted">
@@ -52,8 +51,7 @@ export function ServiceVariants({
               {labels.calc}
             </Link>
           </SpotlightCard>
-        </Reveal>
       ))}
-    </div>
+    </CardStack>
   )
 }

@@ -25,6 +25,8 @@ import { HeroIntro } from '../hero-intro'
 import { FiraHero } from '../products/fira-hero'
 import { CompanyPlan } from '../products/plan-levels'
 import { productIcons } from '../products/product-icons'
+import { Blueprint } from '../motion/blueprint'
+import { TitleReveal } from '../motion/title-reveal'
 import { Reveal } from '../reveal'
 import { Badge, Card, GlassCard } from '../ui'
 import { CompanyDemo } from './company-demo'
@@ -57,7 +59,7 @@ export function CompanyHero({ ctx }: { ctx: ProductSectionContext }) {
           <Glyph size={14} aria-hidden="true" />
           {dict.products.items[id].name}
         </Badge>
-        <h1 className="mt-5 max-w-[16ch] font-display text-display text-balance">{page.result}</h1>
+        <TitleReveal as="h1" className="mt-5 max-w-[16ch] font-display text-display text-balance">{page.result}</TitleReveal>
         <p className="mt-6 max-w-[40ch] text-lead text-muted">{page.lead}</p>
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <ChatOpenButton source="product_company_call" fallbackHref="#cdemo" className={buttonClass('primary', 'lg')}>
@@ -79,7 +81,7 @@ export function CompanyHero({ ctx }: { ctx: ProductSectionContext }) {
 
 function Connector() {
   return (
-    <div aria-hidden="true" className="flex items-center justify-center text-faint">
+    <div aria-hidden="true" data-node className="flex items-center justify-center text-faint">
       <ArrowDown size={22} className="lg:hidden" />
       <ArrowRight size={22} className="hidden lg:block" />
     </div>
@@ -94,7 +96,7 @@ export function BrainBlock({ ctx, band }: { ctx: ProductSectionContext; band?: b
   return (
     <SectionShell id="brain" title={copy.title} sub={copy.sub} band={band}>
       <div data-brain>
-        <div className="grid items-stretch gap-4 lg:grid-cols-[1fr_auto_minmax(0,1.1fr)_auto_1fr]">
+        <Blueprint className="isolate grid items-stretch gap-4 lg:grid-cols-[1fr_auto_minmax(0,1.1fr)_auto_1fr]" lineClassName="-z-10 hidden h-px w-full lg:top-1/2 lg:left-0 lg:block">
           <Card className="flex flex-col gap-4" data-brain-sources>
             <p className="text-footnote font-medium text-muted">{copy.sourcesLabel}</p>
             <ul className="grid gap-3">
@@ -137,7 +139,7 @@ export function BrainBlock({ ctx, band }: { ctx: ProductSectionContext; band?: b
               })}
             </ul>
           </Card>
-        </div>
+        </Blueprint>
 
         <div className="mt-4 flex flex-col items-center gap-3 rounded-card border border-dashed border-line-strong p-card" data-brain-roles>
           <p className="text-footnote font-medium text-muted">{copy.rolesLabel}</p>
@@ -165,12 +167,13 @@ export function CdayBlock({ ctx, band }: { ctx: ProductSectionContext; band?: bo
   const copy = ctx.page.cday!
   return (
     <SectionShell id="cday" title={copy.title} sub={copy.sub} band={band}>
-      <ol className="relative grid gap-6 border-l border-l-hairline border-line pl-8 md:max-w-2xl" data-company-day>
+      <Blueprint as="ol" axis="y" lineClassName="-left-px top-0 bottom-0 w-px" className="grid gap-6 border-l border-l-hairline border-line pl-8 md:max-w-2xl" data-company-day>
         {copy.items.map((item) => {
           const Icon = dayIcons[item.icon] ?? Buildings
           return (
             <li key={item.time} className="relative" data-company-hour={item.time}>
               <span
+                data-node
                 aria-hidden="true"
                 className="absolute top-0 -left-[3.1rem] grid size-9 place-items-center rounded-full border border-hairline border-line bg-elevated text-accent-text"
               >
@@ -183,7 +186,7 @@ export function CdayBlock({ ctx, band }: { ctx: ProductSectionContext; band?: bo
             </li>
           )
         })}
-      </ol>
+      </Blueprint>
     </SectionShell>
   )
 }

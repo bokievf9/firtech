@@ -2,6 +2,8 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Check } from '@phosphor-icons/reac
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { CardStack } from '@/components/motion/card-stack'
+import { TitleReveal } from '@/components/motion/title-reveal'
 import { AgentCard } from '@/components/ai-team/agent-list'
 import { ChannelsRow } from '@/components/ai-team/channels-row'
 import { TogetherFlow } from '@/components/ai-team/together-flow'
@@ -88,7 +90,7 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
             <TeamGlyph id={id} />
             <p className="text-callout font-medium text-accent-text">{page.title}</p>
           </div>
-          <h1 className="mt-5 max-w-[22ch] font-display text-title text-balance">{page.headline}</h1>
+          <TitleReveal as="h1" className="mt-5 max-w-[22ch] font-display text-title text-balance">{page.headline}</TitleReveal>
           <p className="mt-6 max-w-[48ch] text-lead text-muted">{page.promise}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link href={aiTeamBuilderHref(locale, id)} data-cta={`aiteam_${id}_build`} className={buttonClass('primary', 'lg')}>
@@ -108,15 +110,13 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
 
       <Section id="agents" className="pt-0">
         <SectionHeader title={t.agents.page.listTitle} />
-        <ul className="mt-8 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
-          {agentsOfDept(id).map((agent, i) => (
+        <CardStack as="ul" className="mt-8 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
+          {agentsOfDept(id).map((agent) => (
             <li key={agent.id}>
-              <Reveal delay={(i % 3) * 0.05} className="h-full">
-                <AgentCard id={agent.id} locale={locale} dict={dict} showTeam={false} />
-              </Reveal>
+              <AgentCard id={agent.id} locale={locale} dict={dict} showTeam={false} />
             </li>
           ))}
-        </ul>
+        </CardStack>
       </Section>
 
       <section className="border-y border-y-hairline border-line bg-surface/40">

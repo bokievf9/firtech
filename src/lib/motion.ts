@@ -14,6 +14,8 @@ export const spring = {
   sheet: { type: 'spring', bounce: 0.12, duration: 0.42 },
   // Only after a gesture with momentum (a flick, a drag release): a little bounce is earned.
   momentum: { type: 'spring', bounce: 0.22, duration: 0.45 },
+  // motion tokens (T1): Fira travelling (the value film-overlay.tsx calls `flight`).
+  flight: { type: 'spring', bounce: 0.15, duration: 0.9 },
 } as const satisfies Record<string, Transition>
 
 // Opacity-only fallback for reduced motion and for exits of big surfaces.
@@ -29,3 +31,7 @@ export const materialize = {
   hidden: { opacity: 0, scale: 0.97, filter: 'blur(6px)' },
   shown: { opacity: 1, scale: 1, filter: 'blur(0px)' },
 } as const
+
+// motion tokens (T1): CSS transition durations in ms (the same values as the --dur-* variables in globals.css).
+export const dur = { micro: 160, base: 320, scene: 700, page: { out: 160, in: 260 }, cold: 1800 } as const
+// end motion tokens (T1)

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
 import { ladderIds, ladderLevels, ladders, rungPath } from '@/lib/ladder'
+import { Blueprint } from './motion/blueprint'
 import { Reveal } from './reveal'
 
 // The ladder graphic (owner 2026-11-22): per direction three rungs that rise from left to right, one
@@ -28,11 +29,13 @@ export function Ladder({ locale, dict, heading = 'h3' }: { locale: string; dict:
               <Heading id={`ladder-${id}`} className="font-display text-xl font-semibold tracking-tight md:text-2xl">
                 {track.title}
               </Heading>
-              <ol className="mt-5 grid gap-3 md:grid-cols-3 md:items-end">
+              <Blueprint className="mt-5" lineClassName="hidden -bottom-3 left-0 h-0.5 w-full md:block">
+              <ol className="grid gap-3 md:grid-cols-3 md:items-end">
                 {ladderLevels.map((level, i) => {
                   const rung = track.rungs[level]
                   return (
-                    <li key={level} className={cn('flex', rise[i])}>
+                    <li key={level} className={cn('relative flex', rise[i])}>
+                      <span data-node aria-hidden="true" className="absolute -bottom-[1.1rem] left-1/2 hidden size-2 -translate-x-1/2 rounded-full bg-accent md:block" />
                       <Link
                         href={`/${locale}${rungPath(ladders[id][level])}`}
                         data-ladder-rung={`${id}-${level}`}
@@ -63,7 +66,8 @@ export function Ladder({ locale, dict, heading = 'h3' }: { locale: string; dict:
                   )
                 })}
               </ol>
-              <p className="mt-5 max-w-[86ch] text-sm leading-relaxed text-muted">
+              </Blueprint>
+              <p className="mt-6 max-w-[86ch] text-sm leading-relaxed text-muted">
                 <span className="font-medium text-fg">{t.changeLabel}. </span>
                 {track.change}
               </p>

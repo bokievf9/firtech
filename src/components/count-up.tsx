@@ -23,7 +23,7 @@ export function CountUp({
     const el = ref.current
     if (!el || !inView || reduce || value === 0) return
     const controls = animate(0, value, {
-      duration: 1.6,
+      duration: 0.9,
       ease: [0.16, 1, 0.3, 1],
       onUpdate: (v) => {
         el.textContent = `${prefix}${Math.round(v)}${suffix}`

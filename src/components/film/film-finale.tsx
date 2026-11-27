@@ -6,6 +6,8 @@ import type { FilmScene } from '@/lib/film'
 import type { Locale } from '@/lib/i18n'
 import { telegramUrl } from '@/lib/site'
 import { ChatOpenButton } from '../chat/chat-open-button'
+import { NodOnView } from '../motion/nod-on-view'
+import { Reveal } from '../reveal'
 import { FiraMark, FilmLine } from './film-cue'
 
 // The last scene of the home film: Fira sees the visitor off with the three ways forward (build a
@@ -14,11 +16,13 @@ export function FilmFinale({ scene, dict, locale }: { scene: FilmScene; dict: Di
   const f = dict.film
   return (
     <div data-film-cue={scene.id} data-film-finale className="flex flex-col gap-6 pb-10 md:flex-row md:items-end md:gap-8">
-      <FiraMark scene={scene} size="lg" />
+      <NodOnView>
+        <FiraMark scene={scene} size="lg" />
+      </NodOnView>
       <div className="min-w-0">
         <h2 className="font-display text-title font-semibold">{f.finale.title}</h2>
         <FilmLine name={f.name} line={f.scenes.final} className="mt-5" />
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <Reveal className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link href={`/${locale}/builder`} data-cta="film_build" className={cn(buttonStyles.primary, 'group')}>
             {f.finale.build}
             <ArrowRight size={16} aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-1" />
@@ -33,7 +37,7 @@ export function FilmFinale({ scene, dict, locale }: { scene: FilmScene; dict: Di
               {f.finale.telegram}
             </a>
           ) : null}
-        </div>
+        </Reveal>
       </div>
     </div>
   )

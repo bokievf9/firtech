@@ -21,6 +21,8 @@ import { FiraHero } from '../products/fira-hero'
 import { CompanyPlan, PlanLevels } from '../products/plan-levels'
 import { productIcons } from '../products/product-icons'
 import { ProductPriceTag } from '../products/product-price'
+import { CardStack } from '../motion/card-stack'
+import { TitleReveal } from '../motion/title-reveal'
 import { Reveal } from '../reveal'
 import { SpotlightCard } from '../spotlight-card'
 import { StageTable } from '../stage-table'
@@ -65,9 +67,9 @@ export function ProductHero({ ctx }: Props) {
             </Link>
           )}
         </div>
-        <h1 className="mt-5 max-w-[20ch] font-display text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+        <TitleReveal as="h1" className="mt-5 max-w-[20ch] font-display text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
           {page.result}
-        </h1>
+        </TitleReveal>
         <p className="mt-6 max-w-[56ch] text-lead text-muted">{page.lead}</p>
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           {layout.callFirst ? (
@@ -124,10 +126,9 @@ export function CapabilitiesBlock({ ctx, band }: Props) {
   const t = ctx.dict.productPage
   return (
     <SectionShell id="capabilities" title={t.capabilitiesTitle} band={band}>
-      <ul className="grid gap-gutter md:grid-cols-6">
+      <CardStack as="ul" className="grid gap-gutter md:grid-cols-6">
         {ctx.page.capabilities.map((cap, i) => (
           <li key={cap.title} className={cn(i < 2 ? 'md:col-span-3' : 'md:col-span-2')}>
-            <Reveal delay={(i % 3) * 0.06} className="h-full">
               <SpotlightCard className="flex h-full flex-col gap-4 rounded-card border border-line bg-surface p-5 md:p-6">
                 <CapabilityMock kind={cap.mock as MockKind} example={cap.example} chips={cap.chips} />
                 <h3 className="text-xl font-semibold tracking-tight">{cap.title}</h3>
@@ -137,10 +138,9 @@ export function CapabilitiesBlock({ ctx, band }: Props) {
                   {cap.example}
                 </p>
               </SpotlightCard>
-            </Reveal>
           </li>
         ))}
-      </ul>
+      </CardStack>
       <p className="mt-5 text-xs text-faint">{t.mockNote}</p>
     </SectionShell>
   )

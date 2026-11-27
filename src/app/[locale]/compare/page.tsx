@@ -2,6 +2,9 @@ import { ArrowRight, TelegramLogo } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { TitleReveal } from '@/components/motion/title-reveal'
+import { Wipe } from '@/components/motion/wipe'
+import { Reveal } from '@/components/reveal'
 import { HeroIntro } from '@/components/hero-intro'
 import { getDict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
@@ -60,16 +63,16 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
       <section className="mx-auto site-container pt-32 pb-12 md:pt-40 md:pb-16">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h1 className="mt-5 max-w-[20ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+          <TitleReveal as="h1" className="mt-5 max-w-[20ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {t.title}
-          </h1>
+          </TitleReveal>
           <p className="mt-6 max-w-[60ch] text-lg leading-relaxed text-muted md:text-xl">{t.sub}</p>
         </HeroIntro>
       </section>
 
       <section className="mx-auto site-container pb-12">
         {/* Wide screens: a real table. Phones: one card per row with the three options inside. */}
-        <div className="hidden overflow-hidden rounded-card border border-line md:block">
+        <Reveal className="hidden overflow-hidden rounded-card border border-line md:block">
           <table className="w-full border-collapse text-left text-[15px] leading-relaxed">
             <thead>
               <tr className="border-b border-line-strong text-sm">
@@ -103,7 +106,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
               ))}
             </tbody>
           </table>
-        </div>
+        </Reveal>
 
         <ul className="grid gap-4 md:hidden">
           {t.rows.map((row) => (
@@ -129,18 +132,20 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
       </section>
 
       <section id="contrast" className="mx-auto site-container scroll-mt-28 pb-16">
-        <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.contrast.title}</h2>
-        <p className="mt-3 max-w-[60ch] leading-relaxed text-muted">{t.contrast.sub}</p>
+        <Reveal>
+          <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.contrast.title}</h2>
+          <p className="mt-3 max-w-[60ch] leading-relaxed text-muted">{t.contrast.sub}</p>
+        </Reveal>
         <ul className="mt-8 grid gap-4">
           {t.contrast.rows.map((row) => (
-            <li key={row.id} className="rounded-card border border-line p-5 md:p-6">
+            <Wipe as="li" key={row.id} className="rounded-card border border-line p-5 md:p-6">
               <p className="text-lg font-medium">{row.label}</p>
               <div className="mt-3 grid gap-3 text-[15px] leading-relaxed md:grid-cols-2">
                 <div>
                   <p className="text-xs tracking-[0.1em] text-faint uppercase">{t.contrast.marketLabel}</p>
                   <p className="mt-1 text-muted">{row.market}</p>
                 </div>
-                <div className="rounded-2xl bg-accent/10 p-3">
+                <div className="scene-wipe rounded-2xl bg-accent/10 p-3">
                   <p className="text-xs tracking-[0.1em] text-accent-text uppercase">{t.contrast.usLabel}</p>
                   <p className="mt-1 text-fg">
                     {fillGuarantee(row.us, locale, pricing)}
@@ -156,13 +161,13 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
                   </p>
                 </div>
               </div>
-            </li>
+            </Wipe>
           ))}
         </ul>
       </section>
 
       <section className="mx-auto site-container pb-28">
-        <div className="flex flex-col items-start gap-6 rounded-card border border-accent-text/30 p-6 md:flex-row md:items-center md:justify-between md:p-10">
+        <Reveal className="flex flex-col items-start gap-6 rounded-card border border-accent-text/30 p-6 md:flex-row md:items-center md:justify-between md:p-10">
           <p className="font-display text-2xl font-semibold md:text-3xl">{t.ctaTitle}</p>
           <div className="flex flex-wrap gap-3">
             <Link href={`/${locale}/builder`} data-cta="compare_builder" className={cn(buttonStyles.primary, 'group')}>
@@ -180,7 +185,7 @@ export default async function ComparePage({ params }: PageProps<'/[locale]/compa
               </a>
             )}
           </div>
-        </div>
+        </Reveal>
       </section>
     </>
   )

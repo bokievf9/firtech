@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { Fragment } from 'react'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
+import { TitleReveal } from './motion/title-reveal'
 
 type Tag = 'h1' | 'h2' | 'h3' | 'p'
 
@@ -21,6 +22,9 @@ export function RiseText({
 }) {
   const reduce = useReducedMotion()
   const words = text.split(' ')
+
+  // A page's h1 uses the title reveal (T-A, plain CSS, paints without JavaScript); section titles keep the masked rise.
+  if (Tag === 'h1') return <TitleReveal as="h1" className={className}>{text}</TitleReveal>
 
   return (
     <Tag className={className}>

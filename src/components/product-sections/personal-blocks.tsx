@@ -7,6 +7,7 @@ import { ChatOpenButton } from '../chat/chat-open-button'
 import { HeroIntro } from '../hero-intro'
 import { PlanLevels } from '../products/plan-levels'
 import { FiraHero } from '../products/fira-hero'
+import { TitleReveal } from '../motion/title-reveal'
 import { Reveal } from '../reveal'
 import { Badge } from '../ui'
 import { PersonalLive } from './personal-live'
@@ -34,7 +35,7 @@ export function PersonalHero({ ctx }: { ctx: ProductSectionContext }) {
           <Glyph size={14} aria-hidden="true" />
           {dict.products.items.personal.name}
         </Badge>
-        <h1 className="mt-5 max-w-[14ch] font-display text-display text-balance">{page.result}</h1>
+        <TitleReveal as="h1" className="mt-5 max-w-[14ch] font-display text-display text-balance">{page.result}</TitleReveal>
         <p className="mt-6 max-w-[40ch] text-lead text-muted">{page.lead}</p>
         <div className="mt-9 flex flex-col gap-3 sm:flex-row">
           <Link href={personalBuilderHref(locale)} data-cta="product_page_personal_build" className={buttonClass('primary', 'lg')}>
