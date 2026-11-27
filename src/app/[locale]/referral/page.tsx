@@ -2,6 +2,8 @@ import { ArrowRight, TelegramLogo } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Blueprint } from '@/components/motion/blueprint'
+import { TitleReveal } from '@/components/motion/title-reveal'
 import { HeroIntro } from '@/components/hero-intro'
 import { ReferralLink } from '@/components/referral-link'
 import { Reveal } from '@/components/reveal'
@@ -51,18 +53,19 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
       <section className="mx-auto site-container pt-32 pb-12 md:pt-40 md:pb-16">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h1 className="mt-5 max-w-[18ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+          <TitleReveal as="h1" className="mt-5 max-w-[18ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {fill(t.title)}
-          </h1>
+          </TitleReveal>
           <p className="mt-6 max-w-[60ch] text-lg leading-relaxed text-muted md:text-xl">{t.sub}</p>
         </HeroIntro>
       </section>
 
       <section className="mx-auto site-container pb-16">
         <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.stepsTitle}</h2>
-        <ol className="mt-6 grid gap-4 md:grid-cols-3">
+        <Blueprint as="ol" className="mt-6 grid gap-4 md:mt-10 md:grid-cols-3" lineClassName="hidden h-px w-full md:top-[-1.1rem] md:left-0 md:block">
           {t.steps.map((step, i) => (
-            <li key={step.title}>
+            <li key={step.title} className="relative">
+              <span data-node aria-hidden="true" className="absolute -top-6 left-6 hidden size-2.5 rounded-full bg-accent md:block" />
               <Reveal delay={i * 0.06} className="h-full">
                 <div className="h-full rounded-card border border-line p-6">
                   <span className="font-mono text-sm text-accent-text">{String(i + 1).padStart(2, '0')}</span>
@@ -72,7 +75,7 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
               </Reveal>
             </li>
           ))}
-        </ol>
+        </Blueprint>
       </section>
 
       <section className="mx-auto grid site-container gap-10 pb-16 lg:grid-cols-2">

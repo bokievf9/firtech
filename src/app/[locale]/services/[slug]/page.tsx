@@ -19,6 +19,7 @@ import { HeroStage } from '@/components/hero-stage'
 import { JsonLd } from '@/components/json-ld'
 import { Magnetic } from '@/components/magnetic'
 import { Process } from '@/components/process'
+import { CardStack } from '@/components/motion/card-stack'
 import { Reveal } from '@/components/reveal'
 import { RiseText } from '@/components/rise-text'
 import { ServiceConcepts } from '@/components/service-concepts'
@@ -192,10 +193,9 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
               </ul>
             </Reveal>
           </div>
-          <ul className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <CardStack as="ul" className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {page.included.map((item, i) => (
               <li key={item}>
-                <Reveal delay={(i % 3) * 0.07} className="h-full">
                   <SpotlightCard className="group flex h-full items-center gap-4 rounded-card border border-line bg-surface p-5 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong sm:flex-col sm:items-stretch sm:gap-10 sm:p-6 md:p-7">
                     <div className="flex shrink-0 items-center justify-between">
                       <span className="flex size-10 items-center justify-center rounded-full bg-accent/10 text-accent-text transition-colors duration-300 group-hover:bg-accent group-hover:text-accent-ink">
@@ -207,10 +207,9 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                     </div>
                     <p className="leading-snug sm:text-lg">{item}</p>
                   </SpotlightCard>
-                </Reveal>
               </li>
             ))}
-          </ul>
+          </CardStack>
         </div>
       </section>
 
@@ -284,13 +283,13 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
           text={t.others}
           className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl"
         />
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
+        <CardStack className="mt-8 grid gap-4 md:grid-cols-3">
           {serviceSlugs
             .filter((other) => other !== slug)
-            .map((other, i) => {
+            .map((other) => {
               const Icon = icons[other]
               return (
-                <Reveal key={other} delay={i * 0.07} className="h-full">
+                <div key={other} className="h-full">
                   <SpotlightCard className="group relative flex h-full flex-col gap-8 rounded-card border border-line bg-surface p-6 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-line-strong">
                     <div className="flex items-center justify-between">
                       <Icon size={26} weight="light" className="text-accent-text" />
@@ -317,10 +316,10 @@ export default async function ServicePage({ params }: PageProps<'/[locale]/servi
                       <span className="text-lg text-accent-text">{formatUsd(pricing.startingPrice[other])}</span>
                     </p>
                   </SpotlightCard>
-                </Reveal>
+                </div>
               )
             })}
-        </div>
+        </CardStack>
       </nav>
     </>
   )

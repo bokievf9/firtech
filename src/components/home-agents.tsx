@@ -14,7 +14,7 @@ import { productPath } from '@/lib/product-ids'
 import { siteUrl } from '@/lib/site'
 import { IntegrationsList } from './integrations-list'
 import { JsonLd } from './json-ld'
-import { Reveal } from './reveal'
+import { CardStack } from './motion/card-stack'
 import { SectionHeader } from './ui/section'
 
 // «Самые нужные агенты» (#agents, right after the products): the six most asked-for agents plus Personal AI as a
@@ -57,16 +57,16 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
       <JsonLd data={list} />
       <SectionHeader title={t.title} lead={t.sub} />
 
-      <ul
+      <CardStack
+        as="ul"
         aria-label={t.listLabel}
         className="-mx-4 mt-12 flex snap-x snap-mandatory gap-gutter overflow-x-auto px-4 pb-4 md:-mx-8 md:px-8 lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0"
       >
-        {popularAgentIds.map((id, i) => {
+        {popularAgentIds.map((id) => {
           const copy = agentCopy(id, dict)
           return (
             <li key={id} data-home-agent-card={id} className="w-[82%] shrink-0 snap-start sm:w-[55%] lg:w-auto">
-              <Reveal className="h-full" delay={(i % 3) * 0.06}>
-                <div className="material-regular relative flex h-full flex-col gap-3 rounded-card border border-hairline border-glass-line p-card">
+              <div className="material-regular relative flex h-full flex-col gap-3 rounded-card border border-hairline border-glass-line p-card">
                   <h3 className="text-title-3 font-semibold">{copy.title}</h3>
                   <p className="text-callout text-muted">{copy.headline}</p>
                   {channelRow}
@@ -81,8 +81,7 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
                       {t.build}
                     </Link>
                   </div>
-                </div>
-              </Reveal>
+              </div>
             </li>
           )
         })}
@@ -105,7 +104,7 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
             </div>
           </div>
         </li>
-      </ul>
+      </CardStack>
 
       <IntegrationsList locale={locale} compact className="mt-8" />
 

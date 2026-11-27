@@ -2,6 +2,7 @@ import { ArrowRight, Code, FileText, PhoneCall, RocketLaunch, ShieldCheck } from
 import Link from 'next/link'
 import type { Dict } from '@/content'
 import type { Locale } from '@/lib/i18n'
+import { Blueprint } from './motion/blueprint'
 import { Reveal } from './reveal'
 import { SectionHeader } from './ui/section'
 
@@ -18,14 +19,19 @@ export function WorkTimeline({ dict, locale }: { dict: Dict; locale: Locale }) {
       <SectionHeader title={w.title} lead={w.sub} />
       {/* v4: a timeline, not four equal cards. A hairline runs through the step icons (across on lg,
           down the left edge on phones), so the order reads before the words. */}
-      <ol className="relative mt-14 grid gap-10 lg:grid-cols-4 lg:gap-gutter">
-        <span aria-hidden="true" className="absolute top-2 bottom-2 left-[1.375rem] w-px bg-line lg:top-[1.375rem] lg:right-0 lg:bottom-auto lg:left-0 lg:h-px lg:w-auto" />
+      <div className="relative mt-14">
+      <span aria-hidden="true" className="absolute top-2 bottom-2 left-[1.375rem] w-px bg-line lg:top-[1.375rem] lg:right-0 lg:bottom-auto lg:left-0 lg:h-px lg:w-auto" />
+      <Blueprint
+        axis="y-then-x"
+        lineClassName="top-2 bottom-2 left-[1.375rem] w-px lg:top-[1.375rem] lg:right-0 lg:bottom-auto lg:left-0 lg:h-px lg:w-auto"
+      >
+      <ol className="relative grid gap-10 lg:grid-cols-4 lg:gap-gutter">
         {steps.map((step, i) => {
           const Icon = icons[i] ?? Code
           return (
             <li key={step.title} className="relative">
               <Reveal delay={i * 0.05} className="flex gap-5 lg:flex-col lg:gap-6">
-                <span className="relative grid size-11 shrink-0 place-items-center rounded-full border border-hairline border-accent-text/40 bg-bg text-accent-text">
+                <span data-node className="relative grid size-11 shrink-0 place-items-center rounded-full border border-hairline border-accent-text/40 bg-bg text-accent-text">
                   <Icon size={20} aria-hidden="true" />
                 </span>
                 <div className="min-w-0 lg:pr-4">
@@ -37,6 +43,8 @@ export function WorkTimeline({ dict, locale }: { dict: Dict; locale: Locale }) {
           )
         })}
       </ol>
+      </Blueprint>
+      </div>
       <Reveal className="mt-14">
         <div className="rounded-card border border-hairline border-accent-text/30 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_70%)] p-card">
           <p className="flex items-center gap-2 text-footnote font-semibold text-accent-text">

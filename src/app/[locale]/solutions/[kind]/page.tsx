@@ -8,11 +8,13 @@ import {
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { TitleReveal } from '@/components/motion/title-reveal'
 import { DataNote } from '@/components/languages-note'
 import { BuilderPreview } from '@/components/builder-preview'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { HeroIntro } from '@/components/hero-intro'
 import { JsonLd } from '@/components/json-ld'
+import { CardStack } from '@/components/motion/card-stack'
 import { Reveal } from '@/components/reveal'
 import { RiseText } from '@/components/rise-text'
 import { SolutionSet } from '@/components/solution-parts'
@@ -112,9 +114,9 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
             {t.all}
           </Link>
           <p className="mt-6 text-sm font-medium text-accent-text">{page.title}</p>
-          <h1 className="mt-3 max-w-[20ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+          <TitleReveal as="h1" className="mt-3 max-w-[20ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {page.promise}
-          </h1>
+          </TitleReveal>
           <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-muted md:text-xl">
             {page.sub}
           </p>
@@ -154,10 +156,9 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
             text={t.problemsTitle}
             className="max-w-[22ch] text-3xl font-semibold tracking-[-0.03em] md:text-5xl"
           />
-          <ul className="mt-12 grid gap-4 md:grid-cols-2">
-            {page.problems.map((item, i) => (
+          <CardStack as="ul" className="mt-12 grid gap-4 md:grid-cols-2">
+            {page.problems.map((item) => (
               <li key={item.pain}>
-                <Reveal delay={(i % 2) * 0.06} className="h-full">
                   <SpotlightCard className="grid h-full gap-6 rounded-card border border-line bg-surface p-6 md:p-8">
                     <div>
                       <p className="flex items-center gap-2 text-xs tracking-[0.12em] text-faint uppercase">
@@ -176,10 +177,9 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                       <p className="mt-3 leading-relaxed text-muted">{item.fix}</p>
                     </div>
                   </SpotlightCard>
-                </Reveal>
               </li>
             ))}
-          </ul>
+          </CardStack>
         </div>
       </section>
 
@@ -238,6 +238,7 @@ export default async function SolutionPage({ params }: PageProps<'/[locale]/solu
                   locale={locale}
                   title={dict.builder.stagesTitle}
                   note={dict.builder.stageRule}
+                  drawn
                 />
               </div>
               <dl className="grid content-start gap-5 lg:col-span-4">

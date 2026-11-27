@@ -10,7 +10,7 @@ import {
 import type { ComponentType } from 'react'
 import { channelIds, channelLine, channelName, publicChannels, type ChannelId } from '@/lib/channels'
 import { personalChannelOrder } from '@/lib/personal-page'
-import { Reveal } from '../reveal'
+import { CardStack } from '../motion/card-stack'
 import { SectionShell, type ProductSectionContext } from './shell'
 
 export const channelIcons: Record<ChannelId, ComponentType<{ size?: number; weight?: 'duotone'; 'aria-hidden'?: boolean | 'true'; className?: string }>> = {
@@ -32,12 +32,11 @@ export function ChannelsBlock({ ctx, band }: { ctx: ProductSectionContext; band?
   const visible = publicChannels(order)
   return (
     <SectionShell id="channels" title={dict.channelsStrip.title} sub={dict.channelsStrip.sub} band={band}>
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-channels>
-        {visible.map((id, i) => {
+      <CardStack as="ul" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" data-channels>
+        {visible.map((id) => {
           const Glyph = channelIcons[id]
           return (
             <li key={id} data-channel={id}>
-              <Reveal delay={(i % 4) * 0.05} className="h-full">
                 <div className="glass flex h-full items-start gap-3 rounded-card border border-line p-4">
                   <Glyph size={24} weight="duotone" aria-hidden="true" className="mt-0.5 shrink-0 text-accent-text" />
                   <div>
@@ -45,11 +44,10 @@ export function ChannelsBlock({ ctx, band }: { ctx: ProductSectionContext; band?
                     <p className="mt-1 text-sm leading-snug text-muted">{channelLine(id, locale)}</p>
                   </div>
                 </div>
-              </Reveal>
             </li>
           )
         })}
-      </ul>
+      </CardStack>
     </SectionShell>
   )
 }

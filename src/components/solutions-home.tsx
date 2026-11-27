@@ -9,6 +9,7 @@ import type { Locale } from '@/lib/i18n'
 import { fromLine } from '@/lib/price-format'
 import { getPricing } from '@/lib/pricing-store'
 import { solutionCopy, type SolutionKind } from '@/lib/solutions'
+import { CardStack } from './motion/card-stack'
 import { Reveal } from './reveal'
 import { SpotlightCard } from './spotlight-card'
 import { SectionHeader } from './ui/section'
@@ -35,15 +36,14 @@ export async function SolutionsHome({ dict, locale }: { dict: Dict; locale: Loca
     <section id="solutions" className="mx-auto site-container scroll-mt-24 py-section">
       <SectionHeader title={t.title} lead={t.sub} />
 
-      <ul className="mt-12 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
-        {homeSolutionKinds.map((kind, i) => {
+      <CardStack as="ul" className="mt-12 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
+        {homeSolutionKinds.map((kind) => {
           const copy = solutionCopy(kind, locale, dict, pricing)
           const price = nichePrice(kind, pricing)
           const Glyph = kindIcons[kind]
           return (
             <li key={kind}>
-              <Reveal delay={i * 0.06} className="h-full">
-                <SpotlightCard data-solution-card={kind} className="pressable lift relative flex h-full flex-col rounded-card border border-hairline border-line bg-surface p-card hover:border-line-strong">
+              <SpotlightCard data-solution-card={kind} className="pressable lift relative flex h-full flex-col rounded-card border border-hairline border-line bg-surface p-card hover:border-line-strong">
                   <span aria-hidden="true" className="grid size-11 place-items-center rounded-xl bg-pine text-accent-text">
                     <Glyph size={22} />
                   </span>
@@ -60,11 +60,10 @@ export async function SolutionsHome({ dict, locale }: { dict: Dict; locale: Loca
                     <ArrowUpRight size={18} aria-hidden="true" className="text-accent-text" />
                   </div>
                 </SpotlightCard>
-              </Reveal>
             </li>
           )
         })}
-      </ul>
+      </CardStack>
 
       <Reveal className="mt-10">
         <Link href={`/${locale}/solutions`} data-cta="solutions_all" className={cn(buttonStyles.secondary, 'group')}>

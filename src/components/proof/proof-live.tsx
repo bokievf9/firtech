@@ -2,6 +2,7 @@
 
 import type { Dict } from '@/content'
 import { cn } from '@/lib/cn'
+import { CountUp } from '../count-up'
 import { useOfficeFeed } from '../live/use-office-feed'
 
 // HQ's live numbers for the proof section: counts only from /api/office/public (agents, working,
@@ -30,7 +31,7 @@ export function ProofLive({ copy }: { copy: Dict['proof']['live'] }) {
                 row.value === undefined && 'skeleton h-8 w-10',
               )}
             >
-              {row.value}
+              {row.value === undefined ? null : <CountUp value={row.value} />}
             </dd>
           </div>
         ))}

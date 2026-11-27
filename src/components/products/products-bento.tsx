@@ -8,6 +8,7 @@ import { getPricing } from '@/lib/pricing-store'
 import { isFlagship, productAnchor, productBuilderHref, productIds, productPath, type ProductId } from '@/lib/products'
 import { serviceSlugs } from '@/lib/site'
 import { Ladder } from '../ladder'
+import { CardStack } from '../motion/card-stack'
 import { Reveal } from '../reveal'
 import { SpotlightCard } from '../spotlight-card'
 import { Badge } from '../ui/badge'
@@ -38,15 +39,13 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
       <SectionHeader title={t.title} lead={t.sub} />
       <p data-products-channels className="mt-4 text-footnote text-muted">{t.channelsLine}</p>
 
-      <ul className="mt-14 grid gap-gutter md:grid-cols-2 lg:grid-cols-12 3xl:grid-cols-4">
-        {productIds.map((id, i) => (
+      <CardStack as="ul" className="mt-14 grid gap-gutter md:grid-cols-2 lg:grid-cols-12 3xl:grid-cols-4">
+        {productIds.map((id) => (
           <li key={id} id={productAnchor(id)} className={cn('scroll-mt-28', spans[id])}>
-            <Reveal className="h-full" delay={(i % 3) * 0.06}>
-              <ProductCard id={id} locale={locale} dict={dict} />
-            </Reveal>
+            <ProductCard id={id} locale={locale} dict={dict} />
           </li>
         ))}
-      </ul>
+      </CardStack>
 
       <Reveal className="mt-gutter">
         <div className="grid gap-6 rounded-card border border-hairline border-line p-card lg:grid-cols-12 lg:items-center">

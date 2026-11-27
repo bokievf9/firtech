@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, Check, Hourglass, Lightning } from
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { TitleReveal } from '@/components/motion/title-reveal'
 import { AgentHandoff, AgentPilot } from '@/components/ai-team/agent-blocks'
 import { AgentCard } from '@/components/ai-team/agent-list'
 import { ChannelsRow } from '@/components/ai-team/channels-row'
@@ -107,7 +108,7 @@ export default async function AgentOfferPage({ params }: PageProps<'/[locale]/ai
             </p>
           </div>
           <p className="mt-5 text-callout font-medium">{page.title}</p>
-          <h1 className="mt-3 max-w-[22ch] font-display text-title text-balance">{page.headline}</h1>
+          <TitleReveal as="h1" className="mt-3 max-w-[22ch] font-display text-title text-balance">{page.headline}</TitleReveal>
           <p className="mt-6 max-w-[48ch] text-lead text-muted">{page.promise}</p>
           <p data-agent-result className="mt-4 max-w-[60ch] text-callout text-muted">
             <span className="font-medium text-accent-text">{ta.page.resultLabel}:</span> {page.result}

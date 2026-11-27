@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef, ReactNode } from 'react'
 import { cn } from '@/lib/cn'
+import { TitleReveal } from '../motion/title-reveal'
 import { Reveal } from '../reveal'
 
 // Section shell of design system v4 (docs/design-system-v4.md «Секции»): the page container, the section
@@ -35,6 +36,23 @@ export function SectionHeader({
   className?: string
   children?: ReactNode
 }) {
+  // The page's own h1 gets the title reveal (T-A): its words rise on load; the eyebrow and the lead follow with the block.
+  if (Tag === 'h1' && typeof title === 'string') {
+    return (
+      <div className={cn(align === 'center' && 'mx-auto text-center', className)}>
+        {eyebrow ? <p className="mb-4 text-footnote font-medium text-accent-text">{eyebrow}</p> : null}
+        <TitleReveal as="h1" className={cn('max-w-[22ch] font-display text-title font-semibold', align === 'center' && 'mx-auto', titleClassName)}>
+          {title}
+        </TitleReveal>
+        {lead ? (
+          <Reveal delay={0.15}>
+            <p className={cn('mt-5 max-w-[56ch] text-lead text-muted', align === 'center' && 'mx-auto')}>{lead}</p>
+          </Reveal>
+        ) : null}
+        {children}
+      </div>
+    )
+  }
   return (
     <Reveal className={cn(align === 'center' && 'mx-auto text-center', className)}>
       {eyebrow ? <p className="mb-4 text-footnote font-medium text-accent-text">{eyebrow}</p> : null}

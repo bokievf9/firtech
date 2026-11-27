@@ -1,6 +1,7 @@
 import { ArrowUpRight, Notebook } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { TitleReveal } from '@/components/motion/title-reveal'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { notFound } from 'next/navigation'
 import { DraftBadge } from '@/components/article-body'
@@ -48,9 +49,9 @@ export default async function BlogPage({ params }: PageProps<'/[locale]/blog'>) 
       <section className="mx-auto site-container pt-32 pb-12 md:pt-40 md:pb-16">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h1 className="mt-5 max-w-[18ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+          <TitleReveal as="h1" className="mt-5 max-w-[18ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {t.title}
-          </h1>
+          </TitleReveal>
           <p className="mt-6 max-w-[56ch] text-lg leading-relaxed text-muted md:text-xl">{t.sub}</p>
         </HeroIntro>
       </section>

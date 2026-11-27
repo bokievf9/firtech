@@ -1,6 +1,7 @@
 import { ArrowDown, ArrowRight, CheckCircle, Gear, PaperPlaneTilt, ShieldCheck } from '@phosphor-icons/react/ssr'
 import type { ComponentType } from 'react'
 import type { Dict } from '@/content'
+import { Blueprint } from '../motion/blueprint'
 import { Reveal } from '../reveal'
 import { Card } from '../ui'
 
@@ -10,7 +11,7 @@ const icons: ComponentType<{ size?: number; weight?: 'duotone'; 'aria-hidden'?: 
 // trust grows. Arrows between the cards (down on phones, right from md).
 export function TogetherFlow({ copy }: { copy: Dict['aiTeams']['together'] }) {
   return (
-    <ol className="grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] md:items-stretch" data-together-flow>
+    <Blueprint as="ol" className="isolate grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] md:items-stretch" lineClassName="-z-10 hidden h-px w-full md:top-1/2 md:left-0 md:block" data-together-flow>
       {copy.steps.flatMap((step, i) => {
         const Icon = icons[i] ?? Gear
         const card = (
@@ -29,12 +30,12 @@ export function TogetherFlow({ copy }: { copy: Dict['aiTeams']['together'] }) {
         if (i === copy.steps.length - 1) return [card]
         return [
           card,
-          <li key={`${step.title}-arrow`} aria-hidden="true" className="flex items-center justify-center text-faint">
+          <li key={`${step.title}-arrow`} data-node aria-hidden="true" className="flex items-center justify-center text-faint">
             <ArrowDown size={20} className="md:hidden" />
             <ArrowRight size={20} className="hidden md:block" />
           </li>,
         ]
       })}
-    </ol>
+    </Blueprint>
   )
 }

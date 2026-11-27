@@ -3,6 +3,7 @@ import type { Dict } from '@/content'
 import type { GuaranteeCtx } from '@/lib/guarantee'
 import { buttonClass } from '@/lib/cn'
 import { ChatOpenButton } from '../chat/chat-open-button'
+import { Blueprint } from '../motion/blueprint'
 import { Card } from '../ui'
 
 // Blocks of an agent page (/ai-team/agent/[id]) that come from the AI-native contract (owner 2026-11-25).
@@ -39,20 +40,20 @@ export function AgentHandoff({ dict }: { dict: Dict }) {
         <p className="mt-2 max-w-[48ch] text-callout text-muted">{t.text}</p>
       </div>
       <div role="img" aria-label={t.illustration} className="grid gap-2.5 lg:col-span-7">
-        <div aria-hidden="true" className="grid gap-2.5 text-footnote sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3">
+        <Blueprint aria-hidden="true" className="isolate grid gap-2.5 text-footnote sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-3" lineClassName="-z-10 hidden h-px w-full sm:top-1/2 sm:left-0 sm:block">
           <div className="grid gap-2">
             <p className="max-w-[28ch] rounded-tile rounded-bl-sm border border-line bg-surface px-3 py-2">{t.client}</p>
             <p className="max-w-[28ch] justify-self-end rounded-tile rounded-br-sm bg-accent/15 px-3 py-2 text-fg">{t.agent}</p>
           </div>
           <div className="flex items-center gap-2 sm:flex-col">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 font-medium text-accent-ink">
+            <span data-node className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 font-medium text-accent-ink">
               <HandWaving size={14} weight="fill" />
               {t.button}
             </span>
             <ArrowRight size={16} className="text-faint max-sm:hidden sm:rotate-90" />
           </div>
-          <p className="rounded-tile border border-accent-text/40 bg-accent/10 px-3 py-2 text-fg">{t.summary}</p>
-        </div>
+          <p data-node className="rounded-tile border border-accent-text/40 bg-accent/10 px-3 py-2 text-fg">{t.summary}</p>
+        </Blueprint>
       </div>
     </Card>
   )

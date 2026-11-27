@@ -11,6 +11,8 @@ import type { ProductBlocks } from '@/content/product-pages'
 import { buttonStyles, cn } from '@/lib/cn'
 import { ChatOpenButton } from '../chat/chat-open-button'
 import type { ProductSectionContext } from './shell'
+import { Blueprint } from '../motion/blueprint'
+import { CardStack } from '../motion/card-stack'
 import { Reveal } from '../reveal'
 import { PultTour } from './pult-tour'
 import { SectionShell } from './shell'
@@ -36,18 +38,17 @@ export function StructureBlock({ copy, band }: { copy: Req<'structure'> } & Band
             <p className="mt-2 leading-snug">{copy.owner.does}</p>
           </div>
         </Reveal>
-        <span aria-hidden="true" className="h-6 w-px bg-line-strong" />
+        <span aria-hidden="true" className="scene-line-y h-6 w-px bg-line-strong" />
         <Reveal className="w-full max-w-md" delay={0.06}>
           <div className={cn('rounded-card border p-5 text-center', lime)}>
             <p className="font-display text-xl font-semibold">{copy.director.name}</p>
             <p className="mt-2 leading-snug text-muted">{copy.director.does}</p>
           </div>
         </Reveal>
-        <span aria-hidden="true" className="h-6 w-px bg-line-strong" />
-        <ul className="grid w-full gap-gutter sm:grid-cols-2 lg:grid-cols-4">
-          {copy.depts.map((dept, i) => (
+        <span aria-hidden="true" className="scene-line-y h-6 w-px bg-line-strong" />
+        <CardStack as="ul" className="grid w-full gap-gutter sm:grid-cols-2 lg:grid-cols-4">
+          {copy.depts.map((dept) => (
             <li key={dept.name}>
-              <Reveal delay={0.1 + i * 0.05} className="h-full">
                 <div className={cn(card, 'flex h-full flex-col p-5')}>
                   <h3 className="text-lg font-semibold">{dept.name}</h3>
                   <ul className="mt-3 flex flex-wrap gap-1.5">
@@ -59,10 +60,9 @@ export function StructureBlock({ copy, band }: { copy: Req<'structure'> } & Band
                   </ul>
                   <p className="mt-auto border-t border-line pt-3 text-sm leading-snug text-muted">{dept.example}</p>
                 </div>
-              </Reveal>
             </li>
           ))}
-        </ul>
+        </CardStack>
       </div>
       <p className="mt-6 text-sm text-muted">{copy.note}</p>
     </SectionShell>
@@ -149,19 +149,17 @@ export function TrustBlock({ copy, band }: { copy: Req<'trust'> } & Band) {
 export function TeamGetsBlock({ copy, band }: { copy: Req<'teamgets'> } & Band) {
   return (
     <SectionShell id="teamgets" title={copy.title} sub={copy.sub} band={band}>
-      <ul className="grid gap-gutter sm:grid-cols-2 lg:grid-cols-4" data-teamgets>
-        {copy.items.map((item, i) => (
+      <CardStack as="ul" className="grid gap-gutter sm:grid-cols-2 lg:grid-cols-4" data-teamgets>
+        {copy.items.map((item) => (
           <li key={item.title}>
-            <Reveal delay={i * 0.05} className="h-full">
               <div className={cn(card, 'h-full p-6')}>
                 <UsersThree size={24} weight="duotone" aria-hidden="true" className="text-accent-text" />
                 <h3 className="mt-4 text-lg font-semibold">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{item.text}</p>
               </div>
-            </Reveal>
           </li>
         ))}
-      </ul>
+      </CardStack>
     </SectionShell>
   )
 }
@@ -170,12 +168,12 @@ export function TeamGetsBlock({ copy, band }: { copy: Req<'teamgets'> } & Band) 
 export function RolloutBlock({ copy, band }: { copy: Req<'rollout'> } & Band) {
   return (
     <SectionShell id="rollout" title={copy.title} sub={copy.sub} band={band}>
-      <ol className="grid gap-3" data-rollout>
+      <Blueprint as="ol" axis="y" lineClassName="hidden md:block left-[2.625rem] top-8 bottom-8 w-px" className="grid gap-3" data-rollout>
         {copy.stages.map((stage, i) => (
           <li key={stage.title}>
             <Reveal delay={Math.min(i, 3) * 0.05}>
               <div className={cn(card, 'grid gap-3 p-5 md:grid-cols-[3rem_minmax(0,1.2fr)_minmax(0,1fr)] md:items-start md:gap-6 md:p-6')}>
-                <span className="grid size-9 place-items-center rounded-full bg-accent font-mono text-sm text-accent-ink">{i + 1}</span>
+                <span data-node className="relative z-10 grid size-9 place-items-center rounded-full bg-accent font-mono text-sm text-accent-ink">{i + 1}</span>
                 <div>
                   <h3 className="text-lg font-semibold">{stage.title}</h3>
                   <p className="mt-1.5 leading-relaxed text-muted">{stage.text}</p>
@@ -188,7 +186,7 @@ export function RolloutBlock({ copy, band }: { copy: Req<'rollout'> } & Band) {
             </Reveal>
           </li>
         ))}
-      </ol>
+      </Blueprint>
     </SectionShell>
   )
 }

@@ -1,6 +1,7 @@
 import { Check } from '@phosphor-icons/react/ssr'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { TitleReveal } from '@/components/motion/title-reveal'
 import { AuditForm } from '@/components/audit-form'
 import { HeroIntro } from '@/components/hero-intro'
 import { Reveal } from '@/components/reveal'
@@ -44,9 +45,9 @@ export default async function AuditPage({ params }: PageProps<'/[locale]/audit'>
       <div className="lg:col-span-5">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h1 className="mt-5 text-[2.2rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">
+          <TitleReveal as="h1" className="mt-5 text-[2.2rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-5xl">
             {t.title}
-          </h1>
+          </TitleReveal>
           <p className="mt-6 max-w-[52ch] text-lg leading-relaxed text-muted">{t.sub}</p>
         </HeroIntro>
         <Reveal className="mt-10">

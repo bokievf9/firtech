@@ -1935,3 +1935,253 @@ html[data-fira-big] [data-rail-fira] {
   }
 }
 /* ===== end motion tokens (T1) ===== */
+
+/*
+  Scene templates (T3, docs/motion-storyboard.md 5.1): T-A title reveal, T-C card stack, T-D blueprint draw,
+  T-E wipe, T-F phone chat, T-I pin and step, T-H drift. Components: src/components/motion/*.
+  Only transform, opacity and clip-path move. Every hidden start state exists only with scripting on and
+  motion allowed (the text is always in the HTML and visible without JS or under reduced motion); the server
+  renders data-scene="pre", SceneOnce flips it to "on" once and later to "done".
+*/
+.scene-w {
+  display: inline-block;
+}
+
+/* T-A: words rise 0.5em, 40 ms apart (the first eight), 700 ms out-expo. A one-shot entrance on load, plain CSS:
+   the heading paints without waiting for JavaScript (LCP), the hero-rise wrapper of HeroIntro steps aside. */
+@keyframes scene-word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .scene-w {
+    animation: scene-word-in var(--dur-scene) var(--ease-out-expo) both;
+    animation-delay: calc(var(--i, 0) * 40ms);
+  }
+  .hero-rise:has(> .scene-title) {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  /* T-C: cards rise 16 px from scale 0.97, 50 ms apart for the first six, 500 ms out-expo. */
+  .scene-stack > * {
+    transition:
+      opacity 500ms var(--ease-out-expo),
+      transform 500ms var(--ease-out-expo);
+    transition-delay: 300ms;
+  }
+  .scene-stack > :nth-child(1) {
+    transition-delay: 0ms;
+  }
+  .scene-stack > :nth-child(2) {
+    transition-delay: 50ms;
+  }
+  .scene-stack > :nth-child(3) {
+    transition-delay: 100ms;
+  }
+  .scene-stack > :nth-child(4) {
+    transition-delay: 150ms;
+  }
+  .scene-stack > :nth-child(5) {
+    transition-delay: 200ms;
+  }
+  .scene-stack > :nth-child(6) {
+    transition-delay: 250ms;
+  }
+  [data-scene='pre'].scene-stack > * {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  [data-scene='done'].scene-stack > * {
+    transition-duration: var(--dur-micro);
+    transition-delay: 0ms;
+  }
+
+  /* T-F: messages arrive one by one, 320 ms out-quint each, `--gap` apart (700 ms by default). */
+  .scene-chat > * {
+    transform-origin: 0 100%;
+    transition:
+      opacity var(--dur-base) var(--ease-out-quint),
+      transform var(--dur-base) var(--ease-out-quint);
+  }
+  .scene-chat > :nth-child(2) {
+    transition-delay: calc(var(--gap, 700ms) * 1);
+  }
+  .scene-chat > :nth-child(3) {
+    transition-delay: calc(var(--gap, 700ms) * 2);
+  }
+  .scene-chat > :nth-child(4) {
+    transition-delay: calc(var(--gap, 700ms) * 3);
+  }
+  .scene-chat > :nth-child(5) {
+    transition-delay: calc(var(--gap, 700ms) * 4);
+  }
+  .scene-chat > :nth-child(6) {
+    transition-delay: calc(var(--gap, 700ms) * 5);
+  }
+  .scene-chat > :nth-child(n + 7) {
+    transition-delay: calc(var(--gap, 700ms) * 6);
+  }
+  [data-scene='pre'].scene-chat > * {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+
+  /* T-I: on lg+ with a tall screen the track is a sticky stage and its children switch on one by one. */
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .scene-stack[data-lift][data-scene='done'] > *:hover {
+    transform: translateY(-2px);
+  }
+}
+.scene-stack > a:active,
+.scene-stack > button:active {
+  transform: scale(0.98);
+}
+
+/* T-D and T-E: scrubbed by the scroll where the browser can, else drawn once. */
+@keyframes scene-draw-x {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes scene-draw-y {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0);
+  }
+}
+@keyframes scene-node-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes scene-wipe-x {
+  from {
+    clip-path: inset(-16px 100% -16px -16px);
+  }
+  to {
+    clip-path: inset(-16px);
+  }
+}
+@keyframes scene-drift {
+  from {
+    transform: translate3d(0, -12px, 0);
+  }
+  to {
+    transform: translate3d(0, 12px, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .scene-line-x {
+      animation: scene-draw-x 1s var(--ease-in-out-soft) both;
+      animation-timeline: view();
+      animation-range: var(--scene-range);
+    }
+    .scene-line-y {
+      animation: scene-draw-y 1s var(--ease-in-out-soft) both;
+      animation-timeline: view();
+      animation-range: var(--scene-range);
+    }
+    .scene-blueprint [data-node] {
+      animation: scene-node-pop 1s linear both;
+      animation-timeline: view();
+      animation-range: entry 20% entry 80%;
+    }
+    .scene-wipe-row .scene-wipe {
+      animation: scene-wipe-x 1s var(--ease-in-out-soft) both;
+      animation-timeline: view();
+      animation-range: var(--scene-range);
+    }
+  }
+
+  @supports not (animation-timeline: view()) {
+    @media (scripting: enabled) {
+      .scene-line-x,
+      .scene-line-y {
+        transition: clip-path var(--dur-scene) var(--ease-in-out-soft);
+      }
+      [data-scene='pre'] > .scene-line-x {
+        clip-path: inset(0 100% 0 0);
+      }
+      [data-scene='pre'] > .scene-line-y {
+        clip-path: inset(0 0 100% 0);
+      }
+      .scene-blueprint [data-node] {
+        transition:
+          opacity var(--dur-base) var(--ease-out-quint) 150ms,
+          transform var(--dur-base) var(--ease-out-quint) 150ms;
+      }
+      [data-scene='pre'].scene-blueprint [data-node] {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      .scene-wipe-row .scene-wipe {
+        transition: clip-path var(--dur-scene) var(--ease-in-out-soft);
+      }
+      [data-scene='pre'].scene-wipe-row .scene-wipe {
+        clip-path: inset(-16px 100% -16px -16px);
+      }
+    }
+  }
+}
+
+/* T-H: one decorative layer, lg+ with a fine pointer only. */
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .scene-drift {
+      animation: scene-drift 1s linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
+}
+
+/* T-I: the pinned track (lg+, tall screens, motion allowed, scripting on). */
+@media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  .scene-pin {
+    min-height: 170svh;
+  }
+  .scene-pin-stage {
+    position: sticky;
+    top: 7rem;
+  }
+  .scene-pin-stage > * {
+    opacity: 0.4;
+    transform: translateY(12px);
+    transition:
+      opacity var(--dur-base) var(--ease-out-quint),
+      transform var(--dur-base) var(--ease-out-quint);
+  }
+  .scene-pin-stage > [data-on] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  [data-scene] .scene-w,
+  [data-scene] > *,
+  [data-scene] .scene-wipe,
+  [data-scene] [data-node] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}

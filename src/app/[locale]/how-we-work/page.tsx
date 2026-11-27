@@ -2,6 +2,8 @@ import { ArrowRight, ArrowUpRight, ChatCircleDots, Check } from '@phosphor-icons
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { Blueprint } from '@/components/motion/blueprint'
+import { TitleReveal } from '@/components/motion/title-reveal'
 import { ChatOpenButton } from '@/components/chat/chat-open-button'
 import { fillGuarantee } from '@/lib/guarantee'
 import { getPricing } from '@/lib/pricing-store'
@@ -54,9 +56,9 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
       <section className="mx-auto site-container pt-32 pb-16 md:pt-40 md:pb-20">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
-          <h1 className="mt-5 max-w-[18ch] font-display text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+          <TitleReveal as="h1" className="mt-5 max-w-[18ch] font-display text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
             {t.title}
-          </h1>
+          </TitleReveal>
           <p className="mt-6 max-w-[58ch] text-lead text-muted">{t.sub}</p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link href={`/${locale}/builder`} data-cta="how_build" className={cn(buttonStyles.primary, 'group')}>
@@ -78,9 +80,15 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
               {t.stagesTitle}
             </h2>
           </Reveal>
-          <ol className="mt-12 grid gap-gutter">
+          <Blueprint
+            as="ol"
+            axis="y"
+            className="mt-12 grid gap-gutter pl-8 before:absolute before:top-3 before:bottom-3 before:left-3 before:w-px before:bg-line"
+            lineClassName="top-3 bottom-3 left-3 w-px"
+          >
             {t.stages.map((stage) => (
-              <li key={stage.title}>
+              <li key={stage.title} className="relative">
+                <span data-node aria-hidden="true" className="absolute top-8 -left-[1.625rem] size-3 rounded-full bg-accent ring-4 ring-bg" />
                 <Reveal delay={0.04} className="h-full">
                   <div className="grid gap-6 rounded-card border border-line bg-surface p-6 md:p-8 lg:grid-cols-12" data-how-stage>
                     <div className="lg:col-span-4">
@@ -99,7 +107,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
                 </Reveal>
               </li>
             ))}
-          </ol>
+          </Blueprint>
         </div>
       </section>
 
