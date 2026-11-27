@@ -84,7 +84,7 @@ async function shot(page: Page, name: string, width: number, theme: string) {
 
 // The Shell sections with tabs (src/lib/hq-shell.ts HQ_TABS), then the ones without.
 const PANELS: Array<[string, string, string[]]> = [
-  ['1', 'inbox', ['notifications', 'approvals']],
+  ['1', 'inbox', ['notifications']],
   ['6', 'clients', ['pipeline', 'clients', 'site', 'calls', 'prospects']],
   ['7', 'projects', ['projects']],
   ['8', 'documents', ['documents', 'referrals', 'reviews']],

@@ -46,15 +46,20 @@ function LeadCard({ lead, now }: { lead: Lead; now: number }) {
   const age = minutesSince(lead.createdAt, now)
   return (
     <>
-      <span className="flex items-center gap-2">
-        <span role="img" aria-label={lead.temperature || undefined} title={lead.temperature || undefined} className={cn('size-2 shrink-0 rounded-full', tempTone[lead.temperature] ?? 'bg-line-strong')} />
+      <span className="flex items-baseline gap-2">
         <span className="min-w-0 flex-1 truncate font-medium">{lead.name || lead.contact || `#${lead.id}`}</span>
         {age !== null ? <span className="shrink-0 text-xs text-faint tabular-nums">{formatDuration(age)}</span> : null}
       </span>
       <span className="mt-0.5 block truncate text-xs text-muted">
         {[(k.services as Record<string, string>)[lead.service] ?? lead.service, money(lead.estimateUsd)].filter(Boolean).join(' · ') || k.noService}
       </span>
-      {lead.nextAction ? <span className="mt-1 block truncate text-xs text-accent-text">{lead.nextAction}</span> : null}
+      {lead.temperature ? (
+        <span className="mt-1 flex items-center gap-1.5 text-xs text-muted" data-temperature={lead.temperature}>
+          <span aria-hidden="true" className={cn('size-1.5 shrink-0 rounded-full', tempTone[lead.temperature] ?? 'bg-line-strong')} />
+          {(k.temps as Record<string, string>)[lead.temperature] ?? lead.temperature}
+        </span>
+      ) : null}
+      {lead.nextAction ? <span className="mt-1 block truncate text-xs text-fg">{lead.nextAction}</span> : null}
       {lead.stage === 'lost' && lead.lostReason ? <span className="mt-1 block truncate text-xs text-faint">{lead.lostReason}</span> : null}
     </>
   )
@@ -118,7 +123,7 @@ export function LeadsBoard({ focus }: { focus: string | null }) {
   if (!feed.view.available) return <div className="p-4"><Empty>{k.unavailable}</Empty></div>
 
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)] gap-3.5 p-3 sm:p-5">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3.5 px-4 py-4 sm:px-6">
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <Search value={q} onChange={setQ} placeholder={k.search} />
         <p className="text-xs text-faint">{fill(k.count, { n: shown.length })}</p>

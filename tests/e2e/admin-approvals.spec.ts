@@ -13,7 +13,12 @@ test.describe('with a session', () => {
     const errors = watchErrors(page, noise)
     await open(page, '/admin/approvals')
     const nav = page.getByRole('navigation', { name: 'Approvals sections' })
-    for (const name of ['Documents', 'Replies', 'Content', 'Money']) await expect(nav.getByRole('button', { name })).toBeVisible()
+    for (const name of ['Documents', 'Replies', 'Content', 'Money', 'Decided']) await expect(nav.getByRole('button', { name })).toBeVisible()
+    // Decided is the last segment, never a stray checkbox
+    await expect(nav.getByRole('button').last()).toHaveText(/^Decided/)
+    await nav.getByRole('button', { name: /^Decided/ }).click()
+    await expect(page).toHaveURL(/tab=decided/)
+    await expect(page.getByRole('list', { name: 'Decided' })).toBeVisible()
     // Content is the tab no other test decides in (they share one mock), so its queue is stable.
     await nav.getByRole('button', { name: /Content/ }).click()
     const queue = page.getByRole('list', { name: 'Queue Content' })
@@ -51,8 +56,11 @@ test.describe('with a session', () => {
 
   test('batch approve with a confirmation', async ({ page }) => {
     await open(page, '/admin/approvals?tab=money')
+    // the batch bar sticks to the bottom only while something is selected
+    await expect(page.locator('[data-batch-bar]')).toHaveCount(0)
     await page.getByRole('checkbox', { name: 'Select all' }).check()
     await expect(page.getByText(/Selected: [1-9]/)).toBeVisible()
+    await expect(page.locator('[data-batch-bar]')).toBeVisible()
     await page.getByRole('button', { name: 'Approve selected' }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toContainText('Invoices and prices go to clients')
@@ -89,8 +97,9 @@ test.describe('with a session', () => {
     }
     const badge = Number(await page.locator('[data-badge=approvals]').first().textContent())
     expect(badge).toBe(await sum())
-    await open(page, '/admin/inbox?tab=approvals')
-    await expect(page.locator('[data-inbox-total]')).toHaveText(String(badge))
+    // the Dashboard shows the same number
+    await open(page, '/admin/dashboard')
+    await expect(page.locator('[data-decide-total]')).toHaveText(String(badge))
     expect(errors).toEqual([])
   })
 

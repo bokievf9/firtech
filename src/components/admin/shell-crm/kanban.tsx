@@ -148,7 +148,7 @@ export function Kanban<T>({
   }
 
   return (
-    <div aria-label={`${label}. ${k.keys}`} role="group" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-2">
+    <div aria-label={`${label}. ${k.keys}`} role="group" data-board className="-mx-1 flex max-h-[calc(100dvh-15rem)] min-h-64 items-start gap-2 overflow-auto px-1 pb-2">
       {columns.map((c, col) => (
         <section
           key={c.key}
@@ -167,12 +167,12 @@ export function Kanban<T>({
             if (item) onMove(item, c.key)
           }}
           className={cn(
-            'flex w-60 shrink-0 flex-col rounded-card border border-hairline bg-surface p-2 transition-colors',
+            'flex w-60 shrink-0 flex-col rounded-card border border-hairline bg-surface px-2 pb-2 transition-colors duration-150',
             over === c.key ? 'border-accent-text bg-accent/5' : 'border-line',
             c.muted && 'opacity-80',
           )}
         >
-          <h3 className="mb-2 flex items-center justify-between px-1.5 pt-1 text-footnote font-medium text-muted">
+          <h3 data-column-head className="sticky top-0 z-[1] -mx-2 mb-2 flex items-center justify-between rounded-t-card bg-surface px-3.5 pb-2 pt-3 text-footnote font-medium text-muted">
             <span>{c.label}</span>
             <span className="tabular-nums text-faint">{c.items.length}</span>
           </h3>

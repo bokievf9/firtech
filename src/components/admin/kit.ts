@@ -19,7 +19,7 @@ export const btnDanger =
   'pressable inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-danger/50 px-4 text-sm text-danger outline-none hover:bg-danger/10 focus-visible:ring-2 focus-visible:ring-danger disabled:pointer-events-none disabled:opacity-50'
 
 export const inputClass =
-  'ym-disable-keys w-full rounded-xl border border-line-strong bg-field px-3 py-2 text-base text-fg outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-faint focus:border-accent-text focus:ring-2 focus:ring-accent/25 md:text-sm'
+  'ym-disable-keys w-full rounded-xl border border-line-strong bg-field px-3 py-2 text-base text-fg outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-faint focus:border-accent-text focus:ring-2 focus:ring-accent-text md:text-sm'
 
 // Filter / view pills (one system for Pills, Chips, scope buttons): the selected one is an elevated pill with a
 // hairline, never a lime fill. `count` goes inside in tabular figures.

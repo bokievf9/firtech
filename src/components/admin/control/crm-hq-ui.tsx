@@ -1,6 +1,6 @@
 'use client'
 
-import { X } from '@phosphor-icons/react'
+import { MagnifyingGlass, X } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { admin } from '@/content/admin'
 import type { CrmList } from '@/lib/admin-crm-hq'
@@ -47,15 +47,17 @@ export function Chips({
 
 export function Search({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
   return (
-    <label className="block">
+    <label className="relative block">
       <span className="sr-only">{placeholder}</span>
+      <MagnifyingGlass size={16} aria-hidden="true" className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-faint" />
       <input
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className={cn(inputClass, 'h-11 px-3.5 py-0')}
+        className={cn(inputClass, 'h-10 py-0 pl-10 pr-3.5 lg:pr-14')}
       />
+      <kbd aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 font-mono text-xs text-faint lg:block">{admin.hub.searchKey}</kbd>
     </label>
   )
 }

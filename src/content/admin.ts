@@ -1056,6 +1056,7 @@ export const admin = {
       empty: 'No leads yet. New requests from the site and the bot appear here.',
       nothing: 'No leads for this search.',
       unavailable: 'The funnel is not filled yet: the Lead manager has not run.',
+      temps: { hot: 'Hot', warm: 'Warm', cold: 'Cold' },
       stages: {
         new: 'New',
         qualified: 'Qualified',
