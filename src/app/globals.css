@@ -2363,16 +2363,6 @@ body > header {
     animation: none;
   }
 }
-/* The loading ring of a route that waits for data fades out when the page arrives. */
-::view-transition-group(.pt-loading) {
-  animation: none;
-}
-::view-transition-old(.pt-loading) {
-  animation: pt-fade-out 120ms var(--ease-out-quint) both;
-}
-::view-transition-new(.pt-loading) {
-  animation: none;
-}
 /* A transition is a visual layer only: clicks go through to the live page. */
 ::view-transition {
   pointer-events: none;
