@@ -1,9 +1,7 @@
 import { ArrowRight, ChatCircleDots } from '@phosphor-icons/react/ssr'
 import Link from 'next/link'
-import type { ReactNode } from 'react'
 import type { Dict } from '@/content'
 import { buttonStyles, cn } from '@/lib/cn'
-import { channelName, publicChannels } from '@/lib/channels'
 import { guaranteeLine } from '@/lib/guarantee'
 import type { Locale } from '@/lib/i18n'
 import { getPricing } from '@/lib/pricing-store'
@@ -19,15 +17,13 @@ import { HeroOrbit } from './hero-orbit'
 // inclined ring (HeroOrbit, client island). The section fills the viewport on desktop. The headline, the
 // tagline, the buttons and the facts are server HTML animated in CSS, so the headline is the LCP and the
 // page reads without JavaScript. Copy is the AI-native wave of 2026-11-25 (titleLight/titleStrong, tagline);
-// `cue` is scene one of the home film (Fira greets the visitor), shown above the buttons.
-export async function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; cue?: ReactNode }) {
+// Five elements: eyebrow, headline, one sentence, two buttons with one guarantee line, the scene with its caption link.
+// Fira's hello line (film scene one) is a bubble on the big Fira in the scene; her film mark sits there too.
+export async function Hero({ locale, dict }: { locale: Locale; dict: Dict }) {
   const h = dict.hero
   const pricing = await getPricing()
-  const channels = publicChannels(['telegram', 'whatsapp', 'web', 'email'] as const)
-    .map((c) => channelName(c, locale))
-    .join(', ')
-  // Three facts: the guarantee line already names the launch term, so no separate «start in N days» line.
-  const facts = [channels, guaranteeLine(dict, locale, pricing, 'short'), Object.values(dict.builder.langs).join(', ')]
+  // One fact (owner 2026-11-26 «на hero слишком много информации»): the guarantee. Channels and languages moved to the products header.
+  const facts = [guaranteeLine(dict, locale, pricing, 'short')]
   const products = productIds.map((id) => ({
     id,
     name: dict.products.items[id].name,
@@ -39,13 +35,11 @@ export async function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; 
       <HeroField />
       <div className="relative mx-auto grid w-full site-container items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,min(44vw,var(--orbit-size)))] lg:gap-8 xl:gap-14">
         <div className="min-w-0">
-          {cue ? (
-            <HeroIntro delay={0}>
-              <div className="mb-6" data-hero-cue data-fira-quiet="">
-                {cue}
-              </div>
-            </HeroIntro>
-          ) : null}
+          <HeroIntro delay={0}>
+            <p data-hero-eyebrow className="mb-4 text-footnote font-semibold text-accent-text">
+              {h.eyebrowLine}
+            </p>
+          </HeroIntro>
           <KineticHeadline
             title={`${h.titleLight} ${h.titleStrong}`}
             lines={[h.titleLight, h.titleStrong]}
@@ -68,18 +62,14 @@ export async function Hero({ locale, dict, cue }: { locale: Locale; dict: Dict; 
                 {h.askFira}
               </ChatOpenButton>
             </div>
-            <Link href={`/${locale}/ai-team`} data-cta="hero_team" className="mt-4 inline-flex items-center gap-1.5 text-footnote font-medium text-accent-text underline-offset-4 hover:underline">
-              {h.teamLink}
-              <ArrowRight size={14} aria-hidden="true" />
-            </Link>
-            <ul data-hero-facts className="mt-6 flex max-w-[52ch] flex-wrap gap-x-5 gap-y-2 border-t border-accent-text/15 pt-4 text-footnote font-medium text-muted">
+            <ul data-hero-facts className="mt-6 max-w-[52ch] border-t border-accent-text/15 pt-4 text-footnote font-medium text-muted">
               {facts.filter(Boolean).map((item) => (
                 <li key={item}>{item}</li>
               ))}
             </ul>
           </HeroIntro>
         </div>
-        <HeroOrbit locale={locale} products={products} label={dict.film.name} ring={dict.products.eyebrow} />
+        <HeroOrbit locale={locale} products={products} label={dict.film.name} ring={dict.products.eyebrow} hello={{ name: dict.film.name, line: dict.film.scenes.hello }} note={h.sceneNote} />
       </div>
     </section>
   )

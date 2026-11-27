@@ -36,6 +36,7 @@ export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Di
       {/* Old links to /#services land here. */}
       <span id="services" className="absolute -top-24" aria-hidden="true" />
       <SectionHeader title={t.title} lead={t.sub} />
+      <p data-products-channels className="mt-4 text-footnote text-muted">{t.channelsLine}</p>
 
       <ul className="mt-14 grid gap-gutter md:grid-cols-2 lg:grid-cols-12 3xl:grid-cols-4">
         {productIds.map((id, i) => (

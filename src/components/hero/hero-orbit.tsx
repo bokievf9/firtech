@@ -1,5 +1,6 @@
 'use client'
 
+import { ArrowRight } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { accessoriesFor } from '@/lib/fira/contexts'
@@ -19,12 +20,27 @@ import { productIcons } from '../products/product-icons'
 const acc = accessoriesFor('home')
 export type OrbitProduct = { id: ProductId; name: string; benefit: string }
 
-export function HeroOrbit({ locale, products, label, ring }: { locale: string; products: OrbitProduct[]; label: string; ring: string }) {
+export function HeroOrbit({ locale, products, label, ring, hello, note }: { locale: string; products: OrbitProduct[]; label: string; ring: string; hello: { name: string; line: string }; note: string }) {
   const reduce = useReducedMotion()
   const root = useRef<HTMLDivElement>(null)
   const [liveOn, setLive] = useState(false)
   const live = liveOn && !reduce
   const [caption, setCaption] = useState<string>('')
+  // Fira's hello bubble: 900 ms after load (at once with reduced motion), gone for good once the page scrolls past 80 px.
+  const [sayOn, setSayOn] = useState(false)
+  const [sayGone, setSayGone] = useState(false)
+  useEffect(() => {
+    const t = window.setTimeout(() => setSayOn(true), reduce ? 0 : 900)
+    const onScroll = () => {
+      if (window.scrollY > 80) setSayGone(true)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.clearTimeout(t)
+      window.removeEventListener('scroll', onScroll)
+    }
+  }, [reduce])
 
   // The WebGL turtle replaces the flat one once the page is idle, on wide screens with motion allowed.
   useEffect(() => {
@@ -79,6 +95,8 @@ export function HeroOrbit({ locale, products, label, ring }: { locale: string; p
           <div className="orbit-tilt">
             <div className="orbit-fira">
               <div className="orbit-fira-box" data-fira-hero={live ? 'webgl' : 'svg'}>
+                {/* Her film mark (FilmOverlay docks on it); the overlay stays invisible here, the big Fira is her. */}
+                <div data-film-mark="hello" aria-hidden="true" className="absolute inset-0" />
                 {live ? (
                   <FiraTurtle7 variant={firaFace} acc={acc} emotion="idle" size={360} label={label} style={{ width: '100%', height: '100%' }} />
                 ) : (
@@ -110,10 +128,20 @@ export function HeroOrbit({ locale, products, label, ring }: { locale: string; p
             </ol>
           </div>
         </div>
+        {sayOn ? (
+          <p data-film-line data-hero-say data-gone={sayGone ? 'true' : 'false'} className="orbit-say glass text-callout text-fg">
+            <span className="mb-0.5 block text-caption font-semibold text-accent-text">{hello.name}</span>
+            {hello.line}
+          </p>
+        ) : null}
       </div>
       <p aria-live="polite" data-orbit-caption className="orbit-caption text-callout text-muted">
         {caption}
       </p>
+      <Link href={`/${locale}/ai-team`} data-cta="hero_team" data-hero-note className="inline-flex min-h-11 items-center gap-1.5 text-footnote font-medium text-accent-text underline-offset-4 hover:underline">
+        {note}
+        <ArrowRight size={14} aria-hidden="true" />
+      </Link>
     </div>
   )
 }

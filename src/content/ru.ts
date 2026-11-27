@@ -4,9 +4,9 @@ import { notFoundText } from './not-found'
 const ru = {
   langName: 'Русский',
   meta: {
-    title: 'Fir Tech: ИИ-агенты и автоматизация для бизнеса',
+    title: 'Fir Tech: автономные ИИ-агенты для бизнеса, AI-native студия',
     description:
-      'ИИ-агенты для малого бизнеса: запись клиентов, приём заявок круглосуточно, автоматизация повторяющихся задач, сайты и Mini App. Цену и срок фиксируем до старта.',
+      'Автономные ИИ-агенты сами отвечают клиентам, записывают и продают в мессенджерах и на сайте круглосуточно. AI-native студия. Цена и срок до старта.',
   },
   nav: {
     skip: 'К содержимому',
@@ -46,7 +46,8 @@ const ru = {
     // Design v5 (owner 2026-11-25): the first screen is a light/black headline, one line, two buttons and Fira in a portal.
     titleLight: 'Ваш ИИ.',
     titleStrong: 'Для жизни и для дела.',
-    tagline: 'AI-native студия: ИИ-сотрудники для салона, клиники, магазина или вашей компании отвечают клиентам за минуту в Telegram, WhatsApp и Instagram. Цена и срок фиксируются до старта.',
+    eyebrowLine: 'Автономные ИИ-агенты для бизнеса · AI-native студия',
+    tagline: 'ИИ-сотрудники сами отвечают клиентам, записывают и продают в Telegram, WhatsApp и Instagram: за минуту, круглосуточно.',
     askFira: 'Спросить Фиру',
     portalAlt: 'Фира, ИИ Fir Tech, машет рукой',
     orbsLabel: 'Что можно собрать',
@@ -57,7 +58,7 @@ const ru = {
     // Secondary hero button: opens the on-page chat with the AI receptionist.
     chatCta: 'Спросить агента',
     // Small third item under the buttons: the AI departments.
-    teamLink: 'Начать с одного агента или целой команды',
+    sceneNote: '7 продуктов: от одного агента до всей команды',
     // The live layer of the hero: the public pixel office and the status line (src/lib/status-line.ts).
     live: {
       badge: 'Офис онлайн',
@@ -201,6 +202,7 @@ const ru = {
   // Stage B1: the seven products (src/lib/products.ts). Prices are not written here: they come
   // from pricing.ts through productPrice, or the card says «по смете».
   products: {
+    channelsLine: 'Telegram, WhatsApp, Instagram, чат на сайте · Русский, English, Тоҷикӣ, Oʻzbekcha',
     eyebrow: 'Продукты',
     title: 'Начните с ИИ для себя или для всей компании',
     sub: 'Два главных продукта стоят первыми. Ниже агенты на одну должность: запись, заявки, отчёты, контент. Возьмите один или соберите несколько, цену и срок покажет сборка проекта.',

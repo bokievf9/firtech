@@ -165,8 +165,8 @@ test('copy-qa: «бот» is only a channel, never a product name or a product p
 
 test('copy-qa: the hero carries no numerals and no prices', () => {
   for (const [locale, dict] of [['ru', ru], ['en', en]]) {
-    const { title, lines, eyebrow, sub, primary, chatCta, teamLink, trust } = dict.hero
-    for (const [at, text] of strings({ title, lines, eyebrow, sub, primary, chatCta, teamLink, trust }))
+    const { title, lines, eyebrow, sub, primary, chatCta, trust } = dict.hero
+    for (const [at, text] of strings({ title, lines, eyebrow, sub, primary, chatCta, trust }))
       assert.doesNotMatch(text, /\d|\b(one|two|three|four|five|six|seven|eight|nine|ten)\b|\b(один|два|три|четыре|пять|шесть|семь|восемь|девять|десять)\b/i, `${locale} hero.${at}: ${text}`)
   }
 })

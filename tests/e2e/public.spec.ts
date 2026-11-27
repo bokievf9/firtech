@@ -267,7 +267,9 @@ test('home film: eight scenes, each with Fira on her mark and her line in the HT
   await open(page, '/ru')
   await expect(page.locator('[data-film-scene]')).toHaveCount(8)
   await expect(page.locator('[data-film-mark]')).toHaveCount(8)
-  await expect(page.locator('[data-film-mark] svg')).toHaveCount(8)
+  // the hello mark sits on the big Fira of the hero scene (no flat copy of her); the other seven carry the flat Fira
+  await expect(page.locator('[data-film-mark] svg')).toHaveCount(7)
+  await expect(page.locator('[data-hero] [data-film-mark="hello"]')).toHaveCount(1)
   await expect(page.locator('[data-film-line]').first()).toContainText('Привет, я Фира')
   await expect(page.locator('#pains [data-pain]')).toHaveCount(3)
   await expect(page.locator('#office [data-office-room]')).toHaveCount(6)
@@ -296,7 +298,9 @@ test('home film: phones get the plain sections with the flat Fira and the ordina
   await page.waitForTimeout(2500)
   await expect(page.locator('[data-film-fira]')).toHaveCount(0)
   expect(await page.evaluate(() => document.documentElement.dataset.film ?? null)).toBeNull()
-  await expect(page.locator('[data-film-mark="hello"] svg')).toBeVisible()
+  await expect(page.locator('[data-hero] [data-film-mark="hello"]')).toBeAttached()
+  await expect(page.locator('[data-hero-say]')).toBeVisible()
+  await expect(page.locator('[data-hero] [data-fira-hero="svg"] svg').first()).toBeVisible()
   await noHorizontalOverflow(page, '/ru film phone')
 })
 

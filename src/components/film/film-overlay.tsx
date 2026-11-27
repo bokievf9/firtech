@@ -190,7 +190,8 @@ export default function FilmOverlay({ copy }: { copy: FilmCopy }) {
         onPointerEnter={() => setHover(true)}
         onPointerLeave={() => setHover(false)}
         className="film-fira print-hidden fixed top-0 left-0 z-30 origin-top-left rounded-full"
-        style={{ width: BASE, height: BASE, opacity: ready ? 1 : 0 }}
+        // On the hello mark (the big Fira of the hero) she is invisible: the hero's own Fira is her.
+        style={{ width: BASE, height: BASE, opacity: ready && (docked || scene !== 'hello') ? 1 : 0 }}
       >
         <FiraTurtle7 variant={firaFace} acc={accOf[scene]} emotion={emotion} size={BASE} onReady={() => setReady(true)} />
       </button>

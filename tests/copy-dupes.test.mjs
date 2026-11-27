@@ -67,6 +67,7 @@ test('copy-dupes: no sentence of 8+ words repeats under two different keys', () 
 // Where Telegram may be named, each entry a reason (audit: docs/copy-audit-2026-11-23.md, «keep»):
 const telegramAllowed = [
   /^hero\.tagline$/, // the AI-native positioning line names the three channels (owner contract 2026-11-25)
+  /^products\.channelsLine$/, // the channels and languages line moved here from the hero (owner 2026-11-26)
   /^contact\./, // the studio's own contact options
   /^chat\./, // chat fallbacks that point to the studio's own contact
   /^booking\./, // the follow-up in Telegram after a request (a real option next to the others)
