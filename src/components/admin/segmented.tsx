@@ -20,7 +20,7 @@ export function Segmented<K extends string>({
   as?: 'div' | 'nav'
 }) {
   return (
-    <Tag role={Tag === 'div' ? 'group' : undefined} aria-label={label} data-segmented className={cn('inline-flex max-w-full flex-wrap gap-0.5 rounded-[1.125rem] bg-fill p-0.5', className)}>
+    <Tag role={Tag === 'div' ? 'group' : undefined} aria-label={label} data-segmented className={cn('inline-flex w-fit max-w-full flex-wrap justify-self-start gap-0.5 rounded-[1.125rem] bg-fill p-0.5', className)}>
       {items.map((c) => {
         const on = value === c.key
         return (

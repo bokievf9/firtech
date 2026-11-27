@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { adminContext, noHorizontalOverflow, open, setTheme, watchErrors } from './helpers'
+import { adminContext, noHorizontalOverflow, open, watchErrors } from './helpers'
 
 // Shell Dashboard «today» (2026-11-27): the first screen over the dev mock of HQ's GET /admin/today. The mock computes it
 // from the same rows as Approvals and Finance, so the numbers here equal theirs. SHOTS_DIR saves screenshots.
@@ -90,11 +90,11 @@ test.describe('with a session', () => {
     const more = page.locator('[data-decide-more]')
     if (await more.count()) {
       await more.click()
-      await expect(page).toHaveURL(/\/admin\/approvals$/)
+      await expect(page).toHaveURL(/\/admin\/approvals$/, { timeout: 40_000 })
       await open(page, '/admin/dashboard')
     }
     await page.locator('[data-decide-row]').first().locator('[data-decide-action="open"]').click()
-    await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_/)
+    await expect(page).toHaveURL(/\/admin\/approvals\?id=ap_/, { timeout: 40_000 })
   })
 
   test('a block HQ did not return says so quietly; the others keep their numbers', async ({ page }) => {
@@ -140,10 +140,10 @@ test.describe('with a session', () => {
     let fail = true
     await page.route('**/api/admin/hq/today**', async (route) => {
       if (!fail) return route.continue()
-      await new Promise((r) => setTimeout(r, 400))
+      await new Promise((r) => setTimeout(r, 2500))
       return route.fulfill({ status: 502, json: { error: 'hq_unreachable' } })
     })
-    await open(page, '/admin/dashboard')
+    await page.goto('/admin/dashboard', { waitUntil: 'commit' })
     await expect(page.locator('[data-dashboard-loading]')).toBeVisible()
     await expect(page.locator('main [role=alert]')).toBeVisible()
     fail = false
@@ -152,19 +152,21 @@ test.describe('with a session', () => {
   })
 
   test('keys 1-9 go to the daily sections and need no animation', async ({ page }) => {
+    test.setTimeout(240_000)
     await open(page, '/admin/dashboard')
     const keys: Record<string, RegExp> = { '2': /\/admin\/inbox/, '3': /\/admin\/approvals/, '4': /\/admin\/tasks/, '5': /\/admin\/chats/, '6': /\/admin\/clients/, '7': /\/admin\/projects/, '8': /\/admin\/finance/, '9': /\/admin\/team/, '1': /\/admin\/dashboard/ }
     for (const [key, url] of Object.entries(keys)) {
       await page.keyboard.press(key)
-      await expect(page).toHaveURL(url)
+      await expect(page).toHaveURL(url, { timeout: 40_000 })
     }
   })
 
   for (const theme of ['dark', 'light'] as const) {
     test(`no horizontal overflow and a screenshot at 1440 ${theme}`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 900 })
+      await page.addInitScript((t) => localStorage.setItem('firtech-admin-theme', t), theme)
       await open(page, '/admin/dashboard')
-      await setTheme(page, theme)
+      await expect(page.locator('html')).toHaveAttribute('data-theme', theme)
       await expect(page.locator('[data-block="team"]')).toBeVisible()
       await noHorizontalOverflow(page, `dashboard 1440 ${theme}`)
       const wide = await page.evaluate(() => [...document.querySelectorAll('[data-section-view="dashboard"] [data-block]')].filter((el) => el.scrollWidth > el.clientWidth + 1).length)

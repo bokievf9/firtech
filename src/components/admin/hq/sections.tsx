@@ -28,7 +28,7 @@ import { StandupInbox } from './team-standup'
 const q = `?limit=${LIST_LIMIT}`
 
 // Inbox: the notifications HQ collects (GET /admin/hub, `inbox`). Approving lives only in Approvals (one queue).
-export function InboxSection({ tab }: { tab: string; focus: string | null }) {
+export function InboxSection() {
   const { now } = useHub()
   const router = useRouter()
   const hub = useHqView('hub', normalizeHub, { visible: 15_000, hidden: 60_000 })
@@ -80,7 +80,7 @@ function Reviews() {
 
 export function SectionBody({ section, tab, focus }: { section: 'inbox' | 'clients' | 'projects' | 'documents' | 'content' | 'finance'; tab: string; focus: string | null }) {
   let body: React.ReactNode = null
-  if (section === 'inbox') body = <InboxSection tab={tab} focus={focus} />
+  if (section === 'inbox') body = <InboxSection />
   else if (section === 'content') body = <ContentSection tab={tab} focus={focus} />
   else if (section === 'finance') body = tab === 'payments' ? <PaymentsTab /> : tab === 'costs' ? <CostsTab /> : <InvoicesTab focus={focus} />
   else if (section === 'clients') {

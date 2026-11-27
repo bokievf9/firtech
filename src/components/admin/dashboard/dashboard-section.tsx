@@ -102,7 +102,7 @@ function DecideRow({ item, busy, onAct }: { item: DecideItem; busy: boolean; onA
         <div className="flex items-center gap-1.5">
           {item.actions.map((a) =>
             a.kind === 'link' && a.href ? (
-              <Link key={a.id} href={a.href} data-decide-action={a.id} className={cn(btn, 'min-h-9 px-3.5')}>{a.label}</Link>
+              <Link key={a.id} href={a.href} data-decide-action={a.id} className={cn(btn, 'min-h-9 px-3.5 max-sm:hidden')}>{a.label}</Link>
             ) : a.kind === 'post' ? (
               <button key={a.id} type="button" data-decide-action={a.id} disabled={busy} onClick={() => onAct(item, a)} className={cn(a.primary ? btnPrimary : btn, 'min-h-9 px-3.5')}>
                 {a.primary ? <Check size={14} weight="bold" aria-hidden="true" /> : null}
@@ -189,7 +189,7 @@ function Money({ b }: { b: { available: true } & MoneyBlock }) {
       </div>
       <div className="mt-3 flex h-8 items-end gap-1" role="img" aria-label={`${d.paid7d}: ${b.perDay.map((x) => `${x.day.slice(5)} ${usd(x.paid)}`).join(', ')}`} data-spark>
         {bars.map((x, i) => (
-          <span key={i} title={`${b.perDay[i]?.day ?? ''}: ${usd(b.perDay[i]?.paid ?? 0)}`} className={cn('flex-1 rounded-sm bg-accent', x.last ? 'opacity-100' : 'opacity-35')} style={{ height: `${Math.round(x.ratio * 100)}%` }} />
+          <span key={i} title={`${b.perDay[i]?.day ?? ''}: ${usd(b.perDay[i]?.paid ?? 0)}`} className={cn('flex-1 rounded-sm bg-accent-text', x.last ? 'opacity-100' : 'opacity-35')} style={{ height: `${Math.round(x.ratio * 100)}%` }} />
         ))}
       </div>
     </div>
@@ -351,10 +351,11 @@ export function DashboardSection() {
       if (busy || a.kind !== 'post' || !a.url) return
       setBusy(true)
       mutate((v: TodayData) => withoutDecision(v, item.id))
-      window.dispatchEvent(new Event(APPROVALS_CHANGED))
       const res = await hq<Record<string, unknown>>(a.url, a.body ?? {})
       if (alive.current) setBusy(false)
+      // The menu badge re-reads the queue once HQ has answered (not before, or it would read the old count).
       if (res.ok) {
+        window.dispatchEvent(new Event(APPROVALS_CHANGED))
         notify(fill(d.decideApproved, { title: item.title }))
         return
       }
