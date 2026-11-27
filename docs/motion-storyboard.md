@@ -51,7 +51,7 @@ and the scroll-driven helper `--scene-range: entry 10% cover 45%`. No new easing
 
 Stays: logo, the seven links, theme switch, language segmented control, CTA. Existing CTA text is
 «Собрать проект» / "Build a project" (`dict.nav.cta`); the owner's note says «Связаться». Keep the existing
-copy unless the owner says otherwise (open question 1). Layout does not change: the bar keeps `h-14`, geometry never jumps.
+copy (owner decision 2026-11-27). Layout does not change: the bar keeps `h-14`, geometry never jumps.
 
 States (all measured on the existing 24 px scroll threshold, `useMotionValueEvent`, boolean flip only):
 
