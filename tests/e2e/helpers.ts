@@ -125,3 +125,9 @@ export async function openHomeForChat(page: Page, url = '/ru') {
   await page.emulateMedia({ reducedMotion: 'reduce' })
   return open(page, url)
 }
+
+// The rare sections (Calendar, Processes, Knowledge, Quality, Audit log, Analytics) sit in the collapsed «More» group of the menu.
+export async function openMore(page: Page) {
+  const toggle = page.locator('nav [data-more-toggle]').first()
+  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click()
+}

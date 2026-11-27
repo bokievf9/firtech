@@ -148,7 +148,7 @@ export function Kanban<T>({
   }
 
   return (
-    <div aria-label={`${label}. ${k.keys}`} role="group" data-board className="-mx-1 flex max-h-[calc(100dvh-15rem)] min-h-64 items-start gap-2 overflow-auto px-1 pb-2">
+    <div aria-label={`${label}. ${k.keys}`} role="group" data-board className="-mx-1 flex max-h-[calc(100dvh-15rem)] min-h-64 items-start gap-2 overflow-x-auto overflow-y-auto px-1 pb-2">
       {columns.map((c, col) => (
         <section
           key={c.key}

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { adminContext, noHorizontalOverflow, open, SIZES, watchErrors } from './helpers'
+import { adminContext, noHorizontalOverflow, open, SIZES, watchErrors, openMore } from './helpers'
 
 // HQ «Audit log» and «Analytics» (2026-11-23) over the dev mock of HQ.
 const noise = [/WebGL|GPU stall|swiftshader|Failed to load resource/i]
@@ -78,6 +78,7 @@ test.describe('with a session', () => {
 
   test('the menu lists Audit log and Analytics after Settings and there is no horizontal overflow', async ({ page }) => {
     await open(page, '/admin/inbox')
+    await openMore(page)
     await page.getByRole('link', { name: /^Audit log/ }).first().click()
     await expect(page).toHaveURL(/\/admin\/audit/)
     await page.getByRole('link', { name: /^Analytics/ }).first().click()

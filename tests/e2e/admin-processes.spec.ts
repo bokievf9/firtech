@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { adminContext, noHorizontalOverflow, open, SIZES, watchErrors } from './helpers'
+import { adminContext, noHorizontalOverflow, open, SIZES, watchErrors, openMore } from './helpers'
 
 // HQ «Processes» (2026-11-23): the chain map and the drill button over the dev mock of HQ.
 const noise = [/WebGL|GPU stall|swiftshader|Failed to load resource/i]
@@ -40,6 +40,7 @@ test.describe('with a session', () => {
 
   test('the menu opens Processes (no placeholder) and there is no horizontal overflow', async ({ page }) => {
     await open(page, '/admin/inbox')
+    await openMore(page)
     await page.getByRole('link', { name: /^Processes/ }).first().click()
     await expect(page).toHaveURL(/\/admin\/processes/)
     await expect(page.locator('[data-soon]')).toHaveCount(0)
