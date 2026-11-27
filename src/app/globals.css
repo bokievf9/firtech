@@ -2186,6 +2186,90 @@ html[data-fira-big] [data-rail-fira] {
   }
 }
 
+/* --- Cold open (T4, docs/motion-storyboard.md section 6). First visit only: the pre-paint script in <head> sets
+   html[data-cold='on']; without it the overlay is display:none. Timeline (1.8 s, ends by itself): 0-400 ms the
+   wordmark fades in from scale(.96), 400-1100 ms the lime dot pulses once, 1100-1800 ms a hole opens from the dot
+   and the page (already painted beneath) shows. opacity, transform and a mask only: no layout. */
+@property --cr {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+.cold-open {
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-cold='on'] .cold-open,
+  :root[data-cold='skip'] .cold-open {
+    --cr: 0px;
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    background: var(--color-bg);
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent var(--cr), #000 calc(var(--cr) + 56px));
+    mask-image: radial-gradient(circle at 50% 50%, transparent var(--cr), #000 calc(var(--cr) + 56px));
+  }
+  :root[data-cold='on'] .cold-open {
+    animation:
+      cold-hole 700ms var(--ease-in-out-soft) 1100ms both,
+      cold-gone 1ms linear 1800ms forwards;
+  }
+  :root[data-cold='skip'] .cold-open {
+    animation: cold-skip 120ms linear both;
+  }
+  .cold-open-mark {
+    color: var(--color-fg);
+    font-size: clamp(2.25rem, 1.4rem + 3.6vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    animation: cold-mark 400ms var(--ease-out-expo) both;
+  }
+  .cold-open-dot {
+    display: inline-block;
+    margin: 0 0.035em 0 0.02em;
+    color: var(--color-accent-text);
+    animation: cold-dot 700ms var(--ease-in-out-soft) 400ms both;
+  }
+}
+@keyframes cold-mark {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes cold-dot {
+  45% {
+    transform: scale(2.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes cold-hole {
+  to {
+    --cr: 75vmax;
+  }
+}
+@keyframes cold-gone {
+  to {
+    visibility: hidden;
+  }
+}
+@keyframes cold-skip {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 /* ===== page transitions (T2) =====
    docs/motion-storyboard.md section 4. React starts a browser view transition when the path changes
    (components/nav-types.tsx). The page is the browser's own `root` snapshot (viewport-sized): it slides a few

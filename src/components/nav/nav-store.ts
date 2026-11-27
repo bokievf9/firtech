@@ -45,9 +45,14 @@ export function sameItems(a: readonly RailItem[], b: readonly RailItem[]): boole
 
 // Jump to a section. Pointer and tap: the browser's own smooth scroll (the user can interrupt it);
 // keyboard and reduced motion: instant. The hash is updated without adding a history entry.
+let silentUntil = 0
+// True shortly after an instant (keyboard) jump: the rail tick stays quiet for it.
+export const tickMuted = () => performance.now() < silentUntil
+
 export function jumpTo(id: string, smooth: boolean): void {
   const el = document.getElementById(id)
   if (!el) return
+  if (!smooth) silentUntil = performance.now() + 600
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   el.scrollIntoView({ behavior: smooth && !reduce ? 'smooth' : 'instant', block: 'start' })
   try {

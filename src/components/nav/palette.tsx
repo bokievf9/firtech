@@ -148,7 +148,7 @@ function PaletteDialog({
       document.body.style.overflow = overflow
       delete document.documentElement.dataset.paletteOpen
       opener?.focus?.()
-      playCue('palette')
+      playCue('paletteOut')
     }
   }, [])
 

@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation'
 import { useLayoutEffect, useRef, ViewTransition, type ReactNode } from 'react'
 import { navDirection } from '@/lib/nav-direction'
+import { playCue } from '@/lib/sound'
 
 // Page transitions (docs/motion-storyboard.md section 4). One keyed <ViewTransition>: a new pathname unmounts the
 // old marker (exit) and mounts a new one (enter), which starts the browser transition; the page slides as the
@@ -25,6 +26,9 @@ export function PageTransition({ children }: { children: ReactNode }) {
     const root = document.documentElement
     const dir = navDirection(from, pathname)
     root.dataset.nav = dir
+    // Sound (off by default): swish up when going deeper, down when going back; quiet fades make no sound.
+    if (dir === 'forward' || dir === 'sibling') playCue('page')
+    else if (dir === 'back') playCue('pageBack')
     const timer = window.setTimeout(() => {
       if (root.dataset.nav === dir) delete root.dataset.nav
     }, 900)

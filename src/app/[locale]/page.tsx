@@ -8,6 +8,7 @@ import { OfficeScene } from '@/components/film/office-scene'
 import { PainsSection } from '@/components/film/pains-section'
 import { HomeAgents } from '@/components/home-agents'
 import { Hero } from '@/components/hero/hero'
+import { ColdOpen } from '@/components/home/cold-open'
 import { JsonLd, faqJsonLd } from '@/components/json-ld'
 import { RefCapture } from '@/components/ref-capture'
 import { PricingSection } from '@/components/pricing-section'
@@ -94,6 +95,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
       <JsonLd data={organization} />
       <JsonLd data={faqJsonLd(dict.faq.items)} />
       <RefCapture />
+      <ColdOpen />
       {filmScenes.map((scene) => (
         <FilmSceneBlock
           key={scene.id}

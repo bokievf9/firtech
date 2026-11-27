@@ -15,7 +15,8 @@ import {
   sectionsFor,
   type RailItem,
 } from '@/lib/sections'
-import { sameItems, sectionProgress, setNav } from './nav-store'
+import { playCue } from '@/lib/sound'
+import { getNav, sameItems, sectionProgress, setNav, tickMuted } from './nav-store'
 
 // The one writer of the navigation store: finds the sections of the current page, follows the scroll
 // (one rAF-throttled passive listener, at most a dozen getBoundingClientRect reads per frame, no React
@@ -65,6 +66,8 @@ export function SectionTracker({ locale, rail }: { locale: Locale; rail: Dict['r
         idx = activeIndex(tops, vh, line, atBottom && window.scrollY > 0)
       }
       sectionProgress.set(progressOf(tops, idx, vh, line))
+      // Rail tick: only when the scroll moved the active section, not a keyboard jump or a running page transition.
+      if (idx !== getNav().active && getNav().path === pathname && !tickMuted() && !document.documentElement.dataset.nav) playCue('tick', { index: idx })
       setNav({ active: idx })
     }
     const schedule = () => {

@@ -1,6 +1,7 @@
 import { verificationFromEnv } from '@/lib/indexnow'
 import type { Metadata, Viewport } from 'next'
 import { notFound } from 'next/navigation'
+import { ColdOpenInit } from '@/components/home/cold-open'
 import { ChatWidget } from '@/components/chat/chat-widget'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
@@ -9,6 +10,7 @@ import { NavLayer } from '@/components/nav/nav-layer'
 import { MotionProvider } from '@/components/motion-provider'
 import { PageTransition } from '@/components/nav-types'
 import { PricingProvider } from '@/components/pricing-provider'
+import { SoundListeners } from '@/components/sound-listeners'
 import { ThemeInit } from '@/components/theme-init'
 import { RefLinks } from '@/components/ref-links'
 import { Toaster } from '@/components/ui/toast'
@@ -77,6 +79,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
     >
       <head>
         <ThemeInit />
+        <ColdOpenInit />
         <link rel="alternate" type="application/rss+xml" title="Fir Tech" href={locale === 'en' ? '/rss-en.xml' : '/rss.xml'} />
       </head>
       <body className="grain min-h-[100dvh]">
@@ -94,6 +97,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
             </a>
             <Header locale={locale} dict={dict} cabinet={cabinet} />
             <NavLayer locale={locale} dict={dict} />
+            <SoundListeners />
             <main id="main" tabIndex={-1} className="outline-none">
               <PageTransition>{children}</PageTransition>
             </main>
