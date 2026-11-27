@@ -227,8 +227,8 @@ export const PULT_ENDPOINTS: readonly Endpoint[] = [
   // HQ «Audit log» and «Analytics»: the journal of decisions and changes, the funnel and sources (read only).
   { method: 'GET', path: /^audit$/, query: ['kind', 'actor', 'from', 'to', 'cursor', 'limit'] },
   { method: 'GET', path: /^analytics$/, query: ['week'] },
-  // Shell Dashboard (2026-11-23): one read-only object, `range` today|7d|30d (HQ answers 400 `invalid` for anything else).
-  { method: 'GET', path: /^dashboard$/, query: ['range'] },
+  // Shell Dashboard (2026-11-27): «today», one read-only object; `tz` is optional (HQ falls back to the owner's time zone).
+  { method: 'GET', path: /^today$/, query: ['tz'] },
   // HQ «Knowledge» and «Quality» (2026-11-23, contract `docs/briefs/fira/knowledge-quality-api.md`): the company package documents,
   // the owner's notes, the lessons learned from bad answers, ratings and the eval report. `rebuild` is never an id.
   { method: 'GET', path: /^knowledge$/, query: ['q', 'tier', 'source', 'limit'] },

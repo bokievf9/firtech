@@ -2,7 +2,7 @@ import { officeMock } from './office-mock'
 import { createPultMock } from './shell-mock'
 import { createReviewMock } from './review-mock'
 import { createTeamMock } from './team-mock'
-import { dashboardMock } from './shell-dashboard-mock'
+import { todayMock } from './shell-today-mock'
 import {
   effectivePresence,
   sameId,
@@ -695,15 +695,12 @@ export function createHqMock(start = Date.now()) {
   return function handle(method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', path: string, query: Query = {}, body: Json = {}, now = Date.now()): MockReply {
     advance(now)
     const seg = path.split('/').filter(Boolean)
-    if (method === 'GET' && seg.length === 1 && seg[0] === 'dashboard') {
-      const range = query.range ?? '7d'
-      if (!['today', '7d', '30d'].includes(range)) return { ok: false, error: 'invalid' }
+    if (method === 'GET' && seg.length === 1 && seg[0] === 'today') {
       const rows = (r: unknown): Record<string, unknown>[] => ((r as { items?: Record<string, unknown>[] } | null)?.items ?? [])
-      return dashboardMock(range, now, {
+      return todayMock(now, query.tz, {
         reviewItems: rows(review('GET', ['review'], { status: 'pending', limit: '200' }, {}, now)),
         invoices: rows(pult('GET', ['crm', 'invoices'], { limit: '200' }, {}, now)),
         leads: rows(pult('GET', ['crm', 'leads'], { limit: '200' }, {}, now)),
-        projects: rows(pult('GET', ['crm', 'projects'], { limit: '200' }, {}, now)),
         tickets: rows(crm('GET', ['crm', 'tickets'], { limit: '200' }, {}, now)),
       }) as MockReply
     }
