@@ -24,7 +24,7 @@ export type HqSectionId =
   | 'office'
   | 'team'
 
-export type HqGroupId = 'work' | 'clients' | 'company' | 'control'
+export type HqGroupId = 'work' | 'clients' | 'company' | 'more'
 
 export type HqSection = {
   id: HqSectionId
@@ -40,7 +40,6 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'inbox', group: 'work', label: 'Inbox', state: 'ready', href: '/admin/inbox' },
   { id: 'approvals', group: 'work', label: 'Approvals', state: 'ready', href: '/admin/approvals' },
   { id: 'tasks', group: 'work', label: 'Tasks', state: 'ready', href: '/admin/tasks' },
-  { id: 'calendar', group: 'work', label: 'Calendar', state: 'ready', href: '/admin/calendar' },
   { id: 'chats', group: 'work', label: 'Chats', state: 'ready', href: '/admin/chats' },
   { id: 'clients', group: 'clients', label: 'Clients', state: 'ready', href: '/admin/clients' },
   { id: 'projects', group: 'clients', label: 'Projects', state: 'ready', href: '/admin/projects' },
@@ -50,12 +49,14 @@ export const HQ_SECTIONS: readonly HqSection[] = [
   { id: 'office', group: 'company', label: 'Office', state: 'ready', href: '/admin/office' },
   { id: 'content', group: 'company', label: 'Content', state: 'ready', href: '/admin/content' },
   { id: 'agents', group: 'company', label: 'Agents', state: 'ready', href: '/admin/agents' },
-  { id: 'processes', group: 'company', label: 'Processes', state: 'ready', href: '/admin/processes' },
-  { id: 'knowledge', group: 'company', label: 'Knowledge', state: 'ready', href: '/admin/knowledge' },
   { id: 'settings', group: 'company', label: 'Settings', state: 'ready', href: '/admin/settings' },
-  { id: 'quality', group: 'control', label: 'Quality', state: 'ready', href: '/admin/quality' },
-  { id: 'audit', group: 'control', label: 'Audit log', state: 'ready', href: '/admin/audit' },
-  { id: 'analytics', group: 'control', label: 'Analytics', state: 'ready', href: '/admin/analytics' },
+  // The rare six (owner 2026-11-26): one collapsed group, still one click and still in ⌘K.
+  { id: 'calendar', group: 'more', label: 'Calendar', state: 'ready', href: '/admin/calendar' },
+  { id: 'processes', group: 'more', label: 'Processes', state: 'ready', href: '/admin/processes' },
+  { id: 'knowledge', group: 'more', label: 'Knowledge', state: 'ready', href: '/admin/knowledge' },
+  { id: 'quality', group: 'more', label: 'Quality', state: 'ready', href: '/admin/quality' },
+  { id: 'audit', group: 'more', label: 'Audit log', state: 'ready', href: '/admin/audit' },
+  { id: 'analytics', group: 'more', label: 'Analytics', state: 'ready', href: '/admin/analytics' },
 ] as const
 
 // The menu groups, in order (owner audit 2026-11-23): labels are English like the sections.
@@ -63,7 +64,7 @@ export const HQ_GROUPS: readonly { id: HqGroupId; label: string }[] = [
   { id: 'work', label: 'Work' },
   { id: 'clients', label: 'Clients' },
   { id: 'company', label: 'Company' },
-  { id: 'control', label: 'Control' },
+  { id: 'more', label: 'More' },
 ] as const
 
 export const sectionById = (id: string) => HQ_SECTIONS.find((s) => s.id === id)
@@ -71,16 +72,25 @@ export const sectionById = (id: string) => HQ_SECTIONS.find((s) => s.id === id)
 // The section a path belongs to: its own page or a page under it (/admin/team/<id> is Team).
 export const sectionOfPath = (pathname: string) => HQ_SECTIONS.find((s) => pathname === s.href || pathname.startsWith(`${s.href}/`))
 
-// Keys 1-9 open the first nine sections in the menu order (the Dashboard is 1, the Inbox 2).
+// Keys 1-9 (owner 2026-11-27): the nine sections used every day, not the menu order.
+export const KEY_SECTIONS: readonly HqSectionId[] = ['dashboard', 'inbox', 'approvals', 'tasks', 'chats', 'clients', 'projects', 'finance', 'team']
+
 export function sectionForKey(key: string): HqSection | null {
   if (key.length !== 1) return null
   const n = Number(key)
-  return Number.isInteger(n) && n >= 1 && n <= 9 ? (HQ_SECTIONS[n - 1] ?? null) : null
+  const id = Number.isInteger(n) && n >= 1 && n <= 9 ? KEY_SECTIONS[n - 1] : undefined
+  return id ? (sectionById(id) ?? null) : null
+}
+
+// The digit of a section, or null when it has none (shown as a hint on hover and in ⌘K).
+export const keyOfSection = (id: HqSectionId): number | null => {
+  const i = KEY_SECTIONS.indexOf(id)
+  return i < 0 ? null : i + 1
 }
 
 // Tabs of the four built sections. Each tab is one existing panel; the first one opens by default.
 export const HQ_TABS = {
-  inbox: ['notifications', 'approvals'],
+  inbox: ['notifications'],
   clients: ['pipeline', 'clients', 'site', 'calls', 'prospects'],
   projects: ['projects'],
   documents: ['documents', 'referrals', 'reviews'],

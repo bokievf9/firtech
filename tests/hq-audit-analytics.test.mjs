@@ -34,9 +34,9 @@ const read = (f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8')
 const none = new URLSearchParams()
 const T0 = Date.parse('2026-11-23T06:00:00Z')
 
-test('sections: Audit log and Analytics follow Settings, ready, with pages', () => {
+test('sections: Audit log and Analytics sit in the More group, ready, with pages', () => {
   const ids = shell.HQ_SECTIONS.map((s) => s.id)
-  assert.deepEqual(ids.slice(ids.indexOf('settings')), ['settings', 'quality', 'audit', 'analytics'])
+  assert.deepEqual(ids.slice(ids.indexOf('calendar')), ['calendar', 'processes', 'knowledge', 'quality', 'audit', 'analytics'])
   for (const id of ['audit', 'analytics']) {
     const s = shell.sectionById(id)
     assert.equal(s.state, 'ready')

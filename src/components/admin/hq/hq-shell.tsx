@@ -25,11 +25,12 @@ import {
   IdentificationBadge,
   List,
   X,
+  CaretRight,
 } from '@phosphor-icons/react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'motion/react'
-import { useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useState, useSyncExternalStore } from 'react'
 import { AdminMenu, SignOutButton } from '@/components/admin/admin-shell'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { CommandPalette, type PaletteItem } from '@/components/admin/hub/command-palette'
@@ -45,7 +46,7 @@ import { useReducedMotion } from '@/lib/use-reduced-motion'
 import { APPROVALS_CHANGED, approvalsSummary } from '@/lib/approvals'
 import { normalizeReview } from '@/lib/review'
 import { settingsEntries } from '@/lib/settings-sections'
-import { HQ_GROUPS, HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, sectionForKey, sectionOfPath, type HqSection, type HqSectionId } from '@/lib/hq-shell'
+import { HQ_GROUPS, HQ_SECTIONS, HQ_TABS, hqHref, isTabbed, keyOfSection, sectionForKey, sectionOfPath, type HqSection, type HqSectionId } from '@/lib/hq-shell'
 
 const t = admin.hq
 const p = admin.hub.palette
@@ -82,48 +83,123 @@ function useNow(step = 15_000) {
   return now
 }
 
-function NavItem({ s, active, index, badge, onGo, pill }: { s: HqSection; active: boolean; index: number; badge?: number | null; onGo?: () => void; pill: string }) {
+// The highlight slides between rows (transform only, 180 ms strong ease-out) and retargets when the owner clicks again.
+const PILL = { duration: 0.18, ease: [0.23, 1, 0.32, 1] as const }
+
+function NavItem({ s, active, badge, tone, onGo, pill }: { s: HqSection; active: boolean; badge?: number | null; tone?: 'quiet' | 'lime'; onGo?: () => void; pill: string }) {
   const Ico = icons[s.id]
   const reduce = useReducedMotion()
+  const key = keyOfSection(s.id)
   return (
     <Link
       href={s.href}
       onClick={onGo}
       aria-current={active ? 'page' : undefined}
       data-section={s.id}
-      title={index < 9 ? `${s.label} (${index + 1})` : s.label}
+      title={key ? `${s.label} (${key})` : s.label}
       className={cn(
         'group pressable relative isolate flex min-h-10 w-full items-center gap-2.5 rounded-xl px-3 text-callout outline-none focus-visible:ring-2 focus-visible:ring-accent-text',
         active ? 'font-medium text-fg' : 'text-muted hover:bg-fill hover:text-fg',
       )}
     >
-      {active ? (
-        // The highlight slides between rows on the snappy spring (retargets when the owner clicks again).
-        <motion.span layoutId={pill} aria-hidden="true" className="absolute inset-0 -z-10 rounded-xl bg-fill-strong" transition={reduce ? fade : spring.snappy} />
-      ) : null}
+      {active ? <motion.span layoutId={pill} aria-hidden="true" className="absolute inset-0 -z-10 rounded-xl bg-fill-strong" transition={reduce ? fade : PILL} /> : null}
       <Ico size={18} weight={active ? 'fill' : 'regular'} aria-hidden="true" className={active ? 'text-accent-text' : ''} />
       <span className="min-w-0 flex-1">{s.label}</span>
       {badge ? (
-        <span data-badge={s.id} aria-label={`${badge}`} className="min-w-5 rounded-full bg-accent px-1.5 text-center text-caption font-medium tabular-nums text-accent-ink">{badge}</span>
+        <span
+          data-badge={s.id}
+          aria-label={`${badge}`}
+          className={cn('min-w-5 rounded-full px-1.5 text-center text-caption font-medium tabular-nums', tone === 'lime' ? 'bg-accent text-accent-ink' : 'bg-fill text-muted')}
+        >
+          {badge}
+        </span>
       ) : null}
-      {index < 9 ? <kbd className="hidden font-mono text-[10px] text-faint opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 lg:inline">{index + 1}</kbd> : null}
+      {key ? <kbd className="hidden font-mono text-[10px] text-faint opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 lg:inline">{key}</kbd> : null}
     </Link>
   )
 }
 
-// The grouped list (Work, Clients, Company, Control), the same on the desktop rail and in the phone panel.
+// «More» remembers its state on this device (localStorage `firtech-shell-more`); a page inside it opens it.
+const MORE_KEY = 'firtech-shell-more'
+const MORE_EVENT = 'firtech-shell-more-change'
+function useMore(): [boolean, (v: boolean) => void] {
+  const open = useSyncExternalStore(
+    (cb) => {
+      window.addEventListener(MORE_EVENT, cb)
+      window.addEventListener('storage', cb)
+      return () => {
+        window.removeEventListener(MORE_EVENT, cb)
+        window.removeEventListener('storage', cb)
+      }
+    },
+    () => {
+      try {
+        return localStorage.getItem(MORE_KEY) === '1'
+      } catch {
+        return false
+      }
+    },
+    () => false,
+  )
+  const set = useCallback((v: boolean) => {
+    try {
+      localStorage.setItem(MORE_KEY, v ? '1' : '0')
+    } catch {
+      /* private mode: the group still toggles for this render */
+    }
+    window.dispatchEvent(new Event(MORE_EVENT))
+  }, [])
+  return [open, set]
+}
+
+// The grouped list (Work, Clients, Company, then the collapsed More), the same on the desktop rail and in the phone panel.
 function MenuList({ pathname, waiting, onGo }: { pathname: string; waiting: number | null; onGo?: () => void }) {
   const pill = useId()
+  const [moreOpen, setMore] = useMore()
+  const here = sectionOfPath(pathname)?.id
   return (
     <>
-      {HQ_GROUPS.map((g) => (
-        <div key={g.id} role="group" aria-labelledby={`hq-group-${g.id}`} data-menu-group={g.id} className="flex flex-col gap-0.5 pb-1">
-          <div id={`hq-group-${g.id}`} className="px-3 pb-1 pt-4 text-caption font-medium text-faint">{g.label}</div>
-          {HQ_SECTIONS.map((s, i) =>
-            s.group === g.id ? <NavItem key={s.id} s={s} index={i} onGo={onGo} pill={pill} badge={s.id === 'approvals' ? waiting : null} active={sectionOfPath(pathname)?.id === s.id} /> : null,
-          )}
-        </div>
-      ))}
+      {HQ_GROUPS.map((g) => {
+        const rows = HQ_SECTIONS.filter((s) => s.group === g.id)
+        const collapsible = g.id === 'more'
+        const open = !collapsible || moreOpen || rows.some((s) => s.id === here)
+        return (
+          <div key={g.id} role="group" aria-labelledby={`hq-group-${g.id}`} data-menu-group={g.id} className="flex flex-col gap-0.5 pb-1">
+            {collapsible ? (
+              <button
+                type="button"
+                id={`hq-group-${g.id}`}
+                aria-expanded={open}
+                aria-controls="hq-more-list"
+                data-more-toggle
+                onClick={() => setMore(!moreOpen)}
+                className="pressable flex min-h-9 items-center gap-1.5 rounded-lg px-3 pt-2 text-left text-caption font-medium text-faint outline-none hover:text-fg focus-visible:ring-2 focus-visible:ring-accent-text"
+              >
+                <CaretRight size={12} weight="bold" aria-hidden="true" className={cn('transition-transform duration-150', open && 'rotate-90')} />
+                {g.label}
+                <span className="ml-auto font-normal tabular-nums">{rows.length}</span>
+              </button>
+            ) : (
+              <div id={`hq-group-${g.id}`} className="px-3 pb-1 pt-4 text-caption font-medium text-faint">{g.label}</div>
+            )}
+            {open ? (
+              <div id={collapsible ? 'hq-more-list' : undefined} className="flex flex-col gap-0.5">
+                {rows.map((s) => (
+                  <NavItem
+                    key={s.id}
+                    s={s}
+                    onGo={onGo}
+                    pill={pill}
+                    badge={s.id === 'dashboard' || s.id === 'approvals' ? waiting : null}
+                    tone={s.id === 'dashboard' ? 'lime' : 'quiet'}
+                    active={here === s.id}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        )
+      })}
     </>
   )
 }
@@ -187,17 +263,17 @@ export function HqShell({ children }: { children: React.ReactNode }) {
   }, [paletteOpen, router])
 
   const entries = useMemo<PaletteItem[]>(() => {
-    const sections: PaletteItem[] = HQ_SECTIONS.map((s, i) => ({
+    const sections: PaletteItem[] = HQ_SECTIONS.map((s) => ({
       id: `section:${s.id}`,
       group: p.groups.panels,
       title: s.label,
-      hint: i < 9 ? String(i + 1) : '',
+      hint: keyOfSection(s.id) ? String(keyOfSection(s.id)) : '',
       dept: 'director',
       keywords: t.sectionHints[s.id],
       run: () => router.push(s.href),
     }))
     const tabs: PaletteItem[] = HQ_SECTIONS.flatMap((s) =>
-      isTabbed(s.id)
+      isTabbed(s.id) && HQ_TABS[s.id].length > 1
         ? HQ_TABS[s.id].map((tab) => ({
             id: `tab:${s.id}:${tab}`,
             group: p.groups.panels,

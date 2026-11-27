@@ -7,18 +7,22 @@ const s = await import('../src/lib/hq-shell.ts')
 const read = (p) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
 test('sections: twenty English names in four groups, all built, keys 1-9', () => {
-  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Dashboard', 'Inbox', 'Approvals', 'Tasks', 'Calendar', 'Chats', 'Clients', 'Projects', 'Documents', 'Finance', 'Team', 'Office', 'Content', 'Agents', 'Processes', 'Knowledge', 'Settings', 'Quality', 'Audit log', 'Analytics'])
+  assert.deepEqual(s.HQ_SECTIONS.map((x) => x.label), ['Dashboard', 'Inbox', 'Approvals', 'Tasks', 'Chats', 'Clients', 'Projects', 'Documents', 'Finance', 'Team', 'Office', 'Content', 'Agents', 'Settings', 'Calendar', 'Processes', 'Knowledge', 'Quality', 'Audit log', 'Analytics'])
   assert.deepEqual(s.HQ_SECTIONS.filter((x) => x.state === 'ready').map((x) => x.id), s.HQ_SECTIONS.map((x) => x.id))
-  assert.deepEqual(s.HQ_GROUPS.map((g) => g.label), ['Work', 'Clients', 'Company', 'Control'])
+  assert.deepEqual(s.HQ_GROUPS.map((g) => g.label), ['Work', 'Clients', 'Company', 'More'])
   const byGroup = (g) => s.HQ_SECTIONS.filter((x) => x.group === g).map((x) => x.id)
-  assert.deepEqual(byGroup('work'), ['dashboard', 'inbox', 'approvals', 'tasks', 'calendar', 'chats'])
+  assert.deepEqual(byGroup('work'), ['dashboard', 'inbox', 'approvals', 'tasks', 'chats'])
   assert.deepEqual(byGroup('clients'), ['clients', 'projects', 'documents', 'finance'])
-  assert.deepEqual(byGroup('company'), ['team', 'office', 'content', 'agents', 'processes', 'knowledge', 'settings'])
-  assert.deepEqual(byGroup('control'), ['quality', 'audit', 'analytics'])
+  assert.deepEqual(byGroup('company'), ['team', 'office', 'content', 'agents', 'settings'])
+  assert.deepEqual(byGroup('more'), ['calendar', 'processes', 'knowledge', 'quality', 'audit', 'analytics'])
   assert.ok(!s.HQ_SECTIONS.some((x) => x.id === 'campaigns'))
   assert.equal(s.sectionForKey('1').id, 'dashboard')
   assert.equal(s.sectionForKey('2').id, 'inbox')
-  assert.equal(s.sectionForKey('9').id, 'documents')
+  // keys 1-9 are the nine daily sections, not the menu order (owner 2026-11-27)
+  assert.deepEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((k) => s.sectionForKey(k).id), ['dashboard', 'inbox', 'approvals', 'tasks', 'chats', 'clients', 'projects', 'finance', 'team'])
+  assert.equal(s.keyOfSection('finance'), 8)
+  assert.equal(s.keyOfSection('calendar'), null)
+  assert.equal(s.keyOfSection('documents'), null)
   assert.equal(s.sectionForKey('0'), null)
   assert.equal(s.sectionForKey('10'), null)
 })
@@ -82,7 +86,7 @@ test('the workplace is called Shell: no «HQ» in visible admin copy', () => {
 })
 
 test('HQ components have no empty catch and no long dashes', () => {
-  for (const f of ['src/components/admin/hq/hq-shell.tsx', 'src/components/admin/hq/finance-view.tsx', 'src/lib/finance.ts', 'src/components/admin/hq/processes-view.tsx', 'src/lib/processes.ts', 'src/components/admin/hq/sections.tsx', 'src/components/admin/hq/section-view.tsx', 'src/components/admin/hq/content-studio.tsx', 'src/components/admin/hq/agents-section.tsx', 'src/lib/agents-hq.ts', 'src/lib/agents-mock.ts', 'src/components/admin/hq/settings-section.tsx', 'src/lib/settings-hq.ts', 'src/lib/settings-mock.ts', 'src/components/admin/hq/inbox-approvals.tsx', 'src/lib/hq-shell.ts', 'src/components/admin/hq/knowledge-section.tsx', 'src/components/admin/hq/quality-section.tsx', 'src/components/admin/hq/kq-ui.tsx', 'src/lib/knowledge-hq.ts', 'src/lib/quality-hq.ts', 'src/lib/knowledge-mock.ts']) {
+  for (const f of ['src/components/admin/hq/hq-shell.tsx', 'src/components/admin/hq/finance-view.tsx', 'src/lib/finance.ts', 'src/components/admin/hq/processes-view.tsx', 'src/lib/processes.ts', 'src/components/admin/hq/sections.tsx', 'src/components/admin/hq/section-view.tsx', 'src/components/admin/hq/content-studio.tsx', 'src/components/admin/hq/agents-section.tsx', 'src/lib/agents-hq.ts', 'src/lib/agents-mock.ts', 'src/components/admin/hq/settings-section.tsx', 'src/lib/settings-hq.ts', 'src/lib/settings-mock.ts', 'src/components/admin/dashboard/dashboard-section.tsx', 'src/lib/shell-today.ts', 'src/lib/hq-shell.ts', 'src/components/admin/hq/knowledge-section.tsx', 'src/components/admin/hq/quality-section.tsx', 'src/components/admin/hq/kq-ui.tsx', 'src/lib/knowledge-hq.ts', 'src/lib/quality-hq.ts', 'src/lib/knowledge-mock.ts']) {
     const t = read(f)
     assert.doesNotMatch(t, /catch\s*(\([^)]*\))?\s*\{\s*\}/, f)
     assert.doesNotMatch(t, /[–—]/, f)
