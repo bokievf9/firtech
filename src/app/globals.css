@@ -1542,6 +1542,7 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
   align-items: center;
   gap: 0.75rem;
   min-width: 0;
+  padding-top: 7rem; /* room for Fira's bubble above her on phones */
 }
 .orbit-stage {
   position: relative;
@@ -1603,8 +1604,13 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
 }
 /* Fira's hello bubble on the big Fira: opacity + 6 px lift, never from scale(0); gone once the page scrolls. */
 .orbit-say {
-  order: -1;
-  max-width: 22rem;
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  width: min(22rem, calc(100vw - 1rem));
+  margin-left: calc(min(22rem, calc(100vw - 1rem)) / -2);
+  pointer-events: auto;
   border-radius: 1.25rem;
   padding: 0.75rem 1rem;
   opacity: 1;
@@ -1632,11 +1638,12 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
 
 @media (min-width: 1024px) {
   .orbit-wrap {
+    padding-top: 0;
     width: min(100%, var(--orbit-size, 41.25rem), calc(100dvh - 10.5rem));
   }
   .orbit-stage {
     display: block;
-    aspect-ratio: 1;
+    aspect-ratio: 1 / 0.86;
   }
   .orbit-glow {
     display: block;
@@ -1696,14 +1703,24 @@ html[data-film='on'] .film-scene:not([data-active]) > .film-cue-row .film-line {
     text-align: center;
   }
   .orbit-say {
-    position: absolute;
-    z-index: 5;
-    top: 0;
-    left: 50%;
-    translate: -50% 0;
+    bottom: 82%;
+    left: auto;
+    right: -18%;
+    margin-left: 0;
     width: max-content;
-    max-width: min(22rem, 70%);
-    order: 0;
+    max-width: 22rem;
+  }
+  .orbit-say::after {
+    content: '';
+    position: absolute;
+    bottom: -0.4rem;
+    left: 1.25rem;
+    width: 0.8rem;
+    height: 0.8rem;
+    rotate: 45deg;
+    background: var(--color-glass-strong);
+    border-right: 1px solid var(--color-line, rgb(0 0 0 / 0.08));
+    border-bottom: 1px solid var(--color-line, rgb(0 0 0 / 0.08));
   }
 }
 

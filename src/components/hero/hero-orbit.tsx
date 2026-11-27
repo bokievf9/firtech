@@ -97,6 +97,13 @@ export function HeroOrbit({ locale, products, label, ring, hello, note }: { loca
               <div className="orbit-fira-box" data-fira-hero={live ? 'webgl' : 'svg'}>
                 {/* Her film mark (FilmOverlay docks on it); the overlay stays invisible here, the big Fira is her. */}
                 <div data-film-mark="hello" aria-hidden="true" className="absolute inset-0" />
+                {sayOn ? (
+                  <p data-film-line data-hero-say data-gone={sayGone ? 'true' : 'false'} className="orbit-say glass text-callout text-fg">
+                    <span className="mb-0.5 block text-caption font-semibold text-accent-text">{hello.name}</span>
+                    {hello.line}
+                  </p>
+                ) : null}
+
                 {live ? (
                   <FiraTurtle7 variant={firaFace} acc={acc} emotion="idle" size={360} label={label} style={{ width: '100%', height: '100%' }} />
                 ) : (
@@ -128,20 +135,14 @@ export function HeroOrbit({ locale, products, label, ring, hello, note }: { loca
             </ol>
           </div>
         </div>
-        {sayOn ? (
-          <p data-film-line data-hero-say data-gone={sayGone ? 'true' : 'false'} className="orbit-say glass text-callout text-fg">
-            <span className="mb-0.5 block text-caption font-semibold text-accent-text">{hello.name}</span>
-            {hello.line}
-          </p>
-        ) : null}
       </div>
-      <p aria-live="polite" data-orbit-caption className="orbit-caption text-callout text-muted">
-        {caption}
-      </p>
       <Link href={`/${locale}/ai-team`} data-cta="hero_team" data-hero-note className="inline-flex min-h-11 items-center gap-1.5 text-footnote font-medium text-accent-text underline-offset-4 hover:underline">
         {note}
         <ArrowRight size={14} aria-hidden="true" />
       </Link>
+      <p aria-live="polite" data-orbit-caption className="orbit-caption text-callout text-muted">
+        {caption}
+      </p>
     </div>
   )
 }
