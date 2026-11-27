@@ -76,7 +76,7 @@ export default async function HomePage({ params }: PageProps<'/[locale]'>) {
   )
 
   const sections: Record<HomeSection, ReactNode> = {
-    hero: <Hero locale={locale} dict={dict} cue={cue(filmScenes[0])} />,
+    hero: <Hero locale={locale} dict={dict} />,
     pains: <PainsSection dict={dict} locale={locale} />,
     products: <ProductsBento locale={locale} dict={dict} />,
     agents: <HomeAgents locale={locale} dict={dict} />,

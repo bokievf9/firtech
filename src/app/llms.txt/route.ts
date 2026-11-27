@@ -84,7 +84,7 @@ export async function GET() {
   const body = [
     '# Fir Tech',
     '',
-    '> Fir Tech is a studio of AI agents. It builds AI booking assistants, AI lead managers, process automation, Telegram Mini Apps and websites for small business. Orders come from Tashkent, Almaty, Dushanbe, Bishkek and other cities of the CIS. Prices are in US dollars and fixed before the work starts. The site is in Russian and English.',
+    '> Fir Tech is an AI-native studio that sells autonomous AI agents for business: they answer clients, book and sell on their own in Telegram, WhatsApp and Instagram. Orders come from Tashkent, Almaty, Dushanbe, Bishkek and other cities of the CIS. Prices are in US dollars and fixed before the work starts. The site is in Russian and English.',
     '',
     `- Russian: ${siteUrl}/ru`,
     `- English: ${siteUrl}/en`,

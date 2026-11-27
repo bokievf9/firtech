@@ -41,6 +41,27 @@ for (const size of desktop) {
 }
 })
 
+test('hero reads as five elements; the hello bubble sits on Fira and hides on scroll; the caption link leads to the team page', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto('/ru')
+  await page.waitForTimeout(1500)
+  await expect(page.locator('[data-hero-eyebrow]')).toHaveText('Автономные ИИ-агенты для бизнеса · AI-native студия')
+  await expect(page.locator('[data-hero] h1')).toHaveCount(1)
+  await expect(page.locator('[data-hero] [data-cta="hero_builder"]')).toBeVisible()
+  await expect(page.locator('[data-hero-facts] li')).toHaveCount(1)
+  await expect(page.locator('[data-hero-cue]')).toHaveCount(0)
+  await expect(page.locator('[data-hero-facts]')).not.toContainText('Telegram')
+  const note = page.locator('[data-hero] a[data-cta="hero_team"]')
+  await expect(note).toHaveAttribute('href', '/ru/ai-team')
+  await expect(note).toContainText('7 продуктов')
+  await expect(page.locator('[data-hero] [data-film-mark="hello"]')).toHaveCount(1)
+  const say = page.locator('[data-hero-say]')
+  await expect(say).toBeVisible()
+  await expect(say).toHaveCSS('opacity', '1')
+  await page.evaluate(() => window.scrollTo(0, 300))
+  await expect(say).toHaveCSS('opacity', '0')
+})
+
 test('hover on a product pauses the ring and shows its benefit', async ({ page }) => {
   test.setTimeout(120_000) // the animated ring is heavy for a software-GL browser on a loaded machine
   await page.setViewportSize({ width: 1440, height: 900 })

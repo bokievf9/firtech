@@ -84,3 +84,21 @@ test('data line (Singapore) on the security page, the languages block and the ni
   assert.ok(en.faq.items.some((i) => i.q === 'Why a subscription and not a payment for every answer?'))
   assert.equal(ru.faq.items.length, en.faq.items.length)
 })
+
+test('hero diet (owner 2026-11-26): eyebrow, one-sentence tagline, one fact, channels line in the products header, positioning in metadata and llms.txt', () => {
+  assert.equal(ru.hero.eyebrowLine, 'Автономные ИИ-агенты для бизнеса · AI-native студия')
+  assert.equal(en.hero.eyebrowLine, 'Autonomous AI agents for business · AI-native studio')
+  assert.ok(ru.hero.tagline.split(/\s+/).length <= 18, 'ru tagline is at most 18 words')
+  for (const dict of [ru, en]) {
+    assert.doesNotMatch(`${dict.hero.eyebrowLine}${dict.hero.tagline}${dict.hero.sceneNote}${dict.products.channelsLine}`, /—|–/)
+    assert.match(dict.meta.description, /utonomous|Автономные/)
+    assert.match(dict.meta.description, /AI-native/)
+  }
+  assert.equal(ru.products.channelsLine, 'Telegram, WhatsApp, Instagram, чат на сайте · Русский, English, Тоҷикӣ, Oʻzbekcha')
+  assert.equal(ru.hero.sceneNote, '7 продуктов: от одного агента до всей команды')
+  const hero = readFileSync('src/components/hero/hero.tsx', 'utf8')
+  assert.match(hero, /const facts = \[guaranteeLine\(dict, locale, pricing, 'short'\)\]/, 'one fact')
+  assert.match(readFileSync('src/components/hero/hero-orbit.tsx', 'utf8'), /data-cta="hero_team"/)
+  assert.match(readFileSync('src/components/products/products-bento.tsx', 'utf8'), /t\.channelsLine/)
+  assert.match(readFileSync('src/app/llms.txt/route.ts', 'utf8'), /AI-native studio that sells autonomous AI agents/)
+})

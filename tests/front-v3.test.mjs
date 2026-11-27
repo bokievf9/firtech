@@ -106,6 +106,7 @@ test('hero: no numbers, two lines, the two actions, the guarantee and the 5-minu
   // Orbit hero (2026-11-26): the guarantee is a fact of the row, the products orbit Fira as links.
   assert.match(hero, /guaranteeLine\(dict, locale, pricing, 'short'\)/)
   assert.match(hero, /data-hero-facts/)
+  assert.doesNotMatch(hero, /data-hero-cue|publicChannels|builder\.langs|teamLink/, 'channels, languages and the cue left the hero')
   assert.equal(existsSync('src/components/hero/hero-sequence.tsx'), false, 'the old product sequence is gone')
   // No product numbers in the orbit either.
   const orbit = read('src/components/hero/hero-orbit.tsx')
@@ -123,9 +124,10 @@ test('hero copy (2026-11-25): split headline, one line, no eyebrow, no hard-code
   assert.equal(ru.hero.titleLight, 'Ваш ИИ.')
   assert.equal(en.hero.titleStrong, 'For life and for business.')
   const hero = read('src/components/hero/hero.tsx')
-  assert.doesNotMatch(hero, /h\.eyebrow|HeroSequence/)
+  assert.doesNotMatch(hero, /h\.eyebrow\b|HeroSequence/)
   assert.match(hero, /h\.titleLight/)
   assert.match(hero, /h\.tagline/)
+  assert.match(hero, /h\.eyebrowLine/)
   assert.match(hero, /data-cta="hero_builder"/)
   assert.doesNotMatch(hero, /\b(290|220|1490)\b/, 'no hard-coded prices')
 })

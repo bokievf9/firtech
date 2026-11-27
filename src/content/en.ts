@@ -4,9 +4,9 @@ import type { Dict } from './ru'
 const en: Dict = {
   langName: 'English',
   meta: {
-    title: 'Fir Tech: AI agents and automation for business',
+    title: 'Fir Tech: autonomous AI agents for business, AI-native studio',
     description:
-      'AI agents for small business: booking, lead replies around the clock, automation of repeat tasks, websites and Mini Apps. Price and timeline fixed up front.',
+      'Autonomous AI agents answer clients, book and sell in messengers and on your site around the clock. An AI-native studio. Price and timeline fixed up front.',
   },
   nav: {
     skip: 'Skip to content',
@@ -45,7 +45,8 @@ const en: Dict = {
     // Design v5 (owner 2026-11-25): the first screen is a light/black headline, one line, two buttons and Fira in a portal.
     titleLight: 'Your AI.',
     titleStrong: 'For life and for business.',
-    tagline: 'An AI-native studio: AI employees for your salon, clinic, shop or company answer clients within a minute on Telegram, WhatsApp and Instagram. Price and term are fixed before the start.',
+    eyebrowLine: 'Autonomous AI agents for business · AI-native studio',
+    tagline: 'AI employees answer, book and sell for you in Telegram, WhatsApp and Instagram: within a minute, around the clock.',
     askFira: 'Ask Fira',
     portalAlt: 'Fira, the Fir Tech AI, waving',
     orbsLabel: 'What you can build',
@@ -54,7 +55,7 @@ const en: Dict = {
     trust: ['Price fixed in the quote', 'Pay before each stage', 'Code and access are yours'],
     scroll: 'Scroll',
     chatCta: 'Ask an agent',
-    teamLink: 'AI teams: marketing, sales or support in full',
+    sceneNote: '7 products: from one agent to a whole team',
     live: {
       badge: 'Office online',
       demoBadge: 'Demo',
@@ -192,6 +193,7 @@ const en: Dict = {
     },
   },
   products: {
+    channelsLine: 'Telegram, WhatsApp, Instagram, website chat · Russian, English, Tajik, Uzbek',
     eyebrow: 'Products',
     title: 'Start with AI for yourself or for the whole company',
     sub: 'The two flagships come first. Below are agents for a single role: booking, leads, reports, content. Take one or put several together, and the project builder shows the price and timeline.',
