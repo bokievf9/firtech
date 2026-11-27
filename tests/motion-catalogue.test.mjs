@@ -18,12 +18,13 @@ test('every template has a component file', () => {
 })
 
 test('motion tokens block is present exactly once, with the storyboard values', () => {
-  assert.equal(css.split('/* motion tokens (T1) */').length, 2)
+  assert.equal(css.split('/* ===== motion tokens (T1) =====').length, 2)
+  assert.equal(css.split('/* ===== end motion tokens (T1) ===== */').length, 2)
   for (const v of ['--dur-micro: 160ms', '--dur-base: 320ms', '--dur-scene: 700ms', '--dur-page-out: 160ms', '--dur-page-in: 260ms', '--scene-range: entry 10% cover 45%'])
     assert.ok(css.includes(v), v)
   const m = read('src/lib/motion.ts')
   assert.match(m, /flight: \{ type: 'spring', bounce: 0\.15, duration: 0\.9 \}/)
-  assert.match(m, /dur = \{ micro: 160, base: 320, scene: 700/)
+  assert.match(m, /dur = \{\s*micro: 0\.16,\s*base: 0\.32,\s*scene: 0\.7,/)
 })
 
 test('scrubbed templates: view() inside @supports, a not-supported fallback, and reduced motion', () => {
