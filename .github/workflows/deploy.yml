@@ -34,10 +34,10 @@ jobs:
   # Builds in CI (the VPS never compiles), ships a standalone release, switches
   # /var/www/firtech/current atomically and rolls back if /api/health fails.
   # Secrets of the `production` environment (restricted to main):
-  #   VPS_HOST, VPS_USER (deploy), VPS_SSH_KEY, VPS_KNOWN_HOSTS. Passed to scripts only through env.
+  #   VPS_HOST, VPS_USER (deploy), VPS_SSH_KEY, VPS_KNOWN_HOSTS, optional INDEXNOW_KEY. Passed to scripts only through env.
   # Repository variables (public values, inlined into the client bundle at build time):
   #   NEXT_PUBLIC_SITE_URL, NEXT_PUBLIC_TELEGRAM_USERNAME, NEXT_PUBLIC_TELEGRAM_BOT_USERNAME,
-  #   optional NEXT_PUBLIC_YM_ID, NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (client
+  #   optional NEXT_PUBLIC_YM_ID, NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION, NEXT_PUBLIC_YANDEX_VERIFICATION, NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY (client
   #   cabinet; the same two values also live in shared/.env.production for request-time reads).
   # Server-only secrets live in /var/www/firtech/shared/.env.production on the VPS.
   deploy:
@@ -52,6 +52,10 @@ jobs:
       NEXT_PUBLIC_YM_ID: ${{ vars.NEXT_PUBLIC_YM_ID }}
       NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }}
+      NEXT_PUBLIC_YANDEX_VERIFICATION: ${{ vars.NEXT_PUBLIC_YANDEX_VERIFICATION }}
+      # Job-level so the IndexNow step's `if` can see it.
+      INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
@@ -107,3 +111,10 @@ jobs:
         run: rm -f ~/.ssh/deploy_key
       - name: Public health check
         run: curl -fsS --retry 5 --retry-delay 3 --retry-all-errors https://firtech.pro/api/health
+      # IndexNow ping (SEO 2026-11-27): runs only when the production secret INDEXNOW_KEY is set and never
+      # fails the deploy. The key file https://firtech.pro/<key>.txt is served by the site from the same
+      # value in shared/.env.production on the VPS.
+      - name: IndexNow
+        if: env.INDEXNOW_KEY != ''
+        continue-on-error: true
+        run: node scripts/ops/indexnow.mjs || true

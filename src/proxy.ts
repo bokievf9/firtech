@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { isAuthCallbackPath } from '@/lib/cabinet-auth'
+import { keyFromPath } from '@/lib/indexnow'
 import { isBareLocalePath, pickLocale } from '@/lib/i18n'
 import { updateSession } from '@/lib/supabase/middleware'
 
@@ -12,6 +13,14 @@ import { updateSession } from '@/lib/supabase/middleware'
 // `private, no-store`, so no cache can hand one visitor's login page (or session) to another.
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+  // IndexNow key file: /<32 hex>.txt is answered by /api/indexnow-key (404 unless it is the env key).
+  const indexNowKey = keyFromPath(pathname)
+  if (indexNowKey) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/api/indexnow-key'
+    url.search = `?k=${indexNowKey}`
+    return NextResponse.rewrite(url)
+  }
   if (pathname === '/') {
     const locale = pickLocale(request.headers.get('accept-language'))
     return NextResponse.redirect(new URL(`/${locale}`, request.url))
@@ -28,6 +37,7 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
+    '/(\\w{32})\\.txt',
     '/(terms|privacy|pay-how|compare|referral|audit|status|builder|blog|ai-team|cabinet|solutions|services|how-we-work|products|security)/:path*',
     '/(ru|en)/cabinet',
     '/(ru|en)/cabinet/:path*',
