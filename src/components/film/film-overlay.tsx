@@ -2,6 +2,7 @@
 
 import { animate, useMotionValue } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
+import { spring } from '@/lib/motion'
 import { accessoriesFor } from '@/lib/fira/contexts'
 import { firaFace } from '@/lib/fira/face'
 import { GUIDE_POINT_EVENT, GUIDE_TOUR_EVENT, openGuideMenu } from '@/lib/fira/guide'
@@ -23,7 +24,7 @@ const FIG_K = 1
 const BASE = 160
 const DOCK = 72
 const GAP = 24
-const flight = { type: 'spring', duration: 0.9, bounce: 0.15 } as const
+const flight = spring.flight
 const SAY_MS = 5500
 
 const emotionOf = Object.fromEntries(filmScenes.map((s) => [s.id, s.emotion])) as Record<FilmSceneId, Emotion>
@@ -136,6 +137,13 @@ export default function FilmOverlay({ copy }: { copy: FilmCopy }) {
       window.dispatchEvent(new CustomEvent(FILM_EVENT, { detail: { on: false } }))
     }
   }, [ready])
+
+  // The rail's own Fira steps aside while the big one stands on a mark (docs/motion-storyboard.md §3.2).
+  useEffect(() => {
+    const root = document.documentElement
+    root.toggleAttribute('data-fira-big', ready && !docked)
+    return () => root.removeAttribute('data-fira-big')
+  }, [ready, docked])
 
   // In the corner she says the line of the scene that just began, once, then goes quiet.
   useEffect(() => {

@@ -106,7 +106,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
       <section className="mx-auto grid site-container gap-gutter py-section md:grid-cols-2">
         <Reveal>
           <div className="h-full rounded-card border border-line p-6 md:p-8">
-            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.acceptanceTitle}</h2>
+            <h2 id="acceptance" className="scroll-mt-28 font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.acceptanceTitle}</h2>
             <ul className="mt-6 grid gap-3">
               {t.acceptance.map((line) => (
                 <li key={line} className="flex gap-3 text-muted">
@@ -119,7 +119,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
         </Reveal>
         <Reveal delay={0.08}>
           <div className="h-full rounded-card border border-line p-6 md:p-8">
-            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.paymentTitle}</h2>
+            <h2 id="payment" className="scroll-mt-28 font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.paymentTitle}</h2>
             <p className="mt-6 leading-relaxed text-muted">{t.payment}</p>
             <Link
               href={`/${locale}/pay-how`}
@@ -135,12 +135,12 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
       <section className="border-y border-line bg-surface/40">
         <div className="mx-auto grid site-container gap-gutter py-section md:grid-cols-2">
           <Reveal>
-            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.guaranteeTitle}</h2>
+            <h2 id="guarantee" className="scroll-mt-28 font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.guaranteeTitle}</h2>
             <GuaranteeLine dict={dict} locale={locale} pricing={pricing} className="mt-6 max-w-[52ch]" />
             <p className="mt-4 max-w-[52ch] text-sm leading-relaxed text-muted">{t.guaranteeRule}</p>
           </Reveal>
           <Reveal delay={0.08}>
-            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.dislikeTitle}</h2>
+            <h2 id="dislike" className="scroll-mt-28 font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.dislikeTitle}</h2>
             <ul className="mt-6 grid gap-3">
               {t.dislike.map((raw) => {
                 const line = fillGuarantee(raw, locale, pricing)
@@ -158,7 +158,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
 
       <section className="mx-auto grid site-container gap-gutter py-section lg:grid-cols-12">
         <Reveal className="lg:col-span-7">
-          <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.toolsTitle}</h2>
+          <h2 id="tools" className="scroll-mt-28 font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.toolsTitle}</h2>
           <p className="mt-4 max-w-[56ch] leading-relaxed text-muted">{t.toolsText}</p>
           <ul className="mt-8 grid gap-4 sm:grid-cols-2">
             {t.tools.map((tool) => (
@@ -171,7 +171,7 @@ export default async function HowWeWorkPage({ params }: PageProps<'/[locale]/how
         </Reveal>
         <Reveal delay={0.08} className="lg:col-span-5">
           <div className="h-full rounded-card border border-accent-text/30 bg-[linear-gradient(160deg,var(--color-pine),var(--color-surface)_70%)] p-6 md:p-8">
-            <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.approvalsTitle}</h2>
+            <h2 id="approvals" className="scroll-mt-28 font-display text-2xl font-semibold tracking-tight md:text-3xl">{t.approvalsTitle}</h2>
             <p className="mt-4 leading-relaxed text-muted">{t.approvals}</p>
           </div>
         </Reveal>

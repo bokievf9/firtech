@@ -5,6 +5,7 @@ import { ChatWidget } from '@/components/chat/chat-widget'
 import { Footer } from '@/components/footer'
 import { Header } from '@/components/header'
 import { MobileCta } from '@/components/mobile-cta'
+import { NavLayer } from '@/components/nav/nav-layer'
 import { MotionProvider } from '@/components/motion-provider'
 import { PricingProvider } from '@/components/pricing-provider'
 import { ThemeInit } from '@/components/theme-init'
@@ -90,6 +91,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
               {dict.nav.skip}
             </a>
             <Header locale={locale} dict={dict} cabinet={cabinet} />
+            <NavLayer locale={locale} dict={dict} />
             <main id="main" tabIndex={-1} className="outline-none">
               {children}
             </main>

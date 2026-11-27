@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowUpRight, ChatCircleDots, List, UserCircle, X } from '@phosphor-icons/react'
+import { ArrowUpRight, ChatCircleDots, List, ListBullets, UserCircle, X } from '@phosphor-icons/react'
 import { motion, useMotionValueEvent, useScroll } from 'motion/react'
 import Link from 'next/link'
 import { CabinetNavLabel } from './cabinet/cabinet-nav-label'
@@ -15,7 +15,10 @@ import { IconButton } from './ui/button'
 import { Sheet } from './ui/sheet'
 import { openChat } from './chat/chat-events'
 import { Logo } from './logo'
-import { ScrollProgress } from './scroll-progress'
+import { SectionLabel } from './nav/section-label'
+import { openSheet, useNav } from './nav/nav-store'
+import { RAIL_MIN, railAllowed } from '@/lib/sections'
+import { SoundToggle } from './sound-toggle'
 import { ThemeSwitch } from './theme-switch'
 
 // Site header (design system v4, docs/design-system-v4.md «Шапка»): one stable floating bar. At the top of
@@ -38,6 +41,8 @@ export function Header({
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState<string | null>(null)
   const { scrollY } = useScroll()
+  const nav = useNav()
+  const hasSections = railAllowed(pathname) && nav.path === pathname && nav.items.length >= RAIL_MIN
 
   // Only flips a boolean when crossing the threshold, so React re-renders twice per page, not per frame.
   useMotionValueEvent(scrollY, 'change', (y) => {
@@ -76,7 +81,6 @@ export function Header({
 
   return (
     <header className="print-hidden fixed inset-x-0 top-0 z-40 px-2 pt-2 md:px-3 md:pt-3">
-      <ScrollProgress />
       <div
         className="relative mx-auto flex h-14 max-w-6xl items-center 2xl:max-w-[84rem] 3xl:h-16 3xl:max-w-[96rem] 4xl:max-w-[94rem] justify-between rounded-full pr-2 pl-5 3xl:pr-3 3xl:pl-7"
       >
@@ -125,7 +129,9 @@ export function Header({
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 3xl:gap-3">
+        <div className="relative flex items-center gap-2 3xl:gap-3">
+          {/* Current section, in the free space left of the right group (3xl+, where the bar has room); out of the flow, so the bar never changes. */}
+          <SectionLabel rail={dict.rail} visible={scrolled} className="pointer-events-none absolute top-1/2 right-full mr-4 -translate-y-1/2" />
           {cabinet && (
             <Link
               href={`/${locale}/cabinet`}
@@ -139,6 +145,8 @@ export function Header({
               </span>
             </Link>
           )}
+          {/* From 2xl only: below it the bar is already full (cabinet link, seven links); the palette and the phone menu carry the toggle there. */}
+          <SoundToggle copy={dict.sound} className="hidden 2xl:inline-flex" />
           <ThemeSwitch copy={dict.theme} className="hidden sm:inline-flex" />
           <div className="hidden sm:block">{localeSwitch}</div>
           <Link
@@ -230,7 +238,21 @@ export function Header({
             />
             {dict.nav.ask}
           </button>
+          {hasSections ? (
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false)
+                openSheet()
+              }}
+              className={cn(buttonStyles.secondary, 'w-full')}
+            >
+              <ListBullets size={18} aria-hidden="true" className="text-accent-text" />
+              {dict.rail.open}
+            </button>
+          ) : null}
           <div className="flex items-center justify-center gap-3 pt-2">
+            <SoundToggle copy={dict.sound} />
             <ThemeSwitch copy={dict.theme} />
             {localeSwitch}
           </div>

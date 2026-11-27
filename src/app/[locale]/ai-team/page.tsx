@@ -142,7 +142,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         </Reveal>
       </section>
 
-      <Section id="levels" data-tour="levels">
+      <Section id="levels" data-tour="levels" data-rail="Ступени|Levels">
         <SectionHeader title={dict.ladder.title} lead={dict.ladder.sub} />
         <div className="mt-10">
           <Ladder locale={locale} dict={dict} heading="h3" />
@@ -164,7 +164,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         </Reveal>
       </Section>
 
-      <Section id="teams" data-tour="teams">
+      <Section id="teams" data-tour="teams" data-rail="Отделы|Departments">
         <SectionHeader title={t.deptsTitle} />
         <ul className="mt-12 grid gap-gutter md:grid-cols-2 lg:grid-cols-12 3xl:grid-cols-4">
           {aiTeamIds.map((id, i) => {
@@ -227,7 +227,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         </Reveal>
       </Section>
 
-      <Section id="agents" data-tour="agents">
+      <Section id="agents" data-tour="agents" data-rail="Агенты|Agents">
         <SectionHeader title={t.agents.sectionTitle} lead={t.agents.sectionSub} />
         <div className="mt-10">
           <AgentExplorer
@@ -249,7 +249,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
         <ChannelsRow dict={dict} locale={locale} />
       </Section>
 
-      <Section id="proof" data-tour="proof" className="grid items-center gap-10 lg:grid-cols-12">
+      <Section id="proof" data-tour="proof" data-rail="Вживую|In practice" className="grid items-center gap-10 lg:grid-cols-12">
         <SectionHeader title={t.proof.title} className="lg:col-span-6" />
         <Reveal delay={0.1} className="lg:col-span-6">
           <Card tone="accent" className="p-sheet">

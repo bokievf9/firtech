@@ -14,6 +14,8 @@ export const spring = {
   sheet: { type: 'spring', bounce: 0.12, duration: 0.42 },
   // Only after a gesture with momentum (a flick, a drag release): a little bounce is earned.
   momentum: { type: 'spring', bounce: 0.22, duration: 0.45 },
+  // --- motion tokens (T1), part 1 of 2: a long travel (Fira flying between places), moved from film-overlay.tsx.
+  flight: { type: 'spring', bounce: 0.15, duration: 0.9 },
 } as const satisfies Record<string, Transition>
 
 // Opacity-only fallback for reduced motion and for exits of big surfaces.
@@ -28,4 +30,16 @@ export const staggerStep = 0.05
 export const materialize = {
   hidden: { opacity: 0, scale: 0.97, filter: 'blur(6px)' },
   shown: { opacity: 1, scale: 1, filter: 'blur(0px)' },
+} as const
+
+// --- motion tokens (T1), part 2 of 2 (docs/motion-storyboard.md §1). CSS twins: --dur-* in globals.css.
+// UI motion (header, rail, palette, page change, pressed states) stays under 300 ms; only explanatory
+// marketing reveals and scrubbed scenes may run to `scene`.
+export const dur = {
+  micro: 0.16,
+  base: 0.32,
+  scene: 0.7,
+  pageOut: 0.16,
+  pageIn: 0.26,
+  cold: 1.8,
 } as const
