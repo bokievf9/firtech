@@ -7,10 +7,15 @@ import { errText, hq } from '@/components/admin/control/api'
 import { Toast, type ToastMessage } from '@/components/admin/control/toast'
 import { btn, btnDanger, btnPrimary, Empty, inputClass, Loading, Offline, useConfirm, useHqView } from '@/components/admin/hub/ui'
 import { PageHeader } from '@/components/admin/hq/page-header'
-import { filterPill, cn } from '@/components/admin/kit'
+import { cn } from '@/components/admin/kit'
+import { Segmented } from '@/components/admin/segmented'
+import { motion } from 'motion/react'
 import { ReviewPage } from '@/components/admin/review/review-page'
 import {
   APPROVAL_TABS,
+  decidedItems,
+  parseView,
+  type ApprovalView,
   APPROVALS_CHANGED,
   approvalsHrefFor,
   approvalsSummary,
@@ -19,7 +24,6 @@ import {
   batchResultText,
   currentVersion,
   parseItemId,
-  parseTab,
   planBatch,
   pruneSelection,
   restorableVersions,
@@ -28,7 +32,6 @@ import {
   tabCounts,
   tabItems,
   tabOf,
-  type ApprovalTab,
   type BatchAction,
 } from '@/lib/approvals'
 import { deptTheme } from '@/lib/shell-theme'
@@ -64,7 +67,9 @@ type Answer = { item?: unknown; results?: unknown; state?: string; message?: unk
 // The tab and the open item live in the URL, so a link, the back button and /admin/review?id= all work.
 function ApprovalsPageInner() {
   const params = useSearchParams()
-  const tab = parseTab(params.get('tab'))
+  const view = parseView(params.get('tab'))
+  const decidedView = view === 'decided'
+  const tab = decidedView ? null : view
   const openId = parseItemId(params.get('id'))
   const data = useHqView('review?status=all&limit=200', normalizeReview, { visible: 15_000, hidden: 60_000 })
   const { mutate } = data
@@ -72,14 +77,14 @@ function ApprovalsPageInner() {
   const [toast, setToast] = useState<ToastMessage | null>(null)
   const notify = useCallback((text: string, tone: ToastMessage['tone'] = 'info') => setToast({ id: Date.now() + Math.random(), text, tone }), [])
   const closeToast = useCallback(() => setToast(null), [])
-  const [showDecided, setShowDecided] = useState(false)
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set())
   const [open, setOpen] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
   const items = useMemo(() => data.view?.items ?? [], [data.view])
   const counts = useMemo(() => tabCounts(items), [items])
-  const list = useMemo(() => tabItems(items, tab, showDecided), [items, tab, showDecided])
+  const list = useMemo(() => (tab ? tabItems(items, tab, false) : decidedItems(items)), [items, tab])
+  const decidedCount = useMemo(() => decidedItems(items).length, [items])
   const sel = useMemo(() => pruneSelection(selected, list), [selected, list])
   const selectable = list.filter((it) => batchable(it, 'approve') || batchable(it, 'reject'))
 
@@ -90,15 +95,15 @@ function ApprovalsPageInner() {
 
   // Tab and item are in the URL; history.* keeps the page mounted and Next reads it back through useSearchParams.
   const go = (href: string, push: boolean) => (push ? window.history.pushState(null, '', href) : window.history.replaceState(null, '', href))
-  const switchTab = (t: ApprovalTab) => {
+  const switchTab = (t: ApprovalView) => {
     go(approvalsHrefFor({ tab: t }), false)
     setSelected(new Set())
     setOpen(null)
   }
-  const openReader = (id: string) => go(approvalsHrefFor({ tab: params.get('tab') ? tab : tabOf(items.find((i) => i.id === id) ?? { kind: '' }), id }), true)
+  const openReader = (id: string) => go(approvalsHrefFor({ tab: params.get('tab') ? view : tabOf(items.find((i) => i.id === id) ?? { kind: '' }), id }), true)
   const closeReader = () => {
     const it = items.find((i) => i.id === openId)
-    go(approvalsHrefFor({ tab: params.get('tab') ? tab : it ? tabOf(it) : tab }), true)
+    go(approvalsHrefFor({ tab: params.get('tab') ? view : it ? tabOf(it) : tab }), true)
   }
   const toggle = (id: string) => {
     const next = new Set(sel)
@@ -134,7 +139,7 @@ function ApprovalsPageInner() {
     if (busy) return
     const plan = planBatch(list, sel, action)
     if (!plan.ids.length) return notify('Nothing in the selection can be decided in a batch', 'error')
-    if (!(await ask(batchQuestion(tab, action, plan.ids.length), { yes: action === 'approve' ? 'Approve' : 'Reject', danger: action === 'reject' }))) return
+    if (!(await ask(batchQuestion(tab ?? 'documents', action, plan.ids.length), { yes: action === 'approve' ? 'Approve' : 'Reject', danger: action === 'reject' }))) return
     setBusy(true)
     let done = 0
     let failed = 0
@@ -161,59 +166,47 @@ function ApprovalsPageInner() {
   if (openId) {
     return (
       <div className="absolute inset-0 flex flex-col bg-bg text-fg" data-approvals-reader>
-        <ReviewPage initialId={openId} onBack={closeReader} onSelect={(id) => go(approvalsHrefFor({ tab: params.get('tab') ? tab : null, id }), false)} />
+        <ReviewPage initialId={openId} onBack={closeReader} onSelect={(id) => go(approvalsHrefFor({ tab: params.get('tab') ? view : null, id }), false)} />
       </div>
     )
   }
 
   return (
     <div className="absolute inset-0 flex flex-col bg-bg text-fg">
-      <PageHeader
-        title="Approvals"
-        hint="Waiting for your decision"
-        actions={
-          <label className="flex min-h-9 shrink-0 cursor-pointer items-center gap-2 text-callout text-muted">
-            <input type="checkbox" checked={showDecided} onChange={(e) => setShowDecided(e.target.checked)} className="size-4 accent-[var(--color-accent)]" />
-            Decided
-          </label>
-        }
-      >
-        <nav aria-label="Approvals sections" className="-mx-3 flex gap-1.5 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:px-0">
-          {APPROVAL_TABS.map((t) => (
-            <button key={t} type="button" aria-pressed={tab === t} onClick={() => switchTab(t)} className={filterPill(tab === t)}>
-              {TAB_LABEL[t]}
-              <span className="text-xs tabular-nums text-faint" aria-label={`Waiting for a decision: ${counts[t]}`}>{counts[t]}</span>
-            </button>
-          ))}
-        </nav>
+      <PageHeader title="Approvals" hint="Waiting for your decision">
+        <Segmented
+          as="nav"
+          label="Approvals sections"
+          value={view}
+          onChange={switchTab}
+          className="max-w-full overflow-x-auto [scrollbar-width:none]"
+          items={[
+            ...APPROVAL_TABS.map((t) => ({ key: t as ApprovalView, label: TAB_LABEL[t], count: counts[t], countLabel: `Waiting for a decision: ${counts[t]}` })),
+            { key: 'decided' as ApprovalView, label: 'Decided', count: decidedCount, countLabel: `Decided: ${decidedCount}` },
+          ]}
+        />
       </PageHeader>
 
-      <div className="flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1 border-b border-b-hairline border-line px-4 py-1.5 sm:px-6" role="toolbar" aria-label="Batch decisions">
-        <label className="flex min-h-9 cursor-pointer items-center gap-2 text-callout">
-          <input
-            type="checkbox"
-            checked={allSelected}
-            disabled={!selectable.length}
-            onChange={() => setSelected(allSelected ? new Set() : new Set(selectable.map((it) => it.id)))}
-            className="size-4 accent-[var(--color-accent)]"
-          />
-          Select all
-        </label>
-        <span className="text-footnote tabular-nums text-muted" aria-live="polite">Selected: {sel.size}</span>
-        <div className="ml-auto flex gap-2">
-          <button type="button" className={cn(btnPrimary, 'min-h-9')} disabled={busy || !sel.size} onClick={() => void decideBatch('approve')}>
-            <CheckCircle size={16} aria-hidden="true" />
-            Approve selected
-          </button>
-          <button type="button" className={cn(btnDanger, 'min-h-9')} disabled={busy || !sel.size} onClick={() => void decideBatch('reject')}>Reject selected</button>
+      {selectable.length ? (
+        <div className="flex min-h-11 items-center gap-x-3 border-b border-b-hairline border-line px-4 py-1 sm:px-6" role="toolbar" aria-label="Selection">
+          <label className="flex min-h-9 cursor-pointer items-center gap-2 text-callout">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={() => setSelected(allSelected ? new Set() : new Set(selectable.map((it) => it.id)))}
+              className="size-4 accent-[var(--color-accent)]"
+            />
+            Select all
+          </label>
+          <span className="text-footnote tabular-nums text-muted" aria-live="polite">Selected: {sel.size}</span>
         </div>
-      </div>
+      ) : null}
 
       <main className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6">
         {!data.view && data.error ? <Offline error={errText(data.error)} onRetry={data.reload} /> : null}
         {!data.view && !data.error ? <Loading rows={4} /> : null}
-        {data.view && !list.length ? <Empty>No material waiting for a decision in {TAB_LABEL[tab]}.</Empty> : null}
-        <ul aria-label={`Queue ${TAB_LABEL[tab]}`} className={cn('grid divide-y divide-line overflow-hidden rounded-card border border-hairline border-line bg-surface', !list.length && 'hidden')}>
+        {data.view && !list.length ? <Empty>{tab ? `Nothing waiting in ${TAB_LABEL[tab]}. New material from the departments lands here.` : 'Nothing decided yet. Approved and rejected material is listed here.'}</Empty> : null}
+        <ul aria-label={tab ? `Queue ${TAB_LABEL[tab]}` : 'Decided'} className={cn('grid divide-y divide-line overflow-hidden rounded-card border border-hairline border-line bg-surface', !list.length && 'hidden')}>
           {list.map((it) => (
             <Row
               key={it.id}
@@ -233,6 +226,27 @@ function ApprovalsPageInner() {
           ))}
         </ul>
       </main>
+      {sel.size ? (
+        <motion.div
+          key="batch"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
+          role="toolbar"
+          aria-label="Batch decisions"
+          data-batch-bar
+          className="material-thick z-10 flex min-h-14 shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-t-hairline border-line px-4 py-2 sm:px-6"
+        >
+          <span className="text-callout tabular-nums"><span className="font-medium">{sel.size}</span> <span className="text-muted">selected</span></span>
+          <div className="ml-auto flex gap-2">
+            <button type="button" className={btnDanger} disabled={busy} onClick={() => void decideBatch('reject')}>Reject selected</button>
+            <button type="button" className={btnPrimary} disabled={busy} onClick={() => void decideBatch('approve')}>
+              <CheckCircle size={16} aria-hidden="true" />
+              Approve selected
+            </button>
+          </div>
+        </motion.div>
+      ) : null}
       <Toast message={toast} onClose={closeToast} />
       {dialog}
     </div>
@@ -273,7 +287,7 @@ function Row({
   const canBatch = batchable(item, 'approve') || batchable(item, 'reject')
   const Caret = expanded ? CaretDown : CaretRight
   return (
-    <li className={cn('transition-colors', checked && 'bg-accent/8', !pending && 'opacity-70')}>
+    <li data-approval-row={item.id} className={cn('transition-colors duration-150', checked && 'bg-accent/5 ring-1 ring-inset ring-accent/40', !pending && 'opacity-70')}>
       <div className="flex items-center gap-2.5 px-3 py-1.5 sm:px-4">
         <input
           type="checkbox"
@@ -294,7 +308,7 @@ function Row({
           </span>
         </button>
         {pending && item.actions.includes('approve') ? (
-          <button type="button" className={cn(btn, 'hidden sm:inline-flex')} disabled={busy} onClick={() => onDecide('approve')}>Approve</button>
+          <button type="button" className={cn(btnPrimary, 'min-h-9 px-3.5 max-sm:hidden')} disabled={busy} onClick={() => onDecide('approve')}>Approve</button>
         ) : null}
       </div>
       {expanded ? <Detail item={item} onOpenReader={onOpenReader} busy={busy} onDecide={onDecide} call={call} notify={notify} setBusy={setBusy} mutate={mutate} /> : null}

@@ -7,7 +7,8 @@ import { errText, hq, POLL_HIDDEN, POLL_VISIBLE } from '@/components/admin/contr
 import { Pending } from '@/components/ui/pending'
 import type { ToastMessage } from '@/components/admin/control/toast'
 import { admin } from '@/content/admin'
-import { btnPrimary, filterPill, cn } from '@/components/admin/kit'
+import { btnPrimary, cn } from '@/components/admin/kit'
+import { Segmented } from '@/components/admin/segmented'
 import { fade, spring } from '@/lib/motion'
 import { useReducedMotion } from '@/lib/use-reduced-motion'
 
@@ -276,7 +277,7 @@ export const typingIn = (target: EventTarget | null) => {
   return el.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(el.tagName)
 }
 
-// Tabs inside a panel (filters, sub views): a row of pills with arrow keys.
+// Filters and sub views inside a panel: the shared quiet segmented control.
 export function Pills<K extends string>({
   label,
   items,
@@ -288,16 +289,7 @@ export function Pills<K extends string>({
   value: K
   onChange: (key: K) => void
 }) {
-  return (
-    <div className="flex flex-wrap gap-1.5" role="group" aria-label={label}>
-      {items.map((c) => (
-        <button key={c.key} type="button" aria-pressed={value === c.key} onClick={() => onChange(c.key)} className={filterPill(value === c.key, 'sm')}>
-          {c.label}
-          {c.count !== undefined ? <span className="text-xs tabular-nums text-faint">{c.count}</span> : null}
-        </button>
-      ))}
-    </div>
-  )
+  return <Segmented label={label} items={items} value={value} onChange={onChange} />
 }
 
 export { btn, btnPrimary, btnDanger, inputClass } from '@/components/admin/kit'

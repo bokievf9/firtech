@@ -50,7 +50,14 @@ export const APPROVALS_CHANGED = 'fir:approvals-changed'
 // `?tab=` and `?id=` of /admin/approvals: anything else falls back (the first tab, no item open).
 export const parseTab = (v: unknown): ApprovalTab => (APPROVAL_TABS as readonly string[]).includes(v as string) ? (v as ApprovalTab) : 'documents'
 export const parseItemId = (v: unknown): string | null => (typeof v === 'string' && /^ap_\d{1,12}$/.test(v) ? v : null)
-export const approvalsHrefFor = (opts: { tab?: ApprovalTab | null; id?: string | null } = {}): string => {
+// The five segments of the Approvals page: the four queues and «Decided» (everything already decided), last.
+export const APPROVAL_VIEWS = [...APPROVAL_TABS, 'decided'] as const
+export type ApprovalView = (typeof APPROVAL_VIEWS)[number]
+export const parseView = (v: unknown): ApprovalView => ((APPROVAL_VIEWS as readonly string[]).includes(v as string) ? (v as ApprovalView) : 'documents')
+// Decided items of every queue, in HQ order.
+export const decidedItems = (items: ReviewItem[]): ReviewItem[] => items.filter((it) => !isPending(it))
+
+export const approvalsHrefFor = (opts: { tab?: ApprovalView | null; id?: string | null } = {}): string => {
   const p = new URLSearchParams()
   if (opts.tab && opts.tab !== 'documents') p.set('tab', opts.tab)
   const id = parseItemId(opts.id)

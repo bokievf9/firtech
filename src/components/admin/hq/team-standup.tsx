@@ -28,7 +28,7 @@ export function StandupInbox() {
   if (!view || !view.entries.length) return null
   const shown = view.entries.slice(0, 4)
   return (
-    <section aria-label="Morning standup" className="mx-3 mt-3 grid gap-2 rounded-2xl border border-line bg-surface p-3 sm:mx-4" data-standup-inbox>
+    <section aria-label="Morning standup" className="mx-4 mt-4 grid gap-2 rounded-card border border-hairline border-line bg-surface p-3 sm:mx-6" data-standup-inbox>
       <div className="flex flex-wrap items-baseline gap-x-3">
         <h2 className="text-sm font-medium">Morning standup</h2>
         <span className="text-xs text-faint">{longDate(view.date)}</span>
