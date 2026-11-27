@@ -35,12 +35,12 @@ import { siteUrl } from '@/lib/site'
 
 // Bento of the six offers: 7+5, 4+4+4, then the whole company across. Under 768 px one column.
 const spans: Record<AiTeamId, string> = {
-  marketing: 'lg:col-span-7',
-  sales: 'lg:col-span-5',
-  support: 'lg:col-span-4',
-  production: 'lg:col-span-4',
-  backoffice: 'lg:col-span-4',
-  company: 'md:col-span-2 lg:col-span-12',
+  marketing: 'lg:col-span-7 3xl:col-span-1',
+  sales: 'lg:col-span-5 3xl:col-span-1',
+  support: 'lg:col-span-4 3xl:col-span-1',
+  production: 'lg:col-span-4 3xl:col-span-1',
+  backoffice: 'lg:col-span-4 3xl:col-span-2',
+  company: 'md:col-span-2 lg:col-span-12 3xl:col-span-2',
 }
 
 const flowIcons = [PaperPlaneTilt, UserCheck, ShieldCheck]
@@ -103,7 +103,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
       <JsonLd data={list} />
       <JsonLd data={agentList} />
 
-      <section data-tour="top" className="mx-auto grid max-w-7xl items-center gap-12 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12">
+      <section data-tour="top" className="mx-auto grid site-container items-center gap-12 pt-32 pb-16 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-7">
           <p className="text-footnote font-medium text-accent-text">{t.eyebrow}</p>
           <h1 className="mt-4 max-w-[16ch] font-display text-display text-balance">{t.title}</h1>
@@ -166,7 +166,7 @@ export default async function AiTeamPage({ params }: PageProps<'/[locale]/ai-tea
 
       <Section id="teams" data-tour="teams">
         <SectionHeader title={t.deptsTitle} />
-        <ul className="mt-12 grid gap-gutter md:grid-cols-2 lg:grid-cols-12">
+        <ul className="mt-12 grid gap-gutter md:grid-cols-2 lg:grid-cols-12 3xl:grid-cols-4">
           {aiTeamIds.map((id, i) => {
             const item = t.items[id]
             const price = teamPrice(id, pricing) ?? companyPlanOf(pricing)

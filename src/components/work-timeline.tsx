@@ -14,7 +14,7 @@ export function WorkTimeline({ dict, locale }: { dict: Dict; locale: Locale }) {
   const w = dict.work
   const steps = dict.process.steps
   return (
-    <section id="process" className="mx-auto max-w-7xl px-4 py-section md:px-8">
+    <section id="process" className="mx-auto site-container py-section">
       <SectionHeader title={w.title} lead={w.sub} />
       {/* v4: a timeline, not four equal cards. A hairline runs through the step icons (across on lg,
           down the left edge on phones), so the order reads before the words. */}

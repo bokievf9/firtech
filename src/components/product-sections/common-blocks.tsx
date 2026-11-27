@@ -48,7 +48,7 @@ export function ProductHero({ ctx }: Props) {
     </Link>
   )
   return (
-    <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-20 md:px-8 md:pt-40 lg:grid-cols-12" data-product-section="hero">
+    <section className="mx-auto grid site-container items-end gap-12 pt-32 pb-20 md:pt-40 lg:grid-cols-12" data-product-section="hero">
       <HeroIntro className="lg:col-span-8">
         <Link href={`/${locale}#products`} className="inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-fg">
           <ArrowLeft size={14} aria-hidden="true" />
@@ -187,7 +187,7 @@ function Lines({ lines, yes }: { lines: string[]; yes: boolean }) {
 function TwoColumns({ id, left, right, band }: { id: string; left: [string, string[]]; right: [string, string[]]; band?: boolean }) {
   return (
     <section id={id} data-product-section={id} data-tour={id} className={cn(band && 'border-y border-line bg-surface/40')}>
-      <div className="mx-auto grid max-w-7xl gap-x-gutter gap-y-12 px-4 py-section md:grid-cols-2 md:px-8">
+      <div className="mx-auto grid site-container gap-x-gutter gap-y-12 py-section md:grid-cols-2">
         <Reveal>
           <h2 className="font-display text-2xl font-semibold tracking-tight md:text-3xl">{left[0]}</h2>
           <Lines lines={left[1]} yes />

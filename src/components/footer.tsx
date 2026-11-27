@@ -50,7 +50,7 @@ export function Footer({
 
   return (
     <footer className="print-hidden relative overflow-hidden border-t border-t-hairline border-line">
-      <div data-fira-react="cta" className="mx-auto flex max-w-7xl flex-col items-start gap-8 px-4 pt-20 pb-16 md:flex-row md:items-end md:justify-between md:px-8 md:pt-28">
+      <div data-fira-react="cta" className="mx-auto flex site-container flex-col items-start gap-8 pt-20 pb-16 md:flex-row md:items-end md:justify-between md:pt-28">
         <p className="max-w-[16ch] font-display text-title font-semibold">{f.ctaTitle}</p>
         <div className="flex flex-col items-start gap-4 md:items-end">
           <div className="flex flex-col gap-3 sm:flex-row">
@@ -86,7 +86,7 @@ export function Footer({
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-12 border-t border-t-hairline border-line px-4 py-16 md:grid-cols-12 md:px-8">
+      <div className="mx-auto grid site-container gap-12 border-t border-t-hairline border-line py-16 md:grid-cols-12">
         <div className="md:col-span-12 lg:col-span-2">
           <Logo />
           <p className="mt-5 max-w-[34ch] text-footnote text-muted">{f.tagline}</p>
@@ -133,7 +133,7 @@ export function Footer({
         ))}
       </div>
 
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 border-t border-t-hairline border-line px-4 py-6 text-caption text-faint sm:flex-row sm:items-center sm:justify-between md:px-8">
+      <div className="mx-auto flex site-container flex-col gap-3 border-t border-t-hairline border-line py-6 text-caption text-faint sm:flex-row sm:items-center sm:justify-between">
         <p>
           © {new Date().getFullYear()} Fir Tech. {f.rights}
         </p>

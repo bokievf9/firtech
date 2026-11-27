@@ -19,25 +19,25 @@ import { productIcons } from './product-icons'
 // Bento of the seven products (#products). lg: 12 columns, the two flagships first as 6+6 (owner
 // 2026-11-22), then 4+4+4 and 6+6. Each card's demo replays on hover and focus.
 const spans: Record<ProductId, string> = {
-  personal: 'lg:col-span-6',
-  company: 'lg:col-span-6',
-  admin: 'lg:col-span-4',
-  receptionist: 'lg:col-span-4',
-  automation: 'lg:col-span-4',
-  content: 'lg:col-span-6',
-  miniapp: 'lg:col-span-6',
+  personal: 'lg:col-span-6 3xl:col-span-2',
+  company: 'lg:col-span-6 3xl:col-span-1',
+  admin: 'lg:col-span-4 3xl:col-span-1',
+  receptionist: 'lg:col-span-4 3xl:col-span-1',
+  automation: 'lg:col-span-4 3xl:col-span-1',
+  content: 'lg:col-span-6 3xl:col-span-1',
+  miniapp: 'lg:col-span-6 3xl:col-span-1',
 }
 
 export async function ProductsBento({ locale, dict }: { locale: Locale; dict: Dict }) {
   const t = dict.products
   const pricing = await getPricing()
   return (
-    <section id="products" className="relative mx-auto max-w-7xl px-4 py-section md:px-8">
+    <section id="products" className="relative mx-auto site-container py-section">
       {/* Old links to /#services land here. */}
       <span id="services" className="absolute -top-24" aria-hidden="true" />
       <SectionHeader title={t.title} lead={t.sub} />
 
-      <ul className="mt-14 grid gap-gutter md:grid-cols-2 lg:grid-cols-12">
+      <ul className="mt-14 grid gap-gutter md:grid-cols-2 lg:grid-cols-12 3xl:grid-cols-4">
         {productIds.map((id, i) => (
           <li key={id} id={productAnchor(id)} className={cn('scroll-mt-28', spans[id])}>
             <Reveal className="h-full" delay={(i % 3) * 0.06}>

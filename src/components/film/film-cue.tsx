@@ -40,7 +40,7 @@ export function FilmSceneBlock({ scene, cue, children }: { scene: FilmScene; cue
   return (
     <div data-film-scene={scene.id} data-emotion={scene.emotion} className="film-scene relative">
       {cue ? (
-        <div className="film-cue-row relative z-10 mx-auto max-w-7xl px-4 md:px-8 -mb-[calc(var(--spacing-section)-2.5rem)]">
+        <div className="film-cue-row relative z-10 mx-auto site-container -mb-[calc(var(--spacing-section)-2.5rem)]">
           {cue}
         </div>
       ) : null}

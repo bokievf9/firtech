@@ -78,7 +78,7 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
     <>
       <JsonLd data={service} />
 
-      <section className="mx-auto grid max-w-7xl items-end gap-12 px-4 pt-32 pb-16 md:px-8 md:pt-40 lg:grid-cols-12">
+      <section className="mx-auto grid site-container items-end gap-12 pt-32 pb-16 md:pt-40 lg:grid-cols-12">
         <HeroIntro className="lg:col-span-7">
           <Link href={`/${locale}/ai-team`} className="inline-flex items-center gap-2 text-callout text-muted transition-colors hover:text-fg">
             <ArrowLeft size={14} aria-hidden="true" />
@@ -186,7 +186,7 @@ export default async function AiTeamOfferPage({ params }: PageProps<'/[locale]/a
         </Reveal>
       </Section>
 
-      <nav className="mx-auto max-w-7xl px-4 pb-24 md:px-8" aria-label={t.page.othersTitle}>
+      <nav className="mx-auto site-container pb-24" aria-label={t.page.othersTitle}>
         <h2 className="text-headline font-semibold">{t.page.othersTitle}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {aiTeamIds

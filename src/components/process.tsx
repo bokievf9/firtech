@@ -17,7 +17,7 @@ export function Process({ dict }: { dict: Dict }) {
   const progress = useSpring(scrollYProgress, { stiffness: 100, damping: 20 })
 
   return (
-    <section id="process" className="mx-auto max-w-7xl px-4 py-24 md:px-8 md:py-36">
+    <section id="process" className="mx-auto site-container py-24 md:py-36">
       <RiseText
         text={dict.process.title}
         className="text-4xl font-semibold tracking-[-0.035em] md:text-6xl"

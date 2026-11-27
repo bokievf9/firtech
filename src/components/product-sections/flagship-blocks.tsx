@@ -199,7 +199,7 @@ export function PilotBlock({ ctx, band }: { ctx: ProductSectionContext } & Band)
   const t = ctx.guarantee.pilot
   return (
     <section id="pilot" data-product-section="pilot" data-tour="pilot" className={cn(band && 'border-y border-line bg-surface/40')}>
-      <div className="mx-auto max-w-7xl px-4 py-section md:px-8">
+      <div className="mx-auto site-container py-section">
         <Reveal>
           <div className={cn('grid gap-8 rounded-card border p-6 md:p-10 lg:grid-cols-12 lg:items-center', lime)}>
             <div className="lg:col-span-8">

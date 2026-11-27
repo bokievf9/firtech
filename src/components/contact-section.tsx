@@ -18,7 +18,7 @@ export function ContactSection({
   return (
     <section
       id="contact"
-      className="mx-auto grid max-w-7xl gap-12 px-4 py-24 md:px-8 md:py-36 lg:grid-cols-12"
+      className="mx-auto grid site-container gap-12 py-24 md:py-36 lg:grid-cols-12"
     >
       <div className="lg:col-span-4">
         <RiseText

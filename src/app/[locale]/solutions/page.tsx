@@ -63,7 +63,7 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
   return (
     <>
       <JsonLd data={list} />
-      <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
+      <section className="mx-auto site-container pt-32 pb-12 md:pt-40 md:pb-16">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
           <h1 className="mt-5 max-w-[16ch] text-[2.6rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
@@ -73,7 +73,7 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
         </HeroIntro>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-14 px-4 pb-24 md:px-8">
+      <section className="mx-auto grid site-container gap-14 pb-24">
         {kindsByCategory.map((group) => {
           const kinds = group.kinds.filter((k): k is SolutionKind => k !== 'other')
           if (!kinds.length) return null
@@ -82,7 +82,7 @@ export default async function SolutionsPage({ params }: PageProps<'/[locale]/sol
               <h2 className="mb-5 text-sm tracking-[0.12em] text-faint uppercase">
                 {pick(categoryNames[group.category], locale)}
               </h2>
-              <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
                 {kinds.map((kind, i) => {
                   const copy = solutionCopy(kind, locale, dict, pricing)
                   return (

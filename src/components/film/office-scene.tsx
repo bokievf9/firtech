@@ -13,7 +13,7 @@ import { Badge } from '../ui/badge'
 export function OfficeScene({ dict, locale }: { dict: Dict; locale: Locale }) {
   const t = dict.film.office
   return (
-    <section id="office" className="relative isolate mx-auto max-w-7xl scroll-mt-20 px-4 py-section md:px-8">
+    <section id="office" className="relative isolate mx-auto site-container scroll-mt-20 py-section">
       <div className="grid gap-10 lg:grid-cols-12 lg:items-start lg:gap-12">
         <Reveal className="lg:col-span-5">
           <h2 className="max-w-[18ch] font-display text-title font-semibold">{t.title}</h2>

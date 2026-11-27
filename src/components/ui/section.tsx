@@ -7,7 +7,7 @@ import { Reveal } from '../reveal'
 // sections that draw their own full-width background.
 export function Section({ className, bleed = false, children, ...rest }: { bleed?: boolean } & ComponentPropsWithoutRef<'section'>) {
   return (
-    <section className={cn('relative scroll-mt-24 py-section', !bleed && 'mx-auto max-w-7xl px-4 md:px-8', className)} {...rest}>
+    <section className={cn('relative scroll-mt-24 py-section', !bleed && 'mx-auto site-container', className)} {...rest}>
       {children}
     </section>
   )

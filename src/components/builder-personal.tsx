@@ -141,7 +141,7 @@ export function PersonalStep({
   if (step === 1)
     return (
       <div className="grid gap-12">
-      <Cards cols="sm:grid-cols-2 lg:grid-cols-3">
+      <Cards cols="sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
         {personalHand.map((id) => {
           const on = Boolean(p.hand?.includes(id))
           return (
@@ -161,7 +161,7 @@ export function PersonalStep({
 
   if (step === 2)
     return (
-      <Cards cols="sm:grid-cols-2 lg:grid-cols-3">
+      <Cards cols="sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
         {personalChannels.filter(isPublicChannel).map((id) => {
           const Glyph = channelIcons[id]
           const on = Boolean(p.where?.includes(id))

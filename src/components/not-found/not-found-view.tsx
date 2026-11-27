@@ -20,7 +20,7 @@ export function NotFoundView({ locale, withChat = true }: { locale: Locale; with
   const links = notFoundLinks(locale)
 
   return (
-    <section data-not-found className="relative isolate mx-auto flex min-h-[100dvh] max-w-7xl flex-col justify-center overflow-hidden px-4 pt-28 pb-20 md:px-8">
+    <section data-not-found className="relative isolate mx-auto flex min-h-[100dvh] site-container flex-col justify-center overflow-hidden pt-28 pb-20">
       <div
         aria-hidden="true"
         className="hero-aurora pointer-events-none absolute inset-0 -z-10 [mask-image:radial-gradient(70%_70%_at_60%_40%,black,transparent)]"

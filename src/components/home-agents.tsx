@@ -53,7 +53,7 @@ export async function HomeAgents({ locale, dict }: { locale: Locale; dict: Dict 
   )
 
   return (
-    <section id="agents" data-home-agents className="relative mx-auto max-w-7xl px-4 py-section md:px-8">
+    <section id="agents" data-home-agents className="relative mx-auto site-container py-section">
       <JsonLd data={list} />
       <SectionHeader title={t.title} lead={t.sub} />
 

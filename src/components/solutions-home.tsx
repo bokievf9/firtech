@@ -32,10 +32,10 @@ export async function SolutionsHome({ dict, locale }: { dict: Dict; locale: Loca
   const t = dict.solutionsHome
   const pricing = await getPricing()
   return (
-    <section id="solutions" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-section md:px-8">
+    <section id="solutions" className="mx-auto site-container scroll-mt-24 py-section">
       <SectionHeader title={t.title} lead={t.sub} />
 
-      <ul className="mt-12 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
+      <ul className="mt-12 grid gap-gutter sm:grid-cols-2 lg:grid-cols-3 3xl:grid-cols-4">
         {homeSolutionKinds.map((kind, i) => {
           const copy = solutionCopy(kind, locale, dict, pricing)
           const price = nichePrice(kind, pricing)

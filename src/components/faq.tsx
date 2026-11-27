@@ -20,7 +20,7 @@ export function Faq({
   return (
     <section
       id={id}
-      className="mx-auto grid max-w-7xl gap-10 px-4 py-24 md:px-8 md:py-36 lg:grid-cols-12"
+      className="mx-auto grid site-container gap-10 py-24 md:py-36 lg:grid-cols-12"
     >
       <RiseText
         text={title}

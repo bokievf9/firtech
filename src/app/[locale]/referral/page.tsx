@@ -48,7 +48,7 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
 
   return (
     <>
-      <section className="mx-auto max-w-7xl px-4 pt-32 pb-12 md:px-8 md:pt-40 md:pb-16">
+      <section className="mx-auto site-container pt-32 pb-12 md:pt-40 md:pb-16">
         <HeroIntro>
           <p className="font-mono text-xs tracking-[0.16em] text-accent-text uppercase">{t.eyebrow}</p>
           <h1 className="mt-5 max-w-[18ch] text-[2.4rem] leading-[1.05] font-semibold tracking-[-0.035em] text-balance md:text-6xl">
@@ -58,7 +58,7 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
         </HeroIntro>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-16 md:px-8">
+      <section className="mx-auto site-container pb-16">
         <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.stepsTitle}</h2>
         <ol className="mt-6 grid gap-4 md:grid-cols-3">
           {t.steps.map((step, i) => (
@@ -75,7 +75,7 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
         </ol>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-10 px-4 pb-16 md:px-8 lg:grid-cols-2">
+      <section className="mx-auto grid site-container gap-10 pb-16 lg:grid-cols-2">
         <div>
           <h2 className="font-display text-2xl font-semibold md:text-3xl">{t.rulesTitle}</h2>
           <ul className="mt-5 grid max-w-[60ch] gap-3 pl-5 leading-relaxed text-muted marker:text-accent-text [list-style:disc]">
@@ -87,7 +87,7 @@ export default async function ReferralPage({ params }: PageProps<'/[locale]/refe
         <ReferralLink dict={dict} locale={locale} origin={siteUrl} />
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-28 md:px-8">
+      <section className="mx-auto site-container pb-28">
         <div className="flex flex-col items-start gap-6 rounded-card border border-accent-text/30 p-6 md:flex-row md:items-center md:justify-between md:p-10">
           <p className="font-display text-2xl font-semibold md:text-3xl">{t.ctaTitle}</p>
           <div className="flex flex-wrap gap-3">
